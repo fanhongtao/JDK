@@ -1,5 +1,5 @@
 /*
- * @(#)ZipFile.java	1.40 01/11/29
+ * @(#)ZipFile.java	1.41 02/09/30
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,7 +19,7 @@ import java.security.AccessController;
 /**
  * This class is used to read entries from a zip file.
  *
- * @version	1.40, 11/29/01
+ * @version	1.41, 09/30/02
  * @author	David Connelly
  */
 public
@@ -268,14 +268,12 @@ class ZipFile implements ZipConstants {
     /*
      * Inner class implementing the input stream used to read a zip file entry.
      */
-   private static class ZipFileInputStream extends InputStream {
-	private long jzfile;	// address of jzfile data
+   private class ZipFileInputStream extends InputStream {
 	private long jzentry;	// address of jzentry data
 	private int pos;	// current position within entry data
 	private int rem;	// number of remaining bytes within entry
 
 	ZipFileInputStream(long jzfile, long jzentry) {
-	    this.jzfile = jzfile;
 	    this.jzentry = jzentry;
 	    pos = 0;
 	    rem = getCSize(jzentry);
@@ -291,7 +289,9 @@ class ZipFile implements ZipConstants {
 	    if (len > rem) {
 		len = rem;
 	    }
-	    len = ZipFile.read(jzfile, jzentry, pos, b, off, len);
+            if (ZipFile.this.jzfile == 0)
+                throw new ZipException("ZipFile closed.");
+            len = ZipFile.read(ZipFile.this.jzfile, jzentry, pos, b, off, len);
 	    if (len > 0) {
 		pos += len;
 		rem -= len;

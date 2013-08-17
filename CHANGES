@@ -2,11 +2,11 @@
 
                     Java(R) 2 SDK, Standard Edition
                      Java(R) 2 Runtime Environment
-                           JDK/JRE 1.2.2_013
+                           JDK/JRE 1.2.2_014
 
 
 This CHANGES file summarizes the changes between the FCS version of 
-JDK/JRE 1.2.2 and this patch version, JDK/JRE 1.2.2_013. For changes
+JDK/JRE 1.2.2 and this patch version, JDK/JRE 1.2.2_014. For changes
 in the Java platform since earlier releases, see the the
 following document on the Java Software web site:
 
@@ -17,13 +17,21 @@ following document on the Java Software web site:
 ----------------------------------------------------------------------
 INTRODUCTION
 -----------------------------------------------------------------------
-This is patch 013 of the 1.2.2 version of the Java Development
+This is patch 014 of the 1.2.2 version of the Java Development
 Kit. For each patch release of the 1.2.2 version, 
 it is the Java(R) 2 SDK Windows 95/98/2000/NT production release, and the 
 Solaris(tm) reference implementation of the Java 2 SDK source base.
 
 For the WIN32 production release, the Java(tm) Plug-in product 
 is included with the JRE 1.2.2 software.
+
+-----------------------------------------------------------------------
+BUGS FIXED IN PATCH JDK/JRE 1.2.2_014
+-----------------------------------------------------------------------
+
+4528128 - Corruption of jar/zip files should not crash VM
+
+4750641 - REGRESSION: Array.clone() broken in 1.4.1-b21
 
 -----------------------------------------------------------------------
 BUGS FIXED IN PATCH JDK/JRE 1.2.2_013
