@@ -1,15 +1,8 @@
 /*
- * @(#)File.java	1.53 98/10/06
+ * @(#)File.java	1.54 01/12/10
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -30,7 +23,7 @@ import java.util.Vector;
  * Note that whenever a filename or path is used it is
  * assumed that the host's file naming conventions are used.
  *
- * @version 1.53, 10/06/98
+ * @version 1.54, 12/10/01
  * @author  Arthur van Hoff
  * @author  Jonathan Payne
  * @since   JDK1.0

@@ -1,10 +1,10 @@
 /*
- * @(#)DecompositionIterator.java	1.18 97/12/05
+ * @(#)DecompositionIterator.java	1.19 01/12/10
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
  *
- * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -45,7 +45,7 @@ package java.text;
   * StringBuffer or Character.
   * @see        Collator
   * @see        RuleBasedCollator
-  * @version    1.18 12/05/97
+  * @version    1.19 12/10/01
   * @author     Mark Davis, Helena Shih
 */
 class DecompositionIterator {

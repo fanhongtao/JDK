@@ -1,15 +1,8 @@
 /*
- * @(#)Event.java	1.58 98/07/01
+ * @(#)Event.java	1.59 01/12/10
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -41,7 +34,7 @@ import java.io.*;
  * <code>Event</code> class (<code>PGUP</code>,  
  * <code>PGDN</code>, <code>F1</code>, <code>F2</code>, etc).
  *
- * @version 1.58 07/01/98
+ * @version 1.59 12/10/01
  * @author     Sami Shaio
  * @since      JDK1.0
  */

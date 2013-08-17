@@ -1,15 +1,8 @@
 /*
- * @(#)ContainerEvent.java	1.4 98/07/01
+ * @(#)ContainerEvent.java	1.5 01/12/10
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.event;
@@ -26,7 +19,7 @@ import java.awt.Component;
  *
  * @see ContainerListener
  *
- * @version 1.4 07/01/98
+ * @version 1.5 12/10/01
  * @author Tim Prinzing
  * @author Amy Fowler
  */

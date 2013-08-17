@@ -1,10 +1,10 @@
 /*
- * @(#)ParsePosition.java	1.6 97/02/06
+ * @(#)ParsePosition.java	1.7 01/12/10
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
  *
- * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -42,7 +42,7 @@ package java.text;
  * you can use the same <code>ParsePosition</code>, since the index parameter
  * records the current position.
  *
- * @version     1.6 02/06/97
+ * @version     1.7 12/10/01
  * @author      Mark Davis
  * @see         java.util.Format
  */

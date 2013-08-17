@@ -1,5 +1,12 @@
 /*
- * @(#)GregorianCalendar.java	1.40 99/03/08
+ * @(#)GregorianCalendar.java	1.41 01/12/10
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)GregorianCalendar.java	1.41 01/12/10
  *
  * (C) Copyright Taligent, Inc. 1996-1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1997 - All Rights Reserved
@@ -128,7 +135,7 @@ package java.util;
  *
  * @see          Calendar
  * @see          TimeZone
- * @version      1.40 03/08/99
+ * @version      1.41 12/10/01
  * @author       David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public class GregorianCalendar extends Calendar {

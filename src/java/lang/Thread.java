@@ -1,15 +1,8 @@
 /*
- * @(#)Thread.java	1.73 98/11/11
+ * @(#)Thread.java	1.74 01/12/10
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -98,7 +91,7 @@ package java.lang;
  * a thread is created, a new name is generated for it. 
  *
  * @author  unascribed
- * @version 1.73, 11/11/98
+ * @version 1.74, 12/10/01
  * @see     java.lang.Runnable
  * @see     java.lang.Runtime#exit(int)
  * @see     java.lang.Thread#run()

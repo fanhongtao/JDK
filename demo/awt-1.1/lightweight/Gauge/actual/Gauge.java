@@ -1,8 +1,8 @@
 /*
- * @(#)Gauge.java	1.1 98/07/18
+ * @(#)Gauge.java	1.2 01/12/10
  *
- * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
- *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package actual; 

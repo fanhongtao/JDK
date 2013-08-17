@@ -1,10 +1,10 @@
 /*
- * @(#)RuleBasedCollator.java	1.21 98/02/12
+ * @(#)RuleBasedCollator.java	1.22 01/12/10
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
  *
- * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -259,7 +259,7 @@ import java.io.IOException;
  *
  * @see        Collator
  * @see        CollationElementIterator
- * @version    1.21 02/12/98
+ * @version    1.22 12/10/01
  * @author     Helena Shih
  */
 public class RuleBasedCollator extends Collator{

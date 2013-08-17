@@ -1,10 +1,10 @@
  /*
- * @(#)DateFormatZoneData_en_IE.java	1.5 98/01/12
+ * @(#)DateFormatZoneData_en_IE.java	1.6 01/12/10
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
  *
- * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -49,7 +49,7 @@ import java.util.ListResourceBundle;
  * @see          LocaleElements
  * @see          SimpleDateFormat
  * @see          TimeZone
- * @version      1.5 01/12/98
+ * @version      1.6 12/10/01
  * @author       Chen-Lieh Huang
  */
 //  Ireland DateFormatZoneData

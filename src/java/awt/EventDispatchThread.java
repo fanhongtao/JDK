@@ -1,14 +1,8 @@
 /*
- * @(#)EventDispatchThread.java	1.21 01/01/22
+ * @(#)EventDispatchThread.java	1.22 01/12/10
  *
- * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -23,7 +17,7 @@ import java.awt.peer.ActiveEvent;
  * events off the EventQueue and dispatches them to the appropriate
  * AWT components.
  *
- * @version 1.21 01/22/01
+ * @version 1.22 12/10/01
  * @author Tom Ball
  * @author Amy Fowler
  */

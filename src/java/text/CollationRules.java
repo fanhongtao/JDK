@@ -1,10 +1,10 @@
 /*
- * @(#)CollationRules.java	1.16 98/07/07
+ * @(#)CollationRules.java	1.17 01/12/10
  *
  * (C) Copyright Taligent, Inc. 1996,1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
  *
- * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -36,7 +36,7 @@ package java.text;
  * so they do not have to contain accented characters, such as A-grave.
  * @see                RuleBasedCollator
  * @see                LocaleElements
- * @version            1.16 07/07/98
+ * @version            1.17 12/10/01
  * @author             Helena Shih, Mark Davis
  */
 final class CollationRules {

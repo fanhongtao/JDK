@@ -1,5 +1,12 @@
 /*
- * @(#)ListResourceBundle.java	1.8 98/01/12
+ * @(#)ListResourceBundle.java	1.9 01/12/10
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)ListResourceBundle.java	1.9 01/12/10
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved

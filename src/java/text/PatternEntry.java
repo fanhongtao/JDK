@@ -1,10 +1,10 @@
 /*
- * @(#)PatternEntry.java	1.16 97/10/28
+ * @(#)PatternEntry.java	1.17 01/12/10
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
  *
- * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -36,7 +36,7 @@ import java.lang.Character;
  * This is to be used with MergeCollation for adding patterns to an
  * existing rule table.
  * @see        MergeCollation
- * @version    1.16 10/28/97
+ * @version    1.17 12/10/01
  * @author     Mark Davis, Helena Shih
  */
 

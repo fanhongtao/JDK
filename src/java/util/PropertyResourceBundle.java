@@ -1,5 +1,12 @@
 /*
- * @(#)PropertyResourceBundle.java	1.8 97/12/05
+ * @(#)PropertyResourceBundle.java	1.9 01/12/10
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)PropertyResourceBundle.java	1.9 01/12/10
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved

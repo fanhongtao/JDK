@@ -1,10 +1,10 @@
 /*
- * @(#)ChoiceFormat.java	1.11 97/02/06
+ * @(#)ChoiceFormat.java	1.12 01/12/10
  *
  * (C) Copyright Taligent, Inc. 1996-1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1997 - All Rights Reserved
  *
- * Portions copyright (c) 1996-1997 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -102,7 +102,7 @@ import java.text.Utility;
  * </blockquote>
  * @see          DecimalFormat
  * @see          MessageFormat
- * @version      1.11 02/06/97
+ * @version      1.12 12/10/01
  * @author       Mark Davis
  */
 public class ChoiceFormat extends NumberFormat {

@@ -1,15 +1,8 @@
 /*
- * @(#)MenuBar.java	1.38 98/08/21
+ * @(#)MenuBar.java	1.39 01/12/10
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -42,7 +35,7 @@ import java.awt.event.KeyEvent;
  * that retrieve information about the shortcuts a given
  * menu bar is managing.
  *
- * @version 1.38, 08/21/98
+ * @version 1.39, 12/10/01
  * @author Sami Shaio
  * @see        java.awt.Frame
  * @see        java.awt.Frame#setMenuBar(java.awt.MenuBar)

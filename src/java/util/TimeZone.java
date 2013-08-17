@@ -1,5 +1,12 @@
 /*
- * @(#)TimeZone.java	1.29 99/01/25
+ * @(#)TimeZone.java	1.30 01/12/10
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)TimeZone.java	1.30 01/12/10
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -58,7 +65,7 @@ import java.io.Serializable;
  * @see          Calendar
  * @see          GregorianCalendar
  * @see          SimpleTimeZone
- * @version      1.29 01/25/99
+ * @version      1.30 12/10/01
  * @author       Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  */
 abstract public class TimeZone implements Serializable, Cloneable {

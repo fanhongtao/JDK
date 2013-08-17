@@ -1,15 +1,8 @@
 /*
- * @(#)VMID.java	1.9 98/10/09
+ * @(#)VMID.java	1.10 01/12/10
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.rmi.dgc;
@@ -23,7 +16,7 @@ import java.rmi.server.UID;
  * machines.  VMIDs are used by the distributed garbage collector
  * to identify client VMs.
  *
- * @version	1.9, 10/09/98
+ * @version	1.10, 12/10/01
  * @author	Ann Wollrath
  * @author	Peter Jones
  */

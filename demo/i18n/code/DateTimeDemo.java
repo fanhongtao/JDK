@@ -1,5 +1,12 @@
 /*
- * @(#)DateTimeDemo.java	 1.1 98/06/16
+ * @(#)DateTimeDemo.java	1.2 01/12/10
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)DateTimeDemo.java	 1.2 01/12/10
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved

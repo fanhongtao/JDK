@@ -1,4 +1,11 @@
-# @(#)Makefile	1.13 99/08/12 David Connelly
+#
+# @(#)Makefile	1.14 01/12/10
+#
+# Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+# SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+#
+
+# @(#)Makefile	1.14 01/12/10 David Connelly
 #
 # Standalone NMAKE makefile to build the programs 'jre.exe' and 'jrew.exe'
 # for launching Java runtime applications. The program 'jre.exe' can be

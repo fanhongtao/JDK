@@ -1,15 +1,8 @@
 /*
- * @(#)CardLayout.java	1.22 98/07/01
+ * @(#)CardLayout.java	1.23 01/12/10
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -31,7 +24,7 @@ import java.util.Enumeration;
  * method can be used to associate a string identifier with a given card
  * for fast random access.
  *
- * @version 	1.22 07/01/98
+ * @version 	1.23 12/10/01
  * @author 	Arthur van Hoff
  * @see         java.awt.Container
  * @since       JDK1.0

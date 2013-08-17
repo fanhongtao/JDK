@@ -1,15 +1,8 @@
 /*
- * @(#)Component.java	1.191 99/01/22
+ * @(#)Component.java	1.192 01/12/10
  *
- * Copyright 1995-1999 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -40,7 +33,7 @@ import sun.awt.im.InputContext;
  * lightweight component. A lightweight component is a component that is 
  * not associated with a native opaque window.
  *
- * @version 	1.191 99/01/22
+ * @version 	1.192 01/12/10
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  */

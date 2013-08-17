@@ -1,4 +1,11 @@
 /*
+ * @(#)Locale.java	1.32 01/12/10
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
  * @(#)Locale.java  1.21 97/01/29
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved

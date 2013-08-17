@@ -1,5 +1,12 @@
 /*
- * @(#)Calendar.java	1.37 01/01/22
+ * @(#)Calendar.java	1.38 01/12/10
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)Calendar.java	1.38 01/12/10
  *
  * (C) Copyright Taligent, Inc. 1996-1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1997 - All Rights Reserved

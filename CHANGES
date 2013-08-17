@@ -1,0 +1,173 @@
+                             CHANGES
+
+                    Java(tm) Development Kit
+                   JDK(tm) 1.1.8_009 Software
+                            
+This CHANGES file summarizes the changes between the FCS version of 
+JDK/JRE 1.1.8 and this patch version, JDK/JRE 1.1.8_009. For changes
+in the Java platform since earlier releases, see the 
+following document on the Java Software web site:
+
+       http://java.sun.com/products/jdk/1.1/changes.html
+                           
+                                                        
+-----------------------------------------------------------------------                                                                                                                                                                                                      
+INTRODUCTION
+-----------------------------------------------------------------------
+This is patch 009 of the 1.1.8 version of the Java Development
+Kit. This is the Win32 production implementation and the Solaris
+reference implementation from Java Software Division of Sun
+Microsystems. For full details about using the Java Development Kit,
+please read the original README that comes with the JDK1.1.8 Java
+Development Kit.
+
+-----------------------------------------------------------------------
+BUGS FIXED IN PATCH JDK1.1.8_009
+-----------------------------------------------------------------------
+Copyright changes for year 2002
+
+-----------------------------------------------------------------------
+BUGS FIXED IN PATCH JDK1.1.8_008
+-----------------------------------------------------------------------
+
+4401927 - jvm is dumping core in Garbage Collection
+
+-----------------------------------------------------------------------
+BUGS FIXED IN PATCH JDK1.1.8_007
+-----------------------------------------------------------------------
+
+4186663 - Pural PopupMenus appear at the same time
+
+4249798 - Memory leak in java plug-in
+
+4299636 - TLB*.tmp files not cleaned up in some cases 
+
+4297769 - java.lang.NullPointerException: null peer in 1.1.8_001, 1.1.8_002
+          worked OK in 1.1.8 FCS .
+
+4337029/
+4151449 - NT multiprocessor crash with threads & sockets: 
+          c0000005 (access violation)
+
+-----------------------------------------------------------------------
+BUGS FIXED IN PATCH JDK1.1.8_006
+-----------------------------------------------------------------------
+
+4390702 - jdk1.1.x jit crashes on Pentium 4 chips
+
+-----------------------------------------------------------------------
+BUGS FIXED IN PATCH JDK1.1.8_005
+-----------------------------------------------------------------------
+
+4177574 - problem with security manager check in ServerSocket accept()
+
+-----------------------------------------------------------------------
+BUGS FIXED IN PATCH JDK1.1.8_004
+-----------------------------------------------------------------------
+
+4326578 - Graphics#drawString() does not display Japanase characters,
+          remove fix of 4243202
+
+4328223 - Unable to invoke JRE 1.1.8_003 on a NT 4.0 system
+
+-----------------------------------------------------------------------
+BUGS FIXED IN PATCH JDK1.1.8_003
+-----------------------------------------------------------------------
+
+4069644 - java.lang.Error: Reaping an object with references
+
+4254589 - GregorianCalendar needs to specify behavior for leap year
+          add/roll
+
+4263613 - file.mkdirs() does not respect umask set in the environment
+
+4268405 - Build problem with JDK & libJdbcOdbc.so library
+
+4291440 - GPF generated when using Win 95/98 for Japan with IME and Java
+
+-----------------------------------------------------------------------
+BUGS FIXED IN PATCH JDK1.1.8_002
+-----------------------------------------------------------------------
+
+4251188 - File Descriptor Handles are Inheritable by child processes
+
+4251454 - Redirection not possible with Runtime.exec()
+
+4251646 - OutputStreamWriter outputs illegal characters 
+          with JIS encoding.
+
+4245490 - (1.1)Error in java.exe when using WebLogic EJB compiler.
+
+-----------------------------------------------------------------------
+BUGS FIXED IN PATCH JDK1.1.8_001
+-----------------------------------------------------------------------
+
+4192193 - Modal Dialog : Visual basic hangs when a bean creates a modal 
+          dialog.
+         
+4218471 - No repaint on win32 when print dialog displayed.
+
+4186369 - (1.1) change 32K string table limit to 64K.
+
+4193888 - Jvm process died when repeat loading an applet.
+
+4031571 - Multiple threads using jdbc-odbc bridge hang on query w/ 
+          exclusive lock.
+         
+4212283 - Exception ignored in while debugging class loaded by custom 
+          loader.
+         
+4129511 - Win32: There are 5 pixels before and after the text displayed 
+          in a TextField.
+         
+4117151 - ColorModel pData memory leak in JDK 1.1.x win32.
+
+4187432 - EnableModeless(false) does not prevent modeless dialogs.
+
+4197666 - Socket descriptors leak into processes spawned by Java programs 
+          on window.
+          
+4224808 - AWT deadlock on dual processor machine.
+
+4225955 - Resizing dialogs.
+
+4232374 - Modal Dialogs Cause Enabled-States to be Reset.
+
+4233230 - (1.1) In 1.1.8 *** panic: 16-bit string hash table overflow.
+
+4234356 - Large strings being truncated.
+
+4234316 - JdbcOdbc, level 3.0 '...StoresMixedCase...' returns incorrect 
+          values.
+         
+4234318 - JdbcOdbc 3.0 incorrect column names.
+
+4233976 - ResultSet not closing.
+
+4243202 - Graphics fails to use "Terminal" font, but other AWT components 
+          can.
+          
+4250595 - Java performance issue on Solaris.
+
+-----------------------------------------------------------------------
+PROBLEM REPORTING
+-----------------------------------------------------------------------
+
+If a problem is found with this update release, 
+please report it in detail to the Sun Support Engineer who handles your
+account. The Sun Support Engineer will relay the reported problem
+to the Sustaining Engineering group responsible for the release.
+
+If you have downloaded this update release from http://java.sun.com, 
+and you would like to report bugs or feature requests,
+please go to this web page:
+
+     http://java.sun.com/cgi-bin/bugreport.cgi
+
+
+-----------------------------------------------------------------------
+Copyright (C) 1996-2002 Sun Microsystems, Inc.
+901 San Antonio Rd., Palo Alto, CA 94303 USA
+All rights reserved.
+
+

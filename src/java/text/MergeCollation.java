@@ -1,10 +1,10 @@
 /*
- * @(#)MergeCollation.java	1.10 97/12/05
+ * @(#)MergeCollation.java	1.11 01/12/10
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
  *
- * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 2002 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -48,7 +48,7 @@ import java.util.Vector;
  * "a < b < d & b < c"
  * XXX: make '' be a single quote.
  * @see PatternEntry
- * @version    1.10 12/05/97
+ * @version    1.11 12/10/01
  * @author             Mark Davis, Helena Shih
  */
 
