@@ -29,7 +29,7 @@ import java.io.*;
  *
  * @author  Arthur van Hoff
  * @author  Michael McCloskey
- * @version 1.40, 03/06/16
+ * @version 1.40, 03/09/04
  * @since   JDK1.0
  */
 public class BitSet implements Cloneable, java.io.Serializable {

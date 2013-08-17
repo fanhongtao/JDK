@@ -1,7 +1,7 @@
 /*
- * @(#)InetAddress.java	1.68 01/11/29
+ * @(#)InetAddress.java	1.70 03/09/04
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -287,9 +287,9 @@ class InetAddress implements java.io.Serializable {
 	long expiration;
     }
 
-    private static void cacheAddress(String hostname, Object address) {
+    private static void cacheAddress(String hostname, Object address, boolean success) {
       // if the cache policy is to cache nothing, just return
-      int policy = InetAddressCachePolicy.get();
+      int policy = (success ? InetAddressCachePolicy.get() :InetAddressCachePolicy.getNegative());
       if (policy == 0) {
 	return;
       }
@@ -316,7 +316,7 @@ class InetAddress implements java.io.Serializable {
 
     private static Object getCachedAddress(String hostname) {
         hostname = hostname.toLowerCase();
-	if (InetAddressCachePolicy.get() == 0) {
+        if ((InetAddressCachePolicy.get() == 0) && (InetAddressCachePolicy.getNegative() == 0)) {
 	  return null;
 	}
 	synchronized (addressCache) {
@@ -583,6 +583,7 @@ class InetAddress implements java.io.Serializable {
 
     private static Object getAddressFromNameService(String host) {
 	Object obj = null;
+        boolean success = false;
 
 	// Check whether the host is in the lookupTable.
 	// 1) If the host isn't in the lookupTable when
@@ -622,11 +623,13 @@ class InetAddress implements java.io.Serializable {
 		    addr_array[i] = new InetAddress(host, addr);
 		}
 		obj = addr_array;
+                success = true;
 	    } catch (UnknownHostException e) {
 		obj  = unknown_array;
+                success = false;
 	    } finally {
 		// Cache the address.
-		cacheAddress(host, obj);
+		cacheAddress(host, obj, success);
 		// Delete the host from the lookupTable, and
 		// notify all threads waiting for the monitor
 		// for lookupTable.

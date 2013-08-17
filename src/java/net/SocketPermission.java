@@ -984,7 +984,7 @@ else its the cname?
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.30 03/06/16
+ * @version 1.30 03/09/04
  *
  * @author Roland Schemers
  */
