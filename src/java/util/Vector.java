@@ -1,10 +1,13 @@
 /*
- * @(#)Vector.java	1.70 00/02/02
+ * @(#)Vector.java	1.72 01/01/23
  *
- * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1994-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -42,7 +45,7 @@ package java.util;
  *
  * @author  Lee Boynton
  * @author  Jonathan Payne
- * @version 1.70, 02/02/00
+ * @version 1.71, 04/18/00
  * @see Collection
  * @see List
  * @see ArrayList
@@ -137,30 +140,6 @@ public class Vector extends AbstractList implements List, Cloneable,
         elementCount = c.size();
 	elementData = new Object[(elementCount*110)/100]; // 10% for growth
         c.toArray(elementData);
-    }
-
-    /**
-     * This method is here to ensure that the serialization a Vector instance
-     * is also synchronized.
-     */
-     
-    private synchronized void writeObject(java.io.ObjectOutputStream s)
-        throws java.io.IOException
-    {
-	// Write out the serializable fields to the stream.
-	s.defaultWriteObject();
-    }
-
-    /**
-     * This method is here to ensure that the deserialization a Vector instance
-     * is also synchronized.
-     */
-     
-    private synchronized void readObject(java.io.ObjectInputStream s)
-        throws java.io.IOException, ClassNotFoundException
-    {
-	// Read in serializable fields from the stream.
-	s.defaultReadObject();
     }
 
     /**

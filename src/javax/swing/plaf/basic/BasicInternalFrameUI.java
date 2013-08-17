@@ -1,10 +1,13 @@
 /*
- * @(#)BasicInternalFrameUI.java	1.72 00/07/25
+ * @(#)BasicInternalFrameUI.java	1.74 01/01/23
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -25,7 +28,7 @@ import java.io.Serializable;
 /**
  * A basic L&F implementation of JInternalFrame.  
  *
- * @version 1.72 07/25/00
+ * @version 1.74 01/23/01
  * @author David Kloba
  * @author Rich Schiavi
  */
@@ -161,6 +164,11 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	frame.getGlassPane().addMouseListener(glassPaneDispatcher);
        	frame.getGlassPane().addMouseMotionListener(glassPaneDispatcher);
 	componentListener =  createComponentListener();
+	if ((frame.getParent() != null) && !componentListenerAdded) {
+	  frame.getParent().addComponentListener(componentListener);
+	  componentListenerAdded = true;
+	  parentBounds = frame.getParent().getBounds();
+	}
     }
 
     InputMap getInputMap(int condition) {
@@ -218,8 +226,10 @@ public class BasicInternalFrameUI extends InternalFrameUI
       propertyChangeListener = null;
       frame.getGlassPane().removeMouseListener(glassPaneDispatcher);
       frame.getGlassPane().removeMouseMotionListener(glassPaneDispatcher);
-      if ((frame.getParent() != null) && componentListenerAdded)
+      if ((frame.getParent() != null) && componentListenerAdded) {
 	frame.getParent().removeComponentListener(componentListener);
+        componentListenerAdded=false;
+      }
       glassPaneDispatcher = null;
       componentListener = null;
       borderListener = null;

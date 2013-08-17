@@ -1,10 +1,13 @@
 /*
- * @(#)Window.java	1.135 00/04/06
+ * @(#)Window.java	1.137 01/01/23
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 package java.awt;
@@ -79,7 +82,7 @@ import sun.awt.DebugHelper;
  * Windows are capable of generating the following window events:
  * WindowOpened, WindowClosed.
  *
- * @version 	1.135, 04/06/00
+ * @version 	1.137, 01/23/01
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -242,7 +245,8 @@ public class Window extends Container implements Accessible {
      * @see       java.lang.SecurityManager#checkTopLevelWindow
      */
     public Window(Frame owner) {
-        this((GraphicsConfiguration)null);
+        this(owner == null ? (GraphicsConfiguration)null :
+		owner.getGraphicsConfiguration());
 	ownedInit(owner);
     }
 
@@ -263,7 +267,8 @@ public class Window extends Container implements Accessible {
      * @since     1.2
      */
     public Window(Window owner) {
-        this((GraphicsConfiguration)null);
+        this(owner == null ? (GraphicsConfiguration)null :
+		owner.getGraphicsConfiguration());
 	ownedInit(owner);
     }
 

@@ -1,10 +1,13 @@
 /*
- * @(#)StringBuffer.java	1.61 00/02/02
+ * @(#)StringBuffer.java	1.63 01/01/23
  *
- * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1994-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -65,7 +68,7 @@ package java.lang;
  * automatically made larger. 
  *
  * @author	Arthur van Hoff
- * @version 	1.61, 02/02/00
+ * @version 	1.62, 04/21/00
  * @see     java.io.ByteArrayOutputStream
  * @see     java.lang.String
  * @since   JDK1.0
@@ -129,18 +132,6 @@ public final class StringBuffer implements java.io.Serializable {
     public StringBuffer(String str) {
 	this(str.length() + 16);
 	append(str);
-    }
-
-    /** 
-     * This method is here to ensure that the serialization of a StringBuffer
-     * instance is synchronized.
-     */
-     
-    private synchronized void writeObject(java.io.ObjectOutputStream s)
-        throws java.io.IOException
-    {
-	// Write out the serializable fields to the stream.
-	s.defaultWriteObject();
     }
 
     /**

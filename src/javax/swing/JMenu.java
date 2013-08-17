@@ -1,10 +1,13 @@
 /*
- * @(#)JMenu.java	1.143 00/04/06
+ * @(#)JMenu.java	1.145 01/01/23
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -66,7 +69,7 @@ import javax.accessibility.*;
  *   attribute: isContainer true
  * description: A popup window containing menu items displayed in a menu bar.
  *
- * @version 1.143 04/06/00
+ * @version 1.144 10/10/00
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -112,6 +115,16 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      * implementation specific menu behaviors.
      */
     private int delay;
+
+    /**
+     * Set to true when a KEY_PRESSED event is received and the menu is
+     * selected, and false when a KEY_RELEASED (or focus lost) is received.
+     * If processKeyEvent is invoked with a KEY_TYPED or KEY_RELEASED event,
+     * and this is false, a MenuKeyEvent is NOT created. This is needed to
+     * avoid activating a menuitem when the menu and menuitem share the
+     * same mnemonic.
+     */
+    private boolean receivedKeyPressed;
 
     /* Diagnostic aids -- should be false for production builds. */
     private static final boolean TRACE =   false; // trace creates and disposes
@@ -1181,6 +1194,25 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     }
 
     /**
+     * Processes any focus events, such as
+     * <code>FocusEvent.FOCUS_GAINED</code> or
+     * <code>FocusEvent.FOCUS_LOST</code>.
+     *
+     * @param e the <code>FocusEvent</code>
+     * @see FocusEvent
+     */
+    protected void processFocusEvent(FocusEvent e) {
+        switch(e.getID()) {
+          case FocusEvent.FOCUS_LOST:
+              receivedKeyPressed = false;
+              break;
+        default:
+            break;
+        }
+        super.processFocusEvent(e);
+    }
+
+    /**
      * Processes key stroke events for this menu, such as mnemonics and
      * accelerators.
      * @param e  the key event to be processed
@@ -1192,7 +1224,29 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
 	    System.out.println("Event consumption = " + e.isConsumed());
 	    Thread.dumpStack();
 	}
-        MenuSelectionManager.defaultManager().processKeyEvent(e);
+        boolean createMenuEvent = false;
+        switch (e.getID()) {
+        case KeyEvent.KEY_PRESSED:
+            if (isSelected()) {
+                createMenuEvent = receivedKeyPressed = true;
+            }
+            else {
+                receivedKeyPressed = false;
+            }
+            break;
+        case KeyEvent.KEY_RELEASED:
+            if (receivedKeyPressed) {
+                receivedKeyPressed = false;
+                createMenuEvent = true;
+            }
+            break;
+        default:
+            createMenuEvent = receivedKeyPressed;
+            break;
+        }
+        if (createMenuEvent) {
+            MenuSelectionManager.defaultManager().processKeyEvent(e);
+        }
 	if(e.isConsumed()) {
             return;
 	}

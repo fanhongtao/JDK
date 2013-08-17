@@ -1,10 +1,13 @@
 /*
- * @(#)PlainSocketImpl.java	1.39 00/02/02
+ * @(#)PlainSocketImpl.java	1.41 01/01/23
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -23,10 +26,13 @@ import java.io.ByteArrayOutputStream;
  * Note this class should <b>NOT</b> be public.
  *
  * @author  Steven B. Byrne
- * @version 1.39, 02/02/00
+ * @version 1.41, 01/23/01
  */
 class PlainSocketImpl extends SocketImpl
 {
+    /* timeout value for connection */
+    static int preferredConnectionTimeout = 0;
+
     /* instance variable for SO_TIMEOUT */
     int timeout;   // timeout in millisec
 
@@ -58,6 +64,11 @@ class PlainSocketImpl extends SocketImpl
     static {
 	java.security.AccessController.doPrivileged(
 		  new sun.security.action.LoadLibraryAction("net"));
+	String s = (String)java.security.AccessController.doPrivileged(
+		  new sun.security.action.GetPropertyAction("java.net.connectiontimeout"));
+	if (s != null) {
+	    preferredConnectionTimeout = Integer.parseInt(s);
+	}
 	initProto();
     }
 

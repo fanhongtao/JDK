@@ -1,7 +1,7 @@
                                    README
 
                       Java(TM) 2 SDK, Standard Edition
-                              Version 1.3.0_01
+                              Version 1.3.0_02
 
      For a more extensive HTML version of this file, see README.html.
 
@@ -44,7 +44,7 @@ Installation
      SDK Documentation, each of which is separately downloadable.
      Installation instructions are maintained on the web site:
 
-     http://java.sun.com/j2se/1.3.0_01/install-linux-sdk.html
+     http://java.sun.com/j2se/1.3/install-linux-sdk.html
 
      Refer to the copyright and license for legal terms of use.
 
@@ -62,17 +62,17 @@ Features
           J2SE 1.3.0 release.
           http://java.sun.com/j2se/1.3/docs/index.html#guide
 
-     This release, J2SE 1.3.0_01, is the first update release of J2SE 
-     1.3.0. J2SE 1.3.0_01 contains new Java Plug-in enhancements, 
+     This release, J2SE 1.3.0_02, is an update release of J2SE 
+     1.3.0. J2SE 1.3.0_01 contained new Java Plug-in enhancements, 
      including support for the Netscape Communicator 6 browser. 
-     In addition, J2SE 1.3.0_01 contains fixes for bugs that have been 
-     identified in the original J2SE 1.3.0 release. See the Release Notes 
-     on the Java Software web site for details about the changes in J2SE 
-     1.3.0_01. 
+     In addition, J2SE 1.3.0_02 contains fixes for a select list of bugs 
+     See the Release Notes on the Java Software web site for details 
+     about the changes in J2SE 1.3.0_02. 
 
-         http://java.sun.com/j2se/1.3.0_01/relnotes.html
+         http://java.sun.com/j2se/1.3/ReleaseNotes.html
 
-     See also the documentation for the new Java Plug-in enhancements.
+     See also the documentation for the new Java Plug-in enhancements
+     in 1.3.0_01.
 
          http://java.sun.com/j2se/1.3.0_01/docs/index.html
 
@@ -87,10 +87,10 @@ Java 2 SDK Documentation
 
      This section describes the documentation provided with the 
      original J2SE 1.3.0 release. That documentation is applicable to 
-     J2SE 1.3.0_01 as well. For new features and bug fixes in J2SE
-     1.3.0_01, see the online release notes. 
+     J2SE 1.3.0_02 as well. For information on the bug fixes in J2SE
+     1.3.0_02, see the online release notes. 
 
-     http://java.sun.com/j2se/1.3.0_01/relnotes.html
+     http://java.sun.com/j2se/1.3/ReleaseNotes.html
 
      The on-line Java 2 SDK Documentation contains API specifications,
      developer guides, tool reference pages, demos, and links to
@@ -159,6 +159,6 @@ Credits
 The Java 2 SDK, Standard Edition, is a product of Sun Microsystems(TM), 
 Inc.  This product includes code licensed from RSA Data Security.
 
-Copyright © 1997-2000, Sun Microsystems, Inc.
+Copyright © 1997-2001, Sun Microsystems, Inc.
 901 San Antonio Road, Palo Alto, California 94303-4900 USA.
 All rights reserved.

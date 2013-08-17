@@ -1,10 +1,13 @@
 /*
- * @(#)BigInteger.java	1.35 00/02/02
+ * @(#)BigInteger.java	1.38 01/01/23
  *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -67,7 +70,7 @@ import java.util.Random;
  * interpreted similarly.
  *
  * @see     BigDecimal
- * @version 1.35, 02/02/00
+ * @version 1.36, 04/21/00
  * @author  Josh Bloch
  * @author  Michael McCloskey
  * @since JDK1.1
@@ -138,14 +141,22 @@ public class BigInteger extends Number implements Comparable {
     private int lowestSetBit = -2;
 
     /**
-     * The index of the lowest-order int in the magnitude of this BigInteger
-     * that contains a nonzero int, or -2 (either value is acceptable).  The
-     * least significant int has int-number 0, the next int in order of
-     * increasing significance has int-number 1, and so forth.
+     * The index of the lowest-order byte in the magnitude of this BigInteger
+     * that contains a nonzero byte, or -2 (either value is acceptable).  The
+     * least significant byte has int-number 0, the next byte in order of
+     * increasing significance has byte-number 1, and so forth.
      *
      * @serial
      */
     private int firstNonzeroByteNum = -2;
+
+    /**
+     * The index of the lowest-order int in the magnitude of this BigInteger
+     * that contains a nonzero int, or -2 (either value is acceptable).  The
+     * least significant int has int-number 0, the next int in order of
+     * increasing significance has int-number 1, and so forth.
+     */
+    private transient int firstNonzeroIntNum = -2;
 
     /**
      * This mask is used to obtain the value of an int as if it were unsigned.
@@ -2564,8 +2575,9 @@ public class BigInteger extends Number implements Comparable {
 
     /**
      * Returns the specified int of the little-endian two's complement
-     * representation (int 0 is the LSB).  The int number can be arbitrarily
-     * high (values are logically preceded by infinitely many sign ints).
+     * representation (int 0 is the least significant).  The int number can
+     * be arbitrarily high (values are logically preceded by infinitely many
+     * sign ints).
      */
     private int getInt(int n) {
         if (n < 0)
@@ -2576,28 +2588,28 @@ public class BigInteger extends Number implements Comparable {
 	int magInt = mag[mag.length-n-1];
 
 	return (int) (signum >= 0 ? magInt :
-		       (n <= firstNonzeroByteNum() ? -magInt : ~magInt));
+		       (n <= firstNonzeroIntNum() ? -magInt : ~magInt));
     }
 
     /**
      * Returns the index of the int that contains the first nonzero int in the
-     * little-endian binary representation of the magnitude (byte 0 is the LSB).
-     * If the magnitude is zero, return value is undefined.
+     * little-endian binary representation of the magnitude (int 0 is the
+     * least significant). If the magnitude is zero, return value is undefined.
      */
-     private int firstNonzeroByteNum() {
+     private int firstNonzeroIntNum() {
 	/*
-	 * Initialize firstNonzeroByteNum field the first time this method is
+	 * Initialize firstNonzeroIntNum field the first time this method is
 	 * executed. This method depends on the atomicity of int modifies;
 	 * without this guarantee, it would have to be synchronized.
 	 */
-	if (firstNonzeroByteNum == -2) {
+	if (firstNonzeroIntNum == -2) {
 	    // Search for the first nonzero int
 	    int i;
 	    for (i=mag.length-1; i>=0 && mag[i]==0; i--)
 		;
-	    firstNonzeroByteNum = mag.length-i-1;
+	    firstNonzeroIntNum = mag.length-i-1;
 	}
-	return firstNonzeroByteNum;
+	return firstNonzeroIntNum;
     }
 
     /** use serialVersionUID from JDK 1.1. for interoperability */
@@ -2640,34 +2652,17 @@ public class BigInteger extends Number implements Comparable {
     }
 
     /**
-     * Save the <tt>BigInteger</tt> instance to a stream.
-     * The magnitude field is assigned a byte array holding the magnitude
-     * so that the old serialized form of BigInteger can be created. The
-     * byte array is then discarded to release the memory.
+     * Ensure that magnitude (the obsolete byte array representation)
+     * is set prior to serializaing this BigInteger.  This provides a
+     * serialized form that is compatible with older (pre-1.3) versions.
      */
-    private void writeObject(java.io.ObjectOutputStream s)
-        throws java.io.IOException {
-        /*
-         * In order to maintain compatibility with previous serialized forms,
-         * the magnitude of a BigInteger is serialized as an array of bytes.
-         * The magnitude field is used as a temporary store for the byte array
-         * that is serialized. The cached computation fields should be
-         * transient but are serialized for compatibility reasons.
-         */
+    private synchronized Object writeReplace() {
+	if (magnitude == null)
+	    magnitude = magSerializedForm();
 
-        // Create the magnitude byte array for serialization compatibility
-        magnitude = magSerializedForm();
-
-        // Set "cached computation" fields to their initial values
-        bitCount = bitLength = -1;
-        lowestSetBit = firstNonzeroByteNum = -2;
-
-        // Write out default
-	s.defaultWriteObject();
-
-        // Discard magnitude
-        magnitude = null;
+	return this;
     }
+
 
     /**
      * Returns the mag array as an array of bytes.

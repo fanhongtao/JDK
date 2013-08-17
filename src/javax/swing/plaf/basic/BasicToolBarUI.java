@@ -1,10 +1,13 @@
 /*
- * @(#)BasicToolBarUI.java	1.59 00/02/02
+ * @(#)BasicToolBarUI.java	1.61 01/01/23
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -36,7 +39,7 @@ import javax.swing.plaf.*;
  * is a "combined" view/controller.
  * <p>
  *
- * @version 1.59 02/02/00
+ * @version 1.61 01/23/01
  * @author Georges Saab
  * @author Jeff Shapiro
  */
@@ -364,7 +367,9 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
     }
 
     protected JFrame createFloatingFrame(JToolBar toolbar) {
-	JFrame frame = new JFrame(toolbar.getName());
+	Window window = SwingUtilities.getWindowAncestor(toolbar);
+	JFrame frame = new JFrame(toolbar.getName(),
+				window.getGraphicsConfiguration());
 	frame.setResizable(false);
 	WindowListener wl = createFrameListener();
 	frame.addWindowListener(wl);

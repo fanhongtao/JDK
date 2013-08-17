@@ -1,10 +1,13 @@
 /*
- * @(#)Dialog.java	1.67 00/04/06
+ * @(#)Dialog.java	1.69 01/01/23
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 package java.awt;
@@ -54,7 +57,7 @@ import javax.accessibility.*;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.67, 04/06/00
+ * @version 	1.69, 01/23/01
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -367,11 +370,21 @@ public class Dialog extends Window {
                 if (Toolkit.getEventQueue().isDispatchThread()) {
                     EventDispatchThread dispatchThread =
                         (EventDispatchThread)Thread.currentThread();
-                    dispatchThread.pumpEvents(new Conditional() {
+                      /*
+                       * pump events, filter out input events for
+                       * component not belong to our modal dialog.
+                       *
+                       * we already disabled other components in native code
+                       * but because the event is posted from a different 
+                       * thread so it's possible that there are some events
+                       * for other component already posted in the queue
+                       * before we decide do modal show.  
+                       */ 
+                    dispatchThread.pumpEventsForHierarchy(new Conditional() {
                         public boolean evaluate() {
                             return keepBlocking && windowClosingException == null;
                         }
-                    });
+                    }, this);
                 } else {
                     synchronized (getTreeLock()) {
                         while (keepBlocking && windowClosingException == null) {

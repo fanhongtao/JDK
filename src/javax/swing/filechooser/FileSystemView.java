@@ -1,10 +1,13 @@
 /*
- * @(#)FileSystemView.java	1.12 00/02/02
+ * @(#)FileSystemView.java	1.14 01/01/23
  *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1998-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -39,7 +42,7 @@ import java.lang.reflect.*;
  * how Mac/OS2/BeOS/etc file systems can modify FileSystemView
  * to handle their particular type of file system.
  *
- * @version 1.12 02/02/00
+ * @version 1.14 01/23/01
  * @author Jeff Dinkins
  */
 public abstract class FileSystemView {
@@ -135,27 +138,24 @@ public abstract class FileSystemView {
 	Vector files = new Vector();
 
 	// add all files in dir
-	String[] names = dir.list();
+	File [] names = dir.listFiles();
 
 	File f;
 
 	int nameCount = names == null ? 0 : names.length;
 
 	for (int i = 0; i < nameCount; i++) {
-	    f = createFileObject(dir, names[i]);
-	    if(useFileHiding) {
-		if(!isHiddenFile(f)) {
-		    files.addElement(f);
-		}
-	    } else {
-		files.addElement(f);
-	    }
+	   f = names[i];
+	   if (f.isFile() || f.isDirectory()) {
+	       if (!useFileHiding || !isHiddenFile(f)) {
+		   files.addElement(f);
+	       }
+	   }
 	}
 
-	File[] fileArray = new File[files.size()];
-	files.copyInto(fileArray);
+ 
 
-	return fileArray;
+	return (File[])files.toArray(new File[files.size()]);
     }
 
     /**

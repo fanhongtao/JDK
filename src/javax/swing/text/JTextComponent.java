@@ -1,10 +1,13 @@
 /*
- * @(#)JTextComponent.java	1.153 00/04/06
+ * @(#)JTextComponent.java	1.155 01/01/23
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 package javax.swing.text;
@@ -199,7 +202,7 @@ import java.util.Set;
  *     attribute: isContainer false
  * 
  * @author  Timothy Prinzing
- * @version 1.153 04/06/00
+ * @version 1.155 01/23/01
  * @see Document
  * @see DocumentEvent
  * @see DocumentListener
@@ -1293,13 +1296,15 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     public void paste() {
 	Clipboard clipboard = getToolkit().getSystemClipboard();
 	Transferable content = clipboard.getContents(this);
-	if (content != null) {
+	if (isEditable() && isEnabled() && (content != null)) {
 	    try {
 		String dstData = (String)(content.getTransferData(DataFlavor.stringFlavor));
 		replaceSelection(dstData);
 	    } catch (Exception e) {
 		getToolkit().beep();
 	    }
+	} else {
+	    getToolkit().beep();
 	}
     }
 

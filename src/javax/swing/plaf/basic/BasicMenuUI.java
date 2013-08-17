@@ -1,10 +1,13 @@
 /*
- * @(#)BasicMenuUI.java	1.129 00/04/06
+ * @(#)BasicMenuUI.java	1.131 01/01/23
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -23,7 +26,7 @@ import javax.swing.border.*;
  * A default L&F implementation of MenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.129 04/06/00
+ * @version 1.131 01/23/01
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -242,13 +245,7 @@ public class BasicMenuUI extends BasicMenuItemUI
 		    // of currently selected menus get a chance
 		    // at this KeyEvent
 		    defaultManager.clearSelectedPath();
-		    // Fixes bug 4213634 by delaying menu posting
-		    // until after the keyTyped is processed.
-		    SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-			    defaultManager.setSelectedPath(me);
-			}
-		    });
+		    defaultManager.setSelectedPath(me);
 		}
             } else {
                 MenuElement path[] = defaultManager.getSelectedPath();

@@ -1,10 +1,13 @@
 /*
- * @(#)DefaultPopupFactory.java	1.9 00/08/21
+ * @(#)DefaultPopupFactory.java	1.11 01/01/23
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -251,7 +254,7 @@ class DefaultPopupFactory implements PopupFactory {
         if (popup == null) {
             popup = new WindowPopup(window);
         }
-        /* Fix Forte Menu Bug. awt_TopLevel.c looks for Window name "Popup"
+	/* Fix Forte Menu Bug. awt_TopLevel.c looks for Window name "Popup"
          * to determine that XmNoverrideRedirect needs to be set.
         */
         ((Window)popup).setName("###overrideRedirect###"); /* Fix Forte Menu Bug. */
@@ -416,6 +419,10 @@ class DefaultPopupFactory implements PopupFactory {
         super(w);
     }
         
+    protected void processKeyEvent(KeyEvent e) {
+        MenuSelectionManager.defaultManager().processKeyEvent(e);
+    }
+
     public Component getComponent() {
       return this;
     }
@@ -902,6 +909,10 @@ class DefaultPopupFactory implements PopupFactory {
             this.setOpaque(true);
         }
 
+	protected void processKeyEvent(KeyEvent e) {
+            MenuSelectionManager.defaultManager().processKeyEvent(e);
+        }
+
         public Component getComponent() {
             return this;
         }
@@ -1041,6 +1052,10 @@ class DefaultPopupFactory implements PopupFactory {
             setLayout(new BorderLayout());
 	    rootPane = new JRootPane();
 	    this.add(rootPane, BorderLayout.CENTER);
+        }
+
+	protected void processKeyEvent(KeyEvent e) {
+            MenuSelectionManager.defaultManager().processKeyEvent(e);
         }
 
         public int getWidth() {

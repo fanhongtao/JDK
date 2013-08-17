@@ -1,10 +1,13 @@
 /*
- * @(#)EventDispatchThread.java	1.34 00/02/02
+ * @(#)EventDispatchThread.java	1.36 01/01/23
  *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -14,6 +17,7 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import sun.security.action.GetPropertyAction;
 import sun.awt.DebugHelper;
+import java.awt.event.InputEvent;
 
 
 /**
@@ -33,7 +37,7 @@ import sun.awt.DebugHelper;
  * @author Fred Ecks
  * @author David Mendenhall
  * 
- * @version 1.34, 02/02/00
+ * @version 1.36, 01/23/01
  * @since 1.1
  */
 class EventDispatchThread extends Thread {
@@ -89,16 +93,43 @@ class EventDispatchThread extends Thread {
     }
 
     void pumpEvents(Conditional cond) {
+	pumpEventsForHierarchy(cond, null);
+    }
+
+    void pumpEventsForHierarchy(Conditional cond, Component modalComponent) {
         while (doDispatch && cond.evaluate()) {
-            if (isInterrupted() || !pumpOneEvent()) {
+            if (isInterrupted() || !pumpOneEventForHierarchy(modalComponent)) {
                 doDispatch = false;
             }
         }
     }
 
-    boolean pumpOneEvent() {
+    boolean pumpOneEventForHierarchy(Component modalComponent) {
         try {
             AWTEvent event = theQueue.getNextEvent();
+	    if (modalComponent != null) {
+		/*
+		 * filter out InputEvent that's not belong to
+		 * the specified modal component.
+		 * this can be caused by the following case:
+	         * a button, click once to open up a modal dialog
+		 * but use click on it twice really fast. 
+		 * before the modal dialog comes up, the second 
+		 * mouse click already comes in.
+		 * see also the comment in Dialog.show
+		 */
+		while  (event instanceof InputEvent) {
+		    Component c = (Component)event.getSource();
+		    // check if c's modalComponent's child
+		    if (modalComponent instanceof Container)
+		        while (c != modalComponent && c != null)
+			    c = c.getParent();
+		    if (c != modalComponent)
+			event = theQueue.getNextEvent();
+		    else
+			break;
+		}
+ 	    }		 
 	    if ( dbg.on ) dbg.println("Dispatching: "+event);
             theQueue.dispatchEvent(event);
             return true;
