@@ -1,5 +1,5 @@
 /*
- * @(#)HrefButtonArea.java	1.9 98/03/18
+ * @(#)HrefButtonArea.java	1.8 98/03/18
  *
  * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -40,7 +40,7 @@ import java.net.MalformedURLException;
  * are used to make the area look and feel like a 3-D button.
  *
  * @author 	Jim Graham
- * @version 	1.9, 03/18/98
+ * @version 	1.8, 03/18/98
  */
 class HrefButtonArea extends ImageMapArea {
     /** The URL to be fetched when the user clicks on this area. */

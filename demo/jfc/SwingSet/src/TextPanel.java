@@ -1,5 +1,5 @@
 /*
- * @(#)TextPanel.java	1.10 99/04/23
+ * @(#)TextPanel.java	1.9 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -42,7 +42,7 @@ import java.io.*;
 /**
  * Text!
  *
- * @version 1.10 04/23/99
+ * @version 1.9 04/23/99
  * @author Jeff Dinkins
  * @author Peter Korn (accessibility support)
  */

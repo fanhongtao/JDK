@@ -1,11 +1,15 @@
 /*
- * @(#)typedefs_md.h	1.2 00/01/12
+ * @(#)typedefs_md.h	1.50 00/08/03
  *
- * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 /*
@@ -15,15 +19,18 @@
 #ifndef _JAVASOFT_SOLARIS_TYPES_MD_H_
 #define _JAVASOFT_SOLARIS_TYPES_MD_H_
 
+#ifdef __linux__
 #include <features.h>
 #if __GLIBC__ == 2 && __GLIBC_MINOR__ == 1
 #include <stdint.h>
-#endif
+#endif /* glibc */
+#endif /* linux */
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
 #define int8_t char
- 
+
 /* temporary scaffolding, to allow for back and forth testing */
 #ifndef USE_REAL_INT32
 #define int32_t long
@@ -48,10 +55,8 @@ typedef unsigned long uintptr_t;
 #else
 #ifndef intptr_t
 typedef int intptr_t;
-#endif
-#ifndef intptr_t
 typedef unsigned int uintptr_t;
-#endif
+#endif /* intptr_t */
 #endif	/* LONG_IS_64 */
 
 #ifndef	_UINT64_T

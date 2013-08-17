@@ -1,5 +1,5 @@
 /*
- * @(#)JDBCAdapter.java	1.11 99/04/23
+ * @(#)JDBCAdapter.java	1.10 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 

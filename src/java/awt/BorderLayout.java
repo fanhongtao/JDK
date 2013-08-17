@@ -1,11 +1,15 @@
 /*
- * @(#)BorderLayout.java	1.3 00/01/12
+ * @(#)BorderLayout.java	1.39 98/08/13
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.awt;
@@ -104,7 +108,7 @@ public class BorderLayout implements LayoutManager2,
      * @serial
      */
 	int hgap;
-   	
+
 	/**
      * Constructs a border layout with the vertical gaps
      * between components.
@@ -166,7 +170,7 @@ public class BorderLayout implements LayoutManager2,
      * @see #removeLayoutComponent
      */
 	Component center;
-    
+
     /**
      *
      * A relative positioning constant, that can be used instead of
@@ -531,20 +535,25 @@ public class BorderLayout implements LayoutManager2,
 	}
 
 	Insets insets = target.getInsets();
+
+        /*if[Linux]
+          // If your insets are 0 and you have no children
+          //   then size will be 0 which will prevent a resize
+          //   from occuring so set size to 1 to enable resize
+          //   to occur on WM that allow a 0 inset
+
+ 	  dim.width += insets.left + insets.right;
+	  dim.height += insets.top + insets.bottom;
+
+          if (dim.width == 0 && dim.height == 0) {
+            dim.width=1;
+            dim.height=1;
+          }
+        else[Linux]*/
+
 	dim.width += insets.left + insets.right;
 	dim.height += insets.top + insets.bottom;
-
-        /* If your insets are 0 and you have no children
-           then size will be 0 which will prevent a resize
-           from occuring so set size to 1 to enable resize
-           to occur on WM that allow a 0 inset
-        */
-        if (dim.width == 0 && dim.height == 0) {
-           dim.width=1;
-           dim.height=1;
-        }
-
-
+        /*end[Linux]*/
 	return dim;
       }
     }

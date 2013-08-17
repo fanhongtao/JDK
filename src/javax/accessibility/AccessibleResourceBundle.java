@@ -1,11 +1,15 @@
 /*
- * @(#)AccessibleResourceBundle.java	1.2 00/01/12
+ * %W% %E%
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package javax.accessibility;
@@ -17,7 +21,7 @@ import java.util.ListResourceBundle;
  * package.  This is meant only for internal use by Java Accessibility and
  * is not meant to be used by assistive technologies or applications.
  *
- * @version     1.2 01/12/00 11:38:34
+ * @version     %I% %G% %U%
  * @author      Willie Walker
  */
 public class AccessibleResourceBundle extends ListResourceBundle {

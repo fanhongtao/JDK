@@ -1,5 +1,5 @@
 /*
- * @(#)DateFormatSymbols.java	1.2 00/01/12
+ * @(#)DateFormatSymbols.java	1.30 98/09/23
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved

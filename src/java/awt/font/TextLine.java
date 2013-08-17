@@ -1,5 +1,5 @@
 /*
- * @(#)TextLine.java	1.2 00/01/12
+ * %W% %E%
  *
  * (C) Copyright IBM Corp. 1998, All Rights Reserved
  *

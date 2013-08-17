@@ -1,5 +1,5 @@
 /*
- * @(#)FileChooserDemo.java	1.10 99/04/23
+ * @(#)FileChooserDemo.java	1.9 99/04/23
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -41,7 +41,7 @@ import java.beans.*;
  *
  * A demo which makes extensive use of the file chooser.
  *
- * 1.10 04/23/99
+ * 1.9 04/23/99
  * @author Jeff Dinkins
  */
 public class FileChooserDemo extends JPanel implements ActionListener {

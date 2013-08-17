@@ -1,5 +1,5 @@
 /*
- * @(#)SwingApplet.java	1.13 99/04/23
+ * @(#)SwingApplet.java	1.12 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 

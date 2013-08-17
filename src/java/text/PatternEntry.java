@@ -1,5 +1,5 @@
 /*
- * @(#)PatternEntry.java	1.2 00/01/12
+ * @(#)PatternEntry.java	1.19 98/04/22
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved

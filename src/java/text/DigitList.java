@@ -1,5 +1,5 @@
 /*
- * @(#)DigitList.java	1.2 00/01/12
+ * @(#)DigitList.java	1.22 00/09/05
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
@@ -57,7 +57,7 @@ package java.text;
  * @see  DecimalFormat
  * @see  ChoiceFormat
  * @see  MessageFormat
- * @version      1.21 06/07/99
+ * @version      1.22 09/05/00
  * @author       Mark Davis, Alan Liu
  */
 final class DigitList implements Cloneable {
@@ -432,16 +432,18 @@ final class DigitList implements Cloneable {
     private boolean shouldRoundUp(int maximumDigits) {
         boolean increment = false;
         // Implement IEEE half-even rounding
-        if (digits[maximumDigits] > '5') {
-            return true;
-        } else if (digits[maximumDigits] == '5' ) {
+	if (maximumDigits < count) {
+           if (digits[maximumDigits] > '5') {
+              return true;
+            } else if (digits[maximumDigits] == '5' ) {
             for (int i=maximumDigits+1; i<count; ++i) {
                 if (digits[i] != '0') {
                     return true;
                 }
             }
             return maximumDigits > 0 && (digits[maximumDigits-1] % 2 != 0);
-        }
+            }
+	}
         return false;
     }
 

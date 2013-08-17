@@ -1,11 +1,15 @@
 /*
- * @(#)JMenu.java	1.2 00/01/12
+ * @(#)JMenu.java	1.124 00/09/22
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package javax.swing;
@@ -28,6 +32,8 @@ import java.io.Serializable;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
+
+import java.awt.event.KeyEvent;
 
 import javax.swing.event.*;
 import javax.swing.plaf.*;
@@ -57,7 +63,7 @@ import javax.accessibility.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.123 04/22/99
+ * @version 1.124 09/22/00
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -98,6 +104,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     private static Hashtable listenerRegistry = null;
 
     private int delay;
+    private boolean receivedKeyPressed=false;
 
     /**
      * Creates a new JMenu with no text.
@@ -1078,9 +1085,35 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      *
      */
     protected void processKeyEvent(KeyEvent e) {
-        MenuSelectionManager.defaultManager().processKeyEvent(e);
-	if(e.isConsumed())
-            return;
+
+	/* fix for bug 4213634 */	
+      boolean createMenuEvent=false;
+
+      switch (e.getID()) {
+      
+      case KeyEvent.KEY_PRESSED:
+	if (isSelected())
+	  createMenuEvent = receivedKeyPressed = true;
+	else receivedKeyPressed = false;
+	break;
+      case KeyEvent.KEY_RELEASED:
+	if (receivedKeyPressed) {
+	  receivedKeyPressed = false;
+	  createMenuEvent = true;
+	}
+	break;
+      default:
+	createMenuEvent = receivedKeyPressed;
+	break;
+      }
+      
+      if (createMenuEvent && isSelected()) {
+	MenuSelectionManager.defaultManager().processKeyEvent(e);
+      }
+      
+      if(e.isConsumed()) 
+	return;
+      
 	/* The "if" block below  fixes bug #4108907.
 	   Without this code, opened menus that
 	   weren't interested in TAB key events (most menus are not) would
@@ -1099,17 +1132,32 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
 	   The fact that one has to special-case TABS here in JMenu code
 	   also offends me...
 	   hania 23 July 1998 */
-	if(isSelected() && (e.getKeyCode() == KeyEvent.VK_TAB
-	   || e.getKeyChar() == '\t')) {
-	  if ((Boolean) UIManager.get("Menu.consumesTabs") == Boolean.TRUE) {
-	    e.consume();
-	    return;
-	  } else {
-	    MenuSelectionManager.defaultManager().clearSelectedPath();
-	  }
+      if(isSelected() && (e.getKeyCode() == KeyEvent.VK_TAB
+			  || e.getKeyChar() == '\t')) {
+	if ((Boolean) UIManager.get("Menu.consumesTabs") == Boolean.TRUE) {
+	  e.consume();
+	  return;
+	} else {
+	  MenuSelectionManager.defaultManager().clearSelectedPath();
 	}
-        super.processKeyEvent(e);
+      }
+      super.processKeyEvent(e);
     }
+
+  /* fix for bug 4213634, on win32, JMenu lost focus when 
+     is not showing. On solaris, it still has focus when is not 
+     showing
+   */ 
+  protected void processFocusEvent(FocusEvent e) {
+    switch (e.getID()) {
+    case FocusEvent.FOCUS_LOST:
+      receivedKeyPressed = false;
+      break;
+    default:
+      break;
+    }
+    super.processFocusEvent(e);
+  }
 
     /**
      * Programatically perform a "click".  This overrides the method

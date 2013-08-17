@@ -1,11 +1,15 @@
 /*
- * @(#)java_md.c	1.2 00/01/12
+ * @(#)java_md.c	1.11 99/04/22
  *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 #include "java.h"
@@ -42,7 +46,7 @@ GetXUsagePath(char *buf, jint bufsize)
    
     /* we use RTLD_NOW because of problems with ld.so.1 and green threads */
     dladdr(dlsym(dlopen(JVM_DLL, RTLD_NOW), "JNI_CreateJavaVM"), &dlinfo);
-    strncpy(buf, (char *)dlinfo.dli_fname, bufsize - 2);
+    strncpy(buf, (char *)dlinfo.dli_fname, bufsize - 1);
     buf[bufsize-1] = '\0';
     *(strrchr(buf, '/')) = '\0';
     strcat(buf, "/Xusage.txt");

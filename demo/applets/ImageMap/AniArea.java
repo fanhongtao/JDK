@@ -1,5 +1,5 @@
 /*
- * @(#)AniArea.java	1.11 98/03/18
+ * @(#)AniArea.java	1.10 98/03/18
  *
  * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -41,7 +41,7 @@ import java.net.MalformedURLException;
  * define the top left corner of each new frame.
  *
  * @author	Chuck McManis
- * @version	1.11, 03/18/98
+ * @version	1.10, 03/18/98
  */
 class AniArea extends ImageMapArea {
 

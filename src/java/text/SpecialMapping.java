@@ -1,5 +1,5 @@
 /*
- * @(#)SpecialMapping.java	1.2 00/01/12
+ * @(#)SpecialMapping.java	1.8 98/07/24
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved

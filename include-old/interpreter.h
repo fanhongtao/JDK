@@ -1,10 +1,13 @@
 /*
- * @(#)interpreter.h	1.3 00/03/03
+ * @(#)interpreter.h	1.212 00/08/03
  *
  * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -256,13 +259,13 @@ struct execenv {
      * macro stays the same for JITs.
      */
     unsigned int RESERVED3;
-
-    void* stack_top;    /* Low address on stacks that grow downwards.
+#ifdef __linux__
+   void* stack_top;    /* Low address on stacks that grow downwards.
 			 * If $esp >= (stack_top + redzone), then there is
 			 * potential C stack overflow, so a JIT doing explicit
 			 * stack overflow checks must now raise the exception.
 			 */
-  
+#endif 
     /* Platform-dependent thread block. See threads_md.c for details.
      * This field must be placed at the end of execenv.
      * Use double to make sure sys_thr is 8-byte aligned. */

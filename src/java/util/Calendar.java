@@ -1,5 +1,5 @@
 /*
- * @(#)Calendar.java	1.43 99/10/07
+ * @(#)Calendar.java	1.44 00/03/08
  *
  * (C) Copyright Taligent, Inc. 1996-1998 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved
@@ -133,7 +133,7 @@ import java.text.DateFormat;
  * to format dates.
  *
  * <p><strong>Field manipulation methods</strong></p>
- *
+ * 
  * <p><code>Calendar</code> fields can be changed using three methods:
  * <code>set()</code>, <code>add()</code>, and <code>roll()</code>.</p>
  * 
@@ -253,7 +253,7 @@ import java.text.DateFormat;
  * @see          GregorianCalendar
  * @see          TimeZone
  * @see          java.text.DateFormat
- * @version      1.43
+ * @version      1.44
  * @author Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  */
 public abstract class Calendar implements Serializable, Cloneable {

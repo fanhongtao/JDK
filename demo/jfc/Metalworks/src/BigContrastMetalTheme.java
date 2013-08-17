@@ -1,5 +1,5 @@
 /*
- * @(#)BigContrastMetalTheme.java	1.9 99/04/23
+ * @(#)BigContrastMetalTheme.java	1.8 99/04/23
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -38,7 +38,7 @@ import java.awt.*;
 /**
  * This class describes a theme using "green" colors.
  *
- * @version 1.9 04/23/99
+ * @version 1.8 04/23/99
  * @author Steve Wilson
  */
 public class BigContrastMetalTheme extends ContrastMetalTheme {

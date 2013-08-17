@@ -1,5 +1,5 @@
 /*
- * @(#)TableMap.java	1.8 99/04/23
+ * @(#)TableMap.java	1.7 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -37,7 +37,7 @@
  * a TableMap which has not been subclassed into a chain of table filters 
  * should have no effect.
  *
- * @version 1.8 04/23/99
+ * @version 1.7 04/23/99
  * @author Philip Milne */
 
 import javax.swing.table.*; 

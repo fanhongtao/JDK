@@ -1,5 +1,5 @@
 /*
- * @(#)InternalWindowPanel.java	1.17 99/04/23
+ * @(#)InternalWindowPanel.java	1.16 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -46,7 +46,7 @@ import java.awt.Rectangle;
 import java.awt.Container;
 
 /*
- * 1.17 99/04/23
+ * 1.16 99/04/23
  * @author Dave Kloba
  * @author Peter Korn (accessibility support)
  */

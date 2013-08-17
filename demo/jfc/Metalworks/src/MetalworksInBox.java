@@ -1,5 +1,5 @@
 /*
- * @(#)MetalworksInBox.java	1.5 99/04/23
+ * @(#)MetalworksInBox.java	1.4 99/04/23
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -39,7 +39,7 @@ import javax.swing.tree.*;
 /**
   * This is a subclass of JInternalFrame which displays a tree.
   *
-  * @version 1.5 04/23/99
+  * @version 1.4 04/23/99
   * @author Steve Wilson
   */
 public class MetalworksInBox extends JInternalFrame {

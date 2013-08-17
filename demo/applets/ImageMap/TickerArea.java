@@ -1,5 +1,5 @@
 /*
- * @(#)TickerArea.java	1.6 98/03/18
+ * @(#)TickerArea.java	1.5 98/03/18
  *
  * Copyright (c) 1996, 1997 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -39,7 +39,7 @@ import java.util.StringTokenizer;
  * the indicated area of the ImageMap in the specified color.
  *
  * @author	Jim Graham
- * @version	1.6, 03/18/98
+ * @version	1.5, 03/18/98
  */
 class TickerArea extends ImageMapArea {
 

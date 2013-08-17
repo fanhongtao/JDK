@@ -1,11 +1,15 @@
 /*
- * @(#)BasicFileChooserUI.java	1.2 00/01/12
+ * @(#)BasicFileChooserUI.java	1.16 00/09/22
  *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package javax.swing.plaf.basic;
@@ -330,11 +334,17 @@ public class BasicFileChooserUI extends FileChooserUI {
 		int index = list.locationToIndex(e.getPoint());
 		if(index >= 0) {
 		    File f = (File) list.getModel().getElementAt(index);
+		    try {
+		      // Strip trailing ".."
+		      f = f.getCanonicalFile();
+                    } catch (IOException ex) {
+		      // That's ok, we'll use f as is
+                    }
 		    if(getFileChooser().isTraversable(f)) {
-			list.clearSelection();
-			getFileChooser().setCurrentDirectory(f);
-		    } else {
-			getFileChooser().approveSelection();
+                        list.clearSelection();
+                        getFileChooser().setCurrentDirectory(f);
+                    } else {
+		        getFileChooser().approveSelection();
 		    }
 		}
 	    }

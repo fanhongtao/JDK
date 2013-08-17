@@ -1,11 +1,15 @@
 /*
- * @(#)InetAddress.java	1.2 00/01/12
+ * @(#)InetAddress.java	1.66 00/09/08
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.net;
@@ -24,7 +28,7 @@ import sun.net.InetAddressCachePolicy;
  * create a new <code>InetAddress</code> instance.
  *
  * @author  Chris Warth
- * @version 1.65, 04/22/99
+ * @version 1.66, 05/16/00
  * @see     java.net.InetAddress#getAllByName(java.lang.String)
  * @see     java.net.InetAddress#getByName(java.lang.String)
  * @see     java.net.InetAddress#getLocalHost()
@@ -291,20 +295,18 @@ class InetAddress implements java.io.Serializable {
     }
 
     private static void cacheAddress(String hostname, Object address) {
-	synchronized (InetAddressCachePolicy.class) {
-	// if the cache policy is to cache nothing, just return
-	    if (InetAddressCachePolicy.get() == 0) {
-		return;
-	    }
-	    long expiration = -1;
-	    if (InetAddressCachePolicy.get() != InetAddressCachePolicy.FOREVER) {
-		expiration = System.currentTimeMillis() + 
-		    (InetAddressCachePolicy.get() * 1000);
-	    }
-	    cacheAddress(hostname, address, expiration);
-	}
+      // if the cache policy is to cache nothing, just return
+      int policy = InetAddressCachePolicy.get();
+      if (policy == 0) {
+	return;
+      }
+      long expiration = -1;
+      if (policy != InetAddressCachePolicy.FOREVER) {
+	expiration = System.currentTimeMillis() + (policy * 1000);
+      }
+      cacheAddress(hostname, address, expiration);
     }
-
+  
     private static void cacheAddress(String hostname, Object address, long expiration) {
         hostname = hostname.toLowerCase();
 	synchronized (addressCache) {
@@ -321,10 +323,10 @@ class InetAddress implements java.io.Serializable {
 
     private static Object getCachedAddress(String hostname) {
         hostname = hostname.toLowerCase();
+	if (InetAddressCachePolicy.get() == 0) {
+	  return null;
+	}
 	synchronized (addressCache) {
-	    if (InetAddressCachePolicy.get() == 0) {
-		return null;
-	    }
 	    CacheEntry entry = (CacheEntry)addressCache.get(hostname);
 	    if (entry != null && entry.expiration < System.currentTimeMillis() &&
 		entry.expiration >= 0) {

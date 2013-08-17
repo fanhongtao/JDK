@@ -1,5 +1,5 @@
 /*
- * @(#)HtmlPanel.java	1.16 99/04/23
+ * @(#)HtmlPanel.java	1.15 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -39,7 +39,7 @@ import java.net.MalformedURLException;
 import java.io.IOException;
 
 /*
- * @version 1.16 99/04/23
+ * @version 1.15 99/04/23
  * @author Jeff Dinkins
  * @author Tim Prinzing
  * @author Peter Korn (accessibility support)

@@ -1,11 +1,15 @@
 /*
- * @(#)BitSet.java	1.3 00/01/12
+ * @(#)BitSet.java	1.39 99/04/22
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.util;
@@ -32,7 +36,7 @@ import java.io.*;
  *
  * @author  Arthur van Hoff
  * @author  Michael McCloskey
- * @version 1.39, 99/10/20
+ * @version 1.39, 00/11/26
  * @since   JDK1.0
  */
 public class BitSet implements Cloneable, java.io.Serializable {

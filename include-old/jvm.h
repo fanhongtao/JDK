@@ -1,10 +1,13 @@
 /*
- * @(#)jvm.h	1.3 00/04/06
+ * @(#)jvm.h	1.69 00/03/08
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -362,14 +365,14 @@ JVM_ResolveClass(JNIEnv *env, jclass cls);
 JNIEXPORT jclass JNICALL
 JVM_FindClassFromClassLoader(JNIEnv *env, const char *name, jboolean init,
 			     jobject loader, jboolean throwError);
-
+    
 /*
  * Find a class from a given class.
  */
 JNIEXPORT jclass JNICALL
 JVM_FindClassFromClass(JNIEnv *env, const char *name, jboolean init,
 			     jclass from);
-  
+
 /* Find a loaded class cached by the VM */
 JNIEXPORT jclass JNICALL
 JVM_FindLoadedClass(JNIEnv *env, jobject loader, jstring name);
@@ -378,6 +381,7 @@ JVM_FindLoadedClass(JNIEnv *env, jobject loader, jstring name);
 JNIEXPORT jclass JNICALL
 JVM_DefineClass(JNIEnv *env, const char *name, jobject loader, const jbyte *buf,
        jsize len, jobject pd);
+
 
 /*
  * Reflection support functions

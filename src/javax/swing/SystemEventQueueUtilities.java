@@ -1,10 +1,13 @@
 /*
- * @(#)SystemEventQueueUtilities.java	1.3 00/01/12
+ * @(#)SystemEventQueueUtilities.java	1.28 00/03/08
  *
  * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 package javax.swing;

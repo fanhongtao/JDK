@@ -1,11 +1,15 @@
 /*
- * @(#)JToolTip.java	1.2 00/01/12
+ * %W% %E%
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 
@@ -43,7 +47,7 @@ import java.io.IOException;
  *
  * @see JComponent#setToolTipText
  * @see JComponent#createToolTip
- * @version 1.2 01/12/00
+ * @version %I% %G%
  * @author Dave Moore
  * @author Rich Shiavi
  */

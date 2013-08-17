@@ -1,5 +1,5 @@
 /*
- * @(#)RoundHrefButtonArea.java	1.8 98/03/18
+ * @(#)RoundHrefButtonArea.java	1.7 98/03/18
  *
  * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -35,7 +35,7 @@
  * charactistics as the HrefButtonArea apply.
  *
  * @author 	Jim Graham
- * @version 	1.8, 03/18/98
+ * @version 	1.7, 03/18/98
  */
 class RoundHrefButtonArea extends HrefButtonArea {
     /**

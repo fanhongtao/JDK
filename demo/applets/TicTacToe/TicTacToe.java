@@ -1,5 +1,5 @@
 /*
- * @(#)TicTacToe.java	1.5 98/06/29
+ * @(#)TicTacToe.java	1.4 98/06/29
  *
  * Copyright (c) 1997, 1998 Sun Microsystems, Inc. All Rights Reserved.
  *

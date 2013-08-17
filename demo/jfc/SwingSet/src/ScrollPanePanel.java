@@ -1,5 +1,5 @@
 /*
- * @(#)ScrollPanePanel.java	1.9 99/04/23
+ * @(#)ScrollPanePanel.java	1.8 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -35,7 +35,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 /*
- * @version 1.9 04/23/99
+ * @version 1.8 04/23/99
  * @author Jeff Dinkins
  * @author Peter Korn (accessibility support)
  */

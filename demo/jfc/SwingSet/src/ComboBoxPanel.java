@@ -1,5 +1,5 @@
 /*
- * @(#)ComboBoxPanel.java	1.11 99/04/23
+ * @(#)ComboBoxPanel.java	1.10 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -44,7 +44,7 @@ import javax.accessibility.*;
 /**
  * SwingSet panel for JComboBox
  *
- * @version 1.11 04/23/99
+ * @version 1.10 04/23/99
  * @author Arnaud Weber
  * @author Peter Korn (accessibility support)
  */

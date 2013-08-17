@@ -1,5 +1,5 @@
 /*
- * @(#)CLSFractal.java	1.7 98/06/29
+ * @(#)CLSFractal.java	1.6 98/06/29
  *
  * Copyright (c) 1997, 1998 Sun Microsystems, Inc. All Rights Reserved.
  *

@@ -1,11 +1,15 @@
 /*
- * @(#)vmprofiler.h	1.2 00/01/12
+ * @(#)vmprofiler.h	1.27 00/08/03
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 #ifndef _JAVASOFT_VMPROFILER_H_
@@ -94,10 +98,18 @@ extern jvmpi_event_info_t jvmpi_event_info[];
 #define JVMPI_EVENT_ENABLED    -2
 #define JVMPI_EVENT_DISABLED   0
 
-/* [sbb] added unsigned int cast */
+  /* [sbb] added unsigned int cast */
+#ifdef __linux__
 #define JVMPI_EVENT_IS_ENABLED(e) \
   ((e) > 32 ? (jvmpi_event_info[e].flag == (unsigned int)JVMPI_EVENT_ENABLED) : \
               (jvmpi_event_flags & (1 << e)))
+
+#else
+#define JVMPI_EVENT_IS_ENABLED(e) \
+  ((e) > 32 ? (jvmpi_event_info[e].flag == JVMPI_EVENT_ENABLED) : \
+              (jvmpi_event_flags & (1 << e)))
+
+#endif
 
 /* constants */
 #define JVMPI_EVENT_PROFILING_OFF              0x00000000

@@ -1,5 +1,5 @@
 /*
- * @(#)TreePanel.java	1.8 99/04/23
+ * @(#)TreePanel.java	1.7 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -40,7 +40,7 @@ import javax.swing.tree.*;
 /**
  * Tree View!
  *
- * @version 1.8 99/04/23
+ * @version 1.7 99/04/23
  * @author Jeff Dinkins
  */
 public class TreePanel extends JPanel 

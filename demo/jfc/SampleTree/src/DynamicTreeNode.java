@@ -1,5 +1,5 @@
 /*
- * @(#)DynamicTreeNode.java	1.7 99/04/23
+ * @(#)DynamicTreeNode.java	1.6 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -58,7 +58,7 @@ import java.util.Random;
   *       a problem, but if you do support true leaf nodes you may want
   *       to check for loading in getAllowsChildren too.
   *
-  * @version 1.7 04/23/99
+  * @version 1.6 04/23/99
   * @author Scott Violet
   */
 

@@ -1,5 +1,5 @@
 /*
- * @(#)Normalizer.java	1.2 00/01/12
+ * @(#)Normalizer.java	1.28 99/01/27
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved

@@ -1,5 +1,5 @@
 /*
- * @(#)MouseTrack.java	1.8 98/06/29
+ * @(#)MouseTrack.java	1.7 98/06/29
  *
  * Copyright (c) 1995-1998 Sun Microsystems, Inc. All Rights Reserved.
  *

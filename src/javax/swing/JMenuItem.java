@@ -1,11 +1,15 @@
 /*
- * @(#)JMenuItem.java	1.2 00/01/12
+ * @(#)JMenuItem.java	1.77 00/09/22
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package javax.swing;
 
@@ -41,7 +45,7 @@ import javax.accessibility.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.76 04/22/99
+ * @version 1.77 09/22/00
  * @author Georges Saab
  * @author David Karlton
  * @see JPopupMenu
@@ -331,10 +335,17 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
      * by the MenuSelectionManager
      */
     public void processKeyEvent(KeyEvent e,MenuElement path[],MenuSelectionManager manager) {
-	processMenuKeyEvent(new MenuKeyEvent(e.getComponent(), e.getID(),
+     
+        MenuKeyEvent mke = new MenuKeyEvent(e.getComponent(), e.getID(),
 					     e.getWhen(), e.getModifiers(),
 					     e.getKeyCode(), e.getKeyChar(),
-					     path, manager));	
+					     path, manager);
+
+	processMenuKeyEvent(mke);
+	
+	if (mke.isConsumed()) 
+	  e.consume();
+	  
     }
 
 
@@ -497,7 +508,7 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
         // those that are interested in this event
         for (int i = listeners.length-2; i>=0; i-=2) {
             if (listeners[i]==MenuKeyListener.class) {
-                // Lazily create the event:
+                // Lazily create the event:				 
                 ((MenuKeyListener)listeners[i+1]).menuKeyTyped(event);
             }          
         }

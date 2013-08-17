@@ -1,5 +1,5 @@
 /*
- * @(#)Notepad.java	1.16 99/04/23
+ * @(#)Notepad.java	1.15 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -45,7 +45,7 @@ import javax.swing.*;
  * supports only one font.
  *
  * @author  Timothy Prinzing
- * @version 1.16 04/23/99
+ * @version 1.15 04/23/99
  */
 class Notepad extends JPanel {
 

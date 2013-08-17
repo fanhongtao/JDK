@@ -1,5 +1,5 @@
 /*
- * @(#)InsertSuppliers.java	1.3 99/04/23
+ * @(#)InsertSuppliers.java	1.2 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 

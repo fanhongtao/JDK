@@ -1,5 +1,5 @@
 /*
- * @(#)SampleData.java	1.4 99/04/23
+ * @(#)SampleData.java	1.3 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -32,7 +32,7 @@ import java.awt.Color;
 import java.awt.Font;
 
 /**
-  * @version 1.4 04/23/99
+  * @version 1.3 04/23/99
   * @author Scott Violet
   */
 

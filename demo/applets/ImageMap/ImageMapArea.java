@@ -1,5 +1,5 @@
 /*
- * @(#)ImageMapArea.java	1.10 98/03/18
+ * @(#)ImageMapArea.java	1.9 98/03/18
  *
  * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -41,7 +41,7 @@ import java.net.MalformedURLException;
  * classes will need and delegates specific actions to the subclasses.
  *
  * @author 	Jim Graham
- * @version 	1.10, 03/18/98
+ * @version 	1.9, 03/18/98
  */
 class ImageMapArea implements ImageObserver {
     /** The applet parent that contains this ImageArea. */

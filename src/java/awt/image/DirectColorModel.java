@@ -1,11 +1,15 @@
 /*
- * @(#)DirectColorModel.java	1.3 00/01/12
+ * @(#)DirectColorModel.java	1.55 98/07/29
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.awt.image;
@@ -92,7 +96,7 @@ public class DirectColorModel extends PackedColorModel {
     private int green_scale;
     private int blue_scale;
     private int alpha_scale;
-    
+
     /**
      * Constructs a DirectColorModel from the given masks specifying which
      * bits in an int pixel representation contain the red, green and blue
@@ -159,7 +163,7 @@ public class DirectColorModel extends PackedColorModel {
         super (space, bits, rmask, gmask, bmask, amask,
                isAlphaPremultiplied,
                amask == 0 ? Transparency.OPAQUE : Transparency.TRANSLUCENT,
-               transferType);  
+               transferType);
         setFields();
     }
 
@@ -299,7 +303,7 @@ public class DirectColorModel extends PackedColorModel {
 	    | (getGreen(pixel) << 8)
 	    | (getBlue(pixel) << 0);
     }
-    
+
     /**
      * Returns the red color component for the specified pixel, scaled
      * from 0 to 255 in the default RGB ColorSpace, sRGB.  A color conversion
@@ -334,7 +338,7 @@ public class DirectColorModel extends PackedColorModel {
         }
         return getRed(pixel);
     }
-   
+
 
     /**
      * Returns the green color component for the specified pixel, scaled
@@ -370,7 +374,7 @@ public class DirectColorModel extends PackedColorModel {
         }
         return getGreen(pixel);
     }
-   
+
 
     /**
      * Returns the blue color component for the specified pixel, scaled
@@ -570,7 +574,7 @@ public class DirectColorModel extends PackedColorModel {
 
         return components;
     }
-    
+
     /**
      * Returns an array of unnormalized color/alpha components given a pixel
      * in this ColorModel.  The pixel value is specified by an array of
@@ -608,10 +612,10 @@ public class DirectColorModel extends PackedColorModel {
         }
         return getComponents(intpixel, components, offset);
     }
-    
+
     /**
-     * Creates a WritableRaster with the specified width and height that 
-     * has a data layout (SampleModel) compatible with this ColorModel.  
+     * Creates a WritableRaster with the specified width and height that
+     * has a data layout (SampleModel) compatible with this ColorModel.
      * @see WritableRaster
      * @see SampleModel
      */
@@ -628,18 +632,18 @@ public class DirectColorModel extends PackedColorModel {
         bandmasks[0] = red_mask;
         bandmasks[1] = green_mask;
         bandmasks[2] = blue_mask;
-        
+
         if (pixel_bits > 16) {
 	    return Raster.createPackedRaster(DataBuffer.TYPE_INT,
-                                             w,h,bandmasks,null); 
+                                             w,h,bandmasks,null);
         }
         else if (pixel_bits > 8) {
 	    return Raster.createPackedRaster(DataBuffer.TYPE_USHORT,
-                                             w,h,bandmasks,null); 
+                                             w,h,bandmasks,null);
         }
         else {
 	    return Raster.createPackedRaster(DataBuffer.TYPE_BYTE,
-                                             w,h,bandmasks,null); 
+                                             w,h,bandmasks,null);
         }
     }
 
@@ -657,7 +661,7 @@ public class DirectColorModel extends PackedColorModel {
         }
         return pixel;
     }
-    
+
     /**
      * Returns a data element array representation of a pixel in this
      * ColorModel, given an array of unnormalized color/alpha components.
@@ -728,7 +732,7 @@ public class DirectColorModel extends PackedColorModel {
             this.isAlphaPremultiplied() == isAlphaPremultiplied) {
             return this;
         }
-        
+
         int w = raster.getWidth();
         int h = raster.getHeight();
         int aIdx = numColorComponents;
@@ -774,8 +778,8 @@ public class DirectColorModel extends PackedColorModel {
                             }
                         }
                     }
-                } 
-                break; 
+                }
+                break;
                 case DataBuffer.TYPE_INT: {
                     for (int y = 0; y < h; y++, rY++) {
                         rX = rminX;
@@ -791,7 +795,7 @@ public class DirectColorModel extends PackedColorModel {
                         }
                     }
                 }
-                break; 
+                break;
                 default:
                     throw new UnsupportedOperationException("This method has not been "+
                          "implemented for transferType " + transferType);
@@ -859,7 +863,7 @@ public class DirectColorModel extends PackedColorModel {
                                     maskArray[1], maskArray[2], maskArray[3],
                                     isAlphaPremultiplied,
                                     transferType);
-                                    
+
     }
 
     /**
@@ -883,26 +887,32 @@ public class DirectColorModel extends PackedColorModel {
 	int[] bitSizes = spsm.getSampleSize();
         int[] bitOffsets = spsm.getBitOffsets();
 	int totalBitSize = 0;
+        /*if[Linux]
         int testBitSize=0;
-	
+        end[Linux]*/
+
 	for(int i=0; i<bitSizes.length; i++) {
             if (bitSizes[i]+bitOffsets[i] > totalBitSize) {
                 totalBitSize = bitSizes[i]+bitOffsets[i];
             }
         }
-	
+
 	for (int i=0; i<numComponents; i++) {
-	    if (bitMasks[i] != maskArray[i]) 
+	    if (bitMasks[i] != maskArray[i])
 		flag = false;
+/*if[Linux]
             testBitSize+=bitSizes[i];
-            
+end[Linux]*/
 	}
-	    
+
         return ( (raster.getTransferType() == transferType) &&
-		 (totalBitSize == testBitSize ) && flag );
-	//	 (totalBitSize == pixel_bits ) && flag );
+        /*if[Linux]
+                 (totalBitSize == testBitSize ) && flag );
+        else[Linux]*/
+		 (totalBitSize == pixel_bits ) && flag );
+        /*end[Linux]*/
     }
-    
+
     private void setFields() {
         // Set the private fields
         // REMIND: Get rid of these from the native code
@@ -933,7 +943,7 @@ public class DirectColorModel extends PackedColorModel {
     /**
      * Returns a <code>String</code> that represents this
      * <code>DirectColorModel</code>.
-     * @return a <code>String</code> representing this 
+     * @return a <code>String</code> representing this
      * <code>DirectColorModel</code>.
      */
     public String toString() {

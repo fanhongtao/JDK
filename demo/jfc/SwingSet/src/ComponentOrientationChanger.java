@@ -1,5 +1,5 @@
 /*
- * @(#)ComponentOrientationChanger.java	1.5 99/04/23
+ * @(#)ComponentOrientationChanger.java	1.4 99/04/23
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 

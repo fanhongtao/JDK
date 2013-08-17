@@ -1,5 +1,5 @@
 /*
- * @(#)Matrix3D.java	1.5 98/03/18
+ * @(#)Matrix3D.java	1.4 98/03/18
  *
  * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *

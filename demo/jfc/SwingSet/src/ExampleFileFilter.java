@@ -1,5 +1,5 @@
 /*
- * @(#)ExampleFileFilter.java	1.8 99/04/23
+ * @(#)ExampleFileFilter.java	1.7 99/04/23
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -51,7 +51,7 @@ import javax.swing.filechooser.*;
  *     chooser.addChoosableFileFilter(filter);
  *     chooser.showOpenDialog(this);
  *
- * @version 1.8 04/23/99
+ * @version 1.7 04/23/99
  * @author Jeff Dinkins
  */
 public class ExampleFileFilter extends FileFilter {

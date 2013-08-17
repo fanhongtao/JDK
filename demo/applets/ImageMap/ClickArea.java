@@ -1,5 +1,5 @@
 /*
- * @(#)ClickArea.java	1.9 98/03/18
+ * @(#)ClickArea.java	1.8 98/03/18
  *
  * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -37,7 +37,7 @@ import java.awt.Graphics;
  * ImageArea class is useful when setting up ImageMaps.
  *
  * @author 	Jim Graham
- * @version 	1.9, 03/18/98
+ * @version 	1.8, 03/18/98
  */
 class ClickArea extends ImageMapArea {
     /** The X location of the last mouse press. */

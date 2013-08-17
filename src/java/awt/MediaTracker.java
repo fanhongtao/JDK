@@ -1,11 +1,15 @@
 /*
- * @(#)MediaTracker.java	1.2 00/01/12
+ * @(#)MediaTracker.java	1.32 00/09/29
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.awt;
@@ -128,7 +132,7 @@ import java.awt.image.ImageObserver;
  * }
  * </pre></blockquote><hr>
  * <p>
- * @version 	1.31, 09/21/98
+ * @version 	1.32, 09/29/00
  * @author 	Jim Graham
  * @since       JDK1.0
  */
@@ -870,7 +874,7 @@ java.io.Serializable {
 
     int getStatus(boolean doLoad, boolean doVerify) {
 	if (doVerify) {
-	    int flags = tracker.target.checkImage(image, width, height, this);
+	    int flags = tracker.target.checkImage(image, width, height, null);
 	    int s = parseflags(flags);
 	    if (s == 0) {
 		if ((status & (ERRORED | COMPLETE)) != 0) {

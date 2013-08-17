@@ -1,11 +1,15 @@
 /*
- * @(#)SocketPermission.java	1.5 00/06/21
+ * @(#)SocketPermission.java	1.28 00/06/21
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
  
 package java.net;
@@ -80,7 +84,7 @@ import java.io.IOException;
  * @see Permissions
  * @see SocketPermissions
  *
- * @version 1.26 99/04/22
+ * @version 1.28 00/06/21
  *
  * @author Marianne Mueller
  * @author Roland Schemers 
@@ -309,10 +313,10 @@ implements java.io.Serializable
      */
     private void init(String host, int mask) {
 
-	if (host == null) 
-		throw new NullPointerException("host can't be null");
+	if (host == null)
+	    throw new NullPointerException("host can't be null");
 
-        host = getHost(host);
+	host = getHost(host);
 
 	// Set the integer mask that represents the actions
 
@@ -717,25 +721,25 @@ implements java.io.Serializable
     }
 
 	private boolean inProxyWeTrust(SocketPermission that) {
-	// if we trust the proxy, we see if the original names/IPs passed
-	// in were equal.
+    // if we trust the proxy, we see if the original names/IPs passed
+    // in were equal.
 
-	String thisHost = getName();
-	String thatHost = that.getName();
+    String thisHost = getName();
+    String thatHost = that.getName();
 
-	int sep = thisHost.indexOf(':');
-	if (sep != -1)
-		thisHost = thisHost.substring(0, sep);
+    int sep = thisHost.indexOf(':');
+    if (sep != -1)
+            thisHost = thisHost.substring(0, sep);
 
-	sep = thatHost.indexOf(':');
-	if (sep != -1)
-		thatHost = thatHost.substring(0, sep);
+    sep = thatHost.indexOf(':');
+    if (sep != -1)
+            thatHost = thatHost.substring(0, sep);
 
-	if (thisHost == null) 
-		return false;
-	else 
-		return thisHost.equalsIgnoreCase(thatHost);
-	}
+    if (thisHost == null)
+            return false;
+    else
+            return thisHost.equalsIgnoreCase(thatHost);
+    }
 
     /**
      * Checks two SocketPermission objects for equality. 
@@ -987,7 +991,7 @@ else its the cname?
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.26 99/10/20
+ * @version 1.28 00/11/26
  *
  * @author Roland Schemers
  */
@@ -1022,6 +1026,7 @@ implements Serializable
 	if (! (permission instanceof SocketPermission))
 	    throw new IllegalArgumentException("invalid permission: "+
 					       permission);
+
 	if (isReadOnly())
 	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
 

@@ -1,10 +1,13 @@
 /*
- * @(#)Dialog.java	1.2 00/01/12
+ * @(#)Dialog.java	1.60 00/04/06
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 package java.awt;
@@ -14,6 +17,7 @@ import java.awt.event.*;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
+import sun.awt.AxBridgeHelper;
 
 
 /**
@@ -54,7 +58,7 @@ import java.io.IOException;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.56, 12/16/98
+ * @version 	1.60, 04/06/00
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -341,6 +345,8 @@ public class Dialog extends Window {
      * @see Component#validate
      * @see java.awt.Dialog#isModal
      */
+    private EventQueue tempEQ = null;
+    private AxBridgeHelper axbHelper = null;
     public void show() {
         if (!isModal()) {
             conditionalShow();
@@ -354,17 +360,50 @@ public class Dialog extends Window {
                 // We have two mechanisms for blocking: 1. If we're on the
                 // EventDispatchThread, start a new event pump. 2. If we're
                 // on any other thread, call wait() on the treelock.
+		//
+		// if we are calling from windows activex thread
+		// we need to create a message loop for the activex
+		// container to avoid blocking
 
-                if (Toolkit.getEventQueue().isDispatchThread()) {
-                    EventDispatchThread dispatchThread =
-                        (EventDispatchThread) Thread.currentThread();
-                    dispatchThread.pumpEvents(new Conditional() {
-                        public boolean evaluate() {
-                            return keepBlocking;
-                        }
-                    });
-                } else {
-                    synchronized (getTreeLock()) {
+		if (Toolkit.getEventQueue().isDispatchThread()) {
+		    EventDispatchThread dispatchThread =
+			(EventDispatchThread) Thread.currentThread();
+                    /*
+                     * pump events, filter out input events for
+                     * component not belong to our modal dialog.
+                     *
+                     * we already disabled other components in native code
+                     * but because the event is posted from a different 
+                     * thread so it's possible that there are some events
+                     * for other component already posted in the queue
+                     * before we decide do modal show.  
+                     */ 
+		    dispatchThread.pumpEventsForComponent(new Conditional() {
+			public boolean evaluate() {
+			    return keepBlocking;
+			}
+		    }, (Component)this);
+		    return;
+		}
+
+		if (peer.getClass().getName().equals(
+			"sun.awt.windows.WDialogPeer")) {
+			axbHelper = new AxBridgeHelper();
+			EventDispatchThread stoppedEDT = null;
+                	if (axbHelper.isAppMainThread()) {
+                    		stoppedEDT = (EventDispatchThread)
+					AxBridgeHelper.isNewDispatchThreadNeeded();
+                    		if (stoppedEDT != null) {
+                        		tempEQ = new EventQueue();
+                        		stoppedEDT.getEventQueue().push(tempEQ);
+                    		}
+                    		axbHelper.nativeModalWait();
+				return;
+			}
+			axbHelper = null;
+		}
+
+                synchronized (getTreeLock()) {
                         while (keepBlocking) {
                             try {
                                 getTreeLock().wait();
@@ -372,7 +411,6 @@ public class Dialog extends Window {
                                 break;
                             }
                         }
-                    }
                 }
             }
         }
@@ -383,6 +421,17 @@ public class Dialog extends Window {
             synchronized (getTreeLock()) {
                 keepBlocking = false;
                 EventQueue.invokeLater(new Runnable(){ public void run() {} });
+		if (peer.getClass().getName().equals("sun.awt.windows.WDialogPeer")) {
+                	// XXX: synchronize?
+                	if (tempEQ != null)  {
+                    		tempEQ.pop();
+                    		tempEQ = null;
+                	}
+			if (axbHelper != null) {
+                		axbHelper.nativeModalNotify();
+				axbHelper = null;
+			}
+		}
                 getTreeLock().notifyAll();
             }
         }

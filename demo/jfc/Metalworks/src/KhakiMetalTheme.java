@@ -1,5 +1,5 @@
 /*
- * @(#)KhakiMetalTheme.java	1.5 99/04/23
+ * @(#)KhakiMetalTheme.java	1.4 99/04/23
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -38,7 +38,7 @@ import java.awt.*;
 /**
  * This class describes a theme using "khaki" colors.
  *
- * @version 1.5 04/23/99
+ * @version 1.4 04/23/99
  * @author Steve Wilson
  */
 public class KhakiMetalTheme extends DefaultMetalTheme {
