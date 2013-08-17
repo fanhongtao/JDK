@@ -75,7 +75,7 @@ import sun.security.action.GetPropertyAction;
  * @see          Calendar
  * @see          GregorianCalendar
  * @see          SimpleTimeZone
- * @version      1.57 02/06/02
+ * @version      1.58 03/09/06
  * @author       Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since        JDK1.1
  */
@@ -614,23 +614,43 @@ abstract public class TimeZone implements Serializable, Cloneable {
  */
 class TimeZoneData
 {
+    /*
+     * Millisecond offset from 2007-01-01T00:00:00Z.
+     */
+    private static final long CUTOVER = 1167609600000L;
+
     static final TimeZone get(String ID) {
-        Object o = lookup.get(ID);
-        return o == null ? null : (TimeZone)((TimeZone)o).clone(); // [sic]
+	TimeZone tz = (TimeZone) lookup.get(ID);
+	if (tz == null) {
+	    return null;
+	}
+
+	// If the time zone observes daylight saving time and the
+	// current local *standard* time is later than CUTOVER, then
+	// use the later time zone table.
+	if (tz.useDaylightTime() && System.currentTimeMillis() + tz.getRawOffset() >= CUTOVER) {
+	    TimeZone tzLater = (TimeZone) lookupLater.get(ID);
+	    if (tzLater != null) {
+		tz = tzLater;
+	    }
+	}
+	return (TimeZone) tz.clone();
     }
 
     // ---------------- BEGIN GENERATED DATA ----------------
     private static final int ONE_HOUR = 60*60*1000;
     private static final int ONE_MINUTE = 60*1000;
 
-    // The following data is based on tzdata2001a.
-    static SimpleTimeZone zones[] = {
+    // The following data tables are based on tzdata2006a.
+
+    // Data for 2006 or earlier
+    static final SimpleTimeZone zones[] = {
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-11*ONE_HOUR, "MIT" /* Pacific/Apia */),
-	// Zone MIT	-11:00	-	WST			# W Samoa Time
+	// Zone MIT	-11:00	-	WST			# Samoa Time
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-11*ONE_HOUR, "Pacific/Apia"),
-	// Zone Pacific/Apia	-11:00	-	WST			# W Samoa Time
+	// Zone Pacific/Apia	-11:00	-	WST			# Samoa Time
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-11*ONE_HOUR, "Pacific/Niue"),
 	// Zone Pacific/Niue	-11:00	-	NUT
@@ -642,8 +662,8 @@ class TimeZoneData
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	US	1987	max	-	Apr	Sun>=1	2:00	1:00	D
-	// Rule	US	1967	max	-	Oct	lastSun	2:00	0	S
+	// Rule	US	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	US	1967	2006	-	Oct	lastSun	2:00	0	S
 	// Zone America/Adak	-10:00	US	HA%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-10*ONE_HOUR, "HST" /* Pacific/Honolulu */),
@@ -668,16 +688,16 @@ class TimeZoneData
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	US	1987	max	-	Apr	Sun>=1	2:00	1:00	D
-	// Rule	US	1967	max	-	Oct	lastSun	2:00	0	S
+	// Rule	US	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	US	1967	2006	-	Oct	lastSun	2:00	0	S
 	// Zone AST	-9:00	US	AK%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-9*ONE_HOUR, "America/Anchorage",
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	US	1987	max	-	Apr	Sun>=1	2:00	1:00	D
-	// Rule	US	1967	max	-	Oct	lastSun	2:00	0	S
+	// Rule	US	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	US	1967	2006	-	Oct	lastSun	2:00	0	S
 	// Zone America/Anchorage	-9:00	US	AK%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-9*ONE_HOUR, "Pacific/Gambier"),
@@ -687,17 +707,17 @@ class TimeZoneData
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	US	1987	max	-	Apr	Sun>=1	2:00	1:00	D
-	// Rule	US	1967	max	-	Oct	lastSun	2:00	0	S
+	// Rule	US	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	US	1967	2006	-	Oct	lastSun	2:00	0	S
 	// Zone America/Los_Angeles	-8:00	US	P%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-8*ONE_HOUR, "America/Tijuana",
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	US	1987	max	-	Apr	Sun>=1	2:00	1:00	D
-	// Rule	US	1967	max	-	Oct	lastSun	2:00	0	S
-	// Zone America/Tijuana	-8:00	US	P%sT
+	// Rule	Mexico	2002	max	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	Mexico	2002	max	-	Oct	lastSun	2:00	0	S
+	// Zone America/Tijuana	-8:00	Mexico	P%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-8*ONE_HOUR, "America/Vancouver",
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
@@ -711,8 +731,8 @@ class TimeZoneData
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	US	1987	max	-	Apr	Sun>=1	2:00	1:00	D
-	// Rule	US	1967	max	-	Oct	lastSun	2:00	0	S
+	// Rule	US	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	US	1967	2006	-	Oct	lastSun	2:00	0	S
 	// Zone PST	-8:00	US	P%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-8*ONE_HOUR, "Pacific/Pitcairn"),
@@ -725,8 +745,8 @@ class TimeZoneData
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	US	1987	max	-	Apr	Sun>=1	2:00	1:00	D
-	// Rule	US	1967	max	-	Oct	lastSun	2:00	0	S
+	// Rule	US	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	US	1967	2006	-	Oct	lastSun	2:00	0	S
 	// Zone America/Denver	-7:00	US	M%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-7*ONE_HOUR, "America/Edmonton",
@@ -738,11 +758,11 @@ class TimeZoneData
 	// Zone America/Edmonton	-7:00	Edm	M%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-7*ONE_HOUR, "America/Mazatlan",
-	  Calendar.MAY, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
-	  Calendar.SEPTEMBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	Mexico	2001	max	-	May	Sun>=1	2:00	1:00	D
-	// Rule	Mexico	2001	max	-	Sep	lastSun	2:00	0	S
+	// Rule	Mexico	2002	max	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	Mexico	2002	max	-	Oct	lastSun	2:00	0	S
 	// Zone America/Mazatlan	-7:00	Mexico	M%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-7*ONE_HOUR, "America/Phoenix"),
@@ -752,8 +772,8 @@ class TimeZoneData
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	US	1987	max	-	Apr	Sun>=1	2:00	1:00	D
-	// Rule	US	1967	max	-	Oct	lastSun	2:00	0	S
+	// Rule	US	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	US	1967	2006	-	Oct	lastSun	2:00	0	S
 	// Zone MST	-7:00	US	M%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-7*ONE_HOUR, "PNT" /* America/Phoenix */),
@@ -766,8 +786,8 @@ class TimeZoneData
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	US	1987	max	-	Apr	Sun>=1	2:00	1:00	D
-	// Rule	US	1967	max	-	Oct	lastSun	2:00	0	S
+	// Rule	US	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	US	1967	2006	-	Oct	lastSun	2:00	0	S
 	// Zone America/Chicago	-6:00	US	C%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-6*ONE_HOUR, "America/Costa_Rica"),
@@ -780,14 +800,14 @@ class TimeZoneData
 	// Zone America/Guatemala	-6:00	Guat	C%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-6*ONE_HOUR, "America/Managua"),
-	// Zone America/Managua	-6:00	-	CST
+	// Zone America/Managua	-6:00	Nic	C%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-6*ONE_HOUR, "America/Mexico_City",
-	  Calendar.MAY, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
-	  Calendar.SEPTEMBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	Mexico	2001	max	-	May	Sun>=1	2:00	1:00	D
-	// Rule	Mexico	2001	max	-	Sep	lastSun	2:00	0	S
+	// Rule	Mexico	2002	max	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	Mexico	2002	max	-	Oct	lastSun	2:00	0	S
 	// Zone America/Mexico_City	-6:00	Mexico	C%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-6*ONE_HOUR, "America/Regina"),
@@ -797,19 +817,19 @@ class TimeZoneData
 	// Zone America/Tegucigalpa	-6:00	Salv	C%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-6*ONE_HOUR, "America/Winnipeg",
-	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
 	  1*ONE_HOUR),
-	// Rule	Winn	1987	max	-	Apr	Sun>=1	2:00	1:00	D
-	// Rule	Winn	1987	max	-	Oct	lastSun	2:00s	0	S
+	// Rule	Winn	1987	2006	-	Apr	Sun>=1	2:00s	1:00	D
+	// Rule	Winn	1987	2006	-	Oct	lastSun	2:00s	0	S
 	// Zone America/Winnipeg	-6:00	Winn	C%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-6*ONE_HOUR, "CST" /* America/Chicago */,
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	US	1987	max	-	Apr	Sun>=1	2:00	1:00	D
-	// Rule	US	1967	max	-	Oct	lastSun	2:00	0	S
+	// Rule	US	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	US	1967	2006	-	Oct	lastSun	2:00	0	S
 	// Zone CST	-6:00	US	C%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-6*ONE_HOUR, "Pacific/Easter",
@@ -845,11 +865,24 @@ class TimeZoneData
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 0, SimpleTimeZone.STANDARD_TIME,
 	  1*ONE_HOUR),
 	// Rule	Cuba	2000	max	-	Apr	Sun>=1	0:00s	1:00	D
-	// Rule	Cuba	1998	max	-	Oct	lastSun	0:00s	0	S
+	// Rule	Cuba	2006	max	-	Oct	lastSun	0:00s	0	S
 	// Zone America/Havana	-5:00	Cuba	C%sT
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(-5*ONE_HOUR, "America/Indianapolis"),
-	// Zone America/Indianapolis	-5:00	-	EST
+	new SimpleTimeZone(-5*ONE_HOUR, "America/Indiana/Indianapolis",
+	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	US	1967	2006	-	Oct	lastSun	2:00	0	S
+	// Zone America/Indiana/Indianapolis	-5:00	US	E%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-5*ONE_HOUR, "America/Indianapolis" /* America/Indiana/Indianapolis */,
+	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	US	1967	2006	-	Oct	lastSun	2:00	0	S
+	// Zone America/Indianapolis	-5:00	US	E%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-5*ONE_HOUR, "America/Jamaica"),
 	// Zone America/Jamaica	-5:00	-	EST
@@ -861,9 +894,9 @@ class TimeZoneData
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	Mont	1987	max	-	Apr	Sun>=1	2:00	1:00	D
-	// Rule	Mont	1957	max	-	Oct	lastSun	2:00	0	S
-	// Zone America/Montreal	-5:00	Mont	E%sT
+	// Rule	Canada	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	Canada	1974	2006	-	Oct	lastSun	2:00	0	S
+	// Zone America/Montreal	-5:00	Canada	E%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-5*ONE_HOUR, "America/Nassau",
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
@@ -877,8 +910,8 @@ class TimeZoneData
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	US	1987	max	-	Apr	Sun>=1	2:00	1:00	D
-	// Rule	US	1967	max	-	Oct	lastSun	2:00	0	S
+	// Rule	US	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	US	1967	2006	-	Oct	lastSun	2:00	0	S
 	// Zone America/New_York	-5:00	US	E%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-5*ONE_HOUR, "America/Panama"),
@@ -897,12 +930,17 @@ class TimeZoneData
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	US	1987	max	-	Apr	Sun>=1	2:00	1:00	D
-	// Rule	US	1967	max	-	Oct	lastSun	2:00	0	S
+	// Rule	US	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	US	1967	2006	-	Oct	lastSun	2:00	0	S
 	// Zone EST	-5:00	US	E%sT
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(-5*ONE_HOUR, "IET" /* America/Indianapolis */),
-	// Zone IET	-5:00	-	EST
+	new SimpleTimeZone(-5*ONE_HOUR, "IET" /* America/Indiana/Indianapolis */,
+	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	US	1967	2006	-	Oct	lastSun	2:00	0	S
+	// Zone IET	-5:00	US	E%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-4*ONE_HOUR, "America/Anguilla"),
 	// Zone America/Anguilla	-4:00	-	AST
@@ -914,11 +952,11 @@ class TimeZoneData
 	// Zone America/Aruba	-4:00	-	AST
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-4*ONE_HOUR, "America/Asuncion",
-	  Calendar.OCTOBER, 1, -Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
-	  Calendar.MARCH, 1, -Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
+	  Calendar.OCTOBER, 15, -Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	Para	1996	max	-	Oct	Sun>=1	0:00	1:00	S
-	// Rule	Para	1998	max	-	Mar	Sun>=1	0:00	0	-
+	// Rule	Para	2004	max	-	Oct	Sun>=15	0:00	1:00	S
+	// Rule	Para	2005	max	-	Mar	Sun>=8	0:00	0	-
 	// Zone America/Asuncion	-4:00	Para	PY%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-4*ONE_HOUR, "America/Barbados"),
@@ -928,10 +966,10 @@ class TimeZoneData
 	// Zone America/Caracas	-4:00	-	VET
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-4*ONE_HOUR, "America/Cuiaba",
-	  Calendar.OCTOBER, 8, -Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
+	  Calendar.OCTOBER, 15, -Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
 	  Calendar.FEBRUARY, 15, -Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	Brazil	2000	max	-	Oct	Sun>=8	 0:00	1:00	S
+	// Rule	Brazil	2005	max	-	Oct	Sun>=15	 0:00	1:00	S
 	// Rule	Brazil	2001	max	-	Feb	Sun>=15	 0:00	0	-
 	// Zone America/Cuiaba	-4:00	Brazil	AM%sT
 	//--------------------------------------------------------------------
@@ -954,9 +992,9 @@ class TimeZoneData
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule Halifax	1987	max	-	Apr	Sun>=1	2:00	1:00	D
-	// Rule Halifax	1962	max	-	Oct	lastSun	2:00	0	S
-	// Zone America/Halifax	-4:00	Halifax	A%sT
+	// Rule	Canada	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	Canada	1974	2006	-	Oct	lastSun	2:00	0	S
+	// Zone America/Halifax	-4:00	Canada	A%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-4*ONE_HOUR, "America/La_Paz"),
 	// Zone America/La_Paz	-4:00	-	BOT	# Bolivia Time
@@ -1053,10 +1091,13 @@ class TimeZoneData
 	// Rule	StJohns	1987	max	-	Oct	lastSun	0:01	0	S
 	// Zone CNT	-3:30	StJohns	N%sT
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(-3*ONE_HOUR, "AGT" /* America/Buenos_Aires */),
+	new SimpleTimeZone(-3*ONE_HOUR, "AGT" /* America/Argentina/Buenos_Aires */),
 	// Zone AGT	-3:00	-	ART
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(-3*ONE_HOUR, "America/Buenos_Aires"),
+	new SimpleTimeZone(-3*ONE_HOUR, "America/Argentina/Buenos_Aires"),
+	// Zone America/Argentina/Buenos_Aires	-3:00	-	ART
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-3*ONE_HOUR, "America/Buenos_Aires" /* America/Argentina/Buenos_Aires */),
 	// Zone America/Buenos_Aires	-3:00	-	ART
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-3*ONE_HOUR, "America/Cayenne"),
@@ -1077,9 +1118,9 @@ class TimeZoneData
 	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	Mont	1987	max	-	Apr	Sun>=1	2:00	1:00	D
-	// Rule	Mont	1957	max	-	Oct	lastSun	2:00	0	S
-	// Zone America/Miquelon	-3:00	Mont	PM%sT	# Pierre & Miquelon Time
+	// Rule	Canada	1987	2006	-	Apr	Sun>=1	2:00	1:00	D
+	// Rule	Canada	1974	2006	-	Oct	lastSun	2:00	0	S
+	// Zone America/Miquelon	-3:00	Canada	PM%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-3*ONE_HOUR, "America/Montevideo"),
 	// Zone America/Montevideo	-3:00	Uruguay	UY%sT
@@ -1088,18 +1129,18 @@ class TimeZoneData
 	// Zone America/Paramaribo	-3:00	-	SRT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-3*ONE_HOUR, "America/Sao_Paulo",
-	  Calendar.OCTOBER, 8, -Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
+	  Calendar.OCTOBER, 15, -Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
 	  Calendar.FEBRUARY, 15, -Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	Brazil	2000	max	-	Oct	Sun>=8	 0:00	1:00	S
+	// Rule	Brazil	2005	max	-	Oct	Sun>=15	 0:00	1:00	S
 	// Rule	Brazil	2001	max	-	Feb	Sun>=15	 0:00	0	-
 	// Zone America/Sao_Paulo	-3:00	Brazil	BR%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(-3*ONE_HOUR, "BET" /* America/Sao_Paulo */,
-	  Calendar.OCTOBER, 8, -Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
+	  Calendar.OCTOBER, 15, -Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
 	  Calendar.FEBRUARY, 15, -Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	Brazil	2000	max	-	Oct	Sun>=8	 0:00	1:00	S
+	// Rule	Brazil	2005	max	-	Oct	Sun>=15	 0:00	1:00	S
 	// Rule	Brazil	2001	max	-	Feb	Sun>=15	 0:00	0	-
 	// Zone BET	-3:00	Brazil	BR%sT
 	//--------------------------------------------------------------------
@@ -1128,14 +1169,14 @@ class TimeZoneData
 	new SimpleTimeZone(-1*ONE_HOUR, "Atlantic/Cape_Verde"),
 	// Zone Atlantic/Cape_Verde	-1:00	-	CVT
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(-1*ONE_HOUR, "Atlantic/Jan_Mayen"),
-	// Zone Atlantic/Jan_Mayen	-1:00	-	EGT
-	//--------------------------------------------------------------------
 	new SimpleTimeZone(0, "Africa/Abidjan"),
 	// Zone Africa/Abidjan	0:00	-	GMT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(0, "Africa/Accra"),
 	// Zone Africa/Accra	0:00	Ghana	%s
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(0, "Africa/Bamako"),
+	// Zone Africa/Bamako	0:00	-	GMT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(0, "Africa/Banjul"),
 	// Zone Africa/Banjul	0:00	-	GMT
@@ -1170,7 +1211,7 @@ class TimeZoneData
 	new SimpleTimeZone(0, "Africa/Sao_Tome"),
 	// Zone Africa/Sao_Tome	0:00	-	GMT
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(0, "Africa/Timbuktu"),
+	new SimpleTimeZone(0, "Africa/Timbuktu" /* Africa/Bamako */),
 	// Zone Africa/Timbuktu	0:00	-	GMT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(0, "Atlantic/Canary",
@@ -1276,6 +1317,14 @@ class TimeZoneData
 	// Rule	Namibia	1994	max	-	Sep	Sun>=1	2:00	1:00	S
 	// Rule	Namibia	1995	max	-	Apr	Sun>=1	2:00	0	-
 	// Zone Africa/Windhoek	1:00	Namibia	WA%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(1*ONE_HOUR, "Atlantic/Jan_Mayen" /* Europe/Oslo */,
+	  Calendar.MARCH, -1, Calendar.SUNDAY, 1*ONE_HOUR, SimpleTimeZone.UTC_TIME,
+	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 1*ONE_HOUR, SimpleTimeZone.UTC_TIME,
+	  1*ONE_HOUR),
+	// Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
+	// Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
+	// Zone Atlantic/Jan_Mayen	1:00	EU	CE%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(1*ONE_HOUR, "ECT" /* Europe/Paris */,
 	  Calendar.MARCH, -1, Calendar.SUNDAY, 1*ONE_HOUR, SimpleTimeZone.UTC_TIME,
@@ -1515,10 +1564,10 @@ class TimeZoneData
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(2*ONE_HOUR, "Asia/Amman",
 	  Calendar.MARCH, -1, Calendar.THURSDAY, 0, SimpleTimeZone.STANDARD_TIME,
-	  Calendar.SEPTEMBER, -1, Calendar.THURSDAY, 0, SimpleTimeZone.STANDARD_TIME,
+	  Calendar.SEPTEMBER, -1, Calendar.FRIDAY, 0, SimpleTimeZone.STANDARD_TIME,
 	  1*ONE_HOUR),
 	// Rule	Jordan	2000	max	-	Mar	lastThu	0:00s	1:00	S
-	// Rule	Jordan	1999	max	-	Sep	lastThu	0:00s	0	-
+	// Rule	Jordan	2005	max	-	Sep	lastFri	0:00s	0	-
 	// Zone Asia/Amman	2:00	Jordan	EE%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(2*ONE_HOUR, "Asia/Beirut",
@@ -1538,11 +1587,11 @@ class TimeZoneData
 	// Zone Asia/Damascus	2:00	Syria	EE%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(2*ONE_HOUR, "Asia/Jerusalem",
-	  Calendar.APRIL, 9, 0, 1*ONE_HOUR, SimpleTimeZone.WALL_TIME,
-	  Calendar.SEPTEMBER, 24, 0, 1*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.MARCH, 26, -Calendar.FRIDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.OCTOBER, 1, 0, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	Zion	2001	only	-	Apr	 9	1:00	1:00	D
-	// Rule	Zion	2001	only	-	Sep	24	1:00	0	S
+	// Rule	Zion	2006	2010	-	Mar	Fri>=26	2:00	1:00	D
+	// Rule	Zion	2006	only	-	Oct	 1	2:00	0	S
 	// Zone Asia/Jerusalem	2:00	Zion	I%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(2*ONE_HOUR, "Asia/Nicosia",
@@ -1652,11 +1701,21 @@ class TimeZoneData
 	// Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
 	// Zone Europe/Sofia	2:00	EU	EE%sT
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(2*ONE_HOUR, "Europe/Tallinn"),
-	// Zone Europe/Tallinn	2:00	-	EET
+	new SimpleTimeZone(2*ONE_HOUR, "Europe/Tallinn",
+	  Calendar.MARCH, -1, Calendar.SUNDAY, 1*ONE_HOUR, SimpleTimeZone.UTC_TIME,
+	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 1*ONE_HOUR, SimpleTimeZone.UTC_TIME,
+	  1*ONE_HOUR),
+	// Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
+	// Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
+	// Zone Europe/Tallinn	2:00	EU	EE%sT
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(2*ONE_HOUR, "Europe/Vilnius"),
-	// Zone Europe/Vilnius	2:00	-	EET
+	new SimpleTimeZone(2*ONE_HOUR, "Europe/Vilnius",
+	  Calendar.MARCH, -1, Calendar.SUNDAY, 1*ONE_HOUR, SimpleTimeZone.UTC_TIME,
+	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 1*ONE_HOUR, SimpleTimeZone.UTC_TIME,
+	  1*ONE_HOUR),
+	// Rule	EU	1981	max	-	Mar	lastSun	 1:00u	1:00	S
+	// Rule	EU	1996	max	-	Oct	lastSun	 1:00u	0	-
+	// Zone Europe/Vilnius	2:00	EU	EE%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(3*ONE_HOUR, "Africa/Addis_Ababa"),
 	// Zone Africa/Addis_Ababa	3:00	-	EAT
@@ -1726,35 +1785,27 @@ class TimeZoneData
 	// Zone Indian/Mayotte	3:00	-	EAT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(3*ONE_HOUR+30*ONE_MINUTE, "Asia/Tehran",
-	  Calendar.MARCH, 21, 0, 0, SimpleTimeZone.WALL_TIME,
-	  Calendar.SEPTEMBER, 23, 0, 0, SimpleTimeZone.WALL_TIME,
+	  Calendar.MARCH, 22, 0, 0, SimpleTimeZone.WALL_TIME,
+	  Calendar.SEPTEMBER, 22, 0, 0, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	Iran	2001	2003	-	Mar	21	0:00	1:00	S
-	// Rule	Iran	2001	2003	-	Sep	23	0:00	0	-
+	// Rule	Iran	2005	2007	-	Mar	22	0:00	1:00	D
+	// Rule	Iran	2005	2007	-	Sep	22	0:00	0	S
 	// Zone Asia/Tehran	3:30	Iran	IR%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(3*ONE_HOUR+30*ONE_MINUTE, "MET" /* Asia/Tehran */,
-	  Calendar.MARCH, 21, 0, 0, SimpleTimeZone.WALL_TIME,
-	  Calendar.SEPTEMBER, 23, 0, 0, SimpleTimeZone.WALL_TIME,
+	  Calendar.MARCH, 22, 0, 0, SimpleTimeZone.WALL_TIME,
+	  Calendar.SEPTEMBER, 22, 0, 0, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	Iran	2001	2003	-	Mar	21	0:00	1:00	S
-	// Rule	Iran	2001	2003	-	Sep	23	0:00	0	-
+	// Rule	Iran	2005	2007	-	Mar	22	0:00	1:00	D
+	// Rule	Iran	2005	2007	-	Sep	22	0:00	0	S
 	// Zone MET	3:30	Iran	IR%sT
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(4*ONE_HOUR, "Asia/Aqtau",
-	  Calendar.MARCH, -1, Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
-	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
-	  1*ONE_HOUR),
-	// Rule E-EurAsia	1981	max	-	Mar	lastSun	 0:00	1:00	S
-	// Rule E-EurAsia	1996	max	-	Oct	lastSun	 0:00	0	-
-	// Zone Asia/Aqtau	4:00 E-EurAsia	AQT%sT
-	//--------------------------------------------------------------------
 	new SimpleTimeZone(4*ONE_HOUR, "Asia/Baku",
-	  Calendar.MARCH, -1, Calendar.SUNDAY, 1*ONE_HOUR, SimpleTimeZone.WALL_TIME,
-	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 1*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.MARCH, -1, Calendar.SUNDAY, 4*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 5*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  1*ONE_HOUR),
-	// Rule	Azer	1997	max	-	Mar	lastSun	 1:00	1:00	S
-	// Rule	Azer	1997	max	-	Oct	lastSun	 1:00	0	-
+	// Rule	Azer	1997	max	-	Mar	lastSun	 4:00	1:00	S
+	// Rule	Azer	1997	max	-	Oct	lastSun	 5:00	0	-
 	// Zone Asia/Baku	4:00	Azer	AZ%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(4*ONE_HOUR, "Asia/Dubai"),
@@ -1763,13 +1814,8 @@ class TimeZoneData
 	new SimpleTimeZone(4*ONE_HOUR, "Asia/Muscat"),
 	// Zone Asia/Muscat	4:00	-	GST
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(4*ONE_HOUR, "Asia/Tbilisi",
-	  Calendar.MARCH, -1, Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
-	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
-	  1*ONE_HOUR),
-	// Rule E-EurAsia	1981	max	-	Mar	lastSun	 0:00	1:00	S
-	// Rule E-EurAsia	1996	max	-	Oct	lastSun	 0:00	0	-
-	// Zone Asia/Tbilisi	4:00 E-EurAsia	GE%sT
+	new SimpleTimeZone(4*ONE_HOUR, "Asia/Tbilisi"),
+	// Zone Asia/Tbilisi	4:00	-	GET
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(4*ONE_HOUR, "Asia/Yerevan",
 	  Calendar.MARCH, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
@@ -1807,13 +1853,11 @@ class TimeZoneData
 	new SimpleTimeZone(4*ONE_HOUR+30*ONE_MINUTE, "Asia/Kabul"),
 	// Zone Asia/Kabul	4:30	-	AFT
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(5*ONE_HOUR, "Asia/Aqtobe",
-	  Calendar.MARCH, -1, Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
-	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
-	  1*ONE_HOUR),
-	// Rule E-EurAsia	1981	max	-	Mar	lastSun	 0:00	1:00	S
-	// Rule E-EurAsia	1996	max	-	Oct	lastSun	 0:00	0	-
-	// Zone Asia/Aqtobe	5:00 E-EurAsia	AQT%sT
+	new SimpleTimeZone(5*ONE_HOUR, "Asia/Aqtau"),
+	// Zone Asia/Aqtau	5:00	-	AQTT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(5*ONE_HOUR, "Asia/Aqtobe"),
+	// Zone Asia/Aqtobe	5:00	-	AQTT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(5*ONE_HOUR, "Asia/Ashgabat"),
 	// Zone Asia/Ashgabat	5:00	-	TMT
@@ -1821,19 +1865,11 @@ class TimeZoneData
 	new SimpleTimeZone(5*ONE_HOUR, "Asia/Ashkhabad" /* Asia/Ashgabat */),
 	// Zone Asia/Ashkhabad	5:00	-	TMT
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(5*ONE_HOUR, "Asia/Bishkek",
-	  Calendar.MARCH, -1, Calendar.SUNDAY, 2*ONE_HOUR+30*ONE_MINUTE, SimpleTimeZone.WALL_TIME,
-	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR+30*ONE_MINUTE, SimpleTimeZone.WALL_TIME,
-	  1*ONE_HOUR),
-	// Rule	Kirgiz	1997	max	-	Mar	lastSun	2:30	1:00	S
-	// Rule	Kirgiz	1997	max	-	Oct	lastSun	2:30	0	-
-	// Zone Asia/Bishkek	5:00	Kirgiz	KG%sT		    # Kirgizstan Time
-	//--------------------------------------------------------------------
 	new SimpleTimeZone(5*ONE_HOUR, "Asia/Dushanbe"),
 	// Zone Asia/Dushanbe	5:00	-	TJT		    # Tajikistan Time
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(5*ONE_HOUR, "Asia/Karachi"),
-	// Zone Asia/Karachi	5:00	-	PKT	# Pakistan Time
+	// Zone Asia/Karachi	5:00 Pakistan	PK%sT	# Pakistan Time
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(5*ONE_HOUR, "Asia/Tashkent"),
 	// Zone Asia/Tashkent	5:00	-	UZT
@@ -1846,9 +1882,6 @@ class TimeZoneData
 	// Rule	Russia	1996	max	-	Oct	lastSun	 2:00s	0	-
 	// Zone Asia/Yekaterinburg	5:00	Russia	YEK%sT	# Yekaterinburg Time
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(5*ONE_HOUR, "Indian/Chagos"),
-	// Zone	Indian/Chagos	5:00	-	IOT	# BIOT Time
-	//--------------------------------------------------------------------
 	new SimpleTimeZone(5*ONE_HOUR, "Indian/Kerguelen"),
 	// Zone Indian/Kerguelen	5:00	-	TFT	# ISO code TF Time
 	//--------------------------------------------------------------------
@@ -1856,7 +1889,7 @@ class TimeZoneData
 	// Zone Indian/Maldives	5:00	-	MVT		# Maldives Time
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(5*ONE_HOUR, "PLT" /* Asia/Karachi */),
-	// Zone PLT	5:00	-	PKT	# Pakistan Time
+	// Zone PLT	5:00 Pakistan	PK%sT	# Pakistan Time
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(5*ONE_HOUR+30*ONE_MINUTE, "Asia/Calcutta"),
 	// Zone Asia/Calcutta	5:30	-	IST
@@ -1870,13 +1903,11 @@ class TimeZoneData
 	new SimpleTimeZone(6*ONE_HOUR, "Antarctica/Mawson"),
 	// Zone Antarctica/Mawson	6:00	-	MAWT	# Mawson Time
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(6*ONE_HOUR, "Asia/Almaty",
-	  Calendar.MARCH, -1, Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
-	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 0, SimpleTimeZone.WALL_TIME,
-	  1*ONE_HOUR),
-	// Rule E-EurAsia	1981	max	-	Mar	lastSun	 0:00	1:00	S
-	// Rule E-EurAsia	1996	max	-	Oct	lastSun	 0:00	0	-
-	// Zone Asia/Almaty	6:00 E-EurAsia	ALM%sT
+	new SimpleTimeZone(6*ONE_HOUR, "Asia/Almaty"),
+	// Zone Asia/Almaty	6:00	-	ALMT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(6*ONE_HOUR, "Asia/Bishkek"),
+	// Zone Asia/Bishkek	6:00	-	KGT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(6*ONE_HOUR, "Asia/Colombo"),
 	// Zone Asia/Colombo	6:00	-	LKT
@@ -1904,17 +1935,20 @@ class TimeZoneData
 	new SimpleTimeZone(6*ONE_HOUR, "BST" /* Asia/Dhaka */),
 	// Zone BST	6:00	-	BDT	# Bangladesh Time
 	//--------------------------------------------------------------------
+	new SimpleTimeZone(6*ONE_HOUR, "Indian/Chagos"),
+	// Zone Indian/Chagos	6:00	-	IOT
+	//--------------------------------------------------------------------
 	new SimpleTimeZone(6*ONE_HOUR+30*ONE_MINUTE, "Asia/Rangoon"),
 	// Zone Asia/Rangoon	6:30	-	MMT		   # Myanmar Time
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(6*ONE_HOUR+30*ONE_MINUTE, "Indian/Cocos"),
-	// Zone	Indian/Cocos	6:30	-	CCT	# Cocos Islands Time
+	// Zone Indian/Cocos	6:30	-	CCT	# Cocos Islands Time
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(7*ONE_HOUR, "Asia/Bangkok"),
 	// Zone Asia/Bangkok	7:00	-	ICT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(7*ONE_HOUR, "Asia/Jakarta"),
-	// Zone Asia/Jakarta	7:00	-	JAVT
+	// Zone Asia/Jakarta	7:00	-	WIT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(7*ONE_HOUR, "Asia/Krasnoyarsk",
 	  Calendar.MARCH, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
@@ -1959,8 +1993,14 @@ class TimeZoneData
 	new SimpleTimeZone(8*ONE_HOUR, "Asia/Kuala_Lumpur"),
 	// Zone Asia/Kuala_Lumpur	8:00	-	MYT	# Malaysia Time
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(8*ONE_HOUR, "Asia/Macao"),
+	new SimpleTimeZone(8*ONE_HOUR, "Asia/Macao" /* Asia/Macau */),
 	// Zone Asia/Macao	8:00	PRC	C%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(8*ONE_HOUR, "Asia/Macau"),
+	// Zone Asia/Macau	8:00	PRC	C%sT
+        //--------------------------------------------------------------------
+	new SimpleTimeZone(8*ONE_HOUR, "Asia/Makassar"),
+	// Zone Asia/Makassar   8:00    -       CIT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(8*ONE_HOUR, "Asia/Manila"),
 	// Zone Asia/Manila	8:00	Phil	PH%sT
@@ -1974,13 +2014,23 @@ class TimeZoneData
 	new SimpleTimeZone(8*ONE_HOUR, "Asia/Taipei"),
 	// Zone Asia/Taipei	8:00	Taiwan	C%sT
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(8*ONE_HOUR, "Asia/Ujung_Pandang"),
-	// Zone Asia/Ujung_Pandang	8:00	-	BORT
+	new SimpleTimeZone(8*ONE_HOUR, "Asia/Ujung_Pandang" /* Asia/Makassar */),
+	// Zone Asia/Ujung_Pandang      8:00    -       CIT
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(8*ONE_HOUR, "Asia/Ulaanbaatar"),
+	new SimpleTimeZone(8*ONE_HOUR, "Asia/Ulaanbaatar",
+	  Calendar.MARCH, -1, Calendar.SATURDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.SEPTEMBER, -1, Calendar.SATURDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	Mongol	2002	max	-	Mar	lastSat	2:00	1:00	S
+	// Rule	Mongol	2001	max	-	Sep	lastSat	2:00	0	-
 	// Zone Asia/Ulaanbaatar	8:00	Mongol	ULA%sT
 	//--------------------------------------------------------------------
-	new SimpleTimeZone(8*ONE_HOUR, "Asia/Ulan_Bator" /* Asia/Ulaanbaatar */),
+	new SimpleTimeZone(8*ONE_HOUR, "Asia/Ulan_Bator" /* Asia/Ulaanbaatar */,
+	  Calendar.MARCH, -1, Calendar.SATURDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.SEPTEMBER, -1, Calendar.SATURDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	Mongol	2002	max	-	Mar	lastSat	2:00	1:00	S
+	// Rule	Mongol	2001	max	-	Sep	lastSat	2:00	0	-
 	// Zone Asia/Ulan_Bator	8:00	Mongol	ULA%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(8*ONE_HOUR, "Australia/Perth"),
@@ -1990,7 +2040,7 @@ class TimeZoneData
 	// Zone CTT	8:00	PRC	C%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(9*ONE_HOUR, "Asia/Jayapura"),
-	// Zone Asia/Jayapura	9:00	-	JAYT
+	// Zone Asia/Jayapura	9:00	-	EIT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(9*ONE_HOUR, "Asia/Pyongyang"),
 	// Zone Asia/Pyongyang	9:00	-	KST
@@ -1999,7 +2049,7 @@ class TimeZoneData
 	// Zone Asia/Seoul	9:00	ROK	K%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(9*ONE_HOUR, "Asia/Tokyo"),
-	// Zone Asia/Tokyo	9:00	-	JST
+	// Zone Asia/Tokyo	9:00	Japan	J%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(9*ONE_HOUR, "Asia/Yakutsk",
 	  Calendar.MARCH, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
@@ -2010,7 +2060,7 @@ class TimeZoneData
 	// Zone Asia/Yakutsk	9:00	Russia	YAK%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(9*ONE_HOUR, "JST" /* Asia/Tokyo */),
-	// Zone JST	9:00	-	JST
+	// Zone JST	9:00	Japan	J%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(9*ONE_HOUR, "Pacific/Palau"),
 	// Zone Pacific/Palau	9:00	-	PWT	# Palau Time
@@ -2020,18 +2070,18 @@ class TimeZoneData
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(9*ONE_HOUR+30*ONE_MINUTE, "Australia/Adelaide",
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
-	  Calendar.MARCH, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
 	  1*ONE_HOUR),
 	// Rule	AS	1987	max	-	Oct	lastSun	2:00s	1:00	-
-	// Rule	AS	1995	max	-	Mar	lastSun	2:00s	0	-
+	// Rule	AS	2006	only	-	Apr	Sun>=1	2:00s	0	-
 	// Zone Australia/Adelaide	9:30	AS	CST
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(9*ONE_HOUR+30*ONE_MINUTE, "Australia/Broken_Hill",
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
-	  Calendar.MARCH, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
 	  1*ONE_HOUR),
 	// Rule	AS	1987	max	-	Oct	lastSun	2:00s	1:00	-
-	// Rule	AS	1995	max	-	Mar	lastSun	2:00s	0	-
+	// Rule	AS	2006	only	-	Apr	Sun>=1	2:00s	0	-
 	// Zone Australia/Broken_Hill	9:30	AS	CST
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(9*ONE_HOUR+30*ONE_MINUTE, "Australia/Darwin"),
@@ -2039,10 +2089,10 @@ class TimeZoneData
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(10*ONE_HOUR, "AET" /* Australia/Sydney */,
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
-	  Calendar.MARCH, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
 	  1*ONE_HOUR),
 	// Rule	AN	2001	max	-	Oct	lastSun	2:00s	1:00	-
-	// Rule	AN	1996	max	-	Mar	lastSun	2:00s	0	-
+	// Rule	AN	2006	only	-	Apr	Sun>=1	2:00s	0	-
 	// Zone AET	10:00	AN	EST
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(10*ONE_HOUR, "Antarctica/DumontDUrville"),
@@ -2061,18 +2111,18 @@ class TimeZoneData
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(10*ONE_HOUR, "Australia/Hobart",
 	  Calendar.OCTOBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
-	  Calendar.MARCH, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
 	  1*ONE_HOUR),
 	// Rule	AT	2001	max	-	Oct	Sun>=1	2:00s	1:00	-
-	// Rule	AT	1991	max	-	Mar	lastSun	2:00s	0	-
+	// Rule	AT	2006	only	-	Apr	Sun>=1	2:00s	0	-
 	// Zone Australia/Hobart	10:00	AT	EST
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(10*ONE_HOUR, "Australia/Sydney",
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
-	  Calendar.MARCH, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
 	  1*ONE_HOUR),
 	// Rule	AN	2001	max	-	Oct	lastSun	2:00s	1:00	-
-	// Rule	AN	1996	max	-	Mar	lastSun	2:00s	0	-
+	// Rule	AN	2006	only	-	Apr	Sun>=1	2:00s	0	-
 	// Zone Australia/Sydney	10:00	AN	EST
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(10*ONE_HOUR, "Pacific/Guam"),
@@ -2089,10 +2139,10 @@ class TimeZoneData
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(10*ONE_HOUR+30*ONE_MINUTE, "Australia/Lord_Howe",
 	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
-	  Calendar.MARCH, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.APRIL, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
 	  30*ONE_MINUTE),
 	// Rule	LH	2001	max	-	Oct	lastSun	2:00	0:30	-
-	// Rule	LH	1996	max	-	Mar	lastSun	2:00	0	-
+	// Rule	LH	2006	only	-	Apr	Sun>=1	2:00	0	-
 	// Zone Australia/Lord_Howe	10:30	LH	LHST
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(11*ONE_HOUR, "Asia/Magadan",
@@ -2190,7 +2240,7 @@ class TimeZoneData
 	  Calendar.MARCH, 15, -Calendar.SUNDAY, 2*ONE_HOUR+45*ONE_MINUTE, SimpleTimeZone.STANDARD_TIME,
 	  1*ONE_HOUR),
 	// Rule	Chatham	1990	max	-	Oct	Sun>=1	2:45s	1:00	D
-	// Rule	Chatham	1991	max	-	Mar	Sun>=15	2:45s	0	S
+	// Rule	Chatham	1990	max	-	Mar	Sun>=15	2:45s	0	S
 	// Zone Pacific/Chatham	12:45	Chatham	CHA%sT
 	//--------------------------------------------------------------------
 	new SimpleTimeZone(13*ONE_HOUR, "Pacific/Enderbury"),
@@ -2202,13 +2252,213 @@ class TimeZoneData
 	new SimpleTimeZone(14*ONE_HOUR, "Pacific/Kiritimati"),
 	// Zone Pacific/Kiritimati	14:00	-	LINT
     };
+
+    // Data for 2007 or later.
+    static final SimpleTimeZone zonesLater[] = {
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-10*ONE_HOUR, "America/Adak",
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	2007	max	-	Mar	Sun>=8	2:00	1:00	D
+	// Rule	US	2007	max	-	Nov	Sun>=1	2:00	0	S
+	// Zone America/Adak	-10:00	US	HA%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-9*ONE_HOUR, "AST" /* America/Anchorage */,
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	2007	max	-	Mar	Sun>=8	2:00	1:00	D
+	// Rule	US	2007	max	-	Nov	Sun>=1	2:00	0	S
+	// Zone AST	-9:00	US	AK%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-9*ONE_HOUR, "America/Anchorage",
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	2007	max	-	Mar	Sun>=8	2:00	1:00	D
+	// Rule	US	2007	max	-	Nov	Sun>=1	2:00	0	S
+	// Zone America/Anchorage	-9:00	US	AK%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-8*ONE_HOUR, "America/Los_Angeles",
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	2007	max	-	Mar	Sun>=8	2:00	1:00	D
+	// Rule	US	2007	max	-	Nov	Sun>=1	2:00	0	S
+	// Zone America/Los_Angeles	-8:00	US	P%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-8*ONE_HOUR, "PST" /* America/Los_Angeles */,
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	2007	max	-	Mar	Sun>=8	2:00	1:00	D
+	// Rule	US	2007	max	-	Nov	Sun>=1	2:00	0	S
+	// Zone PST	-8:00	US	P%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-7*ONE_HOUR, "America/Denver",
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	2007	max	-	Mar	Sun>=8	2:00	1:00	D
+	// Rule	US	2007	max	-	Nov	Sun>=1	2:00	0	S
+	// Zone America/Denver	-7:00	US	M%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-7*ONE_HOUR, "MST" /* America/Denver */,
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	2007	max	-	Mar	Sun>=8	2:00	1:00	D
+	// Rule	US	2007	max	-	Nov	Sun>=1	2:00	0	S
+	// Zone MST	-7:00	US	M%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-6*ONE_HOUR, "America/Chicago",
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	2007	max	-	Mar	Sun>=8	2:00	1:00	D
+	// Rule	US	2007	max	-	Nov	Sun>=1	2:00	0	S
+	// Zone America/Chicago	-6:00	US	C%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-6*ONE_HOUR, "America/Winnipeg",
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  1*ONE_HOUR),
+	// Rule	Winn	2007	max	-	Mar	Sun>=8	2:00s	1:00	D
+	// Rule	Winn	2007	max	-	Nov	Sun>=1	2:00s	0	S
+	// Zone America/Winnipeg	-6:00	Winn	C%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-6*ONE_HOUR, "CST" /* America/Chicago */,
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	2007	max	-	Mar	Sun>=8	2:00	1:00	D
+	// Rule	US	2007	max	-	Nov	Sun>=1	2:00	0	S
+	// Zone CST	-6:00	US	C%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-5*ONE_HOUR, "America/Montreal",
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	Canada	2007	max	-	Mar	Sun>=8	2:00	1:00	D
+	// Rule	Canada	2007	max	-	Nov	Sun>=1	2:00	0	S
+	// Zone America/Montreal	-5:00	Canada	E%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-5*ONE_HOUR, "America/New_York",
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	2007	max	-	Mar	Sun>=8	2:00	1:00	D
+	// Rule	US	2007	max	-	Nov	Sun>=1	2:00	0	S
+	// Zone America/New_York	-5:00	US	E%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-5*ONE_HOUR, "EST" /* America/New_York */,
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	2007	max	-	Mar	Sun>=8	2:00	1:00	D
+	// Rule	US	2007	max	-	Nov	Sun>=1	2:00	0	S
+	// Zone EST	-5:00	US	E%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-5*ONE_HOUR, "America/Indiana/Indianapolis",
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	2007	max	-	Mar	Sun>=8	2:00	1:00	D
+	// Rule	US	2007	max	-	Nov	Sun>=1	2:00	0	S
+	// Zone America/Indiana/Indianapolis	-5:00	US	E%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-5*ONE_HOUR, "America/Indianapolis" /* America/Indiana/Indianapolis */,
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	2007	max	-	Mar	Sun>=8	2:00	1:00	D
+	// Rule	US	2007	max	-	Nov	Sun>=1	2:00	0	S
+	// Zone America/Indianapolis	-5:00	US	E%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-5*ONE_HOUR, "IET" /* America/Indiana/Indianapolis */,
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	US	2007	max	-	Mar	Sun>=8	2:00	1:00	D
+	// Rule	US	2007	max	-	Nov	Sun>=1	2:00	0	S
+	// Zone IET	-5:00	US	E%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(-4*ONE_HOUR, "America/Halifax",
+	  Calendar.MARCH, 8, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.NOVEMBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	Canada	2007	max	-	Mar	Sun>=8	2:00	1:00	D
+	// Rule	Canada	2007	max	-	Nov	Sun>=1	2:00	0	S
+	// Zone America/Halifax	-4:00	Canada	A%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(2*ONE_HOUR, "Asia/Jerusalem",
+	  Calendar.MARCH, 26, -Calendar.FRIDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.SEPTEMBER, 16, 0, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  1*ONE_HOUR),
+	// Rule	Zion	2006	2010	-	Mar	Fri>=26	2:00	1:00	D
+	// Rule	Zion	2007	only	-	Sep	16	2:00	0	S
+	// Zone Asia/Jerusalem	2:00	Zion	I%sT
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(9*ONE_HOUR+30*ONE_MINUTE, "Australia/Adelaide",
+	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  Calendar.MARCH, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  1*ONE_HOUR),
+	// Rule	AS	1987	max	-	Oct	lastSun	2:00s	1:00	-
+	// Rule	AS	2007	max	-	Mar	lastSun	2:00s	0	-
+	// Zone Australia/Adelaide	9:30	AS	CST
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(9*ONE_HOUR+30*ONE_MINUTE, "Australia/Broken_Hill",
+	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  Calendar.MARCH, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  1*ONE_HOUR),
+	// Rule	AS	1987	max	-	Oct	lastSun	2:00s	1:00	-
+	// Rule	AS	2007	max	-	Mar	lastSun	2:00s	0	-
+	// Zone Australia/Broken_Hill	9:30	AS	CST
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(10*ONE_HOUR, "AET" /* Australia/Sydney */,
+	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  Calendar.MARCH, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  1*ONE_HOUR),
+	// Rule	AN	2001	max	-	Oct	lastSun	2:00s	1:00	-
+	// Rule	AN	2007	max	-	Mar	lastSun	2:00s	0	-
+	// Zone AET	10:00	AN	EST
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(10*ONE_HOUR, "Australia/Hobart",
+	  Calendar.OCTOBER, 1, -Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  Calendar.MARCH, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  1*ONE_HOUR),
+	// Rule	AT	2001	max	-	Oct	Sun>=1	2:00s	1:00	-
+	// Rule	AT	2007	max	-	Mar	lastSun	2:00s	0	-
+	// Zone Australia/Hobart	10:00	AT	EST
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(10*ONE_HOUR, "Australia/Sydney",
+	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  Calendar.MARCH, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.STANDARD_TIME,
+	  1*ONE_HOUR),
+	// Rule	AN	2001	max	-	Oct	lastSun	2:00s	1:00	-
+	// Rule	AN	2007	max	-	Mar	lastSun	2:00s	0	-
+	// Zone Australia/Sydney	10:00	AN	EST
+	//--------------------------------------------------------------------
+	new SimpleTimeZone(10*ONE_HOUR+30*ONE_MINUTE, "Australia/Lord_Howe",
+	  Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  Calendar.MARCH, -1, Calendar.SUNDAY, 2*ONE_HOUR, SimpleTimeZone.WALL_TIME,
+	  30*ONE_MINUTE),
+	// Rule	LH	2001	max	-	Oct	lastSun	2:00	0:30	-
+	// Rule	LH	2007	max	-	Mar	lastSun	2:00	0	-
+	// Zone Australia/Lord_Howe	10:30	LH	LHST
+	//--------------------------------------------------------------------
+    };
     // ---------------- END GENERATED DATA ----------------
 
-    private static Hashtable lookup = new Hashtable(zones.length);
+    private static final Map lookup = new HashMap(zones.length);
+    private static final Map lookupLater = new HashMap(zonesLater.length);
 
     static {
         for (int i=0; i < zones.length; ++i)
             lookup.put(zones[i].getID(), zones[i]);
+        for (int i=0; i < zonesLater.length; ++i)
+            lookupLater.put(zonesLater[i].getID(), zonesLater[i]);
 	TimeZone.getDefault(); // to cache default system time zone
     }
 }
