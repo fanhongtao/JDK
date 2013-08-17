@@ -1,10 +1,10 @@
 /*
- * @(#)Calendar.java	1.35 00/05/26
+ * @(#)Calendar.java	1.36 00/03/28
  *
  * (C) Copyright Taligent, Inc. 1996-1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1997 - All Rights Reserved
  *
- * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These

@@ -1,7 +1,7 @@
 /*
  * @(#)AppletFrame.java	1.3 96/12/06
  *
- * Copyright (c) 1994-1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1997 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -32,6 +32,7 @@ import java.awt.Frame;
 import java.awt.Event;
 import java.awt.Dimension;
 import java.applet.Applet;
+import java.awt.AWTEvent;
 
 // Applet to Application Frame window
 class AppletFrame extends Frame
@@ -67,9 +68,9 @@ class AppletFrame extends Frame
        // resize frame window to fit applet
        // assumes that the applet sets its own size
        // otherwise, you should set a specific size here.
-       appletSize =  a.size();
+       appletSize =  a.getSize();
        f.pack();
-       f.resize(appletSize);  
+       f.setSize(appletSize);  
 
        // show the window
        f.show();
@@ -85,21 +86,15 @@ class AppletFrame extends Frame
     }
 
     // needed to allow window close
-    public boolean handleEvent(Event e)
+    public void processEvent(AWTEvent e)
     {
        // Window Destroy event
-       if (e.id == Event.WINDOW_DESTROY)
+       if (e.getID() == Event.WINDOW_DESTROY)
        {
           // exit the program
           System.exit(0);
-          return true;
-       }
-       
-       // it's good form to let the super class look at any 
-       // unhandled events
-       return super.handleEvent(e);
-
-    }  // end handleEvent()
+       }    
+   }  // end handleEvent()
 
 }   // end class AppletFrame
 

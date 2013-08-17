@@ -1,7 +1,7 @@
 /*
- * @(#)HighlightFilter.java	1.4 96/12/06
+ * @(#)HighlightFilter.java	1.6 98/03/18
  *
- * Copyright (c) 1994-1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -44,7 +44,7 @@ import java.net.MalformedURLException;
  * the pixels in the images.
  *
  * @author 	Jim Graham
- * @version 	1.4, 12/06/96
+ * @version 	1.6, 03/18/98
  */
 class HighlightFilter extends RGBImageFilter {
     boolean brighter;

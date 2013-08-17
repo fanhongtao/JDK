@@ -1,23 +1,15 @@
 /*
- * @(#)TTY.java	1.77 98/01/06
+ * @(#)TTY.java	1.80 98/07/01
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package sun.tools.ttydebug;
@@ -34,7 +26,7 @@ public class TTY implements DebuggerCallback {
     PrintStream console = null;
 
     private static final String progname = "jdb";
-    private static final String version = "98/01/06";
+    private static final String version = "98/07/01";
 
     private String lastArgs = null;
     
@@ -1540,7 +1532,7 @@ public class TTY implements DebuggerCallback {
 	}
 	String host = null;
 	String password = null;
-	String classArgs = "";
+	String cmdLine = "";
 	String javaArgs = "";
         boolean verbose = false;
 	
@@ -1590,7 +1582,12 @@ public class TTY implements DebuggerCallback {
 		usage();
 		System.exit(1);
 	    } else {
-		classArgs += token + " ";
+                // Everything from here is part of the command line
+                cmdLine = token + " ";
+                for (i++; i < argv.length; i++) {
+                    cmdLine += argv[i] + " ";
+                }
+                break;
 	    }
 	}
 	if (host != null && password == null) {
@@ -1612,7 +1609,7 @@ public class TTY implements DebuggerCallback {
 		    "when it is started.");
                 System.exit(1);
             }
-            new TTY(host, password, javaArgs, classArgs, 
+            new TTY(host, password, javaArgs, cmdLine, 
                     System.out, System.out, verbose);
 	} catch(SocketException se) {
 	    System.out.println("Failed accessing debugging session on " +

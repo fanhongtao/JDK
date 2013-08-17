@@ -1,23 +1,15 @@
 /*
- * @(#)StringBuffer.java	1.34 97/12/16
+ * @(#)StringBuffer.java	1.36 98/10/28
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
@@ -62,7 +54,7 @@ package java.lang;
  * automatically made larger. 
  *
  * @author	Arthur van Hoff
- * @version 	1.34, 12/16/97
+ * @version 	1.36, 10/28/98
  * @see     java.io.ByteArrayOutputStream
  * @see     java.lang.String
  * @since   JDK1.0
@@ -799,4 +791,15 @@ public final class StringBuffer implements java.io.Serializable {
     // They shouldn't be called by anyone but String.
     final void setShared() { shared = true; } 
     final char[] getValue() { return value; }
+
+    /**
+     * readObject is called to restore the state of the StringBuffer from
+     * a stream.
+     */
+    private void readObject(java.io.ObjectInputStream s)
+         throws java.io.IOException, ClassNotFoundException {
+	s.defaultReadObject();
+	value = (char[]) value.clone();
+	shared = false;
+    }
 }

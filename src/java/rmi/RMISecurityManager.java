@@ -1,22 +1,15 @@
 /*
- * @(#)RMISecurityManager.java	1.11 97/05/02
+ * @(#)RMISecurityManager.java	1.13 98/09/02
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.rmi;
@@ -39,7 +32,7 @@ import java.rmi.server.RMIClassLoader;
  * manager has been set, RMI will only load classes from local system
  * files as defined by CLASSPATH.<p>
  *
- * @version	1.11, 05/02/97
+ * @version	1.13, 09/02/98
  * @author Roger Riggs
  */
 public class RMISecurityManager extends SecurityManager {
@@ -48,6 +41,11 @@ public class RMISecurityManager extends SecurityManager {
      * Construct and initialize.
      */
     public RMISecurityManager() {
+	// XXX: DO NOT REMOVE THIS IN 1.1.X. This call indirectly
+	// initializes java.security.Security, which cannot be done
+	// while a security manager is installed and a classloader is
+	// on the stack.
+	java.security.Security.getProviders();
     }
 
     /**
@@ -79,7 +77,7 @@ public class RMISecurityManager extends SecurityManager {
      * Loaded classes are not allowed to manipulate threads.
      */
     public synchronized void checkAccess(Thread t) {
-	if (inLoadedClass()) {
+	if (inLoadedClass() && classLoaderDepth() == 3) {
 	    throw new RMISecurityException("thread");
 	}
     }
@@ -88,7 +86,7 @@ public class RMISecurityManager extends SecurityManager {
      * Loaded classes are not allowed to manipulate thread groups.
      */
     public synchronized void checkAccess(ThreadGroup g) {
-	if (inLoadedClass()) {
+	if (inLoadedClass() && classLoaderDepth() == 4) {
 	    throw new RMISecurityException("threadgroup");
 	}
     }
@@ -214,7 +212,7 @@ public class RMISecurityManager extends SecurityManager {
      * For now loaded classes can't listen on any port.
      */
     public synchronized void checkListen(int port) {
-	if (inLoadedClass()) {
+	if (inLoadedClass() && port != 0 && (port < 1024 || port > 65535)) {
 	    throw new RMISecurityException("socket.listen", String.valueOf(port));
 	}
     }

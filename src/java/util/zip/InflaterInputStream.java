@@ -1,5 +1,5 @@
 /*
- * @(#)InflaterInputStream.java	1.15 97/01/27
+ * @(#)InflaterInputStream.java	1.16 98/03/19
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -33,7 +33,7 @@ import java.io.EOFException;
  * decompression filters, such as GZIPInputStream.
  *
  * @see		Inflater
- * @version 	1.15, 01/27/97
+ * @version 	1.16, 03/19/98
  * @author 	David Connelly
  */
 public
@@ -58,7 +58,7 @@ class InflaterInputStream extends FilterInputStream {
      * buffer size.
      * @param in the input stream
      * @param inf the decompressor ("inflater")
-     * @param len the input buffer size
+     * @param size the input buffer size
      */
     public InflaterInputStream(InputStream in, Inflater inf, int size) {
 	super(in);

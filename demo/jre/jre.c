@@ -1,31 +1,14 @@
 /*
- * @(#)jre.c	1.4 97/05/19 David Connelly
+ * @(#)jre.c	1.8 00/03/28
  *
- * Copyright (c) 1997 Sun Microsystems, Inc. All Rights Reserved.
- *
- * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
- * modify and redistribute this software in source and binary code form,
- * provided that i) this copyright notice and license appear on all copies of
- * the software; and ii) Licensee does not utilize the software in a manner
- * which is disparaging to Sun.
- *
- * This software is provided "AS IS," without a warranty of any kind. ALL
- * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING ANY
- * IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR
- * NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT BE
- * LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING
- * OR DISTRIBUTING THE SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR ITS
- * LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR DIRECT,
- * INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER
- * CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY, ARISING OUT OF THE USE OF
- * OR INABILITY TO USE SOFTWARE, EVEN IF SUN HAS BEEN ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGES.
- *
- * This software is not designed or intended for use in on-line control of
- * aircraft, air traffic, aircraft navigation or aircraft communications; or in
- * the design, construction, operation or maintenance of any nuclear
- * facility. Licensee represents and warrants that it will not use or
- * redistribute the Software for such purposes.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
+ * 
  */
 
 /*
@@ -57,8 +40,11 @@ jint
 JRE_ParseVersion(const char *ver, char **majorp, char **minorp, char **microp)
 {
     int n1 = 0, n2 = 0, n3 = 0;
-
-    sscanf(ver, "%*[0-9]%n.%*[0-9]%n.%*[0-9a-zA-Z]%n", &n1, &n2, &n3);
+    
+    /* modify sscanf() to process underscore character used in patch
+     * version for bug# 4235948
+     */
+    sscanf(ver, "%*[0-9]%n.%*[0-9]%n.%*[0-9a-zA-Z_]%n", &n1, &n2, &n3);
     if (n1 == 0 || n2 == 0) {
 	return -1;
     }
@@ -108,9 +94,9 @@ JRE_MakeVersion(const char *major, const char *minor, const char *micro)
 void *
 JRE_Malloc(size_t size)
 {
-    void *p = malloc(size);
+    void *p = calloc(1, size);
     if (p == 0) {
-	perror("malloc");
+	perror("calloc");
 	exit(1);
     }
     return p;

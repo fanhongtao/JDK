@@ -1,23 +1,15 @@
 /*
- * @(#)Choice.java	1.44 98/10/12 Sami Shaio
+ * @(#)Choice.java	1.48 98/07/01
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -52,7 +44,7 @@ import java.io.IOException;
  * Pushing the mouse button down on the object causes a menu to 
  * appear with the current choice highlighted. 
  * <p>
- * @version	1.44 10/12/98
+ * @version	1.48 07/01/98
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -89,8 +81,15 @@ public class Choice extends Component implements ItemSelectable {
      * @since     JDK1.0
      */
     public Choice() {
-        this.name = base + nameCounter++;
 	pItems = new Vector();
+    }
+
+    /**
+     * Construct a name for this component.  Called by getName() when the
+     * name is null.
+     */
+    String constructComponentName() {
+        return base + nameCounter++;
     }
 
     /**
@@ -142,7 +141,7 @@ public class Choice extends Component implements ItemSelectable {
      * @exception  NullPointerException   if the item's value is <code>null</code>.
      * @since      JDK1.1
      */
-    public synchronized void add(String item) {
+    public void add(String item) {
 	addItem(item);
     }
 
@@ -235,6 +234,8 @@ public class Choice extends Component implements ItemSelectable {
 	    selectedIndex = -1;
 	} else if (selectedIndex == position) {
 	    select(0);
+	} else if (selectedIndex > position) {
+	    select(selectedIndex-1);
 	}
     }
 

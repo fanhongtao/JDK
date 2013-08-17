@@ -1,22 +1,13 @@
 /*
- * @(#)interpreter.h	1.119 98/02/10
+ * @(#)interpreter.h	1.123 00/03/28
+ *
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -247,6 +238,18 @@ long get_nbinclasses(void);
 
 /* gc.c */
 
+#define MINHEAPEXPANSION (1 * 1024 * 1024)
+#define MAXHEAPEXPANSION (4 * 1024 * 1024)
+#define MINHEAPFREEPERCENT (float)0.25
+#define MAXHEAPFREEPERCENT (float)1.00
+
+typedef struct heapoptions {
+    float minHeapFreePercent;
+    float maxHeapFreePercent;
+    long minHeapExpansion;
+    long maxHeapExpansion;
+} heapoptions;
+
 bool_t InitializeAlloc(long max, long min);
 HObject *AllocHandle(struct methodtable *, ClassObject *);
 extern struct arrayinfo const arrayinfo[];
@@ -433,6 +436,16 @@ ClassClass *createFakeArrayClass(char *name, int base_type, int depth,
 ClassClass *createPrimitiveClass(char *name, char sig, unsigned char typecode,
     unsigned char slotsize, unsigned char elementsize);
 unsigned Signature2ArgsSize(char *method_signature);
+
+typedef struct {
+    unsigned char *class_data;
+    int            class_data_len;
+    unsigned char *new_class_data;
+    int            new_class_data_len;
+    void *       (*malloc_f)(int);
+} classload_event;
+
+typedef void (*classload_hook)(classload_event *);
 
 /* from classresolver.c */
 char *LinkClass(ClassClass *cb, char **detail);

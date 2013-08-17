@@ -1,7 +1,7 @@
 /*
- * @(#)ImageMapArea.java	1.6 96/12/06
+ * @(#)ImageMapArea.java	1.9 98/03/18
  *
- * Copyright (c) 1994-1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -41,7 +41,7 @@ import java.net.MalformedURLException;
  * classes will need and delegates specific actions to the subclasses.
  *
  * @author 	Jim Graham
- * @version 	1.6, 12/06/96
+ * @version 	1.9, 03/18/98
  */
 class ImageMapArea implements ImageObserver {
     /** The applet parent that contains this ImageArea. */
@@ -337,4 +337,9 @@ class ImageMapArea implements ImageObserver {
     public boolean drag(int x, int y) {
 	return isTerminal();
     }
+
+  public String getAppletInfo() {
+    return "Title: ImageArea \nAuthor: Jim Graham \nThis class performs the basic functions that most ImageArea classes will need and delegates specific actions to the subclasses.";
+  }
 }
+

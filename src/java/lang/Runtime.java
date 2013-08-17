@@ -1,5 +1,5 @@
 /*
- * @(#)Runtime.java	1.28 00/05/26
+ * @(#)Runtime.java	1.29 00/03/28
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -25,7 +25,7 @@ import java.util.StringTokenizer;
  * An application cannot create its own instance of this class. 
  *
  * @author  unascribed
- * @version 1.28, 05/26/00
+ * @version 1.29, 03/28/00
  * @see     java.lang.Runtime#getRuntime()
  * @since   JDK1.0
  */

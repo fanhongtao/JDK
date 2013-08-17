@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements_zh.java	1.8 98/01/13
+ * @(#)LocaleElements_zh.java	1.9 98/08/13
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -140,7 +140,7 @@ public class LocaleElements_zh extends ListResourceBundle {
                 new String[] {
                     "#,##0.###;-#,##0.###", // decimal pattern
                     "\uffe5#,##0.00;-\uffe5#,##0.00", // currency pattern
-                    "#,##0\u2030" // percent pattern
+                    "#,##0%" // percent pattern
                 }
             },
             { "CurrencyElements",

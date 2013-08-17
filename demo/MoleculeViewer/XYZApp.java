@@ -1,7 +1,7 @@
 /*
- * @(#)XYZApp.java	1.3 96/12/06
+ * @(#)XYZApp.java	1.4 97/07/28
  *
- * Copyright (c) 1994-1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -38,16 +38,13 @@ import java.awt.Image;
 import java.awt.Event;
 import java.awt.Graphics;
 import java.awt.Dimension;
-import java.io.StreamTokenizer;
-import java.io.InputStream;
-import java.io.BufferedInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.util.Hashtable;
 import java.awt.image.IndexColorModel;
 import java.awt.image.ColorModel;
 import java.awt.image.MemoryImageSource;
-
+import java.awt.event.*;
 
 /** The representation of a Chemical .xyz model */
 class XYZChemModel {
@@ -87,8 +84,7 @@ class XYZChemModel {
     XYZChemModel (InputStream is) throws Exception
     {
        this();
-       StreamTokenizer st;
-       st = new StreamTokenizer(new BufferedInputStream(is, 4000));
+       StreamTokenizer st = new StreamTokenizer(new BufferedReader(new InputStreamReader(is)));
        st.eolIsSignificant(true);
        st.commentChar('#');
        int slot = 0;
@@ -265,8 +261,10 @@ scan:
     }
 }
 
-/** An applet to put a Cehmical model into a page */
-public class XYZApp extends Applet implements Runnable {
+/** An applet to put a Chemical model into a page */
+public class XYZApp
+    extends Applet 
+    implements Runnable, MouseListener, MouseMotionListener {
     XYZChemModel md;
     boolean painted = true;
     float xfac;
@@ -282,9 +280,9 @@ public class XYZApp extends Applet implements Runnable {
 
 
     private synchronized void newBackBuffer() {
-	backBuffer = createImage(size().width, size().height);
+	backBuffer = createImage(getSize().width, getSize().height);
 	backGC = backBuffer.getGraphics();
-	backSize = size();
+	backSize = getSize();
     }
 
     public void init() {
@@ -297,10 +295,18 @@ public class XYZApp extends Applet implements Runnable {
 	amat.xrot(20);
 	if (mdname == null)
 	    mdname = "model.obj";
-	resize(size().width <= 20 ? 400 : size().width,
-	       size().height <= 20 ? 400 : size().height);
+	resize(getSize().width <= 20 ? 400 : getSize().width,
+	       getSize().height <= 20 ? 400 : getSize().height);
 	newBackBuffer();
+	addMouseListener(this);
+	addMouseMotionListener(this);
     }
+
+    public void destroy() {
+        removeMouseListener(this);
+        removeMouseMotionListener(this);
+    }
+
     public void run() {
 	InputStream is = null;
 	try {
@@ -317,8 +323,8 @@ public class XYZApp extends Applet implements Runnable {
 		xw = yw;
 	    if (zw > xw)
 		xw = zw;
-	    float f1 = size().width / xw;
-	    float f2 = size().height / xw;
+	    float f1 = getSize().width / xw;
+	    float f2 = getSize().height / xw;
 	    xfac = 0.7f * (f1 < f2 ? f1 : f2) * scalefudge;
 	} catch(Exception e) {
 	    e.printStackTrace();
@@ -338,29 +344,43 @@ public class XYZApp extends Applet implements Runnable {
     }
     public void stop() {
     }
-    public boolean mouseDown(Event e, int x, int y) {
-	prevx = x;
-	prevy = y;
-	return true;
+      /* event handling */
+  public void mouseClicked(MouseEvent e) {
+  }   
+  public void mousePressed(MouseEvent e) {
+    prevx = e.getX();
+    prevy = e.getY();
+    e.consume();  
+  } 
+  public void mouseReleased(MouseEvent e) {
+  }
+  public void mouseEntered(MouseEvent e) {
+  }
+  public void mouseExited(MouseEvent e) {
+  }   
+  public void mouseDragged(MouseEvent e) {
+    int x = e.getX();
+    int y = e.getY();
+    tmat.unit();
+    float xtheta = (prevy - y) * (360.0f / getSize().width);
+    float ytheta = (x - prevx) * (360.0f / getSize().height);
+    tmat.xrot(xtheta);
+    tmat.yrot(ytheta);
+    amat.mult(tmat);
+    if (painted) {
+      painted = false;
+      repaint();
     }
-    public boolean mouseDrag(Event e, int x, int y) {
-	tmat.unit();
-	float xtheta = (prevy - y) * (360.0f / size().width);
-	float ytheta = (x - prevx) * (360.0f / size().height);
-	tmat.xrot(xtheta);
-	tmat.yrot(ytheta);
-	amat.mult(tmat);
-	if (painted) {
-	    painted = false;
-	    repaint();
-	}
-	prevx = x;
-	prevy = y;
-	return true;
-    }
+    prevx = x;
+    prevy = y;
+    e.consume();
+  }
+  public void mouseMoved(MouseEvent e) { 
+  }
+     
     public void update(Graphics g) {
 	if (backBuffer == null)
-	    g.clearRect(0, 0, size().width, size().height);
+	    g.clearRect(0, 0, getSize().width, getSize().height);
 	paint(g);
     }
 
@@ -371,15 +391,15 @@ public class XYZApp extends Applet implements Runnable {
 			     -(md.ymin + md.ymax) / 2,
 			     -(md.zmin + md.zmax) / 2);
 	    md.mat.mult(amat);
-	    // md.mat.scale(xfac, -xfac, 8 * xfac / size().width);
-	    md.mat.scale(xfac, -xfac, 16 * xfac / size().width);
-	    md.mat.translate(size().width / 2, size().height / 2, 8);
+	    // md.mat.scale(xfac, -xfac, 8 * xfac / getSize().width);
+	    md.mat.scale(xfac, -xfac, 16 * xfac / getSize().width);
+	    md.mat.translate(getSize().width / 2, getSize().height / 2, 8);
 	    md.transformed = false;
 	    if (backBuffer != null) {
-		if (!backSize.equals(size()))
+		if (!backSize.equals(getSize()))
 		    newBackBuffer();
 		backGC.setColor(getBackground());
-		backGC.fillRect(0,0,size().width,size().height);
+		backGC.fillRect(0,0,getSize().width,getSize().height);
 		md.paint(backGC);
 		g.drawImage(backBuffer, 0, 0, this);
 	    }
@@ -408,6 +428,18 @@ public class XYZApp extends Applet implements Runnable {
        }
        painted = false;
     }
+
+  public String getAppletInfo() {
+    return "Title: XYZApp \nAuthor: James Gosling \nAn applet to put a Chemical model into a page.";
+  }
+  
+  public String[][] getParameterInfo() {
+    String[][] info = {
+      {"model", "path string", "The path to the model to be displayed in .xyz format (see http://chem.leeds.ac.uk/Project/MIME.html).  Default is model.obj."},
+      {"scale", "float", "Scale factor.  Default is 1 (i.e. no scale)."}
+    };
+    return info;
+  }
 }   // end class XYZApp
 
 class Atom {

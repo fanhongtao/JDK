@@ -1,7 +1,7 @@
 /*
- * @(#)Matrix3D.java	1.2 96/12/06
+ * @(#)Matrix3D.java	1.3 97/07/28
  *
- * Copyright (c) 1994-1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,

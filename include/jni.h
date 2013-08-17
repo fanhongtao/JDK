@@ -1,25 +1,14 @@
 /*
- * @(#)jni.h	1.28 97/05/19
+ * @(#)jni.h	1.30 00/03/28
  *
- * Copyright (c) 1993-1996 Sun Microsystems, Inc. All Rights Reserved.
- *
- * Permission to use, copy, modify, and distribute this software
- * and its documentation for NON-COMMERCIAL purposes and without
- * fee is hereby granted provided that this copyright notice
- * appears in all copies.
- *
- * The Java source code is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You shall
- * not disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF
- * THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
- * TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
+ * Copyright 1993-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
+ * 
  */
 
 /* 
@@ -1795,6 +1784,10 @@ jint JNICALL JNI_GetDefaultJavaVMInitArgs(void *);
 jint JNICALL JNI_CreateJavaVM(JavaVM **, JNIEnv **, void *);
 
 jint JNICALL JNI_GetCreatedJavaVMs(JavaVM **, jsize, jsize *);
+
+jint JNICALL Opt_InitHeapOptions(void *);
+
+jint JNICALL Opt_SetHeapOptions(void *);
 
 #ifdef __cplusplus
 } /* extern "C" */

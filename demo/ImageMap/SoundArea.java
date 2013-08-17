@@ -1,7 +1,7 @@
 /*
- * @(#)SoundArea.java	1.7 96/12/06
+ * @(#)SoundArea.java	1.9 98/03/18
  *
- * Copyright (c) 1994-1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -40,7 +40,7 @@ import java.net.MalformedURLException;
  *
  * @author 	Jim Graham
  * @author 	Chuck McManis
- * @version 	1.7, 12/06/96
+ * @version 	1.9, 03/18/98
  */
 class SoundArea extends ImageMapArea {
     /** The URL of the sound to be played. */

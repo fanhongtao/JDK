@@ -1,23 +1,15 @@
 /*
- * @(#)Thread.java	1.69 97/02/20
+ * @(#)Thread.java	1.71 98/08/06
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
@@ -106,7 +98,7 @@ package java.lang;
  * a thread is created, a new name is generated for it. 
  *
  * @author  unascribed
- * @version 1.69, 02/20/97
+ * @version 1.71, 08/06/98
  * @see     java.lang.Runnable
  * @see     java.lang.Runtime#exit(int)
  * @see     java.lang.Thread#run()
@@ -526,7 +518,11 @@ class Thread implements Runnable {
      * @since      JDK1.0
      */
     public final void stop() {
-	stop(new ThreadDeath());
+	synchronized (this) {
+	    checkAccess();
+	    resume();	// Wake up thread if it was suspended; no-op otherwise
+	    stop0(new ThreadDeath());
+	}
     }
 
     /**

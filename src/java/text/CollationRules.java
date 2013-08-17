@@ -1,5 +1,5 @@
 /*
- * @(#)CollationRules.java	1.15 97/10/28
+ * @(#)CollationRules.java	1.16 98/07/07
  *
  * (C) Copyright Taligent, Inc. 1996,1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -36,7 +36,7 @@ package java.text;
  * so they do not have to contain accented characters, such as A-grave.
  * @see                RuleBasedCollator
  * @see                LocaleElements
- * @version            1.15 10/28/97
+ * @version            1.16 07/07/98
  * @author             Helena Shih, Mark Davis
  */
 final class CollationRules {
@@ -190,6 +190,7 @@ final class CollationRules {
         + "<\u00a4"          // international currency symbol
         + "<\u00a2"          // cent sign
         + "<'\u0024'"        // dollar sign
+        + "<\u20ac"          // euro sign
         + "<\u00a3"          // pound-sterling sign
         + "<\u00a5"          // yen sign
         + "<'\u002a'"        // asterisk

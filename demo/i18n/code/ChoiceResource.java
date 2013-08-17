@@ -1,5 +1,5 @@
 /*
- * @(#)ChoiceResource.java	1.2 02/14/97
+ * @(#)ChoiceResource.java	 1.1 98/06/16
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved

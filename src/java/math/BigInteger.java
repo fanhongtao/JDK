@@ -1,23 +1,15 @@
 /*
- * 97/02/24, @(#)BigInteger.java	1.7
+ * @(#)BigInteger.java	1.9 98/10/28
+ *
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1996, 1997 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.math;
@@ -69,7 +61,7 @@ import java.util.Random;
  *
  *
  * @see BigDecimal
- * @version 	1.7, 00/08/15
+ * @version 	1.9, 00/08/11
  * @author      Josh Bloch
  */
 public class BigInteger extends Number {
@@ -1441,4 +1433,32 @@ public class BigInteger extends Number {
     private static native byte[] plumbModInverse(byte[] a, byte[] m);
     private static native byte[] plumbSquare(byte[] a);
     private static native byte[] plumbGeneratePrime(byte[] a);
+
+    /** use serialVersionUID from JDK 1.1. for interoperability */
+    private static final long serialVersionUID = -8287574255936472291L;
+
+    /**
+     * Reconstitute the <tt>BigInteger</tt> instance from a stream (that is,
+     * deserialize it).
+     */
+    private synchronized void readObject(java.io.ObjectInputStream s)
+        throws java.io.IOException, ClassNotFoundException {
+        // Read in all fields
+	s.defaultReadObject();
+
+        // Defensively copy magnitude to ensure immutability
+        magnitude = (byte[]) magnitude.clone();
+
+        // Validate signum
+	if (signum < -1 || signum > 1)
+	    throw new java.io.StreamCorruptedException(
+                        "BigInteger: Invalid signum value");
+	if ((magnitude.length==0) != (signum==0))
+	    throw new java.io.StreamCorruptedException(
+                        "BigInteger: signum-magnitude mismatch");
+
+        // Set "cached computation" fields to their initial values
+        bitCount = bitLength = -1;
+        lowestSetBit = firstNonzeroByteNum = -2;
+    }
 }

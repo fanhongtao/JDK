@@ -1,23 +1,15 @@
 /*
- * @(#)Security.java	1.54 97/02/06
+ * @(#)Security.java	1.58 98/07/01
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
  
 package java.security;
@@ -300,6 +292,11 @@ public final class Security {
      * will be legal to add a provider, but only in the last position,
      * in which case the <code>position</code> argument will be ignored. 
      * 
+     * <p>If the given provider is installed at the requested position,
+     * the provider that used to be at that position, and all providers
+     * with a position greater than <code>position</code>, are shifted up
+     * one position (towards the end of the list of installed providers).
+     * 
      * <p>A provider cannot be added if it is already installed.
      *
      * @param provider the provider to be added.
@@ -324,19 +321,12 @@ public final class Security {
 	    return -1;
 	}	
 		
-	/* Internally, position is position - 1 */
-	position--;
-
-	if (position < 0) {
-	    position = 0;
-	}
-	
 	int size = providers.size();
-	if (position > size) {
-	    position = size;
+	if (position > size || position <= 0) {
+	    position = size+1;
 	}
 
-	providers.insertElementAt(provider, position);
+	providers.insertElementAt(provider, position-1);
 
 	/* clear the prop caches */
 	propCache = new Properties();
@@ -362,8 +352,13 @@ public final class Security {
     }
 
     /**
-     * Removes the provider with the specified name.  This method
-     * returns silently if the provider is not installed.
+     * Removes the provider with the specified name.
+     *
+     * <p>When the specified provider is removed, all providers located
+     * at a position greater than where the specified provider was are shifted
+     * down one position (towards the head of the list of installed providers).
+     *
+     * <p>This method returns silently if the provider is not installed.
      *
      * @param name the name of the provider to remove.
      *

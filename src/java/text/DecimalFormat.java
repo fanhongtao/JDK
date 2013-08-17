@@ -1,5 +1,5 @@
 /*
- * @(#)DecimalFormat.java	1.36 98/02/19
+ * @(#)DecimalFormat.java	1.37 98/07/07
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -178,7 +178,7 @@ import java.util.Hashtable;
  * @see          java.util.Format
  * @see          java.util.NumberFormat
  * @see          java.util.ChoiceFormat
- * @version      1.36 02/19/98
+ * @version      1.37 07/07/98
  * @author       Mark Davis
  * @author       Alan Liu
  */
@@ -1519,14 +1519,11 @@ public class DecimalFormat extends NumberFormat {
                 this.negativePrefix = positivePrefix;   // assume these for now
                 this.negativeSuffix = positiveSuffix;
             int digitTotalCount = digitLeftCount + zeroDigitCount + digitRightCount;
-            setMinimumIntegerDigits(decimalPos >= 0 ? (decimalPos - digitLeftCount) : 0);
-            // Handles the "0000" like patterns by recording the correct decimal
-            // position.  HShih
-            if (zeroDigitCount > 1 && digitLeftCount == 0 && digitRightCount == 0)
-                setMinimumIntegerDigits(zeroDigitCount);
-            // Handles "#,##0" and "#,000" correctly
-            else if (zeroDigitCount > 0 && digitLeftCount > 0 && zeroDigitCount != digitLeftCount && (digitTotalCount == digitLeftCount + zeroDigitCount))
-                setMinimumIntegerDigits(zeroDigitCount);
+            /* The effectiveDecimalPos is the position the decimal is at or
+             * would be at if there is no decimal.  Note that if decimalPos<0,
+             * then digitTotalCount == digitLeftCount + zeroDigitCount.  */
+            int effectiveDecimalPos = decimalPos >= 0 ? decimalPos : digitTotalCount;
+            setMinimumIntegerDigits(effectiveDecimalPos - digitLeftCount);
             setMaximumIntegerDigits(useExponentialNotation ?
                         digitLeftCount + getMinimumIntegerDigits() : 127);
             setMaximumFractionDigits(decimalPos >= 0 ? (digitTotalCount - decimalPos) : 0);

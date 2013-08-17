@@ -1,5 +1,5 @@
 /*
- * @(#)RoundButton.java	1.6 97/06/18 Jeff Dinkins
+ * @(#)RoundButton.java	1.1 98/07/18
  *
  * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *

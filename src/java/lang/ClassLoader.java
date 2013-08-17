@@ -1,5 +1,5 @@
 /*
- * @(#)ClassLoader.java	1.59 00/05/26
+ * @(#)ClassLoader.java	1.60 00/03/28
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -86,7 +86,7 @@ import java.util.Hashtable;
  * </pre></blockquote><hr>
  *
  * @author  Arthur van Hoff
- * @version 1.59, 05/26/00
+ * @version 1.60, 03/28/00
  * @see     java.lang.Class
  * @see     java.lang.Class#newInstance()
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)

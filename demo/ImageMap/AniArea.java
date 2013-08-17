@@ -1,7 +1,7 @@
 /*
- * @(#)AniArea.java	1.8 96/12/06
+ * @(#)AniArea.java	1.10 98/03/18
  *
- * Copyright (c) 1994-1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -25,7 +25,7 @@
  * aircraft, air traffic, aircraft navigation or aircraft communications; or in
  * the design, construction, operation or maintenance of any nuclear
  * facility. Licensee represents and warrants that it will not use or
- * redistribute the Software for such purposes.
+ * redistribute the Software for such purposes. *
  */
 
 import java.awt.Graphics;
@@ -41,7 +41,7 @@ import java.net.MalformedURLException;
  * define the top left corner of each new frame.
  *
  * @author	Chuck McManis
- * @version	1.8, 12/06/96
+ * @version	1.10, 03/18/98
  */
 class AniArea extends ImageMapArea {
 
@@ -96,5 +96,8 @@ class AniArea extends ImageMapArea {
 		currentFrame = 0;
 	}
     }
+  public String getAppletInfo() {
+    return "Title: AniArea \nAuthor: Chuck McManis \nThis ImageMapArea subclass provides for a button that animates when the mouse is over it. The animation is specifed as a base image that contains all of the animation frames and then a series of X,Y coordinate pairs that define the top left corner of each new frame.";
+  }
 }
 

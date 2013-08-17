@@ -1,23 +1,15 @@
 /*
- * @(#)Window.java	1.72 98/02/19 Arthur van Hoff
+ * @(#)Window.java	1.77 98/08/13
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -42,7 +34,7 @@ import sun.awt.im.InputContext;
  * Windows are capable of generating the following window events:
  * WindowOpened, WindowClosed.
  *
- * @version 	1.72, 02/19/98
+ * @version 	1.77, 08/13/98
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -71,14 +63,17 @@ public class Window extends Container {
     private static final long serialVersionUID = 4497834738069338734L;
 
     Window() {
-	this.name = base + nameCounter++;
-	SecurityManager sm = System.getSecurityManager();
-	if ((sm != null) && !sm.checkTopLevelWindow(this)) {
-	    warningString = System.getProperty("awt.appletWarning",
-					       "Warning: Applet Window");
-	}
+	setWarningString();
 	this.focusMgr = new FocusManager(this);
 	this.visible = false;
+    }
+
+    /**
+     * Construct a name for this component.  Called by getName() when the
+     * name is null.
+     */
+    String constructComponentName() {
+        return base + nameCounter++;
     }
 
     /**
@@ -207,11 +202,7 @@ public class Window extends Container {
 	if (peer != null) {
 	    peer.toFront();
 	}
-    //Netscape : If toFron() is called without calling show first
-	else {
-		show();
-	}
-	}
+    }
 
     /**
      * Sends this window to the back.
@@ -250,7 +241,7 @@ public class Window extends Container {
      * <p>
      * If the window is secure, then <code>getWarningString</code>
      * returns <code>null</code>. If the window is insecure, this
-     * methods checks for the system property 
+     * method checks for the system property 
      * <code>awt.appletWarning</code> 
      * and returns the string value of that property. 
      * @return    the warning string for this window.
@@ -259,6 +250,17 @@ public class Window extends Container {
      */
     public final String getWarningString() {
 	return warningString;
+    }
+
+    private void setWarningString() {
+	warningString = null;
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) {
+	    if (!sm.checkTopLevelWindow(this)) {
+		warningString = System.getProperty("awt.appletWarning", 
+						   "Warning: Applet Window");
+	    }
+	}
     }
 
     /** 
@@ -422,17 +424,16 @@ public class Window extends Container {
         }
     }
 
-    boolean isActive() {
-        return active;
-    }
-
     void setFocusOwner(Component c) {
-	//System.out.println("Window.setFocusOwner("+c+"): " + this);
 	focusMgr.setFocusOwner(c);
     }
 
     void transferFocus(Component base) {
 	nextFocus(base);
+    }
+
+    boolean isActive() {
+	return active;
     }
 
     /**
@@ -442,7 +443,6 @@ public class Window extends Container {
      * assigned to them.
      */
     public Component getFocusOwner() {
-	//System.out.println("Window.getFocusOwner(), active:"+active+", owner:"+focusMgr.getFocusOwner());
         if (active)
             return focusMgr.getFocusOwner();
         else
@@ -462,16 +462,13 @@ public class Window extends Container {
      * @param e the event
      */
     void dispatchEventImpl(AWTEvent e) {
-
         switch(e.getID()) {
           case FocusEvent.FOCUS_GAINED:
             setFocusOwner(this);
             break;
           case ComponentEvent.COMPONENT_RESIZED:
-            synchronized (getTreeLock()) {
-		invalidate();
-		validate();
-            }
+            invalidate();
+            validate();
             repaint();
             break;
 
@@ -546,9 +543,10 @@ public class Window extends Container {
 	else // skip value for unrecognized key
 	  s.readObject();
       }
+      setWarningString();
     }
 
-} // class Window
+}
 
 
 class FocusManager implements java.io.Serializable {
@@ -572,7 +570,7 @@ class FocusManager implements java.io.Serializable {
      * If no visible, active, focusable components are present,
      * assign focus to the focus root.
      */
-    private void activateFocus() {
+    void activateFocus() {
         boolean assigned = false;
         if (focusOwner != null) {
             if ((assigned = assignFocus(focusOwner, false)) != true) {
@@ -589,7 +587,6 @@ class FocusManager implements java.io.Serializable {
                 
      
     synchronized void setFocusOwner(Component c) {
-        //System.out.println("FocusManager.setFocusOwner: "+c.name);
         focusOwner = c;
     }
 
@@ -637,7 +634,7 @@ class FocusManager implements java.io.Serializable {
     
             return false;		
         }
-    } // focusNext()
+    }
 
 
     boolean focusPrevious() {

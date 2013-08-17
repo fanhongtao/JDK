@@ -2,7 +2,7 @@
  * @(#)Locale.java  1.21 97/01/29
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
- * (C) Copyright IBM Corp. 1996 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
  *
  * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -30,6 +30,7 @@
 
 package java.util;
 import java.io.Serializable;
+import java.text.MessageFormat;
 
 /**
  *
@@ -257,25 +258,41 @@ public final class Locale implements Cloneable, Serializable {
 
     /**
      * Construct a locale from language, country, variant.
+     * NOTE:  ISO 639 is not a stable standard; some of the language codes it defines
+     * (specifically iw, ji, and in) have changed.  This constructor accepts both the
+     * old codes (iw, ji, and in) and the new codes (he, yi, and id), but all other
+     * API on Locale will return only the OLD codes.
      * @param language lowercase two-letter ISO-639 code.
      * @param country uppercase two-letter ISO-3166 code.
      * @param variant vendor and browser specific code. See class description.
      */
     public Locale(String language, String country, String variant) {
-        this.language = toLowerCase(language);
-        this.country = toUpperCase(country);
-        this.variant = toUpperCase(variant);
+        // we accept both the old and the new ISO codes for the languages whose ISO
+        // codes have changed, but we always store the OLD code, for backward compatibility
+        language = toLowerCase(language).intern();
+        if (language == "he")
+            language = "iw";
+        else if (language == "yi")
+            language = "ji";
+        else if (language == "id")
+            language = "in";
+
+        this.language = language;
+        this.country = toUpperCase(country).intern();
+        this.variant = toUpperCase(variant).intern();
     }
 
     /**
      * Construct a locale from language, country.
+     * NOTE:  ISO 639 is not a stable standard; some of the language codes it defines
+     * (specifically iw, ji, and in) have changed.  This constructor accepts both the
+     * old codes (iw, ji, and in) and the new codes (he, yi, and id), but all other
+     * API on Locale will return only the OLD codes.
      * @param language lowercase two-letter ISO-639 code.
      * @param country uppercase two-letter ISO-3166 code.
      */
     public Locale(String language, String country) {
-        this.language = toLowerCase(language);
-        this.country = toUpperCase(country);
-        this.variant = "";
+        this(language, country, "");
     }
 
     /**
@@ -607,58 +624,24 @@ public final class Locale implements Cloneable, Serializable {
      * doesn't specify a variant code, this function returns the empty string.
      */
     public String getDisplayVariant(Locale inLocale) {
-        String  varCode = variant;
-        if (varCode.length() == 0)
+        if (variant.length() == 0)
             return "";
 
-        Locale  workingLocale = (Locale)inLocale.clone();
-        String  result = null;
-        int     phase = 0;
-        boolean done = false;
+        ResourceBundle bundle = ResourceBundle.getBundle(
+                "java.text.resources.LocaleElements", inLocale);
 
-        if (workingLocale.variant.length() == 0)
-            phase = 1;
-        if (workingLocale.country.length() == 0)
-            phase = 2;
+        String names[] = getDisplayVariantArray(bundle);
 
-        while (!done) {
-            try {
-                ResourceBundle bundle = ResourceBundle.getBundle(
-                    "java.text.resources.LocaleElements", workingLocale);
-                result = findStringMatch((String[][])bundle.getObject("Variants"),
-                                    varCode, varCode);
-                if (result.length() != 0)
-                    done = true;
-            }
-            catch (Exception e) {
-                // just fall through
-            }
-
-            if (!done) {
-                switch (phase) {
-                    case 0:
-                        workingLocale.variant = "";
-                        break;
-
-                    case 1:
-                        workingLocale.country = "";
-                        break;
-
-                    case 2:
-                        workingLocale = getDefault();
-                        break;
-
-                    case 3:
-                        workingLocale = new Locale("", "", "");
-                        break;
-
-                    default:
-                        return varCode;
-                }
-                phase++;
-            }
+        // Get the localized patterns for formatting a list, and use
+        // them to format the list.
+        String[] patterns;
+        try {
+            patterns = (String[])bundle.getObject("LocaleNamePatterns");
         }
-        return result;
+        catch (MissingResourceException e) {
+            patterns = null;
+        }
+        return formatList(patterns, names);
    }
 
     /**
@@ -696,37 +679,79 @@ public final class Locale implements Cloneable, Serializable {
      * and variant fields are all empty, this function returns the empty string.
      */
     public String getDisplayName(Locale inLocale) {
-        // TODO: use pattern string from locale data
-        StringBuffer result = new StringBuffer();
-        String aLanguage = getDisplayLanguage(inLocale);
-        String aCountry = getDisplayCountry(inLocale);
-        String aVariant = getDisplayVariant(inLocale);
-        if (aLanguage.length() != 0) {
-            result.append(aLanguage);
-            if (aCountry.length() != 0 || aVariant.length() != 0) {
-                result.append(" (");
-                if (aCountry.length() != 0) {
-                    result.append(aCountry);
-                    if (aVariant.length() != 0)
-                        result.append(",");
-                }
-                if (aVariant.length() != 0)
-                    result.append(aVariant);
-                result.append(")");
-            }
-        }
-        else if (aCountry.length() != 0) {
-            result.append(aCountry);
-            if (aVariant.length() != 0) {
-                result.append(" (");
-                result.append(aVariant);
-                result.append(")");
-            }
-        }
-        else if (aVariant.length() != 0)
-            result.append(aVariant);
+        ResourceBundle bundle = ResourceBundle.getBundle(
+                "java.text.resources.LocaleElements", inLocale);
 
-        return result.toString();
+        String languageName = getDisplayLanguage(inLocale);
+        String countryName = getDisplayCountry(inLocale);
+        String[] variantNames = getDisplayVariantArray(bundle);
+
+        // Get the localized patterns for formatting a display name.
+        String[] patterns;
+        try {
+            patterns = (String[])bundle.getObject("LocaleNamePatterns");
+        }
+        catch (MissingResourceException e) {
+            patterns = null;
+        }
+
+        // The display name consists of a main name, followed by qualifiers.
+        // Typically, the format is "MainName (Qualifier, Qualifier)" but this
+        // depends on what pattern is stored in the display locale.
+        String   mainName       = null;
+        String[] qualifierNames = null;
+
+        // The main name is the language, or if there is no language, the country.
+        // If there is neither language nor country (an anomalous situation) then
+        // the display name is simply the variant's display name.
+        if (languageName.length() != 0) {
+            mainName = languageName;
+            if (countryName.length() != 0) {
+                qualifierNames = new String[variantNames.length + 1];
+                System.arraycopy(variantNames, 0, qualifierNames, 1, variantNames.length);
+                qualifierNames[0] = countryName;
+            }
+            else qualifierNames = variantNames;
+        }
+        else if (countryName.length() != 0) {
+            mainName = countryName;
+            qualifierNames = variantNames;
+        }
+        else {
+            return formatList(patterns, variantNames);
+        }
+
+        // Create an array whose first element is the number of remaining
+        // elements.  This serves as a selector into a ChoiceFormat pattern from
+        // the resource.  The second and third elements are the main name and
+        // the qualifier; if there are no qualifiers, the third element is
+        // unused by the format pattern.
+        Object[] displayNames = {
+            new Integer(qualifierNames.length != 0 ? 2 : 1),
+            mainName,
+            // We could also just call formatList() and have it handle the empty
+            // list case, but this is more efficient, and we want it to be
+            // efficient since all the language-only locales will not have any
+            // qualifiers.
+            qualifierNames.length != 0 ? formatList(patterns, qualifierNames) : null
+        };
+
+        if (patterns != null) {
+            return new MessageFormat(patterns[0]).format(displayNames);
+        }
+        else {
+            // If we cannot get the message format pattern, then we use a simple
+            // hard-coded pattern.  This should not occur in practice unless the
+            // installation is missing some core files (LocaleElements etc.).
+            StringBuffer result = new StringBuffer();
+            result.append((String)displayNames[1]);
+            if (displayNames.length > 2) {
+                result.append(" (");
+                result.append((String)displayNames[2]);
+                result.append(")");
+            }
+            return result.toString();
+        }
     }
 
     /**
@@ -789,8 +814,24 @@ public final class Locale implements Cloneable, Serializable {
     // ship this way, so now we're stuck with it
     private int hashcode = -1;        // lazy evaluated
 
-    private static Locale defaultLocale = new Locale(System.getProperty("user.language", "EN"),
-            System.getProperty("user.region", ""));
+    private static Locale defaultLocale;
+
+    static {
+        /* The user.region property may be of the form country, country_variant,
+         * or _variant.  Since the Locale constructor takes the country value as
+         * an unparsed literal, and we don't want to change that behavior, we
+         * must premunge it here into country and variant.  Liu 7/9/98
+         */
+        String country = System.getProperty("user.region", "");
+        String variant = "";
+        int i = country.indexOf('_');
+        if (i >= 0) {
+            variant = country.substring(i+1);
+            country = country.substring(0, i);
+        }
+        defaultLocale = new Locale(System.getProperty("user.language", "EN"),
+                                   country, variant);
+    }
 
     /*
      * Locale needs its own, locale insenitive version of toLowerCase to
@@ -833,5 +874,93 @@ public final class Locale implements Cloneable, Serializable {
                 if ("EN".equals(languages[i][0]))
                     return languages[i][1];
         return "";
+    }
+
+    /**
+     * Return an array of the display names of the variant.
+     * @param bundle the ResourceBundle to use to get the display names
+     * @return an array of display names, possible of zero length.
+     */
+    private String[] getDisplayVariantArray(ResourceBundle bundle) {
+        // Split the variant name into tokens separated by '_'.
+        StringTokenizer tokenizer = new StringTokenizer(variant, "_");
+        String[] names = new String[tokenizer.countTokens()];
+
+        // For each variant token, lookup the display name.  If
+        // not found, use the variant name itself.
+        for (int i=0; i<names.length; ++i) {
+            String token = tokenizer.nextToken();
+            try {   
+                names[i] = (String)bundle.getObject("%%" + token);
+            }
+            catch (MissingResourceException e) {
+                names[i] = token;
+            }
+        }
+
+        return names;
+    }
+
+    /**
+     * Format a list with an array of patterns.
+     * @param patterns an array of three patterns. The first pattern is not
+     * used. The second pattern should create a MessageFormat taking 0-3 arguments
+     * and formatting them into a list. The third pattern should take 2 arguments
+     * and is used by composeList. If patterns is null, then a the list is
+     * formatted by concatenation with the delimiter ','.
+     * @param stringList the list of strings to be formatted.
+     * @return a string representing the list.
+     */
+    private static String formatList(String[] patterns, String[] stringList) {
+        // If we have no list patterns, compose the list in a simple,
+        // non-localized way.
+        if (patterns == null) {
+            StringBuffer result = new StringBuffer();
+            for (int i=0; i<stringList.length; ++i) {
+                if (i>0) result.append(',');
+                result.append(stringList[i]);
+            }
+            return result.toString();
+        }
+
+        // Compose the list down to three elements if necessary
+        if (stringList.length > 3) {
+            MessageFormat format = new MessageFormat(patterns[2]);
+            stringList = composeList(format, stringList);
+        }
+
+        // Rebuild the argument list with the list length as the first element
+        Object[] args = new Object[stringList.length + 1];
+        System.arraycopy(stringList, 0, args, 1, stringList.length);
+        args[0] = new Integer(stringList.length);
+
+        // Format it using the pattern in the resource
+        MessageFormat format = new MessageFormat(patterns[1]);
+        return format.format(args);
+    }
+
+    /**
+     * Given a list of strings, return a list shortened to three elements.
+     * Shorten it by applying the given format to the first two elements
+     * recursively.
+     * @param format a format which takes two arguments
+     * @param list a list of strings
+     * @return if the list is three elements or shorter, the same list;
+     * otherwise, a new list of three elements.
+     */
+    private static String[] composeList(MessageFormat format, String[] list) {
+        if (list.length <= 3) return list;
+
+        // Use the given format to compose the first two elements into one
+        String[] listItems = { list[0], list[1] };
+        String newItem = format.format(listItems);
+
+        // Form a new list one element shorter
+        String[] newList = new String[list.length-1];
+        System.arraycopy(list, 2, newList, 1, newList.length-1);
+        newList[0] = newItem;
+
+        // Recurse
+        return composeList(format, newList);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)DemoApplet.java	1.1 96/11/23
+ * @(#)DemoApplet.java	 1.1 98/06/16
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved

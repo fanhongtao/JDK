@@ -1,22 +1,13 @@
 /*
- * @(#)EventQueue.java	1.17 97/06/23
+ * @(#)EventQueue.java	1.23 00/03/28
+ *
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 
@@ -26,13 +17,17 @@ import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.PaintEvent;
+import java.awt.event.WindowEvent;
+import java.util.EventListener;
+
+import java.util.Vector;
 
 /**
  * EventQueue is a platform-independent class that queues events, both
  * from the underlying peer classes and from trusted application classes.
  * There is only one EventQueue for the system.
  *
- * @version 1.17 06/23/97
+ * @version 1.23 03/28/00
  * @author Thomas Ball
  */
 public class EventQueue {
@@ -44,6 +39,8 @@ public class EventQueue {
     }
 
     private EventQueueItem queue;
+    /* The multiplexed EventQueueListener list. */
+    EventQueueListener eventQueueListener;
 
     public EventQueue() {
         queue = null;
@@ -58,76 +55,55 @@ public class EventQueue {
      * subclass of it.
      */
     public synchronized void postEvent(AWTEvent theEvent) {
-        postEvent(theEvent, false);
-    }
-
-    /**
-     * Post a 1.1-style event at the HEAD of the EventQueue (I.e., this
-     * event will be handled next).
-     *
-     * @param theEvent an instance of java.awt.AWTEvent, or a
-     * subclass of it.
-     */
-    synchronized void postEventAtHead(AWTEvent theEvent) {
-        postEvent(theEvent, true);
-    }
-
-    private synchronized void postEvent(AWTEvent theEvent, boolean atHead) {
         EventQueueItem eqi = new EventQueueItem(theEvent);
-        if (queue == null) {
-            queue = eqi;
-            notifyAll();
-        } else {
-            EventQueueItem q = queue;
-            for (;;) {
-                if (q.id == eqi.id) {
-                    switch (q.id) {
-                      case Event.MOUSE_MOVE:
-                      case Event.MOUSE_DRAG:
-                          // New-style event id's never collide with 
-                          // old-style id's, so if the id's are equal, 
-                          // we can safely cast the queued event to be 
-                          // an old-style one.
-                          MouseEvent e = (MouseEvent)q.event;
-                          if (e.getSource() == ((MouseEvent)theEvent).getSource() &&
-                              e.getModifiers() == ((MouseEvent)theEvent).getModifiers()) {
-                              q.event = eqi.event;// just replace old event
-                              return;
-                          }
-                          break;
+	if (queue == null) {
+	    queue = eqi;
+	    notifyAll();
+	} else {
+	    EventQueueItem q = queue;
+	    for (;;) {
+		if (q.id == eqi.id) {
+		    switch (q.id) {
+		      case Event.MOUSE_MOVE:
+		      case Event.MOUSE_DRAG:
+			  // New-style event id's never collide with 
+			  // old-style id's, so if the id's are equal, 
+			  // we can safely cast the queued event to be 
+			  // an old-style one.
+			  MouseEvent e = (MouseEvent)q.event;
+			  if (e.getSource() == ((MouseEvent)theEvent).getSource() &&
+			      e.getModifiers() == ((MouseEvent)theEvent).getModifiers()) {
+			      q.event = eqi.event;// just replace old event
+			      return;
+			  }
+			  break;
 
-                      case PaintEvent.PAINT:
-                      case PaintEvent.UPDATE:
-                          PaintEvent pe = (PaintEvent)q.event;
-                          if (pe.getSource() == theEvent.getSource()) {
-                              Rectangle rect = pe.getUpdateRect();
-                              Rectangle newRect = 
-                                  ((PaintEvent)theEvent).getUpdateRect();
-                              if (!rect.equals(newRect)) {
-                                  pe.setUpdateRect(rect.union(newRect));
-                              }
-                              return;
-                          }
-                          break;
+		      case PaintEvent.PAINT:
+		      case PaintEvent.UPDATE:
+			  PaintEvent pe = (PaintEvent)q.event;
+			  if (pe.getSource() == theEvent.getSource()) {
+			      Rectangle rect = pe.getUpdateRect();
+			      Rectangle newRect = 
+				  ((PaintEvent)theEvent).getUpdateRect();
+			      if (!rect.equals(newRect)) {
+				  pe.setUpdateRect(rect.union(newRect));
+			      }
+			      return;
+			  }
+			  break;
 
-                    }
-                }
-                if (q.next != null) {
-                    q = q.next;
-                } else {
-                    break;
-                }
-            }
-
-	    // add it to the queue
-	    if (atHead) {
-	        eqi.next = queue;
-		queue = eqi;
-	    } else {
-                q.next = eqi;
+		    }
+		}
+		if (q.next != null) {
+		    q = q.next;
+		} else {
+		    break;
+		}
 	    }
-        }
-    } // postEvent()
+	    q.next = eqi;
+	}
+	notifyEventQueueListeners(theEvent);
+    }
 
     /**
      * Remove an event from the queue and return it.  This method will
@@ -189,6 +165,23 @@ public class EventQueue {
      */
 
     /*
+     * (Copied from new public 1.2 API)
+     * Adds listener to event queue
+     */
+    synchronized void addEventQueueListener(EventQueueListener l) {
+        eventQueueListener = EventQueueMulticaster.add(eventQueueListener, l);
+    }
+
+    /*
+     * (Copied from new public 1.2 API)
+     * Removes listener from event queue
+     */
+    synchronized void removeEventQueueListener(EventQueueListener l) {
+        eventQueueListener = EventQueueMulticaster.remove(eventQueueListener, l);
+    }
+
+
+    /*
      * Change the target of any pending KeyEvents because of a focus change.
      */
     synchronized void changeKeyEventFocus(Object newSource) {
@@ -217,6 +210,77 @@ public class EventQueue {
             }
             prev = entry;
             entry = entry.next;
+        }
+    }
+
+    /*
+     * Remove any pending events of the given class and id
+     */
+    synchronized void removeEvents(Class evClass, int id) {
+        EventQueueItem entry = queue;
+        EventQueueItem prev = null;
+        while (entry != null) {
+            if (evClass.isInstance(entry.event) && entry.event.getID() == id) {
+                if (prev == null) {
+                    queue = entry.next;
+                } else {
+                    prev.next = entry.next;
+                }
+            }
+            prev = entry;
+            entry = entry.next;
+        }
+    }
+
+    static private class EventQueueMulticaster extends AWTEventMulticaster
+        implements EventQueueListener {
+        // Implementation cloned from AWTEventMulticaster.
+
+        EventQueueMulticaster(EventListener a, EventListener b) {
+            super(a, b);
+        }
+
+        static EventQueueListener add(EventQueueListener a,
+                                      EventQueueListener b) {
+	    	if (a == null)  return b;
+	    	if (b == null)  return a;
+	    	return new EventQueueMulticaster(a, b);
+        }
+
+         // #4179773: must overload remove(EventListener) to call our add()
+         // instead of the static addInternal() so we allocate an
+         // EventQueueMulticaster instead of an AWTEventMulticaster.
+         // Note: this method is called by AWTEventMulticaster.removeInternal(),
+         // so its method signature must match AWTEventMulticaster.remove().
+         protected EventListener remove(EventListener oldl) {
+             if (oldl == a)  return b;
+             if (oldl == b)  return a;
+             EventQueueListener a2 = (EventQueueListener)removeInternal(a,oldl);
+             EventQueueListener b2 = (EventQueueListener)removeInternal(b,oldl);
+             if (a2 == a && b2 == b) {
+                 return this;    // it's not here
+             }
+             return add(a2, b2);
+         }
+ 
+        static EventQueueListener remove(EventQueueListener l,
+                                         EventQueueListener oldl) {
+            return (EventQueueListener) removeInternal(l, oldl);
+        }
+
+
+        public void eventPosted(AWTEvent e) {
+            ((EventQueueListener)a).eventPosted(e);
+            ((EventQueueListener)b).eventPosted(e);
+        }
+    }
+
+    /*
+     * Based on new protected 1.2 API
+     */
+    private void notifyEventQueueListeners(AWTEvent theEvent) {
+        if (eventQueueListener != null) {
+            eventQueueListener.eventPosted(theEvent);
         }
     }
 }

@@ -1,23 +1,15 @@
 /*
- * @(#)SecurityManager.java	1.48 97/03/10
+ * @(#)SecurityManager.java	1.50 98/08/17
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
@@ -68,7 +60,7 @@ import java.lang.reflect.Member;
  * does <i>not</i> have permission to perform the requested operation. 
  *
  * @author  Arthur van Hoff
- * @version 1.48, 03/10/97
+ * @version 1.50, 08/17/98
  * @see     java.lang.ClassLoader
  * @see     java.lang.SecurityException
  * @see     java.lang.SecurityManager#checkTopLevelWindow(java.lang.Object)
@@ -328,7 +320,7 @@ class SecurityManager {
 
     /**
      * Throws a <code>SecurityException</code> if the 
-     * calling thread is not allowed to create a subprocss. 
+     * calling thread is not allowed to create a subprocess. 
      * <p>
      * This method is invoked for the current security manager by the 
      * <code>exec</code> methods of class <code>Runtime</code>.

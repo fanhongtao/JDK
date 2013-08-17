@@ -1,23 +1,15 @@
 /*
- * @(#)MenuBar.java	1.36 98/01/09
+ * @(#)MenuBar.java	1.38 98/08/21
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -50,7 +42,7 @@ import java.awt.event.KeyEvent;
  * that retrieve information about the shortcuts a given
  * menu bar is managing.
  *
- * @version 1.36, 01/09/98
+ * @version 1.38, 08/21/98
  * @author Sami Shaio
  * @see        java.awt.Frame
  * @see        java.awt.Frame#setMenuBar(java.awt.MenuBar)
@@ -76,7 +68,14 @@ public class MenuBar extends MenuComponent implements MenuContainer {
      * @since    JDK1.0
      */
     public MenuBar() {
-        this.name = base + nameCounter++;
+    }
+
+    /**
+     * Construct a name for this MenuComponent.  Called by getName() when
+     * the name is null.
+     */
+    String constructComponentName() {
+        return base + nameCounter++;
     }
 
     /**

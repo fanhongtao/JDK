@@ -1,7 +1,7 @@
 /*
- * @(#)Graph.java	1.3 96/12/06
+ * @(#)Graph.java	1.5 97/07/31
  *
- * Copyright (c) 1994-1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1997 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -31,6 +31,8 @@
 import java.util.*;
 import java.awt.*;
 import java.applet.Applet;
+import java.awt.event.*;
+
 
 class Node {
     double x;
@@ -44,6 +46,7 @@ class Node {
     String lbl;
 }
 
+
 class Edge {
     int from;
     int to;
@@ -51,7 +54,8 @@ class Edge {
     double len;
 }
 
-class GraphPanel extends Panel implements Runnable {
+
+class GraphPanel extends Panel implements Runnable, MouseListener {
     Graph graph;
     int nnodes;
     Node nodes[] = new Node[100];
@@ -65,6 +69,7 @@ class GraphPanel extends Panel implements Runnable {
 
     GraphPanel(Graph graph) {
 	this.graph = graph;
+	addMouseListener(this);
     }
 
     int findNode(String lbl) {
@@ -92,7 +97,8 @@ class GraphPanel extends Panel implements Runnable {
     }
 
     public void run() {
-	while (true) {
+        Thread me = Thread.currentThread();
+	while (relaxer == me) {
 	    relax();
 	    if (random && (Math.random() < 0.03)) {
 		Node n = nodes[(int)(Math.random() * nnodes)];
@@ -155,7 +161,7 @@ class GraphPanel extends Panel implements Runnable {
 	    }
 	}
 
-	Dimension d = size();
+	Dimension d = getSize();
 	for (int i = 0 ; i < nnodes ; i++) {
 	    Node n = nodes[i];
 	    if (!n.fixed) {
@@ -184,7 +190,6 @@ class GraphPanel extends Panel implements Runnable {
     Image offscreen;
     Dimension offscreensize;
     Graphics offgraphics;
-    
 
     final Color fixedColor = Color.red;
     final Color selectColor = Color.pink;
@@ -208,7 +213,7 @@ class GraphPanel extends Panel implements Runnable {
     }
 
     public synchronized void update(Graphics g) {
-	Dimension d = size();
+	Dimension d = getSize();
 	if ((offscreen == null) || (d.width != offscreensize.width) || (d.height != offscreensize.height)) {
 	    offscreen = createImage(d.width, d.height);
 	    offscreensize = d;
@@ -239,12 +244,17 @@ class GraphPanel extends Panel implements Runnable {
 	for (int i = 0 ; i < nnodes ; i++) {
 	    paintNode(offgraphics, nodes[i], fm);
 	}
-
 	g.drawImage(offscreen, 0, 0, null);
     }
 
-    public synchronized boolean mouseDown(Event evt, int x, int y) {
+    //1.1 event handling
+    public void mouseClicked(MouseEvent e) {
+    }
+
+    public void mousePressed(MouseEvent e) {
 	double bestdist = Double.MAX_VALUE;
+	int x = e.getX();
+	int y = e.getY();
 	for (int i = 0 ; i < nnodes ; i++) {
 	    Node n = nodes[i];
 	    double dist = (n.x - x) * (n.x - x) + (n.y - y) * (n.y - y);
@@ -258,49 +268,68 @@ class GraphPanel extends Panel implements Runnable {
 	pick.x = x;
 	pick.y = y;
 	repaint();
-	return true;
+	e.consume();
     }
 
-    public synchronized boolean mouseDrag(Event evt, int x, int y) {
-	pick.x = x;
-	pick.y = y;
-	repaint();
-	return true;
-    }
-
-    public synchronized boolean mouseUp(Event evt, int x, int y) {
-	pick.x = x;
-	pick.y = y;
+    public void mouseReleased(MouseEvent e) {
+	pick.x = e.getX();
+	pick.y = e.getY();
 	pick.fixed = pickfixed;
 	pick = null;
-	
 	repaint();
-	return true;
+	e.consume();
+    }
+
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    public void mouseExited(MouseEvent e) {
+    }
+
+    public void mouseDragged(MouseEvent e) {
+	pick.x = e.getX();
+	pick.y = e.getY();
+	repaint();
+	e.consume();
+    }
+
+    public void mouseMoved(MouseEvent e) {
     }
 
     public void start() {
 	relaxer = new Thread(this);
 	relaxer.start();
     }
+
     public void stop() {
-	relaxer.stop();
+	relaxer = null;
     }
+
 }
 
-public class Graph extends Applet {
+
+public class Graph extends Applet implements ActionListener, ItemListener {
+
     GraphPanel panel;
+    Panel controlPanel;
+
+    Button scramble = new Button("Scramble");
+    Button shake = new Button("Shake");
+    Checkbox stress = new Checkbox("Stress");
+    Checkbox random = new Checkbox("Random");
 
     public void init() {
 	setLayout(new BorderLayout());
 
 	panel = new GraphPanel(this);
 	add("Center", panel);
-	Panel p = new Panel();
-	add("South", p);
-	p.add(new Button("Scramble"));
-	p.add(new Button("Shake"));
-	p.add(new Checkbox("Stress"));
-	p.add(new Checkbox("Random"));
+	controlPanel = new Panel();
+	add("South", controlPanel);
+
+	controlPanel.add(scramble); scramble.addActionListener(this);
+	controlPanel.add(shake); shake.addActionListener(this);
+	controlPanel.add(stress); stress.addItemListener(this);
+	controlPanel.add(random); random.addItemListener(this);
 
 	String edges = getParameter("edges");
 	for (StringTokenizer t = new StringTokenizer(edges, ",") ; t.hasMoreTokens() ; ) {
@@ -316,7 +345,7 @@ public class Graph extends Applet {
 		panel.addEdge(str.substring(0,i), str.substring(i+1), len);
 	    }
 	}
-	Dimension d = size();
+	Dimension d = getSize();
 	String center = getParameter("center");
 	if (center != null){
 	    Node n = panel.nodes[panel.findNode(center)];
@@ -326,24 +355,25 @@ public class Graph extends Applet {
 	}
     }
 
+    public void destroy() {
+        remove(panel);
+        remove(controlPanel);
+    }
+
     public void start() {
 	panel.start();
     }
+
     public void stop() {
 	panel.stop();
     }
-    public boolean action(Event evt, Object arg) {
-	if (arg instanceof Boolean) {
-	    if (((Checkbox)evt.target).getLabel().equals("Stress")) {
-		panel.stress = ((Boolean)arg).booleanValue();
-	    } else {
-		panel.random = ((Boolean)arg).booleanValue();
-	    }
-	    return true;
-	} 
-	if ("Scramble".equals(arg)) {
+
+    public void actionPerformed(ActionEvent e) {
+	Object src = e.getSource();
+
+	if (src == scramble) {
 	    play(getCodeBase(), "audio/computer.au");
-	    Dimension d = size();
+	    Dimension d = getSize();
 	    for (int i = 0 ; i < panel.nnodes ; i++) {
 		Node n = panel.nodes[i];
 		if (!n.fixed) {
@@ -351,11 +381,12 @@ public class Graph extends Applet {
 		    n.y = 10 + (d.height-20)*Math.random();
 		}
 	    }
-	    return true;
+	    return;
 	}
-	if ("Shake".equals(arg)) {
+
+	if (src == shake) {
 	    play(getCodeBase(), "audio/gong.au");
-	    Dimension d = size();
+	    Dimension d = getSize();
 	    for (int i = 0 ; i < panel.nnodes ; i++) {
 		Node n = panel.nodes[i];
 		if (!n.fixed) {
@@ -363,8 +394,27 @@ public class Graph extends Applet {
 		    n.y += 80*Math.random() - 40;
 		}
 	    }
-	    return true;
 	}
-	return false;
+
     }
+
+    public void itemStateChanged(ItemEvent e) {
+	Object src = e.getSource();
+	boolean on = e.getStateChange() == ItemEvent.SELECTED;
+	if (src == stress) panel.stress = on;
+	else if (src == random) panel.random = on;
+    }
+
+    public String getAppletInfo() {
+	return "Title: GraphLayout \nAuthor: <unknown>";
+    }
+
+    public String[][] getParameterInfo() {
+	String[][] info = {
+	    {"edges", "delimited string", "A comma-delimited list of all the edges.  It takes the form of 'C-N1,C-N2,C-N3,C-NX,N1-N2/M12,N2-N3/M23,N3-NX/M3X,...' where C is the name of center node (see 'center' parameter) and NX is a node attached to the center node.  For the edges connecting nodes to eachother (and not to the center node) you may (optionally) specify a length MXY separated from the edge name by a forward slash."},
+	    {"center", "string", "The name of the center node."}
+	};
+	return info;
+    }
+
 }

@@ -1,31 +1,14 @@
 /*
- * @(#)jre_main.c	1.13 98/02/26 David Connelly
+ * @(#)jre_main.c	1.18 00/03/28
  *
- * Copyright (c) 1997 Sun Microsystems, Inc. All Rights Reserved.
- *
- * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
- * modify and redistribute this software in source and binary code form,
- * provided that i) this copyright notice and license appear on all copies of
- * the software; and ii) Licensee does not utilize the software in a manner
- * which is disparaging to Sun.
- *
- * This software is provided "AS IS," without a warranty of any kind. ALL
- * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING ANY
- * IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR
- * NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT BE
- * LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING
- * OR DISTRIBUTING THE SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR ITS
- * LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR DIRECT,
- * INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER
- * CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY, ARISING OUT OF THE USE OF
- * OR INABILITY TO USE SOFTWARE, EVEN IF SUN HAS BEEN ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGES.
- *
- * This software is not designed or intended for use in on-line control of
- * aircraft, air traffic, aircraft navigation or aircraft communications; or in
- * the design, construction, operation or maintenance of any nuclear
- * facility. Licensee represents and warrants that it will not use or
- * redistribute the Software for such purposes.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
+ * 
  */
 
 /*
@@ -42,7 +25,8 @@
 #define PROGRAM "jre"
 
 /* Title of this program */
-#ifdef VERSION
+/* for bug 4235948: VERSION now contains patch version string */
+#if defined(VERSION)
 #define TITLE "Java(tm) Runtime Loader Version " VERSION
 #else
 #define TITLE "Java(tm) Runtime Loader"
@@ -56,6 +40,7 @@
 jboolean debug;
 #endif
 
+heapoptions heapoptsJre;
 
 /* Forward declarations */
 jint ParseOptions(int *argcp, char ***argvp, JDK1_1InitArgs *vmargs);
@@ -166,12 +151,16 @@ void main(int argc, char *argv[])
     }
     vmargs.classpath = set.classPath;
 
+    JRE_InitHeapOptions(handle, &heapoptsJre);
+
     /* Parse command line options */
     --argc; argv++;
     if (ParseOptions(&argc, &argv, &vmargs) != 0) {
 	PrintUsage();
 	exit(1);
     }
+
+    JRE_SetHeapOptions(handle, &heapoptsJre);
 
     /* Get name of class */
     if (*argv == 0) {
@@ -296,6 +285,26 @@ jint ParseOptions(int *argcp, char ***argvp, JDK1_1InitArgs *vmargs)
 	    if (n >= 1000) {
 		vmargs->maxHeapSize = n;
 	    }
+        } else if (strncmp(arg, "maxf", 4) == 0) {
+            float tmpF = atof(arg + 4);
+            if (tmpF >= (float)0 && tmpF <= (float)1) {
+                heapoptsJre.maxHeapFreePercent = tmpF;
+            }
+        } else if (strncmp(arg, "minf", 4) == 0) {
+            float tmpF = atof(arg + 4);
+            if (tmpF >= (float)0 && tmpF <= (float)1) {
+                heapoptsJre.minHeapFreePercent = tmpF;
+            }
+        } else if (strncmp(arg, "maxe", 4) == 0) {
+            jint n = atoml(arg + 4);
+            if (n >= 0) {
+                heapoptsJre.maxHeapExpansion = n;
+            }
+        } else if (strncmp(arg, "mine", 4) == 0) {
+            jint n = atoml(arg + 4);
+            if (n >= 0) {
+                heapoptsJre.minHeapExpansion = n;
+            }
 	} else if (strcmp(arg, "noasyncgc") == 0) {
 	    vmargs->disableAsyncGC = JNI_TRUE;
 	} else if (strcmp(arg, "noclassgc") == 0) {

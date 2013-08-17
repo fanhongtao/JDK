@@ -1,23 +1,15 @@
 /*
- * @(#)File.java	1.50 98/01/28
+ * @(#)File.java	1.52 98/07/01
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.io;
@@ -38,7 +30,7 @@ import java.util.Vector;
  * Note that whenever a filename or path is used it is
  * assumed that the host's file naming conventions are used.
  *
- * @version 1.50, 01/28/98
+ * @version 1.52, 07/01/98
  * @author  Arthur van Hoff
  * @author  Jonathan Payne
  * @since   JDK1.0
@@ -51,7 +43,7 @@ class File implements java.io.Serializable {
     private String path;
 
     /**
-     * The system-dependent path separator character. This field is 
+     * The system-dependent path separator string. This field is 
      * initialized to contain the value of the system property 
      * <code>file.separator</code>. 
      *
@@ -61,7 +53,7 @@ class File implements java.io.Serializable {
     public static final String separator = System.getProperty("file.separator");
 
     /**
-     * The system-dependent path separator string. This field is 
+     * The system-dependent path separator character. This field is 
      * initialized to contain the first character of the value of the 
      * system property <code>file.separator</code>. This character 
      * separates the directory and file components in a filename. 

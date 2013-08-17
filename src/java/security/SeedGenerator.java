@@ -1,159 +1,311 @@
 /*
- * @(#)SeedGenerator.java	1.4 97/12/11
- * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * @(#)SeedGenerator.java	1.7 98/07/27
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.security;
 
 /**
- * This class exports a single static method (genSeed) that generates
- * a seed for a cryptographically strong random number generator.  The
- * goal is to provide a seed whose least significant byte is "truly random."
- * The seed is produced by creating a "sleeper thread" that sleeps for a
- * designated time period, and spinning on Thread.yield() while waiting
- * for the sleeper thread to terminate.  The parent thread keeps track of
- * the number of times that it yields, and returns this "spin count"
- * as a seed.  Remarkably, the low order bits of this seed seem to be
- * quite random.
+ * <P> This class generates seeds for the cryptographically strong random
+ * number generator.
+ * <P> The seed is produced by counting the number of times the VM
+ * manages to loop in a given period. This number roughly
+ * reflects the machine load at that point in time.
+ * The samples are translated using a permutation (s-box)
+ * and then XORed together. This process is non linear and
+ * should prevent the samples from "averaging out". The s-box
+ * was designed to have even statistical distribution; it's specific
+ * values are not crucial for the security of the seed.
+ * We also create a number of sleeper threads which add entropy
+ * to the system by keeping the scheduler busy.
+ * Twenty such samples should give us roughly 160 bits of randomness.
+ * <P> These values are gathered in the background by a daemon thread
+ * thus allowing the system to continue performing it's different
+ * activites, which in turn add entropy to the random seed.
+ * <p> The class also gathers miscellaneous system information, some
+ * machine dependent, some not. This information is then hashed together
+ * with the 20 seed bytes.
  *
- * @version 1.4, 00/08/15
- * @author Josh Bloch
+ * @version 1.7, 00/08/11
+ * @author Joshua Bloch
+ * @author Gadi Guy
  */
 
-class SeedGenerator {
-    private static int sleepTime;
-    static {
-	setSleepTime();
-    }
+import java.security.*;
+import java.io.*;
+import java.util.Properties;
+import java.util.Enumeration;
+import java.net.*;
 
-    private static final int TARGET_SPIN_COUNT = 55000;
-    private static final int MIN_SPIN_COUNT = (6*TARGET_SPIN_COUNT)/10;
-    private static final int MAX_SPIN_COUNT = 2*TARGET_SPIN_COUNT;
-    private static final int MAX_SLEEP_TIME = 30000;    // 30 seconds
-    private static final int MAX_ATTEMPTS = 5;
+class SeedGenerator implements Runnable {
+    // Static instance is created at link time
+    private static SeedGenerator myself = new SeedGenerator();
 
-    /**
-     * This method calculates a sleep time that results in ~55000 thread
-     * yields.  Experimentally, this seems sufficient to generate one random
-     * byte.  Note that this  method (which "performs an experiment")requires
-     * approximately one second to execute.  It is called once when the class
-     * is loaded, and again if the computed sleep time "stops doing its job."
-     * (This will happen if the load on the machine changes drastically.)
-     *
-     * If the machine is heavily loaded, the calculated sleepTime may
-     * turn out to be quite high (possibly hours).  If such a value is
-     * generated, reset sleepTime to a more reasonble time, MAX_SLEEP_TIME;
-     */
-    private static void setSleepTime() {
-	sleepTime = (1000*TARGET_SPIN_COUNT)/genSeed(1000);
-	if (sleepTime > MAX_SLEEP_TIME)
-	    sleepTime = MAX_SLEEP_TIME;
+    // Queue is used to collect seed bytes
+    private byte[] pool;
+    private int start, end, count;
 
-	Security.debug("Resetting sleep time for seed generation: "
-		       + sleepTime + " ms.");
-     }
+    // Thread group for our threads
+    ThreadGroup seedGroup;
 
     /**
-     * genSeed() - The sole exported method from this class; generates a
-     * random seed, an integer whose last byte is intended to be "truly
-     * random".  (Higher order bits may have some randomness as well.)
-     * This method is synchronized for two reasons: 1) it has the side effect
-     * of maintaining sleepTime, which is a static variable, and 2) having
-     * multiple threads generate seeds concurrently would likely result in
-     * unnecessary (and inefficent) increases in sleepTime.
+     * The constructor is only called once to construct the one
+     * instance we actually use. It instantiates the message digest
+     * and starts the thread going.
      */
-    public synchronized static int genSeed() {
-	int candidate = genSeed(sleepTime);
 
-	/*
-	 * If candidate is way too low, recalculate sleep time until it
-	 * isn't.  This is necessary to thwart an attack where our adversary
-	 * loads down the machine in order to reduce the quality of the
-	 * seed generation.
-	 *
-	 * Only try this MAX_ATTEMPTS number of times so that we don't
-	 * get into an infinite loop.
-	 */
-	int attempts = 0;
-	while (candidate < MIN_SPIN_COUNT && attempts < MAX_ATTEMPTS) {
-	    Security.debug("Candidate seed too low: "+ candidate +" ms.");
-	    setSleepTime();
-	    candidate = genSeed(sleepTime);
-	    attempts++;
+    private SeedGenerator() {
+	pool = new byte[20];
+	start = end = 0;
+
+	Thread t = null;
+	MessageDigest digest;
+
+	try {
+    	    digest = MessageDigest.getInstance("SHA");
+    	} catch (NoSuchAlgorithmException e) {
+    	    throw new InternalError("internal error: SHA-1 not available.");
 	}
 
-	if (attempts > MAX_ATTEMPTS)
-	    throw new SecurityException("unable to generate a quality seed");
-
-	/*
-	 * If candidate is way too high, recalculate sleep time, but DO use
-	 * the candidate (which is of HIGHER quality than necessary).  This
-	 * step merely reduces the cost to calculate subsequent seed bytes.
-	 * It isn't necessarily a win, as the recalculation is time consuming,
-	 * but it prevents seed calculation time from unnecessarily
-	 * "ratcheting up" over time.
-	 */
-	if (candidate > MAX_SPIN_COUNT) {
-	    Security.debug("Candidate seed too high: "+ candidate +" ms.");
-	    setSleepTime();
-	}
-
-	return candidate;
+	ThreadGroup parent, group = Thread.currentThread().getThreadGroup();
+	while ((parent = group.getParent()) != null)
+	    group = parent;
+	seedGroup = new ThreadGroup(group, "SeedGenerator ThreadGroup");
+	t = new Thread(seedGroup, this, "SeedGenerator Thread");
+	t.setPriority(Thread.MIN_PRIORITY);
+	t.setDaemon(true);
+	t.start();
     }
 
     /**
-     * Generate a random seed by spinning on thread yield while waiting for
-     * a child thread that sleeps for the designated period of time, in
-     * milliseconds.  The returned seed is the number of times we yield
-     * whilst waiting for the child.
+     * This method does the actual work. It collects random bytes and
+     * pushes them into the queue.
      */
-    private static int genSeed(int sleepTime) {
-	int counter = 0;
-
-	Thread sleeper = new Sleeper(sleepTime);
-	sleeper.start();
-
-	while (sleeper.isAlive()) {
-	    counter++;
-	    Thread.yield();
-	}
-
-	return counter;
-    }
-}
-
-/**
- * This helper class exports a "sleeper thread" that sleeps for a designated
- * period (in milliseconds) and terminates.
- */
-class Sleeper extends Thread {
-    private int sleepTime;
-
-    Sleeper(int sleepTime) {
-	this.sleepTime = sleepTime;
-    }
 
     final public void run() {
 	try {
-	    Thread.sleep(sleepTime);
-	} catch (InterruptedException e) {
+	    while (true) {
+		// Queue full? Wait till there's room.
+		synchronized(this) {
+		    while (count >= pool.length)
+			wait();
+		}
+
+		int counter = 0;
+		byte v = 0;
+
+		// Spin count must not be under 64000
+		while (counter < 64000) {
+
+		    // Start some noisy threads
+		    try {
+			BogusThread bt = new BogusThread();
+			Thread t = new Thread
+			    (seedGroup, bt, "SeedGenerator Thread");
+			t.start();
+		    } catch (Exception e) {
+			throw new InternalError("internal error: " +
+			    "SeedGenerator thread creation error.");
+		    }
+
+		    // We wait 250milli quanta, so the minimum wait time
+		    // cannot be under 250milli.
+		    int latch = 0;
+		    latch = 0;
+		    long l = System.currentTimeMillis() + 250;
+		    while (System.currentTimeMillis() < l) {
+			synchronized(this){};
+			latch++;
+		    }
+
+		    // Translate the value using the permutation, and xor
+		    // it with previous values gathered.
+		    v ^= rndTab[latch % 255];
+		    counter += latch;
+		}
+
+		// Push it into the queue and notify anybody who might
+		// be waiting for it.
+		synchronized(this) {
+		    pool[end] = v;
+		    end++;
+		    count++;
+		    if (end >= pool.length)
+			end = 0;
+
+		    notifyAll();
+		}
+	    }
+	} catch (Exception e) {
+    	    throw new InternalError("internal error: " +
+		"SeedGenerator thread generated an exception.");
+	}
+    }
+
+    /**
+    * Return a byte from the queue. Wait for it if it isn't ready.
+    */
+
+    static public byte getByte() {
+	return myself._getByte();
+    }
+
+    private byte _getByte() {
+	byte b = 0;
+
+	try {
+	    // Wait for it...
+	    synchronized(this) {
+		while (count <= 0)
+		    wait();
+	    }
+	} catch (Exception e) {
+	    if (count <= 0)
+		throw new InternalError("internal error: " +
+		    "SeedGenerator thread generated an exception.");
+	}
+
+	synchronized(this) {
+	    // Get it from the queue
+	    b = pool[start];
+	    pool[start] = 0;
+	    start++;
+	    count--;
+	    if (start == pool.length)
+		start = 0;
+
+	   // Notify the daemon thread, just in case it is
+	   // waiting for us to make room in the queue.
+	    notifyAll();
+	}
+
+	return b;
+    }
+
+    /**
+     * Retrieve some system information, hashed.
+     */
+
+    static byte[] getSystemEntropy() {
+	String s;
+	String[] sa;
+	Class c;
+	Object o;
+	byte b;
+	byte[] ba;
+	Properties p;
+	Enumeration e;
+	File f;
+	MessageDigest md;
+
+	try {
+    	    md = MessageDigest.getInstance("SHA");
+    	} catch (NoSuchAlgorithmException nsae) {
+    	    throw new InternalError("internal error: SHA-1 not available.");
+	}
+
+	// The current time in millis
+	b =(byte)System.currentTimeMillis();
+	md.update(b);
+
+	// System properties can change from machine to machine
+	p = System.getProperties();
+	e = p.propertyNames();
+	while (e.hasMoreElements()) {
+	    s =(String)e.nextElement();
+	    md.update(s.getBytes());
+	    md.update(p.getProperty(s).getBytes());
+	}
+
+	try {
+	    md.update(InetAddress.getLocalHost().toString().getBytes());
+	} catch (UnknownHostException uhe) {
+	    md.update((byte)uhe.hashCode());
+	}
+
+	// The temporary dir
+	try {
+	    f = new File(p.getProperty("java.io.tmpdir"));
+	    sa = f.list();
+	    for(int i = 0; i < sa.length; i++)
+		md.update(sa[i].getBytes());
+	} catch (Exception ex) {
+	    md.update((byte)ex.hashCode());
+	}
+
+	// get Runtime memory stats
+	Runtime rt = Runtime.getRuntime();
+	b =(byte)rt.totalMemory();
+	md.update(b);
+	b =(byte)rt.freeMemory();
+	md.update(b);
+
+	return md.digest();
+    }
+
+    /*
+    // This method helps the test utility receive unprocessed seed bytes.
+    public static int genTestSeed() {
+	return myself.getByte();
+    }
+    */
+
+    // The permutation was calculated by generating 64k of random
+    // data and using it to mix the trivial permutation.
+    // It should be evenly distributed. The specific values
+    // are not crucial to the security of this class.
+    private static byte[] rndTab = {
+	56, 30, -107, -6, -86, 25, -83, 75, -12, -64,
+	5, -128, 78, 21, 16, 32, 70, -81, 37, -51,
+	-43, -46, -108, 87, 29, 17, -55, 22, -11, -111,
+	-115, 84, -100, 108, -45, -15, -98, 72, -33, -28,
+	31, -52, -37, -117, -97, -27, 93, -123, 47, 126,
+	-80, -62, -93, -79, 61, -96, -65, -5, -47, -119,
+	14, 89, 81, -118, -88, 20, 67, -126, -113, 60,
+	-102, 55, 110, 28, 85, 121, 122, -58, 2, 45,
+	43, 24, -9, 103, -13, 102, -68, -54, -101, -104,
+	19, 13, -39, -26, -103, 62, 77, 51, 44, 111,
+	73, 18, -127, -82, 4, -30, 11, -99, -74, 40,
+	-89, 42, -76, -77, -94, -35, -69, 35, 120, 76,
+	33, -73, -7, 82, -25, -10, 88, 125, -112, 58,
+	83, 95, 6, 10, 98, -34, 80, 15, -91, 86,
+	-19, 52, -17, 117, 49, -63, 118, -90, 36, -116,
+	-40, -71, 97, -53, -109, -85, 109, -16, -3, 104,
+	-95, 68, 54, 34, 26, 114, -1, 106, -121, 3,
+	66, 0, 100, -84, 57, 107, 119, -42, 112, -61,
+	1, 48, 38, 12, -56, -57, 39, -106, -72, 41,
+	7, 71, -29, -59, -8, -38, 79, -31, 124, -124,
+	8, 91, 116, 99, -4, 9, -36, -78, 63, -49,
+	-67, -87, 59, 101, -32, 92, 94, 53, -41, 115,
+	-66, -70, -122, 50, -50, -22, -20, -18, -21, 23,
+	-2, -48, 96, 65, -105, 123, -14, -110, 69, -24,
+	-120, -75, 74, 127, -60, 113, 90, -114, 105, 46,
+	27, -125, -23, -44, 64
+    };
+
+    /**
+     * This inner thread causes the thread scheduler to become 'noisy',
+     * thus adding entropy to the system load.
+     * At least one instance of this class is generated for every seed byte.
+     */
+
+    private class BogusThread implements Runnable {
+	final public void run() {
+	    try {
+		for(int i = 0; i < 100; i++)
+		   Thread.sleep(10);
+		System.gc();
+	    } catch (Exception e) {
+	    }
 	}
     }
 }

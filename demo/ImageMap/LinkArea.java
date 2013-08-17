@@ -1,7 +1,7 @@
 /*
- * @(#)LinkArea.java	1.6 96/12/06
+ * @(#)LinkArea.java	1.8 98/03/18
  *
- * Copyright (c) 1994-1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -38,7 +38,7 @@ import java.net.MalformedURLException;
  * the user clicks in the area.
  *
  * @author 	Jim Graham
- * @version 	1.6, 12/06/96
+ * @version 	1.8, 03/18/98
  */
 class LinkArea extends ImageMapArea {
     /** The URL to be fetched when the user clicks on this area. */

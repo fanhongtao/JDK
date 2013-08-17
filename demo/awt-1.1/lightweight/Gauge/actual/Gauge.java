@@ -1,5 +1,5 @@
 /*
- * @(#)Gauge.java	1.2 97/01/14 Jeff Dinkins
+ * @(#)Gauge.java	1.1 98/07/18
  *
  * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *

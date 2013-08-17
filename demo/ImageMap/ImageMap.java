@@ -1,7 +1,7 @@
 /*
- * @(#)ImageMap.java	1.8 96/12/06
+ * @(#)ImageMap.java	1.12 98/03/23
  *
- * Copyright (c) 1994-1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -33,6 +33,7 @@ import java.awt.Image;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.MediaTracker;
+import java.awt.event.*;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.Hashtable;
@@ -49,9 +50,11 @@ import java.net.MalformedURLException;
  * that can be dynamically loaded over the net.
  *
  * @author 	Jim Graham
- * @version 	1.8, 12/06/96
+ * @version 	1.12, 03/23/98
  */
-public class ImageMap extends Applet implements Runnable {
+public class ImageMap 
+    extends Applet 
+    implements Runnable, MouseListener, MouseMotionListener {
     /**
      * The unhighlighted image being mapped.
      */
@@ -145,12 +148,12 @@ public class ImageMap extends Applet implements Runnable {
 	if (s == null) {
 	    return;
 	}
-	if (s.startsWith("brighter")) {
+	if (s.startsWith("brighter") || s.startsWith("BRIGHTER")) {
 	    hlmode = BRIGHTER;
 	    if (s.length() > "brighter".length()) {
 		hlpercent = Integer.parseInt(s.substring("brighter".length()));
 	    }
-	} else if (s.startsWith("darker")) {
+	} else if (s.startsWith("darker") || s.startsWith("DARKER")) {
 	    hlmode = DARKER;
 	    if (s.length() > "darker".length()) {
 		hlpercent = Integer.parseInt(s.substring("darker".length()));
@@ -225,6 +228,13 @@ public class ImageMap extends Applet implements Runnable {
 	areas = new ImageMapArea[areaVec.size()];
 	areaVec.copyInto(areas);
 	checkSize();
+	addMouseListener(this);
+	addMouseMotionListener(this);
+    }
+
+    public void destroy() {
+        removeMouseListener(this);
+        removeMouseMotionListener(this);
     }
 
     Thread aniThread = null;
@@ -356,89 +366,95 @@ public class ImageMap extends Applet implements Runnable {
 	}
     }
 
-    /**
-     * Make sure that no ImageAreas are highlighted.
-     */
-    public boolean mouseExit(java.awt.Event evt, int x, int y) {
-	for (int i = 0; i < areas.length; i++) {
-	    areas[i].checkExit();
+      int pressX;
+      int pressY;
+      
+  public void mouseClicked(MouseEvent e)
+  {}
+      
+      /**
+       * Inform all active ImageAreas of a mouse press.
+       */  
+  public void mousePressed(MouseEvent e)
+  {
+    pressX = e.getX();
+    pressY = e.getY();
+    
+    for (int i = 0; i < areas.length; i++) {
+      if (areas[i].inside(pressX, pressY)) {
+	if (areas[i].press(pressX, pressY)) {
+	  break;
 	}
-
-	return true;
+      }
     }
+    e.consume();
+  }
 
-    /**
-     * Find the ImageAreas that the mouse is in.
-     */
-    public boolean mouseMove(java.awt.Event evt, int x, int y) {
-	boolean eaten = false;
-
-	for (int i = 0; i < areas.length; i++) {
-	    if (!eaten && areas[i].inside(x, y)) {
-		eaten = areas[i].checkEnter(x, y);
-	    } else {
-		areas[i].checkExit();
-	    }
+      /**
+       * Inform all active ImageAreas of a mouse release.
+       * Only those areas that were inside the original mousePressed()
+       * are informed of the mouseReleased.
+       */      
+  public void mouseReleased(MouseEvent e)
+  {
+    for (int i = 0; i < areas.length; i++) {
+      if (areas[i].inside(pressX, pressY)) {
+	if (areas[i].lift(e.getX(), e.getY())) {
+	  break;
 	}
-
-	return true;
+      }
     }
+    e.consume();
+  }
+      
+  public void mouseEntered(MouseEvent e)
+  {}
+      
+      /**
+       * Make sure that no ImageAreas are highlighted.
+       */
+  public void mouseExited(MouseEvent e) {	
+    for (int i = 0; i < areas.length; i++) {
+      areas[i].checkExit();
+    }
+    e.consume();
+  }
 
-    int pressX;
-    int pressY;
 
-    /**
-     * Inform all active ImageAreas of a mouse press.
-     */
-    public boolean mouseDown(java.awt.Event evt, int x, int y) {
-	pressX = x;
-	pressY = y;
+      /**
+       * Inform all active ImageAreas of a mouse drag.
+       * Only those areas that were inside the original mouseDown()
+       * are informed of the mouseUp.
+       */      
 
-	for (int i = 0; i < areas.length; i++) {
-	    if (areas[i].inside(x, y)) {
-		if (areas[i].press(x, y)) {
-		    break;
-		}
-	    }
+  public void mouseDragged(MouseEvent e)
+  { 
+    mouseMoved(e);
+    for (int i = 0; i < areas.length; i++) {
+      if (areas[i].inside(pressX, pressY)) {
+	if (areas[i].drag(e.getX(), e.getY())) {
+	  break;
 	}
-
-	return true;
+      }
     }
-
-    /**
-     * Inform all active ImageAreas of a mouse release.
-     * Only those areas that were inside the original mouseDown()
-     * are informed of the mouseUp.
-     */
-    public boolean mouseUp(java.awt.Event evt, int x, int y) {
-	for (int i = 0; i < areas.length; i++) {
-	    if (areas[i].inside(pressX, pressY)) {
-		if (areas[i].lift(x, y)) {
-		    break;
-		}
-	    }
-	}
-
-	return true;
+    e.consume();
+  }
+      
+      /**
+       * Find the ImageAreas that the mouse is in.
+       */
+  public void mouseMoved(MouseEvent e) {
+    boolean eaten = false;
+    
+    for (int i = 0; i < areas.length; i++) {
+      if (!eaten && areas[i].inside(e.getX(), e.getY())) {
+	eaten = areas[i].checkEnter(e.getX(), e.getY());
+      } else {
+	areas[i].checkExit();
+      }
     }
-
-    /**
-     * Inform all active ImageAreas of a mouse drag.
-     * Only those areas that were inside the original mouseDown()
-     * are informed of the mouseUp.
-     */
-    public boolean mouseDrag(java.awt.Event evt, int x, int y) {
-	mouseMove(evt, x, y);
-	for (int i = 0; i < areas.length; i++) {
-	    if (areas[i].inside(pressX, pressY)) {
-		if (areas[i].drag(x, y)) {
-		    break;
-		}
-	    }
-	}
-
-	return true;
-    }
+    e.consume();
+  }
 
     /**
      * Scan all areas looking for the topmost status string.
@@ -450,4 +466,23 @@ public class ImageMap extends Applet implements Runnable {
 	}
 	showStatus(msg);
     }
+
+  public String getAppletInfo() {
+    return "Title: ImageMap \nAuthor: Jim Graham \nAn extensible ImageMap applet class. \nThe active areas on the image are controlled by ImageArea \nclasses that can be dynamically loaded over the net.";
+  }
+  
+  public String[][] getParameterInfo() {
+    String[][] info = {
+      {"area[n]", "delimited string", "This parameter takes the form of <ImageAreaClassName>, <ul>, <ur>, <ll>, <lr>, <action> where ImageAreaClassName is the name of the class from which this feedback area is controlled, the next four arguments are the four corners of the feedback zone, and the final argument is that action that should be taken on click or mouseover.  That action can be 1) display text in the status bar (if you provide a string argument), 2) play a sound (if you provide the path to a sound file), or 3) load a page (if you provide a URL)."},
+      {"rect[n]", "delimited string", "Deprecated: use area[n]"},
+      {"href[n]", "URL string", "Pass in a URL to create a LinkArea which will point to this URL.  Not used in these examples."},
+      {"highlight", "string/int", "Pass the word 'brighter' followed by an integer 'n' to change the highlight mode to brighter and the hightlight percentage to n.  Pass the word 'darker' followed by an integer 'm' to change the highlight mode to darker and the highlight percentage to m.  Anything else will be ignored.  The default highlight mode is BRIGHTER and the default highlight percentage is 50."},
+      {"startsound", "path string", "The path of a soundclip to play when the image is first displayed."},
+      {"img", "path string", "The path to the image to be displayed as a live feedback image map."}
+    };
+    return info;
+  }
 }
+
+
+

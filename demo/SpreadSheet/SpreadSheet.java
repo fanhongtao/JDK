@@ -1,7 +1,7 @@
 /*
- * @(#)SpreadSheet.java	1.5 96/12/06
+ * @(#)SpreadSheet.java	1.6 97/07/30
  *
- * Copyright (c) 1994-1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1997 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -30,11 +30,14 @@
 
 import java.applet.Applet;
 import java.awt.*;
+import java.awt.event.*;
 import java.io.*;
 import java.lang.*;
 import java.net.*;
 
-public class SpreadSheet extends Applet {
+public class SpreadSheet 
+    extends Applet
+    implements MouseListener, KeyListener {
     String		title;
     Font		titleFont;
     Color		cellColor;
@@ -97,11 +100,13 @@ public class SpreadSheet extends Applet {
 	    }
 	}
 
-	Dimension d = size();
+	Dimension d = getSize();
 	inputArea = new SpreadSheetInput(null, this, d.width - 2, cellHeight - 1,
 					 inputColor, Color.white);
 	resize(columns * cellWidth + rowLabelWidth,
 	       (rows + 3) * cellHeight + titleHeight);
+	addMouseListener(this);
+	addKeyListener(this);
     }
 
     public void setCurrentValue(float val) {
@@ -226,7 +231,7 @@ public class SpreadSheet extends Applet {
 	char l[] = new char[1];
 
 
-	Dimension d = size();
+	Dimension d = getSize();
 
 	g.setFont(titleFont);
 	i = g.getFontMetrics().stringWidth(title);
@@ -278,60 +283,102 @@ public class SpreadSheet extends Applet {
 		      false);
 	inputArea.paint(g, 1, titleHeight + 1);
     }
-    public boolean mouseDown(Event evt, int x, int y) {
-	Cell cell;
-	if (y < (titleHeight + cellHeight)) {
-	    selectedRow = -1;
-	    if (y <= titleHeight && current != null) {
-		current.deselect();
-		current = null;
-	    }
-	    return true;
-	}
-	if (x < rowLabelWidth) {
-	    selectedRow = -1;
-	    if (current != null) {
-		current.deselect();
-		current = null;
-	    }
-	    return true;
-	}
-	selectedRow = ((y - cellHeight - titleHeight) / cellHeight);
-	selectedColumn = (x - rowLabelWidth) / cellWidth;
-	if (selectedRow > rows ||
-	    selectedColumn >= columns) {
-	    selectedRow = -1;
-	    if (current != null) {
-		current.deselect();
-		current = null;
-	    }
-	} else {
-	    if (selectedRow >= rows) {
-		selectedRow = -1;
-		if (current != null) {
-		    current.deselect();
-		    current = null;
-		}
-		return true;
-	    }
-	    cell = cells[selectedRow][selectedColumn];
-	    inputArea.setText(new String(cell.getPrintString()));
-	    if (current != null) {
-		current.deselect();
-	    }
-	    current = cell;
-	    current.select();
-	    requestFocus();
-	    fullUpdate = true;
-	    repaint();
-	}
-	return true;
+
+      //1.1 event handling
+      
+  public void mouseClicked(MouseEvent e)
+  {}
+      
+  public void mousePressed(MouseEvent e)
+  {
+    int x = e.getX();
+    int y = e.getY();
+    Cell cell;
+    if (y < (titleHeight + cellHeight)) {
+      selectedRow = -1;
+      if (y <= titleHeight && current != null) {
+	current.deselect();
+	current = null;
+      }
+      e.consume();
     }
-    public boolean keyDown(Event evt, int key) {
-	fullUpdate=true;
-	inputArea.keyDown(key);
-	return true;
+    if (x < rowLabelWidth) {
+      selectedRow = -1;
+      if (current != null) {
+	current.deselect();
+		current = null;
+      }
+      e.consume();
+      
     }
+    selectedRow = ((y - cellHeight - titleHeight) / cellHeight);
+    selectedColumn = (x - rowLabelWidth) / cellWidth;
+    if (selectedRow > rows ||
+	selectedColumn >= columns) {
+      selectedRow = -1;
+      if (current != null) {
+	current.deselect();
+	current = null;
+      }
+    } else {
+      if (selectedRow >= rows) {
+	selectedRow = -1;
+	if (current != null) {
+	  current.deselect();
+	  current = null;
+	}
+	e.consume();
+      }
+      cell = cells[selectedRow][selectedColumn];
+      inputArea.setText(new String(cell.getPrintString()));
+      if (current != null) {
+	current.deselect();
+      }
+      current = cell;
+      current.select();
+      requestFocus();
+      fullUpdate = true;
+      repaint();
+    }
+    e.consume();
+  }
+
+  public void mouseReleased(MouseEvent e) 
+  {}
+      
+  public void mouseEntered(MouseEvent e)
+  {}
+      
+  public void mouseExited(MouseEvent e) 	
+  {}
+
+  public void keyPressed(KeyEvent e)
+  {
+    fullUpdate=true;
+    inputArea.processKey(e);
+    e.consume();
+  }
+  
+  public void keyTyped(KeyEvent e) {
+  }
+  
+  public void keyReleased(KeyEvent e)
+  {}   
+      
+  public String getAppletInfo() {
+    return "Title: SpreadSheet \nAuthor: Sami Shaio \nA simple spread sheet.";
+  }
+      
+  public String[][] getParameterInfo() {
+    String[][] info = {
+      {"title", "string", "The title of the spread sheet.  Default is 'Spreadsheet'"},
+      {"rows", "int", "The number of rows.  Default is 9."},
+      {"columns", "int", "The number of columns.  Default is 5."}
+    };
+    return info;
+  }
+
+
 }
 
 class CellUpdater extends Thread {
@@ -348,9 +395,9 @@ class CellUpdater extends Thread {
 	try {
 	    dataStream = new URL(target.app.getDocumentBase(),
 				 target.getValueString()).openStream();
-	    tokenStream = new StreamTokenizer(dataStream);
+	    tokenStream = new StreamTokenizer(new BufferedReader(new InputStreamReader(dataStream)));
 	    tokenStream.eolIsSignificant(false);
-
+	    
 	    while (true) {
 		switch (tokenStream.nextToken()) {
 		case tokenStream.TT_EOF:
@@ -797,45 +844,52 @@ class InputField {
 	    g.drawString(sval, x, y + (height / 2) + 3);
 	}
     }
-    public void mouseUp(int x, int y) {
-	// set the edit position
-    }
-    public void keyDown(int key) {
-	if (nChars < maxchars) {
-	    switch (key) {
-	      case 8: // delete
-		--nChars;
-		if (nChars < 0) {
-		    nChars = 0;
-		}
-		buffer[nChars] = 0;
-		sval = new String(new String(buffer));
-		break;
-	      case 10: // return
-		selected();
-		break;
-	      default:
-		buffer[nChars++] = (char)key;
-		sval = new String(new String(buffer));
-		break;
-	    }
+
+  public void processKey(KeyEvent e) {
+    int key = e.getKeyCode();
+    if (nChars < maxchars) {
+      switch (key) {
+      case 8: // delete
+	--nChars;
+	if (nChars < 0) {
+	  nChars = 0;
 	}
-	app.repaint();
+	buffer[nChars] = 0;
+	sval = new String(new String(buffer));
+	break;
+      case 10: // return
+	selected();
+	break;
+      default:
+	if (key >= 48) { //the number 0 in the ASCII char range
+	  buffer[nChars++] = e.getKeyChar();
+	  sval = new String(new String(buffer));
+	}
+	break;
+      }
     }
-    public void selected() {
-    }
+    app.repaint();    
+  }
+  
+  public void keyReleased(KeyEvent e) {
+  }      
+  
+  public void selected() {
+  }
 }
 
-class SpreadSheetInput extends InputField {
-    public SpreadSheetInput(String initValue,
-			    SpreadSheet app,
-			    int width,
-			    int height,
-			    Color bgColor,
-			    Color fgColor) {
-	super(initValue, app, width, height, bgColor, fgColor);
-    }
-
+class SpreadSheetInput 
+    extends InputField {
+    
+  public SpreadSheetInput(String initValue,
+			  SpreadSheet app,
+			  int width,
+			  int height,
+			  Color bgColor,
+			  Color fgColor) {
+    super(initValue, app, width, height, bgColor, fgColor);
+  }
+      
     public void selected() {
 	float f;
 

@@ -1,23 +1,15 @@
 /*
- * @(#)Integer.java	1.41 97/12/18
+ * @(#)Integer.java	1.43 98/07/07
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
@@ -35,7 +27,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.41, 12/18/97
+ * @version 1.43, 07/07/98
  * @since   JDK1.0
  */
 public final
@@ -582,6 +574,9 @@ class Integer extends Number {
      * @since   JDK1.0
      */
     public static Integer getInteger(String nm) {
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null)
+	    sm.checkPropertyAccess(nm);
 	return getInteger(nm, null);
     }
 
@@ -610,6 +605,9 @@ class Integer extends Number {
      * @since   JDK1.0
      */
     public static Integer getInteger(String nm, int val) {
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null)
+	    sm.checkPropertyAccess(nm);
         Integer result = getInteger(nm, null);
         return (result == null) ? new Integer(val) : result;
     }
@@ -649,6 +647,9 @@ class Integer extends Number {
      * @since   JDK1.0
      */
     public static Integer getInteger(String nm, Integer val) {
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null)
+	    sm.checkPropertyAccess(nm);
 	String v = System.getProperty(nm);
 	if (v != null) {
 	    try {

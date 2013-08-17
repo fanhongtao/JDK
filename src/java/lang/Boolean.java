@@ -1,23 +1,15 @@
 /*
- * @(#)Boolean.java	1.26 97/01/20
+ * @(#)Boolean.java	1.28 98/07/07
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.lang;
@@ -35,7 +27,7 @@ package java.lang;
  * <code>boolean</code>. 
  *
  * @author  Arthur van Hoff
- * @version 1.26, 01/20/97
+ * @version 1.28, 07/07/98
  * @since   JDK1.0
  */
 public final
@@ -176,6 +168,9 @@ class Boolean implements java.io.Serializable {
      * @since   JDK1.0
      */
     public static boolean getBoolean(String name) {
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null)
+	    sm.checkPropertyAccess(name);
 	return toBoolean(System.getProperty(name));
     }
 

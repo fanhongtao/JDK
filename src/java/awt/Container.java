@@ -1,28 +1,21 @@
 /*
- * @(#)Container.java	1.134 98/02/25
+ * @(#)Container.java	1.147 98/09/04
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.awt.peer.ActiveEvent;
 import java.awt.peer.ContainerPeer;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -42,7 +35,7 @@ import java.io.IOException;
  * within the container.  If no index is specified when adding a
  * component to a container, it will be added to the end of the list
  * (and hence to the bottom of the stacking order).
- * @version 	1.134, 02/25/98
+ * @version 	1.147, 09/04/98
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see       java.awt.Container#add(java.awt.Component, int)
@@ -749,7 +742,8 @@ public abstract class Container extends Component {
         Rectangle clip = g.getClipRect();
 	for (int i = ncomponents - 1 ; i >= 0 ; i--) {
 	    Component comp = component[i];
-	    if (comp != null && comp.peer instanceof java.awt.peer.LightweightPeer) {
+	    if (comp != null && 
+		    comp.peer instanceof java.awt.peer.LightweightPeer ) {
 		Rectangle cr = comp.getBounds();
 		if ((clip==null) || cr.intersects(clip)) {
 		    Graphics cg = g.create(cr.x, cr.y, cr.width, cr.height);
@@ -814,20 +808,52 @@ public abstract class Container extends Component {
      * @since     JDK1.0
      */
     public void printComponents(Graphics g) {
-    	int ncomponents = this.ncomponents;
+        int ncomponents = this.ncomponents;
         Component component[] = this.component;
-	for (int i = 0 ; i < ncomponents ; i++) {
-	    Component comp = component[i];
-	    if (comp != null) {
-		Graphics cg = g.create(comp.x, comp.y, comp.width, comp.height);
-		cg.setFont(comp.getFont());
-		try {
-		    comp.printAll(cg);
-		} finally {
-		    cg.dispose();
-		}
-	    }
+
+	// A seriously sad hack--
+	// Lightweight components always paint behind peered components,
+	// even if they are at the top of the Z order. We emulate this
+	// behavior by making two printing passes: the first for lightweights;
+	// the second for heavyweights.
+
+        for (int i = ncomponents - 1 ; i >= 0 ; i--) {
+            Component comp = component[i];
+            if (comp != null && 
+		    comp.peer instanceof java.awt.peer.LightweightPeer) {
+	        printOneComponent(g, comp);
+            }
+        }
+        for (int i = ncomponents - 1 ; i >= 0 ; i--) {
+            Component comp = component[i];
+            if (comp != null && 
+		    !(comp.peer instanceof java.awt.peer.LightweightPeer)) {
+	        printOneComponent(g, comp);
+            }
+        }
+    }
+
+    private void printOneComponent(Graphics g, Component comp) {
+        Graphics cg = g.create(comp.x, comp.y, comp.width,
+			       comp.height);
+	cg.setFont(comp.getFont());
+	try {
+	    comp.printAll(cg);
+	} finally {
+	    cg.dispose();
 	}
+    }
+
+    /**
+     * Simulates the peer callbacks into java.awt for printing of
+     * lightweight Containers.
+     * @param     g   the graphics context to use for printing.
+     * @see       Component#printAll
+     * @see       #printComponents
+     */
+    void lightweightPrint(Graphics g) {
+        super.lightweightPrint(g);
+        printComponents(g);
     }
 
     /**
@@ -845,7 +871,7 @@ public abstract class Container extends Component {
      * container events from this container.
      * @param l the container listener
      */ 
-    public void removeContainerListener(ContainerListener l) {
+    public synchronized void removeContainerListener(ContainerListener l) {
 	containerListener = AWTEventMulticaster.remove(containerListener, l);
     }
 
@@ -923,11 +949,20 @@ public abstract class Container extends Component {
 	super.dispatchEventImpl(e);
     }
 
+    /*
+     * Dispatches an event to this component, without trying to forward
+     * it to any sub components
+     * @param e the event
+     */
+    void dispatchEventToSelf(AWTEvent e) {
+	super.dispatchEventImpl(e);
+    }
+
     /**
      * Fetchs the top-most (deepest) lightweight component that is interested
      * in receiving mouse events.
      */
-    Component getMouseEventTarget(int x, int y) {
+    Component getMouseEventTarget(int x, int y, boolean includeSelf) {
 	int ncomponents = this.ncomponents;
         Component component[] = this.component;
 	for (int i = 0 ; i < ncomponents ; i++) {
@@ -939,7 +974,7 @@ public abstract class Container extends Component {
 		// a deeper possibility.
 		if (comp instanceof Container) {
 		    Container child = (Container) comp;
-		    Component deeper = child.getMouseEventTarget(x - child.x, y - child.y);
+		    Component deeper = child.getMouseEventTarget(x - child.x, y - child.y, includeSelf);
 		    if (deeper != null) {
 			return deeper;
 		    }
@@ -954,13 +989,21 @@ public abstract class Container extends Component {
 		}
 	    }
 	}
+	
+	boolean isPeerOK;
+	boolean	isMouseOverMe;
+	boolean	isMouseListener;
+	boolean	isMotionListener;
+	
+	isPeerOK = (peer instanceof java.awt.peer.LightweightPeer) || includeSelf;
+	isMouseOverMe = contains(x,y);
+	isMouseListener = (mouseListener != null) ||
+			  ((eventMask & AWTEvent.MOUSE_EVENT_MASK) != 0);
+	isMotionListener = (mouseMotionListener != null) ||
+			   ((eventMask & AWTEvent.MOUSE_MOTION_EVENT_MASK) != 0);
+
 	// didn't find a child target, return this component if it's a possible target
-	if (((mouseListener != null) || 
-	     ((eventMask & AWTEvent.MOUSE_EVENT_MASK) != 0) ||
-	     (mouseMotionListener != null) ||
-	     ((eventMask & AWTEvent.MOUSE_MOTION_EVENT_MASK) != 0)) &&
-	    (peer instanceof java.awt.peer.LightweightPeer)) {
-	    
+	if ( isMouseOverMe && isPeerOK && (isMouseListener || isMotionListener) ) {
 	    return this;
 	}
 	// no possible target
@@ -1019,15 +1062,26 @@ public abstract class Container extends Component {
                 // call the peer to set focus to this Container.  This way,
                 // we avoid activating this Window if it's not currently
                 // active.  -fredx, 2-19-98, bug #4111098
-                Component window = this;
-                while (!(window instanceof Window))
-                    window = window.getParent();
-                if (((Window)window).isActive()) {
-                    peer.requestFocus();
+                if ( isContainingWindowActivated() ) {
+		// NOTE: See bug #4133261-- we should look into removing this fix
+		// or at least make hw and lw components behave the same 
+		// -robi 7-30-98
+		    requestFocus();
 		}
-                Toolkit.getEventQueue().changeKeyEventFocus(this);
 	    }
 	}
+    }
+
+    /*
+     * Determines if the top-level window containing 
+     * this component is activated
+     */
+    private boolean isContainingWindowActivated() {
+	Component comp = this;
+	while ( !(comp instanceof Window) ) {
+	    comp = comp.getParent();
+	}
+	return ((Window)comp).isActive();
     }
 
     /**
@@ -1106,15 +1160,15 @@ public abstract class Container extends Component {
      * @since JDK1.0
      */
     public void addNotify() {
-	// addNotify() on the children may cause proxy event enabling
-	// on this instance, so we first call super.addNotify() and
-	// possibly create an lightweight event dispatcher before calling
-	// addNotify() on the children which may be lightweight.
-	super.addNotify();
-	if (! (peer instanceof java.awt.peer.LightweightPeer)) {
-	    dispatcher = new LightweightDispatcher(this);
-	}
         synchronized (getTreeLock()) {
+	    // addNotify() on the children may cause proxy event enabling
+	    // on this instance, so we first call super.addNotify() and
+	    // possibly create an lightweight event dispatcher before calling
+	    // addNotify() on the children which may be lightweight.
+	    super.addNotify();
+	    if (! (peer instanceof java.awt.peer.LightweightPeer)) {
+	        dispatcher = new LightweightDispatcher(this);
+	    }
 	    int ncomponents = this.ncomponents;
             Component component[] = this.component;
 	    for (int i = 0 ; i < ncomponents ; i++) {
@@ -1302,12 +1356,17 @@ public abstract class Container extends Component {
  * 
  * @author Timothy Prinzing
  */
-class LightweightDispatcher implements java.io.Serializable {
+class LightweightDispatcher implements java.io.Serializable,
+					EventQueueListener {
 
     /*
      * JDK 1.1 serialVersionUID 
      */
     private static final long serialVersionUID = 5184291520170872969L;
+    /*
+     * Our own mouse event for when we're dragged over from another hw container
+     */
+    private static final int  LWD_MOUSE_DRAGGED_OVER = AWTEvent.RESERVED_ID_MAX + 1;
 
     LightweightDispatcher(Container nativeContainer) {
 	this.nativeContainer = nativeContainer;
@@ -1337,7 +1396,6 @@ class LightweightDispatcher implements java.io.Serializable {
      * requesting focus since it will receive no native focus requests.
      */
     boolean setFocusRequest(Component c) {
-	//System.out.println("setFocusRequest("+c+")");
 	boolean peerNeedsRequest = true;
 	Window w = nativeContainer.getWindow();
 	if ((w != null) && (c != null)) {
@@ -1351,7 +1409,7 @@ class LightweightDispatcher implements java.io.Serializable {
 		// This container already has focus, so just 
 		// send FOCUS_GAINED event to lightweight component
 		focus = c ;
-		Toolkit.getEventQueue().postEventAtHead(new FocusEvent(c, FocusEvent.FOCUS_GAINED, false));
+		c.dispatchEvent(new FocusEvent(c, FocusEvent.FOCUS_GAINED, false));
 		peerNeedsRequest = false;
 	    } else if (focusOwner == c) {
 		// lightweight already has the focus
@@ -1362,13 +1420,13 @@ class LightweightDispatcher implements java.io.Serializable {
 		// requested.  There won't be any window-system events associated with
 		// this so we go ahead and send FOCUS_LOST for the old and FOCUS_GAINED
 		// for the new.
-		Toolkit.getEventQueue().postEventAtHead(new FocusEvent(c, FocusEvent.FOCUS_GAINED, false));
 		if (focus != null) {
-		    Toolkit.getEventQueue().postEventAtHead(new FocusEvent(focus, 
+		    focus.dispatchEvent(new FocusEvent(focus, 
 						       FocusEvent.FOCUS_LOST, 
 						       false));
                 }
 		focus = c ;
+		c.dispatchEvent(new FocusEvent(c, FocusEvent.FOCUS_GAINED, false));
 		peerNeedsRequest = false;
 	    }else { 
 		//Fix for bug 4095214
@@ -1447,108 +1505,225 @@ class LightweightDispatcher implements java.io.Serializable {
      */
     private boolean processMouseEvent(MouseEvent e) {
 	int id = e.getID();
+	Component targetOver;
+	Component lwOver;
+
+	targetOver = nativeContainer.getMouseEventTarget(e.getX(), e.getY(),true);
+	trackMouseEnterExit(targetOver, e);
+
+	if (mouseEventTarget == null) {
+	    if ( id == MouseEvent.MOUSE_MOVED ||
+	    	 id == MouseEvent.MOUSE_PRESSED ) {
+		lwOver = (targetOver != nativeContainer) ? targetOver : null;
+		setMouseTarget(lwOver,e);
+	    }
+	}
+
 	if (mouseEventTarget != null) {
 	    // we are currently forwarding to some component, check
 	    // to see if we should continue to forward.
 	    switch(id) {
 	    case MouseEvent.MOUSE_DRAGGED:
-		retargetMouseEvent(id, e);
+		if(dragging) {
+		    retargetMouseEvent(mouseEventTarget, id, e);
+		}
 		break;
 	    case MouseEvent.MOUSE_PRESSED:
 		dragging = true;
-		retargetMouseEvent(id, e);
+		retargetMouseEvent(mouseEventTarget, id, e);
 		break;
 	    case MouseEvent.MOUSE_RELEASED:
 		dragging = false;
-		retargetMouseEvent(id, e);
-		Component tr = nativeContainer.getMouseEventTarget(e.getX(), e.getY());
-		if (tr != mouseEventTarget) {
-		    setMouseTarget(tr, e);
-		}
+		retargetMouseEvent(mouseEventTarget, id, e);
+		lwOver = nativeContainer.getMouseEventTarget(e.getX(), e.getY(),false);
+		setMouseTarget(lwOver, e);
 		break;
 	    case MouseEvent.MOUSE_CLICKED:
-		retargetMouseEvent(id, e);
+		retargetMouseEvent(mouseEventTarget, id, e);
 		break;
 	    case MouseEvent.MOUSE_ENTERED:
-		retargetMouseEvent(id, e);
 		break;
 	    case MouseEvent.MOUSE_EXITED:
-		if (dragging) {
-		    retargetMouseEvent(id, e);
-		} else {
+		if (!dragging) {
 		    setMouseTarget(null, e);
 		}
 		break;
 	    case MouseEvent.MOUSE_MOVED:
-		Component t = nativeContainer.getMouseEventTarget(e.getX(), e.getY());
-		if (t != mouseEventTarget) {
-		    setMouseTarget(t, e);
-		}
-		if (mouseEventTarget != null) {
-		    retargetMouseEvent(id, e);
-		}
+		lwOver = nativeContainer.getMouseEventTarget(e.getX(), e.getY(),false);
+		setMouseTarget(lwOver, e);
+		retargetMouseEvent(mouseEventTarget, id, e);
 		break;
 	    }
 	    e.consume();
-	} else {
-	    // we are not forwarding, see if there is anything we might
-	    // start forwarding to.
-	    Component t = nativeContainer.getMouseEventTarget(e.getX(), e.getY());
-	    if (t != null) {
-		if (id == MouseEvent.MOUSE_DRAGGED || id == MouseEvent.MOUSE_RELEASED) {
- 			if (!dragging) {
- 				return e.isConsumed();
- 			}
- 		}
-		setMouseTarget(t, e);
-		if (id != MouseEvent.MOUSE_ENTERED) {
-		    retargetMouseEvent(id, e);
-		}
-		e.consume();
-	    }
 	}
 
 	return e.isConsumed();
     }
 
     /**
-     * Change the current target of mouse events.  This sends 
-     * the appropriate MOUSE_EXITED and MOUSE_ENTERED events.
+     * Change the current target of mouse events.
      */
-    void setMouseTarget(Component target, MouseEvent e) {
-	if (mouseEventTarget != null) {
-	    retargetMouseEvent(MouseEvent.MOUSE_EXITED, e);
-	} else {
-	    nativeCursor = nativeContainer.getCursor();
+    private void setMouseTarget(Component target, MouseEvent e) {
+	if (target != mouseEventTarget) {
+	    //System.out.println("setMouseTarget: " + target);
+	    mouseEventTarget = target;
 	}
-	mouseEventTarget = target;
-	if (mouseEventTarget != null) {
-	    retargetMouseEvent(MouseEvent.MOUSE_ENTERED, e);
-	} else {
-	    nativeContainer.setCursor(nativeCursor);
+    }
+
+    /*
+     * Generates enter/exit events as mouse moves over lw components
+     * @param targetOver	Target mouse is over (including native container)
+     * @param e			Mouse event in native container
+     */
+    private void trackMouseEnterExit(Component targetOver, MouseEvent e) {
+	Component	targetEnter = null;
+	int		id = e.getID();
+
+	if ( id != MouseEvent.MOUSE_EXITED &&
+	     id != MouseEvent.MOUSE_DRAGGED &&
+	     id != LWD_MOUSE_DRAGGED_OVER &&
+	     isMouseInNativeContainer == false ) {
+	    // any event but an exit or drag means we're in the native container
+	    isMouseInNativeContainer = true;
+	    startListeningForOtherDrags();
+	} else if ( id == MouseEvent.MOUSE_EXITED ) {
+	    isMouseInNativeContainer = false;
+	    stopListeningForOtherDrags();
+	}
+
+	if (isMouseInNativeContainer) {
+	    targetEnter = targetOver;
+	}
+	//System.out.println("targetEnter = " + targetEnter);
+	//System.out.println("targetLastEntered = " + targetLastEntered);
+
+	if (targetLastEntered == targetEnter) {
+	    return;
+	}
+
+	retargetMouseEvent(targetLastEntered, MouseEvent.MOUSE_EXITED, e);
+	if (id == MouseEvent.MOUSE_EXITED) {
+	    // consume native exit event if we generate one
+	    e.consume();
+	}
+
+	retargetMouseEvent(targetEnter, MouseEvent.MOUSE_ENTERED, e);
+	if (id == MouseEvent.MOUSE_ENTERED) {
+	    // consume native enter event if we generate one
+	    e.consume();
+	}
+
+	//System.out.println("targetLastEntered: " + targetLastEntered);
+	targetLastEntered = targetEnter;
+    }
+
+    private void startListeningForOtherDrags() {
+	//System.out.println("Adding EventQueueListener");
+	Toolkit.getEventQueue().addEventQueueListener(this);
+    }
+
+    private void stopListeningForOtherDrags() {
+	//System.out.println("Removing EventQueueListener");
+	Toolkit.getEventQueue().removeEventQueueListener(this);
+	// removed any queued up dragged-over events
+	Toolkit.getEventQueue().removeEvents(MouseEvent.class, LWD_MOUSE_DRAGGED_OVER);
+    }
+
+    /*
+     * (Implementation of EventQueueListener)
+     * Listen for drag events posted in other hw components so we can
+     * track enter/exit regardless of where a drag originated
+     */
+    public void eventPosted(AWTEvent e) {
+	boolean isForeignDrag = (e instanceof MouseEvent) &&
+				(e.id == MouseEvent.MOUSE_DRAGGED) &&
+				(e.getSource() != nativeContainer);
+	
+	if (!isForeignDrag) {
+	    // only interested in drags from other hw components
+	    return;
+	}
+
+	// execute trackMouseEnterExit on EventDispatchThread
+	Toolkit.getEventQueue().postEvent(
+		new TrackEnterExitEvent( nativeContainer, (MouseEvent)e )
+	);
+    }
+
+    /*
+     * ActiveEvent that calls trackMouseEnterExit as a result of a drag
+     * originating in a 'foreign' hw container. Normally, we'd only be
+     * able to track mouse events in our own hw container.
+     */
+    private class TrackEnterExitEvent extends AWTEvent implements ActiveEvent {
+	MouseEvent	srcEvent;
+	public TrackEnterExitEvent( Component trackSrc, MouseEvent e ) {
+	    super(trackSrc,0);
+	    srcEvent = e;
+	}
+
+	public void dispatch() {
+	    MouseEvent	me;
+
+	    synchronized (nativeContainer.getTreeLock()) {
+		Component srcComponent = srcEvent.getComponent();
+    
+		// component may have disappeared since drag event posted
+		// (i.e. Swing hierarchical menus)
+		if ( !srcComponent.isShowing() ||
+		     !nativeContainer.isShowing() ) {
+		    return;
+		}
+    
+		//
+		// create an internal 'dragged-over' event indicating
+		// we are being dragged over from another hw component
+		//
+		me = new MouseEvent(nativeContainer,
+				   LWD_MOUSE_DRAGGED_OVER,
+				   srcEvent.getWhen(),
+				   srcEvent.getModifiers(),
+				   srcEvent.getX(),
+				   srcEvent.getY(),
+				   srcEvent.getClickCount(),
+				   srcEvent.isPopupTrigger());
+		// translate coordinates to this native container
+		Point	ptSrcOrigin = srcComponent.getLocationOnScreen();
+		Point	ptDstOrigin = nativeContainer.getLocationOnScreen();
+		me.translatePoint( ptSrcOrigin.x - ptDstOrigin.x, ptSrcOrigin.y - ptDstOrigin.y );
+	    }
+	    //System.out.println("Track event: " + me);
+	    // feed the 'dragged-over' event directly to the enter/exit
+	    // code (not a real event so don't pass it to dispatchEvent)
+	    Component targetOver = nativeContainer.getMouseEventTarget(me.getX(), me.getY(), true);
+	    trackMouseEnterExit(targetOver, me);
 	}
     }
 
     /**
      * Sends a mouse event to the current mouse event recipient using
-     * the given event (sent to the windowed host) as a prototype.  If
+     * the given event (sent to the windowed host) as a srcEvent.  If
      * the mouse event target is still in the component tree, the 
      * coordinates of the event are translated to those of the target.
      * If the target has been removed, we don't bother to send the
      * message.
      */
-    void retargetMouseEvent(int id, MouseEvent e) {
+    void retargetMouseEvent(Component target, int id, MouseEvent e) {
+	if (target == null) {
+	    return; // mouse is over another hw component
+	}
+
         int x = e.getX(), y = e.getY();
         Component component;
 
-        for(component = mouseEventTarget;
+        for(component = target;
             component != null && component != nativeContainer;
             component = component.getParent()) {
             x -= component.x;
             y -= component.y;
         }
         if (component != null) {
-            MouseEvent retargeted = new MouseEvent(mouseEventTarget, 
+            MouseEvent retargeted = new MouseEvent(target,
                                                    id, 
                                                    e.getWhen(), 
                                                    e.getModifiers(),
@@ -1556,17 +1731,22 @@ class LightweightDispatcher implements java.io.Serializable {
                                                    y, 
                                                    e.getClickCount(), 
                                                    e.isPopupTrigger());
-            mouseEventTarget.dispatchEvent(retargeted);
+
+	    if (target == nativeContainer) {
+		// avoid recursively calling LightweightDispatcher...
+		((Container)target).dispatchEventToSelf(retargeted);
+	    } else {
+		target.dispatchEvent(retargeted);
+	    }
 
             // update cursor if needed.  This is done after the event has
             // been sent to the target so the target has a chance to change
             // the cursor after reacting to the event.
-            if (mouseEventTarget != null) {
-                Cursor c = mouseEventTarget.getCursor();
-                if (nativeContainer.getCursor() != c) {
-                    nativeContainer.setCursor(c);
-                }
-            }
+	    Cursor c = target.getCursor();
+	    if (nativeContainer.getCursor() != c) {
+		//System.out.println("Setting cursor to: " + c.getType());
+		nativeContainer.setCursor(c);
+	    }
         }
     }
 	
@@ -1593,6 +1773,16 @@ class LightweightDispatcher implements java.io.Serializable {
      * a lightweight component.
      */
     private transient Component mouseEventTarget;
+
+    /**
+     * The last component entered
+     */
+    private transient Component targetLastEntered;
+
+    /**
+     * Is the mouse over the native container
+     */
+    private transient boolean isMouseInNativeContainer = false;
 
     /**
      * Indicates if the mouse pointer is currently being dragged...

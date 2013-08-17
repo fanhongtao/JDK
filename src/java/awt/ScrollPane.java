@@ -1,23 +1,15 @@
 /*
- * @(#)ScrollPane.java	1.53 98/10/12
+ * @(#)ScrollPane.java	1.59 98/07/14
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -66,7 +58,7 @@ import java.io.Serializable;
  * will change dynamically depending on whether the scrollbars are
  * currently visible or not.    
  *
- * @version     1.53 10/12/98
+ * @version     1.59 07/14/98
  * @author      Tom Ball
  * @author      Amy Fowler
  * @author      Tim Prinzing
@@ -117,7 +109,6 @@ public class ScrollPane extends Container {
      * @param scrollbarDisplayPolicy policy for when scrollbars should be shown
      */
     public ScrollPane(int scrollbarDisplayPolicy) {
-        this.name = base + nameCounter++;
 	this.layoutMgr = null;
 	this.width = 100;
 	this.height = 100;
@@ -135,6 +126,14 @@ public class ScrollPane extends Container {
 					       Adjustable.VERTICAL);
 	hAdjustable = new ScrollPaneAdjustable(this, new PeerFixer(this), 
 					       Adjustable.HORIZONTAL);
+    }
+
+    /**
+     * Construct a name for this component.  Called by getName() when the
+     * name is null.
+     */
+    String constructComponentName() {
+        return base + nameCounter++;
     }
 
     /** 
@@ -313,29 +312,56 @@ public class ScrollPane extends Container {
      * it's preferred size.
      */
     Dimension calculateChildSize() {
-	Component c = getComponent(0);
-	Dimension cs = new Dimension(c.getPreferredSize());
-	Dimension size = getSize();
+	//
+	// calculate the view size, accounting for border but not scrollbars
+	// - don't use right/bottom insets since they vary depending
+	//   on whether or not scrollbars were displayed on last resize
+	//
+	Dimension	size = getSize();
+	Insets		insets = getInsets();
+	int 		viewWidth = size.width - insets.left*2;
+	int 		viewHeight = size.height - insets.top*2;
+
+	//
+	// determine whether or not horz or vert scrollbars will be displayed
+	//
+	boolean vbarOn;
+	boolean hbarOn;
+	Component child = getComponent(0);
+	Dimension childSize = new Dimension(child.getPreferredSize());
+
+	if (scrollbarDisplayPolicy == SCROLLBARS_AS_NEEDED) {
+	    vbarOn = childSize.height > viewHeight;
+	    hbarOn = childSize.width  > viewWidth;
+	} else if (scrollbarDisplayPolicy == SCROLLBARS_ALWAYS) {
+	    vbarOn = hbarOn = true;
+	} else { // SCROLLBARS_NEVER
+	    vbarOn = hbarOn = false;
+	}
+	
+	//
+	// adjust predicted view size to account for scrollbars
+	//
 	int vbarWidth = getVScrollbarWidth(); 
 	int hbarHeight = getHScrollbarHeight();
-	Insets i = getInsets();
-	boolean vbarOn = ((i.left + i.right) >= vbarWidth);
-	boolean hbarOn = ((i.top + i.bottom) >= hbarHeight);
-	int viewWidth = size.width - (i.left + i.right) - 
-	    (vbarOn ? 0 : vbarWidth);
-	int viewHeight = size.height - (i.top + i.bottom) - 
-	    (hbarOn ? 0 : hbarHeight);
-	boolean hbarNeeded = (cs.width > viewWidth);
-	boolean vbarNeeded = (cs.height > viewHeight);
-	
-	if (cs.width < viewWidth) {
-	    cs.width = viewWidth + (vbarNeeded ? 0 : vbarWidth);
+	if (vbarOn) {
+	    viewWidth -= vbarWidth;
 	}
-	if (cs.height < viewHeight) {
-	    cs.height = viewHeight + (hbarNeeded ? 0 : hbarHeight);
+	if(hbarOn) {
+	    viewHeight -= hbarHeight;
 	}
 
-	return cs;
+	//
+	// if child is smaller than view, size it up
+	//
+	if (childSize.width < viewWidth) {
+	    childSize.width = viewWidth;
+	}
+	if (childSize.height < viewHeight) {
+	    childSize.height = viewHeight;
+	}
+
+	return childSize;
     }
 
     /** 
@@ -345,18 +371,12 @@ public class ScrollPane extends Container {
     public void layout() {
 	if (ncomponents > 0) {
 	    Component c = getComponent(0);
-	    Point p = c.getLocation();
+	    Point p = getScrollPosition();
 	    Dimension cs = calculateChildSize();
 	    Dimension vs = getViewportSize();	
-
-	    // update the child
-	    int xPos = (cs.width > vs.width ?
-			   Math.min(-p.x, cs.width - vs.width) :
-			   -p.x);
-	    int yPos = (cs.height > vs.height ?
-			   Math.min(-p.y, cs.height - vs.height) :
-			   -p.y);
-	    c.reshape(-xPos, -yPos, cs.width, cs.height);
+	    Insets i = getInsets();
+	    
+	    c.reshape(i.left - p.x, i.top - p.y, cs.width, cs.height);
 	    ScrollPanePeer peer = (ScrollPanePeer)this.peer;
 	    if (peer != null) {
 	        peer.childResized(cs.width, cs.height);
@@ -382,11 +402,12 @@ public class ScrollPane extends Container {
 	    Component c = component[0];
 	    Point p = c.getLocation();
 	    Dimension vs = getViewportSize();
+	    Insets i = getInsets();
 
 	    Graphics cg = g.create();
 	    try {
+	        cg.clipRect(i.left, i.top, vs.width, vs.height);
 	        cg.translate(p.x, p.y);
-		cg.clipRect(-(p.x), -(p.y), vs.width, vs.height);
 		c.printAll(cg);
 	    } finally {
 		cg.dispose();
@@ -398,10 +419,33 @@ public class ScrollPane extends Container {
      * Creates the scroll pane's peer. 
      */
     public void addNotify() {
-    	synchronized (getTreeLock()) {
-	    peer = getToolkit().createScrollPane(this);
+        synchronized (getTreeLock()) {
+
+            int vAdjustableValue = 0;
+            int hAdjustableValue = 0;
+
+            // Bug 4124460. Save the current adjustable values,
+            // so they can be restored after addnotify. Set the
+            // adjustibles to 0, to prevent crashes for possible
+            // negative values.
+            if (getComponentCount() > 0) {
+                vAdjustableValue = vAdjustable.getValue();
+                hAdjustableValue = hAdjustable.getValue();
+                vAdjustable.setValue(0);
+                hAdjustable.setValue(0);
+            }
+
+	    if (peer == null)
+	        peer = getToolkit().createScrollPane(this);
+
 	    super.addNotify();
-	    
+
+            // Bug 4124460. Restore the adjustable values.
+	    if (getComponentCount() > 0) {
+                vAdjustable.setValue(vAdjustableValue);
+                hAdjustable.setValue(hAdjustableValue);
+            }
+
 	    if (getComponentCount() > 0) {
 		Component comp = getComponent(0);
 		if (comp.peer instanceof java.awt.peer.LightweightPeer) {
@@ -414,7 +458,7 @@ public class ScrollPane extends Container {
 			child.add(comp);
 			add(child);
 		}
-            }
+	    }
         }
     }
 

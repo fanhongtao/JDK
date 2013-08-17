@@ -1,23 +1,15 @@
 /*
- * 97/02/24, @(#)BigDecimal.java	1.6
+ * @(#)BigDecimal.java	1.8 98/10/28
+ *
+ * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1996, 1997 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.math;
@@ -47,12 +39,15 @@ package java.math;
  * its precision.
  *
  * @see BigInteger
- * @version 	1.6, 00/08/15
+ * @version 	1.8, 00/08/11
  * @author      Josh Bloch
  */
 public class BigDecimal extends Number {
     private BigInteger intVal;
     private int	       scale = 0;
+
+    /* Appease the serialization gods */
+    private static final long serialVersionUID = 6108874887143696463L;
 
     // Constructors
 
@@ -647,5 +642,20 @@ public class BigDecimal extends Number {
 	    val[0] = val[0].setScale(val[1].scale);
 	else if (val[1].scale < val[0].scale)
 	    val[1] = val[1].setScale(val[0].scale);
+    }
+
+    /**
+     * Reconstitute the <tt>BigDecimal</tt> instance from a stream (that is,
+     * deserialize it).
+     */
+    private synchronized void readObject(java.io.ObjectInputStream s)
+        throws java.io.IOException, ClassNotFoundException {
+        // Read in all fields
+	s.defaultReadObject();
+
+        // Validate scale factor
+        if (scale < 0)
+	    throw new java.io.StreamCorruptedException(
+                                      "BigDecimal: Negative scale");
     }
 }

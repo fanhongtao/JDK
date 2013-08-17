@@ -1,7 +1,7 @@
 /*
- * @(#)ThreeD.java	1.4 96/12/06
+ * @(#)ThreeD.java	1.7 98/03/23
  *
- * Copyright (c) 1994-1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -35,9 +35,8 @@ import java.applet.Applet;
 import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.Event;
-import java.io.StreamTokenizer;
-import java.io.InputStream;
-import java.io.IOException;
+import java.awt.event.*;
+import java.io.*;
 import java.net.URL;
 
 class FileFormatException extends Exception {
@@ -65,11 +64,11 @@ class Model3D {
     }
     /** Create a 3D model by parsing an input stream */
     Model3D (InputStream is) throws IOException, FileFormatException {
-	this();
-	StreamTokenizer st = new StreamTokenizer(is);
-	st.eolIsSignificant(true);
-	st.commentChar('#');
-scan:
+      this();
+      StreamTokenizer st = new StreamTokenizer(new BufferedReader(new InputStreamReader(is)));
+      st.eolIsSignificant(true);
+      st.commentChar('#');
+    scan:
 	while (true) {
 	    switch (st.nextToken()) {
 	      default:
@@ -332,7 +331,8 @@ scan:
 }
 
 /** An applet to put a 3D model into a page */
-public class ThreeD extends Applet implements Runnable {
+public class ThreeD extends Applet 
+  implements Runnable, MouseListener, MouseMotionListener {
     Model3D md;
     boolean painted = true;
     float xfac;
@@ -352,9 +352,17 @@ public class ThreeD extends Applet implements Runnable {
 	amat.xrot(20);
 	if (mdname == null)
 	    mdname = "model.obj";
-	resize(size().width <= 20 ? 400 : size().width,
-	       size().height <= 20 ? 400 : size().height);
+	resize(getSize().width <= 20 ? 400 : getSize().width,
+	       getSize().height <= 20 ? 400 : getSize().height);
+	addMouseListener(this);
+	addMouseMotionListener(this);
     }
+
+    public void destroy() {
+        removeMouseListener(this);
+        removeMouseMotionListener(this);
+    }
+
     public void run() {
 	InputStream is = null;
 	try {
@@ -371,8 +379,8 @@ public class ThreeD extends Applet implements Runnable {
 		xw = yw;
 	    if (zw > xw)
 		xw = zw;
-	    float f1 = size().width / xw;
-	    float f2 = size().height / xw;
+	    float f1 = getSize().width / xw;
+	    float f2 = getSize().height / xw;
 	    xfac = 0.7f * (f1 < f2 ? f1 : f2) * scalefudge;
 	} catch(Exception e) {
 	    md = null;
@@ -385,32 +393,55 @@ public class ThreeD extends Applet implements Runnable {
 	}
 	repaint();
     }
+
     public void start() {
 	if (md == null && message == null)
 	    new Thread(this).start();
     }
+
     public void stop() {
     }
-    public boolean mouseDown(Event e, int x, int y) {
-	prevx = x;
-	prevy = y;
-	return true;
+    
+    public  void mouseClicked(MouseEvent e) {
     }
-    public boolean mouseDrag(Event e, int x, int y) {
-	tmat.unit();
-	float xtheta = (prevy - y) * 360.0f / size().width;
-	float ytheta = (x - prevx) * 360.0f / size().height;
-	tmat.xrot(xtheta);
-	tmat.yrot(ytheta);
-	amat.mult(tmat);
-	if (painted) {
-	    painted = false;
-	    repaint();
-	}
-	prevx = x;
-	prevy = y;
-	return true;
+    
+    public  void mousePressed(MouseEvent e) {
+        prevx = e.getX();
+        prevy = e.getY();
+        e.consume();
     }
+
+    public  void mouseReleased(MouseEvent e) {
+    }
+
+    public  void mouseEntered(MouseEvent e) {
+    }
+
+    public  void mouseExited(MouseEvent e) {
+    }
+    
+    public  void mouseDragged(MouseEvent e) {
+        int x = e.getX();
+        int y = e.getY();
+
+        tmat.unit();
+        float xtheta = (prevy - y) * 360.0f / getSize().width;
+        float ytheta = (x - prevx) * 360.0f / getSize().height;
+        tmat.xrot(xtheta);
+        tmat.yrot(ytheta);
+        amat.mult(tmat);
+        if (painted) {
+            painted = false;
+            repaint();
+        }
+        prevx = x;
+        prevy = y;
+        e.consume();      
+    }
+  
+    public  void mouseMoved(MouseEvent e) {
+    }
+
     public void paint(Graphics g) {
 	if (md != null) {
 	    md.mat.unit();
@@ -418,9 +449,8 @@ public class ThreeD extends Applet implements Runnable {
 			     -(md.ymin + md.ymax) / 2,
 			     -(md.zmin + md.zmax) / 2);
 	    md.mat.mult(amat);
-//	    md.mat.scale(xfac, -xfac, 8 * xfac / size().width);
-	    md.mat.scale(xfac, -xfac, 16 * xfac / size().width);
-	    md.mat.translate(size().width / 2, size().height / 2, 8);
+	    md.mat.scale(xfac, -xfac, 16 * xfac / getSize().width);
+	    md.mat.translate(getSize().width / 2, getSize().height / 2, 8);
 	    md.transformed = false;
 	    md.paint(g);
 	    setPainted();
@@ -429,6 +459,7 @@ public class ThreeD extends Applet implements Runnable {
 	    g.drawString(message, 10, 40);
 	}
     }
+
     private synchronized void setPainted() {
 	painted = true;
 	notifyAll();
@@ -438,4 +469,16 @@ public class ThreeD extends Applet implements Runnable {
 //	    wait();
 //	painted = false;
 //    }
+
+    public String getAppletInfo() {
+        return "Title: ThreeD \nAuthor: James Gosling? \nAn applet to put a 3D model into a page.";
+    }
+    
+    public String[][] getParameterInfo() {
+        String[][] info = {
+            {"model", "path string", "The path to the model to be displayed."},
+            {"scale", "float", "The scale of the model.  Default is 1."}
+        };
+        return info;
+    }
 }

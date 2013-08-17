@@ -1,23 +1,15 @@
 /*
- * @(#)TextArea.java	1.38 98/01/09
+ * @(#)TextArea.java	1.42 98/08/13
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -39,7 +31,7 @@ import java.awt.peer.TextAreaPeer;
  * new TextArea("Hello", 5, 40);
  * </pre></blockquote><hr>
  * <p>
- * @version	1.38, 01/09/98
+ * @version	1.42, 08/13/98
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -159,10 +151,17 @@ public class TextArea extends TextComponent {
      */
     public TextArea(String text, int rows, int columns, int scrollbars) {
 	super(text);
-	this.name = base + nameCounter++;
 	this.rows = rows;
 	this.columns = columns;
 	this.scrollbarVisibility = scrollbars;
+    }
+
+    /**
+     * Construct a name for this component.  Called by getName() when the
+     * name is null.
+     */
+    String constructComponentName() {
+        return base + nameCounter++;
     }
 
     /**
@@ -188,7 +187,7 @@ public class TextArea extends TextComponent {
      * @see        java.awt.TextArea#append
      * @since      JDK1.1
      */
-    public synchronized void insert(String str, int pos) {
+    public void insert(String str, int pos) {
     	insertText(str, pos);
     }
 
@@ -196,7 +195,7 @@ public class TextArea extends TextComponent {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>insert(String, int)</code>.
      */
-    public void insertText(String str, int pos) {
+    public synchronized void insertText(String str, int pos) {
 	TextAreaPeer peer = (TextAreaPeer)this.peer;
 	if (peer != null) {
 	    peer.insertText(str, pos);
@@ -210,7 +209,7 @@ public class TextArea extends TextComponent {
      * @param     str the text to append.
      * @see       java.awt.TextArea#insert
      */
-    public synchronized void append(String str) {
+    public void append(String str) {
     	appendText(str);
     }
 
@@ -218,7 +217,7 @@ public class TextArea extends TextComponent {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>append(String)</code>.
      */
-    public void appendText(String str) {
+    public synchronized void appendText(String str) {
 	if (peer != null) {
 	    insertText(str, getText().length());
 	} else {
@@ -235,7 +234,7 @@ public class TextArea extends TextComponent {
      * @see       java.awt.TextArea#insert
      * @since     JDK1.1
      */
-    public synchronized void replaceRange(String str, int start, int end) {
+    public void replaceRange(String str, int start, int end) {
 	replaceText(str, start, end);
     }
 
@@ -243,7 +242,7 @@ public class TextArea extends TextComponent {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>replaceRange(String, int, int)</code>.
      */
-    public void replaceText(String str, int start, int end) {
+    public synchronized void replaceText(String str, int start, int end) {
 	TextAreaPeer peer = (TextAreaPeer)this.peer;
 	if (peer != null) {
 	    peer.replaceText(str, start, end);
@@ -354,11 +353,13 @@ public class TextArea extends TextComponent {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>getPreferredSize(int, int)</code>.
      */
-    public synchronized Dimension preferredSize(int rows, int columns) {
+    public Dimension preferredSize(int rows, int columns) {
+        synchronized (getTreeLock()) {
 	    TextAreaPeer peer = (TextAreaPeer)this.peer;
 	    return (peer != null) ? 
 		       peer.preferredSize(rows, columns) :
 		       super.preferredSize();
+        }
     }
 
     /**
@@ -375,10 +376,12 @@ public class TextArea extends TextComponent {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>getPreferredSize()</code>.
      */
-    public synchronized Dimension preferredSize() {
+    public Dimension preferredSize() {
+        synchronized (getTreeLock()) {
 	    return ((rows > 0) && (columns > 0)) ? 
 		       preferredSize(rows, columns) :
 		       super.preferredSize();
+        }
     }
 
     /**
@@ -400,11 +403,13 @@ public class TextArea extends TextComponent {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>getMinimumSize(int, int)</code>.
      */
-    public synchronized Dimension minimumSize(int rows, int columns) {
+    public Dimension minimumSize(int rows, int columns) {
+        synchronized (getTreeLock()) {
 	    TextAreaPeer peer = (TextAreaPeer)this.peer;
 	    return (peer != null) ? 
 		       peer.minimumSize(rows, columns) :
 		       super.minimumSize();
+        }
     }
 
     /**
@@ -421,10 +426,12 @@ public class TextArea extends TextComponent {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>getMinimumSize()</code>.
      */
-    public synchronized Dimension minimumSize() {
+    public Dimension minimumSize() {
+        synchronized (getTreeLock()) {
 	    return ((rows > 0) && (columns > 0)) ? 
 		       minimumSize(rows, columns) :
 		       super.minimumSize();
+        }
     }
 
     /**

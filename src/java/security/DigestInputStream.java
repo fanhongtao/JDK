@@ -1,23 +1,15 @@
 /*
- * @(#)DigestInputStream.java	1.25 97/01/30
+ * @(#)DigestInputStream.java	1.27 98/08/19
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.security;
@@ -44,8 +36,8 @@ import java.io.ByteArrayInputStream;
  * the message digest is not updated. The default is for the stream
  * to be on.
  *
- * <p>Note that digest objects can compute only one digest (see <a
- * href="MessageDigest">MessageDigest</a>),
+ * <p>Note that digest objects can compute only one digest (see
+ * MessageDigest),
  * so that in order to compute intermediate digests, a caller should
  * retain a handle onto the digest object, and clone it for each
  * digest to be computed, leaving the orginal digest untouched.
@@ -54,7 +46,7 @@ import java.io.ByteArrayInputStream;
  * 
  * @see DigestOutputStream
  *
- * @version 1.25 00/08/15
+ * @version 1.27 00/08/11
  * @author Benjamin Renaud 
  */
 

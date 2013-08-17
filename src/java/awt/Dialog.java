@@ -1,22 +1,13 @@
 /*
- * @(#)Dialog.java	1.41 98/10/12
+ * @(#)Dialog.java	1.45 00/03/28
+ *
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  * 
  */
 package java.awt;
@@ -37,7 +28,7 @@ import java.io.IOException;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.41, 10/12/98
+ * @version 	1.38, 12/03/97
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -112,9 +103,16 @@ public class Dialog extends Window {
 	if (parent == null) {
 	    throw new IllegalArgumentException("null parent frame");
 	}
-	this.name = base + nameCounter++;
 	this.title = title;
 	this.modal = modal;
+    }
+
+    /**
+     * Construct a name for this component.  Called by getName() when the
+     * name is null.
+     */
+    String constructComponentName() {
+        return base + nameCounter++;
     }
 
     /**

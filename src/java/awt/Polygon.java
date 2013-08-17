@@ -1,23 +1,15 @@
 /*
- * @(#)Polygon.java	1.16 97/06/17
+ * @(#)Polygon.java	1.18 98/07/01
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -32,7 +24,7 @@ package java.awt;
  * polygon. The first and final pairs of (<i>x</i>,&nbsp;<i>y</i>) 
  * points are joined by a line segment that closes the polygon.
  *
- * @version 	1.16, 06/17/97
+ * @version 	1.18, 07/01/98
  * @author 	Sami Shaio
  * @author      Herb Jellinek
  * @since       JDK1.0
@@ -137,10 +129,23 @@ public class Polygon implements Shape, java.io.Serializable {
      * Update the bounding box to fit the point x, y.
      */
     void updateBounds(int x, int y) {
-	bounds.x = Math.min(bounds.x, x);
-	bounds.width = Math.max(bounds.width, x - bounds.x);
-	bounds.y = Math.min(bounds.y, y);
-	bounds.height = Math.max(bounds.height, y - bounds.y);
+	if (x < bounds.x) {
+	    bounds.width = bounds.width + (bounds.x - x);
+	    bounds.x = x;
+	}
+	else {
+	    bounds.width = Math.max(bounds.width, x - bounds.x);
+	    // bounds.x = bounds.x;
+	}
+
+	if (y < bounds.y) {
+	    bounds.height = bounds.height + (bounds.y - y);
+	    bounds.y = y;
+	}
+	else {
+	    bounds.height = Math.max(bounds.height, y - bounds.y);
+	    // bounds.y = bounds.y;
+	}
     }	
 
     /**

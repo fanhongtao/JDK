@@ -1,7 +1,7 @@
 /*
- * @(#)ButtonFilter.java	1.6 96/12/06
+ * @(#)ButtonFilter.java	1.8 98/03/18
  *
- * Copyright (c) 1994-1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1995-1997 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -45,7 +45,7 @@ import java.net.MalformedURLException;
  * that can be dynamically loaded over the net.
  *
  * @author 	Jim Graham
- * @version 	1.6, 12/06/96
+ * @version 	1.8, 03/18/98
  */
 class ButtonFilter extends RGBImageFilter {
     boolean pressed;
@@ -238,4 +238,8 @@ class ButtonFilter extends RGBImageFilter {
 	}
 	return (rgb & 0xff000000) | (r << 16) | (g << 8) | (b << 0);
     }
+
+  public String getAppletInfo() {
+    return "Title: ButtonFilter \nAuthor: Jim Graham \nAn extensible ImageMap applet class.  The active areas on the image are controlled by ImageArea classes that can be dynamically loaded over the net.";
+  }
 }

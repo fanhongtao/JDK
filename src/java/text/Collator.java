@@ -1,5 +1,5 @@
 /*
- * @(#)Collator.java	1.13 98/01/12
+ * @(#)Collator.java	1.14 98/08/19
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -105,14 +105,14 @@ import java.util.Hashtable;
  * <br>
  * <strong>Note:</strong> <code>CollationKey</code>s from different
  * <code>Collator</code>s can not be compared. See the class description
- * for <a href="java.test.CollationKey.html"><code>CollationKey</code></a>
+ * for <a href="java.text.CollationKey.html"><code>CollationKey</code></a>
  * for an example using <code>CollationKey</code>s.
  *
  * @see         RuleBasedCollator
  * @see         CollationKey
  * @see         CollationElementIterator
  * @see         Locale
- * @version     1.13 01/12/98
+ * @version     1.14 08/19/98
  * @author      Helena Shih
  */
 

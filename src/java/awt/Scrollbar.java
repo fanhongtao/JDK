@@ -1,23 +1,15 @@
 /*
- * @(#)Scrollbar.java	1.52 98/01/09
+ * @(#)Scrollbar.java	1.55 98/07/01
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -143,7 +135,7 @@ import java.io.IOException;
  * </ul>
  * <p>
  *
- * @version	1.52 01/09/98
+ * @version	1.55 07/01/98
  * @author 	Sami Shaio
  * @see         java.awt.event.AdjustmentEvent
  * @see         java.awt.event.AdjustmentListener
@@ -258,7 +250,6 @@ public class Scrollbar extends Component implements Adjustable {
      * @since     JDK1.0
      */
     public Scrollbar(int orientation, int value, int visible, int minimum, int maximum) {
-	this.name = base + nameCounter++;
 	switch (orientation) {
 	  case HORIZONTAL:
 	  case VERTICAL:
@@ -268,6 +259,14 @@ public class Scrollbar extends Component implements Adjustable {
 	    throw new IllegalArgumentException("illegal scrollbar orientation");
 	}
 	setValues(value, visible, minimum, maximum);
+    }
+
+    /**
+     * Construct a name for this component.  Called by getName() when the
+     * name is null.
+     */
+    String constructComponentName() {
+        return base + nameCounter++;
     }
 
     /**
@@ -360,7 +359,7 @@ public class Scrollbar extends Component implements Adjustable {
      * @see         java.awt.Scrollbar#getMaximum
      * @since       JDK1.0
      */
-    public synchronized void setValue(int newValue) {
+    public void setValue(int newValue) {
 	/* Use setValues so that a consistent policy
     	 * relating minimum, maximum, and value is enforced.
     	 */
@@ -393,7 +392,7 @@ public class Scrollbar extends Component implements Adjustable {
      * @see         java.awt.Scrollbar#setMaximum
      * @since       JDK1.1
      */
-    public synchronized void setMinimum(int newMinimum) {
+    public void setMinimum(int newMinimum) {
 	/* Use setValues so that a consistent policy
     	 * relating minimum, maximum, and value is enforced.
     	 */
@@ -426,7 +425,7 @@ public class Scrollbar extends Component implements Adjustable {
      * @see         java.awtScrollbar#setMinimum
      * @since       JDK1.1
      */
-    public synchronized void setMaximum(int newMaximum) {
+    public void setMaximum(int newMaximum) {
 	/* Use setValues so that a consistent policy
     	 * relating minimum, maximum, and value is enforced.
     	 */
@@ -475,7 +474,7 @@ public class Scrollbar extends Component implements Adjustable {
      * @see         java.awt.Scrollbar#setValues
      * @since       JDK1.1
      */
-    public synchronized void setVisibleAmount(int newAmount) {
+    public void setVisibleAmount(int newAmount) {
     	setValues(value, newAmount, minimum, maximum);
     }
 
@@ -491,7 +490,7 @@ public class Scrollbar extends Component implements Adjustable {
      * @see          java.awt.Scrollbar#getUnitIncrement
      * @since        JDK1.1
      */
-    public synchronized void setUnitIncrement(int v) {
+    public void setUnitIncrement(int v) {
 	setLineIncrement(v);
     }
 
@@ -499,7 +498,7 @@ public class Scrollbar extends Component implements Adjustable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>setUnitIncrement(int)</code>.
      */
-    public void setLineIncrement(int v) {
+    public synchronized void setLineIncrement(int v) {
 	lineIncrement = v;
 	ScrollbarPeer peer = (ScrollbarPeer)this.peer;
 	if (peer != null) {
@@ -542,7 +541,7 @@ public class Scrollbar extends Component implements Adjustable {
      * @see          java.awt.Scrollbar#getBlockIncrement
      * @since        JDK1.1
      */
-    public synchronized void setBlockIncrement(int v) {
+    public void setBlockIncrement(int v) {
 	setPageIncrement(v);
     }
 
@@ -550,7 +549,7 @@ public class Scrollbar extends Component implements Adjustable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>setBlockIncrement()</code>.
      */
-    public void setPageIncrement(int v) {
+    public synchronized void setPageIncrement(int v) {
 	pageIncrement = v;
 	ScrollbarPeer peer = (ScrollbarPeer)this.peer;
 	if (peer != null) {

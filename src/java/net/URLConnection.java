@@ -1,23 +1,15 @@
 /*
- * @(#)URLConnection.java	1.31 98/01/23
+ * @(#)URLConnection.java	1.33 98/08/17
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 package java.net;
@@ -120,9 +112,18 @@ import java.util.StringTokenizer;
  * <ul><code>
  *   http://www.w3.org/hypertext/WWW/Protocols/HTTP1.0/draft-ietf-http-spec.html
  * </code></ul>
+ * <p>
+ * Note about <code>fileNameMap</code>: In versions prior to JDK 1.1.6,
+ * field <code>fileNameMap</code> of <code>URLConnection</code> was public.
+ * In JDK 1.1.6 and later, <code>fileNameMap</code> is private; accessor
+ * method <code>getFileNameMap()</code> and mutator method 
+ * <code>setFileNameMap(FileNameMap)</code> are added to access it.  
+ * This change is also described on the 
+ * <a href="http://java.sun.com/products/jdk/1.1/compatibility.html">
+ * JDK 1.1.x Compatibility</a> page.
  *
  * @author  James Gosling
- * @version 1.31, 01/23/98
+ * @version 1.33, 08/17/98
  * @see     java.net.URL#openConnection()
  * @see     java.net.URLConnection#connect()
  * @see     java.net.URLConnection#getContent()

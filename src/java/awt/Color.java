@@ -1,23 +1,15 @@
 /*
- * @(#)Color.java	1.32 97/12/19
+ * @(#)Color.java	1.34 98/07/01
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -38,7 +30,7 @@ import java.lang.*;
  * Feiner, and Hughes, <cite>Computer Graphics: Principles 
  * and Practice</cite>.
  *
- * @version 	1.32, 12/19/97
+ * @version 	1.34, 07/01/98
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -311,9 +303,26 @@ public class Color implements java.io.Serializable {
      * @since      JDK1.0
      */
     public Color brighter() {
-	return new Color(Math.min((int)(getRed()  *(1/FACTOR)), 255), 
-			 Math.min((int)(getGreen()*(1/FACTOR)), 255),
-			 Math.min((int)(getBlue() *(1/FACTOR)), 255));
+	int r = getRed();
+	int g = getGreen();
+	int b = getBlue();
+
+	/* From 2D group:
+         * 1. black.brighter() should return grey
+	 * 2. applying brighter to blue will always return blue, brighter
+         * 3. non pure color (non zero rgb) will eventually return white
+         */
+	int i = (int)(1.0/(1.0-FACTOR));
+	if ( r == 0 && g == 0 && b == 0) {
+	   return new Color(i, i, i);
+        }
+	if ( r > 0 && r < i ) r = i;
+	if ( g > 0 && g < i ) g = i;
+	if ( b > 0 && b < i ) b = i;
+
+	return new Color(Math.min((int)(r/FACTOR), 255), 
+			 Math.min((int)(g/FACTOR), 255),
+			 Math.min((int)(b/FACTOR), 255));
     }
 
     /**

@@ -1,10 +1,10 @@
 /*
- * @(#)SimpleDateFormat.java	1.32 00/05/26
+ * @(#)SimpleDateFormat.java	1.34 00/03/28
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
  *
- * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -156,6 +156,12 @@ import java.util.Hashtable;
  * SimpleDateFormat instance created on Jan 1, 1997,  the string
  * "01/11/12" would be interpreted as Jan 11, 2012 while the string "05/04/64"
  * would be interpreted as May 4, 1964.
+ * During parsing, only strings consisting of exactly two digits, as defined by
+ * <code>Character.isDigit(char)</code>, will be parsed into the default century.
+ * Any other numeric string, such as a one digit string, a three or more digit
+ * string, or a two digit string that isn't all digits (for example, "-1"), is
+ * interpreted literally.  So "01/02/3" or "01/02/003" are parsed, using the
+ * same pattern, as Jan 2, 3 AD.  Likewise, "01/02/-3" is parsed as Jan 2, 4 BC.
  *
  * <p>
  * For time zones that have no names, use strings GMT+hours:minutes or
@@ -173,7 +179,7 @@ import java.util.Hashtable;
  * @see          DateFormat
  * @see          DateFormatSymbols
  * @see          DecimalFormat
- * @version      1.32 05/26/00
+ * @version      1.34 03/28/00
  * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public class SimpleDateFormat extends DateFormat {
@@ -919,12 +925,15 @@ public class SimpleDateFormat extends DateFormat {
         case 0: // 'G' - ERA
             return matchString(text, start, Calendar.ERA, formatData.eras);
         case 1: // 'y' - YEAR
-            // If there are 4 or more YEAR pattern characters, this indicates
+            // If there are 3 or more YEAR pattern characters, this indicates
             // that the year value is to be treated literally, without any
             // two-digit year adjustments (e.g., from "01" to 2001).  Otherwise
             // we made adjustments to place the 2-digit year in the proper
-            // century -- unless the given year itself is more than two characters.
-            if (value >= 0 && count <= 2 && (pos.index - start) <= 2)
+            // century, for parsed strings from "00" to "99".  Any other string
+            // is treated literally:  "2250", "-1", "1", "002".
+            if (count <= 2 && (pos.index - start) == 2
+                && Character.isDigit(text.charAt(start))
+                && Character.isDigit(text.charAt(start+1)))
             {
                 // Assume for example that the defaultCenturyStart is 6/18/1903.
                 // This means that two-digit years will be forced into the range

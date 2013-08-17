@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleElements.java	1.20 98/01/13
+ * @(#)LocaleElements.java	1.21 98/07/07
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996, 1997 - All Rights Reserved
@@ -397,6 +397,19 @@ public class LocaleElements extends ListResourceBundle {
                     { "ZR", "Zaire" },
                     { "ZM", "Zambia" },
                     { "ZW", "Zimbabwe" }
+                }
+            },
+            { "%%EURO", "Euro" }, // Euro variant display name
+            { "LocaleNamePatterns",
+                /* Formats for the display name of a locale, for a list of
+                 * items, and for composing two items in a list into one item.
+                 * The list patterns are used in the variant name and in the
+                 * full display name.
+                 */
+                new String[] {
+                    "{0,choice,0#|1#{1}|2#{1} ({2})}", // Display name
+                    "{0,choice,0#|1#{1}|2#{1},{2}|3#{1},{2},{3}}", // List
+                    "{0},{1}" // List composition
                 }
             },
             { "MonthNames", 

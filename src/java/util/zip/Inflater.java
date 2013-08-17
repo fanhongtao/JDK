@@ -1,5 +1,5 @@
 /*
- * @(#)Inflater.java	1.18 97/02/14
+ * @(#)Inflater.java	1.19 98/08/20
  * 
  * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -27,12 +27,14 @@ package java.util.zip;
  * the popular ZLIB compression library. The ZLIB compression library
  * was initially developed as part of the PNG graphics standard and is
  * not protected by patents. It is fully described in RFCs 1950, 1951,
- * and 1952, which can be found at <a href="ftp://ds.internic.net/rfc">
- * ftp://ds.internic.net/rfc</a> in the files rfc1950.txt (zlib format),
+ * and 1952, which can be found at 
+ * <a href="http://info.internet.isi.edu:80/in-notes/rfc/files/">
+ * http://info.internet.isi.edu:80/in-notes/rfc/files/
+ * </a> in the files rfc1950.txt (zlib format),
  * rfc1951.txt (deflate format) and rfc1952.txt (gzip format).
  * 
  * @see		Deflater
- * @version 	1.18, 02/14/97
+ * @version 	1.19, 08/20/98
  * @author 	David Connelly
  *
  */

@@ -1,23 +1,15 @@
 /*
- * @(#)MenuComponent.java	1.27 97/12/02
+ * @(#)MenuComponent.java	1.29 98/08/21
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 package java.awt;
 
@@ -33,7 +25,7 @@ import java.awt.event.ActionEvent;
  * Menu components receive and process AWT events, just as components do,
  * through the method <code>processEvent</code>.
  *
- * @version 	1.27, 12/02/97
+ * @version 	1.29, 08/21/98
  * @author 	Arthur van Hoff
  * @since       JDK1.0
  */
@@ -41,7 +33,8 @@ public abstract class MenuComponent implements java.io.Serializable {
     transient MenuComponentPeer peer;
     transient MenuContainer parent;
     Font font;
-    String name;
+    private String name;
+    private boolean nameExplicitlySet = false;
 
     boolean newEventsOnly = false;
  
@@ -57,12 +50,29 @@ public abstract class MenuComponent implements java.io.Serializable {
     private static final long serialVersionUID = -4536902356223894379L;
 
     /**
+     * Construct a name for this MenuComponent.  Called by getName() when
+     * the name is null.
+     */
+    String constructComponentName() {
+	return null; // For strict compliance with prior JDKs, a MenuComponent
+	             // that doesn't set its name should return null from
+	             // getName()
+    }
+
+    /**
      * Gets the name of the menu component.
      * @return        the name of the menu component.
      * @see           java.awt.MenuComponent#setName(java.lang.String)
      * @since         JDK1.1
      */
     public String getName() {
+	if (name == null && !nameExplicitlySet) {
+	    synchronized(this) {
+		if (name == null && !nameExplicitlySet) {
+		    name = constructComponentName();
+		}
+	    }
+	}
         return name;
     }
 
@@ -73,7 +83,10 @@ public abstract class MenuComponent implements java.io.Serializable {
      * @since         JDK1.1
      */
     public void setName(String name) {
-        this.name = name;
+	synchronized(this) {
+	    this.name = name;
+	    nameExplicitlySet = true;
+	}
     }
 
     /**
@@ -208,7 +221,8 @@ public abstract class MenuComponent implements java.io.Serializable {
      * @since      JDK1.0
      */
     protected String paramString() {
-	return (name != null? name : "");
+	String thisName = getName();
+	return (thisName != null? thisName : "");
     }
 
     /**

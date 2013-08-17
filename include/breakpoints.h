@@ -1,23 +1,15 @@
 /*
- * @(#)breakpoints.h	1.1 97/07/17
+ * @(#)breakpoints.h	1.3 98/07/01
+ *
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
  * 
- * Copyright (c) 1995, 1996 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
- * 
- * CopyrightVersion 1.1_beta
- * 
+ * This software is the confidential and proprietary information
+ * of Sun Microsystems, Inc. ("Confidential Information").  You
+ * shall not disclose such Confidential Information and shall use
+ * it only in accordance with the terms of the license agreement
+ * you entered into with Sun.
  */
 
 /*
@@ -63,6 +55,9 @@ extern bool_t set_breakpoint(ExecEnv *ee, unsigned char *pc);
 extern bool_t clear_breakpoint(ExecEnv *ee, unsigned char *pc);
 extern void clear_all_breakpoints(ExecEnv *ee);
 
+extern bool_t JDB_loadclass_locked(ExecEnv *ee);
+extern HArrayOfObject *get_linked_classes();
+
 #endif BREAKPTS
 
 /*
@@ -76,5 +71,8 @@ extern bool_t single_stepping; /* set ONLY by breakpoints.c */
 extern int get_breakpoint_opcode(ExecEnv *ee, unsigned char *pc, bool_t notify);
 extern bool_t set_breakpoint_opcode(ExecEnv *ee, unsigned char *pc, unsigned char opcode);
 #endif BREAKPTS
+
+
+
 
 #endif _BREAKPOINTS_H_ 

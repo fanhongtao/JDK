@@ -1,10 +1,10 @@
 /*
- * @(#)GregorianCalendar.java	1.33 00/05/26
+ * @(#)GregorianCalendar.java	1.34 00/03/28
  *
  * (C) Copyright Taligent, Inc. 1996-1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1997 - All Rights Reserved
  *
- * Portions copyright (c) 1996 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -128,7 +128,7 @@ package java.util;
  *
  * @see          Calendar
  * @see          TimeZone
- * @version      1.33 05/26/00
+ * @version      1.34 03/28/00
  * @author       David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public class GregorianCalendar extends Calendar {
