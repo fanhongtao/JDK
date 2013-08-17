@@ -172,7 +172,7 @@ package java.util;
  *
  * @see          Calendar
  * @see          TimeZone
- * @version      1.57
+ * @version      1.58
  * @author David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -1377,6 +1377,7 @@ public class GregorianCalendar extends Calendar {
             else if (era != AD)
                 throw new IllegalArgumentException("Invalid era");
         }
+        internalSet(ERA, era);
 
         // First, use the year to determine whether to use the Gregorian or the
         // Julian calendar. If the year is not the year of the cutover, this

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -74,7 +74,7 @@ import sun.awt.DebugHelper;
  * Windows are capable of generating the following window events:
  * WindowOpened, WindowClosed.
  *
- * @version 	1.142, 03/29/02
+ * @version 	1.145, 11/09/04
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -899,7 +899,14 @@ public class Window extends Container implements Accessible {
     void dispatchEventImpl(AWTEvent e) {
         switch(e.getID()) {
           case FocusEvent.FOCUS_GAINED:
-            setFocusOwner(this);
+            // Save 'this' as the focus owner only when the Focus request
+            // is 'permanent' or when 'this' is not an instance of Frame.
+            // The previous stored value has to be used in case of Frame
+            // receiving 'temporary' focus request.
+            if(((FocusEvent)e).isTemporary()==false ||
+               (this instanceof java.awt.Frame)==false){
+              setFocusOwner(this);
+            }
             break;
           case ComponentEvent.COMPONENT_RESIZED:
             invalidate();
