@@ -1,5 +1,5 @@
 /*
- * @(#)TimeZone.java	1.39 00/09/27
+ * @(#)TimeZone.java	1.40 01/01/11
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -81,7 +81,7 @@ import sun.security.action.GetPropertyAction;
  * @see          Calendar
  * @see          GregorianCalendar
  * @see          SimpleTimeZone
- * @version      1.39 09/27/00
+ * @version      1.40 01/11/01
  * @author       Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  */
 abstract public class TimeZone implements Serializable, Cloneable {

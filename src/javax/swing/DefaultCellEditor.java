@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultCellEditor.java	1.36 00/03/08
+ * @(#)DefaultCellEditor.java	1.37 01/01/23
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
@@ -33,7 +33,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.36 03/08/00
+ * @version 1.37 01/23/01
  * @author Philip Milne
  * @author Alan Chung
  */

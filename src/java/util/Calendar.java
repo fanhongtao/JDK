@@ -1,5 +1,5 @@
 /*
- * @(#)Calendar.java	1.44 00/03/08
+ * @(#)Calendar.java	1.45 01/01/23
  *
  * (C) Copyright Taligent, Inc. 1996-1998 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved
@@ -253,7 +253,7 @@ import java.text.DateFormat;
  * @see          GregorianCalendar
  * @see          TimeZone
  * @see          java.text.DateFormat
- * @version      1.44
+ * @version      1.45
  * @author Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  */
 public abstract class Calendar implements Serializable, Cloneable {

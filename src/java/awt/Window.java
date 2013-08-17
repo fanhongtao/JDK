@@ -1,7 +1,7 @@
 /*
- * @(#)Window.java	1.115 00/03/08
+ * @(#)Window.java	1.116 01/01/23
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You

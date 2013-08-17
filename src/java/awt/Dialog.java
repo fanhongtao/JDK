@@ -1,7 +1,7 @@
 /*
- * @(#)Dialog.java	1.60 00/04/06
+ * @(#)Dialog.java	1.61 01/01/23
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
@@ -58,7 +58,7 @@ import sun.awt.AxBridgeHelper;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.60, 04/06/00
+ * @version 	1.61, 01/23/01
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0

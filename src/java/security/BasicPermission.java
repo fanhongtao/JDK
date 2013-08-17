@@ -262,7 +262,7 @@ implements java.io.Serializable
  * @see java.security.Permissions
  * @see java.security.PermissionsImpl
  *
- * @version 1.18 00/11/26
+ * @version 1.18 01/03/25
  *
  * @author Roland Schemers
  */

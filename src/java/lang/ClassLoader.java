@@ -1,7 +1,7 @@
 /*
- * @(#)ClassLoader.java	1.129 00/05/19
+ * @(#)ClassLoader.java	1.130 01/01/23
  *
- * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1994-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
@@ -127,7 +127,7 @@ import sun.misc.CompoundEnumeration;
  *     }
  * </pre></blockquote><hr>
  *
- * @version 1.129, 05/19/00
+ * @version 1.130, 01/23/01
  * @see     java.lang.Class
  * @see     java.lang.Class#newInstance()
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
@@ -1104,7 +1104,7 @@ public abstract class ClassLoader {
      * by the VM when it loads the library, and used by the VM to pass
      * the correct version of JNI to the native methods.
      *
-     * @version 1.129, 05/19/00
+     * @version 1.130, 01/23/01
      * @see     java.lang.ClassLoader
      * @since   JDK1.2
      */ 

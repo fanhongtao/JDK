@@ -1,7 +1,7 @@
 /*
- * @(#)EventQueue.java	1.53 00/03/08
+ * @(#)EventQueue.java	1.54 01/01/23
  *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
@@ -28,7 +28,7 @@ import sun.awt.SunToolkit;
  * from the underlying peer classes and from trusted application classes.
  * There is only one EventQueue for each AppContext.
  *
- * @version 1.53 03/08/00
+ * @version 1.54 01/23/01
  * @author Thomas Ball
  * @author Fred Ecks
  * @author David Mendenhall

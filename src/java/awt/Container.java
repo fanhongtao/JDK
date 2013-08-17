@@ -1,7 +1,7 @@
 /*
- * @(#)Container.java	1.161 00/03/08
+ * @(#)Container.java	1.162 01/01/23
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
@@ -38,7 +38,7 @@ import java.awt.event.WindowEvent;
  * within the container.  If no index is specified when adding a
  * component to a container, it will be added to the end of the list
  * (and hence to the bottom of the stacking order).
- * @version 	1.161 03/08/00
+ * @version 	1.162 01/23/01
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see       java.awt.Container#add(java.awt.Component, int)

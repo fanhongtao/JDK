@@ -71,7 +71,7 @@ import java.util.Random;
  * interpreted similarly. 
  *
  * @see     BigDecimal
- * @version 1.26, 00/11/26
+ * @version 1.26, 01/03/25
  * @author  Josh Bloch
  * @since JDK1.1
  */

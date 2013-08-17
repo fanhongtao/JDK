@@ -1,7 +1,7 @@
 /*
- * @(#)interpreter.h	1.212 00/08/03
+ * @(#)interpreter.h	1.213 01/01/23
  *
- * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1994-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You

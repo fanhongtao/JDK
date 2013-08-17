@@ -1,7 +1,7 @@
 /*
- * @(#)EventDispatchThread.java	1.32 00/03/08
+ * @(#)EventDispatchThread.java	1.33 01/01/23
  *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
@@ -30,7 +30,7 @@ import java.awt.event.InputEvent;
  * secondary event pump will exit automatically as soon as the Condtional
  * evaluate()s to false and an additional Event is pumped and dispatched.
  *
- * @version 1.32 03/08/00
+ * @version 1.33 01/23/01
  * @author Tom Ball
  * @author Amy Fowler
  * @author Fred Ecks

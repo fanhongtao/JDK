@@ -1,7 +1,7 @@
 /*
- * @(#)DataFlavor.java	1.33 00/03/08
+ * @(#)DataFlavor.java	1.34 01/01/23
  *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
@@ -23,7 +23,7 @@ import java.io.IOException;
  * Each instance represents the opaque concept of a data format as would
  * appear on a clipboard, during drag and drop, or in a file system.
  *
- * @version     1, 33
+ * @version     1, 34
  * @author	Blake Sullivan
  * @author	Laurence P. G. Cable
  */

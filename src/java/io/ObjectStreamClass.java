@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectStreamClass.java	1.79 00/03/08
+ * @(#)ObjectStreamClass.java	1.80 01/01/23
  *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You

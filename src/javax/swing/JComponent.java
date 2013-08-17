@@ -1,7 +1,7 @@
 /*
- * @(#)JComponent.java	2.111 00/03/08
+ * @(#)JComponent.java	2.112 01/01/23
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
@@ -86,7 +86,7 @@ import java.awt.Graphics2D;
  * @see #setToolTipText
  * @see #setAutoscrolls
  *
- * @version 2.111 03/08/00
+ * @version 2.112 01/23/01
  * @author Hans Muller
  * @author Arnaud Weber
  */

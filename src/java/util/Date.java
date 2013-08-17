@@ -1,7 +1,7 @@
 /*
- * @(#)Date.java	1.62 00/03/08
+ * @(#)Date.java	1.64 01/01/31
  *
- * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1994-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
@@ -106,7 +106,7 @@ import java.lang.ref.SoftReference;
  * @author  James Gosling
  * @author  Arthur van Hoff
  * @author  Alan Liu
- * @version 1.62 03/08/00
+ * @version 1.64 01/31/01
  * @see     java.text.DateFormat
  * @see     java.util.Calendar
  * @see     java.util.TimeZone
@@ -1179,9 +1179,12 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
         cal.set(field, value);
     }
 
-    private static void makeStaticCalendars() {
-	staticCal = new GregorianCalendar();
-        utcCal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-        defaultCenturyStart = staticCal.get(Calendar.YEAR) - 80;
+    private synchronized static void makeStaticCalendars() {
+	if (staticCal == null) {
+	    GregorianCalendar calendar = new GregorianCalendar();
+	    utcCal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+	    defaultCenturyStart = calendar.get(Calendar.YEAR) - 80;
+	    staticCal = calendar;
+	}
     }
 }

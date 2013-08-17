@@ -1,7 +1,7 @@
 /*
- * @(#)BasicComboPopup.java	1.25 00/03/08
+ * @(#)BasicComboPopup.java	1.26 01/01/23
  *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1998-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
