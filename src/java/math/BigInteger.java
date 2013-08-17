@@ -1,7 +1,7 @@
 /*
- * @(#)BigInteger.java	1.27 01/11/29
+ * @(#)BigInteger.java	1.29 03/05/15
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -64,7 +64,7 @@ import java.util.Random;
  * interpreted similarly. 
  *
  * @see     BigDecimal
- * @version 1.27, 03/02/27
+ * @version 1.29, 03/06/16
  * @author  Josh Bloch
  * @since JDK1.1
  */
@@ -241,7 +241,11 @@ public class BigInteger extends Number implements Comparable {
 	if (firstGroupLen == 0)
 	    firstGroupLen = digitsPerLong[radix];
 	String group = val.substring(cursor, cursor += firstGroupLen);
-	BigInteger tmp = valueOf(Long.parseLong(group, radix));
+        long tmpLong = Long.parseLong(group, radix);
+        if (tmpLong < 0)
+            throw new NumberFormatException("Illegal digit");
+
+        BigInteger tmp = valueOf(tmpLong);
 
 	// Process remaining digit groups
 	while (cursor < val.length()) {

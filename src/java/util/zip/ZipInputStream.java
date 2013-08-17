@@ -1,7 +1,7 @@
 /*
- * @(#)ZipInputStream.java	1.24 01/11/29
+ * @(#)ZipInputStream.java	1.27 03/05/15
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import java.io.PushbackInputStream;
  * entries.
  *
  * @author	David Connelly
- * @version	1.24, 11/29/01
+ * @version	1.27, 05/15/03
  */
 public
 class ZipInputStream extends InflaterInputStream implements ZipConstants {
@@ -123,6 +123,12 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
      */
     public int read(byte[] b, int off, int len) throws IOException {
         ensureOpen();
+        if (off < 0 || len < 0 || off > b.length - len) {
+            throw new IndexOutOfBoundsException();
+        } else if (len == 0) {
+            return 0;
+        }
+
 	if (entry == null) {
 	    return -1;
 	}

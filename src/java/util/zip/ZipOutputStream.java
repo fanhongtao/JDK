@@ -1,7 +1,7 @@
 /*
- * @(#)ZipOutputStream.java	1.19 01/11/29
+ * @(#)ZipOutputStream.java	1.21 03/05/15
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.util.Enumeration;
  * entries.
  *
  * @author	David Connelly
- * @version	1.19, 11/29/01
+ * @version	1.21, 05/15/03
  */
 public
 class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
@@ -244,6 +244,12 @@ class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
 	throws IOException
     {
 	ensureOpen();
+        if (off < 0 || len < 0 || off > b.length - len) {
+            throw new IndexOutOfBoundsException();
+        } else if (len == 0) {
+            return;
+        }
+
 	if (entry == null) {
 	    throw new ZipException("no current ZIP entry");
 	}

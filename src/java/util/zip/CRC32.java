@@ -1,7 +1,7 @@
 /*
- * @(#)CRC32.java	1.22 01/11/29
+ * @(#)CRC32.java	1.24 03/05/15
  *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package java.util.zip;
  * A class that can be used to compute the CRC-32 of a data stream.
  *
  * @see		Checksum
- * @version 	1.22, 11/29/01
+ * @version 	1.24, 05/15/03
  * @author 	David Connelly
  */
 public
@@ -47,7 +47,7 @@ class CRC32 implements Checksum {
 	if (b == null) {
 	    throw new NullPointerException();
 	}
-	if (off < 0 || len < 0 || off + len > b.length) {
+	if (off < 0 || len < 0 || off > b.length - len) {
 	    throw new ArrayIndexOutOfBoundsException();
 	}
 	crc = updateBytes(crc, b, off, len);
