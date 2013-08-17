@@ -1,5 +1,5 @@
 /*
- * @(#)SocketInputStream.java	1.23 00/02/02
+ * @(#)SocketInputStream.java	1.24 01/09/17
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -12,13 +12,14 @@ package java.net;
 
 import java.io.IOException;
 import java.io.FileInputStream;
+import java.io.FileDescriptor;
 
 /**
  * This stream extends FileInputStream to implement a
  * SocketInputStream. Note that this class should <b>NOT</b> be
  * public.
  *
- * @version     1.23, 02/02/00
+ * @version     1.24, 09/17/01
  * @author	Jonathan Payne
  * @author	Arthur van Hoff
  */
@@ -29,7 +30,7 @@ class SocketInputStream extends FileInputStream
     }
     
     private boolean eof;
-    private SocketImpl impl;
+    private PlainSocketImpl impl;
     private byte temp[]; 
 
     /**
@@ -38,7 +39,7 @@ class SocketInputStream extends FileInputStream
      * that the fd will not be closed.
      * @param impl the implemented socket input stream
      */
-    SocketInputStream(SocketImpl impl) throws IOException {
+    SocketInputStream(PlainSocketImpl impl) throws IOException {
 	super(impl.getFileDescriptor());
 	this.impl = impl;
     }
@@ -78,13 +79,22 @@ class SocketInputStream extends FileInputStream
      * @exception IOException If an I/O error has occurred.
      */
     public int read(byte b[], int off, int length) throws IOException {
+	int n;
 	if (eof) {
 	    return -1;
 	}
         if (length == 0)
             return 0;
-	int n = socketRead(b, off, length);
+	FileDescriptor fd = impl.acquireFD(); 
+	try {
+		n = socketRead(b, off, length);
+	} finally {
+		impl.releaseFD(); 
+	}
 	if (n <= 0) {
+		if (impl.isClosedOrPending()) {
+			throw new SocketException("Socket closed");
+		}
 	    eof = true;
 	    return -1;
 	}

@@ -1,5 +1,5 @@
 /*
- * @(#)ColorModel.java	1.68 00/02/02
+ * @(#)ColorModel.java	1.70 01/10/01
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -12,7 +12,12 @@ package java.awt.image;
 
 import java.awt.Transparency;
 import java.awt.color.ColorSpace;
+import java.awt.color.ICC_ColorSpace;
+import sun.awt.color.ICC_Transform;
 import java.awt.Toolkit;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * The <code>ColorModel</code> abstract class encapsulates the
@@ -1003,15 +1008,15 @@ public abstract class ColorModel implements Transparency{
             for (int i=0; i < numColorComponents; i++) {
                 components[offset+i] = (int) (normComponents[normOffset+i]
                                               * ((1<<nBits[i]) - 1)
-                                              * normAlpha + .5);
+                                              * normAlpha + 0.5f);
             }
             components[offset+numColorComponents] = (int)
-                (normAlpha * (1<<nBits[numColorComponents] - 1) + .5);
+                (normAlpha * (1<<nBits[numColorComponents] - 1) + 0.5f);
         }
         else {
             for (int i=0; i < numComponents; i++) {
                 components[offset+i] = (int) (normComponents[normOffset+i]
-                                              * ((1<<nBits[i]) - 1));
+                                              * ((1<<nBits[i]) - 1) + 0.5f);
             }
         }
         
@@ -1083,18 +1088,18 @@ public abstract class ColorModel implements Transparency{
         if (supportsAlpha && isAlphaPremultiplied) {
             // Normalized coordinates are non premultiplied
             float normAlpha = (float)components[offset+numColorComponents];
-            normAlpha /= ((1<<nBits[numColorComponents]) - 1.f);
+            normAlpha /= ((1<<nBits[numColorComponents]) - 1);
             for (int i=0; i < numColorComponents; i++) {
                 normComponents[normOffset+i] =
-                    ((float)components[offset+i]) /
-                    (normAlpha * ((1<<nBits[i]) - 1.f));
+                    ((float) components[offset+i]) /
+                    (normAlpha * ((1<<nBits[i]) - 1));
             }
             normComponents[normOffset+numColorComponents] = normAlpha;
         }
         else {
             for (int i=0; i < numComponents; i++) {
                 normComponents[normOffset+i] =
-                    (float) components[offset+i] / ((1<<nBits[i]) - 1.f);
+                    (float) components[offset+i] / ((1<<nBits[i]) - 1);
             }
         }
 
@@ -1424,6 +1429,267 @@ public abstract class ColorModel implements Transparency{
         } else {
             return DataBuffer.TYPE_UNDEFINED;
         }
+    }
+
+    static byte[] l8Tos8 = null;   // 8-bit linear to 8-bit non-linear sRGB LUT
+    static byte[] s8Tol8 = null;   // 8-bit non-linear sRGB to 8-bit linear LUT
+    static byte[] l16Tos8 = null;  // 16-bit linear to 8-bit non-linear sRGB LUT
+    static short[] s8Tol16 = null; // 8-bit non-linear sRGB to 16-bit linear LUT
+
+                                // Maps to hold LUTs for grayscale conversions
+    static Map g8Tos8Map = null;     // 8-bit gray values to 8-bit sRGB values
+    static Map lg16Toog8Map = null;  // 16-bit linear to 8-bit "other" gray
+    static Map g16Tos8Map = null;    // 16-bit gray values to 8-bit sRGB values
+    static Map lg16Toog16Map = null; // 16-bit linear to 16-bit "other" gray
+
+    static boolean isLinearRGBspace(ColorSpace cs) {
+        return (cs == ColorSpace.getInstance(ColorSpace.CS_LINEAR_RGB));
+    }
+
+    static boolean isLinearGRAYspace(ColorSpace cs) {
+        return (cs == ColorSpace.getInstance(ColorSpace.CS_GRAY));
+    }
+
+    static byte[] getLinearRGB8TosRGB8LUT() {
+        if (l8Tos8 == null) {
+            l8Tos8 = new byte[256];
+            float input, output;
+            // algorithm for linear RGB to nonlinear sRGB conversion
+            // is from the IEC 61966-2-1 International Standard,
+            // Colour Management - Default RGB colour space - sRGB,
+            // First Edition, 1999-10,
+            // avaiable for order at http://www.iec.ch
+            for (int i = 0; i <= 255; i++) {
+                input = ((float) i) / 255.0f;
+                if (input <= 0.0031308f) {
+                    output = input * 12.92f;
+                } else {
+                    output = 1.055f * ((float) Math.pow(input, (1.0 / 2.4)))
+                             - 0.055f;
+                }
+                l8Tos8[i] = (byte) Math.round(output * 255.0f);
+            }
+        }
+        return l8Tos8;
+    }
+
+    static byte[] getsRGB8ToLinearRGB8LUT() {
+        if (s8Tol8 == null) {
+            s8Tol8 = new byte[256];
+            float input, output;
+            // algorithm from IEC 61966-2-1 International Standard
+            for (int i = 0; i <= 255; i++) {
+                input = ((float) i) / 255.0f;
+                if (input <= 0.04045f) {
+                    output = input / 12.92f;
+                } else {
+                    output = (float) Math.pow((input + 0.055f) / 1.055f, 2.4);
+                }
+                s8Tol8[i] = (byte) Math.round(output * 255.0f);
+            }
+        }
+        return s8Tol8;
+    }
+
+    static byte[] getLinearRGB16TosRGB8LUT() {
+        if (l16Tos8 == null) {
+            l16Tos8 = new byte[65536];
+            float input, output;
+            // algorithm from IEC 61966-2-1 International Standard
+            for (int i = 0; i <= 65535; i++) {
+                input = ((float) i) / 65535.0f;
+                if (input <= 0.0031308f) {
+                    output = input * 12.92f;
+                } else {
+                    output = 1.055f * ((float) Math.pow(input, (1.0 / 2.4)))
+                             - 0.055f;
+                }
+                l16Tos8[i] = (byte) Math.round(output * 255.0f);
+            }
+        }
+        return l16Tos8;
+    }
+
+    static short[] getsRGB8ToLinearRGB16LUT() {
+        if (s8Tol16 == null) {
+            s8Tol16 = new short[256];
+            float input, output;
+            // algorithm from IEC 61966-2-1 International Standard
+            for (int i = 0; i <= 255; i++) {
+                input = ((float) i) / 255.0f;
+                if (input <= 0.04045f) {
+                    output = input / 12.92f;
+                } else {
+                    output = (float) Math.pow((input + 0.055f) / 1.055f, 2.4);
+                }
+                s8Tol16[i] = (short) Math.round(output * 65535.0f);
+            }
+        }
+        return s8Tol16;
+    }
+
+    /*
+     * Return a byte LUT that converts 8-bit gray values in the grayCS
+     * ColorSpace to the appropriate 8-bit sRGB value.  I.e., if lut
+     * is the byte array returned by this method and sval = lut[gval],
+     * then the sRGB triple (sval,sval,sval) is the best match to gval.
+     * Cache references to any computed LUT in a Map.
+     */
+    static byte[] getGray8TosRGB8LUT(ICC_ColorSpace grayCS) {
+        if (isLinearGRAYspace(grayCS)) {
+            return getLinearRGB8TosRGB8LUT();
+        }
+        if (g8Tos8Map != null) {
+            byte[] g8Tos8LUT = (byte []) g8Tos8Map.get(grayCS);
+            if (g8Tos8LUT != null) {
+                return g8Tos8LUT;
+            }
+        }
+        byte[] g8Tos8LUT = new byte[256];
+        for (int i = 0; i <= 255; i++) {
+            g8Tos8LUT[i] = (byte) i;
+        }
+        ICC_Transform[] transformList = new ICC_Transform[2];
+        ICC_ColorSpace srgbCS =
+            (ICC_ColorSpace) ColorSpace.getInstance(ColorSpace.CS_sRGB);
+        transformList[0] = new ICC_Transform (
+            grayCS.getProfile(), ICC_Transform.Any, ICC_Transform.In);
+        transformList[1] = new ICC_Transform (
+            srgbCS.getProfile(), ICC_Transform.Any, ICC_Transform.Out);
+        ICC_Transform t = new ICC_Transform(transformList);
+        byte[] tmp = t.colorConvert(g8Tos8LUT, null);
+        for (int i = 0, j= 2; i <= 255; i++, j += 3) {
+            // All three components of tmp should be equal, since
+            // the input color space to colorConvert is a gray scale
+            // space.  However, there are slight anomalies in the results.
+            // Copy tmp starting at index 2, since colorConvert seems
+            // to be slightly more accurate for the third component!
+            g8Tos8LUT[i] = tmp[j];
+        }
+        if (g8Tos8Map == null) {
+            g8Tos8Map = Collections.synchronizedMap(new WeakHashMap(2));
+        }
+        g8Tos8Map.put(grayCS, g8Tos8LUT);
+        return g8Tos8LUT;
+    }
+
+    /*
+     * Return a byte LUT that converts 16-bit gray values in the CS_GRAY
+     * linear gray ColorSpace to the appropriate 8-bit value in the
+     * grayCS ColorSpace.  Cache references to any computed LUT in a Map.
+     */
+    static byte[] getLinearGray16ToOtherGray8LUT(ICC_ColorSpace grayCS) {
+        if (lg16Toog8Map != null) {
+            byte[] lg16Toog8LUT = (byte []) lg16Toog8Map.get(grayCS);
+            if (lg16Toog8LUT != null) {
+                return lg16Toog8LUT;
+            }
+        }
+        short[] tmp = new short[65536];
+        for (int i = 0; i <= 65535; i++) {
+            tmp[i] = (short) i;
+        }
+        ICC_Transform[] transformList = new ICC_Transform[2];
+        ICC_ColorSpace lgCS =
+            (ICC_ColorSpace) ColorSpace.getInstance(ColorSpace.CS_GRAY);
+        transformList[0] = new ICC_Transform (
+            lgCS.getProfile(), ICC_Transform.Any, ICC_Transform.In);
+        transformList[1] = new ICC_Transform (
+            grayCS.getProfile(), ICC_Transform.Any, ICC_Transform.Out);
+        ICC_Transform t = new ICC_Transform(transformList);
+        tmp = t.colorConvert(tmp, null);
+        byte[] lg16Toog8LUT = new byte[65536];
+        for (int i = 0; i <= 65535; i++) {
+            // scale unsigned short (0 - 65535) to unsigned byte (0 - 255)
+            lg16Toog8LUT[i] =
+                (byte) (((float) (tmp[i] & 0xffff)) * (1.0f /257.0f) + 0.5f);
+        }
+        if (lg16Toog8Map == null) {
+            lg16Toog8Map = Collections.synchronizedMap(new WeakHashMap(2));
+        }
+        lg16Toog8Map.put(grayCS, lg16Toog8LUT);
+        return lg16Toog8LUT;
+    }
+
+    /*
+     * Return a byte LUT that converts 16-bit gray values in the grayCS
+     * ColorSpace to the appropriate 8-bit sRGB value.  I.e., if lut
+     * is the byte array returned by this method and sval = lut[gval],
+     * then the sRGB triple (sval,sval,sval) is the best match to gval.
+     * Cache references to any computed LUT in a Map.
+     */
+    static byte[] getGray16TosRGB8LUT(ICC_ColorSpace grayCS) {
+        if (isLinearGRAYspace(grayCS)) {
+            return getLinearRGB16TosRGB8LUT();
+        }
+        if (g16Tos8Map != null) {
+            byte[] g16Tos8LUT = (byte []) g16Tos8Map.get(grayCS);
+            if (g16Tos8LUT != null) {
+                return g16Tos8LUT;
+            }
+        }
+        short[] tmp = new short[65536];
+        for (int i = 0; i <= 65535; i++) {
+            tmp[i] = (short) i;
+        }
+        ICC_Transform[] transformList = new ICC_Transform[2];
+        ICC_ColorSpace srgbCS =
+            (ICC_ColorSpace) ColorSpace.getInstance(ColorSpace.CS_sRGB);
+        transformList[0] = new ICC_Transform (
+            grayCS.getProfile(), ICC_Transform.Any, ICC_Transform.In);
+        transformList[1] = new ICC_Transform (
+            srgbCS.getProfile(), ICC_Transform.Any, ICC_Transform.Out);
+        ICC_Transform t = new ICC_Transform(transformList);
+        tmp = t.colorConvert(tmp, null);
+        byte[] g16Tos8LUT = new byte[65536];
+        for (int i = 0, j= 2; i <= 65535; i++, j += 3) {
+            // All three components of tmp should be equal, since
+            // the input color space to colorConvert is a gray scale
+            // space.  However, there are slight anomalies in the results.
+            // Copy tmp starting at index 2, since colorConvert seems
+            // to be slightly more accurate for the third component!
+
+            // scale unsigned short (0 - 65535) to unsigned byte (0 - 255)
+            g16Tos8LUT[i] =
+                (byte) (((float) (tmp[j] & 0xffff)) * (1.0f /257.0f) + 0.5f);
+        }
+        if (g16Tos8Map == null) {
+            g16Tos8Map = Collections.synchronizedMap(new WeakHashMap(2));
+        }
+        g16Tos8Map.put(grayCS, g16Tos8LUT);
+        return g16Tos8LUT;
+    }
+
+    /*
+     * Return a short LUT that converts 16-bit gray values in the CS_GRAY
+     * linear gray ColorSpace to the appropriate 16-bit value in the
+     * grayCS ColorSpace.  Cache references to any computed LUT in a Map.
+     */
+    static short[] getLinearGray16ToOtherGray16LUT(ICC_ColorSpace grayCS) {
+        if (lg16Toog16Map != null) {
+            short[] lg16Toog16LUT = (short []) lg16Toog16Map.get(grayCS);
+            if (lg16Toog16LUT != null) {
+                return lg16Toog16LUT;
+            }
+        }
+        short[] tmp = new short[65536];
+        for (int i = 0; i <= 65535; i++) {
+            tmp[i] = (short) i;
+        }
+        ICC_Transform[] transformList = new ICC_Transform[2];
+        ICC_ColorSpace lgCS =
+            (ICC_ColorSpace) ColorSpace.getInstance(ColorSpace.CS_GRAY);
+        transformList[0] = new ICC_Transform (
+            lgCS.getProfile(), ICC_Transform.Any, ICC_Transform.In);
+        transformList[1] = new ICC_Transform (
+            grayCS.getProfile(), ICC_Transform.Any, ICC_Transform.Out);
+        ICC_Transform t = new ICC_Transform(transformList);
+        short[] lg16Toog16LUT = t.colorConvert(tmp, null);
+        if (lg16Toog16Map == null) {
+            lg16Toog16Map = Collections.synchronizedMap(new WeakHashMap(2));
+        }
+        lg16Toog16Map.put(grayCS, lg16Toog16LUT);
+        return lg16Toog16LUT;
     }
 
 }

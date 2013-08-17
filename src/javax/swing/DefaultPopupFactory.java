@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultPopupFactory.java	1.13 01/06/14
+ * @(#)DefaultPopupFactory.java	1.15 01/09/23
  *
  * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -40,6 +40,15 @@ class DefaultPopupFactory implements PopupFactory {
 
     private static final int MAX_CACHE_SIZE = 5;
     private boolean lightWeightPopupEnabled = true;
+    static boolean popupPostionFixEnabled = false;
+
+   
+    /** Bug#4425878-Property javax.swing.adjustPopupLocationToFit introduced */
+    static {
+        popupPostionFixEnabled = java.security.AccessController.
+        doPrivileged( new sun.security.action.GetPropertyAction(
+        "javax.swing.adjustPopupLocationToFit","")).equals("true");
+    }
 
     /** A light weight popup is used when it fits and light weight popups are enabled **/
     private static final int LIGHT_WEIGHT_POPUP   = 0;
@@ -166,6 +175,39 @@ class DefaultPopupFactory implements PopupFactory {
     }
 
     
+    boolean  adjustPopuLocationToFitScreen(Point p) {
+        if(popupPostionFixEnabled == false)
+	    return false;
+	if(component == null)
+    	    return false;
+
+	int scrWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
+	int scrHeight = Toolkit.getDefaultToolkit().getScreenSize().height;
+
+	int oldX = p.x;
+	int oldY = p.y;
+	Dimension size;
+
+        size = component.getPreferredSize();
+
+        if( (p.x + size.width) > scrWidth )
+             p.x = scrWidth - size.width;
+
+        if( (p.y + size.height) > scrHeight)
+	     p.y = scrHeight - size.height;
+
+        /* Change is made to the desired (X,Y) values, when the
+           PopupMenu is too tall OR too wide for the screen
+        */
+        if( p.x < 0 )
+            p.x = 0 ;  //oldX;
+        if( p.y < 0 )
+            p.y = 0; //oldY;
+
+        return true;
+
+    }
+
     static void recycleLightPopup(Popup aPopup) {
 	synchronized (classLock) {
 	    Vector lightPopupCache = getLightPopupCache();
@@ -273,8 +315,6 @@ class DefaultPopupFactory implements PopupFactory {
                     r.x = p.x;
                     r.y = p.y;
                     return SwingUtilities.isRectangleContainingRectangle(r,popupRectInScreen);
-                } else if(parent instanceof java.awt.Frame) {
-                    return SwingUtilities.isRectangleContainingRectangle(parent.getBounds(),popupRectInScreen);                    
                 }
             }
         }
@@ -356,6 +396,12 @@ class DefaultPopupFactory implements PopupFactory {
 	    break;
 	}
 	popupType = lastPopupType;
+	Point p = new Point(desiredLocationX,desiredLocationY);
+        if( adjustPopuLocationToFitScreen(p) == true )
+        {
+            this.desiredLocationX = p.x;
+            this.desiredLocationY = p.y;
+        }
 	popup.setLocationOnScreen(desiredLocationX,desiredLocationY);
 	popup.addComponent(component,"Center");
 	// popup.setBackground(component.getBackground());

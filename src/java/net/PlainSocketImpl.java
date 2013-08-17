@@ -1,5 +1,5 @@
 /*
- * @(#)PlainSocketImpl.java	1.41 01/02/09
+ * @(#)PlainSocketImpl.java	1.42 01/09/19
  *
  * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -23,7 +23,7 @@ import java.io.ByteArrayOutputStream;
  * Note this class should <b>NOT</b> be public.
  *
  * @author  Steven B. Byrne
- * @version 1.41, 02/09/01
+ * @version 1.42, 09/19/01
  */
 class PlainSocketImpl extends SocketImpl
 {
@@ -55,7 +55,16 @@ class PlainSocketImpl extends SocketImpl
     private boolean shut_wr = false;
     
     private SocketInputStream socketInputStream = null;
-    /**
+	/* number of threads using the FileDescriptor */
+	private int fdUseCount = 0;
+	
+	/* lock when increment/decrementing fdUseCount */
+	private Object fdLock = new Object();
+	
+	/* indicates a close is pending on the file descriptor */
+	private boolean closePending = false;    
+
+	/**
      * Load net library into runtime.
      */
     static {
@@ -246,10 +255,27 @@ class PlainSocketImpl extends SocketImpl
      * Read the response from the socks server.  Return the result code.
      */
     private int getSOCKSReply() throws IOException {
-	InputStream in = getInputStream();
+     InputStream in = null;
 	byte response[] = new byte[8];
         int bytesReceived = 0;
         int len = response.length;
+
+
+
+try {
+ 	    in = (InputStream) java.security.AccessController.doPrivileged(
+ 		       new java.security.PrivilegedExceptionAction() {
+ 			       public Object run() throws IOException {
+ 				   return getInputStream();
+ 			       }
+ 			   });
+ 	} catch(java.security.PrivilegedActionException pae) {
+ 	    throw (IOException) pae.getException();
+ 	}
+
+
+
+
 
 	for (int attempts = 0; bytesReceived<len &&  attempts<3; attempts++) {
 	    int count = in.read(response, bytesReceived, len - bytesReceived);
@@ -276,10 +302,9 @@ class PlainSocketImpl extends SocketImpl
      */
     private void connectToSocksServer() throws IOException {
 
-	String socksServerString = null;
 	String socksPortString = null;
 
-	socksServerString = (String) java.security.AccessController.doPrivileged(
+	final String socksServerString = (String) java.security.AccessController.doPrivileged(
                new sun.security.action.GetPropertyAction(socksServerProp));
 	socksPortString = (String) java.security.AccessController.doPrivileged(
                new sun.security.action.GetPropertyAction(socksPortProp,
@@ -293,7 +318,17 @@ class PlainSocketImpl extends SocketImpl
 	    return;
 	}
 
-	InetAddress socksServer = InetAddress.getByName(socksServerString);
+	InetAddress socksServer = null; 
+                // InetAddress.getByName(socksServerString);
+try {	
+       socksServer = (InetAddress)java.security.AccessController.doPrivileged(new java.security.PrivilegedExceptionAction() {
+      public Object run() throws UnknownHostException {
+      return InetAddress.getByName(socksServerString);
+       }
+ 			});
+ 	} catch(java.security.PrivilegedActionException pae) {
+ 	    throw (UnknownHostException) pae.getException();
+ 	}
 
 	int socksServerPort;
 	try {
@@ -346,7 +381,19 @@ class PlainSocketImpl extends SocketImpl
 					int port) throws IOException {
 
         byte commandPacket[] = makeCommandPacket(command, address, port);
-	OutputStream out = getOutputStream();
+
+
+       OutputStream out = null;
+ 	try {
+ 	    out = (OutputStream) java.security.AccessController.doPrivileged(
+ 		       new java.security.PrivilegedExceptionAction() {
+ 			       public Object run() throws IOException {
+ 				   return getOutputStream();
+ 			       }
+ 			   });
+ 	} catch(java.security.PrivilegedActionException pae) {
+ 	    throw (IOException) pae.getException();
+ 	}
 
 	out.write(commandPacket);
     }
@@ -425,7 +472,7 @@ class PlainSocketImpl extends SocketImpl
      * Gets an InputStream for this socket.
      */
     protected synchronized InputStream getInputStream() throws IOException {
-	if (fd == null) {
+	if (isClosedOrPending()) {
 	    throw new IOException("Socket Closed");
 	}
 	if (shut_rd) {
@@ -441,7 +488,7 @@ class PlainSocketImpl extends SocketImpl
      * Gets an OutputStream for this socket.
      */
     protected synchronized OutputStream getOutputStream() throws IOException {
-	if (fd == null) {
+	if (isClosedOrPending()) {
 	    throw new IOException("Socket Closed");
 	}
         if (shut_wr) {
@@ -454,7 +501,7 @@ class PlainSocketImpl extends SocketImpl
      * Returns the number of bytes that can be read without blocking.
      */
     protected synchronized int available() throws IOException {
-        if (fd == null)
+        if (isClosedOrPending())
             throw new IOException("Stream closed.");
 	return socketAvailable();
     }
@@ -462,12 +509,79 @@ class PlainSocketImpl extends SocketImpl
     /**
      * Closes the socket.
      */
-    protected void close() throws IOException {
-	if (fd != null) {
-	    socketClose();
-	    fd = null;
+	protected void close() throws IOException {
+		synchronized(fdLock) {
+			if (fd != null) {
+				if (fdUseCount == 0) {
+					closePending = true;
+					socketClose(false);
+					fd = null;
+					return;
+				} else {
+					/*
+					 * If a thread has acquired the fd and a close
+					 * isn't pending then use a deferred close.
+					 * Also decrement fdUseCount to signal the last
+					 * thread that releases the fd to close it.
+					 */
+					if (!closePending) {
+						closePending = true;
+						fdUseCount--;
+						socketClose(true);
+					}
+				}
+			}
+		}
 	}
-    }
+  
+	/*
+	 * "Acquires" and returns the FileDescriptor for this impl
+	 *
+	 * A corresponding releaseFD is required to "release" the
+	 * FileDescriptor.
+	 */
+	public final FileDescriptor acquireFD() {
+		synchronized (fdLock) {
+			fdUseCount++;
+			return fd;
+		}
+	}
+
+	/*
+	 * "Release" the FileDescriptor for this impl.
+	 *
+	 * If the use count goes to -1 then the socket is closed.
+	 */
+	public final void releaseFD() {
+		synchronized (fdLock) {
+			fdUseCount--;
+			if (fdUseCount == -1) {
+				if (fd != null) {
+					try {
+						socketClose(false);
+					} catch (IOException e) {
+					} finally {
+							fd = null;
+					}
+				}
+			}
+		}
+	}
+	
+	public boolean isClosedOrPending() {
+		/*
+		 * Lock on fdLock to ensure that we wait if a
+		 * close is in progress.
+		 */
+		synchronized (fdLock) {
+			if (closePending || fd == null) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+ 
 
     /**
      * Shutdown read-half of the socket connection;
@@ -510,7 +624,7 @@ class PlainSocketImpl extends SocketImpl
 	throws IOException;
     private native int socketAvailable()
 	throws IOException;
-    private native void socketClose()
+    private native void socketClose(boolean useDeferredClose)
 	throws IOException;
     private native void socketShutdown(int howto)
 	throws IOException;

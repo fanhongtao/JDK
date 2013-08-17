@@ -1,11 +1,11 @@
 /*
- * @(#)BasicSplitPaneUI.java	1.59 00/02/02
+ * @(#)BasicSplitPaneUI.java	1.61 01/09/24
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
+ *
+ * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
- * 
+ *
  */
 
 
@@ -29,7 +29,7 @@ import javax.swing.plaf.UIResource;
 /**
  * A Basic L&F implementation of the SplitPaneUI.
  *
- * @version 1.59 02/02/00
+ * @version 1.61 09/24/01
  * @author Scott Violet
  * @author Steve Wilson
  * @author Ralph Kar
@@ -261,7 +261,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
     /**
      * Installs the UI defaults.
      */
-    protected void installDefaults(){ 
+    protected void installDefaults(){
         LookAndFeel.installBorder(splitPane, "SplitPane.border");
 
         if (divider == null) divider = createDefaultDivider();
@@ -658,7 +658,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
             splitPane.repaint();
         }
     }
-    
+
 
     /**
      * Implementation of an ActionListener that the JSplitPane UI uses for
@@ -718,7 +718,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
             }
         }
     }
-    
+
 
     /**
      * Implementation of an ActionListener that the JSplitPane UI uses for
@@ -746,7 +746,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
             }
         }
     }
-    
+
 
     /**
      * Implementation of an ActionListener that the JSplitPane UI uses for
@@ -1079,7 +1079,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
             if(orientation == JSplitPane.HORIZONTAL_SPLIT) {
                 maxLoc = splitPaneSize.width - minSize.width;
             } else {
-                maxLoc = splitPaneSize.height - minSize.height; 
+                maxLoc = splitPaneSize.height - minSize.height;
             }
             maxLoc -= dividerSize;
             if(insets != null) {
@@ -1384,7 +1384,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
 		dividerLocationIsSet = false;
 	    }
 	    else if (availableSize != lastSplitPaneSize) {
-		distributeSpace(availableSize - lastSplitPaneSize);
+		distributeSpace(availableSize - lastSplitPaneSize, true);
 	    }
 	    doReset = false;
 	    dividerLocationIsSet = false;
@@ -1584,7 +1584,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
 
         /**
          * Returns the alignment along the x axis.  This specifies how
-         * the component would like to be aligned relative to other 
+         * the component would like to be aligned relative to other
          * components.  The value should be a number between 0 and 1
          * where 0 represents alignment along the origin, 1 is aligned
          * the furthest away from the origin, 0.5 is centered, etc.
@@ -1596,7 +1596,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
 
         /**
          * Returns the alignment along the y axis.  This specifies how
-         * the component would like to be aligned relative to other 
+         * the component would like to be aligned relative to other
          * components.  The value should be a number between 0 and 1
          * where 0 represents alignment along the origin, 1 is aligned
          * the furthest away from the origin, 0.5 is centered, etc.
@@ -1696,7 +1696,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
                                        Insets insets) {
             if(insets == null)
                 return getSizeForPrimaryAxis(containerSize);
-            return (getSizeForPrimaryAxis(containerSize) - 
+            return (getSizeForPrimaryAxis(containerSize) -
 		    (getSizeForPrimaryAxis(insets, true) +
 		     getSizeForPrimaryAxis(insets, false)));
         }
@@ -1782,7 +1782,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
 		return insets.top;
 	    }
 	    return insets.bottom;
-	} 
+	}
 
 	/**
 	 * Returns a particular value of the inset identified by the
@@ -1804,7 +1804,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
 		return insets.left;
 	    }
 	    return insets.right;
-	} 
+	}
 
         /**
          * Determines the components. This should be called whenever
@@ -1868,7 +1868,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
 				       components[0].isVisible());
 	    boolean          rValid = (components[1] != null &&
 				       components[1].isVisible());
-	    boolean          dValid = (components[2] != null && 
+	    boolean          dValid = (components[2] != null &&
 				       components[2].isVisible());
 	    int              max = availableSize;
 
@@ -1956,20 +1956,38 @@ public class BasicSplitPaneUI extends SplitPaneUI
 		}
 	    }
 	    setSizes(testSizes);
-	    distributeSpace(availableSize - totalSize);
+	    distributeSpace(availableSize - totalSize, false);
 	}
 
 	/**
-	 * Distributes <code>space</code> between the two components 
+	 * Distributes <code>space</code> between the two components
 	 * (divider won't get any extra space) based on the weighting. This
 	 * attempts to honor the min size of the components.
+         *
+	 * @param keepHidden if true and one of the components is 0x0
+         *                   it gets none of the extra space
 	 */
-	void distributeSpace(int space) {
+	 void distributeSpace(int space, boolean keepHidden) {
 	    boolean          lValid = (components[0] != null &&
 				       components[0].isVisible());
 	    boolean          rValid = (components[1] != null &&
 				       components[1].isVisible());
 
+            if (keepHidden) {
+                if (lValid && getSizeForPrimaryAxis(
+                                 components[0].getSize()) == 0) {
+                    lValid = false;
+                    if (rValid && getSizeForPrimaryAxis(
+                                     components[1].getSize()) == 0) {
+                        // Both aren't valid, force them both to be valid
+                        lValid = true;
+                    }
+                }
+                else if (rValid && getSizeForPrimaryAxis(
+                                   components[1].getSize()) == 0) {
+                    rValid = false;
+                }
+            }
 	    if (lValid && rValid) {
 		double        weight = splitPane.getResizeWeight();
 		int           lExtra = (int)(weight * (double)space);

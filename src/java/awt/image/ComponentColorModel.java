@@ -1,5 +1,5 @@
 /*
- * @(#)ComponentColorModel.java	1.54 00/02/02
+ * @(#)ComponentColorModel.java	1.57 01/10/23
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -11,6 +11,7 @@
 package java.awt.image;
 
 import java.awt.color.ColorSpace;
+import java.awt.color.ICC_ColorSpace;
 
 /**
  * A <CODE>ColorModel</CODE> class that works with pixel values that 
@@ -63,6 +64,15 @@ import java.awt.color.ColorSpace;
  * @version 10 Feb 1997
  */
 public class ComponentColorModel extends ColorModel {
+	private boolean is_LinearRGB;
+	private boolean is_LinearGray;
+	private boolean is_ICCGray;
+	private byte[] tosRGB8LUT;
+	private byte[] fromsRGB8LUT8;
+	private short[] fromsRGB8LUT16;
+	private byte[] fromLinearGray16ToOtherGray8LUT;
+	private short[] fromLinearGray16ToOtherGray16LUT;
+	
     
     /**
      * Constructs a <CODE>ComponentColorModel</CODE> from the specified 
@@ -113,9 +123,54 @@ public class ComponentColorModel extends ColorModel {
         super (DataBuffer.getDataTypeSize(transferType)*bits.length,
                bits, colorSpace, hasAlpha, isAlphaPremultiplied, transparency,
                transferType);
+        if (!is_sRGB) {
+            setupLUTs();
+        }
     }
 
-    /**
+    private void setupLUTs() {
+        if (ColorModel.isLinearRGBspace(colorSpace)) {
+            // Note that the built-in Linear RGB space has a normalized
+            // range of 0.0 - 1.0 for each coordinate.  Usage of these
+            // LUTs makes that assumption.
+            is_LinearRGB = true;
+            if (transferType == DataBuffer.TYPE_BYTE) {
+                tosRGB8LUT = ColorModel.getLinearRGB8TosRGB8LUT();
+                fromsRGB8LUT8 = ColorModel.getsRGB8ToLinearRGB8LUT();
+            } else {
+                tosRGB8LUT = ColorModel.getLinearRGB16TosRGB8LUT();
+                fromsRGB8LUT16 = ColorModel.getsRGB8ToLinearRGB16LUT();
+            }
+        } else if ((colorSpaceType == ColorSpace.TYPE_GRAY) &&
+                   (colorSpace instanceof ICC_ColorSpace)) {
+            // Note that a normalized range of 0.0 - 1.0 for the gray
+            // component is required, because usage of these LUTs makes
+            // that assumption.
+            ICC_ColorSpace ics = (ICC_ColorSpace) colorSpace;
+            is_ICCGray = true;
+            fromsRGB8LUT16 = ColorModel.getsRGB8ToLinearRGB16LUT();
+            if (ColorModel.isLinearGRAYspace(ics)) {
+                is_LinearGray = true;
+                if (transferType == DataBuffer.TYPE_BYTE) {
+                    tosRGB8LUT = ColorModel.getGray8TosRGB8LUT(ics);
+                } else {
+                    tosRGB8LUT = ColorModel.getGray16TosRGB8LUT(ics);
+                }
+            } else {
+                if (transferType == DataBuffer.TYPE_BYTE) {
+                    tosRGB8LUT = ColorModel.getGray8TosRGB8LUT(ics);
+                    fromLinearGray16ToOtherGray8LUT =
+                        ColorModel.getLinearGray16ToOtherGray8LUT(ics);
+                } else {
+                    tosRGB8LUT = ColorModel.getGray16TosRGB8LUT(ics);
+                    fromLinearGray16ToOtherGray16LUT =
+                        ColorModel.getLinearGray16ToOtherGray16LUT(ics);
+                }
+            }
+        }
+    }
+
+   /**
      * Returns the red color component for the specified pixel, scaled
      * from 0 to 255 in the default RGB ColorSpace, sRGB.  A color conversion
      * is done if necessary.  The pixel value is specified as an int.
@@ -142,7 +197,7 @@ public class ComponentColorModel extends ColorModel {
         float[] norm = { (float) pixel / ((1<<nBits[0]) - 1) };
         float[] rgb = colorSpace.toRGB(norm);
 
-        return (int) (rgb[0]*255);
+        return (int) (rgb[0] * 255.0f + 0.5f);
     }
 
     /**
@@ -172,7 +227,7 @@ public class ComponentColorModel extends ColorModel {
         float[] norm = { (float) pixel / ((1<<nBits[0]) - 1) };
         float[] rgb = colorSpace.toRGB(norm);
         
-        return (int) (rgb[1]*255);
+        return (int) (rgb[1] * 255.0f + 0.5f);
     }
 
     /**
@@ -202,7 +257,7 @@ public class ComponentColorModel extends ColorModel {
         float[] norm = { (float) pixel / ((1<<nBits[0]) - 1) };
         float[] rgb = colorSpace.toRGB(norm);
         
-        return (int) (rgb[2]*255);
+        return (int) (rgb[2] * 255.0f + 0.5f);
     }
 
     /**
@@ -225,7 +280,7 @@ public class ComponentColorModel extends ColorModel {
                 IllegalArgumentException("More than one component per pixel");
         }
 
-        return (pixel/((1<<nBits[0])-1))*255;
+        return (int) ((((float) pixel) / ((1<<nBits[0])-1)) * 255.0f + 0.5f);
     }
 
     /**
@@ -254,6 +309,94 @@ public class ComponentColorModel extends ColorModel {
 	    | (getBlue(pixel) << 0);
     }
 
+
+    private int getRGBComponent(Object inData, int idx) {
+        if (is_sRGB) {
+            return extractComponent(inData, idx, 8);
+        } else if (is_LinearRGB) {
+            int lutidx = extractComponent(inData, idx, 16);
+            return tosRGB8LUT[lutidx] & 0xff;
+        } else if (is_ICCGray) {
+            int lutidx = extractComponent(inData, 0, 16);
+            return tosRGB8LUT[lutidx] & 0xff;
+        }
+
+        // Not CS_sRGB, CS_LINEAR_RGB, or any TYPE_GRAY ICC_ColorSpace
+        float[] norm = getNormalizedComponents(inData, null, 0);
+        // Note that getNormalizedComponents returns non-premultiplied values
+        float[] rgb = colorSpace.toRGB(norm);
+        return (int) (rgb[idx] * 255.0f + 0.5f);
+    }
+   
+    private int extractComponent(Object inData, int idx, int precision) {
+        // Extract component idx from inData.  The precision argument
+        // should be either 8 or 16.  If it's 8, this method will return
+        // an 8-bit value.  If it's 16, this method will return a 16-bit
+        // value for transferTypes other than TYPE_BYTE.  For TYPE_BYTE,
+        // an 8-bit value will be returned.
+
+        // This method maps the input value corresponding to a
+        // normalized ColorSpace component value of 0.0 to 0, and the
+        // input value corresponding to a normalized ColorSpace
+        // component value of 1.0 to 2^n - 1 (where n is 8 or 16), so
+        // it is appropriate only for ColorSpaces with min/max component
+        // values of 0.0/1.0.  This will be true for sRGB, the built-in
+        // Linear RGB and Linear Gray spaces, and any other ICC grayscale
+        // spaces for which we have precomputed LUTs.
+
+        boolean needAlpha = (supportsAlpha && isAlphaPremultiplied);
+        int alp = 0;
+        int comp;
+
+        switch (transferType) {
+            // Note: we do no clamping of the pixel data here - we
+            // assume that the data is scaled properly
+            case DataBuffer.TYPE_BYTE:
+               byte bdata[] = (byte[])inData;
+               comp = bdata[idx] & 0xff;
+               precision = 8;
+               if (needAlpha) {
+                   alp = bdata[numColorComponents] & 0xff;
+               }
+            break;
+            case DataBuffer.TYPE_USHORT:
+               short usdata[] = (short[])inData;
+               comp = usdata[idx]&0xffff;
+               if (needAlpha) {
+                   alp = usdata[numColorComponents] & 0xffff;
+               }
+            break;
+            case DataBuffer.TYPE_INT:
+               int idata[] = (int[])inData;
+               comp = idata[idx];
+               if (needAlpha) {
+                   alp = idata[numColorComponents];
+               }
+            break;
+            default:
+               throw new
+                   UnsupportedOperationException("This method has not "+
+                   "been implemented for transferType " + transferType);
+        }
+        if (needAlpha) {
+            if (alp != 0) {
+                float scalefactor = (float) ((1 << precision) - 1);
+                float fcomp = ((float) comp) / ((float) ((1<<nBits[idx]) - 1));
+                float invalp = ((float) ((1<<nBits[numColorComponents]) - 1)) /
+                               ((float) alp);
+                return (int) (fcomp * invalp * scalefactor + 0.5f);
+            } else {
+                return 0;
+            }
+        } else {
+            if (nBits[idx] != precision) {
+                float scalefactor = (float) ((1 << precision) - 1);
+                float fcomp = ((float) comp) / ((float) ((1<<nBits[idx]) - 1));
+                return (int) (fcomp * scalefactor + 0.5f);
+            }
+            return comp;
+        }
+    }
 
     /**
      * Returns the red color component for the specified pixel, scaled
@@ -284,74 +427,7 @@ public class ComponentColorModel extends ColorModel {
      * or <CODE>DataBuffer.TYPE_INT</CODE>.     
      */
     public int getRed(Object inData) {
-        if (is_sRGB) {
-            boolean needAlpha = (supportsAlpha && isAlphaPremultiplied);
-            int alp = 0;
-            int red = 0;
-            switch (transferType) {
-                case DataBuffer.TYPE_BYTE:
-                   byte bdata[] = (byte[])inData;
-                   red = bdata[0] & 0xff;
-                   if (needAlpha) {
-                       alp = bdata[numColorComponents] & 0xff;
-                   }
-                break;
-                case DataBuffer.TYPE_USHORT:
-                   short sdata[] = (short[])inData;
-                   red = sdata[0]&0xffff;
-                   if (needAlpha) {
-                       alp = sdata[numColorComponents] & 0xffff;
-                   }
-                break;
-                case DataBuffer.TYPE_INT:
-                   int idata[] = (int[])inData;
-                   red = idata[0];
-                   if (needAlpha) {
-                       alp = idata[numColorComponents];
-                   }
-                break;
-                default:
-                   throw new
-                       UnsupportedOperationException("This method has not "+
-                       "been implemented for transferType " + transferType);
-            }
-            if (nBits[0] != 8) {
-                int shift = nBits[0] - 8;
-                red = ((shift > 0) 
-                       ? (red>>shift)
-                       : (red<<(-shift)));
-            }
-            if (needAlpha) {
-                return (alp != 0)
-                    ? (int) (red*((1<<nBits[numColorComponents])-1.f)/alp)
-                    : 0;
-            }
-            else {
-                return red;
-            }
-        }
-        // REMIND: possible grayscale optimization here
-        // else if (colorSpaceType == ColorSpace.TYPE_GRAY) {
-        //     return getGray(inData);
-        // }
-
-        // Not TYPE_GRAY or TYPE_RGB ColorSpace
-        int pixel[];
-        if (inData instanceof int[]) {
-            pixel = (int[])inData;
-        } else {
-            pixel = DataBuffer.toIntArray(inData);
-            if (pixel == null) {
-               throw new UnsupportedOperationException("This method has not been "+
-                   "implemented for transferType " + transferType);
-            }
-        }
-
-        // Normalize the pixel in order to convert it
-        float[] norm = getNormalizedComponents(pixel, 0, null, 0);
-        // Note that getNormalizedComponents returns non-premultiplied values
-        float[] rgb = colorSpace.toRGB(norm);
-        return (int) (rgb[0] * 255.0f);
+        return getRGBComponent(inData, 0);
     }
    
 
@@ -385,74 +461,7 @@ public class ComponentColorModel extends ColorModel {
      * or <CODE>DataBuffer.TYPE_INT</CODE>.
      */
     public int getGreen(Object inData) {
-        if (is_sRGB) {
-            boolean needAlpha = (supportsAlpha && isAlphaPremultiplied);
-            int alp = 0;
-            int green = 0;
-            switch (transferType) {
-                case DataBuffer.TYPE_BYTE:
-                   byte bdata[] = (byte[])inData;
-                   green = bdata[1] & 0xff;
-                   if (needAlpha) {
-                       alp = bdata[numColorComponents] & 0xff;
-                   }
-                break;
-                case DataBuffer.TYPE_USHORT:
-                   short sdata[] = (short[])inData;
-                   green = sdata[1] & 0xffff;
-                   if (needAlpha) {
-                       alp = sdata[numColorComponents] & 0xffff;
-                   }
-                break;
-                case DataBuffer.TYPE_INT:
-                   int idata[] = (int[])inData;
-                   green = idata[1];
-                   if (needAlpha) {
-                       alp = idata[numColorComponents];
-                   }
-                break;
-                default:
-                   throw new
-                       UnsupportedOperationException("This method has not "+
-                          "been implemented for transferType " + transferType);
-            }
-            if (nBits[1] != 8) {
-                int shift = nBits[1] - 8;
-                green = ((shift > 0) 
-                        ? (green>>shift)
-                        : (green<<(-shift)));
-
-            }
-            if (needAlpha) {
-                return (alp != 0)
-                    ? (int) (green*((1<<nBits[numColorComponents])-1.f)/alp)
-                    : 0;
-            }
-            else {
-                return green;
-            }
-        }
-        // REMIND: possible grayscale optimization here
-        // else if (colorSpaceType == ColorSpace.TYPE_GRAY) {
-        //     return getGray(inData);
-        // }
-
-        int pixel[];
-        if (inData instanceof int[]) {
-            pixel = (int[])inData;
-        } else {
-            pixel = DataBuffer.toIntArray(inData);
-            if (pixel == null) {
-               throw new UnsupportedOperationException("This method has not been "+
-                   "implemented for transferType " + transferType);
-            }
-        }
-
-        // Normalize the pixel in order to convert it
-        float[] norm = getNormalizedComponents(pixel, 0, null, 0);
-        // Note that getNormalizedComponents returns non-premultiplied values
-        float[] rgb = colorSpace.toRGB(norm);
-        return (int) (rgb[1] * 255.0f);
+        return getRGBComponent(inData, 1);
     }
    
 
@@ -486,73 +495,7 @@ public class ComponentColorModel extends ColorModel {
      * or <CODE>DataBuffer.TYPE_INT</CODE>.
      */
     public int getBlue(Object inData) {
-        if (is_sRGB) {
-            boolean needAlpha = (supportsAlpha && isAlphaPremultiplied);
-            int alp = 0;
-            int blue = 0;
-            switch (transferType) {
-                case DataBuffer.TYPE_BYTE:
-                   byte bdata[] = (byte[])inData;
-                   blue = bdata[2] & 0xff;
-                   if (needAlpha) {
-                       alp = bdata[numColorComponents] & 0xff;
-                   }
-                break;
-                case DataBuffer.TYPE_USHORT:
-                   short sdata[] = (short[])inData;
-                   blue = sdata[2] & 0xffff;
-                   if (needAlpha) {
-                       alp = sdata[numColorComponents] & 0xffff;
-                   }
-                break;
-                case DataBuffer.TYPE_INT:
-                   int idata[] = (int[])inData;
-                   blue = idata[2];
-                   if (needAlpha) {
-                       alp = idata[numColorComponents];
-                   }
-                break;
-                default:
-                   throw new
-                       UnsupportedOperationException("This method has not "+
-                       "been implemented for transferType " + transferType);
-            }
-            if (nBits[2] != 8) {
-                int shift = nBits[2] - 8;
-                return ((shift > 0) 
-                        ? (blue>>shift)
-                        : (blue<<(-shift)));
-            }
-            if (needAlpha) {
-                return (alp != 0)
-                    ? (int) (blue*((1<<nBits[numColorComponents])-1.f)/alp)
-                    : 0;
-            }
-            else {
-                return blue;
-            }
-        }
-        // REMIND: possible grayscale optimization here
-        // else if (colorSpaceType == ColorSpace.TYPE_GRAY) {
-        //     return getGray(inData);
-        // }
-
-        int pixel[];
-        if (inData instanceof int[]) {
-            pixel = (int[])inData;
-        } else {
-            pixel = DataBuffer.toIntArray(inData);
-            if (pixel == null) {
-               throw new UnsupportedOperationException("This method has not been "+
-                   "implemented for transferType " + transferType);
-            }
-        }
-
-        // Normalize the pixel in order to convert it
-        float[] norm = getNormalizedComponents(pixel, 0, null, 0);
-        // Note that getNormalizedComponents returns non-premultiplied values
-        float[] rgb = colorSpace.toRGB(norm);
-        return (int) (rgb[2] * 255.0f);
+        return getRGBComponent(inData, 2);
     }
 
     /**
@@ -594,8 +537,8 @@ public class ComponentColorModel extends ColorModel {
                alpha = bdata[aIdx] & 0xff;
             break;
             case DataBuffer.TYPE_USHORT:
-               short sdata[] = (short[])inData;
-               alpha = sdata[aIdx]&0xffff;
+               short usdata[] = (short[])inData;
+               alpha = usdata[aIdx]&0xffff;
             break;
             case DataBuffer.TYPE_INT:
                int idata[] = (int[])inData;
@@ -609,72 +552,65 @@ public class ComponentColorModel extends ColorModel {
 
         if (nBits[aIdx] == 8) {
             return alpha;
-        }
-        else {
-            int shift = nBits[aIdx] - 8;
-            return ((shift > 0) 
-                    ? (alpha>>shift)
-                    : (alpha<<(-shift)));
+        } else {
+            return (int)
+                ((((float) alpha) / ((float) ((1 << nBits[aIdx]) - 1))) *
+                 255.0f + 0.5f);
         }
     }
-
-    // This method returns a gray color that can be mapped to
-    // RGB values in getRGB().  It assumes that the colorspace is TYPE_GRAY.
-    // REMIND: this routine currently not used
-    /*
-    private int getGray(Object inData) {
-        boolean needAlpha = (supportsAlpha && isAlphaPremultiplied);
-        int alp = 0;
-        int gray;
-        switch (transferType) {
-        case DataBuffer.TYPE_BYTE:
-            byte bdata[] = (byte[])inData;
-            gray = bdata[0] & 0xff;
-            if (needAlpha) {
-                alp = bdata[1]&0xff;
-            }
-            break;
-        case DataBuffer.TYPE_USHORT:
-            short sdata[] = (short[])inData;
-            gray = sdata[0] & 0xffff;
-            if (needAlpha) {
-                alp = sdata[1]&0xff;
-            }
-            break;
-        case DataBuffer.TYPE_INT:
-            int idata[] = (int[])inData;
-            gray = idata[0];
-            if (needAlpha) {
-                alp = idata[1]&0xff;
-            }
-            break;
-        default:
-            throw new UnsupportedOperationException("This method has not been"+
-                                        " implemented for transferType " +
-                                                    transferType);
-        }
-
-        if (nBits[0] != 8) {
-            int shift = nBits[0] - 8;
-            gray = ((shift > 0)
-                    ? (gray>>shift)
-                    : (gray<<(-shift)));
-        }
-        return (!needAlpha
-                ? gray
-                : ((alp != 0)
-                    ? (int)(gray*(1<<nBits[numColorComponents])-1.f)/alp
-                    : 0)
-                );
-
-    }
-     */
     
     private float getNormAlpha(int pixel[]) {
         return (float) (pixel[numColorComponents] /
                         ((1<<nBits[numColorComponents])-1.f));
     }
     
+    private float[] getNormalizedComponents(Object pixel,
+                                           float[] normComponents,
+                                           int normOffset) {
+        if (normComponents == null) {
+            normComponents = new float[numComponents+normOffset];
+        }
+        switch (transferType) {
+        case DataBuffer.TYPE_BYTE:
+            byte[] bpixel = (byte[]) pixel;
+            for (int c = 0, nc = normOffset; c < numComponents; c++, nc++) {
+                normComponents[nc] = ((float) (bpixel[c] & 0xff)) /
+                                     ((float) ((1 << nBits[c]) - 1));
+            }
+            break;
+        case DataBuffer.TYPE_USHORT:
+            short[] uspixel = (short[]) pixel;
+            for (int c = 0, nc = normOffset; c < numComponents; c++, nc++) {
+                normComponents[nc] = ((float) (uspixel[c] & 0xffff)) /
+                                     ((float) ((1 << nBits[c]) - 1));
+            }
+            break;
+        case DataBuffer.TYPE_INT:
+            int[] ipixel = (int[]) pixel;
+            for (int c = 0, nc = normOffset; c < numComponents; c++, nc++) {
+                normComponents[nc] = ((float) ipixel[c]) /
+                                     ((float) ((1 << nBits[c]) - 1));
+            }
+            break;
+        default:
+            throw new UnsupportedOperationException("This method has not been "+
+                                        "implemented for transferType " +
+                                        transferType);
+        }
+
+        if (supportsAlpha && isAlphaPremultiplied) {
+            float alpha = normComponents[numColorComponents + normOffset];
+            if (alpha != 0.0f) {
+                float invAlpha = 1.0f / alpha;
+                for (int c = normOffset; c < numColorComponents + normOffset;
+                     c++) {
+                    normComponents[c] *= invAlpha;
+                }
+            }
+        }
+        return normComponents;
+    }
+
     /**
      * Returns the color/alpha components for the specified pixel in the
      * default RGB color model format.  A color conversion is done if
@@ -774,127 +710,146 @@ public class ComponentColorModel extends ColorModel {
      * @see SampleModel#setDataElements
      */
     public Object getDataElements(int rgb, Object pixel) {
+        // REMIND: Use rendering hints?
+
+        int red, grn, blu, alp;
+        red = (rgb>>16) & 0xff;
+        grn = (rgb>>8) & 0xff;
+        blu = rgb & 0xff;
+
+        // Handle BYTE, USHORT, & INT here
         //REMIND: maybe more efficient not to use int array for
         //DataBuffer.TYPE_USHORT and DataBuffer.TYPE_INT
-        int intpixel[] = null;
+        int intpixel[];
         if (transferType == DataBuffer.TYPE_INT &&
             pixel != null) {
            intpixel = (int[])pixel;
         } else {
             intpixel = new int[numComponents];
         }
-        // REMIND: Use rendering hints?
-        
-        if (! is_sRGB) {
-            /* REMIND: possible gray scale optimization here
-            if (colorSpaceType == ColorSpace.TYPE_GRAY) {
-                double gray = ((((rgb>>16)&0xff)*.299/255) +
-                               (((rgb>>8) &0xff)*.587/255) +
-                               (((rgb)    &0xff)*.114/255));
-                
-                intpixel[0] = (int) (gray * (1 << nBits[0]));
 
-                if (supportsAlpha) {
-                    if (nBits[1] == 8) {
-                        intpixel[1] = (rgb>>24)&0xff;
-                    }
-                    else {
-                        intpixel[1] =
-                            (int)(((rgb>>24)&0xff)/255.f * ((1<<nBits[1])-1));
+        if (is_sRGB || is_LinearRGB) {
+            int precision;
+            float factor;
+            if (is_LinearRGB) {
+                if (transferType == DataBuffer.TYPE_BYTE) {
+                    red = fromsRGB8LUT8[red] & 0xff;
+                    grn = fromsRGB8LUT8[grn] & 0xff;
+                    blu = fromsRGB8LUT8[blu] & 0xff;
+                    precision = 8;
+                    factor = 1.0f / 255.0f;
+                } else {
+                    red = fromsRGB8LUT16[red] & 0xffff;
+                    grn = fromsRGB8LUT16[grn] & 0xffff;
+                    blu = fromsRGB8LUT16[blu] & 0xffff;
+                    precision = 16;
+                    factor = 1.0f / 65535.0f;
+                }
+            } else {
+                precision = 8;
+                factor = 1.0f / 255.0f;
+            }
+            if (supportsAlpha) {
+                alp = (rgb>>24)&0xff;
+                if (nBits[3] == 8) {
+                    intpixel[3] = alp;
+                }
+                else {
+                    intpixel[3] = (int)
+                        (alp * (1.0f / 255.0f) * ((1<<nBits[3]) - 1) + 0.5f);
+                }
+                if (isAlphaPremultiplied) {
+                    factor *= (alp * (1.0f / 255.0f));
+                    precision = -1;  // force component calculations below
+                }
+            }
+            if (nBits[0] == precision) {
+                intpixel[0] = red;
+            }
+            else {
+                intpixel[0] = (int) (red * factor * ((1<<nBits[0]) - 1) + 0.5f);
+            }
+            if (nBits[1] == precision) {
+                intpixel[1] = (int)(grn);
+            }
+            else {
+                intpixel[1] = (int) (grn * factor * ((1<<nBits[1]) - 1) + 0.5f);
+            }
+            if (nBits[2] == precision) {
+                intpixel[2] = (int)(blu);
+            }
+            else {
+                intpixel[2] = (int) (blu * factor * ((1<<nBits[2]) - 1) + 0.5f);
+            }
+        } else if (is_LinearGray) {
+            red = fromsRGB8LUT16[red] & 0xffff;
+            grn = fromsRGB8LUT16[grn] & 0xffff;
+            blu = fromsRGB8LUT16[blu] & 0xffff;
+            float gray = ((0.2125f * red) +
+                          (0.7154f * grn) +
+                          (0.0721f * blu)) / 65535.0f;
+            if (supportsAlpha) {
+                alp = (rgb>>24) & 0xff;
+                if (nBits[1] == 8) {
+                    intpixel[1] = alp;
+                } else {
+                    intpixel[1] = (int) (alp * (1.0f / 255.0f) *
+                                         ((1 << nBits[1]) - 1) + 0.5f);
+                }
+                if (isAlphaPremultiplied) {
+                    gray *= (alp * (1.0f / 255.0f));
+                }
+            }
+            intpixel[0] = (int) (gray * ((1 << nBits[0]) - 1) + 0.5f);
+        } else if (is_ICCGray) {
+            red = fromsRGB8LUT16[red] & 0xffff;
+            grn = fromsRGB8LUT16[grn] & 0xffff;
+            blu = fromsRGB8LUT16[blu] & 0xffff;
+            int gray16 = (int) ((0.2125f * red) +
+                                (0.7154f * grn) +
+                                (0.0721f * blu) + 0.5f);
+            float gray = (fromLinearGray16ToOtherGray16LUT[gray16] &
+                          0xffff) / 65535.0f;
+            if (supportsAlpha) {
+                alp = (rgb>>24) & 0xff;
+                if (nBits[1] == 8) {
+                    intpixel[1] = alp;
+                } else {
+                    intpixel[1] = (int) (alp * (1.0f / 255.0f) *
+                                         ((1 << nBits[1]) - 1) + 0.5f);
+                }
+                if (isAlphaPremultiplied) {
+                    gray *= (alp * (1.0f / 255.0f));
+                }
+            }
+            intpixel[0] = (int) (gray * ((1 << nBits[0]) - 1) + 0.5f);
+        } else {
+            // Need to convert the color
+            float[] norm = new float[3];
+            float factor = 1.0f / 255.0f;
+            norm[0] = red * factor;
+            norm[1] = grn * factor;
+            norm[2] = blu * factor;
+            norm = colorSpace.fromRGB(norm);
+            if (supportsAlpha) {
+                alp = (rgb>>24) & 0xff;
+                if (nBits[numColorComponents] == 8) {
+                    intpixel[numColorComponents] = alp;
+                }
+                else {
+                    intpixel[numColorComponents] =
+                        (int) (alp * factor *
+                               ((1<<nBits[numColorComponents]) - 1) + 0.5f);
+                }
+                if (isAlphaPremultiplied) {
+                    factor *= alp;
+                    for (int i = 0; i < numColorComponents; i++) {
+                        norm[i] *= factor;
                     }
                 }
             }
-            else {
-             */
-                // Need to convert the color
-                float[] norm = new float[3];
-                norm[0] = ((rgb>>16)&0xff)/255.f;
-                norm[1] = ((rgb>>8)&0xff)/255.f;
-                norm[2] = ((rgb>>0)&0xff)/255.f;
-
-                norm = colorSpace.fromRGB(norm);
-                if (supportsAlpha) {
-                    if (nBits[numColorComponents] == 8) {
-                        intpixel[numColorComponents] = (rgb>>24)&0xff;
-                    }
-                    else {
-                        intpixel[numColorComponents] =
-                            (int)(((rgb>>24)&0xff)/255.f *
-                                  ((1<<nBits[numColorComponents])-1));
-                    }
-                    if (isAlphaPremultiplied) {
-                        float falp = ((rgb>>24)&0xff)/255.f;
-                        for (int i = 0; i < numColorComponents; i++) {
-                            norm[i] *= falp;
-                        }
-                    }
-                }
-                for (int i = 0; i < numColorComponents; i++) {
-                    intpixel[i] = (int)(norm[i]*((1<<nBits[i]) - 1));
-                }
-            // } REMIND: gray scale optimization commented out
-        }
-        else {
-            int alp = (rgb>>24)&0xff;
-            int red = (rgb>>16)&0xff;
-            int grn = (rgb>>8) &0xff;
-            int blu = (rgb)    &0xff;
-            if (isAlphaPremultiplied) {
-                float norm = alp/255.f;
-                if (nBits[0] == 8) {
-                    intpixel[0] = (int)(red*norm);
-                }
-                else {
-                    intpixel[0] = (int)((red*norm)/255.f * ((1<<nBits[0])-1));
-                }
-                if (nBits[1] == 8) {
-                    intpixel[1] = (int)(grn*norm);
-                }
-                else {
-                    intpixel[1] = (int)((grn*norm)/255.f * ((1<<nBits[1])-1));
-                }
-                if (nBits[2] == 8) {
-                    intpixel[2] = (int)(blu*norm);
-                }
-                else {
-                    intpixel[2] = (int)((blu*norm)/255.f * ((1<<nBits[2])-1));
-                }
-                if (supportsAlpha) {
-                    if (nBits[3] == 8) {
-                        intpixel[3] = alp;
-                    }
-                    else {
-                        intpixel[3] = (int)(norm * ((1<<nBits[3])-1));
-                    }
-                }
-            }
-            else {
-                if (nBits[0] == 8) {
-                    intpixel[0] = red;
-                }
-                else {
-                    intpixel[0] = (int)(red/255.f * ((1<<nBits[0])-1));
-                }
-                if (nBits[1] == 8) {
-                    intpixel[1] = (int)(grn);
-                }
-                else {
-                    intpixel[1] = (int)(grn/255.f * ((1<<nBits[1])-1));
-                }
-                if (nBits[2] == 8) {
-                    intpixel[2] = (int)(blu);
-                }
-                else {
-                    intpixel[2] = (int)(blu/255.f * ((1<<nBits[2])-1));
-                }
-                if (supportsAlpha) {
-                    if (nBits[3] == 8) {
-                        intpixel[3] = alp;
-                    }
-                    else {
-                        intpixel[3] = (int)(alp/255.f * ((1<<nBits[3])-1));
-                    }
-                }
+            for (int i = 0; i < numColorComponents; i++) {
+                intpixel[i] = (int) (norm[i] * ((1<<nBits[i]) - 1) + 0.5f);
             }
         }
         
@@ -924,11 +879,22 @@ public class ComponentColorModel extends ColorModel {
                return sdata;
             }
             case DataBuffer.TYPE_INT:
-               return intpixel;
+                if (maxBits > 23) {
+                    // fix 4412670 - for components of 24 or more bits
+                    // some calculations done above with float precision
+                    // may lose enough precision that the integer result
+                    // overflows nBits, so we need to clamp.
+                    for (int i = 0; i < numComponents; i++) {
+                        if (intpixel[i] > ((1<<nBits[i]) - 1)) {
+                            intpixel[i] = (1<<nBits[i]) - 1;
+                        }
+                    }
+                }
+			   return intpixel;               
         }
         throw new IllegalArgumentException("This method has not been "+
                  "implemented for transferType " + transferType);
-    }
+	}
     
    /** Returns an array of unnormalized color/alpha components given a pixel
      * in this <CODE>ColorModel</CODE>.  Color/alpha components are

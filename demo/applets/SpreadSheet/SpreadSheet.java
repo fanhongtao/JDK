@@ -1,5 +1,5 @@
 /*
- * @(#)SpreadSheet.java	1.6 99/10/01
+ * @(#)SpreadSheet.java	1.7 00/06/13
  *
  * Copyright (c) 1997 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -329,20 +329,22 @@ public class SpreadSheet
 	}
 	e.consume();
       }
-      cell = cells[selectedRow][selectedColumn];
-      inputArea.setText(new String(cell.getPrintString()));
-      if (current != null) {
-	current.deselect();
+      if (selectedRow != -1) {      
+        cell = cells[selectedRow][selectedColumn];
+        inputArea.setText(new String(cell.getPrintString()));
+        if (current != null) {
+          current.deselect();
+        }
+        current = cell;
+        current.select();
+        requestFocus();
+        fullUpdate = true;
+        repaint();
       }
-      current = cell;
-      current.select();
-      requestFocus();
-      fullUpdate = true;
-      repaint();
+      e.consume();
     }
-    e.consume();
   }
-
+  
   public void mouseReleased(MouseEvent e) 
   {}
       

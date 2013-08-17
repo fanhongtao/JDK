@@ -1,5 +1,5 @@
 /*
- * @(#)ClassLoader.java	1.143 00/04/06
+ * @(#)ClassLoader.java	1.144 01/09/18
  *
  * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -37,6 +37,8 @@ import java.security.Policy;
 import sun.misc.URLClassPath;
 import sun.misc.Resource;
 import sun.misc.CompoundEnumeration;
+import sun.misc.ClassFileTransformer;
+
 //import sun.misc.Launcher;
 
 /**
@@ -124,7 +126,7 @@ import sun.misc.CompoundEnumeration;
  *     }
  * </pre></blockquote><hr>
  *
- * @version 1.143, 04/06/00
+ * @version 1.144, 09/18/01
  * @see     java.lang.Class
  * @see     java.lang.Class#newInstance()
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
@@ -483,7 +485,42 @@ public abstract class ClassLoader {
 
 	if (name != null)
 	    checkCerts(name, protectionDomain.getCodeSource());
-	Class c = defineClass0(name, b, off, len, protectionDomain);
+
+	Class c = null;
+
+	try
+	{
+	    c = defineClass0(name, b, off, len, protectionDomain);
+	}
+	catch (ClassFormatError cfe)
+	{
+	    // Class format error - try to transform the bytecode and 
+	    // define the class again
+	    //
+	    Object[] transformers = ClassFileTransformer.getTransformers();
+
+	    for (int i=0; transformers != null && i < transformers.length; i++)
+	    {
+		try
+		{
+		    // Transform byte code using transformer
+		    byte[] tb = ((ClassFileTransformer) transformers[i]).transform(b, off, len);		    
+		    c = defineClass0(name, tb, 0, tb.length, protectionDomain);
+		    break;
+		}		
+		catch (ClassFormatError cfe2)
+		{
+		    // If ClassFormatError occurs, try next transformer
+		}
+	    }
+
+	    // Rethrow original ClassFormatError if unable to transform
+	    // bytecode to well-formed
+	    //
+	    if (c == null)
+		throw cfe;
+	}
+
 	if (protectionDomain.getCodeSource() != null) {
 	    java.security.cert.Certificate certs[] = 
 		protectionDomain.getCodeSource().getCertificates();
@@ -1126,7 +1163,7 @@ public abstract class ClassLoader {
      * by the VM when it loads the library, and used by the VM to pass
      * the correct version of JNI to the native methods.
      *
-     * @version 1.143, 04/06/00
+     * @version 1.144, 09/18/01
      * @see     java.lang.ClassLoader
      * @since   1.2
      */ 

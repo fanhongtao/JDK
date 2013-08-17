@@ -1,5 +1,5 @@
 /*
- * @(#)Thread.java	1.106 00/02/02
+ * @(#)Thread.java	1.107 01/08/25
  *
  * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -100,7 +100,7 @@ import java.util.Collections;
  * a thread is created, a new name is generated for it. 
  *
  * @author  unascribed
- * @version 1.106, 02/02/00
+ * @version 1.107, 08/25/01
  * @see     java.lang.Runnable
  * @see     java.lang.Runtime#exit(int)
  * @see     java.lang.Thread#run()
@@ -567,6 +567,8 @@ class Thread implements Runnable {
      */
     public final void stop() {
 	synchronized (this) {
+            //if the thread is alreay dead, return
+            if (!this.isAlive()) return;
 	    SecurityManager security = System.getSecurityManager();
 	    if (security != null) {
 		checkAccess();
@@ -631,6 +633,8 @@ class Thread implements Runnable {
      *        are Thread.stop, Thread.suspend and Thread.resume Deprecated?</a>.
      */
     public final synchronized void stop(Throwable obj) {
+        //if the thread is already dead, return
+        if (!this.isAlive()) return;
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
 	    checkAccess();

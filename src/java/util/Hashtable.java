@@ -1,5 +1,5 @@
 /*
- * @(#)Hashtable.java	1.82 00/02/02
+ * @(#)Hashtable.java	1.84 01/09/24
  *
  * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -82,7 +82,7 @@ import java.io.*;
  *
  * @author  Arthur van Hoff
  * @author  Josh Bloch
- * @version 1.82, 02/02/00
+ * @version 1.84, 09/24/01
  * @see     Object#equals(java.lang.Object)
  * @see     Object#hashCode()
  * @see     Hashtable#rehash()
@@ -723,10 +723,17 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @since 1.2
      */
     public synchronized int hashCode() {
+        // This allows hashCode to be calculated for recursive Hashtables.
+        // It does NOT solve the general problem, but allows some popular
+        // 1.1-era Applets to run in a post-collections universe.
+        if (loadFactor < 0)
+            return 0;
+        loadFactor = -loadFactor; // Indicate that hashCode calc in progress
 	int h = 0;
 	Iterator i = entrySet().iterator();
 	while (i.hasNext())
 	    h += i.next().hashCode();
+	loadFactor = -loadFactor; // HashCode calculation no longer in progress
 	return h;
     }
 
