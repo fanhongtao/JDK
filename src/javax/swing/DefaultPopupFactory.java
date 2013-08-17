@@ -1,11 +1,6 @@
 /*
- * @(#)DefaultPopupFactory.java	1.15 01/09/23
- *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -21,12 +16,6 @@ import java.util.Vector;
 
 
 class DefaultPopupFactory implements PopupFactory {
-    private transient  Component component;
-    protected transient  Component invoker;
-    private transient  Popup popup;
-    private transient  Frame frame;
-
-    private    int desiredLocationX,desiredLocationY;
     private    int lastPopupType = LIGHT_WEIGHT_POPUP;
 
     private static final Object heavyPopupCacheKey = 
@@ -175,7 +164,7 @@ class DefaultPopupFactory implements PopupFactory {
     }
 
     
-    boolean  adjustPopuLocationToFitScreen(Point p) {
+    boolean adjustPopuLocationToFitScreen(Component component, Point p) {
         if(popupPostionFixEnabled == false)
 	    return false;
 	if(component == null)
@@ -264,7 +253,7 @@ class DefaultPopupFactory implements PopupFactory {
     }
 
 
-    protected Popup createLightWeightPopup() {
+    protected Popup createLightWeightPopup(Component comp, Component invoker) {
         Popup popup;
         popup = DefaultPopupFactory.getRecycledLightPopup();
         if(popup == null) {
@@ -273,7 +262,8 @@ class DefaultPopupFactory implements PopupFactory {
         return popup;
     }
     
-    protected Popup createMediumWeightPopup() {
+    protected Popup createMediumWeightPopup(Component comp,
+					    Component invoker) {
         Popup popup;
         popup = DefaultPopupFactory.getRecycledMediumPopup();
         if(popup == null) {
@@ -282,8 +272,9 @@ class DefaultPopupFactory implements PopupFactory {
         return popup;
     }
 
-    protected Popup createHeavyWeightPopup() {
+    protected Popup createHeavyWeightPopup(Component comp, Component invoker) {
         Window window = invoker != null? SwingUtilities.getWindowAncestor(invoker) : null;
+	Popup popup = null;
 
         if (window != null) {
             popup = DefaultPopupFactory.getRecycledHeavyPopup(window);
@@ -301,7 +292,7 @@ class DefaultPopupFactory implements PopupFactory {
         return popup;
     }
 
-    private boolean popupFit(Rectangle popupRectInScreen) {
+    private boolean popupFit(Component invoker, Rectangle popupRectInScreen) {
         if(invoker != null) {
             Container parent;
             for(parent = invoker.getParent(); parent != null ; parent = parent.getParent()) {
@@ -331,23 +322,24 @@ class DefaultPopupFactory implements PopupFactory {
 	return false;
     }
 
-    private void replacePopup(int newType) {
+    private Popup replacePopup(Component component, Component invoker,
+			     int x, int y, Popup popup, int newType) {
         popup.removeComponent(component);
         recyclePopup(popup);
 	popup = null;
         switch(newType) {
         case LIGHT_WEIGHT_POPUP:
-            popup = createLightWeightPopup();
+            popup = createLightWeightPopup(component, invoker);
             break;
         case MEDIUM_WEIGHT_POPUP:
-            popup = createMediumWeightPopup();
+            popup = createMediumWeightPopup(component, invoker);
             break;
         case HEAVY_WEIGHT_POPUP:
-            popup = createHeavyWeightPopup();
+            popup = createHeavyWeightPopup(component, invoker);
             break;
         }
 
-        popup.setLocationOnScreen(desiredLocationX,desiredLocationY);
+        popup.setLocationOnScreen(x, y);
 	/*
 	  System.out.println("Adding " + component.hashCode() + "::" +
 	  component + " to " + popup.hashCode() + "::"
@@ -357,6 +349,7 @@ class DefaultPopupFactory implements PopupFactory {
         component.invalidate();
         // popup.setBackground(component.getBackground());
         popup.pack();
+	return popup;
     }
 
     private boolean invokerInHeavyWeightPopup(Component i) {
@@ -376,34 +369,30 @@ class DefaultPopupFactory implements PopupFactory {
     }
 
     public Popup getPopup(Component comp, Component invoker, int x, int y) {
-	this.invoker = invoker;
-	this.component = comp;
-	this.desiredLocationX = x;
-	this.desiredLocationY = y;
-
 	int popupType;
 	int newPopupType;
+	Popup popup = null;
         
 	switch(lastPopupType) {
 	case LIGHT_WEIGHT_POPUP:
-	    popup = createLightWeightPopup();
+	    popup = createLightWeightPopup(comp, invoker);
 	    break;
 	case MEDIUM_WEIGHT_POPUP:
-	    popup = createMediumWeightPopup();
+	    popup = createMediumWeightPopup(comp, invoker);
 	    break;
 	case HEAVY_WEIGHT_POPUP:
-	    popup = createHeavyWeightPopup();
+	    popup = createHeavyWeightPopup(comp, invoker);
 	    break;
 	}
 	popupType = lastPopupType;
-	Point p = new Point(desiredLocationX,desiredLocationY);
-        if( adjustPopuLocationToFitScreen(p) == true )
+	Point p = new Point(x, y);
+        if( adjustPopuLocationToFitScreen(comp, p) == true )
         {
-            this.desiredLocationX = p.x;
-            this.desiredLocationY = p.y;
+            x = p.x;
+            y = p.y;
         }
-	popup.setLocationOnScreen(desiredLocationX,desiredLocationY);
-	popup.addComponent(component,"Center");
+	popup.setLocationOnScreen(x, y);
+	popup.addComponent(comp, BorderLayout.CENTER);
 	// popup.setBackground(component.getBackground());
 	popup.pack();
 	/*
@@ -411,11 +400,11 @@ class DefaultPopupFactory implements PopupFactory {
 	  component + " to " + popup.hashCode() + "::"
 	  + popup);
 	  */
-	Rectangle popupRect = new Rectangle(desiredLocationX,desiredLocationY,
+	Rectangle popupRect = new Rectangle(x, y, 
 					    popup.getWidth(),popup.getHeight());
 	
 	
-	if(popupFit(popupRect)) {
+	if(popupFit(invoker, popupRect)) {
 	    if(((comp instanceof JToolTip) ||
 		(comp instanceof JPopupMenu && 
 		 ((JPopupMenu)comp).isLightWeightPopupEnabled()))
@@ -436,7 +425,7 @@ class DefaultPopupFactory implements PopupFactory {
 	}
 	
 	if(newPopupType != popupType) {
-	    replacePopup(newPopupType);
+	    popup = replacePopup(comp, invoker, x, y, popup, newPopupType);
 	    popupType = newPopupType;
 	}
 	
@@ -1248,4 +1237,5 @@ class DefaultPopupFactory implements PopupFactory {
 
 
 }
+
 

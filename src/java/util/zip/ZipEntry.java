@@ -1,11 +1,6 @@
 /*
- * @(#)ZipEntry.java	1.31 00/02/02
- *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.zip;
@@ -15,7 +10,7 @@ import java.util.Date;
 /**
  * This class is used to represent a ZIP file entry.
  *
- * @version	1.31, 02/02/00
+ * @version	1.33, 02/06/02
  * @author	David Connelly
  */
 public
@@ -227,7 +222,7 @@ class ZipEntry implements ZipConstants, Cloneable {
      * Sets the optional extra field data for the entry.
      * @param extra the extra field data bytes
      * @exception IllegalArgumentException if the length of the specified
-     *		  extra field data is greater than 0xFFFFF bytes
+     *		  extra field data is greater than 0xFFFF bytes
      * @see #getExtra()
      */
     public void setExtra(byte[] extra) {

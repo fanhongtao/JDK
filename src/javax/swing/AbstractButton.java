@@ -1,11 +1,6 @@
 /*
- * @(#)AbstractButton.java	1.133 01/02/09
- *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -43,7 +38,7 @@ import java.util.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.133 02/09/01 
+ * @version 1.135 02/06/02 
  * @author Jeff Dinkins
  */
 public abstract class AbstractButton extends JComponent implements ItemSelectable, SwingConstants {
@@ -1643,9 +1638,9 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
 			       int x, int y, int w, int h) {
 	if (!SwingUtilities.doesIconReferenceImage(getIcon(), img) &&
 	    !SwingUtilities.doesIconReferenceImage(getPressedIcon(), img) &&
-	    !SwingUtilities.doesIconReferenceImage(getDisabledIcon(), img) &&
+	    !SwingUtilities.doesIconReferenceImage(disabledIcon, img) &&
 	    !SwingUtilities.doesIconReferenceImage(getSelectedIcon(), img) &&
-	    !SwingUtilities.doesIconReferenceImage(getDisabledSelectedIcon(),
+	    !SwingUtilities.doesIconReferenceImage(disabledSelectedIcon,
 						   img) &&
 	    !SwingUtilities.doesIconReferenceImage(getRolloverIcon(), img) &&
 	    !SwingUtilities.doesIconReferenceImage(getRolloverSelectedIcon(),

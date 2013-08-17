@@ -1,11 +1,6 @@
 /*
- * @(#)Socket.java	1.55 01/02/09
- *
- * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.net;
@@ -29,7 +24,7 @@ import java.security.PrivilegedExceptionAction;
  * firewall.
  *
  * @author  unascribed
- * @version 1.55, 02/09/01
+ * @version 1.56, 02/06/02
  * @see     java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
  * @see     java.net.SocketImpl
  * @since   JDK1.0

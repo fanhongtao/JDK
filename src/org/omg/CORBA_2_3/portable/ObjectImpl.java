@@ -1,11 +1,6 @@
 /*
- * @(#)ObjectImpl.java	1.9 00/02/02
- *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
  * Licensed Materials - Property of IBM
@@ -27,7 +22,7 @@ import org.omg.CORBA_2_3.portable.Delegate;
  *
  * @see org.omg.CORBA.portable.ObjectImpl
  * @author  OMG
- * @version 1.9 02/02/00
+ * @version 1.10 02/06/02
  * @since   JDK1.2
  */
 

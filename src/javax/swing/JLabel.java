@@ -1,11 +1,6 @@
 /*
- * @(#)JLabel.java	1.100 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -79,7 +74,7 @@ import java.util.*;
  *   attribute: isContainer false
  * description: A component that displays a short string and an icon.
  * 
- * @version 1.100 02/02/00
+ * @version 1.102 02/06/02
  * @author Hans Muller
  */
 public class JLabel extends JComponent implements SwingConstants, Accessible
@@ -804,7 +799,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
     public boolean imageUpdate(Image img, int infoflags,
 			       int x, int y, int w, int h) {
 	if (!SwingUtilities.doesIconReferenceImage(getIcon(), img) &&
-	    !SwingUtilities.doesIconReferenceImage(getDisabledIcon(), img)) {
+	    !SwingUtilities.doesIconReferenceImage(disabledIcon, img)) {
 	    return false;
 	}
 	return super.imageUpdate(img, infoflags, x, y, w, h);

@@ -1,11 +1,6 @@
 /*
- * @(#)ZipFile.java	1.48 00/02/02
- *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.zip;
@@ -22,7 +17,7 @@ import java.security.AccessController;
 /**
  * This class is used to read entries from a zip file.
  *
- * @version	1.48, 02/02/00
+ * @version	1.50, 02/06/02
  * @author	David Connelly
  */
 public
@@ -107,12 +102,12 @@ class ZipFile implements ZipConstants {
 	if (sm != null) {
 	    sm.checkRead(name);
 	}
-	jzfile = open(name, mode);
+	jzfile = open(name, mode, file.lastModified());
 	this.name = name;
 	this.total = getTotal(jzfile);
     }
 
-    private static native long open(String name, int mode);
+    private static native long open(String name, int mode, long lastModified);
     private static native int getTotal(long jzfile);
 
     /**

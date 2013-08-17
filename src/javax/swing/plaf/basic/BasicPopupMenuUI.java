@@ -1,11 +1,6 @@
 /*
- * @(#)BasicPopupMenuUI.java	1.71 01/01/21
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -503,7 +498,7 @@ public class BasicPopupMenuUI extends PopupMenuUI {
         }
     }
 
-    private class ReturnAction extends AbstractAction {
+    private static class ReturnAction extends AbstractAction {
         public void actionPerformed(ActionEvent e) {
             MenuElement path[] = MenuSelectionManager.defaultManager().getSelectedPath();
             MenuElement lastElement;

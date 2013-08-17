@@ -1,11 +1,6 @@
 /*
- * @(#)ThreadGroup.java	1.51 00/02/02
- *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -24,7 +19,7 @@ import sun.misc.VM;
  * parent thread group or any other thread groups. 
  *
  * @author  unascribed
- * @version 1.51, 02/02/00
+ * @version 1.52, 02/06/02
  * @since   JDK1.0
  */
 /* The locking strategy for this code is to try to lock only one level of the

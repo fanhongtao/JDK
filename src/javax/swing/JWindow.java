@@ -1,11 +1,6 @@
 /*
- * @(#)JWindow.java	1.37 01/02/09
- *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -72,7 +67,7 @@ import javax.accessibility.*;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window which has no system border or controls.
  *
- * @version 1.37 02/09/01
+ * @version 1.38 02/06/02
  * @author David Kloba
  */
 public class JWindow extends Window implements Accessible, RootPaneContainer 

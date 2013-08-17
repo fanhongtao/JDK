@@ -1,11 +1,6 @@
 /*
- * @(#)BasicPanelUI.java	1.6 00/02/02
- *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -21,7 +16,7 @@ import java.awt.event.*;
 /**
  * BasicPanel implementation
  *
- * @version 1.6 02/02/00
+ * @version 1.7 02/06/02
  * @author Steve Wilson
  */
 public class BasicPanelUI extends PanelUI {

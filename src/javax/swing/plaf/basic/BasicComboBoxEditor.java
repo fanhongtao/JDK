@@ -1,11 +1,6 @@
 /*
- * @(#)BasicComboBoxEditor.java	1.17 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
 
@@ -18,7 +13,7 @@ import java.awt.event.*;
 /**
  * The default editor for editable combo boxes
  *
- * @version 1.17 02/02/00
+ * @version 1.18 02/06/02
  * @author Arnaud Weber
  */
 public class BasicComboBoxEditor implements ComboBoxEditor,FocusListener {

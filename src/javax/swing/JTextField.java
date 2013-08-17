@@ -1,11 +1,6 @@
 /*
- * @(#)JTextField.java	1.72 00/04/06
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -133,7 +128,7 @@ import java.io.IOException;
  * description: A component which allows for the editing of a single line of text.
  *
  * @author  Timothy Prinzing
- * @version 1.72 04/06/00
+ * @version 1.73 02/06/02
  * @see #setActionCommand
  * @see JPasswordField
  * @see #addActionListener

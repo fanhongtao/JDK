@@ -1,11 +1,6 @@
 /*
- * @(#)ParseException.java	1.13 00/01/19
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
@@ -29,7 +24,7 @@ package java.text;
  * @see java.lang.Exception
  * @see java.text.Format
  * @see java.text.FieldPosition
- * @version     1.13, 01/19/00
+ * @version     1.14, 02/06/02
  * @author      Mark Davis
  */
 public

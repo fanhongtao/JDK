@@ -1,11 +1,6 @@
 /*
- * @(#)MenuItem.java	1.68 00/04/06
- *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -51,7 +46,7 @@ import javax.accessibility.*;
  * does not send any event to the frame until one of its subitems is
  * selected.
  *
- * @version 1.68, 04/06/00
+ * @version 1.69, 02/06/02
  * @author Sami Shaio
  */
 public class MenuItem extends MenuComponent implements Accessible {

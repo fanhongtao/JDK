@@ -1,11 +1,6 @@
 /*
- * @(#)Collections.java	1.46 00/04/06
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -26,7 +21,7 @@ import java.io.Serializable;
  * a mergesort, but it does have to be <i>stable</i>.)
  *
  * @author  Josh Bloch
- * @version 1.46, 04/06/00
+ * @version 1.47, 02/06/02
  * @see	    Collection
  * @see	    Set
  * @see	    List

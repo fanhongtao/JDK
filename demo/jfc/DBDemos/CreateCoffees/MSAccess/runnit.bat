@@ -1,7 +1,13 @@
 @echo off
+
+REM
+REM Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+REM SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+REM
+
 rem Run the CreateCoffees demo
 rem
-rem @(#)runnit.bat	1.2 99/07/12
+rem @(#)runnit.bat	1.3 02/02/06
 
 if "%JDBCHOME%" == "" goto nohome
 

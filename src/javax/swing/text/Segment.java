@@ -1,11 +1,6 @@
 /*
- * @(#)Segment.java	1.18 01/04/21
- *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -24,7 +19,7 @@ import java.text.CharacterIterator;
  * copying text into a string.
  *
  * @author  Timothy Prinzing
- * @version 1.18 04/21/01
+ * @version 1.19 02/06/02
  */
 public class Segment implements Cloneable, CharacterIterator {
 

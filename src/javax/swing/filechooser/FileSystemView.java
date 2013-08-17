@@ -1,11 +1,6 @@
 /*
- * @(#)FileSystemView.java	1.15 01/02/20
- *
- * Copyright 1998-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.filechooser;
@@ -40,7 +35,7 @@ import java.lang.reflect.*;
  * how Mac/OS2/BeOS/etc file systems can modify FileSystemView
  * to handle their particular type of file system.
  *
- * @version 1.15 02/20/01
+ * @version 1.16 02/06/02
  * @author Jeff Dinkins
  */
 public abstract class FileSystemView {

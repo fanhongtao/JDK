@@ -1,11 +1,6 @@
 /*
- * @(#)DefaultSwatchChooserPanel.java	1.16 00/02/02
- *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.colorchooser;
@@ -31,7 +26,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.16 02/02/00
+ * @version 1.17 02/06/02
  * @author Steve Wilson
  */
 class DefaultSwatchChooserPanel extends AbstractColorChooserPanel {

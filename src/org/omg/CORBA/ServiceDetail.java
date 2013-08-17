@@ -1,11 +1,6 @@
 /*
- * @(#)ServiceDetail.java	1.10 01/02/09
- *
- * Copyright 1998-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package org.omg.CORBA;
@@ -16,7 +11,7 @@ package org.omg.CORBA;
  * field contains a description of the ORB service..
  *
  * @author RIP Team
- * @version 1.10 02/09/01
+ * @version 1.11 02/06/02
  */
 public final class ServiceDetail implements org.omg.CORBA.portable.IDLEntity
 {

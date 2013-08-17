@@ -1,11 +1,6 @@
 /*
- * @(#)ObjectOutputStream.java	1.108 01/02/09
- *
- * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -127,7 +122,7 @@ import java.security.AccessController;
  *  existing block-data record.
  *
  * @author	Roger Riggs
- * @version     1.108, 02/09/01
+ * @version     1.109, 02/06/02
  * @see java.io.DataOutput
  * @see java.io.ObjectInputStream
  * @see java.io.Serializable

@@ -1,11 +1,6 @@
 /*
- * @(#)TextMeasurer.java	1.25 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
@@ -49,7 +44,7 @@ import sun.awt.font.Bidi;
  * will fit on each line).
  *
  * @author John Raley
- * @version 1.25, 02/02/00
+ * @version 1.26, 02/06/02
  * @see LineBreakMeasurer
  * @since 1.3
  */

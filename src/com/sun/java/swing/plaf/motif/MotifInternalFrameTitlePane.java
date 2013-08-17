@@ -1,11 +1,6 @@
 /*
- * @(#)MotifInternalFrameTitlePane.java	1.18 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -45,6 +40,19 @@ public class MotifInternalFrameTitlePane
     // The width and height of a title pane button
     public final static int BUTTON_SIZE = 19;  // 17 + 1 pixel border
 
+    private static final String CLOSE_CMD =
+        UIManager.getString("InternalFrameTitlePane.closeButtonText");
+    private static final String ICONIFY_CMD =
+        UIManager.getString("InternalFrameTitlePane.minimizeButtonText");
+    private static final String RESTORE_CMD =
+        UIManager.getString("InternalFrameTitlePane.restoreButtonText");
+    private static final String MAXIMIZE_CMD =
+        UIManager.getString("InternalFrameTitlePane.maximizeButtonText");
+    private static final String MOVE_CMD =
+        UIManager.getString("InternalFrameTitlePane.moveButtonText");
+    private static final String SIZE_CMD =
+        UIManager.getString("InternalFrameTitlePane.sizeButtonText");
+
     final int RESTORE_MENU_ITEM = 0;
     final int MOVE_MENU_ITEM = 1;
     final int SIZE_MENU_ITEM = 2;
@@ -72,24 +80,26 @@ public class MotifInternalFrameTitlePane
             }
         };
 	
-	JMenuItem mi = (JMenuItem) systemMenu.add(new JMenuItem("Restore"));
-	mi.setEnabled(false);
-	mi.addActionListener(this);
+        JMenuItem mi = (JMenuItem) systemMenu.add(new JMenuItem(RESTORE_CMD));
+        mi.setEnabled(iFrame.isIcon());
+        mi.addActionListener(this);
+
 	/// PENDING(klobad) Move/Size actions on InternalFrame need to be determined
-	mi = (JMenuItem) systemMenu.add(new JMenuItem("Move"));
-	mi.setEnabled(false);
-	mi.addActionListener(this);
-	mi = (JMenuItem) systemMenu.add(new JMenuItem("Size"));
-	mi.setEnabled(false);
-	mi.addActionListener(this);
-	mi = (JMenuItem) systemMenu.add(new JMenuItem("Minimize"));
-	mi.addActionListener(this);
-	mi = (JMenuItem) systemMenu.add(new JMenuItem("Maximize"));
-	mi.addActionListener(this);
-	systemMenu.add(new JSeparator());
-	mi = (JMenuItem) systemMenu.add(new JMenuItem("Close"));
-	mi.addActionListener(this); 
-	
+        mi = (JMenuItem) systemMenu.add(new JMenuItem(MOVE_CMD));
+        mi.setEnabled(false);
+        mi.addActionListener(this);
+        mi = (JMenuItem) systemMenu.add(new JMenuItem(SIZE_CMD));
+        mi.setEnabled(false);
+        mi.addActionListener(this);
+        mi = (JMenuItem) systemMenu.add(new JMenuItem(ICONIFY_CMD));
+        mi.setEnabled(!iFrame.isIcon());
+        mi.addActionListener(this);
+        mi = (JMenuItem) systemMenu.add(new JMenuItem(MAXIMIZE_CMD));
+        mi.addActionListener(this);
+        systemMenu.add(new JSeparator());
+        mi = (JMenuItem) systemMenu.add(new JMenuItem(CLOSE_CMD));
+        mi.addActionListener(this);
+
         systemButton = new SystemButton();
 	systemButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -111,11 +121,11 @@ public class MotifInternalFrameTitlePane
 
 	minimizeButton = new MinimizeButton();
 	minimizeButton.addActionListener(this);
-	minimizeButton.setActionCommand("Iconify");
+	minimizeButton.setActionCommand(ICONIFY_CMD);
 
 	maximizeButton = new MaximizeButton();
 	maximizeButton.addActionListener(this);
-	maximizeButton.setActionCommand("Maximize");
+	maximizeButton.setActionCommand(MAXIMIZE_CMD);
 
         title = new Title(iFrame.getTitle());
         title.setFont(defaultTitleFont);
@@ -144,28 +154,26 @@ public class MotifInternalFrameTitlePane
 
     public void actionPerformed(ActionEvent e) {
         try {
-            if ("Close".equals(e.getActionCommand()) && iFrame.isClosable()) {
+            if (CLOSE_CMD.equals(e.getActionCommand()) && iFrame.isClosable()) {
 	        iFrame.doDefaultCloseAction();
-	    } else if ((("Iconify".equals(e.getActionCommand())) ||
-		      ("Minimize".equals(e.getActionCommand()))) && 
-			// 4118140 
-		     iFrame.isIconifiable()) {
+	    } else if (ICONIFY_CMD.equals(e.getActionCommand()) && 
+                        iFrame.isIconifiable()) {    //4118140
                 if (!iFrame.isIcon()) {
                     iFrame.setIcon(true); 
                 } else {
-		  iFrame.setIcon(false); 
+		    iFrame.setIcon(false); 
 		}
-	    } else if ("Maximize".equals(e.getActionCommand()) && 
+	    } else if (MAXIMIZE_CMD.equals(e.getActionCommand()) && 
                        iFrame.isMaximizable()) {
                 if(!iFrame.isMaximum()) {
                     iFrame.setMaximum(true);
                 } else {
                     iFrame.setMaximum(false);
                 }
-            } else if ("Restore".equals(e.getActionCommand()) && 
+            } else if (RESTORE_CMD.equals(e.getActionCommand()) && 
                        iFrame.isMaximizable() && iFrame.isMaximum()) {
-                iFrame.setMaximum(false);
-            } else if ("Restore".equals(e.getActionCommand()) && 
+                   iFrame.setMaximum(false);
+            } else if (RESTORE_CMD.equals(e.getActionCommand()) && 
                        iFrame.isIconifiable() && iFrame.isIcon()) {
                 iFrame.setIcon(false);
             }

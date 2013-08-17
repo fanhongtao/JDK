@@ -1,11 +1,6 @@
 /*
- * @(#)JarFile.java	1.41 01/04/21
- *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.jar;
@@ -25,7 +20,7 @@ import sun.security.util.ManifestEntryVerifier;
  * JAR file and its entries.
  *
  * @author  David Connelly
- * @version 1.41, 04/21/01
+ * @version 1.42, 02/06/02
  * @see	    Manifest
  * @see     java.util.zip.ZipFile
  * @see     java.util.jar.JarEntry

@@ -1,11 +1,6 @@
 /*
- * @(#)BindingIteratorOperations.java	1.1 00/01/26
- *
- * Copyright 1997-1999 Sun Microsystems, Inc. All Rights Reserved.
- *
- * This software is the proprietary information of Sun Microsystems, Inc.
- * Use is subject to license terms.
- *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package org.omg.CosNaming;

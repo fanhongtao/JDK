@@ -1,11 +1,6 @@
 /*
- * @(#)TTY.java	1.90 00/03/06
- *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package sun.tools.ttydebug;
@@ -22,7 +17,7 @@ public class TTY implements DebuggerCallback {
     PrintStream console = null;
 
     private static final String progname = "oldjdb";
-    private static final String version = "00/03/06";
+    private static final String version = "02/02/06";
 
     private String lastArgs = null;
     

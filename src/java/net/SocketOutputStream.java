@@ -1,11 +1,6 @@
 /*
- * @(#)SocketOutputStream.java	1.18 01/09/20
- *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.net;
@@ -19,7 +14,7 @@ import java.io.FileDescriptor;
  * SocketOutputStream. Note that this class should <b>NOT</b> be
  * public.
  *
- * @version     1.18, 09/20/01
+ * @version     1.19, 02/06/02
  * @author 	Jonathan Payne
  * @author	Arthur van Hoff
  */

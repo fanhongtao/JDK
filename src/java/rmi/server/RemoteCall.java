@@ -1,11 +1,6 @@
 /*
- * @(#)RemoteCall.java	1.15 00/02/02
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.rmi.server;
@@ -22,7 +17,7 @@ import java.io.IOException;
  * deprecated in the Java 2 platform since it is only used by deprecated methods of
  * <code>java.rmi.server.RemoteRef</code>.
  *
- * @version 1.15, 02/02/00
+ * @version 1.16, 02/06/02
  * @since   JDK1.1
  * @author  Ann Wollrath
  * @author  Roger Riggs

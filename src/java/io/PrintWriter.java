@@ -1,11 +1,6 @@
 /*
- * @(#)PrintWriter.java	1.24 00/02/02
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -26,7 +21,7 @@ package java.io;
  * <p> Methods in this class never throw I/O exceptions.  The client may
  * inquire as to whether any errors have occurred by invoking checkError().
  *
- * @version 	1.24, 02/02/00
+ * @version 	1.25, 02/06/02
  * @author	Frank Yellin
  * @author	Mark Reinhold
  * @since	JDK1.1

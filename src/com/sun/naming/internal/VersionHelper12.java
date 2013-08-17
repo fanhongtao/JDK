@@ -1,11 +1,6 @@
 /*
- * @(#)VersionHelper12.java	1.6 00/02/02
- *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.naming.internal;
@@ -31,7 +26,7 @@ import javax.naming.*;
  * 
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.6 00/02/02
+ * @version 1.7 02/02/06
  */
 
 final class VersionHelper12 extends VersionHelper {

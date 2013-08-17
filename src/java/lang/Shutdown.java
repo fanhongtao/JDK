@@ -1,11 +1,6 @@
 /*
- * @(#)Shutdown.java	1.7 00/02/02
- *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -19,7 +14,7 @@ import java.util.Iterator;
  * governing the virtual-machine shutdown sequence.
  *
  * @author   Mark Reinhold
- * @version  1.7, 00/02/02
+ * @version  1.8, 02/02/06
  * @since    1.3
  */
 

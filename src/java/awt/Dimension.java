@@ -1,11 +1,6 @@
 /*
- * @(#)Dimension.java	1.26 00/02/02
- *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -29,7 +24,7 @@ import java.awt.geom.Dimension2D;
  * negative, the behavior of some methods defined by other objects is 
  * undefined. 
  * 
- * @version 	1.26, 02/02/00
+ * @version 	1.27, 02/06/02
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see         java.awt.Component

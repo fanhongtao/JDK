@@ -1,11 +1,6 @@
 /*
- * @(#)UndeclaredThrowableException.java	1.6 00/02/02
- *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.reflect;
@@ -31,7 +26,7 @@ import java.io.PrintWriter;
  * that wraps a checked exception.
  *
  * @author	Peter Jones
- * @version	1.6, 00/02/02
+ * @version	1.7, 02/02/06
  * @see		InvocationHandler
  * @since	JDK1.3
  */

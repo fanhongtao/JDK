@@ -1,11 +1,6 @@
 /*
- * @(#)File.java	1.98 01/03/22
- *
- * Copyright 1994-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -84,7 +79,7 @@ import sun.security.action.GetPropertyAction;
  * created, the abstract pathname represented by a <code>File</code> object
  * will never change.
  *
- * @version 1.98, 03/22/01
+ * @version 1.99, 02/06/02
  * @author  unascribed
  * @since   JDK1.0
  */

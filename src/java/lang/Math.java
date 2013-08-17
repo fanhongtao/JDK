@@ -1,11 +1,6 @@
 /*
- * @(#)Math.java	1.50 00/02/02
- *
- * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -31,7 +26,7 @@ import java.util.Random;
  * implementations still must conform to the specification for <code>Math</code>.
  *
  * @author  unascribed
- * @version 1.50, 02/02/00
+ * @version 1.51, 02/06/02
  * @since   JDK1.0
  */
 

@@ -1,11 +1,6 @@
 /*
- * @(#)DragSourceContext.java	1.42 01/04/30
- *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.dnd;
@@ -56,7 +51,7 @@ import java.util.TooManyListenersException;
  * <code>DragSourceListener</code> provided by 
  * the initiator of the operation.
  *
- * @version 1.42, 04/30/01
+ * @version 1.43, 02/06/02
  * @since 1.2
  */
 

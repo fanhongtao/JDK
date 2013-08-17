@@ -1,11 +1,6 @@
 /*
- * @(#)EventQueue.java	1.71 01/02/09
- *
- * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -36,7 +31,7 @@ import sun.awt.DebugHelper;
  * @author Fred Ecks
  * @author David Mendenhall
  *
- * @version 	1.71, 02/09/01
+ * @version 	1.72, 02/06/02
  * @since 	1.1
  */
 public class EventQueue {

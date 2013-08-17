@@ -1,11 +1,6 @@
 /*
- * @(#)BasicInternalFrameTitlePane.java	1.33 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -32,7 +27,7 @@ import java.beans.PropertyVetoException;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.33 02/02/00
+ * @version 1.35 02/06/02
  * @author David Kloba
  * @author Steve Wilson
  */
@@ -65,12 +60,18 @@ public class BasicInternalFrameTitlePane extends JComponent
     protected Action moveAction;
     protected Action sizeAction;
 
-    protected static final String CLOSE_CMD = "Close";
-    protected static final String ICONIFY_CMD = "Minimize";
-    protected static final String RESTORE_CMD = "Restore";
-    protected static final String MAXIMIZE_CMD = "Maximize";
-    protected static final String MOVE_CMD = "Move";  
-    protected static final String SIZE_CMD = "Size";  
+    protected static final String CLOSE_CMD =
+        UIManager.getString("InternalFrameTitlePane.closeButtonText");
+    protected static final String ICONIFY_CMD =
+        UIManager.getString("InternalFrameTitlePane.minimizeButtonText");
+    protected static final String RESTORE_CMD =
+        UIManager.getString("InternalFrameTitlePane.restoreButtonText");
+    protected static final String MAXIMIZE_CMD =
+        UIManager.getString("InternalFrameTitlePane.maximizeButtonText");
+    protected static final String MOVE_CMD =
+        UIManager.getString("InternalFrameTitlePane.moveButtonText");
+    protected static final String SIZE_CMD =
+        UIManager.getString("InternalFrameTitlePane.sizeButtonText");
 
     public BasicInternalFrameTitlePane(JInternalFrame f) {
 	frame = f;

@@ -1,11 +1,6 @@
 /*
- * @(#)LayoutQueue.java	1.3 00/02/02
- *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -15,7 +10,7 @@ import java.util.Vector;
  * A queue of text layout tasks. 
  *
  * @author  Timothy Prinzing
- * @version 1.3 02/02/00
+ * @version 1.4 02/06/02
  * @see     AsyncBoxView
  * @since   1.3 
  */

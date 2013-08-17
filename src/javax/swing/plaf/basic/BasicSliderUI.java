@@ -1,11 +1,6 @@
 /*
- * @(#)BasicSliderUI.java	1.81 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -36,7 +31,7 @@ import javax.swing.plaf.*;
 /**
  * A Basic L&F implementation of SliderUI.
  *
- * @version 1.81 02/02/00
+ * @version 1.82 02/06/02
  * @author Tom Santos
  */
 public class BasicSliderUI extends SliderUI{

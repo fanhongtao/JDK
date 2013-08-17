@@ -1,11 +1,6 @@
 /*
- * @(#)ImageIcon.java	1.46 00/04/06
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -41,7 +36,7 @@ import javax.accessibility.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  * 
- * @version 1.46 04/06/00
+ * @version 1.48 02/06/02
  * @author Jeff Dinkins
  * @author Lynn Monsanto
  */
@@ -61,6 +56,11 @@ public class ImageIcon implements Icon, Serializable, Accessible {
 
     protected final static Component component = new Component() {};
     protected final static MediaTracker tracker = new MediaTracker(component);
+
+    /**
+     * Id used in loading images from MediaTracker.
+     */
+    private static int mediaTrackerID;
 
     int width = -1;
     int height = -1;
@@ -221,17 +221,27 @@ public class ImageIcon implements Icon, Serializable, Accessible {
      */
     protected void loadImage(Image image) {
 	synchronized(tracker) {
-	    tracker.addImage(image, 0);
+	    int id = getNextID();
+	    tracker.addImage(image, id);
 	    try {
-		tracker.waitForID(0, 0);
+		tracker.waitForID(id, 0);
 	    } catch (InterruptedException e) {
 		System.out.println("INTERRUPTED while loading Image");
 	    }
-            loadStatus = tracker.statusID(0, false);
-	    tracker.removeImage(image, 0);
+            loadStatus = tracker.statusID(id, false);
+	    tracker.removeImage(image, id);
 
 	    width = image.getWidth(imageObserver);
 	    height = image.getHeight(imageObserver);
+	}
+    }
+
+    /**
+     * Returns an ID to use with the MediaTracker in loading an image.
+     */
+    private int getNextID() {
+	synchronized(tracker) {
+	    return ++mediaTrackerID;
 	}
     }
 

@@ -1,11 +1,6 @@
 /*
- * @(#)LightweightPeer.java	1.8 00/02/02
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.peer;
@@ -22,7 +17,7 @@ package java.awt.peer;
  * nor invoke any of the peer methods directly on the peer
  * instances.
  *
- * @version 1.8 02/02/00
+ * @version 1.9 02/06/02
  * @author Timothy Prinzing
  */
 public interface LightweightPeer extends ComponentPeer {

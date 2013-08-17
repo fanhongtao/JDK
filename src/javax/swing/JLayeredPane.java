@@ -1,11 +1,6 @@
 /*
- * @(#)JLayeredPane.java	1.38 00/04/06
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -124,7 +119,7 @@ import javax.accessibility.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  * 
- * @version 1.38 04/06/00
+ * @version 1.39 02/06/02
  * @author David Kloba
  */
 public class JLayeredPane extends JComponent implements Accessible {

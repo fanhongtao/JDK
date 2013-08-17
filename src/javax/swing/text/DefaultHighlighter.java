@@ -1,11 +1,6 @@
 /*
- * @(#)DefaultHighlighter.java	1.31 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -18,7 +13,7 @@ import javax.swing.plaf.*;
  * painter that renders in a solid color.
  * 
  * @author  Timothy Prinzing
- * @version 1.31 02/02/00
+ * @version 1.32 02/06/02
  * @see     Highlighter
  */
 public class DefaultHighlighter extends LayeredHighlighter {

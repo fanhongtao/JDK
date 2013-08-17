@@ -1,11 +1,6 @@
 /*
- * @(#)DesignMode.java	1.11 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.beans;
@@ -23,7 +18,7 @@ package java.beans;
  * or other live Java executable abstraction.
  *
  * @author Laurence P. G. Cable
- * @version 1.11, 02/02/00
+ * @version 1.12, 02/06/02
  * @since 1.2
  *
  * @see java.beans.beancontext.BeanContext

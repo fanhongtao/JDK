@@ -1,11 +1,6 @@
 /*
- * @(#)ServerSocket.java	1.42 00/08/16
- *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.net;
@@ -25,7 +20,7 @@ import java.io.FileDescriptor;
  * appropriate to the local firewall. 
  *
  * @author  unascribed
- * @version 1.42, 08/16/00
+ * @version 1.43, 02/06/02
  * @see     java.net.SocketImpl
  * @see     java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
  * @since   JDK1.0

@@ -1,11 +1,6 @@
 /*
- * @(#)KeyEvent.java	1.44 00/04/06
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.event;
@@ -93,7 +88,7 @@ import java.awt.Toolkit;
  * @author Carl Quinn
  * @author Amy Fowler
  * @author Norbert Lindenberg
- * @version 1.44 04/06/00
+ * @version 1.45 02/06/02
  *
  * @see KeyAdapter
  * @see KeyListener

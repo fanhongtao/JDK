@@ -1,11 +1,6 @@
 /*
- * @(#)JDialog.java	1.53 00/08/05
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -73,7 +68,7 @@ import java.applet.Applet;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window for creating dialog boxes.
  *
- * @version 1.53 08/05/00
+ * @version 1.54 02/06/02
  * @author David Kloba
  * @author James Gosling
  * @author Scott Violet

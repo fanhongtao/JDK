@@ -1,11 +1,6 @@
 /*
- * @(#)PatternEntry.java	1.21 00/01/19
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
@@ -30,7 +25,7 @@ import java.lang.Character;
  * This is to be used with MergeCollation for adding patterns to an
  * existing rule table.
  * @see        MergeCollation
- * @version    1.21 01/19/00
+ * @version    1.22 02/06/02
  * @author     Mark Davis, Helena Shih
  */
 

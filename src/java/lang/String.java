@@ -1,11 +1,6 @@
 /*
- * @(#)String.java	1.130 01/02/09
- *
- * Copyright 1994-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -65,7 +60,7 @@ import java.lang.ref.SoftReference;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.130, 02/09/01
+ * @version 1.131, 02/06/02
  * @see     java.lang.Object#toString()
  * @see     java.lang.StringBuffer
  * @see     java.lang.StringBuffer#append(boolean)

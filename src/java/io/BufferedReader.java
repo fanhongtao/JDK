@@ -1,11 +1,6 @@
 /*
- * @(#)BufferedReader.java	1.27 01/02/09
- *
- * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -40,7 +35,7 @@ package java.io;
  * @see FileReader
  * @see InputStreamReader
  *
- * @version 	1.27, 01/02/09
+ * @version 	1.28, 02/02/06
  * @author	Mark Reinhold
  * @since	JDK1.1
  */

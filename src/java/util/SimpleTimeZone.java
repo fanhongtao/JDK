@@ -1,11 +1,6 @@
 /*
- * @(#)SimpleTimeZone.java	1.38 00/01/19
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
@@ -41,7 +36,7 @@ import java.io.IOException;
  * @see      Calendar
  * @see      GregorianCalendar
  * @see      TimeZone
- * @version  1.38 01/19/00
+ * @version  1.39 02/06/02
  * @author   David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public class SimpleTimeZone extends TimeZone {

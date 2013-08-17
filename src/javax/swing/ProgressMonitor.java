@@ -1,11 +1,6 @@
 /*
- * @(#)ProgressMonitor.java	1.24 01/02/09
- *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -50,7 +45,7 @@ import java.awt.event.WindowEvent;
  *
  * @see ProgressMonitorInputStream
  * @author James Gosling
- * @version 1.24 02/09/01
+ * @version 1.25 02/06/02
  */
 public class ProgressMonitor extends Object
 {

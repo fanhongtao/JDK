@@ -1,11 +1,6 @@
 /*
- * @(#)BasicScrollBarUI.java	1.57 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
 
@@ -23,7 +18,7 @@ import javax.swing.plaf.*;
 /**
  * Implementation of ScrollBarUI for the Basic Look and Feel
  *
- * @version 1.57 02/02/00
+ * @version 1.58 02/06/02
  * @author Rich Schiavi
  * @author David Kloba
  * @author Hans Muller

@@ -1,11 +1,6 @@
 /*
- * @(#)UnsupportedFlavorException.java	1.12 01/02/09
- *
- * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.datatransfer;
@@ -14,7 +9,7 @@ package java.awt.datatransfer;
  * Signals that the requested data is not supported in this flavor.
  * @see Transferable#getTransferData
  *
- * @version 	1.12, 02/09/01
+ * @version 	1.13, 02/06/02
  * @author	Amy Fowler
  */
 public class UnsupportedFlavorException extends Exception {

@@ -1,11 +1,6 @@
 /*
- * @(#)WeakReference.java	1.11 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.ref;
@@ -26,7 +21,7 @@ package java.lang.ref;
  * later time it will enqueue those newly-cleared weak references that are
  * registered with reference queues.
  *
- * @version  1.11, 02/02/00
+ * @version  1.12, 02/06/02
  * @author   Mark Reinhold
  * @since    1.2
  */

@@ -1,11 +1,6 @@
 /*
- * @(#)ParagraphView.java	1.76 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -27,7 +22,7 @@ import javax.swing.SizeRequirements;
  *
  * @author  Timothy Prinzing
  * @author  Scott Violet
- * @version 1.76 02/02/00
+ * @version 1.77 02/06/02
  * @see     View
  */
 public class ParagraphView extends FlowView implements TabExpander {

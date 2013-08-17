@@ -1,12 +1,6 @@
 /*
- * @(#)jvm.h	1.81 00/08/30
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright 2000 Sun Microsystems, Inc. Tous droits réservés.
- *
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 #ifndef _JAVASOFT_JVM_H_

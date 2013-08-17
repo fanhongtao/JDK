@@ -1,11 +1,6 @@
 /*
- * @(#)KeyAdapter.java	1.13 00/02/02
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.event;
@@ -28,7 +23,7 @@ package java.awt.event;
  * and the <code>KeyEvent</code> is passed to it.
  *
  * @author Carl Quinn
- * @version 1.13 02/02/00
+ * @version 1.14 02/06/02
  *
  * @see KeyEvent
  * @see KeyListener

@@ -1,11 +1,6 @@
 /*
- * @(#)HttpURLConnection.java	1.25 00/02/02
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.net;
@@ -223,28 +218,7 @@ abstract public class HttpURLConnection extends URLConnection {
      * @return the HTTP Status-Code
      */
     public int getResponseCode() throws IOException {
-	if (responseCode != -1) {
-	    return responseCode;
-	}
-	// make sure we've gotten the headers
-	getInputStream();
-
-	String resp = getHeaderField(0);
-	/* should have no leading/trailing LWS
-	 * expedite the typical case by assuming it has
-	 * form "HTTP/1.x <WS> 2XX <mumble>"
-	 */
-	int ind;
-	try {	
-	    ind = resp.indexOf(' ');
-	    while(resp.charAt(ind) == ' ')
-		ind++;
-	    responseCode = Integer.parseInt(resp.substring(ind, ind + 3));
-	    responseMessage = resp.substring(ind + 4).trim();
-	    return responseCode;
-	} catch (Exception e) { 
-	    return responseCode;
-	}
+	return -1;
     }
 
     /**

@@ -1,11 +1,6 @@
 /*
- * @(#)DefaultListCellRenderer.java	1.18 00/07/26
- *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -47,7 +42,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.18 07/26/00
+ * @version 1.19 02/06/02
  * @author Philip Milne
  * @author Hans Muller
  */

@@ -1,11 +1,6 @@
 /*
- * @(#)EventListenerList.java	1.27 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.event;
 
@@ -75,7 +70,7 @@ import java.lang.reflect.Array;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.27 02/02/00
+ * @version 1.29 02/06/02
  * @author Georges Saab
  * @author Hans Muller
  * @author James Gosling
@@ -246,8 +241,10 @@ public class EventListenerList implements Serializable {
 	Object listenerTypeOrNull;
 	
 	while (null != (listenerTypeOrNull = s.readObject())) {
+	    //backported from Merlin - Bug #4249035
+	    ClassLoader cl = Thread.currentThread().getContextClassLoader();
 	    EventListener l = (EventListener)s.readObject();
-	    add(Class.forName((String)listenerTypeOrNull), l);
+	    add(Class.forName((String)listenerTypeOrNull, true, cl), l);
 	}	    
     }
 

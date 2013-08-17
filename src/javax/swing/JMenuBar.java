@@ -1,11 +1,6 @@
 /*
- * @(#)JMenuBar.java	1.85 00/04/06
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -55,7 +50,7 @@ import javax.accessibility.*;
  *   attribute: isContainer true
  * description: A container for holding and displaying menus.
  *
- * @version 1.85 04/06/00
+ * @version 1.86 02/06/02
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber

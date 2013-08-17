@@ -1,11 +1,6 @@
 /*
- * @(#)TextComponent.java	1.65 01/04/21
- *
- * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -37,7 +32,7 @@ import javax.accessibility.*;
  * is the target of editing operations. It is also referred
  * to as the <em>selected text</em>.
  *
- * @version	1.65, 04/21/01
+ * @version	1.66, 02/06/02
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0

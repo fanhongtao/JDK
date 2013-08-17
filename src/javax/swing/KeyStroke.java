@@ -1,11 +1,6 @@
 /*
- * @(#)KeyStroke.java	1.38 00/07/26
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -43,7 +38,7 @@ import java.io.Serializable;
  * @see javax.swing.text.Keymap
  * @see #getKeyStroke
  *
- * @version 1.38 07/26/00
+ * @version 1.39 02/06/02
  * @author Arnaud Weber
  */
 public class KeyStroke implements Serializable {

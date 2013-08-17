@@ -1,11 +1,6 @@
 /*
- * @(#)ScrollPaneLayout.java	1.47 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -37,7 +32,7 @@ import java.io.Serializable;
  * @see JScrollPane
  * @see JViewport
  *
- * @version 1.47 02/02/00
+ * @version 1.48 02/06/02
  * @author Hans Muller
  */
 public class ScrollPaneLayout

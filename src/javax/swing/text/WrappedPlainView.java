@@ -1,11 +1,6 @@
 /*
- * @(#)WrappedPlainView.java	1.22 00/02/02
- *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -34,7 +29,7 @@ import javax.swing.event.*;
  * without concern for the layout aspects.
  *
  * @author  Timothy Prinzing
- * @version 1.22 02/02/00
+ * @version 1.23 02/06/02
  * @see     View
  */
 public class WrappedPlainView extends BoxView implements TabExpander {

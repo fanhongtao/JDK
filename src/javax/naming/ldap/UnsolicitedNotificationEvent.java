@@ -1,11 +1,6 @@
 /*
- * @(#)UnsolicitedNotificationEvent.java	1.6 01/02/09
- *
- * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.naming.ldap;
@@ -17,7 +12,7 @@ package javax.naming.ldap;
  * @author Rosanna Lee
  * @author Scott Seligman
  * @author Vincent Ryan
- * @version 1.6 01/02/09
+ * @version 1.7 02/02/06
  *
  * @see UnsolicitedNotification
  * @see UnsolicitedNotificationListener

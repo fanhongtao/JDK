@@ -1,11 +1,6 @@
 /*
- * @(#)MetalToolTipUI.java	1.17 00/02/02
- *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
@@ -30,13 +25,14 @@ import javax.swing.plaf.basic.BasicToolTipUI;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.17 02/02/00
+ * @version 1.19 02/06/02
  * @author Steve Wilson
  */
 public class MetalToolTipUI extends BasicToolTipUI {
 
     static MetalToolTipUI sharedInstance = new MetalToolTipUI();
     private Font smallFont;			    	     
+    // Refer to note in getAcceleratorString about this field.
     private JToolTip tip;
     public static final int padSpaceBetweenStrings = 12;
     private String acceleratorDelimiter;
@@ -58,13 +54,20 @@ public class MetalToolTipUI extends BasicToolTipUI {
 	if ( acceleratorDelimiter == null ) { acceleratorDelimiter = "-"; }
     }
 
+    public void uninstallUI(JComponent c) {
+        super.uninstallUI(c);
+        tip = null;
+    }
+
     public void paint(Graphics g, JComponent c) {
+	JToolTip tip = (JToolTip)c;
+
 	super.paint(g, c);
 
         Font font = c.getFont();
         FontMetrics metrics = Toolkit.getDefaultToolkit().getFontMetrics(font);
-	String keyText = getAcceleratorString();
-	String tipText = ((JToolTip)c).getTipText();
+	String keyText = getAcceleratorString(tip);
+        String tipText = tip.getTipText();
 	if (tipText == null) {
 	    tipText = "";
 	}
@@ -80,15 +83,33 @@ public class MetalToolTipUI extends BasicToolTipUI {
     public Dimension getPreferredSize(JComponent c) {
 	Dimension d = super.getPreferredSize(c);
 
-	String key = getAcceleratorString();
+	String key = getAcceleratorString((JToolTip)c);
 	if (! (key.equals(""))) {
             FontMetrics fm = Toolkit.getDefaultToolkit().getFontMetrics(smallFont);	
 	    d.width += fm.stringWidth(key) + padSpaceBetweenStrings;
 	}
         return d;
     }
-   
+
+    private String getAcceleratorString(JToolTip tip) {
+        this.tip = tip;
+
+        String retValue = getAcceleratorString();
+
+        this.tip = null;
+        return retValue;
+    }
+
+    // NOTE: This requires the tip field to be set before this is invoked.
+    // As MetalToolTipUI is shared between all JToolTips the tip field is
+    // set appropriately before this is invoked. Unfortunately this means
+    // that subclasses that randomly invoke this method will see varying
+    // results. If this becomes an issue, MetalToolTipUI should no longer be
+    // shared.
     public String getAcceleratorString() {
+	if (tip == null) {
+            return "";
+        }
         JComponent comp = tip.getComponent();
 	if (comp == null) {
 	    return "";

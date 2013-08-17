@@ -1,11 +1,6 @@
 /*
- * @(#)MediaTracker.java	1.34 00/07/14
- *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -128,7 +123,7 @@ import java.awt.image.ImageObserver;
  * }
  * </pre></blockquote><hr>
  * <p>
- * @version 	1.34, 07/14/00
+ * @version 	1.35, 02/06/02
  * @author 	Jim Graham
  * @since       JDK1.0
  */

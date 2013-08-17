@@ -1,11 +1,6 @@
 /*
- * @(#)CertificateEncodingException.java	1.7 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security.cert;
@@ -15,7 +10,7 @@ package java.security.cert;
  * occurs while attempting to encode a certificate.
  *
  * @author Hemma Prafullchandra
- * 1.7
+ * 1.8
  */
 public class CertificateEncodingException extends CertificateException {
 

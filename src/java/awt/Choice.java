@@ -1,11 +1,6 @@
 /*
- * @(#)Choice.java	1.64 00/03/14
- *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -49,7 +44,7 @@ import javax.accessibility.*;
  * attributes as font size and length of items contained within 
  * the Choice.
  * <p>
- * @version	1.64 03/14/00
+ * @version	1.65 02/06/02
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0

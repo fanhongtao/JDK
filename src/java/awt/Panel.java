@@ -1,11 +1,6 @@
 /*
- * @(#)Panel.java	1.30 00/04/06
- *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -20,7 +15,7 @@ import javax.accessibility.*;
  * The default layout manager for a panel is the
  * <code>FlowLayout</code> layout manager.
  *
- * @version 	1.30, 04/06/00
+ * @version 	1.31, 02/06/02
  * @author 	Sami Shaio
  * @see     java.awt.FlowLayout
  * @since   JDK1.0

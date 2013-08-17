@@ -1,11 +1,6 @@
 /*
- * @(#)ClassLoader.java	1.144 01/09/18
- *
- * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -126,7 +121,7 @@ import sun.misc.ClassFileTransformer;
  *     }
  * </pre></blockquote><hr>
  *
- * @version 1.144, 09/18/01
+ * @version 1.145, 02/06/02
  * @see     java.lang.Class
  * @see     java.lang.Class#newInstance()
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
@@ -1163,7 +1158,7 @@ public abstract class ClassLoader {
      * by the VM when it loads the library, and used by the VM to pass
      * the correct version of JNI to the native methods.
      *
-     * @version 1.144, 09/18/01
+     * @version 1.145, 02/06/02
      * @see     java.lang.ClassLoader
      * @since   1.2
      */ 

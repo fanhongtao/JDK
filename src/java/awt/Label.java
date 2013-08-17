@@ -1,11 +1,6 @@
 /*
- * @(#)Label.java	1.47 00/04/06
- *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -31,7 +26,7 @@ import javax.accessibility.*;
  * <img src="doc-files/Label-1.gif"
  * ALIGN=center HSPACE=10 VSPACE=7>
  *
- * @version	1.47, 04/06/00
+ * @version	1.48, 02/06/02
  * @author 	Sami Shaio
  * @since       JDK1.0
  */

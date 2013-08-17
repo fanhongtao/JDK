@@ -1,11 +1,6 @@
 /*
- * @(#)Toolkit.java	1.156 01/02/09
- *
- * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -56,7 +51,7 @@ import java.beans.PropertyChangeSupport;
  * <code>java.awt.peer</code>. Some methods defined by
  * <code>Toolkit</code> query the native operating system directly.
  *
- * @version 	1.156, 02/09/01
+ * @version 	1.157, 02/06/02
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @author	Fred Ecks

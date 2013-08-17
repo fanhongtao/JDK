@@ -1,11 +1,6 @@
 /*
- * @(#)BasicEditorPaneUI.java	1.24 00/04/06
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
 
@@ -31,7 +26,7 @@ import javax.swing.border.*;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.24 04/06/00
+ * @version 1.25 02/06/02
  */
 public class BasicEditorPaneUI extends BasicTextUI {
 

@@ -1,11 +1,6 @@
 /*
- * @(#)AllPermission.java	1.15 00/04/06
- *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package java.security;
@@ -33,7 +28,7 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.15 00/04/06
+ * @version 1.16 02/02/06
  *
  * @author Roland Schemers
  *
@@ -133,7 +128,7 @@ public final class AllPermission extends Permission {
  * @see java.security.Permission
  * @see java.security.Permissions
  *
- * @version 1.15 04/06/00
+ * @version 1.16 02/06/02
  *
  * @author Roland Schemers
  *

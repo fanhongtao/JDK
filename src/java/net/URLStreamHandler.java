@@ -1,11 +1,6 @@
 /*
- * @(#)URLStreamHandler.java	1.43 01/04/21
- *
- * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.net;
@@ -30,7 +25,7 @@ import java.util.Hashtable;
  * automatically loaded.
  *
  * @author  James Gosling
- * @version 1.43, 04/21/01
+ * @version 1.44, 02/06/02
  * @see     java.net.URL#URL(java.lang.String, java.lang.String, int, java.lang.String)
  * @since   JDK1.0
  */

@@ -1,11 +1,6 @@
 /*
- * @(#)DefaultListSelectionModel.java	1.55 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -27,7 +22,7 @@ import javax.swing.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.55 02/02/00
+ * @version 1.57 02/06/02
  * @author Philip Milne
  * @author Hans Muller
  * @see ListSelectionModel
@@ -476,6 +471,8 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
 	for(int i = insMinIndex; i <= insMaxIndex; i++) { 
 	    setState(i, setInsertedValues); 
 	}
+
+        fireValueChanged();
     }
 
 
@@ -497,6 +494,8 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
 	for(int i = rmMinIndex; i <= maxIndex; i++) {
 	    setState(i, value.get(i + gapLength)); 
 	}
+	
+        fireValueChanged();
     }
 
 

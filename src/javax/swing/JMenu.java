@@ -1,11 +1,6 @@
 /*
- * @(#)JMenu.java	1.145 01/02/09
- *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -34,6 +29,7 @@ import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
 import javax.accessibility.*;
 
+import java.lang.ref.WeakReference;
 
 /**
  * An implementation of a menu -- a popup window containing
@@ -66,7 +62,7 @@ import javax.accessibility.*;
  *   attribute: isContainer true
  * description: A popup window containing menu items displayed in a menu bar.
  *
- * @version 1.145 02/09/01
+ * @version 1.147 02/06/02
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -597,7 +593,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     }
 
     private class ActionChangedListener implements PropertyChangeListener {
-        JMenuItem menuItem;
+        WeakReference menuItem;
         
         ActionChangedListener(JMenuItem mi) {
             super();
@@ -605,22 +601,33 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
         }
         public void propertyChange(PropertyChangeEvent e) {
             String propertyName = e.getPropertyName();
-            if (e.getPropertyName().equals(Action.NAME)) {
-                String text = (String) e.getNewValue();
-                menuItem.setText(text);
-            } else if (propertyName.equals("enabled")) {
-                Boolean enabledState = (Boolean) e.getNewValue();
-                menuItem.setEnabled(enabledState.booleanValue());
-            } else if (e.getPropertyName().equals(Action.SMALL_ICON)) {
-                Icon icon = (Icon) e.getNewValue();
-                menuItem.setIcon(icon);
-                menuItem.invalidate();
-                menuItem.repaint();
-            } 
+	    JMenuItem mi = (JMenuItem)getTarget();
+	    if (mi == null) {
+		Action action = (Action)e.getSource();
+            	action.removePropertyChangeListener(this);
+            } else {
+            	if (propertyName.equals(Action.NAME)) {
+                	String text = (String) e.getNewValue();
+                	mi.setText(text);
+            	} else if (propertyName.equals("enabled")) {
+                	Boolean enabledState = (Boolean) e.getNewValue();
+                	mi.setEnabled(enabledState.booleanValue());
+            	} else if (e.getPropertyName().equals(Action.SMALL_ICON)) {
+                	Icon icon = (Icon) e.getNewValue();
+                	mi.setIcon(icon);
+                	mi.invalidate();
+                	mi.repaint();
+            	} else if (propertyName.equals(Action.ACTION_COMMAND_KEY)) {
+                	mi.setActionCommand((String)e.getNewValue());
+                } 
+	   } 
         }
 	public void setTarget(JMenuItem b) {
-	    this.menuItem = b;
+	    menuItem = new WeakReference(b);
 	}
+	public JMenuItem getTarget() {
+             return (JMenuItem)menuItem.get();
+        }
     }
 
     /**

@@ -1,11 +1,6 @@
 /*
- * @(#)JToggleButton.java	1.50 00/04/06
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -47,7 +42,7 @@ import java.io.IOException;
  * 
  * @see JRadioButton
  * @see JCheckBox
- * @version 1.50 04/06/00
+ * @version 1.51 02/06/02
  * @author Jeff Dinkins
  */
 public class JToggleButton extends AbstractButton implements Accessible {

@@ -1,11 +1,6 @@
 /*
- * @(#)BasicMenuUI.java	1.131 01/02/09
- *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -23,7 +18,7 @@ import javax.swing.border.*;
  * A default L&F implementation of MenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.131 02/09/01
+ * @version 1.133 02/06/02
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -481,7 +476,7 @@ public class BasicMenuUI extends BasicMenuItemUI
 	}
     }
 
-    private class ReturnAction extends AbstractAction {
+    private static class ReturnAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
 	    JMenu menu = (JMenu)e.getSource();
 	    if (!menu.isEnabled())

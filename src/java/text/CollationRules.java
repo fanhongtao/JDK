@@ -1,11 +1,6 @@
 /*
- * @(#)CollationRules.java	1.22 00/01/19
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
@@ -29,7 +24,7 @@ package java.text;
  * so they do not have to contain accented characters, such as A-grave.
  * @see                RuleBasedCollator
  * @see                LocaleElements
- * @version            1.22, 01/19/00
+ * @version            1.23, 02/06/02
  * @author             Helena Shih, Mark Davis
  */
 final class CollationRules {

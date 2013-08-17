@@ -1,11 +1,6 @@
 /*
- * @(#)FileFilter.java	1.14 00/02/02
- *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.filechooser;
@@ -25,7 +20,7 @@ import java.io.File;
  * @see javax.swing.JFileChooser#setFileFilter
  * @see javax.swing.JFileChooser#addChoosableFileFilter
  *
- * @version 1.14 02/02/00
+ * @version 1.15 02/06/02
  * @author Jeff Dinkins
  */
 public abstract class FileFilter {

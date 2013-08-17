@@ -1,11 +1,6 @@
 /*
- * @(#)Security.java	1.101 00/08/10
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security;
@@ -20,7 +15,7 @@ import java.security.InvalidParameterException;
  * methods. One of its primary uses is to manage providers.
  *
  * @author Benjamin Renaud
- * @version 1.101, 08/10/00
+ * @version 1.102, 02/06/02
  */
 
 public final class Security {

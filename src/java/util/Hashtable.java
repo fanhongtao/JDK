@@ -1,11 +1,6 @@
 /*
- * @(#)Hashtable.java	1.84 01/09/24
- *
- * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -82,7 +77,7 @@ import java.io.*;
  *
  * @author  Arthur van Hoff
  * @author  Josh Bloch
- * @version 1.84, 09/24/01
+ * @version 1.85, 02/06/02
  * @see     Object#equals(java.lang.Object)
  * @see     Object#hashCode()
  * @see     Hashtable#rehash()

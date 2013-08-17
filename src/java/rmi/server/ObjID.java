@@ -1,11 +1,6 @@
 /*
- * @(#)ObjID.java	1.22 00/04/06
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.server;
 
@@ -27,7 +22,7 @@ import sun.security.action.GetBooleanAction;
  * no argument constructor will contain a cryptographically strong random
  * number.
  *
- * @version 1.22, 04/06/00
+ * @version 1.23, 02/06/02
  * @author  Ann Wollrath
  * @since   JDK1.1
  */

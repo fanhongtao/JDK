@@ -1,11 +1,6 @@
 /*
- * @(#)Container.java	1.181 00/04/06
- *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -46,7 +41,7 @@ import sun.awt.GlobalCursorManager;
  * within the container.  If no index is specified when adding a
  * component to a container, it will be added to the end of the list
  * (and hence to the bottom of the stacking order).
- * @version 	1.181, 04/06/00
+ * @version 	1.182, 02/06/02
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see       java.awt.Container#add(java.awt.Component, int)

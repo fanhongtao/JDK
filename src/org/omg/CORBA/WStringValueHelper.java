@@ -1,13 +1,8 @@
 /*
- * @(#)WStringValueHelper.java	1.7 00/02/02
- *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-/* @(#)WStringValueHelper.java	1.7 00/02/02 */
+/* @(#)WStringValueHelper.java	1.8 02/02/06 */
 /*
  * Licensed Materials - Property of IBM
  * RMI-IIOP v1.0

@@ -1,11 +1,6 @@
 /*
- * @(#)ZipInputStream.java	1.28 00/02/02
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.zip;
@@ -21,7 +16,7 @@ import java.io.PushbackInputStream;
  * entries.
  *
  * @author	David Connelly
- * @version	1.28, 02/02/00
+ * @version	1.29, 02/06/02
  */
 public
 class ZipInputStream extends InflaterInputStream implements ZipConstants {

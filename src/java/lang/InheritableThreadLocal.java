@@ -1,11 +1,6 @@
 /*
- * @(#)InheritableThreadLocal.java	1.10 00/02/02
- *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -25,7 +20,7 @@ import java.util.*;
  * to any child threads that are created.
  *
  * @author  Josh Bloch
- * @version 1.10, 02/02/00
+ * @version 1.11, 02/06/02
  * @see ThreadLocal
  * @since 1.2
  */

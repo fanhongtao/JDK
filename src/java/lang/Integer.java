@@ -1,11 +1,6 @@
 /*
- * @(#)Integer.java	1.64 01/02/09
- *
- * Copyright 1994-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -23,7 +18,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.64, 02/09/01
+ * @version 1.65, 02/06/02
  * @since   JDK1.0
  */
 public final class Integer extends Number implements Comparable {

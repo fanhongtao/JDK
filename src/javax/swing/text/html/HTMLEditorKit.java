@@ -1,11 +1,6 @@
 /*
- * @(#)HTMLEditorKit.java	1.98 00/07/20
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
@@ -140,7 +135,7 @@ import java.util.*;
  * </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.98 07/20/00
+ * @version 1.99 02/06/02
  */
 public class HTMLEditorKit extends StyledEditorKit {
    

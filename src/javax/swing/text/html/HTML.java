@@ -1,11 +1,6 @@
 /*
- * @(#)HTML.java	1.31 00/02/02
- *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
@@ -21,7 +16,7 @@ import javax.swing.text.StyleContext;
  * @author  Timothy Prinzing
  * @author  Sunita Mani
  *
- * @version 1.31 02/02/00
+ * @version 1.32 02/06/02
  */
 public class HTML {
 

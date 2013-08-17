@@ -1,11 +1,6 @@
 /*
- * @(#)Thread.java	1.107 01/08/25
- *
- * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -100,7 +95,7 @@ import java.util.Collections;
  * a thread is created, a new name is generated for it. 
  *
  * @author  unascribed
- * @version 1.107, 08/25/01
+ * @version 1.108, 02/06/02
  * @see     java.lang.Runnable
  * @see     java.lang.Runtime#exit(int)
  * @see     java.lang.Thread#run()

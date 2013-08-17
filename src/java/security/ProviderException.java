@@ -1,11 +1,6 @@
 /*
- * @(#)ProviderException.java	1.10 00/02/02
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security;
@@ -14,7 +9,7 @@ package java.security;
  * misconfiguration errors), which may be subclassed by Providers to
  * throw specialized, provider-specific runtime errors.
  *
- * @version 1.10, 00/02/02
+ * @version 1.11, 02/02/06
  * @author Benjamin Renaud
  */
 

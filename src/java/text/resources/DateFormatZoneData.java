@@ -1,11 +1,6 @@
 /*
- * @(#)DateFormatZoneData.java	1.20 01/03/18
- *
- * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
@@ -57,7 +52,7 @@ import java.util.Vector;
  * @see          LocaleElements
  * @see          SimpleDateFormat
  * @see          TimeZone
- * @version      1.20 03/18/01
+ * @version      1.21 02/06/02
  * @author       Chen-Lieh Huang
  */
 //  ROOT DateFormatZoneData

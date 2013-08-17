@@ -1,11 +1,6 @@
 /*
- * @(#)DropTargetDropEvent.java	1.21 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.dnd;
@@ -24,7 +19,7 @@ import java.util.List;
  * The <code>DropTargetDropEvent</code> is delivered 
  * via the <code>DropTargetListener</code> drop() method. 
  * 
- * @version 	1.21, 02/02/00
+ * @version 	1.22, 02/06/02
  * @since 1.2
  */
 

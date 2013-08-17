@@ -1,11 +1,6 @@
 /*
- * @(#)Vector.java	1.71 00/04/18
- *
- * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -42,7 +37,7 @@ package java.util;
  *
  * @author  Lee Boynton
  * @author  Jonathan Payne
- * @version 1.71, 04/18/00
+ * @version 1.72, 02/06/02
  * @see Collection
  * @see List
  * @see ArrayList

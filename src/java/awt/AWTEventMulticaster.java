@@ -1,11 +1,6 @@
 /*
- * @(#)AWTEventMulticaster.java	1.25 00/02/02
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -49,7 +44,7 @@ import java.util.EventListener;
  *
  * @author      John Rose
  * @author 	Amy Fowler
- * @version 	1.25, 02/02/00
+ * @version 	1.26, 02/06/02
  * @since 	1.1
  */
 

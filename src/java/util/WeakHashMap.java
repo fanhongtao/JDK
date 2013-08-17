@@ -1,11 +1,6 @@
 /*
- * @(#)WeakHashMap.java	1.12 00/02/02
- *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -85,7 +80,7 @@ import java.lang.ref.ReferenceQueue;
  * turn, strongly refers to the key of the first value object.  This problem
  * may be fixed in a future release.
  *
- * @version	1.12, 02/02/00
+ * @version	1.13, 02/06/02
  * @author	Mark Reinhold
  * @since	1.2
  * @see		java.util.HashMap

@@ -1,11 +1,6 @@
 /*
- * @(#)AbstractDocument.java	1.116 01/03/16
- *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -75,7 +70,7 @@ import javax.swing.tree.TreeNode;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.116 03/16/01
+ * @version 1.117 02/06/02
  */
 public abstract class AbstractDocument implements Document, Serializable {
 

@@ -1,11 +1,6 @@
 /*
- * @(#)UIDefaults.java	1.39 01/02/09
- *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -38,7 +33,7 @@ import java.beans.PropertyChangeEvent;
  * long term persistence.
  *
  * @see UIManager
- * @version 1.39 02/09/01
+ * @version 1.40 02/06/02
  * @author Hans Muller
  */
 public class UIDefaults extends Hashtable

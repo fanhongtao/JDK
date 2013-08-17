@@ -1,11 +1,6 @@
 /*
- * @(#)SwingGraphics.java	1.30 00/07/26
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -13,7 +8,7 @@ package javax.swing;
  * A private graphics to access clip bounds without creating a new
  * rectangle
  *
- * @version 1.30 07/26/00
+ * @version 1.31 02/06/02
  * @author Arnaud Weber
  */
 

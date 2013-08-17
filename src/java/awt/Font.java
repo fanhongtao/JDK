@@ -1,11 +1,6 @@
 /*
- * @(#)Font.java	1.143 01/02/13
- *
- * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -92,7 +87,7 @@ import java.io.*;
  * with varying sizes, styles, transforms and font features via the
  * <code>deriveFont</code> methods in this class.
  * @see GraphicsEnvironment#getAllFonts
- * @version 	1.143, 02/13/01
+ * @version 	1.144, 02/06/02
  */
 public class Font implements java.io.Serializable
 {

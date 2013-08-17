@@ -1,11 +1,6 @@
 /*
- * @(#)BigDecimal.java	1.29 00/02/02
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.math;
@@ -53,7 +48,7 @@ package java.math;
  * @see     BigInteger
  * @see	    java.util.SortedMap
  * @see	    java.util.SortedSet
- * @version 1.29, 02/02/00
+ * @version 1.30, 02/06/02
  * @author Josh Bloch
  */
 public class BigDecimal extends Number implements Comparable {

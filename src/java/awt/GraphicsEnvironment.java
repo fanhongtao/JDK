@@ -1,11 +1,6 @@
 /*
- * @(#)GraphicsEnvironment.java	1.42 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -31,7 +26,7 @@ import java.io.InputStream;
  * <code>GraphicsDevice</code> can be used.  
  * @see GraphicsDevice
  * @see GraphicsConfiguration
- * @version 	1.42, 02/02/00
+ * @version 	1.43, 02/06/02
  */
 
 public abstract class GraphicsEnvironment {

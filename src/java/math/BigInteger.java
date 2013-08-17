@@ -1,11 +1,6 @@
 /*
- * @(#)BigInteger.java	1.43 01/02/16
- *
- * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.math;
@@ -68,7 +63,7 @@ import java.io.*;
  * interpreted similarly.
  *
  * @see     BigDecimal
- * @version 1.43, 02/16/01
+ * @version 1.44, 02/06/02
  * @author  Josh Bloch
  * @author  Michael McCloskey
  * @since JDK1.1

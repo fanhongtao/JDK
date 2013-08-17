@@ -1,11 +1,6 @@
 /*
- * @(#)ZipOutputStream.java	1.22 01/08/02
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.zip;
@@ -22,7 +17,7 @@ import java.util.Enumeration;
  * entries.
  *
  * @author	David Connelly
- * @version	1.22, 08/02/01
+ * @version	1.23, 02/06/02
  */
 public
 class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {

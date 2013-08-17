@@ -1,11 +1,6 @@
 /*
- * @(#)Component.java	1.265 00/02/28
- *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -60,7 +55,7 @@ import sun.awt.im.CompositionArea;
  * lightweight component. A lightweight component is a component that is
  * not associated with a native opaque window.
  *
- * @version 	1.265, 02/28/00
+ * @version 	1.266, 02/06/02
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  */

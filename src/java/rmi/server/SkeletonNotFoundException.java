@@ -1,11 +1,6 @@
 /*
- * @(#)SkeletonNotFoundException.java	1.11 00/02/02
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.rmi.server;
@@ -20,7 +15,7 @@ import java.rmi.RemoteException;
  * generate stubs and skeletons compatible with JDK1.1 and the Java 2 SDK, use
  * <code>rmic -vcompat</code> which is the default in the Java 2 SDK.
  * 
- * @version 1.11, 02/02/00
+ * @version 1.12, 02/06/02
  * @since   JDK1.1
  * @deprecated no replacement.  Skeletons are no longer required for remote
  * method calls in the Java 2 platform v1.2 and greater.

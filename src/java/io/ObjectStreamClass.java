@@ -1,11 +1,6 @@
 /*
- * @(#)ObjectStreamClass.java	1.98 00/02/02
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -38,7 +33,7 @@ import java.util.Iterator;
  * <a href="../../../guide/serialization/spec/class.doc4.html"> Object Serialization Specification, Section 4.4, Stream Unique Identifiers</a>.
  *
  * @author  Roger Riggs
- * @version 1.98 02/02/00
+ * @version 1.99 02/06/02
  * @see ObjectStreamField
  * @see <a href="../../../guide/serialization/spec/class.doc.html"> Object Serialization Specification, Section 4, Class Descriptors</a>
  * @since   JDK1.1

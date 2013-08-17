@@ -1,11 +1,6 @@
 /*
- * @(#)JMenuItem.java	1.92 00/04/06
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -52,7 +47,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: An item which can be selected in a menu.
  *
- * @version 1.92 04/06/00
+ * @version 1.93 02/06/02
  * @author Georges Saab
  * @author David Karlton
  * @see JPopupMenu

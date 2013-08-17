@@ -1,11 +1,6 @@
 /*
- * @(#)CharConversionException.java	1.12 00/02/02
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.io;
 
@@ -13,7 +8,7 @@ package java.io;
  * Base class for character conversion exceptions.
  *
  * @author      Asmus Freytag
- * @version 	1.12, 02/02/00
+ * @version 	1.13, 02/06/02
  * @since       JDK1.1
  */
 public class CharConversionException

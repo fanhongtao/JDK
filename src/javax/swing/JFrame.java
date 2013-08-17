@@ -1,11 +1,6 @@
 /*
- * @(#)JFrame.java	1.79 00/08/05
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -91,7 +86,7 @@ import javax.accessibility.*;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window which can be minimized to an icon.
  *
- * @version 1.79 08/05/00
+ * @version 1.80 02/06/02
  * @author Jeff Dinkins
  * @author Georges Saab
  * @author David Kloba

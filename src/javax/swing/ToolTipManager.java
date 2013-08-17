@@ -1,11 +1,6 @@
 /*
- * @(#)ToolTipManager.java	1.49 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -64,8 +59,10 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 	postTip = KeyStroke.getKeyStroke(KeyEvent.VK_F1,Event.CTRL_MASK);
 	postTipAction = new AbstractAction(){
 	  public void actionPerformed(ActionEvent e){
-	    if (tipWindow != null) // showing we unshow
+	    if (tipWindow != null) {// showing we unshow
 	      hideTipWindow();
+	      insideComponent = null;
+	    }
 	    else {
 	      hideTipWindow(); // be safe
 	      enterTimer.stop();
@@ -92,6 +89,7 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 	    JComponent jc = (JComponent)e.getSource();
 	    jc.removeFocusListener(focusChangeListener);
 	    preferredLocation = null;
+	    insideComponent = null;
 	  }
 	  public boolean isEnabled() {
 	      // Only enable when the tooltip is showing, otherwise
@@ -411,7 +409,6 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 
         if (insideComponent != null) {
             enterTimer.stop();
-            insideComponent = null;
         }
 
         component.addMouseMotionListener(this);
@@ -510,6 +507,8 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
         hideTipWindow();
         enterTimer.stop();
         showImmediately = false;
+	insideComponent = null;
+        mouseEvent = null;
     }
 
     // implements java.awt.event.MouseMotionListener
@@ -546,6 +545,7 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
             toolTipText = null;
             preferredLocation = null;
             mouseEvent = null;
+	    insideComponent = null;
             hideTipWindow();
             enterTimer.stop();
             exitTimer.start();
@@ -572,6 +572,8 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
             hideTipWindow();
             enterTimer.stop();
             showImmediately = false;
+	    insideComponent = null;
+            mouseEvent = null;
         }
     }
 
@@ -586,6 +588,7 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
     return new FocusAdapter(){
       public void focusLost(FocusEvent evt){
 	hideTipWindow();
+	insideComponent = null;
 	JComponent c = (JComponent)evt.getSource();
 	c.removeFocusListener(focusChangeListener);
       }

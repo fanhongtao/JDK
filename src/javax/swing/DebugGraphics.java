@@ -1,11 +1,6 @@
 /*
- * @(#)DebugGraphics.java	1.20 00/07/26
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -30,7 +25,7 @@ import java.text.AttributedCharacterIterator;
  * @see RepaintManager#currentManager
  * @see RepaintManager#setDoubleBufferingEnabled
  *
- * @version 1.20 07/26/00
+ * @version 1.21 02/06/02
  * @author Dave Karlton
  */
 public class DebugGraphics extends Graphics {

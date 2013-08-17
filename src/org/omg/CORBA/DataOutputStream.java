@@ -1,11 +1,6 @@
 /*
- * @(#)DataOutputStream.java	1.8 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package org.omg.CORBA;
@@ -15,7 +10,7 @@ package org.omg.CORBA;
 * written custom marshalling code for custom value types.
 * @see org.omg.CORBA.DataInputStream
 * @see org.omg.CORBA.CustomMarshal
-* @version 1.8 02/02/00
+* @version 1.9 02/06/02
 */
 public interface DataOutputStream extends org.omg.CORBA.portable.ValueBase
 {

@@ -1,11 +1,6 @@
 /*
- * @(#)SwingUtilities.java	1.95 00/07/26
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -26,7 +21,7 @@ import javax.swing.text.View;
 /**
  * A collection of utility methods for Swing.
  *
- * @version 1.95 07/26/00
+ * @version 1.96 02/06/02
  * @author unknown
  */
 public class SwingUtilities implements SwingConstants

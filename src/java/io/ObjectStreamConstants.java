@@ -1,11 +1,6 @@
 /*
- * @(#)ObjectStreamConstants.java	1.29 00/02/02
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -14,7 +9,7 @@ package java.io;
  * Constants written into the Object Serialization Stream. 
  *
  * @author  unascribed
- * @version 1.29, 02/02/00
+ * @version 1.30, 02/06/02
  * @since JDK 1.1
  */
 public interface ObjectStreamConstants {

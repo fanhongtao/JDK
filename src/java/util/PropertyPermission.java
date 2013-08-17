@@ -1,11 +1,6 @@
 /*
- * @(#)PropertyPermission.java	1.24 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -57,7 +52,7 @@ import java.security.*;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.24 00/02/02
+ * @version 1.25 02/02/06
  *
  * @author Roland Schemers
  * @since 1.2
@@ -390,7 +385,7 @@ public final class PropertyPermission extends BasicPermission {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.24, 02/02/00
+ * @version 1.25, 02/06/02
  *
  * @author Roland Schemers
  *

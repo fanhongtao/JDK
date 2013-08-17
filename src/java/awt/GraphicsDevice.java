@@ -1,11 +1,6 @@
 /*
- * @(#)GraphicsDevice.java	1.21 01/02/09
- *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -48,7 +43,7 @@ package java.awt;
  * </pre>                           
  * @see GraphicsEnvironment
  * @see GraphicsConfiguration
- * @version 1.21, 02/09/01
+ * @version 1.22, 02/06/02
  */
 public abstract class GraphicsDevice {
     /**

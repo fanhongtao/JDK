@@ -1,11 +1,6 @@
 /*
- * @(#)Rectangle.java	1.53 01/05/29
- *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -37,7 +32,7 @@ import java.awt.geom.Rectangle2D;
  * <code>intersects</code>, <code>intersection</code>, and 
  * <code>union</code>. 
  *
- * @version 	1.53, 05/29/01
+ * @version 	1.54, 02/06/02
  * @author 	Sami Shaio
  * @since       JDK1.0
  */

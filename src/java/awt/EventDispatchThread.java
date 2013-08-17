@@ -1,11 +1,6 @@
 /*
- * @(#)EventDispatchThread.java	1.36 01/04/21
- *
- * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -34,7 +29,7 @@ import java.awt.event.InputEvent;
  * @author Fred Ecks
  * @author David Mendenhall
  * 
- * @version 1.36, 04/21/01
+ * @version 1.37, 02/06/02
  * @since 1.1
  */
 class EventDispatchThread extends Thread {

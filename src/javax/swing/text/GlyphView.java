@@ -1,11 +1,6 @@
 /*
- * @(#)GlyphView.java	1.16 01/04/21
- *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -38,7 +33,7 @@ import javax.swing.event.*;
  * <p>
  *
  * @author  Timothy Prinzing
- * @version 1.16 04/21/01
+ * @version 1.17 02/06/02
  */
 public class GlyphView extends View implements TabableView, Cloneable {
 

@@ -1,11 +1,6 @@
 /*
- * @(#)DefaultDesktopManager.java	1.41 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -25,7 +20,7 @@ import java.awt.event.ComponentEvent;
   * to handle their desktop-like actions.
   * @see JDesktopPane
   * @see JInternalFrame
-  * @version 1.41 02/02/00
+  * @version 1.42 02/06/02
   * @author David Kloba
   * @author Steve Wilson
   */

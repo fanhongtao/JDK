@@ -1,11 +1,6 @@
 /*
- * @(#)Line2D.java	1.25 01/02/09
- *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.geom;
@@ -27,7 +22,7 @@ import java.awt.Rectangle;
  * The actual storage representation of the coordinates is left to
  * the subclass.
  *
- * @version 	1.25, 02/09/01
+ * @version 	1.26, 02/06/02
  * @author	Jim Graham
  */
 public abstract class Line2D implements Shape, Cloneable {

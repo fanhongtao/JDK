@@ -1,11 +1,6 @@
 /*
- * @(#)SoftBevelBorder.java	1.11 00/02/02
- *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.border;
 
@@ -27,7 +22,7 @@ import java.awt.Component;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.11 02/02/00
+ * @version 1.12 02/06/02
  * @author Amy Fowler
  * @author Chester Rose
  */
