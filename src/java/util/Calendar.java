@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -273,7 +273,7 @@ import java.text.DateFormat;
  * @see          GregorianCalendar
  * @see          TimeZone
  * @see          java.text.DateFormat
- * @version      1.50, 02/06/02
+ * @version      1.52, 03/14/03
  * @author Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -1556,7 +1556,7 @@ public abstract class Calendar implements Serializable, Cloneable {
             if (fields == null) fields = new int[FIELD_COUNT];
             if (isSet == null) isSet = new boolean[FIELD_COUNT];
         }
-        else if (serialVersionOnStream == 0)
+        else if (serialVersionOnStream >= 0)
         {
             for (int i=0; i<FIELD_COUNT; ++i)
                 stamp[i] = isSet[i] ? INTERNALLY_SET : UNSET;

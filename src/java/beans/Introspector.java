@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -7,7 +7,10 @@ package java.beans;
 
 import java.lang.reflect.*;
 import java.security.*;
-
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * The Introspector class provides a standard way for tools to learn about
@@ -349,7 +352,7 @@ public class Introspector {
 	    // We have no explicit BeanInfo properties.  Check with our parent.
 	    PropertyDescriptor supers[] = superBeanInfo.getPropertyDescriptors();
 	    for (int i = 0 ; i < supers.length; i++) {
-		addProperty(supers[i]);
+		addPropertyDescriptor(supers[i]);
 	    }
 	    int ix = superBeanInfo.getDefaultPropertyIndex();
 	    if (ix >= 0 && ix < supers.length) {
@@ -361,7 +364,7 @@ public class Introspector {
 	    PropertyDescriptor additional[] = additionalBeanInfo[i].getPropertyDescriptors();
 	    if (additional != null) {
 	        for (int j = 0 ; j < additional.length; j++) {
-		    addProperty(additional[j]);
+		    addPropertyDescriptor(additional[j]);
 	        }
 	    }
 	}
@@ -369,7 +372,7 @@ public class Introspector {
 	if (explicit != null) {
 	    // Add the explicit informant data to our results.
 	    for (int i = 0 ; i < explicit.length; i++) {
-		addProperty(explicit[i]);
+		addPropertyDescriptor(explicit[i]);
 	    }
 
 	} else {
@@ -447,10 +450,11 @@ public class Introspector {
 		    if (propertyChangeSource) {
 			pd.setBound(true);
 		    }
-		    addProperty(pd);
+		    addPropertyDescriptor(pd);
 		}
 	    }
 	}
+	processPropertyDescriptors();
 
 	// Allocate and populate the result array.
 	PropertyDescriptor result[] = new PropertyDescriptor[properties.size()];
@@ -466,38 +470,186 @@ public class Introspector {
 	return result;
     }
 
-    void addProperty(PropertyDescriptor pd) {
-	String name = pd.getName();
-	PropertyDescriptor old = (PropertyDescriptor)properties.get(name);
-	if (old == null) {
-	    properties.put(name, pd);
-	    return;
-	}
-	// If the property type has changed, use the new descriptor.
-	Class opd = old.getPropertyType();
+    private HashMap pdStore;
 
-	Class npd = pd.getPropertyType();
-	if (opd != null && npd != null && opd != npd) {
-        if ((pd.getWriteMethod() != null && pd.getReadMethod() != null) ||
-            (old.getWriteMethod() == null && pd.getWriteMethod() == null) ||
-            (old.getReadMethod() == null && pd.getReadMethod() == null))  {
-            // don't replace a read/write property with a write or 
-            // read only property
-	        properties.put(name, pd);
-        }
-	    return;
+    /**
+     * Adds the property descriptor to the list store.
+     */
+    private void addPropertyDescriptor(PropertyDescriptor pd) {
+	if (pdStore == null) {
+	    pdStore = new HashMap();
 	}
-
-	PropertyDescriptor composite;
-	if (old instanceof IndexedPropertyDescriptor ||
-				pd instanceof IndexedPropertyDescriptor) {
-	    composite = new IndexedPropertyDescriptor(old, pd);
-	} else {
-	    composite = new PropertyDescriptor(old, pd);
+	
+	String propName = pd.getName();
+	List list = (List)pdStore.get(propName);
+	if (list == null) {
+	    list = new ArrayList();
+	    pdStore.put(propName, list);
 	}
-	properties.put(name, composite);
+	list.add(pd);
     }
 
+    /**
+     * Populates the property descriptor table by merging the 
+     * lists of Property descriptors.
+     */ 
+    private void processPropertyDescriptors() {
+        if (pdStore == null) {
+	    return;
+        }
+	List list;
+
+	PropertyDescriptor pd, gpd, spd;
+	IndexedPropertyDescriptor ipd, igpd, ispd;
+
+	Iterator it = pdStore.values().iterator();
+	while (it.hasNext()) {
+	    pd = null; gpd = null; spd = null; 
+	    ipd = null; igpd = null; ispd = null;
+
+	    list = (List)it.next();
+
+	    // First pass. Find the latest getter method. Merge properties
+	    // of previous getter methods.
+	    for (int i = 0; i < list.size(); i++) {
+		pd = (PropertyDescriptor)list.get(i);
+		if (pd instanceof IndexedPropertyDescriptor) {
+		    ipd = (IndexedPropertyDescriptor)pd;
+		    if (ipd.getIndexedReadMethod() != null) {
+			if (igpd != null) {
+			    igpd = new IndexedPropertyDescriptor(igpd, ipd);
+			} else {
+			    igpd = ipd;
+			}
+		    }
+		} else {
+		    if (pd.getReadMethod() != null) {
+			if (gpd != null) {
+			    // Don't replace the existing read
+			    // method if it starts with "is"
+			    Method method = gpd.getReadMethod();
+			    if (!method.getName().startsWith("is")) {
+				gpd = new PropertyDescriptor(gpd, pd);
+			    }
+			} else {
+			    gpd = pd;
+			}
+		    }
+		}
+	    }
+
+	    // Second pass. Find the latest setter method which
+	    // has the same type as the getter method.
+	    for (int i = 0; i < list.size(); i++) {
+		pd = (PropertyDescriptor)list.get(i);
+		if (pd instanceof IndexedPropertyDescriptor) {
+		    ipd = (IndexedPropertyDescriptor)pd;
+		    if (ipd.getIndexedWriteMethod() != null) {
+			if (igpd != null) {
+			    if (igpd.getIndexedPropertyType() 
+				== ipd.getIndexedPropertyType()) {
+				if (ispd != null) {
+				    ispd = new IndexedPropertyDescriptor(ispd, ipd);
+				} else {
+				    ispd = ipd;
+				}
+			    }
+			} else {
+			    if (ispd != null) {
+				ispd = new IndexedPropertyDescriptor(ispd, ipd);
+			    } else {
+				ispd = ipd;
+			    }
+			}
+		    }
+		} else {
+		    if (pd.getWriteMethod() != null) {
+			if (gpd != null) {
+			    if (gpd.getPropertyType() == pd.getPropertyType()) {
+				if (spd != null) {
+				    spd = new PropertyDescriptor(spd, pd);
+				} else {
+				    spd = pd;
+				}
+			    }
+			} else {
+			    if (spd != null) {
+				spd = new PropertyDescriptor(spd, pd);
+			    } else {
+				spd = pd;
+			    }
+			}
+		    }
+		}
+	    }
+
+	    // At this stage we should have either PDs or IPDs for the
+	    // representative getters and setters. The order at which the 
+	    // property decrriptors are determined represent the 
+	    // precedence of the property ordering.
+	    pd = null; ipd = null;
+
+	    if (igpd != null && ispd != null) {
+		// Complete indexed properties set
+		// Merge any classic property descriptors
+		if (gpd != null && (gpd.getPropertyType().isArray() ||
+				    gpd.getPropertyType().equals(igpd.getIndexedPropertyType()))) {
+		    igpd = new IndexedPropertyDescriptor(gpd, igpd);
+		}
+		if (spd != null && (spd.getPropertyType().isArray() ||
+				    spd.getPropertyType().equals(ispd.getIndexedPropertyType()))) {
+		    ispd = new IndexedPropertyDescriptor(spd, ispd);
+		}
+		pd = new IndexedPropertyDescriptor(igpd, ispd);
+	    } else if (gpd != null && spd != null) {
+		// Complete simple properties set
+		pd = new PropertyDescriptor(gpd, spd);
+	    } else if (ispd != null) {
+		// indexed setter
+		// Merge any classic property descriptors
+		if (spd != null) {
+		    ispd = new IndexedPropertyDescriptor(spd, ispd);
+		}
+		if (gpd != null) {
+		    ispd = new IndexedPropertyDescriptor(gpd, ispd);
+		}
+		pd = ispd;
+	    } else if (igpd != null) {
+		// indexed getter
+		// Merge any classic property descriptors
+		if (gpd != null) {
+		    igpd = new IndexedPropertyDescriptor(gpd, igpd);
+		}
+		if (spd != null) {
+		    igpd = new IndexedPropertyDescriptor(spd, igpd);
+		}
+		pd = igpd;
+	    } else if (spd != null) {
+		// simple setter
+		pd = spd;
+	    } else if (gpd != null) {
+		// simple getter
+		pd = gpd;
+	    }
+
+	    // Very special case to ensure that an IndexedPropertyDescriptor
+	    // doesn't contain less information than the enclosed 
+	    // PropertyDescriptor. If it does, then recreate as a 
+	    // PropertyDescriptor. See 4168833
+	    if (pd instanceof IndexedPropertyDescriptor) {
+		ipd = (IndexedPropertyDescriptor)pd;
+		if ((ipd.getIndexedReadMethod() == null ||
+		    ipd.getIndexedWriteMethod() == null) &&
+		    (ipd.getReadMethod() != null && ipd.getWriteMethod() != null)) {
+		    pd = new PropertyDescriptor(ipd);
+		}
+	    }
+
+	    if (pd != null) {
+		properties.put(pd.getName(), pd);
+	    }
+	}
+    }
 
     /**
      * @return An array of EventSetDescriptors describing the kinds of 

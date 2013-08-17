@@ -285,6 +285,7 @@ public class JEditorPane extends JTextComponent {
      * In this case, the page property change event will not be 
      * fired by the call to this method directly, but rather will be 
      * fired when the thread doing the loading has finished.
+     * It will also be fired on the event-dispatch thread.
      * Since the calling thread can not throw an <code>IOException</code>
      * in the event of failure on the other thread, the page 
      * property change event will be fired when the other 
@@ -494,7 +495,11 @@ public class JEditorPane extends JTextComponent {
 	    } catch (IOException ioe) {
 		getToolkit().beep();
 	    } finally {
-		firePropertyChange("page", old, page);
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        firePropertyChange("page", old, page);
+                    }
+                });
 	    }
 	}
 
