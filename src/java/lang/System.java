@@ -25,7 +25,7 @@ import sun.net.InetAddressCachePolicy;
  * copying a portion of an array. 
  *
  * @author  Arthur van Hoff 
- * @version 1.112, 02/06/02
+ * @version 1.113, 03/26/02
  * @since   JDK1.0
  */
 public final class System {
@@ -858,6 +858,7 @@ public final class System {
 	setIn0(new BufferedInputStream(fdIn));
 	setOut0(new PrintStream(new BufferedOutputStream(fdOut, 128), true));
 	setErr0(new PrintStream(new BufferedOutputStream(fdErr, 128), true));
+        Terminator.setup();
     }
 
     /* returns the class of the caller. */ 

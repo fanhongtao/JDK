@@ -507,7 +507,6 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
         hideTipWindow();
         enterTimer.stop();
         showImmediately = false;
-	insideComponent = null;
         mouseEvent = null;
     }
 
@@ -520,6 +519,11 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
         JComponent component = (JComponent)event.getSource();
         String newText = component.getToolTipText(event);
         Point  newPreferredLocation = component.getToolTipLocation(event);
+
+
+       //System.out.println("Pringting here ");
+       //System.out.println("newText is "+newText);
+       //System.out.println("Poin is "+newPreferredLocation.toString());
 
         if (newText != null || newPreferredLocation != null) {
             mouseEvent = event;
@@ -545,7 +549,6 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
             toolTipText = null;
             preferredLocation = null;
             mouseEvent = null;
-	    insideComponent = null;
             hideTipWindow();
             enterTimer.stop();
             exitTimer.start();
@@ -572,7 +575,6 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
             hideTipWindow();
             enterTimer.stop();
             showImmediately = false;
-	    insideComponent = null;
             mouseEvent = null;
         }
     }

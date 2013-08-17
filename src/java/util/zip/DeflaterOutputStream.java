@@ -16,7 +16,7 @@ import java.io.IOException;
  * types of compression filters, such as GZIPOutputStream.
  *
  * @see		Deflater
- * @version 	1.29, 02/06/02
+ * @version 	1.30, 03/20/02
  * @author 	David Connelly
  */
 public
@@ -59,6 +59,8 @@ class DeflaterOutputStream extends FilterOutputStream {
     public DeflaterOutputStream(OutputStream out, Deflater def) {
 	this(out, def, 512);
     }
+
+	private boolean usesDefaultDeflater = false;
 
     /**
      * Creates a new output stream with a defaul compressor and buffer size.
@@ -127,7 +129,8 @@ class DeflaterOutputStream extends FilterOutputStream {
      */
     public void close() throws IOException {
 	finish();
-	def.end();
+	if (usesDefaultDeflater)
+		def.end();
 	out.close();
     }
 

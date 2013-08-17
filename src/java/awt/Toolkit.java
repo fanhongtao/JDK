@@ -51,7 +51,7 @@ import java.beans.PropertyChangeSupport;
  * <code>java.awt.peer</code>. Some methods defined by
  * <code>Toolkit</code> query the native operating system directly.
  *
- * @version 	1.157, 02/06/02
+ * @version 	1.158, 03/20/02
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @author	Fred Ecks
@@ -1379,11 +1379,10 @@ public abstract class  Toolkit {
      * @param theEvent the event which will be dispatched.
      */
     void notifyAWTEventListeners(AWTEvent theEvent) {
+//Fix for 4338463
+        AWTEventListener eventListener = this.eventListener;
         if (eventListener != null) {
-	    synchronized (this) {
-		if (eventListener != null)
 		    eventListener.eventDispatched(theEvent);
-	    }
         }
     }
 

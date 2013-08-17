@@ -16,7 +16,7 @@ import java.io.EOFException;
  * decompression filters, such as GZIPInputStream.
  *
  * @see		Inflater
- * @version 	1.29, 02/06/02
+ * @version 	1.30, 03/20/02
  * @author 	David Connelly
  */
 public
@@ -79,12 +79,15 @@ class InflaterInputStream extends FilterInputStream {
 	this(in, inf, 512);
     }
 
+	private boolean usesDefaultInflater = false;
+
     /**
      * Creates a new input stream with a default decompressor and buffer size.
      * @param in the input stream
      */
     public InflaterInputStream(InputStream in) {
 	this(in, new Inflater());
+	usesDefaultInflater = true;
     }
 
     /**
@@ -189,8 +192,9 @@ class InflaterInputStream extends FilterInputStream {
      * @exception IOException if an I/O error has occurred
      */
     public void close() throws IOException {
-        inf.end();
-	in.close();
+		if (usesDefaultInflater)
+        	inf.end();
+		in.close();
         closed = true;
     }
 

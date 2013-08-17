@@ -108,7 +108,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A component that displays a set of hierarchical data as an outline.
  *
- * @version $I% 02/06/02
+ * @version $I% 03/18/02
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -3258,8 +3258,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
          *
          */
         public void valueChanged(TreeSelectionEvent e) {
-	    TreePath oldLeadSelectionPath = leadSelectionPath;
-            leadSelectionPath = JTree.this.getLeadSelectionPath();
+	    TreePath oldLeadSelectionPath = e.getOldLeadSelectionPath();
+            leadSelectionPath = e.getNewLeadSelectionPath();
 	    if (oldLeadSelectionPath != leadSelectionPath) {
 		Accessible oldLSA = leadSelectionAccessible;
 		leadSelectionAccessible = (leadSelectionPath != null) 

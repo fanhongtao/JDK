@@ -493,7 +493,7 @@ JVM_GetStackAccessControlContext(JNIEnv *env, jclass cls);
 JNIEXPORT void * JNICALL
 JVM_RegisterSignal(jint sig, void *handler);
 
-JNIEXPORT void JNICALL
+JNIEXPORT jboolean JNICALL
 JVM_RaiseSignal(jint sig);
 
 JNIEXPORT jint JNICALL

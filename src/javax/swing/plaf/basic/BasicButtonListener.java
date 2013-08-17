@@ -17,7 +17,7 @@ import javax.swing.plaf.ComponentInputMapUIResource;
 /**
  * Button Listener
  *
- * @version 1.47 02/06/02
+ * @version 1.48 03/13/02
  * @author Jeff Dinkins 
  * @author Arnaud Weber (keyboard UI support)
  */
@@ -213,24 +213,20 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
  
     public void mouseEntered(MouseEvent e) {
 	AbstractButton b = (AbstractButton) e.getSource();
-        if(b.contains(e.getX(), e.getY())) {
-	   ButtonModel model = b.getModel();
-	   if(b.isRolloverEnabled()) {
-	       model.setRollover(true);
-	   }
-           model.setArmed(true);
-        }
+	ButtonModel model = b.getModel();
+	if(b.isRolloverEnabled()) {
+	    model.setRollover(true);
+	}
+        model.setArmed(true);
     };
  
     public void mouseExited(MouseEvent e) {
 	AbstractButton b = (AbstractButton) e.getSource();
-        if(!b.contains(e.getX(), e.getY())) {
-	   ButtonModel model = b.getModel();
-	   if(b.isRolloverEnabled()) {
-	       model.setRollover(false);
-	   }
-           model.setArmed(false);
-        }
+	ButtonModel model = b.getModel();
+	if(b.isRolloverEnabled()) {
+	    model.setRollover(false);
+	}
+        model.setArmed(false);
     };
 
     static class PressedAction extends AbstractAction {

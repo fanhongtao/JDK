@@ -114,9 +114,21 @@ public class Date extends java.util.Date {
 	String yearString;
 	String monthString;
 	String dayString;
-
 		
 	yearString = Integer.toString(year);
+       
+        //pad the yearString with leading zeros if it has less than 4 digits.
+        //Or cut off the extra digits if it has more than 4 digits
+ 
+        char buf_year[] = "0000".toCharArray();
+        int yearLength = yearString.length();
+        int index = 4;
+        while((yearLength > 0) && (index > 0)) {
+            yearLength--;
+            index--;
+            buf_year[index] = yearString.charAt(yearLength);
+        }
+        String newYearString = new String(buf_year);
 
 	if (month < 10) {
 	    monthString = "0" + month;
@@ -130,7 +142,7 @@ public class Date extends java.util.Date {
 	    dayString = Integer.toString(day);
 	}
 
-	return ( yearString + "-" + monthString + "-" + dayString);
+	return ( newYearString + "-" + monthString + "-" + dayString);
     }
 
     // Override all the time operations inherited from java.util.Date;

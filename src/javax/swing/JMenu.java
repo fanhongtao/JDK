@@ -10,6 +10,9 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.GraphicsConfiguration;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
@@ -62,7 +65,7 @@ import java.lang.ref.WeakReference;
  *   attribute: isContainer true
  * description: A popup window containing menu items displayed in a menu bar.
  *
- * @version 1.147 02/06/02
+ * @version 1.149 03/26/02
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -323,8 +326,27 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
 	int x = 0;
 	int y = 0;
 	JPopupMenu pm = getPopupMenu();
-	// Figure out the sizes needed to caclulate the menu position
-	Dimension screenSize =Toolkit.getDefaultToolkit().getScreenSize();
+
+	// Figure out the GraphicsDevices available in the graphics Engironment.
+	// and get the bounds of the Graphics configuration to calculate the menu 
+	// position.
+     
+	Rectangle screenSize = new Rectangle();
+	GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+	GraphicsDevice[] gs = ge.getScreenDevices();
+	for (int j = 0; j < gs.length; j++) {   
+		GraphicsDevice gd = gs[j];          
+		if(gd.getType() == GraphicsDevice.TYPE_RASTER_SCREEN) {
+			GraphicsConfiguration gc = gd.getDefaultConfiguration();
+			screenSize = screenSize.union(gc.getBounds());
+
+			//For border cases popups should'nt occupy multiple screens
+			//i.e."screenSize" = [gc.getBounds() containing menu origin]
+
+			if(screenSize.contains(getLocationOnScreen())) break;
+		}
+	}
+
 	Dimension s = getSize();
 	Dimension pmSize = pm.getSize();
 	// For the first time the menu is popped up, 

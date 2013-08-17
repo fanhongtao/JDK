@@ -74,7 +74,7 @@ import sun.awt.DebugHelper;
  * Windows are capable of generating the following window events:
  * WindowOpened, WindowClosed.
  *
- * @version 	1.141, 02/14/02
+ * @version 	1.142, 03/29/02
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -360,12 +360,14 @@ public class Window extends Container implements Accessible {
 	if (parent != null && parent.getPeer() == null) {
 	    parent.addNotify();
 	}
-        if (peer == null) {
-            addNotify();
-        }
-        setSize(getPreferredSize());
-        isPacked = true;
 
+	synchronized(getTreeLock()) {
+            if (peer == null) {
+                addNotify();
+            }
+            setSize(getPreferredSize());
+            isPacked = true;
+	}
         validate();
     }
 

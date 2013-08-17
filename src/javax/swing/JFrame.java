@@ -86,7 +86,7 @@ import javax.accessibility.*;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window which can be minimized to an icon.
  *
- * @version 1.80 02/06/02
+ * @version 1.81 05/01/02
  * @author Jeff Dinkins
  * @author Georges Saab
  * @author David Kloba
@@ -298,6 +298,12 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * description: The frame's default close operation.
      */
     public void setDefaultCloseOperation(int operation) {
+	if (operation == EXIT_ON_CLOSE) {
+	    SecurityManager security = System.getSecurityManager();
+	    if (security != null) {
+		security.checkExit(0);
+	    }
+	}
         this.defaultCloseOperation = operation;
     }
 
