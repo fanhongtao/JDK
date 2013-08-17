@@ -10,8 +10,10 @@ typedef struct Classjava_lang_String {
     int32_t offset;
     int32_t count;
     int32_t hash;
-/* Inaccessible static: btcConverter */
-/* Inaccessible static: ctbConverter */
+/* Inaccessible static: btcCache */
+/* Inaccessible static: ctbCache */
+#undef java_lang_String_CONVERTER_CACHE_SIZE
+#define java_lang_String_CONVERTER_CACHE_SIZE 3L
 #undef java_lang_String_serialVersionUID
 #define java_lang_String_serialVersionUID -6849794470754667710LL
 /* Inaccessible static: serialPersistentFields */

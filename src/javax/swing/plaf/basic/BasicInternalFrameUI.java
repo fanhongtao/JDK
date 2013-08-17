@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import java.io.Serializable;
 /**
  * A basic L&F implementation of JInternalFrame.  
  *
- * @version 1.76 02/06/02
+ * @version 1.78 12/02/02
  * @author David Kloba
  * @author Rich Schiavi
  */
@@ -358,6 +358,10 @@ public class BasicInternalFrameUI extends InternalFrameUI
     }
 
     public void setNorthPane(JComponent c) {
+	if (northPane != null &&
+                northPane instanceof BasicInternalFrameTitlePane) {
+            ((BasicInternalFrameTitlePane)northPane).uninstallListeners();
+        }
         replacePane(northPane, c);
         northPane = c;
     }

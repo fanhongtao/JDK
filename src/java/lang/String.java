@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -60,7 +60,7 @@ import java.lang.ref.SoftReference;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.131, 02/06/02
+ * @version 1.133, 12/02/02
  * @see     java.lang.Object#toString()
  * @see     java.lang.StringBuffer
  * @see     java.lang.StringBuffer#append(boolean)
@@ -89,18 +89,49 @@ class String implements java.io.Serializable, Comparable {
 
     /** Cache the hash code for the string */
     private int hash = 0;
-
-    /** The cached converter for each thread. 
-     *  Note: These are declared null to minimize the classes
-     *  that String must depend on during initialization
+    
+    /**
+     * A simple class for cached converters.
      */
-    private static ThreadLocal btcConverter = null;
-    private static ThreadLocal ctbConverter = null;
+    private static class CachedConverter {
+	// We don't use soft references here because soft refs
+	// are cleared too aggressively by 1.3.x VMs.
+	private final Object converter;
+	private final String requestedEncoding;
+	private final String canonicalEncoding;
+	private CachedConverter(Object cnv, String re, String ce) {
+	    converter = cnv;
+	    requestedEncoding = re;
+	    canonicalEncoding = ce;
+	}
+	private boolean hasName(String s) {
+	    return s.equals(requestedEncoding) || s.equals(canonicalEncoding);
+	}
+    }
+    
+    /** The cached converters for each thread. 
+     *  Note: These are declared null to minimize the classes
+     *  that String must depend on during initialization.
+     */
+    private static ThreadLocal btcCache = null;
+    private static ThreadLocal ctbCache = null;
 
+    private static final int CONVERTER_CACHE_SIZE = 3;
+
+    /**
+     * Utility method for rearranging cache arrays.
+     */
+    private static void moveToFront(Object[] oa, int i) {
+	Object ob = oa[i];
+	for (int j = i; j > 0; j--)
+	    oa[j] = oa[j - 1];
+	oa[0] = ob;
+    }
+    
     /**
      * Returns a <code>ByteToCharConverter</code> that uses the specified
      * encoding. For efficiency a cache is maintained that holds the last
-     * used converter.
+     * several used converter.
      *
      * @param  enc The name of a character encoding
      * @return     ByteToCharConverter for the specified encoding.
@@ -109,25 +140,45 @@ class String implements java.io.Serializable, Comparable {
      * @since      1.2
      */
     private static ByteToCharConverter getBTCConverter(String encoding)
-                                  throws UnsupportedEncodingException {
-        ByteToCharConverter btc = null;
-        if (btcConverter == null)
-            btcConverter = new ThreadLocal();
-        SoftReference ref = (SoftReference)(btcConverter.get());
-        if (ref==null || (btc = (ByteToCharConverter)ref.get())==null ||
-                          !encoding.equals(btc.getCharacterEncoding())) {
-            btc = ByteToCharConverter.getConverter(encoding);
-            btcConverter.set(new SoftReference(btc));
+	throws UnsupportedEncodingException 
+    {
+	CachedConverter ca[] = null;
+	if (btcCache == null) {
+	    btcCache = new ThreadLocal();
         } else {
-            btc.reset();
-        }
+	    ca = (CachedConverter[])btcCache.get();
+	}
+	if (ca != null) {
+	    for (int i = 0; i < ca.length; i++) {
+		CachedConverter cc = ca[i];
+		if (cc == null)
+		    continue;
+		if (cc.hasName(encoding)) {
+		    if (i > 0)
+			moveToFront(ca, i);
+		    ByteToCharConverter btc
+			= (ByteToCharConverter)cc.converter;
+                    btc.reset();
+		    return btc;
+		}
+            }
+	} else {
+	    ca = new CachedConverter[CONVERTER_CACHE_SIZE];
+	    btcCache.set(ca);
+	}
+	
+	ByteToCharConverter btc = ByteToCharConverter.getConverter(encoding);
+	CachedConverter cc =  new CachedConverter(btc, encoding,
+						  btc.getCharacterEncoding());
+	ca[ca.length - 1] = cc;
+	moveToFront(ca, ca.length - 1);
         return btc;
     }
-
+    
     /**
      * Returns a <code>CharToByteConverter</code> that uses the specified
      * encoding. For efficiency a cache is maintained that holds the last
-     * used converter.
+     * several used converter.
      *
      * @param  enc The name of a character encoding
      * @return     CharToByteConverter for the specified encoding.
@@ -136,18 +187,38 @@ class String implements java.io.Serializable, Comparable {
      * @since      1.2
      */
     private static CharToByteConverter getCTBConverter(String encoding)
-                                  throws UnsupportedEncodingException {
-        CharToByteConverter ctb = null;
-        if (ctbConverter == null)
-            ctbConverter = new ThreadLocal();
-        SoftReference ref = (SoftReference)(ctbConverter.get());
-        if (ref==null || (ctb = (CharToByteConverter)ref.get())==null ||
-                          !encoding.equals(ctb.getCharacterEncoding())) {
-            ctb = CharToByteConverter.getConverter(encoding);
-            ctbConverter.set(new SoftReference(ctb));
+	throws UnsupportedEncodingException
+    {
+	CachedConverter ca[] = null;
+	if (ctbCache == null) {
+	    ctbCache = new ThreadLocal();
         } else {
-            ctb.reset();
-        }
+	    ca = (CachedConverter[])ctbCache.get();
+	}
+	if (ca != null) {
+	    for (int i = 0; i < ca.length; i++) {
+		CachedConverter cc = ca[i];
+		if (cc == null)
+		    continue;
+		if (cc.hasName(encoding)) {
+		    if (i > 0)
+			moveToFront(ca, i);
+		    CharToByteConverter ctb =
+			(CharToByteConverter)cc.converter;
+		    ctb.reset();
+		    return ctb;
+		}
+	    }
+	} else {
+	    ca = new CachedConverter[CONVERTER_CACHE_SIZE];
+	    ctbCache.set(ca);
+	}
+	
+	CharToByteConverter ctb = CharToByteConverter.getConverter(encoding);
+	CachedConverter cc =  new CachedConverter(ctb, encoding,
+						  ctb.getCharacterEncoding());
+	ca[ca.length - 1] = cc;
+	moveToFront(ca, ca.length - 1);
         return ctb;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -52,7 +52,7 @@ import javax.swing.SwingConstants;
  * </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.55 02/06/02
+ * @version 1.57 12/02/02
  */
 public abstract class CompositeView extends View {
 
@@ -163,7 +163,11 @@ public abstract class CompositeView extends View {
 
 	// update parent reference on removed views
 	for (int i = offset; i < offset + length; i++) {
-	    children[i].setParent(null);
+	    if (children[i].getParent() == this) {
+                // in FlowView.java view might be referenced 
+                // from two super-views as a child. see logicalView
+                children[i].setParent(null);
+            }
 	    children[i] = null;
 	}
 	

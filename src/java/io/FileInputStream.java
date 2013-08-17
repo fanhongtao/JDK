@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package java.io;
  * are  available depends on the host environment.
  *
  * @author  Arthur van Hoff
- * @version 1.46, 02/06/02
+ * @version 1.48, 12/02/02
  * @see     java.io.File
  * @see     java.io.FileDescriptor
  * @see	    java.io.FileOutputStream
@@ -51,12 +51,7 @@ class FileInputStream extends InputStream
      * @see        java.lang.SecurityManager#checkRead(java.lang.String)
      */
     public FileInputStream(String name) throws FileNotFoundException {
-	SecurityManager security = System.getSecurityManager();
-	if (security != null) {
-	    security.checkRead(name);
-	}
-	fd = new FileDescriptor();
-	open(name);
+       this(new File(name));
     }
 
     /**
@@ -87,7 +82,13 @@ class FileInputStream extends InputStream
      * @see        java.lang.SecurityManager#checkRead(java.lang.String)
      */
     public FileInputStream(File file) throws FileNotFoundException {
-	this(file.getPath());
+        String name = file.getPath();
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            security.checkRead(name);
+        }
+        fd = new FileDescriptor();
+        open(name);
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -332,14 +332,25 @@ public class JEditorPane extends JTextComponent {
 		// view notifications slowing it down (i.e. best synchronous
 		// behavior) or set the model and start to feed it on a seperate
 		// thread (best asynchronous behavior).
+		synchronized(this) {
+		    if (loading != null) {
+			// we are loading asynchronously, so we need to cancel 
+                        // the old stream.
+                        loading.cancel();
+                        loading = null;
+                    }
+                }
 		if (doc instanceof AbstractDocument) {
 		    AbstractDocument adoc = (AbstractDocument) doc;
 		    int p = adoc.getAsynchronousLoadPriority();
 		    if (p >= 0) {
 			// load asynchronously
 			setDocument(doc);
-			Thread pl = new PageLoader(doc, in, p, loaded, page);
-			pl.start();
+			synchronized(this) {
+                            loading = new PageStream(in);
+                            Thread pl = new PageLoader(doc, loading, p, loaded, page);
+			    pl.start();
+			}
 			return;
 		    }
 		}
@@ -461,6 +472,9 @@ public class JEditorPane extends JTextComponent {
         public void run() {
 	    try {
 		read(in, doc);
+		synchronized(JEditorPane.this) {
+                    loading = null;
+                }
 		URL page = (URL) doc.getProperty(Document.StreamDescriptionProperty);
 		String reference = page.getRef();
 		if (reference != null) {
@@ -505,6 +519,51 @@ public class JEditorPane extends JTextComponent {
 	 * and run.
 	 */
 	Document doc;
+    }
+
+    static class PageStream extends FilterInputStream {
+
+        boolean canceled;
+
+        public PageStream(InputStream i) {
+            super(i);
+            canceled = false;
+        }
+
+        /**
+         * Cancel the loading of the stream by throwing
+         * an IOException on the next request.
+         */
+        public synchronized void cancel() {
+            canceled = true;
+        }
+
+        protected synchronized void checkCanceled() throws IOException {
+            if (canceled) {
+                throw new IOException("page canceled");
+            }
+        }
+
+        public int read() throws IOException {
+            checkCanceled();
+            return super.read();
+        }
+
+        public long skip(long n) throws IOException {
+            checkCanceled();
+            return super.skip(n);
+        }
+
+        public int available() throws IOException {
+            checkCanceled();
+            return super.available();
+        }
+
+        public void reset() throws IOException {
+            checkCanceled();
+            super.reset();
+        }
+
     }
 
     /**
@@ -1313,6 +1372,12 @@ public class JEditorPane extends JTextComponent {
     }
 
     // --- variables ---------------------------------------
+
+    /**
+     * Stream currently loading asynchronously (potentially cancelable).
+     * Access to this variable should be synchronized.
+     */
+    PageStream loading;
 
     /**
      * Current content binding of the editor.

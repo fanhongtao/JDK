@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -16,7 +16,7 @@ import java.applet.*;
  * of repaints to be minimized, for example by collapsing multiple 
  * requests into a single repaint for members of a component tree.
  *
- * @version 1.40 02/06/02
+ * @version 1.42 12/02/02
  * @author Arnaud Weber
  */
 public class RepaintManager 
@@ -222,6 +222,11 @@ public class RepaintManager
 		return;
 	    }
 	    if ((p instanceof Window) || (p instanceof Applet)) {
+                // Iconified frames are still visible!
+                if (p instanceof Frame &&
+                        ((Frame)p).getState() == Frame.ICONIFIED) {
+                    return;
+                }
 		root = p;
 		break;
 	    }

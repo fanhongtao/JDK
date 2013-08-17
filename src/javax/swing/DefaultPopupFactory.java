@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -163,14 +163,13 @@ class DefaultPopupFactory implements PopupFactory {
 	}
     }
 
-    
     boolean adjustPopuLocationToFitScreen(Component component, Point p) {
         if(popupPostionFixEnabled == false)
 	    return false;
 	if(component == null)
     	    return false;
-
-	int scrWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
+	
+        int scrWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
 	int scrHeight = Toolkit.getDefaultToolkit().getScreenSize().height;
 
 	int oldX = p.x;
@@ -185,9 +184,9 @@ class DefaultPopupFactory implements PopupFactory {
         if( (p.y + size.height) > scrHeight)
 	     p.y = scrHeight - size.height;
 
-        /* Change is made to the desired (X,Y) values, when the
+        /*Change is made to the desired (X,Y) values, when the
            PopupMenu is too tall OR too wide for the screen
-        */
+        */ 
         if( p.x < 0 )
             p.x = 0 ;  //oldX;
         if( p.y < 0 )
@@ -298,7 +297,13 @@ class DefaultPopupFactory implements PopupFactory {
             for(parent = invoker.getParent(); parent != null ; parent = parent.getParent()) {
                 if(parent instanceof JFrame || parent instanceof JDialog ||
 		   parent instanceof JWindow) {
-                    return SwingUtilities.isRectangleContainingRectangle(parent.getBounds(),popupRectInScreen);
+               Rectangle r = parent.getBounds();
+               Insets i = parent.getInsets();
+               r.x += i.left;
+               r.y += i.top;
+               r.width -= (i.left + i.right);
+               r.height -= (i.top + i.bottom);
+               return SwingUtilities.isRectangleContainingRectangle(r, popupRectInScreen);
                 } else if(parent instanceof JApplet) {
                     Rectangle r = parent.getBounds();
                     Point p  = parent.getLocationOnScreen();

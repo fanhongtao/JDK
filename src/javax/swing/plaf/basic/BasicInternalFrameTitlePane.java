@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.beans.PropertyVetoException;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.35 02/06/02
+ * @version 1.36 10/21/02
  * @author David Kloba
  * @author Steve Wilson
  */
@@ -72,6 +72,12 @@ public class BasicInternalFrameTitlePane extends JComponent
         UIManager.getString("InternalFrameTitlePane.moveButtonText");
     protected static final String SIZE_CMD =
         UIManager.getString("InternalFrameTitlePane.sizeButtonText");
+ 
+    private String closeButtonToolTip;
+    private String iconButtonToolTip;
+    private String restoreButtonToolTip;
+    private String maxButtonToolTip;
+
 
     public BasicInternalFrameTitlePane(JInternalFrame f) {
 	frame = f;
@@ -80,16 +86,7 @@ public class BasicInternalFrameTitlePane extends JComponent
 
     protected void installTitlePane() {
 	installDefaults();
-        
-        // Installing listeners must be done in addNotify because they are
-        // uninstalled in removeNotify. Internal frames (and their title panes)
-        // get removed and re-added to their parent every time they are
-        // selected,  although this is an implementation detail that may
-        // eventually change.  Installing the defaults should not happen in
-        // addNotify however because changes in the default LAF would be picked
-        // up every time a frame was selected.
-
-
+        installListeners();
 	createActions();
 	enableActions();
 	createActionMap();
@@ -147,6 +144,17 @@ public class BasicInternalFrameTitlePane extends JComponent
 	selectedTextColor = UIManager.getColor("InternalFrame.activeTitleForeground");
 	notSelectedTitleColor = UIManager.getColor("InternalFrame.inactiveTitleBackground");
 	notSelectedTextColor = UIManager.getColor("InternalFrame.inactiveTitleForeground");
+        setFont(UIManager.getFont("InternalFrame.titleFont"));
+        closeButtonToolTip =
+                UIManager.getString("InternalFrame.closeButtonToolTip");
+        iconButtonToolTip =
+                UIManager.getString("InternalFrame.iconButtonToolTip");
+        restoreButtonToolTip =
+                UIManager.getString("InternalFrame.restoreButtonToolTip");
+        maxButtonToolTip =
+                UIManager.getString("InternalFrame.maxButtonToolTip");
+
+
     }
 
 
@@ -154,31 +162,21 @@ public class BasicInternalFrameTitlePane extends JComponent
     }
 
 
-    public void addNotify() {
-	super.addNotify();
-	installListeners();
-	addSystemMenuItems(windowMenu);
-	enableActions();
-    }
-
-    public void removeNotify() {
-	super.removeNotify();
-	if (windowMenu!=null) {
-	    windowMenu.removeAll();
-	}
-	uninstallDefaults();
-        uninstallListeners();
-    }
-
     protected void createButtons() {
 	iconButton = new NoFocusButton();
 	iconButton.addActionListener(iconifyAction);
+        if (iconButtonToolTip != null && iconButtonToolTip.length() != 0) {
+            iconButton.setToolTipText(iconButtonToolTip);
+        }
 
 	maxButton = new NoFocusButton();
 	maxButton.addActionListener(maximizeAction);
 
 	closeButton = new NoFocusButton();  
 	closeButton.addActionListener(closeAction);
+        if (closeButtonToolTip != null && closeButtonToolTip.length() != 0) {
+            closeButton.setToolTipText(closeButtonToolTip);
+        }
 
         setButtonIcons();
     }
@@ -186,13 +184,30 @@ public class BasicInternalFrameTitlePane extends JComponent
     protected void setButtonIcons() {
 	if(frame.isIcon()) {
 	    iconButton.setIcon(minIcon);
+            if (restoreButtonToolTip != null &&
+                    restoreButtonToolTip.length() != 0) {
+                iconButton.setToolTipText(restoreButtonToolTip);
+            }
 	    maxButton.setIcon(maxIcon);
+            if (maxButtonToolTip != null && maxButtonToolTip.length() != 0) {
+                maxButton.setToolTipText(maxButtonToolTip);
+            }
         } else if (frame.isMaximum()) {
 	    iconButton.setIcon(iconIcon);
 	    maxButton.setIcon(minIcon);
+            if (restoreButtonToolTip != null &&
+                    restoreButtonToolTip.length() != 0) {
+                maxButton.setToolTipText(restoreButtonToolTip);
+            }
         } else {
 	    iconButton.setIcon(iconIcon);
+            if (iconButtonToolTip != null && iconButtonToolTip.length() != 0) {
+                iconButton.setToolTipText(iconButtonToolTip);
+            }
 	    maxButton.setIcon(maxIcon);
+            if (maxButtonToolTip != null && maxButtonToolTip.length() != 0) {
+                maxButton.setToolTipText(maxButtonToolTip);
+            }
         }
 
 	closeButton.setIcon(closeIcon);
@@ -203,7 +218,7 @@ public class BasicInternalFrameTitlePane extends JComponent
         menuBar = createSystemMenuBar();
 	windowMenu = createSystemMenu();	    
 	menuBar.add(windowMenu);
-	// moved to addNotify - addSystemMenuItems(windowMenu);
+	addSystemMenuItems(windowMenu);
 	enableActions();
     }
 

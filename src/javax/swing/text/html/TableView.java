@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -16,7 +16,7 @@ import javax.swing.text.*;
  * HTML table view.  
  * 
  * @author  Timothy Prinzing
- * @version 1.21 02/06/02
+ * @version 1.24 12/02/02
  * @see     View
  */
 /*public*/ class TableView extends BoxView implements ViewFactory {
@@ -592,6 +592,10 @@ import javax.swing.text.*;
 	    RowView row = getRow(i);
 	    row.layoutChanged(axis);
 	}
+
+	//checking & computing  columnn span, if needed
+        calculateColumnRequirements(axis);
+
 
 	// calculate column spans
 	layoutColumns(targetSpan, columnOffsets, columnSpans, columnRequirements);
@@ -1381,7 +1385,8 @@ import javax.swing.text.*;
         protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
 	    int col = 0;
 	    int ncells = getViewCount();
-	    for (int cell = 0; cell < ncells; cell++, col++) {
+	    int ncolumns = columnSpans.length;
+            for (int cell = 0; (cell < ncells) && (col < ncolumns); cell++, col++) {
 		View cv = getView(cell);
 		for (; isFilled(col); col++); // advance to a free column
 		int colSpan = getColumnsOccupied(cv);

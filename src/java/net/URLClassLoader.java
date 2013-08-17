@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -45,7 +45,7 @@ import sun.misc.URLClassPath;
  * access the URLs specified when the URLClassLoader was created.
  *
  * @author  David Connelly
- * @version 1.75, 02/06/02
+ * @version 1.77, 12/02/02
  * @since   1.2
  */
 public class URLClassLoader extends SecureClassLoader {
@@ -417,12 +417,15 @@ public class URLClassLoader extends SecureClassLoader {
 	URL url = codesource.getLocation();
 
 	Permission p;
+	URLConnection urlConnection;
 
 	try {
-	    p = url.openConnection().getPermission();
+	    urlConnection = url.openConnection();
+	    p = urlConnection.getPermission();
 	} catch (java.io.IOException ioe) {
 
 	    p = null;
+	    urlConnection = null;
 	}
 
 	if (p instanceof FilePermission) {
@@ -440,7 +443,11 @@ public class URLClassLoader extends SecureClassLoader {
 		path += "-";
 	    p =  new FilePermission(path, "read");
 	} else {
-	    String host = url.getHost();
+	    URL locUrl = url;
+	    if (urlConnection instanceof JarURLConnection) {
+		locUrl = ((JarURLConnection)urlConnection).getJarFileURL();
+	    }
+	    String host = locUrl.getHost();
 	    if (host == null)
 		host = "localhost";
 	    p = new SocketPermission(host,"connect, accept");

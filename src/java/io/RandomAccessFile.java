@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ package java.io;
  * <code>IOException</code> may be thrown if the stream has been closed.
  *
  * @author  unascribed
- * @version 1.57, 02/06/02
+ * @version 1.59, 12/02/02
  * @since   JDK1.0
  */
 
@@ -79,18 +79,7 @@ public class RandomAccessFile implements DataOutput, DataInput {
     public RandomAccessFile(String name, String mode)
 	throws FileNotFoundException
     {
-	boolean rw = mode.equals("rw");
-	if (!rw && !mode.equals("r"))
-		throw new IllegalArgumentException("mode must be r or rw");
-	SecurityManager security = System.getSecurityManager();
-	if (security != null) {
-	    security.checkRead(name);
-	    if (rw) {
-		security.checkWrite(name);
-	    }
-	}
-	fd = new FileDescriptor();
-	open(name, rw);
+       this(new File(name), mode);
     }
 
     /**
@@ -135,7 +124,19 @@ public class RandomAccessFile implements DataOutput, DataInput {
     public RandomAccessFile(File file, String mode)
 	throws FileNotFoundException
     {
-	this(file.getPath(), mode);
+        String name = file.getPath();
+	boolean rw = mode.equals("rw");
+	if (!rw && !mode.equals("r"))
+		throw new IllegalArgumentException("mode must be r or rw");
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkRead(name);
+	    if (rw) {
+		security.checkWrite(name);
+	    }
+	}
+	fd = new FileDescriptor();
+	open(name, rw);
     }
 
     /**

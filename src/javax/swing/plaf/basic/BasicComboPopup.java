@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -45,7 +45,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.33 02/06/02
+ * @version 1.35 12/02/02
  * @author Tom Santos
  */
 public class BasicComboPopup extends JPopupMenu implements ComboPopup {
@@ -870,12 +870,13 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
         absBounds.y = p.y;
         absBounds.width = scrSize.width;
         absBounds.height= scrSize.height;
-        
-        if ( SwingUtilities.isRectangleContainingRectangle(absBounds,r) )
-            return r;
+          if (py+ph > p.y+absBounds.height
+             && ph < absBounds.height)
+             return new Rectangle(0,-r.height,r.width,r.height); 
         else {
-            return new Rectangle(0,-r.height,r.width,r.height);
-        }
+              return r;
+        } 
+
     }
 
 

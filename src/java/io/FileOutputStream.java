@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ package java.io;
  * this class will fail if the file involved is already open.
  *
  * @author  Arthur van Hoff
- * @version 1.40, 02/06/02
+ * @version 1.42, 12/02/02
  * @see     java.io.File
  * @see     java.io.FileDescriptor
  * @see     java.io.FileInputStream
@@ -54,7 +54,7 @@ class FileOutputStream extends OutputStream
      * @see        java.lang.SecurityManager#checkWrite(java.lang.String)
      */
     public FileOutputStream(String name) throws FileNotFoundException {
-	this(name, false);
+	this(new File(name), false);
     }
 
     /**
@@ -86,16 +86,7 @@ class FileOutputStream extends OutputStream
     public FileOutputStream(String name, boolean append)
         throws FileNotFoundException
     {
-	SecurityManager security = System.getSecurityManager();
-	if (security != null) {
-	    security.checkWrite(name);
-	}
-	fd = new FileDescriptor();
-	if (append) {
-	    openAppend(name);
-	} else {
-	    open(name);
-	}
+       this(new File(name), append);
     }
 
     /**
@@ -124,7 +115,25 @@ class FileOutputStream extends OutputStream
      * @see        java.lang.SecurityManager#checkWrite(java.lang.String)
      */
     public FileOutputStream(File file) throws FileNotFoundException {
-	this(file.getPath());
+       this(file, false);
+    }
+
+    /* 
+     * The following is an API since JDK 1.4, but not before. So this is private.
+     */
+
+    private FileOutputStream(File file, boolean append) throws FileNotFoundException {
+        String name = file.getPath();
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            security.checkWrite(name);
+        }
+        fd = new FileDescriptor();
+        if (append) {
+            openAppend(name);
+        } else {
+            open(name);
+        }
     }
 
     /**

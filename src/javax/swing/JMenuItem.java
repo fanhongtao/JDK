@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -47,7 +47,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: An item which can be selected in a menu.
  *
- * @version 1.93 02/06/02
+ * @version 1.95 12/02/02
  * @author Georges Saab
  * @author David Karlton
  * @see JPopupMenu
@@ -67,6 +67,8 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
     private static final boolean TRACE =   false; // trace creates and disposes
     private static final boolean VERBOSE = false; // show reuse hits/misses
     private static final boolean DEBUG =   false;  // show bad params, misc.
+    /*Bug 4711693 */
+    private boolean isMouseDragged = false;
 
     /**
      * Creates a menuItem with no set text or icon.
@@ -438,13 +440,13 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
     public void processMenuDragMouseEvent(MenuDragMouseEvent e) {
 	switch (e.getID()) {
 	case MouseEvent.MOUSE_ENTERED:
-	    fireMenuDragMouseEntered(e); break;
+	    isMouseDragged = false; fireMenuDragMouseEntered(e); break;
 	case MouseEvent.MOUSE_EXITED:
-	    fireMenuDragMouseExited(e); break;
+	    isMouseDragged = false; fireMenuDragMouseExited(e); break;
 	case MouseEvent.MOUSE_DRAGGED:
-	    fireMenuDragMouseDragged(e); break;
+	    isMouseDragged = true; fireMenuDragMouseDragged(e); break;
 	case MouseEvent.MOUSE_RELEASED:
-	    fireMenuDragMouseReleased(e); break;
+	     if(isMouseDragged) fireMenuDragMouseReleased(e); break;
 	default: 
 	    break;
 	}

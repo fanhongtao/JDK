@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -191,7 +191,7 @@ import java.util.Set;
  *     attribute: isContainer false
  * 
  * @author  Timothy Prinzing
- * @version 1.158 02/06/02
+ * @version 1.160 12/02/02
  * @see Document
  * @see DocumentEvent
  * @see DocumentListener
@@ -312,13 +312,29 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      *       expert: true
      */
     public void setDocument(Document doc) {
-        if (accessibleContext != null) {
-            model.removeDocumentListener(
-                ((AccessibleJTextComponent)accessibleContext));
+	Document old = model;
+
+        /*
+         * aquire a read lock on the old model to prevent notification of
+         * mutations while we disconnecting the old model.
+         */
+        try {
+            if (old instanceof AbstractDocument) {
+                ((AbstractDocument)old).readLock();
+            }
+            if (accessibleContext != null) {
+                model.removeDocumentListener(
+                    ((AccessibleJTextComponent)accessibleContext));
+            }
+            model = doc;
+
+            firePropertyChange("document", old, doc);
+        } finally {
+            if (old instanceof AbstractDocument) {
+                ((AbstractDocument)old).readUnlock();
+            }
         }
-        Document old = model;
-        model = doc;
-        firePropertyChange("document", old, doc);
+
         revalidate();
         repaint();
         if (accessibleContext != null) {
