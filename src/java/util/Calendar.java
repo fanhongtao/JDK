@@ -273,7 +273,7 @@ import java.text.DateFormat;
  * @see          GregorianCalendar
  * @see          TimeZone
  * @see          java.text.DateFormat
- * @version      1.53, 07/25/03
+ * @version      1.54, 08/22/05
  * @author Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -1237,7 +1237,12 @@ public abstract class Calendar implements Serializable, Cloneable {
      */
     public void setFirstDayOfWeek(int value)
     {
+        if (firstDayOfWeek == value) {
+            return;
+        }
+
         firstDayOfWeek = value;
+        invalidateWeekFields();
     }
 
     /**
@@ -1260,7 +1265,12 @@ public abstract class Calendar implements Serializable, Cloneable {
      */
     public void setMinimalDaysInFirstWeek(int value)
     {
+        if (minimalDaysInFirstWeek == value) {
+            return;
+        }
+
         minimalDaysInFirstWeek = value;
+        invalidateWeekFields();
     }
 
     /**
@@ -1544,6 +1554,25 @@ public abstract class Calendar implements Serializable, Cloneable {
             }
         }
         nextStamp = newStamp;
+    }
+
+    /**
+     * Invalidates the WEEK_OF_MONTH and WEEK_OF_YEAR fields if they
+     * have been calculated internally.
+     */
+    private void invalidateWeekFields() {
+
+        if (stamp[WEEK_OF_MONTH] == INTERNALLY_SET) {
+            stamp[WEEK_OF_MONTH] = UNSET;
+            isSet[WEEK_OF_MONTH] = false;
+            areFieldsSet = false;
+        }
+
+        if (stamp[WEEK_OF_YEAR] == INTERNALLY_SET) {
+            stamp[WEEK_OF_YEAR] = UNSET;
+            isSet[WEEK_OF_YEAR] = false;
+            areFieldsSet = false;
+        }
     }
 
     /**
