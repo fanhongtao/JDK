@@ -599,6 +599,10 @@ public class JEditorPane extends JTextComponent {
 			    //r.y -= (vis.height / 2);
 			    r.height = vis.height;
 			    scrollRectToVisible(r);
+                            int index = viewToModel(new Point(r.x,r.y));
+                            index = Math.min(index, d.getLength()-1);
+                            index = Math.max(index, 0);
+                            setCaretPosition(index);
 			}
 		    } catch (BadLocationException ble) {
 			getToolkit().beep();

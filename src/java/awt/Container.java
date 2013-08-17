@@ -41,7 +41,7 @@ import sun.awt.GlobalCursorManager;
  * within the container.  If no index is specified when adding a
  * component to a container, it will be added to the end of the list
  * (and hence to the bottom of the stacking order).
- * @version 	1.182, 02/06/02
+ * @version 	1.183, 07/08/02
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see       java.awt.Container#add(java.awt.Component, int)
@@ -2100,6 +2100,11 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
                     FocusEvent.FOCUS_GAINED, false));
             }
         }
+
+		if (w.getClass().getName().equals("sun.beans.ole.OleEmbeddedFrame")) {
+			peerRequest = true;
+		}
+
         return peerRequest;
     }
 

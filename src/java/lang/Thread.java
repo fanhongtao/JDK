@@ -95,7 +95,7 @@ import java.util.Collections;
  * a thread is created, a new name is generated for it. 
  *
  * @author  unascribed
- * @version 1.108, 02/06/02
+ * @version 1.109, 05/20/02
  * @see     java.lang.Runnable
  * @see     java.lang.Runtime#exit(int)
  * @see     java.lang.Thread#run()
@@ -146,14 +146,14 @@ class Thread implements Runnable {
     private static RuntimePermission stopThreadPermission;
 
     /* ThreadLocal values pertaining to this thread. This map is maintained
-     * by the InheritableThreadLocal class. */
-    Map threadLocals;
+     * by the ThreadLocal class. */
+    ThreadLocal.ThreadLocalMap threadLocals = null;
 
-    /* InheritableThreadLocal values pertaining to this thread. This map is
-     * maintained by the InheritableThreadLocal class.  We call
-     * InheritableThreadLocal.bequeath at thread creation time to pass our
-     * values on to our child. */ 
-    Map inheritableThreadLocals;
+    /*
+     * InheritableThreadLocal values pertaining to this thread. This map is
+     * maintained by the InheritableThreadLocal class.
+     */
+    ThreadLocal.ThreadLocalMap inheritableThreadLocals = null;
 
     /**
      * The minimum priority that a thread can have. 
@@ -266,11 +266,11 @@ class Thread implements Runnable {
 	this.contextClassLoader = parent.contextClassLoader;
 	this.inheritedAccessControlContext = AccessController.getContext();
 	this.target = target;
-        // DO NOT MOVE THESE TWO LINES TO DECLARATIONS.
-        this.threadLocals = Collections.EMPTY_MAP;
-        this.inheritableThreadLocals = Collections.EMPTY_MAP;
 	setPriority(priority);
-        InheritableThreadLocal.bequeath(parent, this);
+        if (parent.inheritableThreadLocals != null)
+          this.inheritableThreadLocals =
+            ThreadLocal.createInheritedMap(parent.inheritableThreadLocals);
+
 	g.add(this);
     }
 

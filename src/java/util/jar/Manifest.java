@@ -24,7 +24,7 @@ import java.util.Iterator;
  * </pre></blockquote>
  *
  * @author  David Connelly
- * @version 1.33, 02/06/02
+ * @version 1.34, 07/01/02
  * @see	    Attributes
  * @since   1.2
  */
@@ -130,7 +130,7 @@ public class Manifest implements Cloneable {
         int length = line.length();
         if (length > 72) {
             int index = 70;
-            while (index - 1 < length) {
+	    while (index < length - 2) {
                 line.insert(index, "\r\n ");
                 index += 72;
                 length += 3;

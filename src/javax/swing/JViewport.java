@@ -67,7 +67,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.88 02/06/02
+ * @version 1.89 05/01/02
  * @author Hans Muller
  * @author Philip Milne
  * @see JScrollPane
@@ -1370,7 +1370,11 @@ public class JViewport extends JComponent implements Accessible
 		g.setClip(0, 0, getWidth(), getHeight());
 	    }
 	    g.clipRect(dirty.x, dirty.y, dirty.width, dirty.height);
-	    paintView(g);
+            clip = g.getClipBounds();
+            // Only paint the dirty region if it is visible.
+            if (clip.width > 0 && clip.height > 0) {
+                paintView(g);
+            }
 	}		
     }
 
