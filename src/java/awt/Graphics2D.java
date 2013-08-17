@@ -1,10 +1,10 @@
 /*
- * @(#)Graphics2D.java	1.56 98/10/19
+ * @(#)Graphics2D.java	1.62 99/04/22
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -96,8 +96,16 @@ import java.util.Map;
  * <li>
  * Constrain the rendering operation to the current <code>Clip</code>.
  * The <code>Clip</code> is specified by a {@link Shape} in user
- * space and is converted into device space by the current
- * <code>Transform</code> at the time it was modified.
+ * space and is controlled by the program using the various clip
+ * manipulation methods of <code>Graphics</code> and
+ * <code>Graphics2D</code>.  This <i>user clip</i>
+ * is transformed into device space by the current
+ * <code>Transform</code> and combined with the
+ * <i>device clip</i>, which is defined by the visibility of windows and
+ * device extents.  The combination of the user clip and device clip
+ * defines the <i>composite clip</i>, which determines the final clipping
+ * region.  The user clip is not modified by the rendering
+ * system to reflect the resulting composite clip. 
  * <li>
  * Determine what colors to render.
  * <li>
@@ -805,9 +813,12 @@ public abstract class Graphics2D extends Graphics {
 
     /**
      * Sets the <code>Paint</code> attribute for the 
-     * <code>Graphics2D</code> context.
+     * <code>Graphics2D</code> context.  Calling this method
+     * with a <code>null</code> <code>Paint</code> object does 
+     * not have any effect on the current <code>Paint</code> attribute
+     * of this <code>Graphics2D</code>.  
      * @param paint the <code>Paint</code> object to be used to generate 
-     * color during the rendering process
+     * color during the rendering process, or <code>null</code>
      * @see java.awt.Graphics#setColor
      * @see GradientPaint
      * @see TexturePaint
@@ -1105,9 +1116,16 @@ public abstract class Graphics2D extends Graphics {
      * <code>Transform</code> before being intersected with the current 
      * <code>Clip</code>.  This method is used to make the current
      * <code>Clip</code> smaller.
-     * To make the <code>Clip</code. larger, use <code>setClip</code>.
+     * To make the <code>Clip</code> larger, use <code>setClip</code>.
+     * The <i>user clip</i> modified by this method is independent of the
+     * clipping associated with device bounds and visibility.  If no clip has 
+     * previously been set, or if the clip has been cleared using 
+     * {@link Graphics#setClip(Shape) setClip} with a <code>null</code>
+     * argument, the specified <code>Shape</code> becomes the new 
+     * user clip.
      * @param s the <code>Shape</code> to be intersected with the current
-     * <code>Clip</code>
+     *          <code>Clip</code>.  If <code>s</code> is <code>null</code>,
+     *          this method clears the current <code>Clip</code>.
      */
      public abstract void clip(Shape s);
 

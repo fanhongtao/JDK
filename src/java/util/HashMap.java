@@ -1,10 +1,10 @@
 /*
- * @(#)HashMap.java	1.26 98/09/30
+ * @(#)HashMap.java	1.29 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -82,7 +82,7 @@ import java.io.*;
  *
  * @author  Josh Bloch
  * @author  Arthur van Hoff
- * @version 1.26, 09/30/98
+ * @version 1.29, 04/22/99
  * @see     Object#hashCode()
  * @see     Collection
  * @see	    Map
@@ -661,7 +661,7 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
 	}
 
 	public String toString() {
-	    return key.toString()+"="+value.toString();
+	    return key+"="+value;
 	}
     }
 
@@ -771,6 +771,8 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
 	    }
 	}
     }
+
+    private static final long serialVersionUID = 362498820763181265L;
 
     /**
      * Reconstitute the <tt>HashMap</tt> instance from a stream (i.e.,

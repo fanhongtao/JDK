@@ -1,5 +1,5 @@
 /*
- * @(#)SwingPropertyChangeSupport.java	1.5 98/08/26
+ * @(#)SwingPropertyChangeSupport.java	1.6 98/11/18
  *
  * Copyright 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -28,7 +28,7 @@ import java.io.IOException;
  * only necessary because all of PropertyChangeSupport's instance
  * data is private, without accessor methods.
  *
- * @version 1.5 08/26/98
+ * @version 1.6 11/18/98
  * @author unattributed
  */
 
@@ -183,7 +183,8 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
 	}
 
 	if (listeners != null) {
-	    for (int i = 0; i < listeners.size(); i++) {
+	    int size = listeners.size();
+	    for (int i = 0; i < size; i++) {
 	        PropertyChangeListener target =
                     (PropertyChangeListener)listeners.elementAt(i);
 	        target.propertyChange(evt);
@@ -227,7 +228,8 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
 	}
 
 	if (v != null) {
-	    for (int i = 0; i < v.size(); i++) {
+	    int size = v.size();
+	    for (int i = 0; i < size; i++) {
 	        PropertyChangeListener l = (PropertyChangeListener)v.elementAt(i);
 	        if (l instanceof Serializable) {
 	            s.writeObject(l);

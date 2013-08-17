@@ -1,10 +1,10 @@
 /*
- * @(#)JTable.java	1.110 98/09/18
+ * @(#)JTable.java	1.120 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -143,7 +143,7 @@ import java.text.NumberFormat;
  * @beaninfo
  *   attribute: isContainer false
  *
- * @version 1.110 09/18/98
+ * @version 1.120 04/22/99
  * @author Philip Milne
  * @author Alan Chung
  */
@@ -460,7 +460,10 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
                 }
                 scrollPane.setColumnHeaderView(getTableHeader());
                 scrollPane.getViewport().setBackingStoreEnabled(true);
-                scrollPane.setBorder(UIManager.getBorder("Table.scrollPaneBorder"));
+                Border border = scrollPane.getBorder();
+                if (border == null || border instanceof UIResource) {
+                    scrollPane.setBorder(UIManager.getBorder("Table.scrollPaneBorder"));
+                }
             }
         }
     }
@@ -729,7 +732,9 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
             (mode == AUTO_RESIZE_ALL_COLUMNS)) {
             autoResizeMode = mode;
             resizeAndRepaint();
-            tableHeader.resizeAndRepaint();
+            if (tableHeader != null) { 
+		tableHeader.resizeAndRepaint();
+	    }
         }
     }
 
@@ -1084,28 +1089,17 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     }
 
     /**
-     * Returns the index of the last row selected or added to the selection.
-     *
-     * @return the index of the last row selected or added to the selection,
-     *         (lead selection) or -1 if no row is selected.
-     * @see #getSelectedRows
+     * Returns the index of the first selected row, -1 if no row is selected.
      */
     public int getSelectedRow() {
-        if (selectionModel != null) {
-            return selectionModel.getAnchorSelectionIndex();
-        }
-        return -1;
+	return selectionModel.getMinSelectionIndex();
     }
 
     /**
-     * Returns the index of the last column selected or added to the selection.
-     *
-     * @return the index of the last column selected or added to the selection,
-     *         (lead selection) or -1 if no column is selected.
-     * @see #getSelectedColumns
+     * Returns the index of the first selected column, -1 if no column is selected.
      */
     public int getSelectedColumn() {
-        return columnModel.getSelectionModel().getAnchorSelectionIndex();
+        return columnModel.getSelectionModel().getMinSelectionIndex();
     }
 
     /**
@@ -1998,35 +1992,26 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @return  false if for any reason the cell cannot be edited.
      */
     public boolean editCellAt(int row, int column, EventObject e){
-        if (isEditing()) {
-            // Try to stop the current editor
-            if (cellEditor != null) {
-                boolean stopped = cellEditor.stopCellEditing();
-                if (!stopped)
-                    return false;       // The current editor not resigning
-            }
+        if (cellEditor != null && !cellEditor.stopCellEditing()) { 
+            return false;
         }
 
         if (!isCellEditable(row, column))
             return false;
 
         TableCellEditor editor = getCellEditor(row, column);
-        if (editor != null) {
-            // prepare editor - size it then added it to the table
-            editorComp = prepareEditor(editor, row, column);
+        if (editor != null && editor.isCellEditable(e)) {
+	    editorComp = prepareEditor(editor, row, column);
+	    editorComp.setBounds(getCellRect(row, column, false));
+	    add(editorComp);
+	    editorComp.validate();
 
-            if (editor.isCellEditable(e)) {
-                editorComp.setBounds(getCellRect(row, column, false));
-                this.add(editorComp);
-                editorComp.validate();
+	    setCellEditor(editor);
+	    setEditingRow(row);
+	    setEditingColumn(column);
+	    editor.addCellEditorListener(this);
 
-                setCellEditor(editor);
-                setEditingRow(row);
-                setEditingColumn(column);
-                editor.addCellEditorListener(this);
-
-                return true;
-            }
+	    return true;
         }
         return false;
     }
@@ -2401,8 +2386,9 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
             selectionModel.insertIndexInterval(start, length, true);
         }
         revalidate();
-        // PENDING(philip) Find a way to stop revalidate calling repaint
-        // repaint(drawRect);
+        // PENDING(milne) revalidate calls repaint() if parent is a ScrollPane
+	// repaint still required in the unusual case where there is no ScrollPane
+        repaint(drawRect);
     }
 
     /*
@@ -2410,13 +2396,13 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      *
      * @param e the TableModelEvent encapsulating the deletion
      */
-    private void tableRowsDeleted(TableModelEvent e) {
+    private void tableRowsDeleted(TableModelEvent e) { 
         int start = e.getFirstRow();
         int end = e.getLastRow();
         if (start < 0)
             start = 0;
 
-        int deletedCount = e.getLastRow() - end + 1;
+        int deletedCount = end - start + 1;
         int previousRowCount = getRowCount() + deletedCount;
         // 1 or more rows added, so we have to repaint from the first
         // new row to the end of the table.  (Everything shifts up)
@@ -2433,8 +2419,9 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
             selectionModel.removeIndexInterval(start, end);
         }
         revalidate();
-        // PENDING(philip) Find a way to stop revalidate calling repaint
-        // repaint(drawRect);
+        // PENDING(milne) revalidate calls repaint() if parent is a ScrollPane 
+	// repaint still required in the unusual case where there is no ScrollPane
+        repaint(drawRect);
     }
 
 //
@@ -2544,8 +2531,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 //
 
     /**
-     * Invoked when editing is finished. The changes are saved, the
-     * editor object is discarded, and the cell is rendered once again.
+     * Invoked when editing is finished. The changes are saved and the
+     * editor is discarded.
      *
      * @see CellEditorListener
      */
@@ -2555,7 +2542,6 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         if (editor != null) {
             Object value = editor.getCellEditorValue();
             setValueAt(value, editingRow, editingColumn);
-
             removeEditor();
         }
     }
@@ -2628,8 +2614,13 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      */
     public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation,
                                            int direction) {
-        return (orientation == SwingConstants.VERTICAL) ? visibleRect.height :
-            visibleRect.width;
+	if (orientation == SwingConstants.VERTICAL) {
+	    int rh = getRowHeight() + getRowMargin();
+	    return (rh > 0) ? Math.max(rh, (visibleRect.height / rh) * rh) : visibleRect.height;
+	}
+	else {
+	    return visibleRect.width;
+	}
     }
 
     /**
@@ -2732,7 +2723,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         // Objects
         JTextField textField = new JTextField();
         textField.setBorder(new LineBorder(Color.black));
-        setDefaultEditor(Object.class, new DefaultCellEditor(textField));
+    	setDefaultEditor(Object.class, new DefaultCellEditor(textField));
 
         // Numbers
         JTextField rightAlignedTextField = new JTextField();
@@ -2749,7 +2740,10 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     /**
      * Initializes table properties to their default values.
      */
-    protected void initializeLocalVars() {
+    protected void initializeLocalVars() { 
+	getSelectionModel().setAnchorSelectionIndex(0); 
+        columnModel.getSelectionModel().setAnchorSelectionIndex(0); 
+
         setOpaque(true);
         createDefaultRenderers();
         createDefaultEditors();
@@ -2895,9 +2889,10 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
         Object value = getValueAt(row, column);
 	boolean isSelected = isCellSelected(row, column);
-	boolean rowIsAnchor = (getSelectedRow() == row);
-	boolean columnIsAnchor = (getSelectedColumn() == column);
-	boolean hasFocus = (rowIsAnchor && columnIsAnchor) && hasFocus();
+	boolean rowIsAnchor = (selectionModel.getAnchorSelectionIndex() == row);
+	boolean colIsAnchor = 
+	    (columnModel.getSelectionModel().getAnchorSelectionIndex() == column);
+	boolean hasFocus = (rowIsAnchor && colIsAnchor) && hasFocus();
 
 	return renderer.getTableCellRendererComponent(this, value,
 	                                              isSelected, hasFocus,
@@ -2935,10 +2930,11 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         boolean isSelected = isCellSelected(row, column);
         Component comp = editor.getTableCellEditorComponent(this, value, isSelected,
                                                   row, column);
-        if((comp != null) && (comp.getFont() == null)) {
-            comp.setFont(getFont());
+        if (comp instanceof JComponent) { 
+            ((JComponent)comp).setNextFocusableComponent(this); 
+            
         }
-        return comp;
+    	return comp;
     }
 
     /**
@@ -2950,17 +2946,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         if(editor != null) {
             editor.removeCellEditorListener(this);
 
-            // PENDING(alan): This is a temp work around for a JComboBox bug
-            if (editorComp instanceof JComboBox) {
-                ((JComboBox)editorComp).hidePopup();
-            }
-
+            requestFocus();
             remove(editorComp);
-
-            if (!(editorComp instanceof JComponent) ||
-                 ((JComponent)editorComp).hasFocus()) {
-                requestFocus();
-            }
 
             Rectangle cellRect = getCellRect(editingRow, editingColumn, false);
 
@@ -2995,9 +2982,6 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JTable.
      */
@@ -3987,7 +3971,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
              * @exception IllegalComponentStateException
              * If the Component does not have its own locale and has not yet been added to a containment hierarchy such that the locale can be
              * determined from the containing parent.
-             * @see setLocale
+             * @see #setLocale
              */
             public Locale getLocale() {
                 AccessibleContext ac = getCurrentAccessibleContext();
@@ -4238,7 +4222,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
              *
              * @param f the Font
              * @return the FontMetrics, if supported, the object; otherwise, null
-             * @see getFont
+             * @see #getFont
              */
             public FontMetrics getFontMetrics(Font f) {
                 AccessibleContext ac = getCurrentAccessibleContext();

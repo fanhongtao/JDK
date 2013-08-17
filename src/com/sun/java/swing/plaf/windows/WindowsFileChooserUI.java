@@ -1,10 +1,10 @@
 /*
- * @(#)WindowsFileChooserUI.java	1.23 98/08/28
+ * @(#)WindowsFileChooserUI.java	1.30 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -29,7 +29,7 @@ import java.util.*;
 /**
  * Basic L&F implementation of a FileChooser.
  *
- * @version 1.23 08/28/98
+ * @version 1.30 04/22/99
  * @author Jeff Dinkins
  */
 public class WindowsFileChooserUI extends BasicFileChooserUI {
@@ -40,7 +40,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
     private JComboBox directoryComboBox;
     private DirectoryComboBoxModel directoryComboBoxModel;
-    private Action directoryComboBoxAction = new DirectoryComboBoxAction();
+    private ActionListener directoryComboBoxAction = new DirectoryComboBoxAction();
 
     private FilterComboBoxModel filterComboBoxModel;
 
@@ -57,7 +57,12 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
     private static final Dimension hstrut10 = new Dimension(10, 1);
     private static final Dimension hstrut25 = new Dimension(25, 1);
+
+    private static final Dimension  vstrut1 = new Dimension(1, 1);
     private static final Dimension vstrut10 = new Dimension(1, 10);
+    private static final Dimension vstrut15 = new Dimension(1, 15);
+    private static final Dimension vstrut20 = new Dimension(1, 20);
+
     private static final Insets shrinkwrap = new Insets(0,0,0,0);
 
     private static int PREF_WIDTH = 500;
@@ -247,9 +252,10 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
      	JLabel fnl = new JLabel(fileNameLabelText);
      	fnl.setDisplayedMnemonic(fileNameLabelMnemonic);
+	fnl.setAlignmentY(0);
 	labelPanel.add(fnl);
 
-	labelPanel.add(Box.createRigidArea(vstrut10));
+	labelPanel.add(Box.createRigidArea(vstrut20));
 
      	JLabel ftl = new JLabel(filesOfTypeLabelText);
      	ftl.setDisplayedMnemonic(filesOfTypeLabelMnemonic);
@@ -262,7 +268,11 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	JPanel fileAndFilterPanel = new JPanel();
 	fileAndFilterPanel.setLayout(new BoxLayout(fileAndFilterPanel, BoxLayout.Y_AXIS));
 
-	filenameTextField = new JTextField();
+	filenameTextField = new JTextField() {
+	    public Dimension getMaximumSize() {
+		return new Dimension(Short.MAX_VALUE, super.getPreferredSize().height);
+	    }
+	};
 	fnl.setLabelFor(filenameTextField);
 	filenameTextField.addActionListener(getApproveSelectionAction());
 	File f = fc.getSelectedFile();
@@ -271,8 +281,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	}
 
 	fileAndFilterPanel.add(filenameTextField);
-
-	fileAndFilterPanel.add(Box.createRigidArea(vstrut10));
+	fileAndFilterPanel.add(Box.createRigidArea(vstrut15));
 
 	filterComboBoxModel = createFilterComboBoxModel();
 	fc.addPropertyChangeListener(filterComboBoxModel);
@@ -290,9 +299,10 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
 	approveButton = new JButton(getApproveButtonText(fc)) {
 	    public Dimension getMaximumSize() {
-		return new Dimension(Short.MAX_VALUE, Short.MAX_VALUE);
+		return approveButton.getPreferredSize().width > cancelButton.getPreferredSize().width ?
+		       approveButton.getPreferredSize() : cancelButton.getPreferredSize();
 	    }
-	};
+	}; 
 	approveButton.setMnemonic(getApproveButtonMnemonic(fc));
 	approveButton.addActionListener(getApproveSelectionAction());
 	approveButton.setToolTipText(getApproveButtonToolTipText(fc));
@@ -301,9 +311,10 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
 	cancelButton = new JButton(cancelButtonText) {
 	    public Dimension getMaximumSize() {
-		return new Dimension(Short.MAX_VALUE, Short.MAX_VALUE);
+		return approveButton.getPreferredSize().width > cancelButton.getPreferredSize().width ?
+		       approveButton.getPreferredSize() : cancelButton.getPreferredSize();
 	    }
-	};
+	}; 
 	cancelButton.setMnemonic(cancelButtonMnemonic);
 	cancelButton.setToolTipText(cancelButtonToolTipText);
 	cancelButton.addActionListener(getCancelSelectionAction());
@@ -365,6 +376,14 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
     int editX = 20;
     int editWidth = 200;
 
+    private void setEditIndex(int i) {
+	lastIndex = i;
+    }
+
+    private void resetEditIndex() {
+	lastIndex = -1;
+    }
+
     private void cancelEdit() {
 	editing = false;
 	if(editCell != null) {
@@ -385,7 +404,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	public void mouseClicked(MouseEvent e) {
 	    if (e.getClickCount() == 1) {
 		int index = list.locationToIndex(e.getPoint());
-		if(lastIndex == index && editing == false) {
+		if(index >= 0 && lastIndex == index && editing == false) {
 		    editing = true;
 		    Rectangle r = list.getCellBounds(index, index);
 		    list.add(editCell);
@@ -394,10 +413,17 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 		    editCell.setBounds(editX + r.x, r.y, editWidth, r.height);
 		    editCell.selectAll();
 		} else {
-		    lastIndex = index;
+		    if(index >= 0) {
+			setEditIndex(index);
+		    } else {
+			resetEditIndex();
+		    }
 		    cancelEdit();
 		}
 	    } else {
+		// on double click (open or drill down one directory) be
+		// sure to clear the edit index
+		resetEditIndex();
 		cancelEdit();
 	    }
 	    list.repaint();
@@ -474,6 +500,16 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	return new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
     }
 
+    void setFileSelected() {
+	File f = getFileChooser().getSelectedFile();
+	if(f != null && getModel().contains(f)) {
+	    list.setSelectedIndex(getModel().indexOf(f));
+	    list.ensureIndexIsVisible(list.getSelectedIndex());
+	} else {
+	    list.clearSelection();
+	}
+    }
+
     /*
      * Listen for filechooser property changes, such as
      * the selected file changing, or the type of the dialog changing.
@@ -487,13 +523,13 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 		    File f = (File) e.getNewValue();
 		    if(f != null) {
 			setFileName(getFileChooser().getName(f));
-			if(getModel().contains(f)) {
-			    list.setSelectedIndex(getModel().indexOf(e.getNewValue()));
-			    list.ensureIndexIsVisible(list.getSelectedIndex());
-			}
+		    } else {
+			setFileName(null);
 		    }
+		    setFileSelected();
 		} else if(prop.equals(JFileChooser.DIRECTORY_CHANGED_PROPERTY)) {
 		    cancelEdit();
+		    resetEditIndex();
 		    clearIconCache();
 		    list.clearSelection();
 		    File currentDirectory = getFileChooser().getCurrentDirectory();
@@ -504,9 +540,13 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 			// PENDING(jeff) - broken - fix
 			getNewFolderAction().setEnabled(currentDirectory.canWrite());
 		    }
-		} else if(prop.equals(JFileChooser.FILE_SELECTION_MODE_CHANGED_PROPERTY)) {
+		} else if(prop.equals(JFileChooser.FILE_FILTER_CHANGED_PROPERTY) || 
+		          prop.equals(JFileChooser.FILE_SELECTION_MODE_CHANGED_PROPERTY)) {
+		    cancelEdit();
+		    resetEditIndex();
 		    clearIconCache();
-		    list.clearSelection();} else if(prop == JFileChooser.ACCESSORY_CHANGED_PROPERTY) {
+		    list.clearSelection();
+		} else if(prop == JFileChooser.ACCESSORY_CHANGED_PROPERTY) {
 		    if(getAccessoryPanel() != null) {
 			if(e.getOldValue() != null) {
 			    getAccessoryPanel().remove((JComponent) e.getOldValue());
@@ -712,6 +752,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
                     directory.getCanonicalPath()
                 );
 	    } catch (IOException e) {
+		return;
 	    }
 
 	    // create File instances of each directory leading up to the top
@@ -737,6 +778,8 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	    if(topIndex < 0) {
 		if(directories.contains(f)) {
 		    topIndex = directories.indexOf(f); 
+		} else {
+		    directories.addElement(f);
 		}
 	    }
 	    
@@ -879,11 +922,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
     /**
      * Acts when DirectoryComboBox has changed the selected item.
      */
-    protected class DirectoryComboBoxAction extends AbstractAction {
-	protected DirectoryComboBoxAction() {
-	    super("DirectoryComboBoxAction");
-	}
-
+    protected class DirectoryComboBoxAction implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 	    getFileChooser().setCurrentDirectory((File) directoryComboBox.getSelectedItem());
 	}

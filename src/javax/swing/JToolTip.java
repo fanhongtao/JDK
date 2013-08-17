@@ -1,10 +1,10 @@
 /*
  * %W% %E%
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -103,9 +103,15 @@ public class JToolTip extends JComponent implements Accessible {
      * Sets the text to show when the tool tip is displayed.
      *
      * @param tipText the String to display
+     * @beaninfo
+     *    preferred: true
+     *        bound: true
+     *  description: Sets the text of the tooltip
      */
     public void setTipText(String tipText) {
+        String oldValue = this.tipText;
         this.tipText = tipText;
+        firePropertyChange("tiptext", oldValue, tipText);
     }
 
     /**
@@ -164,9 +170,6 @@ public class JToolTip extends JComponent implements Accessible {
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JToolTip.
      */

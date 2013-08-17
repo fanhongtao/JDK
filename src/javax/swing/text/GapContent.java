@@ -1,5 +1,5 @@
 /*
- * @(#)GapContent.java	1.9 98/09/21
+ * @(#)GapContent.java	1.11 98/11/19
  *
  * Copyright 1998-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -12,7 +12,7 @@
  * you entered into with Sun.
  */
 /*
- * @(#)GapContent.java	1.9 98/09/21
+ * @(#)GapContent.java	1.11 98/11/19
  * 
  * Copyright (c) 1997 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -63,7 +63,7 @@ import javax.swing.SwingUtilities;
  * mark, and decreases the cost of keeping the mark updated.
  *
  * @author  Timothy Prinzing
- * @version 1.9 09/21/98
+ * @version 1.11 11/19/98
  */
 public class GapContent extends GapVector implements AbstractDocument.Content, Serializable {
 
@@ -76,12 +76,14 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 
     /**
      * Creates a new GapContent object, with the initial
-     * size specified.
+     * size specified.  The initial size will not be allowed
+     * to go below 2, to give room for the implied break and
+     * the gap.
      *
      * @param initialLength the initial size
      */
     public GapContent(int initialLength) {
-	super(initialLength);
+	super(Math.max(initialLength,2));
 	char[] implied = new char[1];
 	implied[0] = '\n';
 	replace(0, 0, implied, implied.length);
@@ -332,7 +334,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 	int adjustIndex = findMarkAdjustIndex(oldGapEnd);
 	int n = marks.size();
 	for (int i = adjustIndex; i < n; i++) {
-	    MarkData mark = (MarkData) marks.elementAt(i);
+	    MarkData mark = marks.elementAt(i);
 	    mark.index += dg;
 	}
     }
@@ -359,7 +361,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 	    int adjustIndex = findMarkAdjustIndex(oldGapStart);
 	    int n = marks.size();
 	    for (int i = adjustIndex; i < n; i++) {
-		MarkData mark = (MarkData) marks.elementAt(i);
+		MarkData mark = marks.elementAt(i);
 		if (mark.index >= newGapEnd) {
 		    break;
 		}
@@ -370,7 +372,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 	    int adjustIndex = findMarkAdjustIndex(newGapStart);
 	    int n = marks.size();
 	    for (int i = adjustIndex; i < n; i++) {
-		MarkData mark = (MarkData) marks.elementAt(i);
+		MarkData mark = marks.elementAt(i);
 		if (mark.index >= oldGapEnd) {
 		    break;
 		}
@@ -415,7 +417,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 	int g0 = getGapStart();
 	int g1 = getGapEnd();
 	for (int i = adjustIndex; i < n; i++) {
-	    MarkData mark = (MarkData) marks.elementAt(i);
+	    MarkData mark = marks.elementAt(i);
 	    if (mark.index > g0) {
 		// no more marks to adjust
 		break;
@@ -441,7 +443,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 	int adjustIndex = findMarkAdjustIndex(getGapEnd());
 	int n = marks.size();
 	for (int i = adjustIndex; i < n; i++) {
-	    MarkData mark = (MarkData) marks.elementAt(i);
+	    MarkData mark = marks.elementAt(i);
 	    if (mark.index >= newGapEnd) {
 		break;
 	    }
@@ -482,7 +484,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 	// return the first in the series
 	// (ie. there may be duplicates).
 	for (int i = index - 1; i >= 0; i--) {
-	    MarkData d = (MarkData) marks.elementAt(i);
+	    MarkData d = marks.elementAt(i);
 	    if (d.index != search.index) {
 		break;
 	    }
@@ -507,14 +509,14 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 	}
 
 	int cmp = 0;
-	MarkData last = (MarkData) marks.elementAt(upper);
+	MarkData last = marks.elementAt(upper);
 	cmp = compare(o, last);
 	if (cmp > 0)
 	    return upper + 1;
 	
 	while (lower <= upper) {
 	    mid = lower + ((upper - lower) / 2);
-	    MarkData entry = (MarkData) marks.elementAt(mid);
+	    MarkData entry = marks.elementAt(mid);
 	    cmp = compare(o, entry);
 
 	    if (cmp == 0) {
@@ -539,7 +541,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 	int n = marks.size();
 	MarkVector cleaned = new MarkVector(n);
 	for (int i = 0; i < n; i++) {
-	    MarkData mark = (MarkData) marks.elementAt(i);
+	    MarkData mark = marks.elementAt(i);
 	    if (mark.unused == false) {
 		cleaned.addElement(mark);
 	    }
@@ -755,13 +757,13 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 		// have to do the reverse thing.
 		// Find the elements in startIndex whose index is 0
 		for (counter = startIndex; counter < endIndex; counter++) {
-		    MarkData mark = (MarkData) marks.elementAt(counter);
+		    MarkData mark = marks.elementAt(counter);
 		    if (mark.index == 0) {
 			sorted[addIndex++] = mark;
 		    }
 		}
 		for (counter = startIndex; counter < endIndex; counter++) {
-		    MarkData mark = (MarkData) marks.elementAt(counter);
+		    MarkData mark = marks.elementAt(counter);
 		    if (mark.index != 0) {
 			sorted[addIndex++] = mark;
 		    }
@@ -769,13 +771,13 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 	    }
 	    else {
 		for (counter = startIndex; counter < endIndex; counter++) {
-		    MarkData mark = (MarkData) marks.elementAt(counter);
+		    MarkData mark = marks.elementAt(counter);
 		    if (mark.index != g1) {
 			sorted[addIndex++] = mark;
 		    }
 		}
 		for (counter = startIndex; counter < endIndex; counter++) {
-		    MarkData mark = (MarkData) marks.elementAt(counter);
+		    MarkData mark = marks.elementAt(counter);
 		    if (mark.index == g1) {
 			sorted[addIndex++] = mark;
 		    }

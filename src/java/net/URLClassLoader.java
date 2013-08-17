@@ -1,5 +1,5 @@
 /*
- * @(#)URLClassLoader.java	1.63 00/04/19
+ * @(#)URLClassLoader.java	1.65 00/03/31
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -36,6 +36,7 @@ import java.security.SecureClassLoader;
 import java.security.CodeSource;
 import java.security.Permission;
 import java.security.PermissionCollection;
+import java.security.Permissions;
 import sun.misc.Resource;
 import sun.misc.URLClassPath;
 
@@ -53,7 +54,7 @@ import sun.misc.URLClassPath;
  * access the URLs specified when the URLClassLoader was created.
  *
  * @author  David Connelly
- * @version 1.63, 04/19/00
+ * @version 1.65, 03/31/00
  * @since   JDK1.2
  */
 public class URLClassLoader extends SecureClassLoader {
@@ -339,16 +340,16 @@ public class URLClassLoader extends SecureClassLoader {
      * @param name the name of the resource
      */
     public URL findResource(final String name) {
-      /*
-       * The same restriction to finding classes applies to resources
-       */
-      Resource res =
-          (Resource) AccessController.doPrivileged(new PrivilegedAction() {
-                  public Object run() {
-                      return ucp.getResource(name, true);
-                  }
-              }, acc);
-
+	/*
+	 * The same restriction to finding classes applies to resources
+	 */
+	Resource res =
+	    (Resource) AccessController.doPrivileged(new PrivilegedAction() {
+		    public Object run() {
+			return ucp.getResource(name, true);
+		    }
+		}, acc);
+	
         return res != null ? ucp.checkURL(res.getURL()) : null;
     }
 
@@ -363,7 +364,6 @@ public class URLClassLoader extends SecureClassLoader {
     public Enumeration findResources(final String name) throws IOException {
         final Enumeration e = ucp.getResources(name, true);
 
-
         return new Enumeration() {
             private URL res;
 
@@ -374,7 +374,7 @@ public class URLClassLoader extends SecureClassLoader {
                 res = null;
                 return url;
             }
-
+  
             public boolean hasMoreElements() {
                 if (res != null)
                     return true;
@@ -393,7 +393,7 @@ public class URLClassLoader extends SecureClassLoader {
                 } while (res == null);
                 return res != null;
             }
-        };
+	};
     }
 
     /**
@@ -465,7 +465,13 @@ public class URLClassLoader extends SecureClassLoader {
 		    }
 		}, acc);
 	    }
-	    perms.add(p);
+	    Permissions newPermissions = new Permissions();
+	    newPermissions.add(p);
+	    Enumeration e = perms.elements();
+	    while (e.hasMoreElements()) {
+	       newPermissions.add((Permission)e.nextElement());
+	    }
+	    perms = newPermissions;
 	}
 	return perms;
     }

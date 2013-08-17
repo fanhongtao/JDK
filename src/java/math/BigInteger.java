@@ -1,10 +1,10 @@
 /*
- * @(#)BigInteger.java	1.23 98/10/27
+ * @(#)BigInteger.java	1.26 99/04/22
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -71,7 +71,7 @@ import java.util.Random;
  * interpreted similarly. 
  *
  * @see     BigDecimal
- * @version 1.23, 00/05/10
+ * @version 1.26, 00/04/06
  * @author  Josh Bloch
  * @since JDK1.1
  */
@@ -547,6 +547,7 @@ public class BigInteger extends Number implements Comparable {
 
     /**
      * Returns a BigInteger whose value is <tt>(this<sup>exponent</sup>)</tt>.
+     * Returns one if this BigInteger and <tt>exponent</tt> are both zero.
      * Note that <tt>exponent</tt> is an integer rather than a BigInteger.
      *
      * @param  exponent exponent to which this BigInteger is to be raised.
@@ -656,7 +657,7 @@ public class BigInteger extends Number implements Comparable {
 
 	/* Workaround for a bug in Plumb: x^0 (y) dumps core for x != 0 */
 	if (exponent.signum == 0)
-	    return ONE;
+            return (m.equals(ONE) ? ZERO : ONE);
 
 	boolean invertResult;
 	if ((invertResult = (exponent.signum < 0)))
@@ -681,11 +682,13 @@ public class BigInteger extends Number implements Comparable {
 	    BigInteger m1 = m.shiftRight(p);  /* m/2**p */
 	    BigInteger m2 = ONE.shiftLeft(p); /* 2**p */
 
-            /* Caculate (base ** exponent) mod m1.
-             * Special-case mod 1 to prevent Plumb's pkg from blowing up. */
-            BigInteger a1 = (m1.equals(ONE) ? ZERO :
-                             new BigInteger(plumbModPow(base.magnitude,
-                                        exponent.magnitude, m1.magnitude), 1));
+            /* Calculate new base from m1 */
+            BigInteger base2 = (this.signum < 0 || this.compareTo(m1) >= 0
+                                ? this.mod(m1) : this);
+
+            /* Caculate (base ** exponent) mod m1.*/
+            BigInteger a1 = new BigInteger(plumbModPow(base2.magnitude,
+                                       exponent.magnitude, m1.magnitude), 1);
 
 	    /* Caculate (this ** exponent) mod m2 */
 	    BigInteger a2 = base.modPow2(exponent, p);

@@ -1,10 +1,10 @@
 /*
- * @(#)TableView.java	1.18 98/08/26
+ * @(#)TableView.java	1.24 99/05/03
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -14,7 +14,11 @@
 package javax.swing.text;
 
 import java.awt.*;
+import java.util.BitSet;
+import java.util.Vector;
 import javax.swing.SizeRequirements;
+
+import javax.swing.text.html.HTML;
 
 /**
  * <p>
@@ -27,13 +31,13 @@ import javax.swing.SizeRequirements;
  * method.
  * <pre>
  *
- *   TABLE
- *     ROW
- *       CELL
- *       CELL
- *     ROW
- *       CELL
- *       CELL
+ * &nbsp;  TABLE
+ * &nbsp;    ROW
+ * &nbsp;      CELL
+ * &nbsp;      CELL
+ * &nbsp;    ROW
+ * &nbsp;      CELL
+ * &nbsp;      CELL
  *
  * </pre>
  * <p>
@@ -49,7 +53,7 @@ import javax.swing.SizeRequirements;
  * spans if desired).
  * 
  * @author  Timothy Prinzing
- * @version 1.18 08/26/98
+ * @version 1.24 05/03/99
  * @see     View
  */
 public abstract class TableView extends BoxView {
@@ -61,6 +65,8 @@ public abstract class TableView extends BoxView {
      */
     public TableView(Element elem) {
 	super(elem, View.Y_AXIS);
+	rows = new Vector();
+	gridValid = false;
     }
 
     /**
@@ -74,7 +80,10 @@ public abstract class TableView extends BoxView {
     }
 
     /**
-     * Creates a new table cell.
+     * Table cells can now be any arbitrary 
+     * View implementation and should be produced by the
+     * ViewFactory rather than the table.  This method will be deprecated
+     * in a future release.
      *
      * @param elem an element
      * @return the cell
@@ -103,81 +112,150 @@ public abstract class TableView extends BoxView {
      * The number of rows in the table.
      */
     int getRowCount() {
-	return getViewCount();
+	return rows.size();
     }
 
     /**
      * Fetches the span (height) of the given row.
-     * This is used by the nested cells to query the 
-     * sizes of grid locations outside of themselves.
      */
     int getRowSpan(int row) {
-	if (row < getViewCount()) {
-	    return getSpan(Y_AXIS, row);
+	View rv = getRow(row);
+	if (rv != null) {
+	    return (int) rv.getPreferredSpan(Y_AXIS);
 	}
 	return 0;
     }
 
-    /**
-     * Loads all of the children to initialize the view.
-     * This is called by the <code>setParent</code> method.
-     * This is reimplemented to build rows using the
-     * <code>createTableRow</code> method and then 
-     * proxy cell entries for each of the cells that
-     * span multiple columns or rows, substantially 
-     * reducing the complexity of the layout calculations.
-     *
-     * @param f the view factory
-     */
-    protected void loadChildren(ViewFactory f) {
-	Element e = getElement();
-
-	//AbstractDocument.AbstractElement ae = (AbstractDocument.AbstractElement)e;
-	//ae.dump(System.out, 0);
-
-	int n = e.getElementCount();
-	for (int i = 0; i < n; i++) {
-	    // elements that represent something other than rows
-	    // should return null.
-	    View v = createTableRow(e.getElement(i));
-	    if (v != null) {
-		append(v);
-	    }
+    TableRow getRow(int row) {
+	if (row < rows.size()) {
+	    return (TableRow) rows.elementAt(row);
 	}
-
-	// fill in the proxy cells
-	loadProxyCells();
+	return null;
     }
 
     /**
-     * Fill in the proxy cells that are placeholders
+     * Determines the number of columns occupied by
+     * the table cell represented by given element.
+     */
+    /*protected*/ int getColumnsOccupied(View v) {
+	// PENDING(prinz) this code should be in the html
+	// paragraph, but we can't add api to enable it.
+	AttributeSet a = v.getElement().getAttributes();
+	String s = (String) a.getAttribute(HTML.Attribute.COLSPAN);
+	if (s != null) {
+	    try {
+		return Integer.parseInt(s);
+	    } catch (NumberFormatException nfe) {
+		// fall through to one column
+	    }
+	}
+
+	return 1;
+    }
+
+    /**
+     * Determines the number of rows occupied by
+     * the table cell represented by given element.
+     */
+    /*protected*/ int getRowsOccupied(View v) {
+	// PENDING(prinz) this code should be in the html
+	// paragraph, but we can't add api to enable it.
+	AttributeSet a = v.getElement().getAttributes();
+	String s = (String) a.getAttribute(HTML.Attribute.ROWSPAN);
+	if (s != null) {
+	    try {
+		return Integer.parseInt(s);
+	    } catch (NumberFormatException nfe) {
+		// fall through to one row
+	    }
+	}
+
+	return 1;
+    }
+
+    /*protected*/ void invalidateGrid() {
+	gridValid = false;
+    }
+
+    /**
+     * Change the child views.  This is implemented to
+     * provide the superclass behavior and invalidate the
+     * grid so that rows and columns will be recalculated.
+     */
+    public void replace(int offset, int length, View[] views) {
+	super.replace(offset, length, views);
+	invalidateGrid();
+    }
+
+    /**
+     * Fill in the grid locations that are placeholders
      * for multi-column, multi-row, and missing grid
      * locations.
      */
-    void loadProxyCells() {
-	// fill in the proxy cells
-	int n = getViewCount();
-	for (int row = 0; row < n; row++) {
-	    View rv = getView(row);
-	    for (int col = 0; col < rv.getViewCount(); col++) {
-		View cv = rv.getView(col);
-		if (cv instanceof TableCell) {
-		    TableCell cell = (TableCell) cv;
-		    if ((cell.getColumnCount() > 1) ||
-			(cell.getRowCount() > 1)) {
-			// fill in the proxy entries for this cell
-			int rowLimit = row + cell.getRowCount();
-			int colLimit = col + cell.getColumnCount();
+    void updateGrid() {
+	if (! gridValid) {
+	    // determine which views are table rows and clear out
+	    // grid points marked filled.
+	    rows.removeAllElements();
+	    int n = getViewCount();
+	    for (int i = 0; i < n; i++) {
+		View v = getView(i);
+		if (v instanceof TableRow) {
+		    rows.addElement(v);
+		    TableRow rv = (TableRow) v;
+		    rv.clearFilledColumns();
+		    rv.setRow(i);
+		}
+	    }
+
+	    int maxColumns = 0;
+	    int nrows = rows.size();
+	    for (int row = 0; row < nrows; row++) {
+		TableRow rv = getRow(row);
+		int col = 0;
+		for (int cell = 0; cell < rv.getViewCount(); cell++, col++) {
+		    View cv = rv.getView(cell);
+		    // advance to a free column
+		    for (; rv.isFilled(col); col++);
+		    int rowSpan = getRowsOccupied(cv);
+		    int colSpan = getColumnsOccupied(cv);
+		    if ((colSpan > 1) || (rowSpan > 1)) {
+			// fill in the overflow entries for this cell
+			int rowLimit = row + rowSpan;
+			int colLimit = col + colSpan;
 			for (int i = row; i < rowLimit; i++) {
 			    for (int j = col; j < colLimit; j++) {
 				if (i != row || j != col) {
-				    addProxy(i, j, cell);
+				    addFill(i, j);
 				}
 			    }
 			}
+			if (colSpan > 1) {
+			    col += colSpan - 1;
+			}
 		    }
 		}
+		maxColumns = Math.max(maxColumns, col + 1);
 	    }
+
+	    // setup the column layout/requirements
+	    columnSpans = new int[maxColumns];
+	    columnOffsets = new int[maxColumns];
+	    columnRequirements = new SizeRequirements[maxColumns];
+	    for (int i = 0; i < maxColumns; i++) {
+		columnRequirements[i] = new SizeRequirements();
+	    }
+	    gridValid = true;
+	}
+    }
+
+    /**
+     * Mark a grid location as filled in for a cells overflow.
+     */
+    void addFill(int row, int col) {
+	TableRow rv = getRow(row);
+	if (rv != null) {
+	    rv.fillColumn(col);
 	}
     }
 
@@ -201,25 +279,6 @@ public abstract class TableView extends BoxView {
 	// allocate using the convenience method on SizeRequirements
 	SizeRequirements.calculateTiledPositions(targetSpan, null, reqs, 
 						 offsets, spans);
-    }
-
-    /**
-     * Adds a cell to fill in for another cells overflow.  The proxy cells
-     * are simply for simplification of layout and have no useful semantics.
-     */
-    void addProxy(int row, int col, TableCell host) {
-	TableRow rv = (TableRow) getView(row);
-	if (rv != null) {
-	    // if the column is not a valid location, it means
-	    // some grid points need to be synthesized.
-	    int needed = rv.getViewCount();
-	    for (int i = rv.getViewCount(); i < col; i++) {
-		rv.insert(i, new ProxyCell(getElement()));
-	    }
-
-	    // insert the requested cell
-	    rv.insert(col, new ProxyCell(host));
-	}
     }
 
     /**
@@ -247,7 +306,20 @@ public abstract class TableView extends BoxView {
      *  offsets and spans parameters.
      */
     protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
+	// make grid is properly represented
+	updateGrid();
+
+	// all of the row layouts are invalid, so mark them that way
+	int n = getRowCount();
+	for (int i = 0; i < n; i++) {
+	    TableRow row = getRow(i);
+	    row.layoutChanged(axis);
+	}
+
+	// calculate column spans
 	layoutColumns(targetSpan, columnOffsets, columnSpans, columnRequirements);
+
+	// continue normal layout
 	super.layoutMinorAxis(targetSpan, axis, offsets, spans);
     }
 
@@ -260,39 +332,11 @@ public abstract class TableView extends BoxView {
      * requirements of the columns.
      */
     protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
-	int ncols = 0;
-	int nrows = getViewCount();
-	for (int i = 0; i < nrows; i++) {
-	    View row = getView(i);
-	    ncols = Math.max(ncols, row.getViewCount());
-	}
-
-	columnSpans = new int[ncols];
-	columnOffsets = new int[ncols];
-	columnRequirements = new SizeRequirements[ncols];
-	for (int i = 0; i < ncols; i++) {
-	    columnRequirements[i] = new SizeRequirements();
-	}
-
+	updateGrid();
+	
 	// calculate column requirements for each column
-	for (int i = 0; i < nrows; i++) {
-	    View row = getView(i);
-	    ncols = row.getViewCount();
-	    for (int j = 0; j < ncols; j++) {
-		View v = row.getView(j);
-		SizeRequirements req = columnRequirements[j];
-		req.minimum = Math.max((int) v.getMinimumSpan(axis),
-				       req.minimum);
-		req.preferred = Math.max((int) v.getPreferredSpan(axis),
-				       req.preferred);
-		req.maximum = Math.max((int) v.getMaximumSpan(axis),
-				       req.maximum);
-		if (v instanceof GridCell) {
-		    GridCell cell = (GridCell) v;
-		    cell.setGridLocation(i, j);
-		}
-	    }
-	}
+	calculateColumnRequirements(axis);
+
 
 	// the requirements are the sum of the columns.
 	if (r == null) {
@@ -301,7 +345,7 @@ public abstract class TableView extends BoxView {
 	long min = 0;
 	long pref = 0;
 	long max = 0;
-	for (int i = 0; i < ncols; i++) {
+	for (int i = 0; i < columnRequirements.length; i++) {
 	    SizeRequirements req = columnRequirements[i];
 	    min += req.minimum;
 	    pref += req.preferred;
@@ -312,6 +356,161 @@ public abstract class TableView extends BoxView {
 	r.maximum = (int) max;
 	r.alignment = 0;
 	return r;
+    }
+
+    /*
+    boolean shouldTrace() {
+	AttributeSet a = getElement().getAttributes();
+	Object o = a.getAttribute(HTML.Attribute.ID);
+	if ((o != null) && o.equals("debug")) {
+	    return true;
+	}
+	return false;
+    }
+    */
+
+    /**
+     * Calculate the requirements for each column.  The calculation
+     * is done as two passes over the table.  The table cells that
+     * occupy a single column are scanned first to determine the
+     * maximum of minimum, preferred, and maximum spans along the
+     * give axis.  Table cells that span multiple columns are excluded
+     * from the first pass.  A second pass is made to determine if
+     * the cells that span multiple columns are satisfied.  If the
+     * column requirements are not satisified, the needs of the 
+     * multi-column cell is mixed into the existing column requirements.
+     * The calculation of the multi-column distribution is based upon
+     * the proportions of the existing column requirements and taking
+     * into consideration any constraining maximums.
+     */
+    void calculateColumnRequirements(int axis) {
+	// pass 1 - single column cells
+	boolean hasMultiColumn = false;
+	int nrows = getRowCount();
+	for (int i = 0; i < nrows; i++) {
+	    TableRow row = getRow(i);
+	    int col = 0;
+	    int ncells = row.getViewCount();
+	    for (int cell = 0; cell < ncells; cell++, col++) {
+		View cv = row.getView(cell);
+		for (; row.isFilled(col); col++); // advance to a free column
+		int rowSpan = getRowsOccupied(cv);
+		int colSpan = getColumnsOccupied(cv);
+		if (colSpan == 1) {
+		    checkSingleColumnCell(axis, col, cv);
+		} else {
+		    hasMultiColumn = true;
+		    col += colSpan - 1;
+		}
+	    }
+	}
+
+	// pass 2 - multi-column cells
+	if (hasMultiColumn) {
+	    for (int i = 0; i < nrows; i++) {
+		TableRow row = getRow(i);
+		int col = 0;
+		int ncells = row.getViewCount();
+		for (int cell = 0; cell < ncells; cell++, col++) {
+		    View cv = row.getView(cell);
+		    for (; row.isFilled(col); col++); // advance to a free column
+		    int colSpan = getColumnsOccupied(cv);
+		    if (colSpan > 1) {
+			checkMultiColumnCell(axis, col, colSpan, cv);
+			col += colSpan - 1;
+		    }
+		}
+	    }
+	}
+
+	/*
+	if (shouldTrace()) {
+	    System.err.println("calc:");
+	    for (int i = 0; i < columnRequirements.length; i++) {
+		System.err.println(" " + i + ": " + columnRequirements[i]);
+	    }
+	}
+	*/
+    }
+
+    /**
+     * check the requirements of a table cell that spans a single column.
+     */
+    void checkSingleColumnCell(int axis, int col, View v) {
+	SizeRequirements req = columnRequirements[col];
+	req.minimum = Math.max((int) v.getMinimumSpan(axis), req.minimum);
+	req.preferred = Math.max((int) v.getPreferredSpan(axis), req.preferred);
+	req.maximum = Math.max((int) v.getMaximumSpan(axis), req.maximum);
+    }
+
+    /**
+     * check the requirements of a table cell that spans multiple
+     * columns.
+     */
+    void checkMultiColumnCell(int axis, int col, int ncols, View v) {
+	// calculate the totals
+	long min = 0;
+	long pref = 0;
+	long max = 0;
+	for (int i = 0; i < ncols; i++) {
+	    SizeRequirements req = columnRequirements[col + i];
+	    min += req.minimum;
+	    pref += req.preferred;
+	    max += req.maximum;
+	}
+
+	// check if the minimum size needs adjustment.
+	int cmin = (int) v.getMinimumSpan(axis); 
+	if (cmin > min) {
+	    /*
+	     * the columns that this cell spans need adjustment to fit
+	     * this table cell.... calculate the adjustments.  The 
+	     * maximum for each cell is the maximum of the existing
+	     * maximum or the amount needed by the cell.
+	     */
+	    SizeRequirements[] reqs = new SizeRequirements[ncols];
+	    for (int i = 0; i < ncols; i++) {
+		SizeRequirements r = reqs[i] = columnRequirements[col + i];
+		r.maximum = Math.max(r.maximum, (int) v.getMaximumSpan(axis));
+	    }
+	    int[] spans = new int[ncols];
+	    int[] offsets = new int[ncols];
+	    SizeRequirements.calculateTiledPositions(cmin, null, reqs, 
+						     offsets, spans);
+	    // apply the adjustments
+	    for (int i = 0; i < ncols; i++) {
+		SizeRequirements req = reqs[i];
+		req.minimum = Math.max(spans[i], req.minimum);
+		req.preferred = Math.max(req.minimum, req.preferred);
+		req.maximum = Math.max(req.preferred, req.maximum);
+	    }
+	}
+
+	// check if the preferred size needs adjustment.
+	int cpref = (int) v.getPreferredSpan(axis); 
+	if (cpref > pref) {
+	    /*
+	     * the columns that this cell spans need adjustment to fit
+	     * this table cell.... calculate the adjustments.  The 
+	     * maximum for each cell is the maximum of the existing
+	     * maximum or the amount needed by the cell.
+	     */
+	    SizeRequirements[] reqs = new SizeRequirements[ncols];
+	    for (int i = 0; i < ncols; i++) {
+		SizeRequirements r = reqs[i] = columnRequirements[col + i];
+	    }
+	    int[] spans = new int[ncols];
+	    int[] offsets = new int[ncols];
+	    SizeRequirements.calculateTiledPositions(cpref, null, reqs, 
+						     offsets, spans);
+	    // apply the adjustments
+	    for (int i = 0; i < ncols; i++) {
+		SizeRequirements req = reqs[i];
+		req.preferred = Math.max(spans[i], req.preferred);
+		req.maximum = Math.max(req.preferred, req.maximum);
+	    }
+	}
+
     }
 
     /**
@@ -356,9 +555,12 @@ public abstract class TableView extends BoxView {
     int[] columnSpans;
     int[] columnOffsets;
     SizeRequirements[] columnRequirements;
+    Vector rows;
+    boolean gridValid;
+    static final private BitSet EMPTY = new BitSet();
 
     /**
-     * View of a row in a table.
+     * View of a row in a row-centric table.
      */
     public class TableRow extends BoxView {
 
@@ -369,6 +571,56 @@ public abstract class TableView extends BoxView {
 	 */
         public TableRow(Element elem) {
 	    super(elem, View.X_AXIS);
+	    fillColumns = new BitSet();
+	}
+
+	void clearFilledColumns() {
+	    fillColumns.and(EMPTY);
+	}
+
+	void fillColumn(int col) {
+	    fillColumns.set(col);
+	}
+
+	boolean isFilled(int col) {
+	    return fillColumns.get(col);
+	}
+
+	/** get location in the overall set of rows */
+	int getRow() {
+	    return row;
+	}
+
+	/** 
+	 * set location in the overall set of rows, this is
+	 * set by the TableView.updateGrid() method.
+	 */
+	void setRow(int row) {
+	    this.row = row;
+	}
+
+	/**
+	 * The number of columns present in this row.
+	 */
+	int getColumnCount() {
+	    int nfill = 0;
+	    int n = fillColumns.size();
+	    for (int i = 0; i < n; i++) {
+		if (fillColumns.get(i)) {
+		    nfill ++;
+		}
+	    }
+	    return getViewCount() + nfill;
+	}
+
+	/**
+	 * Change the child views.  This is implemented to
+	 * provide the superclass behavior and invalidate the
+	 * grid so that rows and columns will be recalculated.
+	 */
+        public void replace(int offset, int length, View[] views) {
+	    super.replace(offset, length, views);
+	    invalidateGrid();
 	}
 
 	/**
@@ -393,21 +645,25 @@ public abstract class TableView extends BoxView {
 	 *  offsets and spans parameters.
 	 */
         protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
-	    System.arraycopy(columnOffsets, 0, offsets, 0, offsets.length);
-	    System.arraycopy(columnSpans, 0, spans, 0, spans.length);
-
-	    // spread out multi-column cells
-	    int n = getViewCount();
-	    for (int i = 0; i < n; i++) {
-		View v = getView(i);
-		if (v instanceof TableCell) {
-		    TableCell cell = (TableCell) v;
-		    int ncols = cell.getColumnCount();
-		    if (ncols > 1) {
-			for (int j = 1; j < ncols; j++) {
-			    spans[i] += spans[i+j];
+	    int col = 0;
+	    int ncells = getViewCount();
+	    for (int cell = 0; cell < ncells; cell++, col++) {
+		View cv = getView(cell);
+		for (; isFilled(col); col++); // advance to a free column
+		int colSpan = getColumnsOccupied(cv);
+		spans[cell] = columnSpans[col];
+		offsets[cell] = columnOffsets[col];
+		if (colSpan > 1) {
+		    int n = columnSpans.length;
+		    for (int j = 1; j < colSpan; j++) {
+			// Because the table may be only partially formed, some
+			// of the columns may not yet exist.  Therefore we check
+			// the bounds.
+			if ((col+j) < n) {
+			    spans[cell] += columnSpans[col+j];
 			}
 		    }
+		    col += colSpan - 1;
 		}
 	    }
 	}
@@ -436,43 +692,31 @@ public abstract class TableView extends BoxView {
 	 */
         protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
 	    super.layoutMinorAxis(targetSpan, axis, offsets, spans);
-
-	    // spread out multi-row cells
-	    int n = getViewCount();
-	    for (int i = 0; i < n; i++) {
-		View v = getView(i);
-		if (v instanceof TableCell) {
-		    TableCell cell = (TableCell) v;
-		    int nrows = cell.getRowCount();
-		    if (nrows > 1) {
-			for (int j = 1; j < nrows; j++) {
-			    spans[i] += getRowSpan(cell.getGridRow()+j);
+	    int col = 0;
+	    int ncells = getViewCount();
+	    for (int cell = 0; cell < ncells; cell++, col++) {
+		View cv = getView(cell);
+		for (; isFilled(col); col++); // advance to a free column
+		int colSpan = getColumnsOccupied(cv);
+		int rowSpan = getRowsOccupied(cv);
+		if (rowSpan > 1) {
+		    for (int j = 1; j < rowSpan; j++) {
+			// test bounds of each row because it may not exist
+			// either because of error or because the table isn't
+			// fully loaded yet.
+			int row = getRow() + j;
+			if (row < TableView.this.getViewCount()) {
+			    int span = TableView.this.getSpan(Y_AXIS, getRow()+j);
+			    spans[cell] += span;
 			}
 		    }
 		}
+		if (colSpan > 1) {
+		    col += colSpan - 1;
+		}
 	    }
 	}
 
-	/**
-	 * Loads all of the children to initialize the view.
-	 * This is called by the <code>setParent</code> method.
-	 * This is reimplemented to build cells using the
-	 * <code>createTableCell</code> method.
-	 *
-	 * @param f the view factory
-	 */
-        protected void loadChildren(ViewFactory f) {
-	    Element e = getElement();
-	    int n = e.getElementCount();
-	    if (n > 0) {
-		View[] added = new View[n];
-		for (int i = 0; i < n; i++) {
-		    added[i] = createTableCell(e.getElement(i));
-		}
-		replace(0, 0, added);
-	    }
-	}
-	
 	/**
 	 * Determines the resizability of the view along the
 	 * given axis.  A value of 0 or less is not resizable.
@@ -522,48 +766,14 @@ public abstract class TableView extends BoxView {
 	    return null;
 	}
 
-    }
-
-    interface GridCell {
-
-        /**
-         * Sets the grid location.
-         *
-         * @param row the row >= 0
-         * @param col the column >= 0
-         */
-        public void setGridLocation(int row, int col);
-
-	/**
-	 * Gets the row of the grid location
-	 */
-	public int getGridRow();
-
-	/**
-	 * Gets the column of the grid location
-	 */
-	public int getGridColumn();
-
-	/**
-	 * Gets the number of columns this cell spans (e.g. the
-	 * grid width).
-         *
-         * @return the number of columns
-	 */
-	public int getColumnCount();
-
-	/**
-	 * Gets the number of rows this cell spans (that is, the
-	 * grid height).
-         *
-         * @return the number of rows
-	 */
-	public int getRowCount();
-
+	/** columns filled by multi-column or multi-row cells */
+	BitSet fillColumns;
+	/** the row within the overall grid */
+	int row;
     }
 
     /**
-     * View of a cell in a table
+     * @deprecated  A table cell can now be any View implementation.
      */
     public class TableCell extends BoxView implements GridCell {
 
@@ -624,79 +834,36 @@ public abstract class TableView extends BoxView {
 	    return col;
 	}
 
-	// --- View methods -----------------------------
-
-	/**
-	 * Determines the preferred span for this view along an
-	 * axis.  This is implemented to return the preferred span 
-	 * reported by the superclass divided by the row/column count 
-	 * for the cell so that multi-column and multi-row cells 
-	 * distribute their requirements across all the columns/rows
-	 * that they participate in.
-	 *
-	 * @param axis may be either View.X_AXIS or View.Y_AXIS
-	 * @returns  the span the view would like to be rendered into.
-	 *           Typically the view is told to render into the span
-	 *           that is returned, although there is no guarantee.  
-	 *           The parent may choose to resize or break the view.
-	 */
-        public float getPreferredSpan(int axis) {
-	    if (axis == X_AXIS) {
-		return super.getPreferredSpan(axis) / getColumnCount();
-	    } else {
-		return super.getPreferredSpan(axis) / getRowCount();
-	    }
-	}
-
 	int row;
 	int col;
     }
 
-	
     /**
-     * A special table cell that simply occupies space in the
-     * table at a grid location to make calculations easier to
-     * deal with.  This is used to hold grid space for cells that
-     * span columns, cells that span rows, and grid locations
-     * that have no cells.
+     * <em>
+     * THIS IS NO LONGER USED, AND WILL BE REMOVED IN THE
+     * NEXT RELEASE.  THE JCK SIGNATURE TEST THINKS THIS INTERFACE
+     * SHOULD EXIST
+     * </em>
      */
-    class ProxyCell extends View implements GridCell {
+    interface GridCell {
 
-	ProxyCell(Element e) {
-	    super(e);
-	    host = null;
-	}
-
-	ProxyCell(TableCell host) {
-	    super(host.getElement());
-	    this.host = host;
-	}
-	
         /**
          * Sets the grid location.
          *
          * @param row the row >= 0
          * @param col the column >= 0
          */
-        public void setGridLocation(int row, int col) {
-            this.row = row;
-            this.col = col;
-	    preferenceChanged(null, true, true);
-	}
+        public void setGridLocation(int row, int col);
 
 	/**
 	 * Gets the row of the grid location
 	 */
-        public int getGridRow() {
-	    return row;
-	}
+	public int getGridRow();
 
 	/**
 	 * Gets the column of the grid location
 	 */
-        public int getGridColumn() {
-	    return col;
-	}
+	public int getGridColumn();
 
 	/**
 	 * Gets the number of columns this cell spans (e.g. the
@@ -704,9 +871,7 @@ public abstract class TableView extends BoxView {
          *
          * @return the number of columns
 	 */
-	public int getColumnCount() {
-	    return 1;
-	}
+	public int getColumnCount();
 
 	/**
 	 * Gets the number of rows this cell spans (that is, the
@@ -714,92 +879,8 @@ public abstract class TableView extends BoxView {
          *
          * @return the number of rows
 	 */
-	public int getRowCount() {
-	    return 1;
-	}
+	public int getRowCount();
 
-	/**
-	 * Determines the resizability of the view along the
-	 * given axis.  A value of 0 or less is not resizable.
-	 *
-	 * @param axis may be either View.X_AXIS or View.Y_AXIS
-	 * @return the resize weight
-	 * @exception IllegalArgumentException for an invalid axis
-	 */
-        public int getResizeWeight(int axis) {
-	    return 1;
-	}
-
-	/**
-	 * Loads all of the children to initialize the view.
-	 * This is called by the <code>setParent</code> method.
-	 * This is reimplemented to do nothing... proxy cells 
-	 * are just a place holder.
-	 *
-	 * @param f the view factory
-	 */
-        protected void loadChildren(ViewFactory f) {
-	}
-
-	/**
-	 * Renders using the given rendering surface and area on that
-	 * surface.  This is implemented to do nothing as proxy cells
-	 * are supposed to be invisible place holders.
-	 *
-	 * @param g the rendering surface to use
-	 * @param allocation the allocated region to render into
-	 * @see View#paint
-	 */
-        public void paint(Graphics g, Shape allocation) {
-	}
-
-        public float getPreferredSpan(int axis) {
-	    if (host != null) {
-		return host.getPreferredSpan(axis);
-	    }
-	    return 0;
-	}
-
-	/**
-	 * Provides a mapping from the document model coordinate space
-	 * to the coordinate space of the view mapped to it.  Fot the
-	 * proxy cell, which simply takes up space, the request is
-	 * forwarded to the host if there is one.
-	 *
-	 * @param pos the position to convert >= 0
-	 * @param a the allocated region to render into
-	 * @return the bounding box of the given position is returned
-	 * @exception BadLocationException  if the given position does
-	 *   not represent a valid location in the associated document
-	 * @see View#modelToView
-	 */
-        public Shape modelToView(int pos, Shape a, Position.Bias b) throws BadLocationException {
-	    if (host != null) {
-		return host.modelToView(pos, a, b);
-	    }
-	    return null;
-	}
-
-	/**
-	 * Provides a mapping from the view coordinate space to the logical
-	 * coordinate space of the model.
-	 *
-	 * @param x the X coordinate >= 0
-	 * @param y the Y coordinate >= 0
-	 * @param a the allocated region to render into
-	 * @return the location within the model that best represents the
-	 *  given point in the view >= 0
-	 * @see View#viewToModel
-	 */
-        public int viewToModel(float x, float y, Shape a, Position.Bias[] bias) {
-	    if (host != null) {
-		return host.viewToModel(x, y, a, bias);
-	    }
-	    return -1;
-	}
-
-	TableCell host;
-	int row;
-	int col;
     }
+
 }

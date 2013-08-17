@@ -1,10 +1,10 @@
 /*
- * @(#)DragSourceDropEvent.java	1.4 98/03/18
+ * @(#)DragSourceDropEvent.java	1.8 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -18,22 +18,33 @@ import java.awt.dnd.DragSourceEvent;
 import java.awt.dnd.DnDConstants;
 
 /**
- * <p>
- * The DragSourceDropEvent is delivered from the DragSourceContextPeer,
- * via the DragSourceContext, to its currently registered DragSourceListener.
- * It contains sufficient information for the originator of the operation
- * to provide appropriate feedback to the end user when the operation completes.
- * </p>
- *
- * @version 1.4
+ * The <code>DragSourceDropEvent</code> is delivered 
+ * from the <code>DragSourceContextPeer</code>,
+ * via the <code>DragSourceContext</code>, to its currently 
+ * registered <code>DragSourceListener</code>'s dragDropEnd()
+ * method.
+ * It contains sufficient information for the 
+ * originator of the operation
+ * to provide appropriate feedback to the end user 
+ * when the operation completes.
+ * <P>
+ * @version 1.8
+ * <P>
  * @since JDK1.2
- *
  */
 
 public class DragSourceDropEvent extends DragSourceEvent {
 
     /**
-     * construct a DragSourceDropEvent for a drop
+     * Construct a <code>DragSourceDropEvent</code> for a drop, 
+     * given the 
+     * <code>DragSourceContext</code>, the drop action, 
+     * and a <code>boolean</code> indicating if the drop was successful.
+     * <P>
+     * @param dsc the <code>DragSourceContext</code> 
+     * associated with this <code>DragSourceDropEvent</code>
+     * @param action the drop action
+     * @param success a boolean indicating if the drop was successful
      */
 
     public DragSourceDropEvent(DragSourceContext dsc, int action, boolean success) {
@@ -44,7 +55,10 @@ public class DragSourceDropEvent extends DragSourceEvent {
     }
 
     /**
-     * construct a DragSourceDropEvent for a drag that does not result in a drop
+     * Construct a <code>DragSourceDropEvent</code>
+     * for a drag that does not result in a drop.
+     * <P>
+     * @param dsc the <code>DragSourceContext</code>
      */
 
     public DragSourceDropEvent(DragSourceContext dsc) {
@@ -54,12 +68,18 @@ public class DragSourceDropEvent extends DragSourceEvent {
     }
 
     /**
+     * This method returns a <code>boolean</code> indicating 
+     * if the drop was a success.
+     * <P>
      * @return if the drop was successful
      */
 
     public boolean getDropSuccess() { return dropSuccess; }
 
     /**
+     * This method returns an <code>int</code> representing 
+     * the action performed by the target on the subject of the drop.
+     * <P>
      * @return the action performed by the target on the subject of the drop
      */
 
@@ -72,3 +92,10 @@ public class DragSourceDropEvent extends DragSourceEvent {
     private boolean dropSuccess;
     private int	    dropAction   = DnDConstants.ACTION_NONE;
 }
+
+
+
+
+
+
+

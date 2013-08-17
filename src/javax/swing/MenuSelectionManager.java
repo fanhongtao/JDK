@@ -1,5 +1,5 @@
 /*
- * @(#)MenuSelectionManager.java	1.16 98/08/26
+ * @(#)MenuSelectionManager.java	1.20 98/11/20
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -21,7 +21,7 @@ import javax.swing.event.*;
 /**
  * A MenuSelectionManager owns the selection in menu hierarchy.
  * 
- * @version 1.16 08/26/98
+ * @version 1.20 11/20/98
  * @author Arnaud Weber
  */
 public class MenuSelectionManager {
@@ -61,6 +61,9 @@ public class MenuSelectionManager {
             path = new MenuElement[0];
         }
 
+	// System.out.print("Previous:  "); printMenuElementArray(getSelectedPath());
+	// System.out.print("New:  "); printMenuElementArray(path);
+
         for(i=0,c=path.length;i<c;i++) {
             if(i < currentSelectionCount && (MenuElement)selection.elementAt(i) == path[i]) 
                 firstDifference++;
@@ -77,13 +80,8 @@ public class MenuSelectionManager {
 	    if (path[i] != null) {
 		path[i].menuSelectionChanged(true);
 		selection.addElement(path[i]);
-	    } else {
-		/* Corner case where everything on the menu is disabled!
-		   System.out.println("Null encountered in MenuElement Array at element " + i + " of " + c);
-		   Thread.dumpStack();
-		   */
-	    }
-        }
+	    }        
+	}
 
 	fireStateChanged();
     }
@@ -172,10 +170,19 @@ public class MenuSelectionManager {
 	
 	Component source = (Component)event.getSource();
 
-	// System.out.println("Entered processMouseEvent");
 	if (!source.isShowing()) {
- 	    System.err.println("Received a mouse event from a non-showing Component " + source);
-	    // Thread.dumpStack();
+	    // This can happen if a mouseReleased removes the
+	    // containing component -- bug 4146684
+	    return;
+	}
+
+	int type = event.getID();
+	int modifiers = event.getModifiers();
+	// 4188027: drag enter/exit added in JDK 1.1.7A, JDK1.2
+	if ((type==MouseEvent.MOUSE_ENTERED||
+	     type==MouseEvent.MOUSE_EXITED)
+	    && ((modifiers & (InputEvent.BUTTON1_MASK |
+			      InputEvent.BUTTON2_MASK | InputEvent.BUTTON3_MASK)) !=0 )) {
 	    return;
 	}
 
@@ -183,7 +190,7 @@ public class MenuSelectionManager {
 
         screenX = p.x;
         screenY = p.y;
-        //System.out.println("MouseEvent is " +event + " scr loc " + new Point(screenX,screenY));
+
         tmp = (Vector)selection.clone();
         selectionSize = tmp.size();
 	boolean success = false;
@@ -193,7 +200,6 @@ public class MenuSelectionManager {
             
             path = null;
 	    for (j = 0, d = subElements.length;j < d && success == false; j++) {
-		// System.out.println("Process j loop: " + j);
 		if (subElements[j] == null)
 		    continue;
                 mc = subElements[j].getComponent();
@@ -231,13 +237,7 @@ public class MenuSelectionManager {
 			currentSelection[currentSelection.length-2] !=
 			path[i+1]) {
 			Component oldMC = currentSelection[currentSelection.length-1].getComponent();
-			/*
-			  if (oldMC instanceof JMenuItem) {
-			    System.out.println("Exited " + ((JMenuItem)oldMC).getText());
-			} else {  
-			    System.out.println("Exit something"); 
-			}
-			*/
+
 			MouseEvent exitEvent = new MouseEvent(oldMC, MouseEvent.MOUSE_EXITED,
 							      event.getWhen(),
 							      event.getModifiers(), p.x, p.y,
@@ -245,13 +245,7 @@ public class MenuSelectionManager {
 							      event.isPopupTrigger());
 			currentSelection[currentSelection.length-1].
 			    processMouseEvent(exitEvent, path, this);
-			/*
-			  if (mc instanceof JMenuItem) {
-			  System.out.println("Entered " + ((JMenuItem)mc).getText());
-			  } else {
-			  System.out.println("Entered something"); 
-			  }
-			  */
+
 			MouseEvent enterEvent = new MouseEvent(mc, 
 							       MouseEvent.MOUSE_ENTERED,
 							       event.getWhen(),
@@ -267,13 +261,6 @@ public class MenuSelectionManager {
 		    subElements[j].processMouseEvent(mouseEvent, path, this);
 		    success = true;
 		    event.consume();
-		    /*
-		      if (mc instanceof JMenuItem) {
-		      System.out.println("Drag in " + ((JMenuItem)mc).getText());
-		      } else {
-		      System.out.println("Drag in something");
-		      }
-		      */
 		}
             }
         }
@@ -290,12 +277,17 @@ public class MenuSelectionManager {
 	    for (int k=0; k<=i; k++)
 		System.out.print("  ");
 	    MenuElement me = (MenuElement) path[i];
-	    if(me instanceof JMenuItem) 
+	    if(me instanceof JMenuItem) {
 		System.out.println(((JMenuItem)me).getText() + ", ");
-	    else if (me == null)
+	    } else if (me instanceof JMenuBar) {
+		System.out.println("JMenuBar, ");
+	    } else if(me instanceof JPopupMenu) {
+		System.out.println("JPopupMenu, ");
+	    } else if (me == null) {
 		System.out.println("NULL , ");
-	    else
+	    } else {
 		System.out.println("" + me + ", ");
+	    }
 	}
 	System.out.println(")");
 

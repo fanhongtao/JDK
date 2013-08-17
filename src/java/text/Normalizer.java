@@ -1,5 +1,5 @@
 /*
- * @(#)Normalizer.java	1.26 98/06/19
+ * @(#)Normalizer.java	1.28 99/01/27
  *
  * (C) Copyright Taligent, Inc. 1996 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - All Rights Reserved
@@ -40,7 +40,7 @@ package java.text;
   * be able to decompose a Unicode character into an equivalent string.
   * The composition operation is also necessary.
   *
-  * @version    1.26 06/19/98
+  * @version    1.28 01/27/99
   * @author     Mark Davis, Helena Shih, Laura Werner
   */
 class Normalizer {
@@ -147,8 +147,7 @@ class Normalizer {
     final void setOffset(int newOffset)
     {
         str.setIndex(newOffset);
-        pIndex = 0;
-        decomposing = false;
+        pIndex = pLimit = 0;
     }
 
     /**
@@ -165,8 +164,7 @@ class Normalizer {
      */
     void reset() {
         str.first();
-        pIndex = 0;
-        decomposing = false;
+        pIndex = pLimit = 0;
     }
 
     /**
@@ -183,20 +181,17 @@ class Normalizer {
             result = str.current();
             str.next();
         }
-        else if (decomposing) {
+        else if (pIndex < pLimit) {
             // push out previously decomposed characters
-            result = parsedStr.charAt(pIndex++);
-            if (pIndex >= parsedStr.length()) {
-                decomposing = false;
-            }
+            result = parsedStr.charAt(++pIndex);
         }
         else if (str.getIndex() >= str.getEndIndex()) {
             // Past the end of the string
             result = DONE;
-            pIndex = 0;     // To make previous() work
+            pIndex = pLimit = 0;     // To make previous() work
         }
         else {
-            pIndex = 0;     // To make previous() work
+            pIndex = pLimit = 0;     // To make previous() work
 
             // We have to fetch the next character from the string and then
             // try to decompose it
@@ -264,10 +259,8 @@ class Normalizer {
                     // If there is more than one combining character in the buffer,
                     // put them into the canonical order.
                     fixCanonical(parsedStr);
-                    pIndex = 1;
-                    decomposing = true;
-                } else {
-                    decomposing = false;
+                    pLimit = parsedStr.length() - 1;
+                    pIndex = 0;
                 }
                 result = parsedStr.charAt(0);
             } else if (ch >= HANGUL_BASE && ch < HANGUL_LIMIT) {
@@ -278,9 +271,9 @@ class Normalizer {
                 if (decmpMode >=FULL_DECOMPOSITION) {
                     decompose(parsedStr);   // Decompose into conjoining Jamo
                 }
-                decomposing = true;
-                result = parsedStr.charAt(0);
-                pIndex = 1;
+                pLimit = parsedStr.length() - 1;
+                pIndex = 0;
+                result = parsedStr.charAt(pIndex);
             } else {
                 result = ch;
             }
@@ -303,14 +296,14 @@ class Normalizer {
     {
         char result = DONE;
 
-        if (parsedStr != null && pIndex > 0) {
+        if (pIndex > 0) {
             result = parsedStr.charAt(--pIndex);
-            decomposing = true;
         }
         else if (decmpMode == Collator.NO_DECOMPOSITION) {
             result = str.previous();
         }
         else if (str.getIndex() > str.getBeginIndex()) {
+            pIndex = pLimit = 0;
             // Fetch the previous character from the string and then
             // try to decompose it
             char ch = str.previous();
@@ -344,13 +337,13 @@ class Normalizer {
                     // put them into the canonical order.
                     fixCanonical(parsedStr);
                 }
-                pIndex = parsedStr.length();
-                result = parsedStr.charAt(--pIndex);
+                pIndex = pLimit = parsedStr.length() - 1;
+                result = parsedStr.charAt(pIndex);
             } else if (ch >= HANGUL_BASE && ch < HANGUL_LIMIT) {
                 zapParsedStr();
                 hangulToJamo(ch, parsedStr);
-                pIndex = parsedStr.length();
-                result = parsedStr.charAt(--pIndex);
+                pIndex = pLimit = parsedStr.length() - 1;
+                result = parsedStr.charAt(pIndex);
             } else {
                 result = ch;
             }
@@ -636,9 +629,9 @@ class Normalizer {
      * excluding Hangul.  The next() method returns each pre-composed character
      * in sequence, and the decomposition() method returns the corresponding
      * decomposition.
-     */ 
+     */
     static class DecompIterator {
-    
+
         DecompIterator(int mode) {
             switch (mode) {
                 case Collator.FULL_DECOMPOSITION:
@@ -649,7 +642,7 @@ class Normalizer {
                     break;
             }
         }
-        
+
         /**
          * Determine whether there is another pre-composed character for the
          * iterator to return.
@@ -663,10 +656,10 @@ class Normalizer {
                 // Get the next character index in the compact array
                 char c = iter.next();
                 short index = iter.shortValue();
-                
+
                 if (index < decmpLimit) {
                     nextChar = (short)c;
-                    
+
                     buf.setLength(0);
                     while((c = contents.charAt(index++)) != '\u0000') {
                         buf.append(c);
@@ -675,7 +668,7 @@ class Normalizer {
             }
             return (nextChar != -1);
         }
-        
+
         char next() {
             if (nextChar == -1 && !hasNext()) {
                 throw new ArrayIndexOutOfBoundsException();
@@ -684,22 +677,22 @@ class Normalizer {
             nextChar = -1;      // tell HasNext it needs to do its thing again
             return n;
         }
-        
+
         String decomposition() {
             return buf.toString();
         }
-        
+
         // Privates....
         private CompactShortArray.Iterator  iter = startOffsets.getIterator();
         private StringBuffer                buf = new StringBuffer();
         private int                         decmpLimit = -1;
         private short                       nextChar = -1;
     }
-    
+
     static DecompIterator getDecompositions(int mode) {
         return new DecompIterator(mode);
     }
-    
+
     //-----------------------------------------------------------
     // privates
     //-----------------------------------------------------------
@@ -707,13 +700,12 @@ class Normalizer {
 
     /* The source string being decomposed */
     private CharacterIterator str = null;
-    
+
     // Do I own the iterator (true) or was it passed in?
     private transient boolean ownIterator = false;
 
     /* One of the decomposition mode values */
     private int decmpMode = 0;
-
     /* Decompose only for indices into the contents table that are less
      * than this value.
      */
@@ -721,10 +713,8 @@ class Normalizer {
 
     /* a decomposed and canonicalized piece of the the source string */
     private StringBuffer parsedStr = null;
-    private int pIndex = 0;
-
-    /* true if we are decomposing the current input character */
-    private boolean decomposing = false;
+    private int pIndex = 0;   // Index of last char returned
+    private int pLimit = 0;   // Index of last char in buffer, or 0 if unused
 
     //------------------------------------------------------------------------
     // Static data tables

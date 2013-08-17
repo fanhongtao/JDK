@@ -1,5 +1,5 @@
 /*
- * @(#)Signature.java	1.76 98/07/17
+ * @(#)Signature.java	1.78 99/03/31
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -25,11 +25,10 @@ import java.io.*;
  *
  * <p> The signature algorithm can be, among others, the NIST standard
  * DSA, using DSA and SHA-1. The DSA algorithm using the
- * SHA-1 message digest algorithm can be specified, for example, as
- * <tt>SHA/DSA</tt> or <tt>SHA-1/DSA</tt> (they are equivalent).
+ * SHA-1 message digest algorithm can be specified as <tt>SHA1withDSA</tt>.
  * In the case of RSA, there are multiple choices for the message digest
  * algorithm, so the signing algorithm could be specified as, for example,
- * <tt>MD2/RSA</tt>, <tt>MD5/RSA</tt>, or <tt>SHA-1/RSA</tt>.
+ * <tt>MD2withRSA</tt>, <tt>MD5withRSA</tt>, or <tt>SHA1withRSA</tt>.
  * The algorithm name must be specified, as there is no default.
  *
  * <p>Like other algorithm-based classes in Java Security, Signature 
@@ -98,7 +97,7 @@ import java.io.*;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.76 00/05/10
+ * @version 1.78 99/03/31
  */
 
 public abstract class Signature extends SignatureSpi {

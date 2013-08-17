@@ -5,6 +5,8 @@
 #ifndef _Included_java_lang_ClassLoader
 #define _Included_java_lang_ClassLoader
 struct Hjava_lang_ClassLoader;
+struct Hjava_util_Hashtable;
+struct Hjava_security_cert_Certificate;
 struct Hjava_util_Vector;
 struct Hjava_util_Set;
 struct Hjava_util_HashMap;
@@ -15,6 +17,8 @@ struct Hjava_security_ProtectionDomain;
 typedef struct Classjava_lang_ClassLoader {
     /*boolean*/ int32_t initialized;
     struct Hjava_lang_ClassLoader *parent;
+    struct Hjava_util_Hashtable *package2certs;
+    struct HArrayOfObject *nocerts;
     struct Hjava_util_Vector *classes;
     struct Hjava_util_Set *domains;
     struct Hjava_util_HashMap *packages;

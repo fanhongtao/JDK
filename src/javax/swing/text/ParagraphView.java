@@ -1,10 +1,10 @@
 /*
- * @(#)ParagraphView.java	1.61 98/09/17
+ * @(#)ParagraphView.java	1.66 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -34,7 +34,7 @@ import javax.swing.SwingConstants;
  *
  * @author  Timothy Prinzing
  * @author  Scott Violet
- * @version 1.61 09/17/98
+ * @version 1.66 04/22/99
  * @see     View
  */
 public class ParagraphView extends BoxView implements TabExpander {
@@ -295,6 +295,7 @@ public class ParagraphView extends BoxView implements TabExpander {
 	int availableSpan = spanLeft;
 	preX = x;
 
+	boolean forcedBreak = false;
         while (pos < end  && spanLeft > 0) {
             View v = createView(pos);
 	    
@@ -304,15 +305,41 @@ public class ParagraphView extends BoxView implements TabExpander {
             } else {
                 chunkSpan = (int) v.getPreferredSpan(View.X_AXIS);
             }
-            spanLeft -= chunkSpan;
-            x += chunkSpan;
-            row.append(v);
-            pos = v.getEndOffset();
 
 	    // If a forced break is necessary, break
 	    if (v.getBreakWeight(View.X_AXIS, pos, spanLeft) >= ForcedBreakWeight) {
+		int n = row.getViewCount();
+		if (n > 0) {
+		    /* If this is a forced break and it's not the only view
+		     * the view should be replaced with a call to breakView.
+		     * If it's it only view, it should be used directly.  In
+		     * either case no more children should be added beyond this
+		     * view.
+		     */
+		    v = v.breakView(X_AXIS, pos, x, spanLeft);
+		    if (v != null) {
+			if (v instanceof TabableView) {
+			    chunkSpan = (int) ((TabableView)v).getTabbedSpan(x, this);
+			} else {
+			    chunkSpan = (int) v.getPreferredSpan(View.X_AXIS);
+			}
+		    } else {
+			chunkSpan = 0;
+		    }
+		}
+		forcedBreak = true;
+	    }
+
+            spanLeft -= chunkSpan;
+            x += chunkSpan;
+	    if (v != null) {
+		row.append(v);
+		pos = v.getEndOffset();
+	    }
+	    if (forcedBreak) {
 		break;
 	    }
+
         }
         if (spanLeft < 0) {
             // This row is too long and needs to be adjusted.
@@ -324,13 +351,12 @@ public class ParagraphView extends BoxView implements TabExpander {
 	}
 	// Adjust for line spacing
 	if(lineSpacing > 1) {
-	    int            height = (int)row.getPreferredSpan(View.Y_AXIS);
-	    int            addition = (int)((float)height * lineSpacing) -
-		                           height;
-
-	    if(addition > 0)
+	    float height = row.getPreferredSpan(View.Y_AXIS);
+	    float addition = (height * lineSpacing) - height;
+	    if(addition > 0) {
 		row.setInsets(row.getTopInset(), row.getLeftInset(),
-			      (short)addition, row.getRightInset());
+			      (short) addition, row.getRightInset());
+	    }
 	}
     }
 
@@ -642,9 +668,11 @@ public class ParagraphView extends BoxView implements TabExpander {
 	    pref += v.getPreferredSpan(axis);
 	}
 
-	r.minimum = 0;
-	r.preferred = (int) pref;
-	r.maximum = Integer.MAX_VALUE;
+	float insets = (axis == X_AXIS) ? getLeftInset() + getRightInset() :
+	    getTopInset() + getBottomInset();
+	r.minimum = ((int) insets) + 5;
+	r.preferred = Math.max(r.minimum, (int) pref);
+	r.maximum = Short.MAX_VALUE;
 	r.alignment = 0.5f;
 	return r;
     }
@@ -797,7 +825,7 @@ public class ParagraphView extends BoxView implements TabExpander {
         preferenceChanged(null, true, true);
         Rectangle alloc = getInsideAllocation(a);
         if (alloc != null) {
-            layout((int) alloc.width, (int) alloc.height);
+            layout(alloc.width, alloc.height);
             Component host = getContainer();
             host.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
         }
@@ -855,6 +883,10 @@ public class ParagraphView extends BoxView implements TabExpander {
             int index = elem.getElementIndex(pos);
             View v = (View) layoutPool.elementAt(index);
             v.removeUpdate(changes, null, f);
+	    if (index > 0 && elem.getElement(index).getStartOffset() == pos) {
+		((View)layoutPool.elementAt(index - 1)).
+		                  removeUpdate(changes, null, f);
+	    }
         }
 
         // force layout, should do something more intelligent about
@@ -863,7 +895,7 @@ public class ParagraphView extends BoxView implements TabExpander {
         preferenceChanged(null, true, true);
         if (a != null) {
             Rectangle alloc = getInsideAllocation(a);
-            layout((int) alloc.width, (int) alloc.height);
+            layout(alloc.width, alloc.height);
             Component host = getContainer();
             host.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
         }
@@ -911,7 +943,7 @@ public class ParagraphView extends BoxView implements TabExpander {
         preferenceChanged(null, true, true);
         if (a != null) {
             Rectangle alloc = getInsideAllocation(a);
-            layout((int) alloc.width, (int) alloc.height);
+            layout(alloc.width, alloc.height);
             Component host = getContainer();
             host.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
         }

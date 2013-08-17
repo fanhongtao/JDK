@@ -1,10 +1,10 @@
 /*
- * @(#)PlainView.java	1.56 98/09/11
+ * @(#)PlainView.java	1.58 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -24,7 +24,7 @@ import javax.swing.event.*;
  * child element as a line of text.
  *
  * @author  Timothy Prinzing
- * @version 1.56 09/11/98
+ * @version 1.58 04/22/99
  * @see     View
  */
 public class PlainView extends View implements TabExpander {
@@ -250,6 +250,9 @@ public class PlainView extends View implements TabExpander {
         int linesAbove = Math.max(0, heightAbove / fontHeight);
         int linesTotal = alloc.height / fontHeight;
 
+	if (alloc.height % fontHeight != 0) {
+	    linesTotal++;
+	}
         // update the visible lines
         Rectangle lineArea = lineToRect(a, linesAbove);
         int y = lineArea.y + metrics.getAscent();

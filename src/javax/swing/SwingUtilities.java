@@ -1,10 +1,10 @@
 /*
- * @(#)SwingUtilities.java	1.70 98/08/26
+ * @(#)SwingUtilities.java	1.80 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -24,12 +24,12 @@ import java.util.Hashtable;
 import java.lang.reflect.*;
 
 import javax.accessibility.*;
-
+import javax.swing.text.View;
 
 /**
  * A collection of utility methods for Swing.
  *
- * @version 1.70 08/26/98
+ * @version 1.80 04/22/99
  * @author unknown
  */
 public class SwingUtilities implements SwingConstants
@@ -185,7 +185,7 @@ public class SwingUtilities implements SwingConstants
             Component components[] = ((Container)parent).getComponents();
             for (int i = 0 ; i < components.length ; i++) {
                 Component comp = components[i];
-                if (comp != null) {
+                if (comp != null && comp.isVisible()) {
                     Point loc = comp.getLocation();
                     if (comp instanceof Container) {
                         comp = getDeepestComponentAt(comp, x - loc.x, y - loc.y);
@@ -343,6 +343,12 @@ public class SwingUtilities implements SwingConstants
         dest.y = y1;
         dest.width = x2 - x1;
         dest.height = y2 - y1;
+
+	// If rectangles don't intersect, return zero'd intersection.
+	if (dest.width < 0 || dest.height < 0) {
+	    dest.x = dest.y = dest.width = dest.height = 0;
+	}
+
         return dest;
     }
 
@@ -668,7 +674,7 @@ public class SwingUtilities implements SwingConstants
     static {
         try {
             // Test if method introduced in 1.2 is available.
-            Method m = Toolkit.class.getMethod("getMaximumCursorColors", null);
+            Method m = Class.class.getMethod("getProtectionDomain", null);
             is1dot2 = (m != null);
         } catch (NoSuchMethodException e) {
             is1dot2 = false;
@@ -719,7 +725,6 @@ public class SwingUtilities implements SwingConstants
         }
         return result;
     }
-
 
     /**
      * Compute and return the location of the icons origin, the
@@ -776,19 +781,19 @@ public class SwingUtilities implements SwingConstants
             break;
         }
 
-        return layoutCompoundLabel(fm,
-                                   text,
-                                   icon,
-                                   verticalAlignment,
-                                   hAlign,
-                                   verticalTextPosition,
-                                   hTextPos,
-                                   viewR,
-                                   iconR,
-                                   textR,
-                                   textIconGap);
+        return layoutCompoundLabelImpl(c,
+				       fm,
+				       text,
+				       icon,
+				       verticalAlignment,
+				       hAlign,
+				       verticalTextPosition,
+				       hTextPos,
+				       viewR,
+				       iconR,
+				       textR,
+				       textIconGap);
     }
-
 
     /**
      * Compute and return the location of the icons origin, the
@@ -802,6 +807,38 @@ public class SwingUtilities implements SwingConstants
      */
     public static String layoutCompoundLabel(
         FontMetrics fm,
+        String text,
+        Icon icon,
+        int verticalAlignment,
+        int horizontalAlignment,
+        int verticalTextPosition,
+        int horizontalTextPosition,
+        Rectangle viewR,
+        Rectangle iconR,
+        Rectangle textR,
+        int textIconGap)
+    {
+	return layoutCompoundLabelImpl(null, fm, text, icon, 
+				       verticalAlignment,
+				       horizontalAlignment,
+				       verticalTextPosition,
+				       horizontalTextPosition,
+				       viewR, iconR, textR, textIconGap);
+    }
+				   
+    /**
+     * Compute and return the location of the icons origin, the
+     * location of origin of the text baseline, and a possibly clipped
+     * version of the compound labels string.  Locations are computed
+     * relative to the viewR rectangle.
+     * This layoutCompoundLabel() does not know how to handle LEADING/TRAILING
+     * values in horizontalTextPosition (they will default to RIGHT) and in
+     * horizontalAlignment (they will default to CENTER).
+     * Use the other version of layoutCompoundLabel() instead.
+     */
+    private static String layoutCompoundLabelImpl(
+	JComponent c,        
+	FontMetrics fm,
         String text,
         Icon icon,
         int verticalAlignment,
@@ -831,13 +868,20 @@ public class SwingUtilities implements SwingConstants
 
         boolean textIsEmpty = (text == null) || text.equals("");
 
+	View v = null;
         if (textIsEmpty) {
             textR.width = textR.height = 0;
             text = "";
         }
         else {
-            textR.width = computeStringWidth(fm,text);
-            textR.height = fm.getHeight();
+	    v = (c != null) ? (View) c.getClientProperty("html") : null;
+	    if (v != null) {
+		textR.width = (int) v.getPreferredSpan(View.X_AXIS);
+		textR.height = (int) v.getPreferredSpan(View.Y_AXIS);
+	    } else {
+		textR.width = computeStringWidth(fm,text);
+		textR.height = fm.getHeight();
+	    }
         }
 
         /* Unless both text and icon are non-null, we effectively ignore
@@ -865,17 +909,21 @@ public class SwingUtilities implements SwingConstants
 
 
             if (textR.width > availTextWidth) {
-                String clipString = "...";
-                int totalWidth = computeStringWidth(fm,clipString);
-                int nChars;
-                for(nChars = 0; nChars < text.length(); nChars++) {
-                    totalWidth += fm.charWidth(text.charAt(nChars));
-                    if (totalWidth > availTextWidth) {
-                        break;
-                    }
-                }
-                text = text.substring(0, nChars) + clipString;
-                textR.width = computeStringWidth(fm,text);
+		if (v != null) {
+		    textR.width = availTextWidth;
+		} else {
+		    String clipString = "...";
+		    int totalWidth = computeStringWidth(fm,clipString);
+		    int nChars;
+		    for(nChars = 0; nChars < text.length(); nChars++) {
+			totalWidth += fm.charWidth(text.charAt(nChars));
+			if (totalWidth > availTextWidth) {
+			    break;
+			}
+		    }
+		    text = text.substring(0, nChars) + clipString;
+		    textR.width = computeStringWidth(fm,text);
+		}
             }
         }
 
@@ -1163,30 +1211,39 @@ public class SwingUtilities implements SwingConstants
      */
     public static boolean isEventDispatchThread()
     {
-        Thread currentThread = Thread.currentThread();
+        
+	  // 1.2 AWT method.
+	  return EventQueue.isDispatchThread();
+          
 
-        /* The first time we're called on what appears to be the event
-         * dispatching thread, we stash the threads class in
-         * eventDispatchThreadClass.  Subsequently we effectively
-         * return eventDispatchThreadClass instanceof Thread.currentThread().
-         */
 
-        if (eventDispatchThreadClass == null) {
-            Class currentThreadClass = currentThread.getClass();
 
-            /* This test is a crock.  It's known to work on all of the popular
-             * JDK1.1 implementations available as of January 1998.
-             */
-            if((currentThreadClass.getName().indexOf("EventDispatchThread") >= 0) ||
-               (currentThreadClass.getName().indexOf("JMEventQueue") >= 0)) {
-                eventDispatchThreadClass = currentThreadClass;
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
-        return eventDispatchThreadClass.isInstance(currentThread);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
 
@@ -1555,6 +1612,17 @@ public class SwingUtilities implements SwingConstants
     }
 
 
+    static Class loadSystemClass(String className) throws ClassNotFoundException {
+        
+	return Class.forName(className, true, ClassLoader.getSystemClassLoader());
+        
+
+
+
+	
+    }
+
+
     final static void doPrivileged(final Runnable doRun) {
       
         java.security.AccessController.doPrivileged(
@@ -1579,6 +1647,20 @@ public class SwingUtilities implements SwingConstants
 
     }
 
+
+   /*
+     * Convenience function for determining ComponentOrientation.  Helps us
+     * avoid having Munge directives throughout the code.
+     */
+    static boolean isLeftToRight( Component c ) {
+        
+        return c.getComponentOrientation().isLeftToRight();
+        
+
+
+
+
+    }
     private SwingUtilities() {
         throw new Error("SwingUtilities is just a container for static methods");
     }

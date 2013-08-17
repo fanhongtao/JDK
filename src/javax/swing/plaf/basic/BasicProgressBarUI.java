@@ -1,5 +1,5 @@
 /*
- * @(#)BasicProgressBarUI.java	1.40 98/08/26
+ * @(#)BasicProgressBarUI.java	1.41 98/09/01
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -24,7 +24,7 @@ import java.io.Serializable;
 /**
  * A Basic L&F implementation of ProgressBarUI.
  *
- * @version 1.40 08/26/98
+ * @version 1.41 09/01/98
  * @author Michael C. Albers
  */
 public class BasicProgressBarUI extends ProgressBarUI {
@@ -132,7 +132,7 @@ public class BasicProgressBarUI extends ProgressBarUI {
      * the progress string is being rendered.
      *
      * @return the value representing the spacing between cells
-     * @see    setCellLength
+     * @see    #setCellLength
      * @see    JProgressBar.isStringPainted
      */
     protected int getCellLength() {
@@ -154,7 +154,7 @@ public class BasicProgressBarUI extends ProgressBarUI {
      * the progress string is being rendered.
      *
      * @return the value representing the spacing between cells
-     * @see    setCellSpacing
+     * @see    #setCellSpacing
      * @see    JProgressBar.isStringPainted
      */
     protected int getCellSpacing() {

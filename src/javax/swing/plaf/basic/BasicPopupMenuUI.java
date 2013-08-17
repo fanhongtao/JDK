@@ -1,10 +1,10 @@
 /*
- * @(#)BasicPopupMenuUI.java	1.64 98/08/26
+ * @(#)BasicPopupMenuUI.java	1.66 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -38,7 +38,7 @@ import java.util.*;
  * A Windows L&F implementation of PopupMenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.64 08/26/98
+ * @version 1.66 04/22/99
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -88,7 +88,9 @@ public class BasicPopupMenuUI extends PopupMenuUI {
 	popupMenu = null;
     }
     
-    protected void uninstallDefaults() {}
+    protected void uninstallDefaults() {
+	LookAndFeel.uninstallBorder(popupMenu);
+    }
 
     protected void uninstallListeners() {
     }

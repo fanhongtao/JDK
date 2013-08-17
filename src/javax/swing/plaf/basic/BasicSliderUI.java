@@ -1,10 +1,10 @@
 /*
- * @(#)BasicSliderUI.java	1.68 98/08/26
+ * @(#)BasicSliderUI.java	1.74 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -39,7 +39,7 @@ import javax.swing.plaf.*;
 /**
  * A Basic L&F implementation of SliderUI.
  *
- * @version 1.68 08/26/98
+ * @version 1.74 04/22/99
  * @author Tom Santos
  */
 public class BasicSliderUI extends SliderUI{
@@ -226,8 +226,16 @@ public class BasicSliderUI extends SliderUI{
                                       KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT,0), 
                                       JComponent.WHEN_FOCUSED);
 
+        slider.registerKeyboardAction(new ActionScroller(slider, POSITIVE_SCROLL, false),
+                                      KeyStroke.getKeyStroke("KP_RIGHT"), 
+                                      JComponent.WHEN_FOCUSED);
+
         slider.registerKeyboardAction(new ActionScroller(slider, NEGATIVE_SCROLL, false),
                                       KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,0), 
+                                      JComponent.WHEN_FOCUSED);
+
+        slider.registerKeyboardAction(new ActionScroller(slider, NEGATIVE_SCROLL, false),
+                                      KeyStroke.getKeyStroke("KP_DOWN"), 
                                       JComponent.WHEN_FOCUSED);
 
         slider.registerKeyboardAction(new ActionScroller(slider, NEGATIVE_SCROLL, true),
@@ -238,8 +246,16 @@ public class BasicSliderUI extends SliderUI{
                                       KeyStroke.getKeyStroke(KeyEvent.VK_LEFT,0), 
                                       JComponent.WHEN_FOCUSED);
 
+        slider.registerKeyboardAction(new ActionScroller(slider, NEGATIVE_SCROLL, false),
+                                      KeyStroke.getKeyStroke("KP_LEFT"), 
+                                      JComponent.WHEN_FOCUSED);
+
         slider.registerKeyboardAction(new ActionScroller(slider, POSITIVE_SCROLL, false),
                                       KeyStroke.getKeyStroke(KeyEvent.VK_UP,0), 
+                                      JComponent.WHEN_FOCUSED);
+
+        slider.registerKeyboardAction(new ActionScroller(slider, POSITIVE_SCROLL, false),
+                                      KeyStroke.getKeyStroke("KP_UP"), 
                                       JComponent.WHEN_FOCUSED);
 
         slider.registerKeyboardAction(new ActionScroller(slider, POSITIVE_SCROLL, true),
@@ -257,10 +273,14 @@ public class BasicSliderUI extends SliderUI{
 
     protected void uninstallKeyboardActions( JSlider slider ) {
         slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT, 0 ) );
+        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( "KP_RIGHT" ) );
         slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_DOWN, 0 ) );
+        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( "KP_DOWN" ) );
         slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_PAGE_DOWN, 0 ) );
         slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_LEFT, 0 ) );
+        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( "KP_LEFT" ) );
         slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_UP, 0 ) );
+        slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( "KP_UP" ) );
         slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_PAGE_UP, 0 ) );
         slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_HOME, 0 ) );
         slider.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_END, 0 ) );
@@ -1438,36 +1458,41 @@ public class BasicSliderUI extends SliderUI{
         }
 
         public void actionPerformed(ActionEvent e) {
-            if ( slider.isEnabled() ) {
-                if ( dir == NEGATIVE_SCROLL || dir == POSITIVE_SCROLL ) {
-                    int realDir = dir;
-                    if ( slider.getInverted() ) {
-                        realDir = dir == NEGATIVE_SCROLL ? POSITIVE_SCROLL : NEGATIVE_SCROLL;
-                    }
+	    if ( dir == NEGATIVE_SCROLL || dir == POSITIVE_SCROLL ) {
+		int realDir = dir;
+		if ( slider.getInverted() ) {
+		    realDir = dir == NEGATIVE_SCROLL ? POSITIVE_SCROLL : NEGATIVE_SCROLL;
+		}
+		
+		if ( block )
+		    scrollByBlock(realDir);
+		else
+		    scrollByUnit(realDir);
+	    }
+	    else {
+		if ( slider.getInverted() ) {
+		    if ( dir == MIN_SCROLL )
+			slider.setValue(slider.getMaximum());
+		    else if ( dir == MAX_SCROLL )
+			slider.setValue(slider.getMinimum());
+		}
+		else {
+		    if ( dir == MIN_SCROLL )
+			slider.setValue(slider.getMinimum());
+		    else if ( dir == MAX_SCROLL )
+			slider.setValue(slider.getMaximum());
+		}       
+	    }
+	}
+	public boolean isEnabled() { 
+	    boolean b = true;
+	    if (slider != null) {
+		b = slider.isEnabled();
+	    }
+	    return b;
+	}
 
-                    if ( block )
-                        scrollByBlock(realDir);
-                    else
-                        scrollByUnit(realDir);
-                }
-                else {
-                    if ( slider.getInverted() ) {
-                        if ( dir == MIN_SCROLL )
-                            slider.setValue(slider.getMaximum());
-                        else if ( dir == MAX_SCROLL )
-                            slider.setValue(slider.getMinimum());
-                    }
-                    else {
-                        if ( dir == MIN_SCROLL )
-                            slider.setValue(slider.getMinimum());
-                        else if ( dir == MAX_SCROLL )
-                            slider.setValue(slider.getMaximum());
-                    }       
-                }
-            }
-        }
-
-        public boolean isEnabled() { return true;}
     };
+
 }
 

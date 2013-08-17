@@ -1,5 +1,5 @@
 /*
- * @(#)MotifInternalFrameUI.java	1.13 98/08/28
+ * @(#)MotifInternalFrameUI.java	1.14 98/10/30
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -37,7 +37,7 @@ import javax.swing.plaf.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.13 08/28/98
+ * @version 1.14 10/30/98
  * @author Tom Ball
  */
 public class MotifInternalFrameUI extends BasicInternalFrameUI {
@@ -107,7 +107,7 @@ public class MotifInternalFrameUI extends BasicInternalFrameUI {
     }
     
     protected void setupMenuOpenKey(){
-	frame.registerKeyboardAction(new AbstractAction(){
+	frame.registerKeyboardAction(new ActionListener(){
 	    public void actionPerformed(ActionEvent e){
 		titlePane.showSystemMenu();
 	    }
@@ -118,7 +118,7 @@ public class MotifInternalFrameUI extends BasicInternalFrameUI {
 	    openMenuKey,
 	    JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-	frame.getDesktopIcon().registerKeyboardAction(new AbstractAction(){
+	frame.getDesktopIcon().registerKeyboardAction(new ActionListener(){
 	    public void actionPerformed(ActionEvent e){
 	      JInternalFrame.JDesktopIcon icon = getFrame().getDesktopIcon();
 	      MotifDesktopIconUI micon = (MotifDesktopIconUI)icon.getUI();
@@ -135,7 +135,7 @@ public class MotifInternalFrameUI extends BasicInternalFrameUI {
 
 
     protected void setupMenuCloseKey(){
-      	frame.registerKeyboardAction(new AbstractAction(){
+      	frame.registerKeyboardAction(new ActionListener(){
 	  public void actionPerformed(ActionEvent e){
 	    titlePane.hideSystemMenu();
 	  }
@@ -146,7 +146,7 @@ public class MotifInternalFrameUI extends BasicInternalFrameUI {
 	  closeMenuKey,
 	  JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-      	frame.getDesktopIcon().registerKeyboardAction(new AbstractAction(){
+      	frame.getDesktopIcon().registerKeyboardAction(new ActionListener(){
 	  public void actionPerformed(ActionEvent e){
 	    JInternalFrame.JDesktopIcon icon = getFrame().getDesktopIcon();
 	    MotifDesktopIconUI micon = (MotifDesktopIconUI)icon.getUI();

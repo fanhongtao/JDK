@@ -6,9 +6,10 @@ as an application.
 RUNNING SWINGSET AS AN APPLICATION
 ==================================
 
-JDK 1.2 (any platform)
+JDK 1.2 
 ----------------------
-  java SwingSet
+  java -jar SwingSet.jar
+
 
 =============================
 RUNNING SWINGSET AS AN APPLET

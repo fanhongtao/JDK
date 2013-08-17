@@ -1,10 +1,10 @@
 /*
- * @(#)MetalLookAndFeel.java	1.86 98/08/28
+ * @(#)MetalLookAndFeel.java	1.94 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -47,7 +47,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.86 08/28/98
+ * @version 1.94 04/22/99
  * @author Steve Wilson
  */
 public class MetalLookAndFeel extends BasicLookAndFeel
@@ -200,22 +200,34 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 
 								 InputEvent.SHIFT_MASK),
 					  DefaultEditorKit.selectionBackwardAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke("shift KP_LEFT"), 
+					  DefaultEditorKit.selectionBackwardAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 
 								 InputEvent.SHIFT_MASK),
+					  DefaultEditorKit.selectionForwardAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke("shift KP_RIGHT"), 
 					  DefaultEditorKit.selectionForwardAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 
 								 InputEvent.CTRL_MASK),
 					  DefaultEditorKit.previousWordAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke("control KP_LEFT"),
+					  DefaultEditorKit.previousWordAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 
 								 InputEvent.CTRL_MASK),
+					  DefaultEditorKit.nextWordAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke("control KP_RIGHT"), 
 					  DefaultEditorKit.nextWordAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 
 								 InputEvent.CTRL_MASK | 
 								 InputEvent.SHIFT_MASK),
 					  DefaultEditorKit.selectionPreviousWordAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke("control shift KP_LEFT"), 
+					  DefaultEditorKit.selectionPreviousWordAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 
 								 InputEvent.CTRL_MASK |
 								 InputEvent.SHIFT_MASK),
+					  DefaultEditorKit.selectionNextWordAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke("control shift KP_RIGHT"), 
 					  DefaultEditorKit.selectionNextWordAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_A, 
 								 InputEvent.CTRL_MASK),
@@ -247,22 +259,34 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 
 								 InputEvent.SHIFT_MASK),
 					  DefaultEditorKit.selectionBackwardAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke("shift KP_LEFT"), 
+					  DefaultEditorKit.selectionBackwardAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 
 								 InputEvent.SHIFT_MASK),
+					  DefaultEditorKit.selectionForwardAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke("shift KP_RIGHT"), 
 					  DefaultEditorKit.selectionForwardAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 
 								 InputEvent.CTRL_MASK),
 					  DefaultEditorKit.previousWordAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke("control KP_LEFT"), 
+					  DefaultEditorKit.previousWordAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 
 								 InputEvent.CTRL_MASK),
+					  DefaultEditorKit.nextWordAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke("control KP_RIGHT"), 
 					  DefaultEditorKit.nextWordAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 
 								 InputEvent.CTRL_MASK | 
 								 InputEvent.SHIFT_MASK),
 					  DefaultEditorKit.selectionPreviousWordAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke("control shift KP_LEFT"), 
+					  DefaultEditorKit.selectionPreviousWordAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 
 								 InputEvent.CTRL_MASK |
 								 InputEvent.SHIFT_MASK),
+					  DefaultEditorKit.selectionNextWordAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke("control shift KP_RIGHT"), 
 					  DefaultEditorKit.selectionNextWordAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_A, 
 								 InputEvent.CTRL_MASK),
@@ -279,7 +303,11 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 					  DefaultEditorKit.selectionEndLineAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
 					  DefaultEditorKit.upAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke("KP_UP"),
+					  DefaultEditorKit.upAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
+					  DefaultEditorKit.downAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke("KP_DOWN"),
 					  DefaultEditorKit.downAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0),
 					  DefaultEditorKit.pageUpAction),
@@ -288,13 +316,38 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_UP,
 								 InputEvent.SHIFT_MASK),
 					  DefaultEditorKit.selectionUpAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke("shift KP_UP"),
+					  DefaultEditorKit.selectionUpAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,
 								 InputEvent.SHIFT_MASK),
+					  DefaultEditorKit.selectionDownAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke("shift KP_DOWN"),
 					  DefaultEditorKit.selectionDownAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
 					  DefaultEditorKit.insertBreakAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0),
-					  DefaultEditorKit.insertTabAction)
+					  DefaultEditorKit.insertTabAction),
+
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SLASH, 
+								 InputEvent.CTRL_MASK),
+					  "unselect"/*DefaultEditorKit.unselectAction*/),
+
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 
+								 InputEvent.CTRL_MASK),
+					  DefaultEditorKit.beginAction),
+
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_END, 
+								 InputEvent.CTRL_MASK),
+					  DefaultEditorKit.endAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 
+								 InputEvent.CTRL_MASK |
+								 InputEvent.SHIFT_MASK),
+					  DefaultEditorKit.selectionBeginAction),
+
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_END, 
+								 InputEvent.CTRL_MASK |
+								 InputEvent.SHIFT_MASK),
+					  DefaultEditorKit.selectionEndAction)
 	};
 
         Object scrollPaneBorder = new MetalBorders.ScrollPaneBorder();
@@ -319,6 +372,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         Object menuBarBorder = new MetalBorders.MenuBarBorder();
         Object popupMenuBorder = new MetalBorders.PopupMenuBorder();
         Object menuItemBorder = new MetalBorders.MenuItemBorder();
+	Object menuItemAcceleratorDelimiter = new String("-");
         Object toolBarBorder = new MetalBorders.ToolBarBorder();
 
 	Object progressBarBorder = new BorderUIResource.LineBorderUIResource(
@@ -536,7 +590,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "Table.scrollPaneBorder", scrollPaneBorder,
       	    "Table.gridColor", getControlShadow(),  // grid line color
 
-	    "Table.font", getUserTextFont(),
+	    "TableHeader.font", getUserTextFont(),
 	    "TableHeader.cellBorder", new MetalUtils.TableHeaderBorder(),
 
 
@@ -574,6 +628,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "MenuItem.acceleratorFont", getSubTextFont(),
             "MenuItem.acceleratorForeground", getAcceleratorForeground(),
             "MenuItem.acceleratorSelectionForeground", getAcceleratorSelectedForeground(),
+	    "MenuItem.acceleratorDelimiter", menuItemAcceleratorDelimiter,
             "MenuItem.checkIcon", MetalIconFactory.getMenuItemCheckIcon(),
             "MenuItem.arrowIcon", MetalIconFactory.getMenuItemArrowIcon(),
 

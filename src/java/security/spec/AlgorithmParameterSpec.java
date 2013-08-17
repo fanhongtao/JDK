@@ -1,5 +1,5 @@
 /*
- * @(#)AlgorithmParameterSpec.java	1.6 98/09/21
+ * @(#)AlgorithmParameterSpec.java	1.7 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -23,7 +23,7 @@ package java.security.spec;
  * 
  * @author Jan Luehe
  *
- * @version 1.6, 00/05/10
+ * @version 1.7 98/12/03
  *
  * @see java.security.AlgorithmParameters
  * @see DSAParameterSpec

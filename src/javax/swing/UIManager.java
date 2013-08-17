@@ -1,5 +1,5 @@
 /*
- * @(#)UIManager.java	1.68 98/08/28
+ * @(#)UIManager.java	1.74 99/05/28
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -62,7 +62,7 @@ import java.util.Vector;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.68 08/28/98
+ * @version 1.74 05/28/99
  * @author Thomas Ball
  * @author Hans Muller
  */
@@ -103,6 +103,20 @@ public class UIManager implements Serializable
      */
     private static final Object lafStateACKey = new StringBuffer("LookAndFeel State");
 
+    /* Lock object used in place of class object for synchronization. 
+     * (4187686)
+     */
+    private static final Object classLock = new Object();
+
+    /* Cache the last referenced LAFState to improve performance 
+     * when accessing it.  The cache is based on last thread rather
+     * than last AppContext because of the cost of looking up the
+     * AppContext each time.  Since most Swing UI work is on the 
+     * EventDispatchThread, this hits often enough to justify the
+     * overhead.  (4193032)
+     */
+    private static Thread currentLAFStateThread = null;
+    private static LAFState currentLAFState = null;
 
     /**
      * Return the LAFState object, lazily create one if neccessary.  All access
@@ -112,18 +126,28 @@ public class UIManager implements Serializable
      * </pre>
      */
     private static LAFState getLAFState() {
+	// First check whether we're running on the same thread as
+	// the last request.
+	Thread thisThread = Thread.currentThread();
+	if (thisThread == currentLAFStateThread) {
+	    return currentLAFState;
+	}
+
         LAFState rv = (LAFState)SwingUtilities.appContextGet(lafStateACKey);
-        if (rv != null) {
-            return rv;
+        if (rv == null) {
+	    synchronized (classLock) {
+		rv = (LAFState)SwingUtilities.appContextGet(lafStateACKey);
+		if (rv == null) {
+		    SwingUtilities.appContextPut(lafStateACKey, 
+						 (rv = new LAFState()));
+		}
+	    }
         }
-        synchronized(UIManager.class) {
-            rv = (LAFState)SwingUtilities.appContextGet(lafStateACKey);
-            if (rv != null) {
-                return rv;
-            }
-            SwingUtilities.appContextPut(lafStateACKey, (rv = new LAFState()));
-            return rv;
-        }
+
+	currentLAFStateThread = thisThread;
+	currentLAFState = rv;
+
+	return rv;
     }
 
 
@@ -362,7 +386,7 @@ public class UIManager implements Serializable
                IllegalAccessException,
                UnsupportedLookAndFeelException 
     {
-            Class lnfClass = Class.forName(className);
+            Class lnfClass = SwingUtilities.loadSystemClass(className);
             setLookAndFeel((LookAndFeel)(lnfClass.newInstance()));
     }
 
@@ -393,7 +417,7 @@ public class UIManager implements Serializable
                 return "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
             } 
 	    else if (osName[0].indexOf("Mac") != -1 ) {
-                return "javax.swing.plaf.mac.MacLookAndFeel";
+                return "com.sun.java.swing.plaf.mac.MacLookAndFeel";
             }
         }
         return getCrossPlatformLookAndFeelClassName();
@@ -566,7 +590,7 @@ public class UIManager implements Serializable
             String defaultName = "javax.swing.plaf.multi.MultiLookAndFeel";
             String className = getLAFState().swingProps.getProperty(multiplexingLAFKey, defaultName);
             try {
-                Class lnfClass = Class.forName(className);
+                Class lnfClass = SwingUtilities.loadSystemClass(className);
                 multiLookAndFeel = (LookAndFeel)lnfClass.newInstance();
             } catch (Exception exc) {
                 System.err.println("UIManager: failed loading " + className);
@@ -602,6 +626,7 @@ public class UIManager implements Serializable
 
 	if (!v.contains(laf)) {
 	    v.addElement(laf);
+	    laf.initialize();
             getLAFState().auxLookAndFeels = v;
 
 	    if (getLAFState().multiLookAndFeel == null) {
@@ -645,6 +670,7 @@ public class UIManager implements Serializable
 	        getLAFState().auxLookAndFeels = v;
             }
         }
+	laf.uninitialize();
 
 	return result;
     }
@@ -686,9 +712,11 @@ public class UIManager implements Serializable
      * @param listener  The PropertyChangeListener to be added
      * @see java.beans.PropertyChangeSupport
      */
-    public synchronized static void addPropertyChangeListener(PropertyChangeListener listener) 
+    public static void addPropertyChangeListener(PropertyChangeListener listener) 
     {
-        getLAFState().changeSupport.addPropertyChangeListener(listener);
+	synchronized (classLock) {
+	    getLAFState().changeSupport.addPropertyChangeListener(listener);
+	}
     }
 
 
@@ -700,9 +728,11 @@ public class UIManager implements Serializable
      * @param listener  The PropertyChangeListener to be removed
      * @see java.beans.PropertyChangeSupport
      */
-    public synchronized static void removePropertyChangeListener(PropertyChangeListener listener) 
+    public static void removePropertyChangeListener(PropertyChangeListener listener) 
     {
-        getLAFState().changeSupport.removePropertyChangeListener(listener);
+        synchronized (classLock) {
+	    getLAFState().changeSupport.removePropertyChangeListener(listener);
+	}
     }
 
 
@@ -847,7 +877,7 @@ public class UIManager implements Serializable
         while (p.hasMoreTokens()) {
             String className = p.nextToken();
             try {
-                Class lnfClass = Class.forName(className);
+                Class lnfClass = SwingUtilities.loadSystemClass(className);
                 auxLookAndFeels.addElement(lnfClass.newInstance());
             } 
             catch (Exception e) {
@@ -904,14 +934,20 @@ public class UIManager implements Serializable
     }
 
 
-    synchronized private static void maybeInitialize() {
-        if (!getLAFState().initialized) {
-	    synchronized (UIManager.class) {
-		// Set flag first so when default LNF initializes it
-		// doesn't re-initialize.
+    /* 
+     * This method is called before any code that depends on the 
+     * AppContext specific LAFState object runs.  When the AppContext
+     * corresponds to a set of applets it's possible for this method 
+     * to be re-entered, which is why we grab a lock before calling
+     * initialize().
+     */
+    private static void maybeInitialize() {
+	synchronized (classLock) {
+	    if (!getLAFState().initialized) {
 		getLAFState().initialized = true;
 		initialize();
 	    }
         }
     }
+
 }

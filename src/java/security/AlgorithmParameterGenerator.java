@@ -1,5 +1,5 @@
 /*
- * @(#)AlgorithmParameterGenerator.java	1.30 98/09/04
+ * @(#)AlgorithmParameterGenerator.java	1.31 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -57,7 +57,7 @@ import java.security.spec.AlgorithmParameterSpec;
  *
  * @author Jan Luehe
  *
- * @version 1.30, 00/05/10
+ * @version 1.31 98/12/03
  *
  * @see AlgorithmParameters
  * @see java.security.spec.AlgorithmParameterSpec

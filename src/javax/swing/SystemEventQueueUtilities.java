@@ -1,23 +1,24 @@
 /*
- * @(#)SystemEventQueueUtilities.java	1.19 98/09/08
+ * @(#)SystemEventQueueUtilities.java	1.28 00/03/08
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
+ * 
  */
 package javax.swing;
 
+import java.applet.Applet;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
 
 import java.util.Hashtable;
+import java.util.WeakHashMap;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -33,10 +34,24 @@ import java.lang.reflect.InvocationTargetException;
  * @see RepaintManager
  * @see JRootPane
  */
-
+// NOTE: For 1.2 the EventQueue should always be accessible and a
+// SecurityException should never be thrown (so that all the RunnableCanvas
+// code isn't necessary).
 class SystemEventQueueUtilities
 {
-    private static Hashtable rootTable = new Hashtable(4);
+
+    /* Key into AppContext table for root mapping. 
+     */
+    private static Object rootTableKey = new Object() {
+        public String toString() {
+            return "SystemEventQueueUtilities key into AppContext table for root mapping";
+        }
+    };
+
+    /* Lock object used in place of class object for synchronization. 
+     * (4187686)
+     */
+    private static final Object classLock = new Object();
 
 
     /**
@@ -46,115 +61,114 @@ class SystemEventQueueUtilities
      * class just uses SystemEventQueue.get() to access the event queue.
      */
 
-    
-
     private static class SystemEventQueue 
     {
-        private static Toolkit tk = null;
+	
+	
 
-	// Return the AWT system event queue.  JDK1.2 applications 
-	// and PlugIn enabled browsers allow direct access to the 
-	// applet specific system event queue.
-	//
+
+
+
+
+	// If the AWT system event queue is accessible then return it.
+	// otherwise return null.  
+
 	static EventQueue get() {
-            if (tk == null) {
-	        tk = Toolkit.getDefaultToolkit();
-	    }
-	    return tk.getSystemEventQueue();
+	    
+	    EventQueue retValue;
+	    try {
+	        retValue = Toolkit.getDefaultToolkit().getSystemEventQueue();
+            }
+	    catch (SecurityException se) {
+	        // Should never happen.
+                retValue = null;
+            }
+            return retValue;
+	    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	}
+
+	// If the AWT system event queue is accessible then return it.
+	// otherwise return null.  If the JRootPane has a special
+	// client property set (and yech), we don't bother even 
+	// attempting to get at the event queue - see JApplet.
 
 	static EventQueue get(JRootPane rootPane) {
-	    return rootPane.getToolkit().getSystemEventQueue();
+	    
+	    return get();
+	    
+
+
+
+
+
+
+
 	}
+	
+	
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     /**
      * A Runnable with a component.  If we need to post this
@@ -169,10 +183,9 @@ class SystemEventQueueUtilities
     private static class ComponentWorkRequest implements Runnable
     {
 	boolean isPending;
-	Component component;
-
-	ComponentWorkRequest(Component c) {
-	    component = c;
+	Component component = null;
+	
+	ComponentWorkRequest() {
 	}
 
 	public void run() {
@@ -194,10 +207,22 @@ class SystemEventQueueUtilities
      */
     static void queueComponentWorkRequest(Component root)
     {
+        WeakHashMap rootTable = 
+            (WeakHashMap) SwingUtilities.appContextGet(rootTableKey);
+        if (rootTable == null)  {
+            synchronized(rootTableKey)  {
+                rootTable = 
+		    (WeakHashMap) SwingUtilities.appContextGet(rootTableKey);
+	        if (rootTable == null)  {
+	            rootTable = new WeakHashMap();
+	            SwingUtilities.appContextPut(rootTableKey, rootTable);
+		}
+	    }
+	}
 	ComponentWorkRequest req = (ComponentWorkRequest)(rootTable.get(root));
 	boolean newWorkRequest = (req == null);
 	if (newWorkRequest) {
-	    req = new ComponentWorkRequest(root);
+	    req = new ComponentWorkRequest();
 	}
 
 	/* At this point the ComponentWorkRequest may be accessible from
@@ -226,19 +251,21 @@ class SystemEventQueueUtilities
      * @see RunnableCanvas
      * @see JRootPane#addNotify
      */
-    static synchronized void addRunnableCanvas(JRootPane rootPane)
+    static void addRunnableCanvas(JRootPane rootPane)
     {
-	/* If we have access to the system event queue, we don't bother
-	 * with a RunnableCanvas
-	 */
-	if (SystemEventQueue.get(rootPane) != null) {
-	    return;
-	}
+	synchronized (classLock) {
+	    /* If we have access to the system event queue, we don't bother
+	     * with a RunnableCanvas
+	     */
+	    if (SystemEventQueue.get(rootPane) != null) {
+		return;
+	    }
 
-	JLayeredPane layeredPane = rootPane.getLayeredPane();
-	if (layeredPane != null) {
-	    RunnableCanvas rc = new RunnableCanvas(rootPane);
-	    layeredPane.add(rc);
+	    JLayeredPane layeredPane = rootPane.getLayeredPane();
+	    if (layeredPane != null) {
+		RunnableCanvas rc = new RunnableCanvas(rootPane);
+		layeredPane.add(rc);
+	    }
 	}
     }
 
@@ -251,9 +278,24 @@ class SystemEventQueueUtilities
      *
      * @see RunnableCanvas
      */
-    static synchronized void removeRunnableCanvas(JRootPane rootPane) {
-	rootTable.remove(SwingUtilities.getRoot(rootPane));
-	RunnableCanvas.remove(rootPane);
+    static void removeRunnableCanvas(JRootPane rootPane) {
+	Component root = null;
+	for (Component c = rootPane; c != null; c = c.getParent()) {
+	    if ((c instanceof Window) || (c instanceof Applet)) {
+		root = c;
+		break;
+	    }
+	}
+	synchronized (classLock) {
+	    if (root != null)  {
+                WeakHashMap rootTable = 
+                    (WeakHashMap) SwingUtilities.appContextGet(rootTableKey);
+		if (rootTable != null)  {
+	            rootTable.remove(root);
+		}
+	    }
+	    RunnableCanvas.remove(rootPane);
+	}
     }
 
 
@@ -289,11 +331,13 @@ class SystemEventQueueUtilities
      *
      * @see RunnableCanvas#postRunnableEventToAll
      */
-    static synchronized void restartTimerQueueThread() {
-	if (SystemEventQueue.get() == null) {
-	    Runnable restarter = new TimerQueueRestart();
-	    RunnableEvent event = new RunnableEvent(restarter, null);
-	    RunnableCanvas.postRunnableEventToAll(event);
+    static void restartTimerQueueThread() {
+	synchronized (classLock) {
+	    if (SystemEventQueue.get() == null) {
+		Runnable restarter = new TimerQueueRestart();
+		RunnableEvent event = new RunnableEvent(restarter, null);
+		RunnableCanvas.postRunnableEventToAll(event);
+	    }
 	}
     }
 
@@ -405,39 +449,41 @@ class SystemEventQueueUtilities
      * @see RunnableCanvas#addRunnableEvent
      * @see RunnableCanvas#update
      */
-    private static synchronized void postRunnableCanvasEvent(RunnableEvent e) {
-	RunnableCanvas runnableCanvas = RunnableCanvas.lookup(e);
+    private static void postRunnableCanvasEvent(RunnableEvent e) {
+	synchronized (classLock) {
+	    RunnableCanvas runnableCanvas = RunnableCanvas.lookup(e);
 
-	if (runnableCanvas == null) {
+	    if (runnableCanvas == null) {
 
-	    /* If this is a ComponentWorkRequest and we were unable to
-	     * queue it, then clear the pending flag.
-	     */
-	    if (e.doRun instanceof ComponentWorkRequest) {
-		ComponentWorkRequest req = (ComponentWorkRequest)e.doRun;
-	        synchronized(req) {
-		    req.isPending = false;
+		/* If this is a ComponentWorkRequest and we were unable to
+		 * queue it, then clear the pending flag.
+		 */
+		if (e.doRun instanceof ComponentWorkRequest) {
+		    ComponentWorkRequest req = (ComponentWorkRequest)e.doRun;
+		    synchronized(req) {
+			req.isPending = false;
+		    }
 		}
+
+		/* If this is a Timer event let it know that it didn't fire.
+		 */
+		if(e.doRun instanceof Timer.DoPostEvent) {
+		    ((Timer.DoPostEvent)e.doRun).getTimer().eventQueued = false;
+		}
+
+		/* We are unable to queue this event on a system event queue.  Make
+		 * sure that any code that's waiting for the runnable to finish
+		 * doesn't hang.
+		 */
+		if (e.lock != null) {
+		    e.lock.notify();
+		}
+		return;
 	    }
 
-	    /* If this is a Timer event let it know that it didn't fire.
-	     */
-	    if(e.doRun instanceof Timer.DoPostEvent) {
-		((Timer.DoPostEvent)e.doRun).getTimer().eventQueued = false;
-	    }
-
-	    /* We are unable to queue this event on a system event queue.  Make
-	     * sure that any code that's waiting for the runnable to finish
-	     * doesn't hang.
-	     */
-	    if (e.lock != null) {
-		e.lock.notify();
-	    }
-	    return;
+	    runnableCanvas.addRunnableEvent(e);
+	    runnableCanvas.repaint();
 	}
-
-	runnableCanvas.addRunnableEvent(e);
-	runnableCanvas.repaint();
     }
 
     

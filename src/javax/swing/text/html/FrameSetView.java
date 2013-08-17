@@ -1,5 +1,5 @@
 /*
- * @(#)FrameSetView.java	1.9 98/09/21
+ * @(#)FrameSetView.java	1.10 98/11/19
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -30,7 +30,7 @@ import javax.swing.event.*;
  *          conform to the HTML 4.0 standard and also be netscape
  *          compatible.
  *
- * @version 1.9 09/21/98
+ * @version 1.10 11/19/98
  */
 
 class FrameSetView extends javax.swing.text.BoxView {
@@ -258,8 +258,8 @@ class FrameSetView extends javax.swing.text.BoxView {
 	    	// column should be relative to each other... therefore we can use
 	    	// that relative information to deduce their percentages of a whole
 	    	// and then scale them appropriately for the correct size
-	    	tempPercents[i] = ((float)span[i] / vTotal) * (float)100.00;
-	        span[i] = (int) ( ((float)targetSpan * tempPercents[i]) / (float)100.00);
+	    	tempPercents[i] = ((float)span[i] / vTotal) * 100.00f;
+	        span[i] = (int) ( ((float)targetSpan * tempPercents[i]) / 100.00f);
 		remainingSpace -= span[i];
 	    }
 

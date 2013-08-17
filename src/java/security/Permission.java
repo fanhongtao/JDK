@@ -1,5 +1,5 @@
 /*
- * @(#)Permission.java	1.31 98/09/24
+ * @(#)Permission.java	1.32 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -46,7 +46,7 @@ package java.security;
  * @see Permissions
  * @see PermissionCollection
  *
- * @version 1.31 00/05/10
+ * @version 1.32 98/12/03
  *
  * @author Marianne Mueller
  * @author Roland Schemers 

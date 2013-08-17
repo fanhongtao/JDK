@@ -1,10 +1,10 @@
 /*
- * @(#)StreamTokenizer.java	1.29 98/06/29
+ * @(#)StreamTokenizer.java	1.31 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -45,7 +45,7 @@ package java.io;
  * it returns the value <code>TT_EOF</code>.
  *
  * @author  James Gosling
- * @version 1.29, 06/29/98
+ * @version 1.31, 04/22/99
  * @see     java.io.StreamTokenizer#nextToken()
  * @see     java.io.StreamTokenizer#TT_EOF
  * @since   JDK1.0
@@ -58,7 +58,19 @@ public class StreamTokenizer {
     private InputStream input = null;
 
     private char buf[] = new char[20];
-    private int peekc;
+
+    /**
+     * The next character to be considered by the nextToken method.  May also
+     * be NEED_CHAR to indicate that a new character should be read, or SKIP_LF
+     * to indicate that a new character should be read and, if it is a '\n'
+     * character, it should be discarded and a second new character should be
+     * read.
+     */
+    private int peekc = NEED_CHAR;
+
+    private static final int NEED_CHAR = Integer.MAX_VALUE;
+    private static final int SKIP_LF = Integer.MAX_VALUE - 1;
+
     private boolean pushedBack;
     private boolean forceLower;
     /** The line number of the last token read */
@@ -484,45 +496,45 @@ public class StreamTokenizer {
 	    return ttype;
 	}
 	byte ct[] = ctype;
-	int c;
 	sval = null;
 
-	if (ttype == TT_NOTHING) {
-	    c = read();
-	    if (c >= 0)    // ttype is surely overwritten below to its correct value.
-	        ttype = c; // for now we just make sure it isn't TT_NOTHING
-	} else {
-	    c = peekc;
-            if (c < 0) {
-                try {
-                    c = read();
-                    if (c >= 0) {
-                        ttype = c;
-                    }
-                } catch (EOFException e) {
-                    c = -1;
-                }
-            }
-	}
-
+	int c = peekc;
 	if (c < 0)
-	    return ttype = TT_EOF;
+	    c = NEED_CHAR;
+	if (c == SKIP_LF) {
+	    c = read();
+	    if (c < 0)
+		return ttype = TT_EOF;
+	    if (c == '\n')
+		c = NEED_CHAR;
+	}
+	if (c == NEED_CHAR) {
+	    c = read();
+	    if (c < 0)
+		return ttype = TT_EOF;
+	}
+	ttype = c;		/* Just to be safe */
+
+	/* Set peekc so that the next invocation of nextToken will read
+	 * another character unless peekc is reset in this invocation
+	 */
+	peekc = NEED_CHAR;
+
 	int ctype = c < 256 ? ct[c] : CT_ALPHA;
 	while ((ctype & CT_WHITESPACE) != 0) {
 	    if (c == '\r') {
 		LINENO++;
+		if (eolIsSignificantP) {
+		    peekc = SKIP_LF;
+		    return ttype = TT_EOL;
+		}
 		c = read();
 		if (c == '\n')
 		    c = read();
-		if (eolIsSignificantP) {
-		    peekc = c;
-		    return ttype = TT_EOL;
-		}
 	    } else {
 		if (c == '\n') {
 		    LINENO++;
 		    if (eolIsSignificantP) {
-			peekc = read();
 			return ttype = TT_EOL;
 		    }
 		}
@@ -532,6 +544,7 @@ public class StreamTokenizer {
 		return ttype = TT_EOF;
 	    ctype = c < 256 ? ct[c] : CT_ALPHA;
 	}
+
 	if ((ctype & CT_DIGIT) != 0) {
 	    boolean neg = false;
 	    if (c == '-') {
@@ -563,12 +576,13 @@ public class StreamTokenizer {
 		    denom *= 10;
 		    decexp--;
 		}
-		/* do one division of a likely-to-be-more-accurate number */
+		/* Do one division of a likely-to-be-more-accurate number */
 		v = v / denom;
 	    }
 	    nval = neg ? -v : v;
 	    return ttype = TT_NUMBER;
 	}
+
 	if ((ctype & CT_ALPHA) != 0) {
 	    int i = 0;
 	    do {
@@ -587,17 +601,19 @@ public class StreamTokenizer {
 		sval = sval.toLowerCase();
 	    return ttype = TT_WORD;
 	}
+
 	if ((ctype & CT_QUOTE) != 0) {
 	    ttype = c;
 	    int i = 0;
-	    // invariants (because \Octal needs a lookahead):
-	    //      (i)  c contains char value
-	    //      (ii) peekc contains the lookahead
-	    peekc = read();
-	    while (peekc >= 0 && peekc != ttype && peekc != '\n' && peekc != '\r') {
-	        if (peekc == '\\') {
+	    /* Invariants (because \Octal needs a lookahead):
+	     *   (i)  c contains char value
+	     *   (ii) d contains the lookahead
+	     */
+	    int d = read();
+	    while (d >= 0 && d != ttype && d != '\n' && d != '\r') {
+	        if (d == '\\') {
    		    c = read();
-		    int first = c;   // to allow \377, but not \477
+		    int first = c;   /* To allow \377, but not \477 */
 		    if (c >= '0' && c <= '7') {
 			c = c - '0';
 			int c2 = read();
@@ -606,11 +622,11 @@ public class StreamTokenizer {
 			    c2 = read();
 			    if ('0' <= c2 && c2 <= '7' && first <= '3') {
 				c = (c << 3) + (c2 - '0');
-				peekc = read();
+				d = read();
 			    } else
-				peekc = c2;
+				d = c2;
 			} else
-			  peekc = c2;
+			  d = c2;
 		    } else {
   		        switch (c) {
 			case 'a':
@@ -635,25 +651,30 @@ public class StreamTokenizer {
 			    c = 0xB;
 			    break;
 			}
-			peekc = read();
+			d = read();
 		    }
 		} else {
-		    c = peekc;
-		    peekc = read();
+		    c = d;
+		    d = read();
 		}
-
 		if (i >= buf.length) {
 		    char nb[] = new char[buf.length * 2];
 		    System.arraycopy(buf, 0, nb, 0, buf.length);
 		    buf = nb;
 		}
-		buf[i++] = (char) c;
+		buf[i++] = (char)c;
 	    }
-	    if (peekc == ttype)  // keep \n or \r intact in peekc
-	        peekc = read();
+
+	    /* If we broke out of the loop because we found a matching quote
+	     * character then arrange to read a new character next time
+	     * around; otherwise, save the character.
+	     */
+	    peekc = (d == ttype) ? NEED_CHAR : d;
+
 	    sval = String.copyValueOf(buf, 0, i);
 	    return ttype;
 	}
+
 	if (c == '/' && (slashSlashCommentsP || slashStarCommentsP)) {
 	    c = read();
 	    if (c == '*' && slashStarCommentsP) {
@@ -675,14 +696,13 @@ public class StreamTokenizer {
 		        return ttype = TT_EOF;
 		    prevc = c;
 		}
-		peekc = read();
 		return nextToken();
 	    } else if (c == '/' && slashSlashCommentsP) {
 	        while ((c = read()) != '\n' && c != '\r' && c >= 0);
 	        peekc = c;
 		return nextToken();
 	    } else {
-                // now see if it is still a single line comment
+                /* Now see if it is still a single line comment */
                 if ((ct['/'] & CT_COMMENT) != 0) {
                     while ((c = read()) != '\n' && c != '\r' && c >= 0);
                     peekc = c;
@@ -693,12 +713,13 @@ public class StreamTokenizer {
                 }
 	    }
         }
+
         if ((ctype & CT_COMMENT) != 0) {
             while ((c = read()) != '\n' && c != '\r' && c >= 0);
             peekc = c;
             return nextToken();
         }
-	peekc = read();
+
 	return ttype = c;
     }
 
@@ -714,7 +735,7 @@ public class StreamTokenizer {
      * @see     java.io.StreamTokenizer#ttype
      */
     public void pushBack() {
-        if (ttype != TT_NOTHING)   // no-op if nextToken() not called
+        if (ttype != TT_NOTHING)   /* No-op if nextToken() not called */
 	    pushedBack = true;
     }
 

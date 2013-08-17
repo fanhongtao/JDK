@@ -1,15 +1,14 @@
 /*
- * @(#)Dialog.java	1.53 98/08/12
+ * @(#)Dialog.java	1.60 00/04/06
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
+ * 
  */
 package java.awt;
 
@@ -18,6 +17,7 @@ import java.awt.event.*;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
+import sun.awt.AxBridgeHelper;
 
 
 /**
@@ -58,7 +58,7 @@ import java.io.IOException;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.53, 08/12/98
+ * @version 	1.60, 04/06/00
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -72,7 +72,7 @@ public class Dialog extends Window {
     }
 
     /**
-     * A dialogs resizable property. Will be true
+     * A dialog's resizable property. Will be true
      * if the Dialog is to be resizable, otherwise
      * it will be false.
      *
@@ -80,6 +80,7 @@ public class Dialog extends Window {
      * @see setResizable()
      */
     boolean resizable = true;
+
     /**
      * Will be true if the Dialog is modal,
      * otherwise the dialog will be modeless.
@@ -91,6 +92,7 @@ public class Dialog extends Window {
      * @see setModal()
      */
     boolean modal;
+
     /**
      * Specifies the title of the Dialog.
      * This field can be null.
@@ -100,6 +102,8 @@ public class Dialog extends Window {
      * @see setTitle()
      */
     String title;
+
+    private transient boolean keepBlocking = false;
 
     private static final String base = "dialog";
     private static int nameCounter = 0;
@@ -165,13 +169,10 @@ public class Dialog extends Window {
      */
     public Dialog(Frame owner, String title, boolean modal) {
 	super(owner);
-	if (owner == null) {
-	    throw new IllegalArgumentException("null owner frame");
-	}
+	 
 	this.title = title;
 	this.modal = modal;
     }
-
 
     /**
      * Constructs an initially invisible, non-modal Dialog with 
@@ -214,9 +215,7 @@ public class Dialog extends Window {
      */
     public Dialog(Dialog owner, String title, boolean modal) {
 	super(owner);
-	if (owner == null) {
-	    throw new IllegalArgumentException("null owner dialog");
-	}
+	 
 	this.title = title;
 	this.modal = modal;
     }
@@ -242,6 +241,10 @@ public class Dialog extends Window {
      */
     public void addNotify() {
 	synchronized (getTreeLock()) {
+	    if (parent != null && parent.getPeer() == null) {
+                parent.addNotify();
+	    }
+
 	    if (peer == null) {
 	        peer = getToolkit().createDialog(this);
 	    }
@@ -296,6 +299,34 @@ public class Dialog extends Window {
 	}
     }
 
+    /**
+     * @return true if we actually showed, false if we just called toFront()
+     */
+    private boolean conditionalShow() {
+        boolean retval;
+
+        synchronized (getTreeLock()) {
+            if (peer == null) {
+                addNotify();
+            }
+            validate();
+            if (visible) {
+                toFront();
+                retval = false;
+            } else {
+                visible = retval = true;
+                peer.show(); // now guaranteed never to block
+            }
+        }
+
+        if (retval && (state & OPENED) == 0) {
+            postWindowEvent(WindowEvent.WINDOW_OPENED);
+            state |= OPENED;
+        }
+
+        return retval;
+    }
+
    /**
      * Makes the Dialog visible. If the dialog and/or its owner
      * are not yet displayable, both are made displayable.  The 
@@ -303,85 +334,125 @@ public class Dialog extends Window {
      * If the dialog is already visible, this will bring the dialog 
      * to the front.
      * <p>
-     * If the dialog is modal, this call will block until the 
-     * dialog is hidden by calling <code>hide</code> or <code>dispose</code>. 
-     * It is permissible to show modal dialogs from the event 
-     * dispatching thread because the toolkit
-     * will ensure that another dispatching thread will run while
-     * the one which invoked this method is blocked. 
+     * If the dialog is modal and is not already visible, this call will
+     * not return until the dialog is hidden by calling <code>hide</code> or
+     * <code>dispose</code>. It is permissible to show modal dialogs from
+     * the event dispatching thread because the toolkit will ensure that
+     * another event pump runs while the one which invoked this method
+     * is blocked. 
      * @see Component#hide
      * @see Component#isDisplayable
      * @see Component#validate
      * @see java.awt.Dialog#isModal
      */
+    private EventQueue tempEQ = null;
+    private AxBridgeHelper axbHelper = null;
     public void show() {
-	synchronized(getTreeLock()) {
-            if (parent != null && parent.getPeer() == null) {
-            	parent.addNotify();
-            }
-	    if (peer == null) {
-		addNotify();
-	    }
-	}
-	validate();	    
-	if (visible) {
-	    toFront();
-	} else {
-	    visible = true;
-	    if (isModal()) {
-		EventQueue modalQueue = null;
-		EventQueue currentQueue = Toolkit.getEventQueue();
-		synchronized (currentQueue) {
-		    if (currentQueue.isDispatchThread()) {
-		        modalQueue = (EventQueue)
-			    java.security.AccessController.doPrivileged(
-			        new java.security.PrivilegedAction() {
-			            public Object run() {
-				        EventQueue eventQueue;
-					String eqName = Toolkit.getProperty(
-					    "AWT.EventQueueClass",
-					    "java.awt.EventQueue");
-					try {
-					    eventQueue = (EventQueue)
-					        Class.forName(eqName).
-					        newInstance();
-					} catch (Exception e) {
-					    System.err.println(
-					        "Failed loading " + eqName +
-						": " + e);
-					    eventQueue = new EventQueue();
-					}
-					return eventQueue;
-				    }
-			    });
-			currentQueue.push(modalQueue);
-		    }
+        if (!isModal()) {
+            conditionalShow();
+        } else {
+            // Set this variable before calling conditionalShow(). That
+            // way, if the Dialog is hidden right after being shown, we
+            // won't mistakenly block this thread.
+            keepBlocking = true;
+
+            if (conditionalShow()) {
+                // We have two mechanisms for blocking: 1. If we're on the
+                // EventDispatchThread, start a new event pump. 2. If we're
+                // on any other thread, call wait() on the treelock.
+		//
+		// if we are calling from windows activex thread
+		// we need to create a message loop for the activex
+		// container to avoid blocking
+
+		if (Toolkit.getEventQueue().isDispatchThread()) {
+		    EventDispatchThread dispatchThread =
+			(EventDispatchThread) Thread.currentThread();
+                    /*
+                     * pump events, filter out input events for
+                     * component not belong to our modal dialog.
+                     *
+                     * we already disabled other components in native code
+                     * but because the event is posted from a different 
+                     * thread so it's possible that there are some events
+                     * for other component already posted in the queue
+                     * before we decide do modal show.  
+                     */ 
+		    dispatchThread.pumpEventsForComponent(new Conditional() {
+			public boolean evaluate() {
+			    return keepBlocking;
+			}
+		    }, (Component)this);
+		    return;
 		}
 
-                // For modal case, we most post this event before calling
-                // show, since calling peer.show() will block; this is not
-                // ideal, as the window isn't yet visible on the screen...
-                if ((state & OPENED) == 0) {
-                    postWindowEvent(WindowEvent.WINDOW_OPENED);
-                    state |= OPENED;
-                }
-		peer.show(); // blocks until dialog brought down
-		if (modalQueue != null) {
-		    // If we wait for currentQueue.pop() to call
-		    // stopDispatching(), we deadlock waiting for the
-		    // disposal to complete, as it waits to post an event.
-		    // So, we explicitly call stopDispatching() here.
-		    modalQueue.getDispatchThread().stopDispatching();
-		    currentQueue.pop();
+		if (peer.getClass().getName().equals(
+			"sun.awt.windows.WDialogPeer")) {
+			axbHelper = new AxBridgeHelper();
+			EventDispatchThread stoppedEDT = null;
+                	if (axbHelper.isAppMainThread()) {
+                    		stoppedEDT = (EventDispatchThread)
+					AxBridgeHelper.isNewDispatchThreadNeeded();
+                    		if (stoppedEDT != null) {
+                        		tempEQ = new EventQueue();
+                        		stoppedEDT.getEventQueue().push(tempEQ);
+                    		}
+                    		axbHelper.nativeModalWait();
+				return;
+			}
+			axbHelper = null;
 		}
-	    } else {
-	        peer.show();
-                if ((state & OPENED) == 0) {
-                    postWindowEvent(WindowEvent.WINDOW_OPENED);
-                    state |= OPENED;
+
+                synchronized (getTreeLock()) {
+                        while (keepBlocking) {
+                            try {
+                                getTreeLock().wait();
+                            } catch (InterruptedException e) {
+                                break;
+                            }
+                        }
                 }
-	    }
-	}
+            }
+        }
+    }
+
+    private void hideAndDisposeHandler() {
+        if (keepBlocking) {
+            synchronized (getTreeLock()) {
+                keepBlocking = false;
+                EventQueue.invokeLater(new Runnable(){ public void run() {} });
+		if (peer.getClass().getName().equals("sun.awt.windows.WDialogPeer")) {
+                	// XXX: synchronize?
+                	if (tempEQ != null)  {
+                    		tempEQ.pop();
+                    		tempEQ = null;
+                	}
+			if (axbHelper != null) {
+                		axbHelper.nativeModalNotify();
+				axbHelper = null;
+			}
+		}
+                getTreeLock().notifyAll();
+            }
+        }
+    }   
+
+    /**
+     * Hides the Dialog and then causes show() to return if it is currently
+     * blocked.
+     */
+    public void hide() {
+        super.hide();
+        hideAndDisposeHandler();
+    }
+
+    /**
+     * Disposes the Dialog and then causes show() to return if it is currently
+     * blocked.
+     */
+    public void dispose() {
+        super.dispose();
+        hideAndDisposeHandler();
     }
 
     /**

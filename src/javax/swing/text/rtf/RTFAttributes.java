@@ -1,5 +1,5 @@
 /*
- * @(#)RTFAttributes.java	1.5 98/08/26
+ * @(#)RTFAttributes.java	1.6 98/11/19
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -380,7 +380,7 @@ class RTFAttributes
 	        old = swingDefault;
 	    if (old != null && (
 		    (scale == 1f && old.intValue() == rtfDefault) ||
-		    ((int)Math.round(old.floatValue() * scale) == rtfDefault)
+		    (Math.round(old.floatValue() * scale) == rtfDefault)
 	       ))
 	        return true;
 	    set(target, rtfDefault);
@@ -402,7 +402,7 @@ class RTFAttributes
 		   equivalent (probably a workable assumption) */
 		return true;
 	    }
-	    int int_value = (int)Math.round(value.floatValue() * scale);
+	    int int_value = Math.round(value.floatValue() * scale);
 	    if (force || (int_value != rtfDefault))
 	        target.writeControlWord(rtfName, int_value);
 	    return true;

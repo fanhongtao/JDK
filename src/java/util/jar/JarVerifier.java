@@ -1,10 +1,10 @@
 /*
- * @(#)JarVerifier.java	1.23 98/06/29
+ * @(#)JarVerifier.java	1.25 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -26,7 +26,7 @@ import sun.security.util.Debug;
 
 /**
  *
- * @version 	1.23 00/05/10
+ * @version 	1.25 99/04/22
  * @author	Roland Schemers
  */
 class JarVerifier {

@@ -1,10 +1,10 @@
 /*
- * @(#)BlockView.java	1.14 98/08/26
+ * @(#)BlockView.java	1.17 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -17,6 +17,7 @@ import java.util.Enumeration;
 import java.awt.*;
 import javax.swing.SizeRequirements;
 import javax.swing.border.*;
+import javax.swing.event.DocumentEvent;
 import javax.swing.text.*;
 
 /**
@@ -24,7 +25,7 @@ import javax.swing.text.*;
  * with CSS specifications.
  *
  * @author  Timothy Prinzing
- * @version 1.14 08/26/98
+ * @version 1.17 04/22/99
  */
 public class BlockView extends BoxView  {
 
@@ -42,6 +43,55 @@ public class BlockView extends BoxView  {
 	attr = sheet.getViewAttributes(this);
 	painter = sheet.getBoxPainter(attr);
 	setPropertiesFromAttributes();
+    }
+
+    /**
+     * Calculate the requirements of the block along the major
+     * axis (i.e. the axis along with it tiles).  This is implemented
+     * to provide the superclass behavior and then adjust it if the 
+     * CSS width or height attribute is specified and applicable to
+     * the axis.
+     */
+    protected SizeRequirements calculateMajorAxisRequirements(int axis, SizeRequirements r) {
+	SizeRequirements rr = super.calculateMajorAxisRequirements(axis, r);
+	adjustSizeForCSS(axis, rr);
+	return rr;
+    }
+
+    /**
+     * Calculate the requirements of the block along the minor
+     * axis (i.e. the axis orthoginal to the axis along with it tiles).  
+     * This is implemented
+     * to provide the superclass behavior and then adjust it if the 
+     * CSS width or height attribute is specified and applicable to
+     * the axis.
+     */
+    protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
+	SizeRequirements rr = super.calculateMinorAxisRequirements(axis, r);
+	adjustSizeForCSS(axis, rr);
+	return rr;
+    }
+
+    /**
+     * Adjust the given requirements to the CSS width or height if
+     * it is specified along the applicable axis.
+     */
+    /*protected*/ void adjustSizeForCSS(int axis, SizeRequirements r) {
+	if (axis == X_AXIS) {
+	    Object widthValue = attr.getAttribute(CSS.Attribute.WIDTH);
+	    if (widthValue != null) {
+		int width = (int) ((CSS.LengthValue)widthValue).getValue();
+		r.minimum = r.preferred = width;
+		r.maximum = Math.max(r.maximum, width);
+	    }
+	} else {
+	    Object heightValue = attr.getAttribute(CSS.Attribute.HEIGHT);
+	    if (heightValue != null) {
+		int height = (int) ((CSS.LengthValue)heightValue).getValue();
+		r.minimum = r.preferred = height;
+		r.maximum = Math.max(r.maximum, height);
+	    }
+	}
     }
 
     /**
@@ -108,10 +158,20 @@ public class BlockView extends BoxView  {
 	}
     }
 
+    public void changedUpdate(DocumentEvent changes, Shape a, ViewFactory f) {
+	super.changedUpdate(changes, a, f);
+	int pos = changes.getOffset();
+	if (pos <= getStartOffset() && (pos + changes.getLength()) >=
+	    getEndOffset()) {
+	    setPropertiesFromAttributes();
+	}
+    }
+
     /**
      * Update any cached values that come from attributes.
      */
     protected void setPropertiesFromAttributes() {
+	attr = getStyleSheet().getViewAttributes(this);
 	if (attr != null) {
 	    setInsets((short) painter.getInset(TOP, this),
 		      (short) painter.getInset(LEFT, this),

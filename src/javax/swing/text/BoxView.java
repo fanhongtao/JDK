@@ -1,10 +1,10 @@
 /*
- * @(#)BoxView.java	1.23 98/08/26
+ * @(#)BoxView.java	1.32 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -20,15 +20,17 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.SizeRequirements;
 
 /**
- * A view of a text model that arranges its children into a
- * box.  It might be useful to represent something like a 
- * collection of lines, paragraphs, list items, chunks of text,
- * etc.  The box is somewhat like that found in TeX where
+ * A view that arranges its children into a box 
+ * shape by tiling it's children along an axis.
+ * The box is somewhat like that found in TeX where
  * there is alignment of the children, flexibility of the
- * children is considered, etc.
+ * children is considered, etc.  This is considered an
+ * useful building block that might be useful to represent 
+ * things like a collection of lines, paragraphs, lists,
+ * columns, pages, etc.
  *
  * @author  Timothy Prinzing
- * @version 1.23 08/26/98
+ * @version 1.32 04/22/99
  */
 public class BoxView extends CompositeView {
 
@@ -41,6 +43,49 @@ public class BoxView extends CompositeView {
     public BoxView(Element elem, int axis) {
 	super(elem);
 	this.axis = axis;
+	xOffsets = new int[0];
+	xSpans = new int[0];
+	xValid = false;
+	xAllocValid = false;
+	yOffsets = new int[0];
+	ySpans = new int[0];
+	yValid = false;
+	yAllocValid = false;
+    }
+
+    /**
+     * Fetch the axis property.
+     *
+     * @return the major axis of the box, either 
+     *  View.X_AXIS or View.Y_AXIS.
+     */
+    /*public*/ int getAxis() {
+	return axis;
+    }
+
+    /**
+     * Set the axis property.
+     *
+     * @param axis either View.X_AXIS or View.Y_AXIS
+     */
+    /*public*/void setAxis(int axis) {
+	this.axis = axis;
+	preferenceChanged(null, true, true);
+    }
+
+    /**
+     * Invalidate the layout along an axis.  This happens
+     * automatically if the preferences have changed for
+     * any of the child views.  In some cases the layout
+     * may need to be recalculated when the preferences
+     * have not changed.
+     */
+    /*public*/void layoutChanged(int axis) {
+	if (axis == X_AXIS) {
+	    xAllocValid = false;
+	} else {
+	    yAllocValid = false;
+	}
     }
 
     /**
@@ -58,7 +103,10 @@ public class BoxView extends CompositeView {
     }
 
     /**
-     * Invalidates the layout and resizes the cache of requests/allocations.
+     * Invalidates the layout and resizes the cache of 
+     * requests/allocations.  The child allocations can still
+     * be accessed for the old layout, but the new children
+     * will have an offset and span of 0.
      *
      * @param offset the starting offset into the child views >= 0
      * @param length the number of existing views to replace >= 0
@@ -68,14 +116,74 @@ public class BoxView extends CompositeView {
 	super.replace(offset, length, elems);
 
 	// invalidate cache 
-	xOffsets = null;
-	xSpans = null;
+	int nInserted = elems.length;
+	xOffsets = updateLayoutArray(xOffsets, offset, nInserted);
+	xSpans = updateLayoutArray(xSpans, offset, nInserted);
 	xValid = false;
 	xAllocValid = false;
-	yOffsets = null;
-	ySpans = null;
+	yOffsets = updateLayoutArray(xOffsets, offset, nInserted);
+	ySpans = updateLayoutArray(xSpans, offset, nInserted);
 	yValid = false;
 	yAllocValid = false;
+    }
+
+    /**
+     * Resize the given layout array to match the new number of
+     * child views.  The current number of child views are used to
+     * produce the new array.  The contents of the old array are
+     * inserted into the new array at the appropriate places so that
+     * the old layout information is transferred to the new array.
+     */
+    int[] updateLayoutArray(int[] oldArray, int offset, int nInserted) {
+	int n = getViewCount();
+	int[] newArray = new int[n];
+
+	System.arraycopy(oldArray, 0, newArray, 0, offset);
+	System.arraycopy(oldArray, offset, 
+			 newArray, offset + nInserted, n - nInserted - offset);
+	return newArray;
+    }
+
+    /**
+     * Forward the given DocumentEvent to the child views
+     * that need to be notified of the change to the model.
+     * If a child changed it's requirements and the allocation
+     * was valid prior to forwarding the portion of the box
+     * from the starting child to the end of the box will
+     * be repainted.
+     *
+     * @param ec changes to the element this view is responsible
+     *  for (may be null if there were no changes).
+     * @param e the change information from the associated document
+     * @param a the current allocation of the view
+     * @param f the factory to use to rebuild if the view has children
+     * @see #insertUpdate
+     * @see #removeUpdate
+     * @see #changedUpdate     
+     */
+    /*protected*/ void forwardUpdate(DocumentEvent.ElementChange ec, 
+				     DocumentEvent e, Shape a, ViewFactory f) {
+	boolean wasValid = isAllocationValid();
+	super.forwardUpdate(ec, e, a, f);
+
+	// determine if a repaint is needed
+	if (wasValid && (! isAllocationValid())) {
+	    // repaint is needed
+	    Component c = getContainer();
+	    if ((a != null) && (c != null)) {
+		int pos = e.getOffset();
+		int index = getViewIndexAtPosition(pos);
+		Rectangle alloc = getInsideAllocation(a);
+		if (axis == X_AXIS) {
+		    alloc.x += xOffsets[index];
+		    alloc.width -= xSpans[index];
+		} else {
+		    alloc.y += yOffsets[index];
+		    alloc.height -= ySpans[index];
+		}
+		c.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
+	    }
+	}
     }
 
     // --- View methods ---------------------------------------------
@@ -148,14 +256,16 @@ public class BoxView extends CompositeView {
 	if ((! xAllocValid) || (! yAllocValid)) {
 	    this.width = (int) width;
 	    this.height = (int) height;
-	    layout((int) (this.width - getLeftInset() - getRightInset()), 
-		   (int) (this.height - getTopInset() - getBottomInset()));
+	    layout(this.width - getLeftInset() - getRightInset(), 
+		   this.height - getTopInset() - getBottomInset());
 	}
     }
 
     /**
-     * Renders using the given rendering surface and area on that
-     * surface.
+     * Renders using the given rendering surface and area 
+     * on that surface.  Only the children that intersect
+     * the clip bounds of the given Graphics will be
+     * rendered.
      *
      * @param g the rendering surface to use
      * @param allocation the allocated region to render into
@@ -177,6 +287,33 @@ public class BoxView extends CompositeView {
 		paintChild(g, alloc, i);
 	    }
 	}
+    }
+
+    /**
+     * Fetches the allocation for the given child view. 
+     * This enables finding out where various views
+     * are located.  This is implemented to return null
+     * if the layout is invalid, otherwise the
+     * superclass behavior is executed.
+     *
+     * @param index the index of the child, >= 0 && < getViewCount()
+     * @param a  the allocation to this view.
+     * @return the allocation to the child
+     */
+    public Shape getChildAllocation(int index, Shape a) {
+	if (a != null) {
+	    Shape ca = super.getChildAllocation(index, a);
+	    if ((ca != null) && (! isAllocationValid())) {
+		// The child allocation may not have been set yet.
+		Rectangle r = (ca instanceof Rectangle) ? 
+		    (Rectangle) ca : ca.getBounds();
+		if ((r.width == 0) && (r.height == 0)) {
+		    return null;
+		}
+	    }
+	    return ca;
+	}
+	return null;
     }
 
     /**
@@ -316,211 +453,6 @@ public class BoxView extends CompositeView {
 	}
     }
 
-    /**
-     * Gives notification that something was inserted into the document
-     * in a location that this view is responsible for.
-     *
-     * @param e the change information from the associated document
-     * @param a the current allocation of the view
-     * @param f the factory to use to rebuild if the view has children
-     * @see View#insertUpdate
-     */
-    public void insertUpdate(DocumentEvent e, Shape a, ViewFactory f) {
-	Element elem = getElement();
-	DocumentEvent.ElementChange ec = e.getChange(elem);
-	boolean shouldForward = true;
-	if (ec != null) {
-	    // the structure of this element changed.
-	    Element[] removedElems = ec.getChildrenRemoved();
-	    Element[] addedElems = ec.getChildrenAdded();
-	    View[] added = new View[addedElems.length];
-	    for (int i = 0; i < addedElems.length; i++) {
-		added[i] = f.create(addedElems[i]);
-	    }
-	    int index = ec.getIndex();
-	    replace(index, removedElems.length, added);
-	    if (added.length > 0) {
-		int pos = e.getOffset();
-		// Check if need to forward to left child
-		// NOTE: If we do forward we use null as the shape as we are
-		// going to invoke preferenceChanged, which will make our
-		// size invalid.
-		if (index > 0) {
-		    Element child = elem.getElement(index - 1);
-		    if (child.getEndOffset() >= pos) {
-			View v = getViewAtPosition(child.getStartOffset(),
-						   null);
-			if (v != null) {
-			    v.insertUpdate(e, null, f);
-			}
-		    }
-		}
-		// Check if need to forward to right child.
-		if ((index + added.length) < getViewCount()) {
-		    Element child = elem.getElement(index + added.length);
-		    int start = child.getStartOffset();
-		    if (start >= pos && start <= (pos + e.getLength())) {
-			View v = getViewAtPosition(child.getStartOffset(),
-						   null);
-			if (v != null) {
-			    v.insertUpdate(e, null, f);
-			}
-		    }
-		}
-		// No need to forward, we have already done it.
-		shouldForward = false;
-	    }
-	    // should damge a little more intelligently.
-	    if (a != null) {
-		preferenceChanged(null, true, true);
-		getContainer().repaint();
-	    }
-	}
-
-	// find and forward if there is anything there to 
-	// forward to.  If children were removed then there was
-	// a replacement of the removal range and there is no
-	// need to forward.
-
-	// PENDING(prinz) fixup DocumentEvent to provide more
-	// info so forwarding can be properly done.
-	if (shouldForward) {
-	    Rectangle alloc = ((a != null) && isAllocationValid()) ? 
-		getInsideAllocation(a) : null;
-	    int pos = e.getOffset();
-	    View v = getViewAtPosition(pos, alloc);
-	    if (v != null) {
-		if ((v.getStartOffset() == pos) && (pos > 0)) {
-		    // If v is at a boundry, forward the event to the previous
-		    // view too.
-		    Rectangle allocCopy = ((a != null) &&
-					   isAllocationValid()) ? 
-			getInsideAllocation(a) : null;
-		    View previousView = getViewAtPosition(pos - 1, allocCopy);
-		    if(previousView != v && previousView != null) {
-			previousView.insertUpdate(e, allocCopy, f);
-		    }
-		}
-		v.insertUpdate(e, alloc, f);
-	    }
-	}
-    }
-
-    /**
-     * Gives notification that something was removed from the document
-     * in a location that this view is responsible for.
-     *
-     * @param e the change information from the associated document
-     * @param a the current allocation of the view
-     * @param f the factory to use to rebuild if the view has children
-     * @see View#removeUpdate
-     */
-    public void removeUpdate(DocumentEvent e, Shape a, ViewFactory f) {
-	Element elem = getElement();
-	DocumentEvent.ElementChange ec = e.getChange(elem);
-	boolean shouldForward = true;
-	if (ec != null) {
-	    Element[] removedElems = ec.getChildrenRemoved();
-	    Element[] addedElems = ec.getChildrenAdded();
-	    View[] added = new View[addedElems.length];
-	    for (int i = 0; i < addedElems.length; i++) {
-		added[i] = f.create(addedElems[i]);
-	    }
-	    replace(ec.getIndex(), removedElems.length, added);
-	    if (added.length != 0) {
-		shouldForward = false;
-	    }
-
-	    // should damge a little more intelligently.
-	    if (a != null) {
-		preferenceChanged(null, true, true);
-		getContainer().repaint();
-	    }
-	}
-
-	// find and forward if there is anything there to 
-	// forward to.  If children were added then there was
-	// a replacement of the removal range and there is no
-	// need to forward.
-	if (shouldForward) {
-	    Rectangle alloc = ((a != null) && isAllocationValid()) ? 
-		getInsideAllocation(a) : null;
-	    int pos = e.getOffset();
-	    View v = getViewAtPosition(pos, alloc);
-	    if (v != null) {
-		if ((v.getStartOffset() == pos) && (pos > 0)) {
-		    // If v is at a boundry, forward the event to the previous
-		    // view too.
-		    Rectangle allocCopy = ((a != null) &&
-					   isAllocationValid()) ? 
-			                    getInsideAllocation(a) : null;
-		    View previousView = getViewAtPosition(pos - 1, allocCopy);
-		    if(previousView != v && previousView != null) {
-			previousView.removeUpdate(e, allocCopy, f);
-		    }
-		}
-		v.removeUpdate(e, alloc, f);
-	    }
-	}
-    }
-
-    /**
-     * Gives notification from the document that attributes were changed
-     * in a location that this view is responsible for.
-     *
-     * @param e the change information from the associated document
-     * @param a the current allocation of the view
-     * @param f the factory to use to rebuild if the view has children
-     * @see View#changedUpdate
-     */
-    public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
-	Element elem = getElement();
-
-        // forward
-	Rectangle alloc = ((a != null) && isAllocationValid()) ? 
-	    getInsideAllocation(a) : null;
-	int x = 0;
-	int y = 0;
-	int width = 0;
-	int height = 0;
-	if (alloc != null) {
-	    x = alloc.x;
-	    y = alloc.y;
-	    width = alloc.width;
-	    height = alloc.height;
-	}
-	int index0 = elem.getElementIndex(e.getOffset());
-	int index1 = elem.getElementIndex(e.getOffset() + Math.max(e.getLength() - 1, 0));
-	for (int i = index0; i <= index1; i++) {
-	    View v = getView(i);
-	    if (alloc != null) {
-		alloc.x = x + xOffsets[i];
-		alloc.y = y + yOffsets[i];
-		alloc.width = xSpans[i];
-		alloc.height = ySpans[i];
-	    }
-	    v.changedUpdate(e, alloc, f);
-	}
-
-	// replace children if necessary.
-	DocumentEvent.ElementChange ec = e.getChange(elem);
-	if (ec != null) {
-	    Element[] removedElems = ec.getChildrenRemoved();
-	    Element[] addedElems = ec.getChildrenAdded();
-	    View[] added = new View[addedElems.length];
-	    for (int i = 0; i < addedElems.length; i++) {
-		added[i] = f.create(addedElems[i]);
-	    }
-	    replace(ec.getIndex(), removedElems.length, added);
-	}
-	
-	if ((a != null) && ! isAllocationValid()) {
-	    // size changed
-	    Component c = getContainer();
-	    c.repaint(x, y, width, height);
-	}
-    }
-
     // --- local methods ----------------------------------------------------
 
     /**
@@ -636,15 +568,6 @@ public class BoxView extends CompositeView {
     protected void layout(int width, int height) {
 	checkRequests();
 
-	// rebuild the allocation arrays if they've been removed
-	// due to a change in child count.
-	if (xSpans == null) {
-	    int n = getViewCount();
-	    xSpans = new int[n];
-	    ySpans = new int[n];
-	    xOffsets = new int[n];
-	    yOffsets = new int[n];
-	}
 	if (axis == X_AXIS) {
 	    if (! xAllocValid) {
 		layoutMajorAxis(width, X_AXIS, xOffsets, xSpans);
@@ -863,7 +786,7 @@ public class BoxView extends CompositeView {
 	    }
 	    */
 	    offsets[i] = totalBelow - below;
-	    spans[i] = (int) (below + above);
+	    spans[i] = below + above;
 	}
     }
 
@@ -885,7 +808,7 @@ public class BoxView extends CompositeView {
 	if (r == null) {
 	    r = new SizeRequirements();
 	}
-	r.preferred = (int) (totalAbove + totalBelow);
+	r.preferred = totalAbove + totalBelow;
 	if (resizeWeight != 0) {
 	    r.maximum = Integer.MAX_VALUE;
 	    r.minimum = 0;

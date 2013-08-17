@@ -1,5 +1,5 @@
 /*
- * @(#)ReplicateScaleFilter.java	1.5 98/09/21
+ * @(#)ReplicateScaleFilter.java	1.7 99/04/26
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -33,7 +33,7 @@ import java.awt.Rectangle;
  * @see FilteredImageSource
  * @see ImageFilter
  *
- * @version	1.5 09/21/98
+ * @version	1.7 04/26/99
  * @author 	Jim Graham
  */
 public class ReplicateScaleFilter extends ImageFilter {
@@ -53,6 +53,11 @@ public class ReplicateScaleFilter extends ImageFilter {
      * @param height the target height to scale the image
      */
     public ReplicateScaleFilter(int width, int height) {
+        if (width == 0 || height == 0) {
+            throw new IllegalArgumentException("Width ("+width+
+                                                ") and height ("+height+
+                                                ") must be non-zero");
+        }
 	destWidth = width;
 	destHeight = height;
     }

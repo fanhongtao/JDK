@@ -1,7 +1,7 @@
 /*
- * @(#)CheckboxGroup.java	1.24 98/09/21
+ * @(#)CheckboxGroup.java	1.26 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -38,7 +38,7 @@ package java.awt;
  * <img src="doc-files/CheckboxGroup-1.gif"
  * ALIGN=center HSPACE=10 VSPACE=7> 
  * <p>
- * @version 	1.24 09/21/98
+ * @version 	1.26 04/22/99
  * @author 	Sami Shaio
  * @see         java.awt.Checkbox
  * @since       JDK1.0
@@ -93,8 +93,10 @@ public class CheckboxGroup implements java.io.Serializable {
      * This method sets the state of that check box to "on" and 
      * sets all other check boxes in the group to be off.
      * <p>
-     * If the check box argument is <code>null</code> or belongs to a 
-     * different check box group, then this method does nothing. 
+     * If the check box argument is <tt>null</tt>, all check boxes 
+     * in this check box group are deselected. If the check box argument 
+     * belongs to a different check box group, this method does 
+     * nothing. 
      * @param     box   the <code>Checkbox</code> to set as the
      *                      current selection.
      * @see      java.awt.Checkbox

@@ -1,10 +1,10 @@
 /*
- * @(#)TreeMap.java	1.30 98/09/30
+ * @(#)TreeMap.java	1.33 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -62,7 +62,7 @@ package java.util;
  * future.
  *
  * @author  Josh Bloch and Doug Lea
- * @version 1.30, 09/30/98
+ * @version 1.33, 04/22/99
  * @see Map
  * @see HashMap
  * @see Hashtable
@@ -200,8 +200,9 @@ public class TreeMap extends AbstractMap
      * @since JDK1.2
      */
     public boolean containsValue(Object value) {
-        return (value==null ? valueSearchNull(root)
-        		    : valueSearchNonNull(root, value));
+        return (root==null ? false :
+                (value==null ? valueSearchNull(root)
+        		     : valueSearchNonNull(root, value)));
     }
 
     private boolean valueSearchNull(Entry n) {
@@ -779,6 +780,8 @@ public class TreeMap extends AbstractMap
 
     private class SubMap extends AbstractMap
     			 implements SortedMap, java.io.Serializable {
+        private static final long serialVersionUID = -6520786458950516097L;
+
         /**
          * fromKey is significant only if fromStart is false.  Similarly,
          * toKey is significant only if toStart is false.
@@ -1418,7 +1421,7 @@ public class TreeMap extends AbstractMap
     }
 
 
-
+    private static final long serialVersionUID = 919286545866124006L;
 
     /**
      * Save the state of the <tt>TreeMap</tt> instance to a stream (i.e.,

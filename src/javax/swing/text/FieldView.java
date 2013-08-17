@@ -1,5 +1,5 @@
 /*
- * @(#)FieldView.java	1.14 98/09/11
+ * @(#)FieldView.java	1.15 98/10/29
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -27,7 +27,7 @@ import javax.swing.event.*;
  * current visibility settings of the JTextField.
  *
  * @author  Timothy Prinzing
- * @version 1.14 09/11/98
+ * @version 1.15 10/29/98
  * @see     View
  */
 public class FieldView extends PlainView {
@@ -82,8 +82,14 @@ public class FieldView extends PlainView {
 	    if (c instanceof JTextField) {
 		JTextField field = (JTextField) c;
 		BoundedRangeModel vis = field.getHorizontalVisibility();
-		vis.setMaximum(Math.max(hspan, bounds.width));
-		vis.setExtent(bounds.width - 1);
+		int max = Math.max(hspan, bounds.width);
+		int value = vis.getValue();
+		int extent = Math.min(max, bounds.width - 1);
+		if ((value + extent) > max) {
+		    value = max - extent;
+		}
+		vis.setRangeProperties(value, extent, vis.getMinimum(),
+				       max, false);
 		if (hspan < bounds.width) {
 		    // horizontally align the interior
 		    int slop = bounds.width - 1 - hspan;
@@ -126,6 +132,11 @@ public class FieldView extends PlainView {
 	    int maximum = Math.max(hspan, extent);
 	    extent = (extent == 0) ? maximum : extent;
 	    int value = maximum - extent;
+	    int oldValue = vis.getValue();
+	    if ((oldValue + extent) > maximum) {
+		oldValue = maximum - extent;
+	    }
+	    value = Math.max(0, Math.min(value, oldValue));
 	    vis.setRangeProperties(value, extent, 0, maximum, false);
 	}
     }

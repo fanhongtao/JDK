@@ -1,5 +1,5 @@
 /*
- * @(#)DigestOutputStream.java	1.23 98/06/29
+ * @(#)DigestOutputStream.java	1.24 98/12/03
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -39,9 +39,9 @@ import java.io.ByteArrayOutputStream;
  * @see MessageDigest
  * @see DigestInputStream
  *
- * @version 1.23 00/05/10
- * @author Benjamin Renaud */
-
+ * @version 1.24 98/12/03
+ * @author Benjamin Renaud
+ */
 public class DigestOutputStream extends FilterOutputStream {
 
     private boolean on = true;

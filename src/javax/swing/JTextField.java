@@ -1,5 +1,5 @@
 /*
- * @(#)JTextField.java	1.57 98/08/28
+ * @(#)JTextField.java	1.58 98/09/01
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -135,7 +135,7 @@ public class UpperCaseField extends JTextField {
  *   attribute: isContainer false
  *
  * @author  Timothy Prinzing
- * @version 1.57 08/28/98
+ * @version 1.58 09/01/98
  * @see #setActionCommand
  * @see JPasswordField
  */
@@ -566,9 +566,6 @@ public class JTextField extends JTextComponent implements SwingConstants {
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JTextField.
      */

@@ -1,10 +1,10 @@
 /*
- * @(#)Frame.java	1.94 98/09/09
+ * @(#)Frame.java	1.96 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -45,7 +45,7 @@ import java.lang.ref.WeakReference;
  * WindowOpened, WindowClosing, WindowClosed, WindowIconified,
  * WindowDeiconified, WindowActivated, WindowDeactivated.
  *
- * @version 	1.94, 09/09/98
+ * @version 	1.96, 04/22/99
  * @author 	Sami Shaio
  * @see WindowEvent
  * @see Window#addWindowListener
@@ -423,8 +423,9 @@ public class Frame extends Window implements MenuContainer {
 
     /**
      * Sets the state of this frame.
-     * @return   state   <code>Frame.ICONIFIED</code> if frame in iconic state;
-     *                   <code>Frame.NORMAL</code> if frame is in normal state.
+     * @param  state <code>Frame.ICONIFIED</code> if this frame is in 
+     *           iconic state; <code>Frame.NORMAL</code> if this frame is 
+     *           in normal state.
      * @see      java.awt.Frame#getState
      */
     public synchronized void setState(int state) {
@@ -437,8 +438,8 @@ public class Frame extends Window implements MenuContainer {
 
     /**
      * Gets the state of this frame.
-     * @param    <code>Frame.ICONIFIED</code> if this frame is in iconic state;
-     *           <code>Frame.NORMAL</code> if this frame is in normal state.
+     * @return   <code>Frame.ICONIFIED</code> if frame in iconic state;
+     *           <code>Frame.NORMAL</code> if frame is in normal state.
      * @see      java.awt.Frame#setState
      */
     public synchronized int getState() {

@@ -1,10 +1,10 @@
 /*
- * @(#)BitSet.java	1.34 98/05/06
+ * @(#)BitSet.java	1.39 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -36,7 +36,7 @@ import java.io.*;
  *
  * @author  Arthur van Hoff
  * @author  Michael McCloskey
- * @version 1.34, 05/06/98
+ * @version 1.39, 00/04/06
  * @since   JDK1.0
  */
 public class BitSet implements Cloneable, java.io.Serializable {
@@ -53,12 +53,18 @@ public class BitSet implements Cloneable, java.io.Serializable {
      * The bits in this BitSet.  The ith bit is stored in bits[i/64] at
      * bit position i % 64 (where bit position 0 refers to the least
      * significant bit and 63 refers to the most significant bit).
+     * INVARIANT: The words in bits[] above unitInUse-1 are zero.
      *
      * @serial
      */
     private long bits[];  // this should be called unit[]
 
-    private transient int unitsInUse; //# of units in logical size
+    /**
+     * The number of units in the logical size of this BitSet.
+     * INVARIANT: unitsInUse is nonnegative.
+     * INVARIANT: bits[unitsInUse-1] is nonzero unless unitsInUse is zero.
+     */
+    private transient int unitsInUse = 0;
 
     /* use serialVersionUID from JDK 1.0.2 for interoperability */
     private static final long serialVersionUID = 7997698588986878753L;
@@ -132,7 +138,8 @@ public class BitSet implements Cloneable, java.io.Serializable {
 
     /**
      * Returns the "logical size" of this <code>BitSet</code>: the index of
-     * the highest set bit in the <code>BitSet</code> plus one.
+     * the highest set bit in the <code>BitSet</code> plus one. Returns zero
+     * if the <code>BitSet</code> contains no set bits.
      *
      * @return  the logical size of this <code>BitSet</code>.
      * @since   JDK1.2
@@ -188,7 +195,7 @@ public class BitSet implements Cloneable, java.io.Serializable {
 	    return;
 
 	bits[unitIndex] &= ~bit(bitIndex);
-        if (unitIndex == unitsInUse-1)
+        if (bits[unitsInUse-1] == 0)
             recalculateUnitsInUse();
     }
 
@@ -248,14 +255,18 @@ public class BitSet implements Cloneable, java.io.Serializable {
 
 	// perform logical AND on bits in common
 	int oldUnitsInUse = unitsInUse;
+	unitsInUse = Math.min(unitsInUse, set.unitsInUse);
         int i;
-	unitsInUse = Math.min(unitsInUse,set.unitsInUse);
 	for(i=0; i<unitsInUse; i++)
 	    bits[i] &= set.bits[i];
 
 	// clear out units no longer used
 	for( ; i < oldUnitsInUse; i++)
 	    bits[i] = 0;
+
+        // Recalculate units in use if necessary
+        if (unitsInUse > 0 && bits[unitsInUse - 1] == 0)
+            recalculateUnitsInUse();
     }
 
     /**

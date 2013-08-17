@@ -1,10 +1,10 @@
 /*
- * @(#)JDialog.java	1.36 98/08/28
+ * @(#)JDialog.java	1.43 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -80,7 +80,7 @@ import java.applet.Applet;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window for creating dialog boxes.
  *
- * @version 1.36 08/28/98
+ * @version 1.43 04/22/99
  * @author David Kloba
  * @author James Gosling
  * @author Scott Violet
@@ -221,7 +221,7 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
     /** Called by the constructors to init the JDialog properly. */
     protected void dialogInit() {
-        enableEvents(AWTEvent.WINDOW_EVENT_MASK);
+        enableEvents(AWTEvent.KEY_EVENT_MASK | AWTEvent.WINDOW_EVENT_MASK);
         setRootPane(createRootPane());
         setRootPaneCheckingEnabled(true);
     }
@@ -229,6 +229,21 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
     /** Called by the constructor methods to create the default rootPane. */
     protected JRootPane createRootPane() {
         return new JRootPane();
+    }
+
+    /** 
+     * Processes key events occurring on this component and, if appropriate,
+     * passes them on to components in the dialog which have registered 
+     * interest in them.
+     *
+     * @param  e  the key event
+     * @see    java.awt.Component#processKeyEvent
+     */   
+    protected void processKeyEvent(KeyEvent e) {
+        super.processKeyEvent(e);
+        if(!e.isConsumed()) {
+            JComponent.processKeyBindingsForAllComponents(e,this,e.getID() == KeyEvent.KEY_PRESSED);
+        }
     }
 
     /**
@@ -248,6 +263,9 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
               case DISPOSE_ON_CLOSE:
                  setVisible(false);
                  dispose();
+                 break;
+              case 3:
+                 System.exit(0);
                  break;
               case DO_NOTHING_ON_CLOSE:
                  default: 
@@ -269,6 +287,8 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      * invoking any registered WindowListener objects
      * <li>DISPOSE_ON_CLOSE - automatically hide and dispose the 
      * dialog after invoking any registered WindowListener objects
+     * <li>EXIT_ON_CLOSE - Exit the application by way of System.exit.
+     * Only use this in applications.
      * </ul>
      * <p>
      * The value is set to HIDE_ON_CLOSE by default.
@@ -388,6 +408,21 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
         else {
             super.addImpl(comp, constraints, index);
         }
+    }
+
+    /** 
+     * Removes the specified component from this container.
+     * @param comp the component to be removed
+     * @see #add
+     */
+    public void remove(Component comp) {
+	if (comp == rootPane) {
+	    super.remove(comp);
+	} else {
+	    // Client mistake, but we need to handle it to avoid a
+	    // common object leak in client applications.
+	    getContentPane().remove(comp);
+	}
     }
 
 
@@ -569,8 +604,33 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
             setLocation((screenSize.width - paneSize.width) / 2,
                         (screenSize.height - paneSize.height) / 2);
         } else {
-            Dimension           invokerSize = c.getSize();
-            Point               invokerScreenLocation = c.getLocationOnScreen();
+            Dimension invokerSize = c.getSize();
+            Point invokerScreenLocation;
+
+            // If this method is called directly after a call to
+            // setLocation() on the "root", getLocationOnScreen()
+            // may return stale results (Bug#4181562), so we walk
+            // up the tree to calculate the position instead
+            // (unless "root" is an applet, where we cannot walk
+            // all the way up to a toplevel window)
+            //
+            if (root instanceof Applet) {
+                invokerScreenLocation = c.getLocationOnScreen();
+            } else {
+                invokerScreenLocation = new Point(0,0);
+                Component tc = c;
+                while (tc != null) {
+                    Point tcl = tc.getLocation();
+                    invokerScreenLocation.x += tcl.x;
+                    invokerScreenLocation.y += tcl.y;
+                    if (tc == root) {
+                        break;
+                    }
+                    tc = tc.getParent();  
+                }              
+            }                
+
+
             Rectangle           dialogBounds = getBounds();
             int                 dx = invokerScreenLocation.x+((invokerSize.width-dialogBounds.width)>>1);
             int                 dy = invokerScreenLocation.y+((invokerSize.height - dialogBounds.height)>>1);
@@ -595,9 +655,6 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JDialog.
      */
@@ -609,6 +666,8 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
             defaultCloseOperationString = "DISPOSE_ON_CLOSE";
         } else if (defaultCloseOperation == DO_NOTHING_ON_CLOSE) {
             defaultCloseOperationString = "DO_NOTHING_ON_CLOSE";
+        } else if (defaultCloseOperation == 3) {
+            defaultCloseOperationString = "EXIT_ON_CLOSE";
         } else defaultCloseOperationString = "";
 	String rootPaneString = (rootPane != null ?
 				 rootPane.toString() : "");
@@ -850,7 +909,7 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
          *
          * @param f the Font
          * @return the FontMetrics, if supported, the object; otherwise, null
-         * @see getFont
+         * @see #getFont
          */
         public FontMetrics getFontMetrics(Font f) {
             return JDialog.this.getFontMetrics(f);

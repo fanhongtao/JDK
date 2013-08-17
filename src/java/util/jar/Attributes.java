@@ -1,10 +1,10 @@
 /*
- * @(#)Attributes.java	1.26 98/07/23
+ * @(#)Attributes.java	1.29 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -31,7 +31,7 @@ import java.util.Iterator;
  * characters and will be UTF8-encoded when written to the output stream.
  *
  * @author  David Connelly
- * @version 1.26, 07/23/98
+ * @version 1.29, 04/22/99
  * @see	    Manifest
  * @since   JDK1.2
  */
@@ -120,7 +120,7 @@ public class Attributes implements Map, Cloneable {
      *            or the value is not a String
      */
     public Object put(Object name, Object value) {
-	return map.put(name, value);
+        return map.put((Attributes.Name)name, (String)value);
     }
 
     /**
@@ -176,8 +176,13 @@ public class Attributes implements Map, Cloneable {
      * Attributes to this Map. Duplicate mappings will be replaced.
      *
      * @param attr the Attributes to be stored in this map
+     * @exception IllegalArgumentException if attr is not a Attributes instance
      */
     public void putAll(Map attr) {
+        if (!(attr instanceof Attributes)) {
+            throw new IllegalArgumentException
+                ("attr is not instance of Attributes");
+        }
 	map.putAll(attr);
     }
 
@@ -440,21 +445,101 @@ public class Attributes implements Map, Cloneable {
 	    return name;
 	}
 
-	/**
-	 * Some predefined attribute names.
-	 */
-        public static final Name
-	    MANIFEST_VERSION       = new Name("Manifest-Version"),
-	    SIGNATURE_VERSION      = new Name("Signature-Version"),
-	    CONTENT_TYPE           = new Name("Content-Type"),
-	    CLASS_PATH             = new Name("Class-Path"),
-	    MAIN_CLASS		   = new Name("Main-Class"),
-	    SEALED         	   = new Name("Sealed"),
-	    IMPLEMENTATION_TITLE   = new Name("Implementation-Title"),
-	    IMPLEMENTATION_VERSION = new Name("Implementation-Version"),
-	    IMPLEMENTATION_VENDOR  = new Name("Implementation-Vendor"),
-	    SPECIFICATION_TITLE    = new Name("Specification-Title"),
-	    SPECIFICATION_VERSION  = new Name("Specification-Version"),
-	    SPECIFICATION_VENDOR   = new Name("Specification-Vendor");
+        /**
+         * <code>Name</code> object for <code>Manifest-Version</code> 
+         * manifest attribute. This attribute indicates the version number 
+         * of the manifest standard to which a JAR file's manifest conforms.
+         * @see <a href="../../../../guide/jar/manifest.html">
+         *      Manifest and Signature Specification</a>
+         */ 
+        public static final Name MANIFEST_VERSION = new Name("Manifest-Version");
+
+        /**
+         * <code>Name</code> object for <code>Signature-Version</code> 
+         * manifest attribute used when signing JAR files.
+         * @see <a href="../../../../guide/jar/manifest.html">
+         *      Manifest and Signature Specification</a>
+         */             
+        public static final Name SIGNATURE_VERSION = new Name("Signature-Version");
+
+        /**
+         * <code>Name</code> object for <code>Content-Type</code> 
+         * manifest attribute.
+         */               
+        public static final Name CONTENT_TYPE = new Name("Content-Type");
+
+        /**
+         * <code>Name</code> object for <code>Class-Path</code> 
+         * manifest attribute. Bundled extensions can use this attribute 
+         * to find other JAR files containing needed classes.
+         * @see <a href="../../../../guide/extensions/spec.html#bundled">
+         *      Extensions Specification</a>
+         */   
+        public static final Name CLASS_PATH = new Name("Class-Path");
+
+        /**
+         * <code>Name</code> object for <code>Main-Class</code> manifest 
+         * attribute used for launching applications packaged in JAR files. 
+         * The <code>Main-Class</code> attribute is used in conjunction 
+         * with the <code>-jar</code> command-line option of the 
+         * <tt>java</tt> application launcher.
+         */ 
+        public static final Name MAIN_CLASS = new Name("Main-Class");
+
+        /**
+         * <code>Name</code> object for <code>Sealed</code> manifest attribute 
+         * used for sealing.
+         * @see <a href="../../../../guide/extensions/spec.html#sealing">
+         *      Extension Sealing</a>
+         */ 
+        public static final Name SEALED = new Name("Sealed");
+
+        /**
+         * <code>Name</code> object for <code>Implementation-Title</code> 
+         * manifest attribute used for package versioning.
+         * @see <a href="../../../../guide/versioning/spec/VersioningSpecification.html#PackageVersioning">
+         *      Java Product Versioning Specification</a>
+         */
+        public static final Name IMPLEMENTATION_TITLE = new Name("Implementation-Title");
+
+        /**
+         * <code>Name</code> object for <code>Implementation-Version</code> 
+         * manifest attribute used for package versioning.
+         * @see <a href="../../../../guide/versioning/spec/VersioningSpecification.html#PackageVersioning">
+         *      Java Product Versioning Specification</a>
+         */
+        public static final Name IMPLEMENTATION_VERSION = new Name("Implementation-Version");
+
+        /**
+         * <code>Name</code> object for <code>Implementation-Vendor</code> 
+         * manifest attribute used for package versioning.
+         * @see <a href="../../../../guide/versioning/spec/VersioningSpecification.html#PackageVersioning">
+         *      Java Product Versioning Specification</a>
+         */
+        public static final Name IMPLEMENTATION_VENDOR = new Name("Implementation-Vendor");
+
+        /**
+         * <code>Name</code> object for <code>Specification-Title</code> 
+         * manifest attribute used for package versioning.
+         * @see <a href="../../../../guide/versioning/spec/VersioningSpecification.html#PackageVersioning">
+         *      Java Product Versioning Specification</a>
+         */
+        public static final Name SPECIFICATION_TITLE = new Name("Specification-Title");
+
+        /**
+         * <code>Name</code> object for <code>Specification-Version</code> 
+         * manifest attribute used for package versioning.
+         * @see <a href="../../../../guide/versioning/spec/VersioningSpecification.html#PackageVersioning">
+         *      Java Product Versioning Specification</a>
+         */
+        public static final Name SPECIFICATION_VERSION = new Name("Specification-Version");
+
+        /**
+         * <code>Name</code> object for <code>Specification-Vendor</code> 
+         * manifest attribute used for package versioning.
+         * @see <a href="../../../../guide/versioning/spec/VersioningSpecification.html#PackageVersioning">
+         *      Java Product Versioning Specification</a>
+         */
+        public static final Name SPECIFICATION_VENDOR = new Name("Specification-Vendor");
     }
 }

@@ -1,10 +1,10 @@
 /*
- * @(#)BasicLookAndFeel.java	1.139 98/08/28
+ * @(#)BasicLookAndFeel.java	1.144 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -51,7 +51,7 @@ import javax.swing.text.DefaultEditorKit;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.139 08/28/98
+ * @version 1.144 04/22/99
  * @author unattributed
  */
 public abstract class BasicLookAndFeel extends LookAndFeel implements Serializable
@@ -366,6 +366,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    }
 	};
 
+	Object menuItemAcceleratorDelimiter = new String("+");
 
 	// *** OptionPane value objects
 
@@ -412,7 +413,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
 	// ** TabbedBane value objects
 
-        Object tabbedPaneTabInsets = new InsetsUIResource(2, 4, 2, 4);
+        Object tabbedPaneTabInsets = new InsetsUIResource(0, 4, 1, 4);
 
         Object tabbedPaneTabPadInsets = new InsetsUIResource(2, 2, 2, 1);
 
@@ -501,7 +502,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "ColorChooser.rgbBlueMnemonic", new Integer(KeyEvent.VK_B),
 
 	    // *** ComboBox
-            "ComboBox.font", dialogPlain12,
+            "ComboBox.font", sansSerifPlain12,
             "ComboBox.background", white/*table.get("text")*/,
             "ComboBox.foreground", black/*table.get("TextText")*/,
             "ComboBox.selectionBackground", table.get("textHighlight"),
@@ -583,6 +584,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "MenuItem.disabledForeground", null,
 	    "MenuItem.acceleratorForeground", table.get("menuText"),
 	    "MenuItem.acceleratorSelectionForeground", table.get("textHighlightText"),
+	    "MenuItem.acceleratorDelimiter", menuItemAcceleratorDelimiter,
 	    "MenuItem.border", marginBorder,
 	    "MenuItem.borderPainted", Boolean.FALSE,
 	    "MenuItem.margin", new InsetsUIResource(2, 2, 2, 2),
@@ -671,8 +673,11 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "ProgressBar.cellSpacing", new Integer(0),
 
            // *** Separator
-            "Separator.shadow", table.get("controlShadow"),
-            "Separator.highlight", table.get("controlLtHighlight"),
+            "Separator.shadow", table.get("controlShadow"),          // DEPRECATED - DO NOT USE!
+            "Separator.highlight", table.get("controlLtHighlight"),  // DEPRECATED - DO NOT USE!
+
+            "Separator.background", table.get("controlLtHighlight"),
+            "Separator.foreground", table.get("controlShadow"),
 
 	    // *** ScrollBar/ScrollPane/Viewport
 	    "ScrollBar.background", scrollBarTrack,

@@ -1,10 +1,10 @@
 /*
- * @(#)ActivationGroup.java	1.24 98/09/24
+ * @(#)ActivationGroup.java	1.27 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -17,6 +17,7 @@ package java.rmi.activation;
 import java.lang.reflect.Constructor;
 
 import java.net.URL;
+import java.net.MalformedURLException;
 import java.rmi.MarshalledObject;
 import java.rmi.Naming;
 import java.rmi.activation.UnknownGroupException;
@@ -25,6 +26,8 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.RMIClassLoader;
+import java.security.PrivilegedExceptionAction;
+import java.security.PrivilegedActionException;
 
 import sun.security.action.GetIntegerAction;
 
@@ -80,7 +83,7 @@ import sun.security.action.GetIntegerAction;
  * manager you would like to install.
  *
  * @author 	Ann Wollrath
- * @version	1.24, 09/24/98
+ * @version	1.27, 04/22/99
  * @see 	ActivationInstantiator
  * @see		ActivationGroupDesc
  * @see		ActivationGroupID
@@ -259,7 +262,7 @@ public abstract class ActivationGroup
      */
     public static synchronized
     	ActivationGroup createGroup(ActivationGroupID id,
-				    ActivationGroupDesc desc,
+				    final ActivationGroupDesc desc,
 				    long incarnation)
 	throws ActivationException 
     {
@@ -277,11 +280,30 @@ public abstract class ActivationGroup
 	try {
 	    try {
 		// load group's class
-		String className = desc.getClassName();
-		Class cl;
+		final String className = desc.getClassName();
 		
-		cl = RMIClassLoader.loadClass(desc.getLocation(), className);
-	
+		/*
+		 * Fix for 4170955: Because the default group
+		 * implementation is a sun.* class, the group class
+		 * needs to be loaded in a privileged block of code.  
+		 */
+		Class cl;
+		try {
+		    cl = (Class) java.security.AccessController.
+			doPrivileged(new PrivilegedExceptionAction() {
+			    public Object run() throws ClassNotFoundException, 
+				MalformedURLException 
+			    {
+				return RMIClassLoader.
+				    loadClass(desc.getLocation(), className);
+			    }
+			});
+		} catch (PrivilegedActionException pae) {
+		    throw new ActivationException("Could not load default group " + 
+						  "implementation class", 
+						  pae.getException());
+		}
+		
 		// create group
 		Constructor constructor = cl.getConstructor(groupConstrParams);
 		Object[] params = new Object[] { id, desc.getData() };
@@ -310,7 +332,7 @@ public abstract class ActivationGroup
 	    } catch (Exception e) {
 		throw new ActivationException("exception creating group", e);
 	    }
-	    
+
 	} catch (ActivationException e) {
 	    destroyGroup();
 	    canCreate = true;

@@ -1,10 +1,10 @@
 /*
- * @(#)SecurityManager.java	1.104 98/10/06
+ * @(#)SecurityManager.java	1.107 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -189,7 +189,7 @@ import java.net.URL;
  * @author  Arthur van Hoff
  * @author  Roland Schemers
  *
- * @version 1.104, 10/06/98
+ * @version 1.107, 04/22/99
  * @see     java.lang.ClassLoader
  * @see     java.lang.SecurityException
  * @see     java.lang.SecurityManager#checkTopLevelWindow(java.lang.Object)
@@ -717,6 +717,9 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkAccess(ThreadGroup g) {
+	if (g == null) {
+	    throw new NullPointerException("thread group can't be null");
+	}
 	if (g == rootGroup) {
 	    if (threadGroupPermission == null)
 		threadGroupPermission = 
@@ -815,6 +818,9 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkLink(String lib) {
+	if (lib == null) {
+	    throw new NullPointerException("library can't be null");
+	}
         checkPermission(new RuntimePermission("loadLibrary."+lib));
     }
 
@@ -839,6 +845,9 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkRead(FileDescriptor fd) {
+	if (fd == null) {
+	    throw new NullPointerException("file descriptor can't be null");
+	}
       	checkPermission(new RuntimePermission("readFileDescriptor"));
     }
 
@@ -920,6 +929,9 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkWrite(FileDescriptor fd) {
+	if (fd == null) {
+	    throw new NullPointerException("file descriptor can't be null");
+	}
       	checkPermission(new RuntimePermission("writeFileDescriptor"));
 
     }
@@ -1000,6 +1012,9 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkConnect(String host, int port) {
+	if (host == null) {
+	    throw new NullPointerException("host can't be null");
+	}
 	if (port == -1) {
 	    checkPermission(new SocketPermission(host,"resolve"));
 	} else {
@@ -1043,6 +1058,9 @@ class SecurityManager {
      * @see        java.security.AccessControlContext#checkPermission(java.security.Permission)
      */
     public void checkConnect(String host, int port, Object context) {
+	if (host == null) {
+	    throw new NullPointerException("host can't be null");
+	}
 	if (context instanceof AccessControlContext) {
 	    if (port == -1) {
 		((AccessControlContext)context).checkPermission(
@@ -1114,6 +1132,9 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkAccept(String host, int port) {
+	if (host == null) {
+	    throw new NullPointerException("host can't be null");
+	}
 	checkPermission(new SocketPermission(host+":"+port,"accept"));
     }
 
@@ -1255,6 +1276,9 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public boolean checkTopLevelWindow(Object window) {
+	if (window == null) {
+	    throw new NullPointerException("window can't be null");
+	}
 	try {
 	if (topLevelWindowPermission == null)
 	    topLevelWindowPermission =
@@ -1396,6 +1420,9 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkPackageAccess(String pkg) {
+	if (pkg == null) {
+	    throw new NullPointerException("package name can't be null");
+	}
 	for (int i = 0; i < packageAccess.length; i++) {
 	    if (pkg.startsWith(packageAccess[i]) ||
 		(pkg.equals(packageAccess[i]))) {
@@ -1434,6 +1461,9 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkPackageDefinition(String pkg) {
+	if (pkg == null) {
+	    throw new NullPointerException("package name can't be null");
+	}
 	for (int i = 0; i < packageDefinition.length; i++) {
 	    if (pkg.startsWith(packageDefinition[i]) ||
 		pkg.equals(packageDefinition[i])) {
@@ -1499,6 +1529,9 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkMemberAccess(Class clazz, int which) {
+	if (clazz == null) {
+	    throw new NullPointerException("class can't be null");
+	}
 	if (which != Member.PUBLIC) {
 	    Class stack[] = getClassContext();
 	    /*

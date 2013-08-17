@@ -1,10 +1,10 @@
 /*
- * @(#)TextMeasurer.java	1.6 98/03/12
- * 
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * @(#)TextMeasurer.java	1.21 99/04/22
+ *
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -57,9 +57,6 @@ import java.util.Map;
  * @see LineBreakMeasurer
  */
 
- // TO DO:  figure out how to 'recycle' TextLayoutComponents during line break,
- // and get rid of redundant AttributedString
-
 class TextMeasurer {
 
     private FontRenderContext fFrc;
@@ -69,23 +66,21 @@ class TextMeasurer {
     // characters in source text
     private char[] fChars;
 
-    // our copy of the text - eliminate when we can reuse TextLayoutComponents
-    private AttributedString fText;
-    private TextLine.FontSource fFontSource;
+    // Bidi for this paragraph
+    private Bidi fBidi;
 
-    // TextLabelFactory used on this line
-    private TextLabelFactory fFactory;
+    // Levels array for chars in this paragraph - needed to reorder
+    // trailing counterdirectional whitespace
+    private byte[] fLevels;
 
     // glyph arrays in logical order
     private TextLineComponent[] fComponents;
 
     // paragraph data - same across all layouts
     private boolean fIsDirectionLTR;
-
     private byte fBaseline;
     private float[] fBaselineOffsets;
-
-    private float fJustifyRatio;
+    private float fJustifyRatio = 1;
 
     /**
      * Construct a TextMeasurer from the source text.  The source text
@@ -96,24 +91,6 @@ class TextMeasurer {
 
         fFrc = frc;
         initSelf(text);
-    }
-
-    private static AttributedString createAttrString(
-                                        AttributedCharacterIterator text,
-                                        char[] chars) {
-
-        String string = new String(chars);
-        int textStart = text.getBeginIndex();
-        AttributedString attrString = new AttributedString(string);
-        for (char c = text.first(); 
-                    c != text.DONE; 
-                    c = text.setIndex(text.getRunLimit())) {
-            
-            Map attrs = text.getAttributes();
-            attrString.addAttributes(attrs, text.getRunStart()-textStart, text.getRunLimit()-textStart);
-        }
-
-        return attrString;
     }
 
     private void initSelf(AttributedCharacterIterator text) {
@@ -128,25 +105,127 @@ class TextMeasurer {
             fChars[n++] = c;
         }
 
-        //fText = new AttributedString(text);
-        fText = createAttrString(text, fChars);
-        fFontSource = new TextLine.ACIFontSource(fText.getIterator());
-
-        // make factory
-        Bidi bidi = new Bidi(fChars);
-        fIsDirectionLTR = bidi.isDirectionLTR();
-        fFactory = new TextLabelFactory(fFrc, fChars, bidi);
-
         TextLine.FontSource fontSource = new TextLine.ACIFontSource(text);
-        int[] charsLtoV = bidi.getLogicalToVisualMap();
-        byte[] levels = bidi.getLevels();
+
+        fIsDirectionLTR = true;
+
+        boolean requiresBidi = false;
+        boolean directionKnown = false;
+        byte[] embs = null;
+
+        text.first();
+        Map attributes = text.getAttributes();
+        if (attributes != null) {
+          try {
+            Boolean runDirection = (Boolean)attributes.get(TextAttribute.RUN_DIRECTION);
+            if (runDirection != null) {
+              directionKnown = true;
+              fIsDirectionLTR = TextAttribute.RUN_DIRECTION_LTR.equals(runDirection);
+              requiresBidi = !fIsDirectionLTR;
+            }
+          }
+          catch (ClassCastException e) {
+          }
+
+	  try {
+	    Float justifyLF = (Float)attributes.get(TextAttribute.JUSTIFICATION);
+	    if (justifyLF != null) {
+	      fJustifyRatio = justifyLF.floatValue();
+
+	      if (fJustifyRatio < 0) {
+                fJustifyRatio = 0;
+	      } else if (fJustifyRatio > 1) {
+                fJustifyRatio = 1;
+	      }
+	    }
+	  }
+	  catch (ClassCastException e) {
+	  }
+        }
+
+        int begin = text.getBeginIndex();
+        int end = text.getEndIndex();
+        int pos = begin;
+        byte level = 0;
+        byte baselevel = (byte)((directionKnown && !fIsDirectionLTR) ? 1 : 0);
+        do {
+          text.setIndex(pos);
+          attributes = text.getAttributes();
+          Object embeddingLevel = attributes.get(TextAttribute.BIDI_EMBEDDING);
+          int newpos = text.getRunLimit(TextAttribute.BIDI_EMBEDDING);
+
+          if (embeddingLevel != null) {
+            try {
+              int intLevel = ((Integer)embeddingLevel).intValue();
+              if (intLevel >= -15 && intLevel < 16) {
+                level = (byte)intLevel;
+                if (embs == null) {
+                  embs = new byte[fChars.length];
+                  requiresBidi = true;
+                  if (!directionKnown) {
+                    directionKnown = true;
+                    fIsDirectionLTR = Bidi.defaultIsLTR(fChars, 0, fChars.length);
+                    baselevel = (byte)(fIsDirectionLTR ? 0 : 1);
+                  }
+                  if (!fIsDirectionLTR) {
+                    for (int i = 0; i < pos - begin; ++i) {
+                      embs[i] = baselevel; // set initial level if rtl, already 0 so ok if ltr
+                    }
+                  }
+                }
+              }
+            }
+            catch (ClassCastException e) {
+            }
+          } else {
+            if (embs != null) {
+              level = baselevel;
+            }
+          }
+          if (embs != null && level != 0) {
+            for (int i = pos - begin; i < newpos - begin; ++i) {
+              embs[i] = level;
+            }
+          }
+
+          pos = newpos;
+        } while (pos < end);
+        
+        if (!requiresBidi) {
+          for (int i = 0; i < fChars.length; i++) {
+            if (Bidi.requiresBidi(fChars[i])) {
+              requiresBidi = true;
+              break;
+            }
+          }
+        }
+
+        if (requiresBidi) {
+          if (!directionKnown) {
+            fIsDirectionLTR = Bidi.defaultIsLTR(fChars, 0, fChars.length);
+          }
+          if (embs == null) {
+            embs = Bidi.getEmbeddingArray(fChars, fIsDirectionLTR);
+          }
+
+          fBidi = new Bidi(fChars, embs, fIsDirectionLTR);
+        }
+
+        TextLabelFactory factory = new TextLabelFactory(fFrc, fChars, fBidi);
+
+        int[] charsLtoV = null;
+        fLevels = null;
+        if (fBidi != null) {
+	    charsLtoV = fBidi.getLogicalToVisualMap();
+	    fLevels = fBidi.getLevels();
+        }
 
         fComponents = TextLine.getComponents(
-            fFontSource, fChars, 0, fChars.length, charsLtoV, levels, fFactory, null);
+            fontSource, fChars, 0, fChars.length, charsLtoV, fLevels, factory);
 
-        Font firstFont = fFontSource.fontAt(0);
+        Font firstFont = fontSource.fontAt(0);
         if (firstFont == null) {
-            firstFont = fFontSource.getBestFontAt(0);
+            firstFont = fontSource.getBestFontAt(0);
         }
 
         LineMetrics lm = firstFont.getLineMetrics(fChars, 0, 1, fFrc);
@@ -190,6 +269,149 @@ class TextMeasurer {
     }
 
     /**
+     * According to the Unicode Bidirectional Behavior specification
+     * (Unicode Standard 2.0, section 3.11), whitespace at the ends
+     * of lines which would naturally flow against the base direction
+     * must be made to flow with the line direction, and moved to the
+     * end of the line.  This method returns the start of the sequence
+     * of trailing whitespace characters to move to the end of a
+     * line taken from the given range.
+     */
+    private int trailingCdWhitespaceStart(int startPos, int limitPos) {
+
+        int cdWsStart = limitPos;
+
+        if (fLevels != null) {
+            // Back up over counterdirectional whitespace
+            final byte baseLevel = (byte) (fIsDirectionLTR? 0 : 1); 
+            for (cdWsStart = limitPos-1; cdWsStart >= startPos; cdWsStart--) {
+                if ((fLevels[cdWsStart] % 2) == baseLevel || 
+                        Bidi.getDirectionCode(fChars[cdWsStart]) != Bidi.WS) {
+                    cdWsStart++;
+                    break;
+                }
+            }
+        }
+
+        return cdWsStart;
+    }
+
+    private TextLineComponent[] makeComponentsOnRange(int startPos, 
+                                                      int limitPos) {
+
+        // sigh I really hate to do this here since it's part of the
+        // bidi algorithm.
+        // cdWsStart is the start of the trailing counterdirectional
+        // whitespace
+        final int cdWsStart = trailingCdWhitespaceStart(startPos, limitPos);
+
+        int tlcIndex;
+        int tlcStart = 0;
+
+        for (tlcIndex = 0; tlcIndex < fComponents.length; tlcIndex++) {
+            int gaLimit = tlcStart + fComponents[tlcIndex].getNumCharacters();
+            if (gaLimit > startPos) {
+                break;
+            }
+            else {
+                tlcStart = gaLimit;
+            }
+        }
+
+        // tlcStart is now the start of the tlc at tlcIndex
+
+        int componentCount;
+        {
+            boolean split = false;
+            int compStart = tlcStart;
+            int lim=tlcIndex;
+            for (boolean cont=true; cont; lim++) {
+                int gaLimit = compStart + fComponents[lim].getNumCharacters();
+                if (cdWsStart > Math.max(compStart, startPos) 
+                            && cdWsStart < Math.min(gaLimit, limitPos)) {
+                    split = true;
+                }
+                if (gaLimit >= limitPos) {
+                    cont=false;
+                }
+                else {
+                    compStart = gaLimit;
+                }
+            }
+            componentCount = lim-tlcIndex;
+            if (split) {
+                componentCount++;
+            }
+        }
+
+        TextLineComponent[] components = new TextLineComponent[componentCount];
+        int newCompIndex = 0;
+        int linePos = startPos;
+
+        int breakPt = cdWsStart;
+
+        int subsetFlag;
+        if (breakPt == startPos) {
+            subsetFlag = fIsDirectionLTR? TextLineComponent.LEFT_TO_RIGHT :
+                                          TextLineComponent.RIGHT_TO_LEFT;
+            breakPt = limitPos;
+        }
+        else {
+            subsetFlag = TextLineComponent.UNCHANGED;
+        }
+
+        while (linePos < limitPos) {
+            
+            int compLength = fComponents[tlcIndex].getNumCharacters();
+            int tlcLimit = tlcStart + compLength;
+
+            int start = Math.max(linePos, tlcStart);
+            int limit = Math.min(breakPt, tlcLimit);
+            
+            components[newCompIndex++] = fComponents[tlcIndex].getSubset(
+                                                                start-tlcStart,
+                                                                limit-tlcStart,
+                                                                subsetFlag);
+            linePos += (limit-start);
+            if (linePos == breakPt) {
+                breakPt = limitPos;
+                subsetFlag = fIsDirectionLTR? TextLineComponent.LEFT_TO_RIGHT :
+                                              TextLineComponent.RIGHT_TO_LEFT;
+            }
+            if (linePos == tlcLimit) {
+                tlcIndex++;
+                tlcStart = tlcLimit;
+            }
+        }
+
+        return components;
+    }
+
+    private TextLine makeTextLineOnRange(int startPos, int limitPos) {
+
+        int[] charsLtoV = null;
+        byte[] charLevels = null;
+
+        if (fBidi != null) {
+            Bidi lineBidi = fBidi.createLineBidi(startPos, limitPos);
+            charsLtoV = lineBidi.getLogicalToVisualMap();
+            charLevels = lineBidi.getLevels();
+        }
+
+        TextLineComponent[] components = makeComponentsOnRange(startPos, limitPos);
+
+        return new TextLine(components, 
+                            fBaselineOffsets,
+                            fChars,
+                            startPos,
+                            limitPos,
+                            charsLtoV,
+                            charLevels,
+                            fIsDirectionLTR);
+
+    }
+
+    /**
      * Accumulate the advances of the characters at and after start,
      * until a character is reached whose advance would equal or
      * exceed maxAdvance. Return the index of that character.
@@ -214,10 +436,10 @@ class TextMeasurer {
      * @return the sum of the advances of the range of characters.
      */
     public float getAdvanceBetween(int start, int limit) {
-        // REMIND jk df (need a real implementation)
-        // jr Or do we?  Is there really a better way to do this?
-        TextLayout hack = getLayout(start, limit);
-        return hack.getAdvance();
+        
+        TextLine line = makeTextLineOnRange(start - fStart, limit - fStart);
+        return line.getMetrics().advance;
+        // could cache line in case getLayout is called with same start, limit
     }
 
     /**
@@ -231,9 +453,7 @@ class TextMeasurer {
      */
     public TextLayout getLayout(int start, int limit) {
         
-        TextLine textLine = TextLine.createLineFromText(fChars, 
-                                start-fStart, limit-fStart, fFontSource, 
-                                fFactory, fIsDirectionLTR, fBaselineOffsets);
+        TextLine textLine = makeTextLineOnRange(start-fStart, limit-fStart);
 
         return new TextLayout(
                         textLine, fBaseline, fBaselineOffsets, fJustifyRatio);

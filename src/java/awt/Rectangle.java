@@ -1,10 +1,10 @@
 /*
- * @(#)Rectangle.java	1.45 98/10/19
+ * @(#)Rectangle.java	1.47 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -529,7 +529,11 @@ public class Rectangle extends Rectangle2D
 	int x2 = Math.min(x + width, r.x + r.width);
 	int y1 = Math.max(y, r.y);
 	int y2 = Math.min(y + height, r.y + r.height);
-	return new Rectangle(x1, y1, x2 - x1, y2 - y1);
+        if (((x2 - x1) < 0) || ((y2 - y1) < 0))
+            // Width or height is negative. No intersection.
+            return new Rectangle(0,0,0,0);
+        else
+	    return new Rectangle(x1, y1, x2 - x1, y2 - y1);
     }
 
     /**

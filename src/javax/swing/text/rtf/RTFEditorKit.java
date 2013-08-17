@@ -1,10 +1,10 @@
 /*
- * @(#)RTFEditorKit.java	1.6 98/08/26
+ * @(#)RTFEditorKit.java	1.8 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -22,11 +22,13 @@ import javax.swing.text.*;
 import javax.swing.*;
 
 /**
- * This is the default implementation of rtf editing
- * functionality.
+ * This is the default implementation of RTF editing
+ * functionality.  The RTF support was not written by the 
+ * Swing team.  In the future we hope to improve the support
+ * provided.
  *
- * @author  Timothy Prinzing
- * @version 1.6 08/26/98
+ * @author  Timothy Prinzing (of this class, not the package!)
+ * @version 1.8 04/22/99
  */
 public class RTFEditorKit extends StyledEditorKit {
 
@@ -81,7 +83,8 @@ public class RTFEditorKit extends StyledEditorKit {
 	    rdr.readFromStream(in);
 	    rdr.close();
 	} else {
-	    throw new IOException("Document must be StyledDocument");
+	    // treat as text/plain
+	    super.read(in, doc, pos);
 	}
     }
 
@@ -121,7 +124,14 @@ public class RTFEditorKit extends StyledEditorKit {
     public void read(Reader in, Document doc, int pos)
 	throws IOException, BadLocationException {
 
-	throw new IOException("RTF is an 8-bit format");
+	if (doc instanceof StyledDocument) {
+	    RTFReader rdr = new RTFReader((StyledDocument) doc);
+	    rdr.readFromReader(in);
+	    rdr.close();
+	} else {
+	    // treat as text/plain
+	    super.read(in, doc, pos);
+	}
     }
 
     /**

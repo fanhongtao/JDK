@@ -1,10 +1,10 @@
 /*
- * @(#)DropTargetContext.java	1.13 98/05/02
+ * @(#)DropTargetContext.java	1.24 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -39,25 +39,27 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * <p>
- * A DropTargetContext is created whenever the logical cursor associated
- * with a Drag and Drop operation coincides with the visibel geometry of
- * a Component, with an associated DropTarget.
- * The DropTargetContext provides the mechanism for a potential receiver
- * of a Drop operation to both provide the end userr with the appropriate
+ * A <code>DropTargetContext</code> is created 
+ * whenever the logical cursor associated
+ * with a Drag and Drop operation coincides with the visible geometry of
+ * a <code>Component</code> associated with a <code>DropTarget</code>.
+ * The <code>DropTargetContext</code> provides 
+ * the mechanism for a potential receiver
+ * of a drop operation to both provide the end user with the appropriate
  * drag under feedback, but also to effect the subsequent data transfer
  * if appropriate.
- * </p>
  *
  * @version 1.8
  * @since JDK1.2
- *
  */
 
 public class DropTargetContext {
 
     /**
-     * Construct a DropTargetContext
+     * Construct a <code>DropTargetContext</code> 
+     * given a specified <code>DropTarget</code>.
+     * <P>
+     * @param dt the DropTarget to associate with
      */
 
     DropTargetContext(DropTarget dt) {
@@ -67,19 +69,27 @@ public class DropTargetContext {
     }
 
     /**
-     * @return the DropTarget associated with this Context
+     * This method returns the <code>DropTarget</code> associated with this
+     * <code>DropTargetContext</code>.
+     * <P>
+     * @return the <code>DropTarget</code> associated with this <code>DropTargetContext</code>
      */
 
     public DropTarget getDropTarget() { return dropTarget; }
 
     /**
+     * This method returns the <code>Component</code> associated with
+     * this <code>DropTargetContext</code>.
+     * <P>
      * @return the Component associated with this Context
      */
 
     public Component getComponent() { return dropTarget.getComponent(); }
 
     /**
-     * called when associated with the DropTargetContextPeer
+     * Called when associated with the <code>DropTargetContextPeer</code>.
+     * <P>
+     * @param dtcp the <code>DropTargetContextPeer</code>
      */
 
     public synchronized void addNotify(DropTargetContextPeer dtcp) {
@@ -87,7 +97,7 @@ public class DropTargetContext {
     }
 
     /**
-     * called when disassociated with the DropTargetContextPeer
+     * Called when disassociated with the <code>DropTargetContextPeer</code>.
      */
 
     public synchronized void removeNotify() {
@@ -96,7 +106,10 @@ public class DropTargetContext {
     }
 
     /**
-     * set the current actions acceptable to this DropTarget
+     * This method sets the current actions acceptable to 
+     * this <code>DropTarget</code>.
+     * <P>
+     * @param actions an <code>int</code> representing the supported action(s)
      */
 
     protected void setTargetActions(int actions) {
@@ -104,7 +117,10 @@ public class DropTargetContext {
     }
 
     /**
-     * @return the current actions acceptable to this DropTarget
+     * This method returns an <code>int</code> representing the 
+     * current actions this <code>DropTarget</code> will accept.
+     * <P>
+     * @return the current actions acceptable to this <code>DropTarget</code>
      */
 
     protected int getTargetActions() {
@@ -115,7 +131,12 @@ public class DropTargetContext {
     }
 
     /**
-     * signal that the drop is completed and if it was successful or not
+     * This method signals that the drop is completed and 
+     * if it was successful or not.
+     * <P>
+     * @param success true for success, false if not
+     * <P>
+     * @throws InvalidDnDOperationException if a drop is not outstanding/extant
      */
 
     public void dropComplete(boolean success) throws InvalidDnDOperationException{
@@ -124,7 +145,9 @@ public class DropTargetContext {
     }
 
     /**
-     * accept the Drag
+     * accept the Drag.
+     * <P>
+     * @param dragOperation the supported action(s)
      */
 
     protected void acceptDrag(int dragOperation) {
@@ -132,7 +155,7 @@ public class DropTargetContext {
     }
 
     /**
-     * reject the Drag
+     * reject the Drag.
      */
 
     protected void rejectDrag() {
@@ -140,8 +163,11 @@ public class DropTargetContext {
     }
 
     /**
-     * called to signal that the drop is acceptable using the specified operation.
+     * called to signal that the drop is acceptable
+     * using the specified operation.
      * must be called during DropTargetListener.drop method invocation.
+     * <P>
+     * @param dropOperation the supported action(s)
      */
 
     protected void acceptDrop(int dropOperation) {
@@ -158,15 +184,25 @@ public class DropTargetContext {
     }
 
     /**
-     * get the available DataFlavors of the Transferable operand of this operation
+     * get the available DataFlavors of the 
+     * <code>Transferable</code> operand of this operation.
+     * <P>
+     * @return a <code>DataFlavor[]</code> containing the
+     * supported <code>DataFlavor</code>s of the 
+     * <code>Transferable</code> operand.
      */
 
     protected DataFlavor[] getCurrentDataFlavors() {
 	return dropTargetContextPeer != null ? dropTargetContextPeer.getTransferDataFlavors() : new DataFlavor[0];
     }
 
-    /**
-     * @return the currently available DataFlavors as a java.util.List
+    /** 
+     * This method returns a the currently available DataFlavors 
+     * of the <code>Transferable</code> operand
+     * as a <code>java.util.List</code>.
+     * <P>
+     * @return the currently available 
+     * DataFlavors as a <code>java.util.List</code>
      */
 
     protected List getCurrentDataFlavorsAsList() {
@@ -174,7 +210,13 @@ public class DropTargetContext {
     }
 
     /**
-     * @return if the DataFlavor specified is supported by the source
+     * This method returns a <code>boolean</code> 
+     * indicating if the given <code>DataFlavor</code> is
+     * supported by this <code>DropTargetContext</code>.
+     * <P>
+     * @param df the <code>DataFlavor</code>
+     * <P>
+     * @return if the <code>DataFlavor</code> specified is supported
      */
 
     protected boolean isDataFlavorSupported(DataFlavor df) {
@@ -183,6 +225,10 @@ public class DropTargetContext {
 
     /**
      * get the Transferable (proxy) operand of this operation
+     * <P>
+     * @throws InvalidDnDOperationException if a drag is not outstanding/extant
+     * <P>
+     * @return the <code>Transferable</code>
      */
 
     protected synchronized Transferable getTransferable() throws InvalidDnDOperationException {
@@ -198,6 +244,8 @@ public class DropTargetContext {
     }
 
     /**
+     * Get the <code>DropTargetContextPeer</code>
+     * <P>
      * @return the platform peer
      */
 
@@ -207,6 +255,11 @@ public class DropTargetContext {
 
     /**
      * subclasses may override this to supply their own Proxy Transferable
+     * <P>
+     * @param t the <code>Transferable</code>
+     * @param local <code>boolean</code>
+     * <P>
+     * @return the <code>Transferable</code>
      */
 
     protected Transferable createTransferableProxy(Transferable t, boolean local) {
@@ -215,14 +268,25 @@ public class DropTargetContext {
 
 /****************************************************************************/
 
-    /*
-     * private nested class to provide Remote Transferable proxy ...
+  
+    /**
+     * The <code>TransferableProxy</code> is a 
+     * nested helper class that
+     * supports the <code>DropTargetContext</code> 
+     * in managing the transfer of data.
+     * In particular it provides automatic 
+     * support for the de-serialization
+     * of application/x-java-serialized-object 
+     * <code>DatFlavor</code>s.
      */
 
     protected class TransferableProxy implements Transferable {
 
 	/**
          * construct the proxy
+         * <P>
+         * @param t the <code>Transferable</code>
+         * @param local is local?
          */
 
  	TransferableProxy(Transferable t, boolean local) {
@@ -232,6 +296,8 @@ public class DropTargetContext {
 
 	/** 
          * get the flavors
+         * <P>
+         * @return the <code>DataFlavor</code> array
          */
 
 	public synchronized DataFlavor[] getTransferDataFlavors() {
@@ -240,6 +306,11 @@ public class DropTargetContext {
 
 	/**
          * check if a particular flavor is supported?
+         * <P>
+         * @param flavor the <code>DataFlavor</code>
+         * <P>
+         * @return a <code>boolean</code> indicating if
+         * the specified <code>DataFlavor</code> is supported.
          */
 
 	public synchronized boolean isDataFlavorSupported(DataFlavor flavor) {
@@ -255,6 +326,13 @@ public class DropTargetContext {
 
 	/**
          * get the transfer data
+         * <P>
+         * @param df the <code>DataFlavor</code>
+         * <P>
+         * @throws UnsupportedFlavorException if the requested <code>DataFlavor</code> is not supported.
+         * @throws IOException if the data is no longer available in the requested flavor.
+         * <P>
+         * @return the Object
          */
 
 	public synchronized Object getTransferData(DataFlavor df) throws UnsupportedFlavorException, IOException {
@@ -294,7 +372,19 @@ public class DropTargetContext {
 	 * fields
 	 */
 
+
+        /**
+         * The "actual" <code>Transferable</code> 
+         * that the Proxy is a Proxy for,
+         * usually supplied from the underlying system.
+         */
 	protected Transferable	transferable;
+
+       /**
+        * A <code> boolean</code> indicating if 
+        * the <code>DragSource</code> is in the 
+        * same JVM as the <code>DropTarget</code>.
+        */
 	protected boolean	isLocal;
     }
 
@@ -310,3 +400,13 @@ public class DropTargetContext {
 
     private Transferable          transferable;
 }
+
+
+
+
+
+
+
+
+
+

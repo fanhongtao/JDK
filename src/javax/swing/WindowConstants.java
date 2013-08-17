@@ -1,5 +1,5 @@
 /*
- * @(#)WindowConstants.java	1.7 98/08/26
+ * @(#)WindowConstants.java	1.8 98/11/13
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -19,7 +19,7 @@ package javax.swing;
  * Constants used to control the window-closing operation.
  * For example, see {@link JFrame#setDefaultCloseOperation}
  *
- * @version 1.7 08/26/98
+ * @version 1.8 11/13/98
  * @author Amy Fowler
  */
 public interface WindowConstants
@@ -38,5 +38,13 @@ public interface WindowConstants
      * The dispose-window default window close operation
      */
     public static final int DISPOSE_ON_CLOSE = 2;
-}
 
+    /**
+     * The exit application default window close operation. If a window
+     * has this set as the close operation and is closed in an applet,
+     * a SecurityException may be thrown. It is recommended you only use
+     * this in an Application. <p>
+     * When new API is allowed this will be added.
+     */
+    // static final int EXIT_ON_CLOSE = 3;
+}

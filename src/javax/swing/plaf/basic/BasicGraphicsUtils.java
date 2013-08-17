@@ -1,10 +1,10 @@
 /*
- * @(#)BasicGraphicsUtils.java	1.42 98/08/26
+ * @(#)BasicGraphicsUtils.java	1.45 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -14,6 +14,7 @@
 package javax.swing.plaf.basic;
 
 import javax.swing.*;
+import java.awt.Component;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -26,7 +27,7 @@ import java.awt.event.KeyEvent;
 
 
 /*
- * @version 1.42 08/26/98
+ * @version 1.45 04/22/99
  * @author Hans Muller
  */
 
@@ -57,7 +58,7 @@ public class BasicGraphicsUtils
 
         g.setColor(highlight);
         g.drawLine(w-2, 1, w-2, h-3);  // inner border, right
-        g.drawLine(1, h-2, w-3, h-2);  // inner border, bottom
+        g.drawLine(1, h-2, w-2, h-2);  // inner border, bottom
 
         g.translate(-x, -y);
         g.setColor(oldColor);
@@ -292,5 +293,19 @@ public class BasicGraphicsUtils
         if(r.height % 2 == 0) { r.height += 1; }
 
         return r.getSize();
+    }
+    
+    /*
+     * Convenience function for determining ComponentOrientation.  Helps us
+     * avoid having Munge directives throughout the code.
+     */
+    static boolean isLeftToRight( Component c ) {
+        
+        return c.getComponentOrientation().isLeftToRight();
+        
+
+
+
+
     }
 }

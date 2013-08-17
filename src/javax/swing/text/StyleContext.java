@@ -1,5 +1,5 @@
 /*
- * @(#)StyleContext.java	1.56 98/09/18
+ * @(#)StyleContext.java	1.57 98/11/17
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -44,7 +44,7 @@ import javax.swing.event.ChangeEvent;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.56 09/18/98
+ * @version 1.57 11/17/98
  */
 public class StyleContext implements Serializable, AbstractDocument.AttributeContext {
 
@@ -625,13 +625,15 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
         for (int i = 0; i < n; i++) {
             Object key = in.readObject();
             Object value = in.readObject();
-            Object staticKey = thawKeyMap.get(key);
-            if (staticKey != null) {
-                key = staticKey;
-            }
-	    Object staticValue = thawKeyMap.get(value);
-	    if (staticValue != null) {
-		value = staticValue;
+	    if (thawKeyMap != null) {
+		Object staticKey = thawKeyMap.get(key);
+		if (staticKey != null) {
+		    key = staticKey;
+		}
+		Object staticValue = thawKeyMap.get(value);
+		if (staticValue != null) {
+		    value = staticValue;
+		}
 	    }
             a.addAttribute(key, value);
         }

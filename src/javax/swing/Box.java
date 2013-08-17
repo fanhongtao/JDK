@@ -1,5 +1,5 @@
 /*
- * @(#)Box.java	1.29 98/08/28
+ * @(#)Box.java	1.30 98/09/01
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -57,7 +57,7 @@ import javax.accessibility.*;
  * @see BoxLayout
  *
  * @author  Timothy Prinzing
- * @version 1.29 08/28/98
+ * @version 1.30 09/01/98
  */
 public class Box extends Container implements Accessible {
 
@@ -532,7 +532,7 @@ public class Box extends Container implements Accessible {
              * @param f the Font, null if none
              * @return the FontMetrics, if supported, the object;
              *   otherwise, null
-             * @see getFont
+             * @see #getFont
              */
             public FontMetrics getFontMetrics(Font f) {
                 return Filler.this.getFontMetrics(f);
@@ -964,7 +964,7 @@ public class Box extends Container implements Accessible {
          *
          * @param f the Font
          * @return the FontMetrics, if supported, the object; otherwise, null
-         * @see getFont
+         * @see #getFont
          */
         public FontMetrics getFontMetrics(Font f) {
 	    return Box.this.getFontMetrics(f);

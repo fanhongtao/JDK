@@ -1,10 +1,10 @@
 /*
- * @(#)Properties.java	1.49 98/07/22
+ * @(#)Properties.java	1.51 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -46,7 +46,7 @@ import java.util.Hashtable;
  *
  * @author  Arthur van Hoff
  * @author  Michael McCloskey
- * @version 1.49, 98/07/22
+ * @version 1.51, 99/04/22
  * @since   JDK1.0
  */
 public
@@ -216,7 +216,7 @@ class Properties extends Hashtable {
 
                     // Skip over whitespace after key if any
                     int valueIndex;
-                    for (valueIndex=separatorIndex+1; valueIndex<len; valueIndex++)
+                    for (valueIndex=separatorIndex; valueIndex<len; valueIndex++)
                         if (whiteSpaceChars.indexOf(line.charAt(valueIndex)) == -1)
                             break;
 

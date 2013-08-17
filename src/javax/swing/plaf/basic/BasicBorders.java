@@ -1,10 +1,10 @@
 /*
- * @(#)BasicBorders.java	1.13 98/08/26
+ * @(#)BasicBorders.java	1.15 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -30,7 +30,7 @@ import java.io.Serializable;
 
 /**
  * Factory object that can vend Borders appropriate for the basic L & F.
- * @version 1.13 08/26/98
+ * @version 1.15 04/22/99
  * @author Georges Saab
  * @author Amy Fowler
  */
@@ -233,6 +233,10 @@ public class BasicBorders {
 	    JSplitPane splitPane = (JSplitPane)c;
 	    
 	    child = splitPane.getLeftComponent();
+	    // This is needed for the space between the divider and end of
+	    // splitpane.
+	    g.setColor(c.getBackground());
+	    g.drawRect(x, y, width - 1, height - 1);
 	    if(splitPane.getOrientation() == JSplitPane.HORIZONTAL_SPLIT) {
 		if(child != null) {
 		    cBounds = child.getBounds();

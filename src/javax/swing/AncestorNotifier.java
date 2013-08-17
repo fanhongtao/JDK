@@ -1,10 +1,10 @@
 /*
- * @(#)AncestorNotifier.java	1.9 98/08/26
+ * @(#)AncestorNotifier.java	1.12 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -28,7 +28,7 @@ import java.io.Serializable;
 
 
 /**
- * @version 1.9 08/26/98
+ * @version 1.12 04/22/99
  * @author Dave Moore
  */
 
@@ -147,11 +147,14 @@ class AncestorNotifier implements ComponentListener, PropertyChangeListener, Ser
 
     void removeListeners(Component ancestor) {
 	Component a;
-	for (a = ancestor; ((a != null) && (a != firstInvisibleAncestor)); a = a.getParent()) {
+	for (a = ancestor; a != null; a = a.getParent()) {
 	    a.removeComponentListener(this);
 	    if (a instanceof JComponent) {
 		JComponent jAncestor = (JComponent)a;
 		jAncestor.removePropertyChangeListener(this);
+	    }
+	    if (a == firstInvisibleAncestor) {
+		break;
 	    }
 	}
     }
@@ -192,7 +195,7 @@ class AncestorNotifier implements ComponentListener, PropertyChangeListener, Ser
     public void propertyChange(PropertyChangeEvent evt) {
 	String s = evt.getPropertyName();
 
-	if (s.equals("parent") || s.equals("ancestor")) {
+	if (s!=null && (s.equals("parent") || s.equals("ancestor"))) {
 	    JComponent component = (JComponent)evt.getSource();
 
 	    if (evt.getNewValue() != null) {

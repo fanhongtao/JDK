@@ -1,10 +1,10 @@
 /*
- * @(#)JFileChooser.java	1.40 98/08/26
+ * @(#)JFileChooser.java	1.49 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -38,6 +38,7 @@ import java.awt.event.*;
  * The following pops up a file chooser in the users home directory that
  * only sees .jpg and .gif images:
  *    JFileChooser chooser = new JFileChooser();
+ *    // Note: source for ExtensionFileFilter can be found in the SwingSet demo
  *    ExtensionFileFilter filter = new ExtensionFileFilter();
  *    filter.addExtension("jpg");
  *    filter.addExtension("gif");
@@ -52,7 +53,7 @@ import java.awt.event.*;
  * @beaninfo
  *   attribute: isContainer false
  *
- * @version 1.40 08/26/98
+ * @version 1.49 04/22/99
  * @author Jeff Dinkins
  *
  */
@@ -115,27 +116,34 @@ public class JFileChooser extends JComponent implements Accessible {
 
     /** Instruction to display only files. */
     public static final int FILES_ONLY = 0;
+
     /** Instruction to display only directories. */
     public static final int DIRECTORIES_ONLY = 1;
+
     /** Instruction to display both files and directories. */
     public static final int FILES_AND_DIRECTORIES = 2;
 
     /** Instruction to cancel the current selection. */
     public static final String CANCEL_SELECTION = "CancelSelection";
+
     /** Instruction to approve the current selection (Same as pressing yes or ok.) */
     public static final String APPROVE_SELECTION = "ApproveSelection";
 
     /** Identifies change in the text on the approve (yes, ok) button. */
     public static final String APPROVE_BUTTON_TEXT_CHANGED_PROPERTY = "ApproveButtonTextChangedProperty";
+
     /**  Identifies change in the tooltip text for the approve (yes, ok) button . */
     public static final String APPROVE_BUTTON_TOOL_TIP_TEXT_CHANGED_PROPERTY = "ApproveButtonToolTipTextChangedProperty";
+
     /**  Identifies change in the mnemonic for the approve (yes, ok) button . */
     public static final String APPROVE_BUTTON_MNEMONIC_CHANGED_PROPERTY = "ApproveButtonMnemonicChangedProperty";
 
     /** Identifies user's directory change. */
     public static final String DIRECTORY_CHANGED_PROPERTY = "directoryChanged";
+
     /** Identifes change in user's single-file selection. */
     public static final String SELECTED_FILE_CHANGED_PROPERTY = "SelectedFileChangedProperty";
+
     /** Identifes change in user's multiple-file selection. */
     public static final String SELECTED_FILES_CHANGED_PROPERTY = "SelectedFilesChangedProperty";
 
@@ -147,6 +155,7 @@ public class JFileChooser extends JComponent implements Accessible {
 
     /** Says that a different object is being used to retrieve file information. */
     public static final String FILE_VIEW_CHANGED_PROPERTY = "fileViewChanged";
+
     /** Identifies a change in the display-hidden-files property. */
     public static final String FILE_HIDING_CHANGED_PROPERTY = "FileHidingChanged";
 
@@ -155,16 +164,22 @@ public class JFileChooser extends JComponent implements Accessible {
 
     /** Identifies a change in the kind of selection (single, multiple, etc.). */
     public static final String FILE_SELECTION_MODE_CHANGED_PROPERTY = "fileSelectionChanged";
+
     /** Says that a different accessory component is in use. (For example, to preview files.) */
     public static final String ACCESSORY_CHANGED_PROPERTY = "AccessoryChangedProperty";
 
+    /** Identifies whether a the AcceptAllFileFilter is used or not. */
+    private static final String ACCEPT_ALL_FILE_FILTER_USED_CHANGED_PROPERTY = "AcceptAllFileFilterUsedChanged";
+
     /** Identifies a change in the dialog title. */
     public static final String DIALOG_TITLE_CHANGED_PROPERTY = "DialogTitleChangedProperty";
+
     /**
      * Identifies a change in the type of files displayed (files only,
      * directories only, or both files and directories. 
      */
     public static final String DIALOG_TYPE_CHANGED_PROPERTY = "DialogTypeChangedProperty";
+
     /** 
      * Identifies a change in the list of predefined file filters
      * the user can choose from
@@ -196,6 +211,8 @@ public class JFileChooser extends JComponent implements Accessible {
     private int fileSelectionMode = FILES_ONLY;
 
     private boolean multiSelectionEnabled = false;
+
+    private boolean useAcceptAllFileFilter = true;
 
     private FileFilter fileFilter = null;
 
@@ -275,7 +292,9 @@ public class JFileChooser extends JComponent implements Accessible {
         }
 	setFileSystemView(view);
 	updateUI(); 
-	setFileFilter(getAcceptAllFileFilter());
+	if(isAcceptAllFileFilterUsed()) {
+	    setFileFilter(getAcceptAllFileFilter());
+	}
     }
 
 
@@ -298,8 +317,8 @@ public class JFileChooser extends JComponent implements Accessible {
 
     /**
      * Sets the selected file. If the file's parent directory is
-     * not the current directory, it changed the current directory
-     * to be the files parent directory.
+     * not the current directory, changes the current directory
+     * to be the file's parent directory.
      *
      * @beaninfo
      *   preferred: true
@@ -309,16 +328,23 @@ public class JFileChooser extends JComponent implements Accessible {
      *
      * @param selectedFile the selected file 
      */
-    public void setSelectedFile(File selectedFile) {
+    public void setSelectedFile(File file) {
 	// PENDING(jeff) - make sure that the file's path is
 	// in the current directory. If not, change the current
 	// directory to the file's path. 
-	File oldValue = this.selectedFile;
-	this.selectedFile = selectedFile;
+	File oldValue = selectedFile;
+	selectedFile = file;
 	if(selectedFile != null) {
+	    String parent = selectedFile.getParent();
+	    if(parent != null) {
+		File parentF = getFileSystemView().createFileObject(parent);
+		if(!parentF.equals(getCurrentDirectory())) {
+		    setCurrentDirectory(parentF);
+		} 
+	    }
 	    ensureFileIsVisible(selectedFile);
 	}
-	firePropertyChange(SELECTED_FILE_CHANGED_PROPERTY, oldValue, this.selectedFile);
+	firePropertyChange(SELECTED_FILE_CHANGED_PROPERTY, oldValue, selectedFile);
     }
 
     /**
@@ -376,24 +402,30 @@ public class JFileChooser extends JComponent implements Accessible {
      * @see #getCurrentDirectory
      */
     public void setCurrentDirectory(File dir) {
-	if((this.currentDirectory == dir) && (dir != null)) {
-	    return;
-	}
-
-	File oldValue = this.currentDirectory;
-
+	File oldValue = currentDirectory;
+	
 	if(dir == null) {
-	    this.currentDirectory = getFileSystemView().getHomeDirectory();
-	} else {
-	    File prev = null;
-	    while(!isTraversable(dir) && prev != dir && !getFileSystemView().isRoot(dir)) {
-		prev = dir;
-		dir = getFileSystemView().getParentDirectory(dir);
-	    }
-	    this.currentDirectory = dir;
+	    currentDirectory = getFileSystemView().getHomeDirectory();
+            firePropertyChange(DIRECTORY_CHANGED_PROPERTY, oldValue, currentDirectory);
+            return;
 	}
+	
+	
+	if (currentDirectory != null) {
+	    /* Verify the toString of object */
+	    if (this.currentDirectory.equals(dir)) {
+		return;
+	    }
+	}
+	
+	File prev = null;
+	while(!isTraversable(dir) && prev != dir && !getFileSystemView().isRoot(dir)) {
+	    prev = dir;
+	    dir = getFileSystemView().getParentDirectory(dir);
+	}
+	currentDirectory = dir;
 
-	firePropertyChange(DIRECTORY_CHANGED_PROPERTY, oldValue, this.currentDirectory);
+	firePropertyChange(DIRECTORY_CHANGED_PROPERTY, oldValue, currentDirectory);
     }
 
     /**
@@ -753,11 +785,12 @@ public class JFileChooser extends JComponent implements Accessible {
      * @ see #resetChoosableFileFilter
      */ 
     public void addChoosableFileFilter(FileFilter filter) {
-	if(!filters.contains(filter)) {
+	if(filter != null && !filters.contains(filter)) {
 	    FileFilter[] oldValue = getChoosableFileFilters();
 	    filters.addElement(filter);
 	    firePropertyChange(CHOOSABLE_FILE_FILTER_CHANGED_PROPERTY, oldValue, getChoosableFileFilters());
 	} 
+	setFileFilter(filter);
     }
 
     /**
@@ -770,6 +803,9 @@ public class JFileChooser extends JComponent implements Accessible {
      */ 
     public boolean removeChoosableFileFilter(FileFilter f) {
 	if(filters.contains(f)) {
+            if(getFileFilter() == f) {
+		setFileFilter(null);
+            }
 	    FileFilter[] oldValue = getChoosableFileFilters();
 	    filters.removeElement(f);
 	    firePropertyChange(CHOOSABLE_FILE_FILTER_CHANGED_PROPERTY, oldValue, getChoosableFileFilters());
@@ -780,7 +816,7 @@ public class JFileChooser extends JComponent implements Accessible {
     }
 
     /**
-     * Resets the choosable file filter list to it's starting state. Normally,
+     * Resets the choosable file filter list to its starting state. Normally,
      * this removes all added file filters while leaving the AcceptAll file filter.
      *
      * @see #addChoosableFileFilter
@@ -789,8 +825,11 @@ public class JFileChooser extends JComponent implements Accessible {
      */
     public void resetChoosableFileFilters() {
 	FileFilter[] oldValue = getChoosableFileFilters();
+	setFileFilter(null);
 	filters.removeAllElements();
-	filters.addElement(getAcceptAllFileFilter());
+	if(isAcceptAllFileFilterUsed()) {
+	   addChoosableFileFilter(getAcceptAllFileFilter());
+	}
 	firePropertyChange(CHOOSABLE_FILE_FILTER_CHANGED_PROPERTY, oldValue, getChoosableFileFilters());
     }
 
@@ -803,6 +842,33 @@ public class JFileChooser extends JComponent implements Accessible {
 	    filter = getUI().getAcceptAllFileFilter(this);
 	}
 	return filter;
+    }
+
+   /**
+    * Returns whether the AcceptAll FileFilter is used.
+    * @see setAcceptAllFileFilterUsed
+    */
+    private boolean isAcceptAllFileFilterUsed() {
+	return useAcceptAllFileFilter;
+    }
+
+   /**
+    * Determins if the AcceptAll FileFilter is used.
+    * @see isAcceptAllFileFilterUsed
+    *
+    * PENDING(jeff) make this public in next major release
+    * PENDING(jeff) fire property change event
+    */
+    private void setAcceptAllFileFilterUsed(boolean b) {
+	boolean oldValue = useAcceptAllFileFilter;
+	useAcceptAllFileFilter = b;
+	if(!b) {
+	    removeChoosableFileFilter(getAcceptAllFileFilter());
+	} else {
+	    removeChoosableFileFilter(getAcceptAllFileFilter());
+	    addChoosableFileFilter(getAcceptAllFileFilter());
+	}
+	firePropertyChange(ACCEPT_ALL_FILE_FILTER_USED_CHANGED_PROPERTY, oldValue, useAcceptAllFileFilter);
     }
 
     /**
@@ -837,7 +903,7 @@ public class JFileChooser extends JComponent implements Accessible {
     
     /**
      * Sets the FileChooser to allow the user to just select files, just select
-     * directories, or select both files and directetories.
+     * directories, or select both files and directories.
      *
      * @beaninfo
      *   preferred: true
@@ -968,6 +1034,9 @@ public class JFileChooser extends JComponent implements Accessible {
     public void setFileFilter(FileFilter filter) {
 	FileFilter oldValue = fileFilter;
 	fileFilter = filter;
+	if(selectedFile != null && fileFilter != null && !filter.accept(selectedFile)) {
+	    setSelectedFile(null);
+	}
 	firePropertyChange(FILE_FILTER_CHANGED_PROPERTY, oldValue, fileFilter);
     }
     
@@ -1227,8 +1296,7 @@ public class JFileChooser extends JComponent implements Accessible {
         setUI(ui);
 
 	uiFileView = getUI().getFileView(this);
-	boolean useAcceptAllFileFilter = removeChoosableFileFilter(getAcceptAllFileFilter());
-	if(useAcceptAllFileFilter) {
+	if(isAcceptAllFileFilterUsed()) {
 	    addChoosableFileFilter(getAcceptAllFileFilter());
 	}
     }
@@ -1275,9 +1343,6 @@ public class JFileChooser extends JComponent implements Accessible {
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JFileChooser.
      */

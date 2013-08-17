@@ -1,5 +1,5 @@
 /*
- * @(#)MotifIconFactory.java	1.15 98/08/28
+ * @(#)MotifIconFactory.java	1.17 99/02/15
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -36,7 +36,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * 1.15 08/28/98
+ * 1.17 02/15/99
  * @author Georges Saab
  */
 public class MotifIconFactory implements Serializable
@@ -124,8 +124,10 @@ public class MotifIconFactory implements Serializable
 			       (!isPressed &&
 				!isArmed  &&
 				isSelected));
-	    
-	    x += 2;
+
+            // Padding required to keep focus highlight from intersecting icon.
+            x += (MotifGraphicsUtils.isLeftToRight(c)) ? 2 : -3;
+            
 	    if (checkToggleIn)
 		{
 		    // toggled from unchecked to checked
@@ -259,7 +261,7 @@ public class MotifIconFactory implements Serializable
 	    int h = getIconHeight();
 
 	    // add pad so focus isn't smudged on the x
-	    x += 2;
+            x += (MotifGraphicsUtils.isLeftToRight(c))? 2 : -3;
 
 	    boolean isPressed = model.isPressed();
 	    boolean isArmed = model.isArmed();
@@ -359,60 +361,85 @@ public class MotifIconFactory implements Serializable
     }  // end class MenuItemArrowIcon
     
     private static class MenuArrowIcon implements Icon, UIResource, Serializable 
-{
-   private Color focus = UIManager.getColor("windowBorder");
-   private Color shadow = UIManager.getColor("controlShadow");
-   private Color highlight = UIManager.getColor("controlHighlight");
+    {
+        private Color focus = UIManager.getColor("windowBorder");
+        private Color shadow = UIManager.getColor("controlShadow");
+        private Color highlight = UIManager.getColor("controlHighlight");
 
-   public void paintIcon(Component c, Graphics g, int x, int y) {
-       AbstractButton b = (AbstractButton) c;
-       ButtonModel model = b.getModel();
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            AbstractButton b = (AbstractButton) c;
+            ButtonModel model = b.getModel();
 
-       int w = getIconWidth();
-       int h = getIconHeight();
+            int w = getIconWidth();
+            int h = getIconHeight();
 
+            Color oldColor = g.getColor();
+            // REMIND: this is a mess
 
-       Color oldColor = g.getColor();
-       // REMIND: this is a mess
+            if (model.isSelected()){
+                if( MotifGraphicsUtils.isLeftToRight(c) ){
+                    g.setColor(shadow);
+                    g.fillRect(x+1,y+1,2,h);
+                    g.drawLine(x+4,y+2,x+4,y+2);
+                    g.drawLine(x+6,y+3,x+6,y+3);
+                    g.drawLine(x+8,y+4,x+8,y+5);
+                    g.setColor(focus);
+                    g.fillRect(x+2,y+2,2,h-2);
+                    g.fillRect(x+4,y+3,2,h-4);
+                    g.fillRect(x+6,y+4,2,h-6);
+                    g.setColor(highlight);
+                    g.drawLine(x+2,y+h,x+2,y+h);
+                    g.drawLine(x+4,y+h-1,x+4,y+h-1);
+                    g.drawLine(x+6,y+h-2,x+6,y+h-2);
+                    g.drawLine(x+8,y+h-4,x+8,y+h-3);
+                } else {
+                    g.setColor(shadow);
+                    g.fillRect(x+h-3,y+1,2,h);
+                    g.drawLine(x+h-5,y+2,x+h-5,y+2);
+                    g.drawLine(x+h-7,y+3,x+h-7,y+3);
+                    g.drawLine(x+h-9,y+4,x+h-9,y+5);
+                    g.setColor(focus);
+                    g.fillRect(x+h-4,y+2,2,h-2);
+                    g.fillRect(x+h-6,y+3,2,h-4);
+                    g.fillRect(x+h-8,y+4,2,h-6);
+                    g.setColor(highlight);
+                    g.drawLine(x+h-3,y+h,x+h-3,y+h);
+                    g.drawLine(x+h-5,y+h-1,x+h-5,y+h-1);
+                    g.drawLine(x+h-7,y+h-2,x+h-7,y+h-2);
+                    g.drawLine(x+h-9,y+h-4,x+h-9,y+h-3);
+                }
+            } else {
+                if( MotifGraphicsUtils.isLeftToRight(c) ){
+                    g.setColor(highlight);
+                    g.drawLine(x+1,y+1,x+1,y+h);
+                    g.drawLine(x+2,y+1,x+2,y+h-2);
+                    g.fillRect(x+3,y+2,2,2);
+                    g.fillRect(x+5,y+3,2,2);
+                    g.fillRect(x+7,y+4,2,2);
+                    g.setColor(shadow);
+                    g.drawLine(x+2,y+h-1,x+2,y+h);
+                    g.fillRect(x+3,y+h-2,2,2);
+                    g.fillRect(x+5,y+h-3,2,2);
+                    g.fillRect(x+7,y+h-4,2,2);
+                    g.setColor(oldColor);
+                } else {
+                    g.setColor(highlight);
+                    g.drawLine(x+h-2,y+1,x+h-2,y+h);
+                    g.drawLine(x+h-3,y+1,x+h-3,y+h-2);
+                    g.fillRect(x+h-5,y+2,2,2);
+                    g.fillRect(x+h-7,y+3,2,2);
+                    g.fillRect(x+h-9,y+4,2,2);
+                    g.setColor(shadow);
+                    g.drawLine(x+h-3,y+h-1,x+h-3,y+h);
+                    g.fillRect(x+h-5,y+h-2,2,2);
+                    g.fillRect(x+h-7,y+h-3,2,2);
+                    g.fillRect(x+h-9,y+h-4,2,2);
+                    g.setColor(oldColor);
+                }
+            }
 
-       if (model.isSelected()){
-	 Polygon p = new Polygon();
-	 p.addPoint(x+1,y);
-	 p.addPoint(x+w-1,y+5);
-	 p.addPoint(x+1,y+h+1);
-	 g.setColor(focus);
-	 g.fillPolygon(p);
-	 g.drawLine(x+5,y+h-2,x+5,y+h-2);
-	 g.drawLine(x+7,y+h-3,x+7,y+h-3);
-	 g.setColor(shadow);
-	 g.drawLine(x+1,y+1,x+1,y+h);
-	 g.drawLine(x+2,y+1,x+2,y+1);
-	 g.drawLine(x+4,y+2,x+4,y+2);
-	 g.drawLine(x+6,y+3,x+6,y+3);
-	 g.drawLine(x+8,y+4,x+8,y+5);
-	 g.setColor(highlight);
-	 g.drawLine(x+2,y+h,x+2,y+h);
-	 g.drawLine(x+4,y+h-1,x+4,y+h-1);
-	 g.drawLine(x+6,y+h-2,x+6,y+h-2);
-	 g.drawLine(x+8,y+h-3,x+8,y+h-4);
-       }
-       else {
-	 g.setColor(highlight);
-	 g.drawLine(x+1,y+1,x+1,y+h);
-	 g.drawLine(x+2,y+1,x+2,y+h-2);
-	 g.fillRect(x+3,y+2,2,2);
-	 g.fillRect(x+5,y+3,2,2);
-	 g.fillRect(x+7,y+4,2,2);
-	 g.setColor(shadow);
-	 g.drawLine(x+2,y+h-1,x+2,y+h);
-	 g.fillRect(x+3,y+h-2,2,2);
-	 g.fillRect(x+5,y+h-3,2,2);
-	 g.fillRect(x+7,y+h-4,2,2);
-	 g.setColor(oldColor);
-       }
-
-     }
-     public int getIconWidth() { return 10; }
-     public int getIconHeight() { return 10; }
+        }
+        public int getIconWidth() { return 10; }
+        public int getIconHeight() { return 10; }
     } // End class MenuArrowIcon
 }

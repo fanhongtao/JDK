@@ -1,0 +1,144 @@
+                                   README
+
+                        Java(TM) 2 SDK, Standard Edition
+                               Version 1.2.2
+
+   * Introduction
+   * Installation
+   * Features
+   * Demos
+   * Java 2 SDK Documentation
+   * System Requirements
+   * Sun Java Web Pages
+
+Introduction
+
+     Thank you for downloading this release of the Java(TM) 2 SDK,
+     Standard Edition. The Java 2 SDK is a development environment for
+     building applications, applets, and components that can be
+     deployed on the Java platform.
+
+     The Java 2 SDK software includes tools useful for developing and
+     testing programs written in the Java programming language and
+     running on the Java platform. These tools are designed to be used
+     from the command line. Except for appletviewer, these tools do not
+     provide a graphical user interface.
+
+     The Win32 version of the Java 2 SDK comes with the Java Plug-in.
+     You can use the Java Plug-in to enable the Internet Explorer and
+     Netscape Navigator browsers to run applets based on the Java 2
+     platform. For more information about the Java Plug-in, including
+     how to obtain a Solaris version, see the section Java 2 Runtime
+     Environment and Java Plug-in in the README.html file.
+
+Installation
+
+     The complete JDK is composed of the JDK Software plus the JDK
+     Documentation, each of which is separately downloadable.
+     Installation instructions for each release are maintained on the
+     Java Software web site:
+
+        * For the Win32 Installation Instructions, go to
+          http://java.sun.com/products/jdk/1.2/install-windows.html
+        * For the Solaris Installation Instructions, go to
+          http://java.sun.com/products/jdk/1.2/install-solaris.html
+
+     Refer to the COPYRIGHT and LICENSE for legal terms of use.
+
+
+Features
+
+     The Java 2 SDK offers significant improvements in functionality,
+     performance, security and global support over previous versions of
+     the Java platform. See:
+
+        * Summary of New Features - Features added since JDK 1.1.
+          http://java.sun.com/products/jdk/1.2/docs/relnotes/features.html
+
+        * Guide to Features - Complete list of all features.
+          http://java.sun.com/products/jdk/1.2/docs/index.html#guide
+
+Demos
+
+     A demo directory is included in this software bundle with a
+     variety of applets and Swing applications for you to try out. The
+     demos come with complete source code.
+
+
+Java 2 SDK Documentation
+
+     The online Java 2 SDK Documentation contains API specifications,
+     developer guides, tool reference pages, demos, and links to
+     related information. The online documentation is available at 
+
+     http://java.sun.com/products/jdk/1.2/docs/
+
+     This documentation is also available in a download bundle which 
+     you can install locally with your Java 2 software. See the Java 2 
+     SDK download page:
+
+     http://java.sun.com/products/jdk/1.2/
+
+System Requirements
+
+     The Java 2 SDK software is available on three platforms:
+
+        * Win32 Version for Windows 95, Windows 98 and Windows NT 4.0
+          on Intel hardware. A 486/DX or faster processor. 32 megabytes
+          RAM minimum, 48 megabytes RAM recommended.
+
+        * Solaris/SPARC Version. Only Solaris versions 2.5.1, 2.6 and 7
+          (also known as 2.7) are supported. 32 megabytes RAM minimum,
+          48 megabytes RAM recommended.
+
+        * Solaris/Intel Version. Only Solaris versions 2.5.1, 2.6 and 7
+          (also known as 2.7) are supported. A 486/DX or faster
+          processor. 32 megabytes RAM minimum, 48 megabytes RAM
+          recommended.
+
+     On all systems you should have 65 megabytes of free disk space
+     before attempting to install the Java 2 SDK software. If you also
+     install the separate documentation download bundle, you need an
+     additional 90 megabytes of free disk space.
+
+     Solaris users will want to check the list of recommended and
+     required patches.
+     http://java.sun.com/products/jdk/1.2/install-solaris-patches.html
+
+     It is strongly recommended that Solaris 2.6 users load the
+     SUNWi1of package for optional Latin-1 fonts. This package is in
+     the "Entire Distribution" Cluster, available on the Solaris
+     software installation CD-ROM. SUNWi1of contains English Monotype
+     TrueType fonts specified in the font properties files. Without
+     this package, fonts will default to the LucidaSans font for
+     off-screen text and to Type1 font for text in components.
+
+Sun Java Web Pages
+
+     For additional information, refer to these Sun Microsystems pages
+     on the World Wide Web:
+
+     http://java.sun.com/
+          The Java Software web site, with the latest information on
+          Java technology, product information, news, and features.
+     http://java.sun.com/products/jdk/1.2/index.html
+          Java 2 SDK Product and Download Page
+     http://java.sun.com/docs
+          Java Platform Documentation provides access to white papers,
+          the Java Tutorial and other documents.
+     http://developer.java.sun.com/
+          The Java Developer Connection web site. (Free registration
+          required.) Additional technical information, news, and
+          features; user forums; support information, and much more.
+     http://java.sun.com/products/
+          Java Technology Products & API
+     http://www.sun.com/solaris/java/
+          Java Development Kit for Solaris - Production Release
+
+------------------------------------------------------------------------
+The Java 2 SDK, Standard Edition, is a product of Sun Microsystems(tm), 
+Inc.
+
+Copyright © 1997-2000, Sun Microsystems, Inc.
+901 San Antonio Road, Palo Alto, California 94303-4900 USA.
+All rights reserved.

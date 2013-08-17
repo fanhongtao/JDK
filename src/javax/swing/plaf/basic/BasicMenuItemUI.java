@@ -1,10 +1,10 @@
 /*
- * @(#)BasicMenuItemUI.java	1.77 98/08/26
+ * @(#)BasicMenuItemUI.java	1.87 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -16,17 +16,20 @@ package javax.swing.plaf.basic;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
 import javax.swing.plaf.*;
+import javax.swing.text.View;
 
 
 /**
  * BasicMenuItem implementation
  *
- * @version 1.77 08/26/98
+ * @version 1.87 04/22/99
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -39,6 +42,7 @@ public class BasicMenuItemUI extends MenuItemUI
     protected Color disabledForeground;
     protected Color acceleratorForeground;
     protected Color acceleratorSelectionForeground;
+    private   String acceleratorDelimiter;
     
     protected int defaultTextIconGap;
     protected Font acceleratorFont;
@@ -46,6 +50,7 @@ public class BasicMenuItemUI extends MenuItemUI
     protected MouseInputListener mouseInputListener;
     protected MenuDragMouseListener menuDragMouseListener;
     protected MenuKeyListener menuKeyListener;
+    private   PropertyChangeListener propertyChangeListener;
     
     protected Icon arrowIcon = null;
     protected Icon checkIcon = null;
@@ -60,6 +65,7 @@ public class BasicMenuItemUI extends MenuItemUI
         menuItem = (JMenuItem) c;
 
         installDefaults();
+        installComponents();
         installListeners();
         installKeyboardActions();
 
@@ -112,6 +118,10 @@ public class BasicMenuItemUI extends MenuItemUI
             acceleratorSelectionForeground = 
                 UIManager.getColor(prefix + ".acceleratorSelectionForeground");
         }
+	// Get accelerator delimiter
+	acceleratorDelimiter = 
+	    UIManager.getString("MenuItem.acceleratorDelimiter");
+	if (acceleratorDelimiter == null) { acceleratorDelimiter = "+"; }
         // Icons
         if (arrowIcon == null ||
             arrowIcon instanceof UIResource) {
@@ -123,6 +133,12 @@ public class BasicMenuItemUI extends MenuItemUI
         }
     }
 
+    /* Unfortunately this has to remain private until we can make API additions.
+     */
+    private void installComponents(){
+ 	BasicHTML.updateRenderer(menuItem, menuItem.getText());
+    }
+
     protected String getPropertyPrefix() {
         return "MenuItem";
     }
@@ -131,17 +147,20 @@ public class BasicMenuItemUI extends MenuItemUI
         mouseInputListener = createMouseInputListener(menuItem);
         menuDragMouseListener = createMenuDragMouseListener(menuItem);
         menuKeyListener = createMenuKeyListener(menuItem);
+        propertyChangeListener = createPropertyChangeListener(menuItem);
 
         menuItem.addMouseListener(mouseInputListener);
         menuItem.addMouseMotionListener(mouseInputListener);
         menuItem.addMenuDragMouseListener(menuDragMouseListener);
         menuItem.addMenuKeyListener(menuKeyListener);
+	menuItem.addPropertyChangeListener(propertyChangeListener);
     }
 
     protected void installKeyboardActions() {}
 
     public void uninstallUI(JComponent c) {
         uninstallDefaults();
+        uninstallComponents();
         uninstallListeners();
         uninstallKeyboardActions();
 
@@ -158,15 +177,23 @@ public class BasicMenuItemUI extends MenuItemUI
             checkIcon = null;
     }
 
+    /* Unfortunately this has to remain private until we can make API additions.
+     */
+    private void uninstallComponents(){
+	BasicHTML.updateRenderer(menuItem, "");
+    }
+
     protected void uninstallListeners() {
         menuItem.removeMouseListener(mouseInputListener);
         menuItem.removeMouseMotionListener(mouseInputListener);
         menuItem.removeMenuDragMouseListener(menuDragMouseListener);
         menuItem.removeMenuKeyListener(menuKeyListener);
+        menuItem.removePropertyChangeListener(propertyChangeListener);
 
         mouseInputListener = null;
         menuDragMouseListener = null;
         menuKeyListener = null;
+	propertyChangeListener = null;
     }
 
     protected void uninstallKeyboardActions() {}
@@ -183,8 +210,18 @@ public class BasicMenuItemUI extends MenuItemUI
         return new MenuKeyHandler();
     }
 
+    private PropertyChangeListener createPropertyChangeListener(JComponent c) {
+        return new PropertyChangeHandler();
+    }
+
     public Dimension getMinimumSize(JComponent c) {
-        return null;
+	Dimension d = null;
+ 	View v = (View) c.getClientProperty(BasicHTML.propertyKey);
+ 	if (v != null) {
+	    d = getPreferredSize(c);
+ 	    d.width -= v.getPreferredSpan(View.X_AXIS) - v.getMinimumSpan(View.X_AXIS);
+ 	}
+ 	return d;	
     }
 
     public Dimension getPreferredSize(JComponent c) {
@@ -195,7 +232,13 @@ public class BasicMenuItemUI extends MenuItemUI
     }
 
     public Dimension getMaximumSize(JComponent c) {
-        return null;
+	Dimension d = null;
+ 	View v = (View) c.getClientProperty(BasicHTML.propertyKey);
+ 	if (v != null) {
+	    d = getPreferredSize(c);
+ 	    d.width += v.getMaximumSpan(View.X_AXIS) - v.getPreferredSpan(View.X_AXIS);
+ 	}
+ 	return d;
     }
 
   // these rects are used for painting and preferredsize calculations.
@@ -233,7 +276,8 @@ public class BasicMenuItemUI extends MenuItemUI
             int modifiers = accelerator.getModifiers();
             if (modifiers > 0) {
                 acceleratorText = KeyEvent.getKeyModifiersText(modifiers);
-                acceleratorText += "+";
+                //acceleratorText += "-";
+                acceleratorText += acceleratorDelimiter;
           }
             acceleratorText += KeyEvent.getKeyText(accelerator.getKeyCode());
         }
@@ -270,14 +314,18 @@ public class BasicMenuItemUI extends MenuItemUI
             r.width += 7*defaultTextIconGap;
         }
 
-        // Add in the checkIcon
-        r.width += checkIconRect.width;
-        r.width += 2*defaultTextIconGap;
+	if( useCheckAndArrow() ) {
+	    // Add in the checkIcon
+	    r.width += checkIconRect.width;
+	    r.width += defaultTextIconGap;
 
-        // Add in the arrowIcon
-        r.width += 2*defaultTextIconGap;
-        r.width += arrowIconRect.width;
-        
+	    // Add in the arrowIcon
+	    r.width += defaultTextIconGap;
+	    r.width += arrowIconRect.width;
+        }	
+
+	r.width += 2*defaultTextIconGap;
+
         Insets insets = b.getInsets();
         if(insets != null) {
             r.width += insets.left + insets.right;
@@ -364,7 +412,8 @@ public class BasicMenuItemUI extends MenuItemUI
             int modifiers = accelerator.getModifiers();
             if (modifiers > 0) {
                 acceleratorText = KeyEvent.getKeyModifiersText(modifiers);
-                acceleratorText += "+";
+                //acceleratorText += "-";
+                acceleratorText += acceleratorDelimiter;
           }
             acceleratorText += KeyEvent.getKeyText(accelerator.getKeyCode());
         }
@@ -388,7 +437,8 @@ public class BasicMenuItemUI extends MenuItemUI
             } else {
                 g.setColor(b.getForeground());
             }
-            checkIcon.paintIcon(c, g, checkIconRect.x, checkIconRect.y);
+            if( useCheckAndArrow() )
+		checkIcon.paintIcon(c, g, checkIconRect.x, checkIconRect.y);
             g.setColor(holdc);
         }
 
@@ -412,38 +462,43 @@ public class BasicMenuItemUI extends MenuItemUI
         }
 
         // Draw the Text
-        if(text != null && !text.equals("")) {
-            if(!model.isEnabled()) {
-                // *** paint the text disabled
-                if ( UIManager.get("MenuItem.disabledForeground") instanceof Color )
-                {
-                  g.setColor( UIManager.getColor("MenuItem.disabledForeground") );
-                  BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                                textRect.x, textRect.y + fm.getAscent());
-                }
-                else
-                {
-                  g.setColor(b.getBackground().brighter());
-                  BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                                textRect.x, textRect.y + fm.getAscent());
-                  g.setColor(b.getBackground().darker());
-                  BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                                textRect.x - 1, textRect.y + fm.getAscent() - 1);
-                }
-            } else {
-                // *** paint the text normally
-                if (model.isArmed()|| (c instanceof JMenu && model.isSelected())) {
-                    g.setColor(foreground);
-                } else {
-                    g.setColor(b.getForeground());
-                }
-                BasicGraphicsUtils.drawString(g,text, 
-                                              model.getMnemonic(),
-                                              textRect.x,
-                                              textRect.y + fm.getAscent());
-            }
-        }
-          
+        if(text != null) {
+ 	    View v = (View) c.getClientProperty(BasicHTML.propertyKey);
+ 	    if (v != null) {
+ 		v.paint(g, textRect);
+ 	    } else {
+		if(!model.isEnabled()) {
+		    // *** paint the text disabled
+		    if ( UIManager.get("MenuItem.disabledForeground") instanceof Color )
+			{
+			    g.setColor( UIManager.getColor("MenuItem.disabledForeground") );
+			    BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
+							  textRect.x, textRect.y + fm.getAscent());
+			}
+		    else
+			{
+			    g.setColor(b.getBackground().brighter());
+			    BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
+							  textRect.x, textRect.y + fm.getAscent());
+			    g.setColor(b.getBackground().darker());
+			    BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
+							  textRect.x - 1, textRect.y + fm.getAscent() - 1);
+			}
+		} else {
+		    // *** paint the text normally
+		    if (model.isArmed()|| (c instanceof JMenu && model.isSelected())) {
+			g.setColor(foreground);
+		    } else {
+			g.setColor(b.getForeground());
+		    }
+		    BasicGraphicsUtils.drawString(g,text, 
+						  model.getMnemonic(),
+						  textRect.x,
+						  textRect.y + fm.getAscent());
+		}
+	    }
+	}
+
         // Draw the Accelerator Text
         if(acceleratorText != null && !acceleratorText.equals("")) {
             g.setFont( acceleratorFont );
@@ -454,16 +509,16 @@ public class BasicMenuItemUI extends MenuItemUI
                   g.setColor( disabledForeground );
                   BasicGraphicsUtils.drawString(g,acceleratorText,0,
                                                 acceleratorRect.x, 
-                                                acceleratorRect.y + fm.getAscent());
+                                                acceleratorRect.y + fmAccel.getAscent());
                 }
                 else
                 {
                   g.setColor(b.getBackground().brighter());
                   BasicGraphicsUtils.drawString(g,acceleratorText,0,
-                                                acceleratorRect.x, acceleratorRect.y + fm.getAscent());
+                                                acceleratorRect.x, acceleratorRect.y + fmAccel.getAscent());
                   g.setColor(b.getBackground().darker());
                   BasicGraphicsUtils.drawString(g,acceleratorText,0,
-                                                acceleratorRect.x - 1, acceleratorRect.y + fm.getAscent() - 1);
+                                                acceleratorRect.x - 1, acceleratorRect.y + fmAccel.getAscent() - 1);
                 }
             } else {
                 // *** paint the acceleratorText normally
@@ -474,7 +529,7 @@ public class BasicMenuItemUI extends MenuItemUI
                 }
                 BasicGraphicsUtils.drawString(g,acceleratorText, 0,
                                               acceleratorRect.x,
-                                              acceleratorRect.y + fm.getAscent());
+                                              acceleratorRect.y + fmAccel.getAscent());
             }
         }
 
@@ -482,7 +537,7 @@ public class BasicMenuItemUI extends MenuItemUI
         if (arrowIcon != null) {
             if(model.isArmed() || (c instanceof JMenu &&model.isSelected()))
                 g.setColor(foreground);
-            if( !(b.getParent() instanceof JMenuBar) )
+            if(useCheckAndArrow())
                 arrowIcon.paintIcon(c, g, arrowIconRect.x, arrowIconRect.y);
         }
         g.setColor(holdc);
@@ -494,7 +549,7 @@ public class BasicMenuItemUI extends MenuItemUI
      * Compute and return the location of the icons origin, the 
      * location of origin of the text baseline, and a possibly clipped
      * version of the compound labels string.  Locations are computed
-     * relative to the viewR rectangle. 
+     * relative to the viewRect rectangle. 
      */
 
     private String layoutMenuItem(
@@ -509,12 +564,12 @@ public class BasicMenuItemUI extends MenuItemUI
         int horizontalAlignment,
         int verticalTextPosition,
         int horizontalTextPosition,
-        Rectangle viewR, 
-        Rectangle iconR, 
-        Rectangle textR,
-        Rectangle acceleratorR,
-        Rectangle checkIconR, 
-        Rectangle arrowIconR, 
+        Rectangle viewRect, 
+        Rectangle iconRect, 
+        Rectangle textRect,
+        Rectangle acceleratorRect,
+        Rectangle checkIconRect, 
+        Rectangle arrowIconRect, 
         int textIconGap,
         int menuItemGap
         )
@@ -523,85 +578,110 @@ public class BasicMenuItemUI extends MenuItemUI
         SwingUtilities.layoutCompoundLabel(
                             menuItem, fm, text, icon, verticalAlignment, 
                             horizontalAlignment, verticalTextPosition, 
-                            horizontalTextPosition, viewR, iconR, textR, 
+                            horizontalTextPosition, viewRect, iconRect, textRect, 
                             textIconGap);
 
-        /* Initialize the acceelratorText bounds rectangle textR.  If a null 
+        /* Initialize the acceelratorText bounds rectangle textRect.  If a null 
          * or and empty String was specified we substitute "" here 
-         * and use 0,0,0,0 for acceleratorTextR.
+         * and use 0,0,0,0 for acceleratorTextRect.
          */
-
-        boolean acceleratorTextIsEmpty = (acceleratorText == null) || 
-            acceleratorText.equals("");
-
-        if (acceleratorTextIsEmpty) {
-            acceleratorR.width = acceleratorR.height = 0;
+        if( (acceleratorText == null) || acceleratorText.equals("") ) {
+            acceleratorRect.width = acceleratorRect.height = 0;
             acceleratorText = "";
         }
         else {
-            acceleratorR.width = SwingUtilities.computeStringWidth( fmAccel, acceleratorText );
-            acceleratorR.height = fmAccel.getHeight();
+            acceleratorRect.width = SwingUtilities.computeStringWidth( fmAccel, acceleratorText );
+            acceleratorRect.height = fmAccel.getHeight();
         }
 
-        /* Initialize the checkIcon bounds rectangle checkIconR.
+        /* Initialize the checkIcon bounds rectangle's width & height.
          */
 
-        if (checkIcon != null) {
-            checkIconR.width = checkIcon.getIconWidth();
-            checkIconR.height = checkIcon.getIconHeight();
-        } 
-        else {
-            checkIconR.width = checkIconR.height = 0;
+	if( useCheckAndArrow()) {
+	    if (checkIcon != null) {
+		checkIconRect.width = checkIcon.getIconWidth();
+		checkIconRect.height = checkIcon.getIconHeight();
+	    } 
+	    else {
+		checkIconRect.width = checkIconRect.height = 0;
+	    }
+	    
+	    /* Initialize the arrowIcon bounds rectangle width & height.
+	     */
+	    
+	    if (arrowIcon != null) {
+		arrowIconRect.width = arrowIcon.getIconWidth();
+		arrowIconRect.height = arrowIcon.getIconHeight();
+	    } else {
+		arrowIconRect.width = arrowIconRect.height = 0;
+	    }
         }
 
-        /* Initialize the arrowIcon bounds rectangle arrowIconR.
-         */
+        Rectangle labelRect = iconRect.union(textRect);
+        if( BasicGraphicsUtils.isLeftToRight(menuItem) ) {
+            textRect.x += menuItemGap;
+            iconRect.x += menuItemGap;
 
-        if (arrowIcon != null) {
-            arrowIconR.width = arrowIcon.getIconWidth();
-            arrowIconR.height = arrowIcon.getIconHeight();
-        } 
-        else {
-            arrowIconR.width = arrowIconR.height = 0;
+            // Position the Accelerator text rect
+            acceleratorRect.x = viewRect.x + viewRect.width - arrowIconRect.width 
+                             - menuItemGap - acceleratorRect.width;
+            
+            // Position the Check and Arrow Icons 
+            if (useCheckAndArrow()) {
+                checkIconRect.x = viewRect.x + menuItemGap;
+                textRect.x += menuItemGap + checkIconRect.width;
+                iconRect.x += menuItemGap + checkIconRect.width;
+                arrowIconRect.x = viewRect.x + viewRect.width - menuItemGap
+                                  - arrowIconRect.width;
+            }
+        } else {
+            textRect.x -= menuItemGap;
+            iconRect.x -= menuItemGap;
+
+            // Position the Accelerator text rect
+            acceleratorRect.x = viewRect.x + arrowIconRect.width + menuItemGap;
+
+            // Position the Check and Arrow Icons 
+            if (useCheckAndArrow()) {
+                checkIconRect.x = viewRect.x + viewRect.width - menuItemGap
+                                  - checkIconRect.width;
+                textRect.x -= menuItemGap + checkIconRect.width;
+                iconRect.x -= menuItemGap + checkIconRect.width;      
+                arrowIconRect.x = viewRect.x + menuItemGap;
+            }
         }
-        
-        textR.x += checkIconR.width + menuItemGap;
-        iconR.x += checkIconR.width + menuItemGap;
 
-        Rectangle labelR = iconR.union(textR);
-
-        // Position the Accelerator text rect
-        acceleratorR.x += (viewR.width - arrowIconR.width - 
-                           menuItemGap - acceleratorR.width);
-        acceleratorR.y = viewR.y + (viewR.height/2) - (acceleratorR.height/2);
-
-        arrowIconR.x += (viewR.width - arrowIconR.width);
-        arrowIconR.y = viewR.y + (labelR.height/2) - (arrowIconR.height/2);
-
-        checkIconR.y = viewR.y + (labelR.height/2) - (checkIconR.height/2);
-        checkIconR.x += viewR.x;
+        // Align the accelertor text and the check and arrow icons vertically
+        // with the center of the label rect.  
+        acceleratorRect.y = labelRect.y + (labelRect.height/2) - (acceleratorRect.height/2);
+        if( useCheckAndArrow() ) {
+            arrowIconRect.y = labelRect.y + (labelRect.height/2) - (arrowIconRect.height/2);
+            checkIconRect.y = labelRect.y + (labelRect.height/2) - (checkIconRect.height/2);
+        }
 
         /*
-          System.out.println("Layout: v=" +viewR+"  c="+checkIconR+" i="+
-          iconR+" t="+textR+" acc="+acceleratorR+" a="+arrowIconR);
-          */
+        System.out.println("Layout: text="+menuItem.getText()+"\n\tv="
+                           +viewRect+"\n\tc="+checkIconRect+"\n\ti="
+                           +iconRect+"\n\tt="+textRect+"\n\tacc="
+                           +acceleratorRect+"\n\ta="+arrowIconRect+"\n");
+        */
+        
         return text;
     }
 
-    
-    /*    public void processKeyEvent(JMenuItem item,KeyEvent e,MenuElement path[],MenuSelectionManager manager) {
-        int key = item.getMnemonic();
-        if(key == 0)
-            return;
-        if(e.getID() == KeyEvent.KEY_PRESSED) {
-            if(lower(key) == lower((int)(e.getKeyChar()))) {
-                manager.clearSelectedPath();
-                item.doClick(0);
-                e.consume();
-            }
-        }
+    /*
+     * Returns false if the component is a JMenu and it is a top
+     * level menu (on the menubar).
+     */
+    private boolean useCheckAndArrow(){
+	boolean b = true;
+	if((menuItem instanceof JMenu) &&
+	   (((JMenu)menuItem).isTopLevelMenu())) {
+	    b = false;
+	}
+	return b;
     }
-*/
+
     public MenuElement[] getPath() {
         MenuSelectionManager m = MenuSelectionManager.defaultManager();
         MenuElement oldPath[] = m.getSelectedPath();
@@ -679,19 +759,36 @@ public class BasicMenuItemUI extends MenuItemUI
         public void mouseEntered(MouseEvent e) {
             // System.out.println("menu item entered: " + menuItem.getText());
             MenuSelectionManager manager = MenuSelectionManager.defaultManager();
-            manager.setSelectedPath(getPath());
+	    int modifiers = e.getModifiers();
+	    // 4188027: drag enter/exit added in JDK 1.1.7A, JDK1.2	    
+	    if ((modifiers & (InputEvent.BUTTON1_MASK |
+			      InputEvent.BUTTON2_MASK | InputEvent.BUTTON3_MASK)) !=0 ) {
+		MenuSelectionManager.defaultManager().processMouseEvent(e);
+	    } else {
+	    manager.setSelectedPath(getPath());
+	     }
         }
         public void mouseExited(MouseEvent e) {
             MenuSelectionManager manager = MenuSelectionManager.defaultManager();
-            MenuElement path[] = manager.getSelectedPath();
-            if (path.length > 1) {
-                MenuElement newPath[] = new MenuElement[path.length-1];
-                int i,c;
-                for(i=0,c=path.length-1;i<c;i++)
-                    newPath[i] = path[i];
-                manager.setSelectedPath(newPath);
-            }
+
+	    int modifiers = e.getModifiers();
+	    // 4188027: drag enter/exit added in JDK 1.1.7A, JDK1.2
+	    if ((modifiers & (InputEvent.BUTTON1_MASK |
+			      InputEvent.BUTTON2_MASK | InputEvent.BUTTON3_MASK)) !=0 ) {
+		MenuSelectionManager.defaultManager().processMouseEvent(e);
+	    } else {
+
+		MenuElement path[] = manager.getSelectedPath();
+		if (path.length > 1) {
+		    MenuElement newPath[] = new MenuElement[path.length-1];
+		    int i,c;
+		    for(i=0,c=path.length-1;i<c;i++)
+			newPath[i] = path[i];
+		    manager.setSelectedPath(newPath);
+		}
+		}
         }
+
         public void mouseDragged(MouseEvent e) {
             MenuSelectionManager.defaultManager().processMouseEvent(e);
         }
@@ -746,5 +843,25 @@ public class BasicMenuItemUI extends MenuItemUI
         }
 
     }
+
+    private class PropertyChangeHandler implements PropertyChangeListener {
+	public void propertyChange(PropertyChangeEvent e) {
+	    String name = e.getPropertyName();
+
+	    // System.out.println("Change prop " + name + " on " + menuItem.getText());
+
+	    if (e.getPropertyName().equals("labelFor") ||
+		e.getPropertyName().equals("displayedMnemonic")) {
+		installKeyboardActions();
+	    } else if (name.equals("text")) {
+		// remove the old html view client property if one
+		// existed, and install a new one if the text installed
+		// into the JLabel is html source.
+		JMenuItem lbl = ((JMenuItem) e.getSource());
+		String text = lbl.getText();
+		BasicHTML.updateRenderer(lbl, text);
+	    }
+	}
+}  
 
 }

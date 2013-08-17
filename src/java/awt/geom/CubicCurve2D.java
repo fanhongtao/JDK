@@ -1,5 +1,5 @@
 /*
- * @(#)CubicCurve2D.java	1.18 98/10/19
+ * @(#)CubicCurve2D.java	1.19 98/12/15
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -1117,7 +1117,12 @@ public abstract class CubicCurve2D implements Shape, Cloneable {
 			? (target + java.lang.Double.MIN_VALUE)
 			: (target - java.lang.Double.MIN_VALUE));
 	    }
-	    t += delta;
+	    double newt = t + delta;
+	    if (t == newt) {
+		// The deltas are so small that we aren't moving...
+		return t;
+	    }
+	    t = newt;
 	    slope = solveEqn(slopeqn, 2, t);
 	    if (slope * origslope < 0) {
 		// We have reversed our path.

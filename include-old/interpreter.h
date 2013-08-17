@@ -1,5 +1,5 @@
 /*
- * @(#)interpreter.h	1.208 00/04/19
+ * @(#)interpreter.h	1.211 00/03/08
  *
  * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -41,6 +41,8 @@ extern bool_t classgc;
 extern char *init_sysclasspath;
 extern char *java_home_dir;
 extern char *java_dll_dir;
+
+extern bool_t tried_loading_jit;
 
 extern bool_t reduce_signal_usage;
 extern bool_t verbose_jni;
@@ -536,10 +538,10 @@ ClassClass *FindClassFromClassLoader(struct execenv *ee, char *name,
 				     bool_t resolve,
 				     struct Hjava_lang_ClassLoader *loader,
 				     bool_t throwError);
-ClassClass *FindClassFromClassLoader2(struct execenv *ee, char *name,
-                                   bool_t resolve,
-                                   struct Hjava_lang_ClassLoader *loader,
-                                   bool_t throwError, HObject *pd);
+ClassClass *FindClassFromClassLoader2(struct execenv *ee, char *name, 
+				     bool_t resolve,
+				     struct Hjava_lang_ClassLoader *loader,
+				     bool_t throwError, HObject *pd);
 
 void InitClass(ClassClass * cb);
 void PrepareInvoker(struct methodblock *mb);
@@ -697,6 +699,8 @@ void panic (const char *, ...);
 /* Stuff from compiler.c */
 void InitializeForCompiler(ClassClass *cb);
 void CompilerFreeClass(ClassClass *cb);
+void CompilerLinkClass(ClassClass *cb);
+void CompilerLoadClass(ClassClass *cb, unsigned char *data, int len);
 void CompilerCompileClass(ClassClass *cb);
 void ReadInCompiledCode(void *context, struct methodblock *mb, 
 			int attribute_length, 
@@ -714,7 +718,7 @@ JavaFrame *CompiledFrameUpdate(JavaFrame *frame);
 bool_t CompilerRegisterNatives(ClassClass *cb);
 bool_t CompilerUnregisterNatives(ClassClass *cb);
 bool_t CompiledCodeSignalHandler(int sig, void *info, void *uc);
-
+int CompiledCodePCtoLineNo(unsigned char *pc);
 
 /*
  * returns 0 if inline succeeded, -1 if can't be inlined, 1 if call needs

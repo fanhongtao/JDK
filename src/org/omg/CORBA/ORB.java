@@ -1,10 +1,10 @@
 /*
- * @(#)ORB.java	1.86 98/10/12
+ * @(#)ORB.java	1.89 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -844,26 +844,25 @@ abstract public class ORB {
     abstract public TypeCode create_sequence_tc(int bound, TypeCode element_type);
 
     /**
-     * Creates a <code>TypeCode</code> object representing a
-	 * a recursive IDL <code>sequence</code>.
-	 * <P>
-	 * For the IDL <code>struct</code> Foo in following code fragment,
-	 * the offset parameter for creating its sequence would be 1:
-	 * <PRE>
-	 *    Struct Foo {
-	 *        long value;
-	 *        Sequence <Foo> Chain;
-	 *    };
-	 * </PRE>
-     *
-     * @param bound	the bound for the sequence
-     * @param offset	the index to the enclosing <code>TypeCode</code> object
-	 *                  that describes the elements of this sequence
-	 *
-     * @return		a newly-created <code>TypeCode</code> object describing
-	 *              a recursive sequence
-     * @deprecated
-     */
+    * Creates a <code>TypeCode</code> object representing a
+    * a recursive IDL <code>sequence</code>.
+    * <P>
+    * For the IDL <code>struct</code> Foo in following code fragment,
+    * the offset parameter for creating its sequence would be 1:
+    * <PRE>
+    *    Struct Foo {
+    *        long value;
+    *        Sequence &lt;Foo&gt; Chain;
+    *    };
+    * </PRE>
+    *
+    * @param bound	the bound for the sequence
+    * @param offset	the index to the enclosing <code>TypeCode</code> object
+    *                   that describes the elements of this sequence
+    * @return		a newly-created <code>TypeCode</code> object describing
+    *                   a recursive sequence
+    * @deprecated
+    */
     abstract public TypeCode create_recursive_sequence_tc(int bound, int offset);
 
     /**
@@ -885,8 +884,6 @@ abstract public class ORB {
      * @param id        the logical id for the native type.
      * @param name      the name of the native type.
      * @return          the requested TypeCode.
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
      */
     public org.omg.CORBA.TypeCode create_native_tc(String id,
                                                    String name)
@@ -900,8 +897,6 @@ abstract public class ORB {
      * @param id        the logical id for the abstract interface type.
      * @param name      the name of the abstract interface type.
      * @return          the requested TypeCode.
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
      */
     public org.omg.CORBA.TypeCode create_abstract_interface_tc(
 						String id,
@@ -914,11 +909,10 @@ abstract public class ORB {
     /**
      * Create a <code>TypeCode</code> object for an IDL fixed type.
      *
-     * @param digits
-     * @param scale
+     * @param digits    specifies the total number of decimal digits in the number
+     *                  and must be from 1 to 31 inclusive.
+     * @param scale     specifies the position of the decimal point.
      * @return          the requested TypeCode.
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
      */
     public org.omg.CORBA.TypeCode create_fixed_tc(short digits, short scale)
     {
@@ -930,9 +924,20 @@ abstract public class ORB {
     
 
     /**
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
-	 */
+    * Create a <code>TypeCode</code> object for an IDL value type.
+    * The concrete_base parameter is the TypeCode for the immediate
+    * concrete valuetype base of the valuetype for which the TypeCode
+    * is being created.
+    * It may be null if the valuetype does not have a concrete base.
+    *
+    * @param id                 the logical id for the value type.
+    * @param name               the name of the value type.
+    * @param type_modifier      one of the value type modifier constants
+                                VM_NONE, VM_CUSTOM, VM_ABSTRACT or VM_TRUNCATABLE
+    * @param concrete_base      a <code>TypeCode</code> object
+    *                           describing the concrete valuetype base
+    * @return                   the requested TypeCode.
+    */
     public org.omg.CORBA.TypeCode create_value_tc(String id,
 						  String name,
 						  short type_modifier,
@@ -943,24 +948,60 @@ abstract public class ORB {
     }
 
     /**
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
-	 */
+    * Create a recursive <code>TypeCode</code> object which
+    * serves as a placeholder for a concrete TypeCode during the process of creating
+    * TypeCodes which contain recursion. The id parameter specifies the repository id of
+    * the type for which the recursive TypeCode is serving as a placeholder. Once the
+    * recursive TypeCode has been properly embedded in the enclosing TypeCode which
+    * corresponds to the specified repository id, it will function as a normal TypeCode.
+    * Invoking operations on the recursive TypeCode before it has been embedded in the
+    * enclosing TypeCode will result in undefined behavior.
+    * <P>
+    * For example, the following
+    * IDL type declarations contain recursion:
+    * <PRE>
+    *    Struct Foo {
+    *        long value;
+    *        Sequence &lt;Foo&gt; Chain;
+    *    };
+    *    Struct Bar {
+    *        public Bar member;
+    *    };
+    * </PRE>
+    * <P>
+    * To create a TypeCode for struct Bar, you would invoke the TypeCode creation
+    * operations as shown below:
+    * <PRE>
+    * String barID = "IDL:Bar:1.0";
+    * TypeCode recursiveTC = orb.create_recursive_tc(barID);
+    * StructMember[] members = { new StructMember("member", recursiveTC, null) };
+    * TypeCode structBarTC = orb.create_struct_tc(barID, "Bar", members);
+    * </PRE>
+    * @param id                 the logical id of the referenced type.
+    * @return                   the requested TypeCode.
+    */
     public org.omg.CORBA.TypeCode create_recursive_tc(String id) {
         throw new org.omg.CORBA.NO_IMPLEMENT();
     }   
 
     /**
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
-	 */
+    * Create a <code>TypeCode</code> object for an IDL value type.
+    * The concrete_base parameter is the TypeCode for the immediate
+    * concrete valuetype base of the valuetype for which the TypeCode
+    * is being created.
+    * It may be null if the valuetype does not have a concrete base.
+    *
+    * @param id                 the logical id for the value type.
+    * @param name               the name of the value type.
+    * @return                   the requested TypeCode.
+    */
     public org.omg.CORBA.TypeCode create_value_box_tc(String id,
 							String name,
 							TypeCode boxed_type)
     {
         throw new org.omg.CORBA.NO_IMPLEMENT();
     }
-    
+
     // orbos 98-01-18: Objects By Value -- end
     
     /**

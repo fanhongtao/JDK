@@ -1,10 +1,10 @@
 /*
- * @(#)Polygon.java	1.32 98/10/22
+ * @(#)Polygon.java	1.35 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -17,7 +17,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Area;
+import sun.awt.geom.Crossings;
 
 /**
  * The <code>Polygon</code> class encapsulates a description of a 
@@ -280,53 +280,88 @@ public class Polygon implements Shape, java.io.Serializable {
      * specified coordinates; <code>false</code> otherwise.
      */
     public boolean contains(double x, double y) {
-        if (getBoundingBox().contains(x, y)) {
-            int hits = 0;
-            int ySave = 0;
+        if (npoints <= 2 || !getBoundingBox().contains(x, y)) {
+	    return false;
+	}
+	int hits = 0;
 
-            // Find a vertex that is not on the halfline
-            int i = 0;
-            while (i < npoints && ypoints[i] == y) {
-                i++;
+	int lastx = xpoints[npoints - 1];
+	int lasty = ypoints[npoints - 1];
+	int curx, cury;
+
+	// Walk the edges of the polygon
+	for (int i = 0; i < npoints; lastx = curx, lasty = cury, i++) {
+	    curx = xpoints[i];
+	    cury = ypoints[i];
+
+	    if (cury == lasty) {
+		continue;
 	    }
 
-            // Walk the edges of the polygon
-            for (int n = 0; n < npoints; n++) {
-                int j = (i + 1) % npoints;
+	    int leftx;
+	    if (curx < lastx) {
+		if (x >= lastx) {
+		    continue;
+		}
+		leftx = curx;
+	    } else {
+		if (x >= curx) {
+		    continue;
+		}
+		leftx = lastx;
+	    }
 
-                int dx = xpoints[j] - xpoints[i];
-                int dy = ypoints[j] - ypoints[i];
+	    double test1, test2;
+	    if (cury < lasty) {
+		if (y < cury || y >= lasty) {
+		    continue;
+		}
+		if (x < leftx) {
+		    hits++;
+		    continue;
+		}
+		test1 = x - curx;
+		test2 = y - cury;
+	    } else {
+		if (y < lasty || y >= cury) {
+		    continue;
+		}
+		if (x < leftx) {
+		    hits++;
+		    continue;
+		}
+		test1 = x - lastx;
+		test2 = y - lasty;
+	    }
 
-                // Ignore horizontal edges completely
-                if (dy != 0) {
-                    // Check to see if the edge intersects
-                    // the horizontal halfline through (x, y)
-                    double rx = x - xpoints[i];
-                    double ry = y - ypoints[i];
+	    if (test1 < (test2 / (lasty - cury) * (lastx - curx))) {
+		hits++;
+	    }
+	}
 
-                    // Deal with edges starting or ending on the halfline
-                    if (ypoints[j] == y && xpoints[j] >= x) {
-                        ySave = ypoints[i];
-		    }
-                    if (ypoints[i] == y && xpoints[i] >= x) {
-                        if ((ySave > y) != (ypoints[j] > y)) {
-			    hits--;
-			}
-		    }
+	return ((hits & 1) != 0);
+    }
 
-                    // Tally intersections with halfline
-                    double s = ry / dy;
-                    if (s >= 0.0 && s <= 1.0 && (s * dx) >= rx) {
-                        hits++;
-		    }
-                }
-                i = j;
-            }
+    private Crossings getCrossings(double xlo, double ylo,
+				   double xhi, double yhi)
+    {
+	Crossings cross = new Crossings.EvenOdd(xlo, ylo, xhi, yhi);
+	int lastx = xpoints[npoints - 1];
+	int lasty = ypoints[npoints - 1];
+	int curx, cury;
 
-            // Inside if number of intersections odd
-            return (hits % 2) != 0;
-        }
-        return false;
+	// Walk the edges of the polygon
+	for (int i = 0; i < npoints; i++) {
+	    curx = xpoints[i];
+	    cury = ypoints[i];
+	    if (cross.accumulateLine(lastx, lasty, curx, cury)) {
+		return null;
+	    }
+	    lastx = curx;
+	    lasty = cury;
+	}
+
+	return cross;
     }
 
     /**
@@ -355,7 +390,12 @@ public class Polygon implements Shape, java.io.Serializable {
      *			<code>false</code> otherwise.
      */
     public boolean intersects(double x, double y, double w, double h) {
-	return new Area(this).intersects(x, y, w, h);
+	if (npoints <= 0 || !getBoundingBox().intersects(x, y, w, h)) {
+	    return false;
+	}
+
+	Crossings cross = getCrossings(x, y, x+w, y+h);
+	return (cross == null || !cross.isEmpty());
     }
 
     /**
@@ -383,7 +423,12 @@ public class Polygon implements Shape, java.io.Serializable {
      * 			coordinates; <code>false</code> otherwise.
      */
     public boolean contains(double x, double y, double w, double h) {
-	return new Area(this).contains(x, y, w, h);
+	if (npoints <= 0 || !getBoundingBox().intersects(x, y, w, h)) {
+	    return false;
+	}
+
+	Crossings cross = getCrossings(x, y, x+w, y+h);
+	return (cross != null && cross.covers(y, y+h));
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * @(#)MouseInputAdapter.java	1.6 98/08/26
+ * @(#)MouseInputAdapter.java	1.7 98/09/01
  *
  * Copyright 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -22,7 +22,7 @@ import java.awt.event.MouseEvent;
  * convenience for easily creating listeners by extending this class
  * and overriding only the methods of interest.
  *
- * @version 1.6 08/26/98
+ * @version 1.7 09/01/98
  * @author Philip Milne
  */
 public abstract class MouseInputAdapter implements MouseInputListener {

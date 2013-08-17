@@ -1,10 +1,10 @@
 /*
- * @(#)JSlider.java	1.77 98/08/28
+ * @(#)JSlider.java	1.81 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -50,11 +50,10 @@ import java.beans.*;
  *      attribute: isContainer false
  *    description: A component that supports selecting a integer value from a range.
  * 
- * @version 1.77 08/28/98
+ * @version 1.78 09/01/98
  * @author David Kloba
  */
-public class JSlider extends JComponent implements SwingConstants, Accessible
-{
+public class JSlider extends JComponent implements SwingConstants, Accessible {
     /**
      * @see #getUIClassID
      * @see #readObject
@@ -65,6 +64,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
     private boolean paintTrack = true;
     private boolean paintLabels = false;
     private boolean isInverted = false;
+    private boolean nonValueChange = false;
 
     /**
      * The data model that handles the numeric maximum value,
@@ -110,7 +110,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
     /**
      */
     private Dictionary labelTable;
-    
+
 
     /**
      * The changeListener (no suffix) is the listener we add to the
@@ -122,7 +122,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
      */
     protected ChangeListener changeListener = createChangeListener();
 
-   
+
     /**
      * Only one ChangeEvent is needed per slider instance since the
      * event's only (read-only) state is the source property.  The source
@@ -220,7 +220,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
      * @return the SliderUI object that implements the Slider L&F
      */
     public SliderUI getUI() {
-        return (SliderUI)ui;
+        return(SliderUI)ui;
     }
 
 
@@ -271,7 +271,9 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
      */
     private class ModelListener implements ChangeListener, Serializable {
         public void stateChanged(ChangeEvent e) {
-            fireStateChanged();
+            if ( !nonValueChange ) {
+                fireStateChanged();
+            }
         }
     }
 
@@ -299,7 +301,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
     public void addChangeListener(ChangeListener l) {
         listenerList.add(ChangeListener.class, l);
     }
-    
+
 
     /**
      * Removes a ChangeListener from the slider.
@@ -312,7 +314,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
     public void removeChangeListener(ChangeListener l) {
         listenerList.remove(ChangeListener.class, l);
     }
-        
+
 
     /**
      * Send a ChangeEvent, whose source is this Slider, to
@@ -330,7 +332,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
                     changeEvent = new ChangeEvent(this);
                 }
                 ((ChangeListener)listeners[i+1]).stateChanged(changeEvent);
-            }          
+            }
         }
     }   
 
@@ -370,11 +372,11 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
 
             if (accessibleContext != null) {
                 accessibleContext.firePropertyChange(
-                        AccessibleContext.ACCESSIBLE_VALUE_PROPERTY,
-                        (oldModel == null 
-                         ? null : new Integer(oldModel.getValue())),
-                        (newModel == null 
-                         ? null : new Integer(newModel.getValue())));
+                                                    AccessibleContext.ACCESSIBLE_VALUE_PROPERTY,
+                                                    (oldModel == null 
+                                                     ? null : new Integer(oldModel.getValue())),
+                                                    (newModel == null 
+                                                     ? null : new Integer(newModel.getValue())));
             }
         }
 
@@ -408,9 +410,9 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
 
         if (accessibleContext != null) {
             accessibleContext.firePropertyChange(
-                    AccessibleContext.ACCESSIBLE_VALUE_PROPERTY,
-                    new Integer(oldValue),
-                    new Integer(m.getValue()));
+                                                AccessibleContext.ACCESSIBLE_VALUE_PROPERTY,
+                                                new Integer(oldValue),
+                                                new Integer(m.getValue()));
         }
     }
 
@@ -438,7 +440,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
     public void setMinimum(int minimum) { 
         int oldMin = getModel().getMinimum();
         getModel().setMinimum(minimum); 
-	firePropertyChange( "minimum", new Integer( oldMin ), new Integer( minimum ) );
+        firePropertyChange( "minimum", new Integer( oldMin ), new Integer( minimum ) );
     }
 
 
@@ -465,7 +467,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
     public void setMaximum(int maximum) { 
         int oldMax = getModel().getMaximum();
         getModel().setMaximum(maximum); 
-	firePropertyChange( "maximum", new Integer( oldMax ), new Integer( maximum ) );
+        firePropertyChange( "maximum", new Integer( oldMax ), new Integer( maximum ) );
     }
 
 
@@ -496,13 +498,15 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
     public void setValueIsAdjusting(boolean b) { 
         BoundedRangeModel m = getModel();   
         boolean oldValue = m.getValueIsAdjusting();
+        nonValueChange = true;
         m.setValueIsAdjusting(b);
-   
+        nonValueChange = false;
+
         if ((oldValue != b) && (accessibleContext != null)) {
             accessibleContext.firePropertyChange(
-                    AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-                    ((oldValue) ? AccessibleState.BUSY : null),
-                    ((b) ? AccessibleState.BUSY : null));
+                                                AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
+                                                ((oldValue) ? AccessibleState.BUSY : null),
+                                                ((b) ? AccessibleState.BUSY : null));
         }
     }
 
@@ -567,11 +571,11 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
 
         if ((oldValue != orientation) && (accessibleContext != null)) {
             accessibleContext.firePropertyChange(
-                    AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-                    ((oldValue == VERTICAL) 
-                     ? AccessibleState.VERTICAL : AccessibleState.HORIZONTAL),
-                    ((orientation == VERTICAL) 
-                     ? AccessibleState.VERTICAL : AccessibleState.HORIZONTAL));
+                                                AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
+                                                ((oldValue == VERTICAL) 
+                                                 ? AccessibleState.VERTICAL : AccessibleState.HORIZONTAL),
+                                                ((orientation == VERTICAL) 
+                                                 ? AccessibleState.VERTICAL : AccessibleState.HORIZONTAL));
         }
         if (orientation != oldValue) {
             revalidate();
@@ -663,75 +667,79 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
         if ( start > getMaximum() || start < getMinimum() ) {
             throw new IllegalArgumentException( "Slider label start point out of range." );
         }
-	
-	class SmartHashtable extends Hashtable implements PropertyChangeListener {
-	    int increment = 0;
-	    int start = 0;
-	    boolean startAtMin = false;
 
-	    class LabelUIResource extends JLabel implements UIResource {
-	        public LabelUIResource( String text, int alignment ) {
-		    super( text, alignment );
-		}
-	    }
-	  
-	    public SmartHashtable( int increment, int start ) {
-	        super();
-		this.increment = increment;
-	        this.start = start;
-		startAtMin = start == getMinimum();
-	        createLabels();
-	    }
+        if ( increment <= 0 ) {
+            throw new IllegalArgumentException( "Label incremement must be > 0" );
+        }
 
-	    public void propertyChange( PropertyChangeEvent e ) {
-	        if ( e.getPropertyName().equals( "minimum" ) && startAtMin ) {
-		    start = getMinimum();
-		}
+        class SmartHashtable extends Hashtable implements PropertyChangeListener {
+            int increment = 0;
+            int start = 0;
+            boolean startAtMin = false;
 
-	        if ( e.getPropertyName().equals( "minimum" ) ||
-		     e.getPropertyName().equals( "maximum" ) ) {
+            class LabelUIResource extends JLabel implements UIResource {
+                public LabelUIResource( String text, int alignment ) {
+                    super( text, alignment );
+                }
+            }
 
-		  Enumeration keys = getLabelTable().keys();
-		    Object key = null;
-		    Hashtable hashtable = new Hashtable();
+            public SmartHashtable( int increment, int start ) {
+                super();
+                this.increment = increment;
+                this.start = start;
+                startAtMin = start == getMinimum();
+                createLabels();
+            }
 
-		    // Save the labels that were added by the developer
-		    while ( keys.hasMoreElements() ) {
-		        key = keys.nextElement();
-			Object value = getLabelTable().get( key );
-		        if ( !(value instanceof LabelUIResource) ) {
-			    hashtable.put( key, value );
-			}
-		    }
-		    
-		    clear();
-		    createLabels();
+            public void propertyChange( PropertyChangeEvent e ) {
+                if ( e.getPropertyName().equals( "minimum" ) && startAtMin ) {
+                    start = getMinimum();
+                }
 
-		    // Add the saved labels
-		    keys = hashtable.keys();
-		    while ( keys.hasMoreElements() ) {
-		        key = keys.nextElement();
-			put( key, hashtable.get( key ) );
-		    }
+                if ( e.getPropertyName().equals( "minimum" ) ||
+                     e.getPropertyName().equals( "maximum" ) ) {
 
-		    ((JSlider)e.getSource()).setLabelTable( this );
-		}
-	    }
+                    Enumeration keys = getLabelTable().keys();
+                    Object key = null;
+                    Hashtable hashtable = new Hashtable();
 
-	    void createLabels() {
-	        for ( int labelIndex = start; labelIndex <= getMaximum(); labelIndex += increment ) {
-		    put( new Integer( labelIndex ), new LabelUIResource( ""+labelIndex, JLabel.CENTER ) );
-		}
-	    }
-	}
+                    // Save the labels that were added by the developer
+                    while ( keys.hasMoreElements() ) {
+                        key = keys.nextElement();
+                        Object value = getLabelTable().get( key );
+                        if ( !(value instanceof LabelUIResource) ) {
+                            hashtable.put( key, value );
+                        }
+                    }
+
+                    clear();
+                    createLabels();
+
+                    // Add the saved labels
+                    keys = hashtable.keys();
+                    while ( keys.hasMoreElements() ) {
+                        key = keys.nextElement();
+                        put( key, hashtable.get( key ) );
+                    }
+
+                    ((JSlider)e.getSource()).setLabelTable( this );
+                }
+            }
+
+            void createLabels() {
+                for ( int labelIndex = start; labelIndex <= getMaximum(); labelIndex += increment ) {
+                    put( new Integer( labelIndex ), new LabelUIResource( ""+labelIndex, JLabel.CENTER ) );
+                }
+            }
+        }
 
         SmartHashtable table = new SmartHashtable( increment, start );
 
-	if ( getLabelTable() != null && (getLabelTable() instanceof PropertyChangeListener) ) {
-	    removePropertyChangeListener( (PropertyChangeListener)getLabelTable() );
-	}
+        if ( getLabelTable() != null && (getLabelTable() instanceof PropertyChangeListener) ) {
+            removePropertyChangeListener( (PropertyChangeListener)getLabelTable() );
+        }
 
-	addPropertyChangeListener( table );
+        addPropertyChangeListener( table );
 
         return table;
     }
@@ -747,7 +755,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
     public boolean getInverted() { 
         return isInverted; 
     }
-    
+
 
     /**
      * Specify true to reverse the value-range shown for the slider so that
@@ -814,7 +822,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
     }
 
 
-    
+
     /**
      * This method returns the minor tick spacing.  The number that is returned
      * represents the distance, measured in values, between each minor tick mark.
@@ -982,7 +990,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
         return paintLabels; 
     }
 
-    
+
     /**
      * Determines whether labels are painted on the slider.
      * @see #getPaintLabels
@@ -1011,9 +1019,9 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
+        if ((ui != null) && (getUIClassID().equals(uiClassID))) {
+            ui.installUI(this);
+        }
     }
 
 
@@ -1023,38 +1031,35 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JSlider.
      */
     protected String paramString() {
-	String paintTicksString = (paintTicks ?
-				   "true" : "false");
-	String paintTrackString = (paintTrack ?
-				   "true" : "false");
-	String paintLabelsString = (paintLabels ?
-				    "true" : "false");
-	String isInvertedString = (isInverted ?
-				   "true" : "false");
-	String snapToTicksString = (snapToTicks ?
-				    "true" : "false");
-	String snapToValueString = (snapToValue ?
-				    "true" : "false");
-	String orientationString = (orientation == HORIZONTAL ?
-				    "HORIZONTAL" : "VERTICAL");
+        String paintTicksString = (paintTicks ?
+                                   "true" : "false");
+        String paintTrackString = (paintTrack ?
+                                   "true" : "false");
+        String paintLabelsString = (paintLabels ?
+                                    "true" : "false");
+        String isInvertedString = (isInverted ?
+                                   "true" : "false");
+        String snapToTicksString = (snapToTicks ?
+                                    "true" : "false");
+        String snapToValueString = (snapToValue ?
+                                    "true" : "false");
+        String orientationString = (orientation == HORIZONTAL ?
+                                    "HORIZONTAL" : "VERTICAL");
 
-	return super.paramString() +
-	",isInverted=" + isInvertedString +
-	",majorTickSpacing=" + majorTickSpacing +
-	",minorTickSpacing=" + minorTickSpacing +
-	",orientation=" + orientationString +
-	",paintLabels=" + paintLabelsString +
-	",paintTicks=" + paintTicksString +
-	",paintTrack=" + paintTrackString +
-	",snapToTicks=" + snapToTicksString +
-	",snapToValue=" + snapToValueString;
+        return super.paramString() +
+        ",isInverted=" + isInvertedString +
+        ",majorTickSpacing=" + majorTickSpacing +
+        ",minorTickSpacing=" + minorTickSpacing +
+        ",orientation=" + orientationString +
+        ",paintLabels=" + paintLabelsString +
+        ",paintTicks=" + paintTicksString +
+        ",paintTrack=" + paintTrackString +
+        ",snapToTicks=" + snapToTicksString +
+        ",snapToValue=" + snapToValueString;
     }
 
 
@@ -1085,7 +1090,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
      * long term persistence.
      */
     protected class AccessibleJSlider extends AccessibleJComponent
-        implements AccessibleValue {
+    implements AccessibleValue {
 
         /**
          * Get the state set of this object.
@@ -1101,7 +1106,8 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
             }
             if (getOrientation() == VERTICAL) {
                 states.add(AccessibleState.VERTICAL);
-            } else {
+            }
+            else {
                 states.add(AccessibleState.HORIZONTAL);
             }
             return states;
@@ -1142,7 +1148,8 @@ public class JSlider extends JComponent implements SwingConstants, Accessible
             if (n instanceof Integer) {
                 setValue(n.intValue());
                 return true;
-            } else {
+            }
+            else {
                 return false;
             }
         }

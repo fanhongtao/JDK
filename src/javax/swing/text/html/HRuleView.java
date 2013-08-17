@@ -1,10 +1,10 @@
 /*
- * @(#)HRuleView.java	1.19 98/08/26
+ * @(#)HRuleView.java	1.23 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -26,7 +26,7 @@ import java.lang.Integer;
  *
  * @author  Timothy Prinzing
  * @author  Sara Swanson
- * @version 1.19 08/26/98
+ * @version 1.23 04/22/99
  */
 class HRuleView extends View  {
 
@@ -40,12 +40,8 @@ class HRuleView extends View  {
 	AttributeSet attr = elem.getAttributes();
 
 	if (attr != null) {
-	    margin_left = StyleConstants.getLeftIndent(attr);
-	    margin_right = StyleConstants.getRightIndent(attr);
-	    if (margin_left <= 0)
-		margin_left = 15;
-	    if (margin_right <= 0)
-		margin_right = 15;
+	    margin_left = 0;
+	    margin_right = 0;
             alignment = StyleConstants.getAlignment(attr);
 	    noshade = (String) attr.getAttribute("noshade");
 	    String sizestr = (String)attr.getAttribute("size");
@@ -71,11 +67,11 @@ class HRuleView extends View  {
     public void paint(Graphics g, Shape a) {
 	Rectangle alloc = a.getBounds();
 	int x = 0;
-	int y = alloc.y;
+	int y = alloc.y + SPACE_ABOVE;
 	int width = alloc.width - (int)(margin_left + margin_right);
 	if (hrwidth > 0)
 		width = hrwidth;
-	int height = alloc.height;
+	int height = alloc.height - (SPACE_ABOVE + SPACE_BELOW);
  	if (size > 0)
 		height = size;
 
@@ -117,12 +113,12 @@ class HRuleView extends View  {
 	    return i.left + i.right;
 	case View.Y_AXIS:
 	    if (size > 0) {
-	        return size;
+	        return size + SPACE_ABOVE + SPACE_BELOW;
 	    } else {
 		if (noshade == HTML.NULL_ATTRIBUTE_VALUE) {
-		    return 1;
+		    return 1 + SPACE_ABOVE + SPACE_BELOW;
 		} else {
-		    return i.top + i.bottom;
+		    return i.top + i.bottom + SPACE_ABOVE + SPACE_BELOW;
 		}
 	    }
 	default:
@@ -145,6 +141,30 @@ class HRuleView extends View  {
 	} else {
 	    return 0;
 	}
+    }
+
+    /**
+     * Determines how attractive a break opportunity in 
+     * this view is.  This is implemented to request a forced break.
+     *
+     * @param axis may be either View.X_AXIS or View.Y_AXIS
+     * @param pos the potential location of the start of the 
+     *   broken view >= 0.  This may be useful for calculating tab
+     *   positions.
+     * @param len specifies the relative length from <em>pos</em>
+     *   where a potential break is desired >= 0.
+     * @return the weight, which should be a value between
+     *   ForcedBreakWeight and BadBreakWeight.
+     */
+    public int getBreakWeight(int axis, float pos, float len) {
+	if (axis == X_AXIS) {
+	    return ForcedBreakWeight;
+	}
+	return BadBreakWeight;
+    }
+
+    public View breakView(int axis, int offset, float pos, float len) {
+	return null;
     }
 
     /**
@@ -202,5 +222,9 @@ class HRuleView extends View  {
     private String noshade = null;
     private int size = 0;
     private int hrwidth = 0;
+
+    private static final int SPACE_ABOVE = 3;
+    private static final int SPACE_BELOW = 3;
+    
 }
 

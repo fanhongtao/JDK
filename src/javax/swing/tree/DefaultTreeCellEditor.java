@@ -1,10 +1,10 @@
 /*
- * @(#)DefaultTreeCellEditor.java	1.7 98/08/28
+ * @(#)DefaultTreeCellEditor.java	1.14 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -38,7 +38,7 @@ import java.util.*;
  * for short term storage or RMI between applications running the same
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
- * @version 1.7 08/28/98
+ * @version 1.14 04/22/99
  * @author Scott Violet
  */
 public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
@@ -205,6 +205,8 @@ public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
     public boolean isCellEditable(EventObject event) {
 	boolean            retValue = false;
 
+	if(!realEditor.isCellEditable(event))
+	    return false;
 	if(canEditImmediately(event))
 	    retValue = true;
 	else if(canEdit && shouldStartEditingTimer(event)) {
@@ -345,7 +347,7 @@ public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
 
     /**
      * Returns true if <code>event</code> is null, or it is a MouseEvent
-     * with a click count > 2.
+     * with a click count > 2 and inHitRegion returns true.
      */
     protected boolean canEditImmediately(EventObject event) {
 	if((event instanceof MouseEvent) &&
@@ -359,8 +361,12 @@ public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
     }
 
     /**
-     * Returns true if <code>x</code> is inside the text region of
-     * the renderer, not the icon part.
+     * Should return true if the passed in location is a valid mouse location
+     * to start editing from. This is implemented to return false if
+     * <code>x</code> is <= the width of the icon and icon gap displayed
+     * by the renderer. In other words this returns true if the user
+     * clicks over the text part displayed by the renderer, and false
+     * otherwise.
      */
     protected boolean inHitRegion(int x, int y) {
 	if(lastRow != -1 && tree != null) {
@@ -397,6 +403,9 @@ public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
     }
 
     /**
+     * Invoked just before editing is to start. Will add the
+     * <code>editingComponent</code> to the
+     * <code>editingContainer</code>.
      */
     protected void prepareForEditing() {
 	editingContainer.add(editingComponent);
@@ -416,7 +425,13 @@ public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
     protected TreeCellEditor createTreeCellEditor() {
 	Border              aBorder = UIManager.getBorder("Tree.editorBorder");
 	DefaultCellEditor   editor = new DefaultCellEditor
-	                              (new DefaultTextField(aBorder));
+	    (new DefaultTextField(aBorder)) {
+	    public boolean shouldSelectCell(EventObject event) {
+		boolean retValue = super.shouldSelectCell(event);
+		getComponent().requestFocus();
+		return retValue;
+	    }
+	};
 
 	// One click to edit.
 	editor.setClickCountToStart(1);
@@ -519,8 +534,14 @@ public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
      */
     public class EditorContainer extends Container {
         /**
-         * Constructs and EditorContainer object.
+         * Constructs an EditorContainer object.
          */
+	public EditorContainer() {
+	    setLayout(null);
+	}
+
+	// This should not be used. It will be removed when new API is
+	// allowed.
 	public void EditorContainer() {
 	    setLayout(null);
 	}

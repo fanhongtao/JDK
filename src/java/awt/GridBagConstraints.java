@@ -1,10 +1,10 @@
 /*
- * @(#)GridBagConstraints.java	1.16 98/09/09
+ * @(#)GridBagConstraints.java	1.19 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -217,10 +217,10 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
    /**
      * This field is used when the component is smaller than its display 
      * area. It determines where, within the display area, to place the 
-     * component. Possible values are <code>CENTER<code>, 
-     * <code>NORTH<code>, <code>NORTHEAST<code>, <code>EAST<code>, 
-     * <code>SOUTHEAST<code>, <code>SOUTH<code>, <code>SOUTHWEST<code>, 
-     * <code>WEST<code>, and <code>NORTHWEST<code>.
+     * component. Possible values are <code>CENTER</code>, 
+     * <code>NORTH</code>, <code>NORTHEAST</code>, <code>EAST</code>, 
+     * <code>SOUTHEAST</code>, <code>SOUTH</code>, <code>SOUTHWEST</code>, 
+     * <code>WEST</code>, and <code>NORTHWEST</code>.
      * The default value is <code>CENTER</code>. 
      * @serial
      * @see clone()
@@ -313,14 +313,14 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
   int tempHeight;
    /**
      * The minimum width of the component.  It is used to calculate
-     * <code>ipady<code>, where the default will be 0.
+     * <code>ipady</code>, where the default will be 0.
      * @serial
      * @see ipady
      */
   int minWidth;
    /**
      * The minimum height of the component. It is used to calculate
-     * <code>ipadx<code>, where the default will be 0.
+     * <code>ipadx</code>, where the default will be 0.
      * @serial
      * @see ipadx
      */

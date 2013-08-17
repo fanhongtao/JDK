@@ -1,10 +1,10 @@
 /*
- * @(#)jit.h	1.31 98/09/15
+ * @(#)jit.h	1.34 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -201,7 +201,7 @@ typedef struct {
     void (*jvmpi_method_entry)(ExecEnv *ee, JHandle *h);
     void (*jvmpi_method_exit)(ExecEnv *ee);
     void (*jvmpi_load_compiled_method)(compiled_method_t *compiled_method_info);
-    void (*jvmpi_unload_compiled_method)(ExecEnv *ee);
+    void (*jvmpi_unload_compiled_method)(struct methodblock *mb);
     JavaFrame * (**p_CompiledFrameUpdate)(JavaFrame *frame);
 
     void (*monitorWait2)(ExecEnv *ee, uintptr_t key, int64_t millis);
@@ -211,6 +211,16 @@ typedef struct {
     int (*sysMonitorWait)(sys_thread_t *tid, sys_mon_t *mid, jlong millis);
     int (*sysMonitorNotify)(sys_thread_t *tid, sys_mon_t *mid);
     int (*sysMonitorNotifyAll)(sys_thread_t *tid, sys_mon_t *mid);
+
+    void (**p_CompilerLinkClass)(ClassClass *cb);
+    void (**p_CompilerLoadClass)(ClassClass *cb, unsigned char *data, int len);
+    int (**p_CompiledCodePCtoLineNo)(unsigned char *);
+
+    sys_mon_t **queue_lock;
+    int	(*sysThreadSingle)(void);
+    void (*sysThreadMulti)(void);
+    int (*sysThreadEnumerateOver)(int (*func)(sys_thread_t *, void *), void *arg);
+
 } JITInterface6;
 
 #endif /* !_JAVASOFT_JIT_H_ */

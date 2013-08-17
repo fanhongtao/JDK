@@ -1,10 +1,10 @@
 /*
- * @(#)oobj.h	1.112 98/10/02
+ * @(#)oobj.h	1.114 99/04/22
  *
- * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * Copyright 1994-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -231,7 +231,10 @@ struct Classjava_lang_Class {
 	unsigned char	slotsize;	  /* (bytes) in slot */
 	unsigned char	elementsize;	  /* (bytes) in array */
     } cbtypeinfo;
-    unsigned long	     UNUSED3;	  /* unused */
+    unsigned long	     crc32;	  /* Computed by the VM before
+					     JIT is loaded. After JIT
+					     is loaded, this field is
+					     no longer set. */
 
     unsigned short           constantpool_count;  /* number of items in pool */
     unsigned short           methods_count;       /* number of methods */

@@ -1,5 +1,5 @@
 /*
- * @(#)Certificate.java	1.26 98/09/21
+ * @(#)Certificate.java	1.27 98/12/03
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -44,7 +44,7 @@ import java.util.Date;
  * the duty of the application implementing this interface to verify
  * the certificate and satisfy itself of its validity.
  *
- * @version 	1.26 00/05/10
+ * @version 	1.27 98/12/03
  * @author Benjamin Renaud 
  * @deprecated A new certificate handling package is created in JDK1.2.
  *             This Certificate interface is entirely deprecated and

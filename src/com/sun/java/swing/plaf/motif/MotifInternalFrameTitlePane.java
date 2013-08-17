@@ -1,5 +1,5 @@
 /*
- * @(#)MotifInternalFrameTitlePane.java	1.11 98/08/26
+ * @(#)MotifInternalFrameTitlePane.java	1.12 98/10/15
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -27,7 +27,7 @@ import java.beans.PropertyVetoException;
 
 /**
  * Package private class that manages a Motif title bar
- * @version 1.11 08/26/98
+ * @version 1.12 10/15/98
  */
 class MotifInternalFrameTitlePane 
     extends JComponent implements LayoutManager, ActionListener, PropertyChangeListener 
@@ -100,14 +100,16 @@ class MotifInternalFrameTitlePane
         });
         systemButton.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-		  try{
-		    iFrame.setClosed(true);
-		  } catch (PropertyVetoException e0) { }
-		  systemMenu.setVisible(false);
-                }
-            }
-        });
+				if ((e.getClickCount() == 2)){
+					if (iFrame.isClosable()) {
+						try{
+							iFrame.setClosed(true);
+						} catch (PropertyVetoException e0) { }
+					}
+					systemMenu.setVisible(false);
+				}
+			}
+		});
 
 	minimizeButton = new MinimizeButton();
 	minimizeButton.addActionListener(this);
@@ -146,17 +148,19 @@ class MotifInternalFrameTitlePane
         try {
             if ("Close".equals(e.getActionCommand()) && iFrame.isClosable()) {
 	        iFrame.setClosed(true);
-            } else if ("Iconify".equals(e.getActionCommand()) && 
-                     iFrame.isIconifiable()) {
+			// 4118140 
+			}
+			else if ((("Iconify".equals(e.getActionCommand())) ||
+						("Minimize".equals(e.getActionCommand())))
+						&& 
+						iFrame.isIconifiable()) {
                 if (!iFrame.isIcon()) {
                     iFrame.setIcon(true); 
                 } else {
                     iFrame.setIcon(false); 
-                }
-            } else if ("Minimize".equals(e.getActionCommand()) && 
-                       iFrame.isMaximizable()) {
-                iFrame.setIcon(true);
-            } else if ("Maximize".equals(e.getActionCommand()) && 
+				}
+			}
+			else if ("Maximize".equals(e.getActionCommand()) && 
                        iFrame.isMaximizable()) {
                 if(!iFrame.isMaximum()) {
                     iFrame.setMaximum(true);

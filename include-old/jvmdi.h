@@ -1,10 +1,10 @@
 /*
- * @(#)jvmdi.h	1.37 98/09/22
+ * @(#)jvmdi.h	1.39 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -740,10 +740,17 @@ typedef struct JVMDI_Interface_1_ {
 static JVMDI_Interface_1 *jvmdi_interface = NULL;
 static JavaVM *j_vm;
 
+#ifdef __cplusplus
+#define SetJVMDIfromJNIEnv(a_env) ( (jvmdi_interface == NULL)?  \
+              ((a_env)->GetJavaVM(&j_vm),  \
+               (j_vm)->GetEnv((void **)&jvmdi_interface,  \
+                               JVMDI_VERSION_1)):0)
+#else
 #define SetJVMDIfromJNIEnv(a_env) ( (jvmdi_interface == NULL)?  \
               ((*a_env)->GetJavaVM(a_env, &j_vm), \
                (*j_vm)->GetEnv(j_vm, (void **)&jvmdi_interface, \
                                JVMDI_VERSION_1)):0)
+#endif
 
 #define JVMDI_SetEventHook(a_env, a1) ( \
               SetJVMDIfromJNIEnv(a_env), \

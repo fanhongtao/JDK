@@ -1,10 +1,10 @@
 /*
- * @(#)BasicComboBoxRenderer.java	1.10 98/08/28
+ * @(#)BasicComboBoxRenderer.java	1.13 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -17,8 +17,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
 
-import java.awt.Component;
-import java.awt.Color;
+import java.awt.*;
 
 import java.io.Serializable;
 
@@ -37,49 +36,65 @@ import java.io.Serializable;
  * @author Arnaud Weber
  */
 public class BasicComboBoxRenderer extends JLabel
-    implements ListCellRenderer, Serializable
-{
+implements ListCellRenderer, Serializable {
     protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
 
     public BasicComboBoxRenderer() {
-	super();
-	setOpaque(true);
-	setBorder(noFocusBorder);
+        super();
+        setOpaque(true);
+        setBorder(noFocusBorder);
+    }
+    
+    
+    public Dimension getPreferredSize() {
+        Dimension size;
+        
+        if ((this.getText() == null) || (this.getText().equals( "" ))) {
+            setText( " " );
+            size = super.getPreferredSize();
+            setText( "" );
+        }
+        else {
+            size = super.getPreferredSize();
+        }
+        
+        return size;
     }
 
-
     public Component getListCellRendererComponent(
-        JList list, 
-	Object value,
-        int index, 
-        boolean isSelected, 
-        boolean cellHasFocus)
+                                                 JList list, 
+                                                 Object value,
+                                                 int index, 
+                                                 boolean isSelected, 
+                                                 boolean cellHasFocus)
     {
-	
-	/**if (isSelected) {
-	    setBackground(UIManager.getColor("ComboBox.selectionBackground"));
-	    setForeground(UIManager.getColor("ComboBox.selectionForeground"));
-	} else {
-	    setBackground(UIManager.getColor("ComboBox.background"));
-	    setForeground(UIManager.getColor("ComboBox.foreground"));
-	}**/
 
-        if(isSelected) {
+        /**if (isSelected) {
+            setBackground(UIManager.getColor("ComboBox.selectionBackground"));
+            setForeground(UIManager.getColor("ComboBox.selectionForeground"));
+        } else {
+            setBackground(UIManager.getColor("ComboBox.background"));
+            setForeground(UIManager.getColor("ComboBox.foreground"));
+        }**/
+
+        if (isSelected) {
             setBackground(list.getSelectionBackground());
             setForeground(list.getSelectionForeground());
-        } else {
+        }
+        else {
             setBackground(list.getBackground());
             setForeground(list.getForeground());
         }
-	
+
         setFont(list.getFont());
 
-	if (value instanceof Icon) {
-	    setIcon((Icon)value);
-	} else {
-	    setText((value == null) ? "" : value.toString());
-	}
-	return this;
+        if (value instanceof Icon) {
+            setIcon((Icon)value);
+        }
+        else {
+            setText((value == null) ? "" : value.toString());
+        }
+        return this;
     }
 
 
@@ -96,9 +111,7 @@ public class BasicComboBoxRenderer extends JLabel
      * version of Swing.  A future release of Swing will provide support for
      * long term persistence.
      */
-    public static class UIResource extends BasicComboBoxRenderer
-        implements javax.swing.plaf.UIResource
-    {
+    public static class UIResource extends BasicComboBoxRenderer implements javax.swing.plaf.UIResource {
     }
 }
 

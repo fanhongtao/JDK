@@ -1,5 +1,5 @@
 /*
- * @(#)KeyFactory.java	1.18 98/08/10
+ * @(#)KeyFactory.java	1.19 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -51,7 +51,7 @@ import java.security.spec.InvalidKeySpecException;
  *
  * @author Jan Luehe
  *
- * @version 1.18, 00/05/10
+ * @version 1.19 98/12/03
  *
  * @see Key
  * @see PublicKey

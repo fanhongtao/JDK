@@ -1,5 +1,5 @@
 /*
- * @(#)WrappedPlainView.java	1.18 98/09/10
+ * @(#)WrappedPlainView.java	1.19 98/11/17
  *
  * Copyright 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -38,7 +38,7 @@ import javax.swing.event.*;
  * without concern for the layout aspects.
  *
  * @author  Timothy Prinzing
- * @version 1.18 09/10/98
+ * @version 1.19 11/17/98
  * @see     View
  */
 public class WrappedPlainView extends BoxView implements TabExpander {
@@ -700,8 +700,10 @@ public class WrappedPlainView extends BoxView implements TabExpander {
 	    if (this.nlines != n) {
 		this.nlines = n;
 		WrappedPlainView.this.preferenceChanged(this, false, true);
+		// have to repaint any views after the receiver.
+		getContainer().repaint();
 	    }
-	    if (a != null) {
+	    else if (a != null) {
                 Component c = getContainer();
                 Rectangle alloc = (Rectangle) a;
                 c.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
@@ -711,10 +713,12 @@ public class WrappedPlainView extends BoxView implements TabExpander {
         public void removeUpdate(DocumentEvent e, Shape a, ViewFactory f) {
 	    int n = calculateLineCount();
 	    if (this.nlines != n) {
+		// have to repaint any views after the receiver.
 		this.nlines = n;
 		WrappedPlainView.this.preferenceChanged(this, false, true);
+		getContainer().repaint();
 	    }
-	    if (a != null) {
+	    else if (a != null) {
                 Component c = getContainer();
                 Rectangle alloc = (Rectangle) a;
                 c.repaint(alloc.x, alloc.y, alloc.width, alloc.height);

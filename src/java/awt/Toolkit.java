@@ -1,10 +1,10 @@
 /*
- * @(#)Toolkit.java	1.123 98/10/07
+ * @(#)Toolkit.java	1.125 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -59,7 +59,7 @@ import java.beans.PropertyChangeSupport;
  * <code>java.awt.peer</code>. Some methods defined by
  * <code>Toolkit</code> query the native operating system directly.
  *
- * @version 	1.123, 10/07/98
+ * @version 	1.125, 04/22/99
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @author	Fred Ecks
@@ -427,7 +427,7 @@ public abstract class  Toolkit {
 	ClassLoader cl = ClassLoader.getSystemClassLoader();
 
         if (atNames != null) {
-            StringTokenizer parser = new StringTokenizer(atNames,",");
+            StringTokenizer parser = new StringTokenizer(atNames," ,");
 	    String atName;
             while (parser.hasMoreTokens()) {
 		atName = parser.nextToken();

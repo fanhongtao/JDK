@@ -1,5 +1,5 @@
 /*
- * @(#)DigitList.java	1.18 98/08/12
+ * @(#)DigitList.java	1.21 99/06/07
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
@@ -57,7 +57,7 @@ package java.text;
  * @see  DecimalFormat
  * @see  ChoiceFormat
  * @see  MessageFormat
- * @version      1.18 08/12/98
+ * @version      1.21 06/07/99
  * @author       Mark Davis, Alan Liu
  */
 final class DigitList implements Cloneable {
@@ -164,8 +164,12 @@ final class DigitList implements Cloneable {
     /**
      * Return true if the number represented by this object can fit into
      * a long.
+     * @param isPositive true if this number should be regarded as positive
+     * @param ignoreNegativeZero true if -0 should be regarded as identical to
+     * +0; otherwise they are considered distinct
+     * @return true if this number fits into a Java long
      */
-    boolean fitsIntoLong(boolean isPositive)
+    boolean fitsIntoLong(boolean isPositive, boolean ignoreNegativeZero)
     {
         // Figure out if the result will fit in a long.  We have to
         // first look for nonzero digits after the decimal point;
@@ -179,7 +183,7 @@ final class DigitList implements Cloneable {
         if (count == 0) {
             // Positive zero fits into a long, but negative zero can only
             // be represented as a double. - bug 4162852
-            return isPositive;
+            return isPositive || ignoreNegativeZero;
         }
 
         if (decimalAt < count || decimalAt > MAX_COUNT) return false;
@@ -269,7 +273,9 @@ final class DigitList implements Cloneable {
             }
         }
         if (decimalAt == -1) decimalAt = count;
-        decimalAt += exponent - leadingZerosAfterDecimal;
+        if (nonZeroDigitSeen) {
+            decimalAt += exponent - leadingZerosAfterDecimal;
+        }
 
         if (fixedPoint)
         {
@@ -277,9 +283,25 @@ final class DigitList implements Cloneable {
             // zeros between the decimal and the first non-zero digit, for
             // a value < 0.1 (e.g., for 0.00123, -decimalAt == 2).  If this
             // is more than the maximum fraction digits, then we have an underflow
-            // for the printed representation.  We recognize this here and set
-            // the DigitList representation to zero in this situation.
-            if (-decimalAt >= maximumDigits) count = 0;
+            // for the printed representation.
+            if (-decimalAt > maximumDigits) {
+                // Handle an underflow to zero when we round something like
+                // 0.0009 to 2 fractional digits.
+                count = 0;
+                return;
+            } else if (-decimalAt == maximumDigits) {
+                // If we round 0.0009 to 3 fractional digits, then we have to
+                // create a new one digit in the least significant location.
+                if (shouldRoundUp(0)) {
+                    count = 1;
+                    ++decimalAt;
+                    digits[0] = (byte)'1';
+                } else {
+                    count = 0;
+                }
+                return;
+            }
+            // else fall through
         }
 
         // Eliminate trailing zeros.
@@ -367,13 +389,7 @@ final class DigitList implements Cloneable {
         // Round up if appropriate.
         if (maximumDigits >= 0 && maximumDigits < count)
         {
-            // Check for round to the nearest even.  HShih
-            if (digits[maximumDigits] == '5' && digits[maximumDigits-1] != '9' &&
-                (maximumDigits+1 >= count || digits[maximumDigits+1] == '0')) {
-                if (digits[maximumDigits-1] % 2 != 0)
-                    ++digits[maximumDigits-1];
-            } else if (digits[maximumDigits] >= '5')
-            {
+            if (shouldRoundUp(maximumDigits)) {
                 // Rounding up involved incrementing digits from LSD to MSD.
                 // In most cases this is simple, but in a worst case situation
                 // (9999..99) we have to adjust the decimalAt value.
@@ -398,6 +414,35 @@ final class DigitList implements Cloneable {
             }
             count = maximumDigits;
         }
+    }
+
+
+    /**
+     * Return true if truncating the representation to the given number
+     * of digits will result in an increment to the last digit.  This
+     * method implements half-even rounding, the default rounding mode.
+     * [bnf]
+     * @param maximumDigits the number of digits to keep, from 0 to
+     * <code>count-1</code>.  If 0, then all digits are rounded away, and
+     * this method returns true if a one should be generated (e.g., formatting
+     * 0.09 with "#.#").
+     * @return true if digit <code>maximumDigits-1</code> should be
+     * incremented
+     */
+    private boolean shouldRoundUp(int maximumDigits) {
+        boolean increment = false;
+        // Implement IEEE half-even rounding
+        if (digits[maximumDigits] > '5') {
+            return true;
+        } else if (digits[maximumDigits] == '5' ) {
+            for (int i=maximumDigits+1; i<count; ++i) {
+                if (digits[i] != '0') {
+                    return true;
+                }
+            }
+            return maximumDigits > 0 && (digits[maximumDigits-1] % 2 != 0);
+        }
+        return false;
     }
 
     /**

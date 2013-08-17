@@ -1,5 +1,5 @@
 /*
- * @(#)UnresolvedPermission.java	1.13 98/09/15
+ * @(#)UnresolvedPermission.java	1.15 98/12/11
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -65,7 +65,7 @@ import java.security.cert.*;
  * @see java.security.PermissionCollection
  * @see java.security.Policy
  *
- * @version 1.13 00/05/10
+ * @version 1.15 98/12/11
  *
  * @author Roland Schemers
  */
@@ -118,6 +118,10 @@ implements java.io.Serializable
 				java.security.cert.Certificate certs[])
     {
 	super(type);
+
+	if (type == null) 
+		throw new NullPointerException("type can't be null");
+
 	this.type = type;
 	this.name = name;
 	this.actions = actions;
@@ -383,6 +387,9 @@ implements java.io.Serializable
 	Hashtable cfs=null;
 
 	ois.defaultReadObject();
+
+	if (type == null) 
+		throw new NullPointerException("type can't be null");
 
 	// process any new-style certs in the stream (if present)
 	int size = ois.readInt();

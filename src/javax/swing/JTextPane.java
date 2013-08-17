@@ -1,5 +1,5 @@
 /*
- * @(#)JTextPane.java	1.64 98/08/28
+ * @(#)JTextPane.java	1.66 98/09/01
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -45,7 +45,7 @@ import javax.swing.plaf.*;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.64 08/28/98
+ * @version 1.66 09/01/98
  * @see text.StyledEditorKit
  */
 public class JTextPane extends JEditorPane {
@@ -441,9 +441,6 @@ public class JTextPane extends JEditorPane {
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JTextPane.
      */

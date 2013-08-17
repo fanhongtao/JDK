@@ -1,34 +1,37 @@
 /*
- * @(#)EventQueue.java	1.46 98/09/16
+ * @(#)EventQueue.java	1.53 00/03/08
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
+ * 
  */
 
 package java.awt;
 
+import java.awt.event.PaintEvent;
 import java.awt.event.InvocationEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.awt.ActiveEvent;
 import java.util.EmptyStackException;
 import java.lang.reflect.InvocationTargetException;
 import sun.awt.MagicEvent;
+import sun.awt.SunToolkit;
 
 /**
  * EventQueue is a platform-independent class that queues events, both
  * from the underlying peer classes and from trusted application classes.
  * There is only one EventQueue for each AppContext.
  *
- * @version 1.46 09/16/98
+ * @version 1.53 03/08/00
  * @author Thomas Ball
  * @author Fred Ecks
+ * @author David Mendenhall
  */
 public class EventQueue {
 
@@ -38,19 +41,22 @@ public class EventQueue {
 	return threadInitNumber++;
     }
 
-    /* The actual queue of events, implemented as a linked-list. */
-    private EventQueueItem queue;
- 
-    /* The tail of the list. Maintained so that non-Component source events
-       can be appended to the end of the list without O(n) traversal. */
-    private EventQueueItem queueTail;
+    private static final int LOW_PRIORITY = 0;
+    private static final int NORM_PRIORITY = 1;
+    private static final int HIGH_PRIORITY = 2;
 
-    /* The last element in the list which is a priority event. Will be null
-       if the list is empty or there are no priority events in the queue.
-       Priority events are MagicEvents with the PRIORITY_EVENT bit set
-       (high priority). */
-    private EventQueueItem lastPriorityItem;
+    private static final int NUM_PRIORITIES = HIGH_PRIORITY + 1;
 
+    /*
+     * We maintain one Queue for each priority that the EventQueue supports.
+     * That is, the EventQueue object is actually implemented as
+     * NUM_PRIORITIES queues and all Events on a particular internal Queue
+     * have identical priority. Events are pulled off the EventQueue starting
+     * with the Queue of highest priority. We progress in decreasing order
+     * across all Queues.
+     */
+    private Queue[] queues = new Queue[NUM_PRIORITIES];
+    
     /*
      * The next EventQueue on the stack, or null if this EventQueue is
      * on the top of the stack.  If nextQueue is non-null, requests to post
@@ -72,7 +78,9 @@ public class EventQueue {
     private final static boolean debug = false;
 
     public EventQueue() {
-        queue = queueTail = lastPriorityItem = null;
+        for (int i = 0; i < NUM_PRIORITIES; i++) {
+	    queues[i] = new Queue();
+	}
         String name = "AWT-EventQueue-" + nextThreadNum();
         dispatchThread = new EventDispatchThread(name, this);
         dispatchThread.setPriority(Thread.NORM_PRIORITY + 1);
@@ -82,119 +90,151 @@ public class EventQueue {
     /**
      * Post a 1.1-style event to the EventQueue.  If there is an
      * existing event on the queue with the same ID and event source,
-     * the source component's coalesceEvents method will be called.
+     * the source Component's coalesceEvents method will be called.
      *
      * @param theEvent an instance of java.awt.AWTEvent, or a
      * subclass of it.
      */
-    public synchronized void postEvent(AWTEvent theEvent) {
-        if (theEvent instanceof MagicEvent) {
-            long flags = ((MagicEvent)theEvent).getFlags();
-	    if ((flags & MagicEvent.PRIORITY_EVENT) != 0) {
-                postEvent(theEvent, true);
-		return;
-	    }
-	}
-	
-	postEvent(theEvent, false);
+    public void postEvent(AWTEvent theEvent) {
+        ((SunToolkit)Toolkit.getDefaultToolkit()).flushPendingEvents();
+        postEventPrivate(theEvent);
     }
 
-    /*
-     * Inserts an event in the queue, at the proper position. Handles
-     * event coalescing.
+    /**
+     * Post a 1.1-style event to the EventQueue.  If there is an
+     * existing event on the queue with the same ID and event source,
+     * the source Component's coalesceEvents method will be called.
+     *
+     * @param theEvent an instance of java.awt.AWTEvent, or a
+     * subclass of it.
      */
-    private void postEvent(AWTEvent theEvent, boolean priorityEvent) {
-
-        if (nextQueue != null) {
-            // Forward event to top of EventQueue stack.
-            nextQueue.postEvent(theEvent);
-            return;
-        }
-
-        Object source = theEvent.getSource();
-        EventQueueItem eqi = new EventQueueItem(theEvent);
-        if (queue == null) {
-            queue = queueTail = eqi;
-            if (priorityEvent) {
-                lastPriorityItem = eqi;
-            }
-            notifyAll();
-        } else {
-            // For Component source events, traverse the entire list,
-            // trying to coalesce events
-            if (source instanceof Component) {
-                EventQueueItem q = queue;
-                for (;;) {
-                    if (q.id == eqi.id && q.source == source) {
-                        AWTEvent coalescedEvent = 
-                            ((Component)source).coalesceEvents(q.event, 
-                                                               theEvent);
-                        if (coalescedEvent != null) {
-                            q.event = coalescedEvent;
-                            return;
-                        }
-                    }
-                    if (q.next != null) {
-                        q = q.next;
-                    } else {
-                        break;
-                    }
-                }
-            }
-            
-            // The event was not coalesced or has non-Component source.
-            // Insert it into the queue.
-            if (priorityEvent && lastPriorityItem == null) {
-	        // Post at front of queue. Set lastPriorityItem to front of
-	        // queue.
-                eqi.next = queue;
-                queue = lastPriorityItem = eqi;
-            } else if (priorityEvent && lastPriorityItem == queueTail) {
-	        // Post at end of queue. Set lastPriorityItem to end of queue.
-	        queueTail.next = eqi;
-		queueTail = lastPriorityItem = eqi;
-            } else if (priorityEvent) {
-	        // Post after lastPriorityItem. Set lastPriorityItem to new
-	        // item.
-                eqi.next = lastPriorityItem.next;
-                lastPriorityItem.next = eqi;
-                lastPriorityItem = eqi;
+    final void postEventPrivate(AWTEvent theEvent) {
+        synchronized(this) {
+            if (nextQueue != null) {
+                // Forward event to top of EventQueue stack.
+                nextQueue.postEventPrivate(theEvent);
+            } else if (theEvent instanceof MagicEvent &&
+                       (((MagicEvent)theEvent).getFlags() & 
+                                       MagicEvent.PRIORITY_EVENT) != 0) {
+                postEvent(theEvent, HIGH_PRIORITY);
+            } else if (theEvent.getID() == PaintEvent.PAINT ||
+                       theEvent.getID() == PaintEvent.UPDATE) {
+                postEvent(theEvent, LOW_PRIORITY);
             } else {
-	        // Post at end of queue. lastPriorityItem unchanged.
-                queueTail.next = eqi;
-                queueTail = eqi;
+                postEvent(theEvent, NORM_PRIORITY);
             }
         }
-    } // postEvent()
+    }
 
     /**
-     * Remove an event from the queue and return it.  This method will
+     * Posts the event to the internal Queue of specified priority,
+     * coalescing as appropriate.
+     */
+    private void postEvent(AWTEvent theEvent, int priority) {
+        EventQueueItem newItem = new EventQueueItem(theEvent);
+
+	if (queues[priority].head == null) {
+	    boolean shouldNotify = noEvents();
+
+	    queues[priority].head = queues[priority].tail = newItem;
+
+	    if (shouldNotify) {
+	        notifyAll();
+	    }
+	} else {
+	    Object source = theEvent.getSource();
+
+	    // For Component source events, traverse the entire list,
+	    // trying to coalesce events
+	    if (source instanceof Component) {
+	        EventQueueItem q = queues[priority].head;
+
+		// fix bug 4301264, do not coalesce mouse move/drag events
+		// across other types of mouse events.
+		if (theEvent.id == Event.MOUSE_MOVE ||
+		    theEvent.id == Event.MOUSE_DRAG) {
+		    EventQueueItem qm;
+		    for(qm = q; qm != null; qm = qm.next) {
+			if ((qm.event instanceof MouseEvent) &&
+			    qm.id != theEvent.id) {
+				q = qm;
+			}
+		    }
+		}
+
+		for (;;) {
+		    if (q.id == newItem.id && q.source == source) {
+		        AWTEvent coalescedEvent = 
+			    ((Component)source).coalesceEvents(q.event, 
+							       theEvent);
+			if (coalescedEvent != null) {
+			    q.event = coalescedEvent;
+			    return;
+			}
+		    }
+		    if (q.next != null) {
+		        q = q.next;
+		    } else {
+		        break;
+		    }
+		}
+	    }
+
+            // The event was not coalesced or has non-Component source.
+            // Insert it at the end of the appropriate Queue.
+	    queues[priority].tail.next = newItem;
+	    queues[priority].tail = newItem;
+	}
+    }
+
+    /**
+     * @return whether an event is pending on any of the separate Queues
+     */
+    private boolean noEvents() {
+        for (int i = 0; i < NUM_PRIORITIES; i++) {
+	    if (queues[i].head != null) {
+	        return false;
+	    }
+	}
+
+	return true;
+    }
+
+    /**
+     * Remove an event from the EventQueue and return it.  This method will
      * block until an event has been posted by another thread.
      * @return the next AWTEvent
      * @exception InterruptedException 
      *            if another thread has interrupted this thread.
      */
     public synchronized AWTEvent getNextEvent() throws InterruptedException {
-        while (queue == null) {
+        do {
+	    for (int i = NUM_PRIORITIES - 1; i >= 0; i--) {
+		if (queues[i].head != null) {
+		    EventQueueItem eqi = queues[i].head;
+		    queues[i].head = eqi.next;
+		    if (eqi.next == null) {
+			queues[i].tail = null;
+		    }
+		    return eqi.event;
+		}
+	    }
             wait();
-        }
-        EventQueueItem eqi = queue;
-        if (queue == lastPriorityItem) {
-            lastPriorityItem = null;
-        }
-        queue = queue.next;
-	if (queue == null) {
-	    queueTail = null;
-	}
-        return eqi.event;
+        } while(true);
     }
 
     /**
-     * Return the first event without removing it.
+     * Return the first event on the EventQueue without removing it.
      * @return the first event
      */
     public synchronized AWTEvent peekEvent() {
-        return (queue != null) ? queue.event : null;
+        for (int i = NUM_PRIORITIES - 1; i >= 0; i--) {
+	    if (queues[i].head != null) {
+	        return queues[i].head.event;
+	    }
+	}
+
+	return null;
     }
 
     /**
@@ -203,12 +243,15 @@ public class EventQueue {
      * @return the first event of the specified id
      */
     public synchronized AWTEvent peekEvent(int id) {
-        EventQueueItem q = queue;
-        for (; q != null; q = q.next) {
-            if (q.id == id) {
-                return q.event;
-            }
-        }
+        for (int i = NUM_PRIORITIES - 1; i >= 0; i--) {
+	    EventQueueItem q = queues[i].head;
+	    for (; q != null; q = q.next) {
+	        if (q.id == id) {
+		    return q.event;
+		}
+	    }
+	}
+
         return null;
     }
 
@@ -284,9 +327,8 @@ public class EventQueue {
         synchronized (newEventQueue) {
 	    // Transfer all events forward to new EventQueue.
 	    while (peekEvent() != null) {
-                boolean priority = (lastPriorityItem != null);
 		try {
-		    newEventQueue.postEvent(getNextEvent(), priority);
+		    newEventQueue.postEventPrivate(getNextEvent());
 		} catch (InterruptedException ie) {
 		    if (debug) {
 			System.err.println("interrupted push:");
@@ -330,9 +372,8 @@ public class EventQueue {
 	    // Transfer all events back to previous EventQueue.
 	    previousQueue.nextQueue = null;
 	    while (peekEvent() != null) {
-                boolean priority = (lastPriorityItem != null);
 		try {
-		    previousQueue.postEvent(getNextEvent(), priority);
+		    previousQueue.postEventPrivate(getNextEvent());
 		} catch (InterruptedException ie) {
 		    if (debug) {
 			System.err.println("interrupted pop:");
@@ -377,12 +418,14 @@ public class EventQueue {
      * Change the target of any pending KeyEvents because of a focus change.
      */
     final synchronized void changeKeyEventFocus(Object newSource) {
-        EventQueueItem q = queue;
-        for (; q != null; q = q.next) {
-            if (q.event instanceof KeyEvent) {
-                q.event.setSource(newSource);
-            }
-        }
+        for (int i = 0; i < NUM_PRIORITIES; i++) {
+	    EventQueueItem q = queues[i].head;
+	    for (; q != null; q = q.next) {
+	        if (q.event instanceof KeyEvent) {
+		    q.event.setSource(newSource);
+		}
+	    }
+	}
     }
 
     /*
@@ -390,45 +433,25 @@ public class EventQueue {
      * This method is normally called by the source's removeNotify method.
      */
     final synchronized void removeSourceEvents(Object source) {
-        EventQueueItem entry = queue;
-        EventQueueItem prev = null;
-        while (entry != null) {
-            if (entry.source == source) {
-                if (entry == lastPriorityItem) {
-                    lastPriorityItem = prev;
-                }
-                if (prev == null) {
-                    queue = entry.next;
-                } else {
-                    prev.next = entry.next;
-                }
-            } else {
-                prev = entry;
-            }
-            entry = entry.next;
-        }
-	queueTail = prev;
+        for (int i = 0; i < NUM_PRIORITIES; i++) {
+	    EventQueueItem entry = queues[i].head;
+	    EventQueueItem prev = null;
+	    while (entry != null) {
+	        if (entry.source == source) {
+		    if (prev == null) {
+		        queues[i].head = entry.next;
+		    } else {
+		        prev.next = entry.next;
+		    }
+		} else {
+		    prev = entry;
+		}
+		entry = entry.next;
+	    }
+	    queues[i].tail = prev;
+	}
     }
 
-    /*   
-     * Remove any pending events of specified id for the specified source.
-     */
-    synchronized void removeSourceEvents(Object source, int id) {
-        EventQueueItem entry = queue;
-        EventQueueItem prev = null;
-        while (entry != null) {
-            if ((entry.event.getSource().equals(source)) && (entry.id == id)) {
-                if (prev == null) {
-                    queue = entry.next;
-                } else {
-                    prev.next = entry.next;
-                }
-            }    
-            prev = entry;
-            entry = entry.next;
-        }
-    }  
- 
     /**
      * Causes <i>runnable</i> to have its run() method called in the dispatch
      * thread of the EventQueue.  This will happen after all pending events
@@ -484,6 +507,17 @@ public class EventQueue {
             throw new InvocationTargetException(eventException);
         }
     }
+}
+
+/**
+ * The Queue object holds pointers to the beginning and end of one internal
+ * queue. An EventQueue object is composed of multiple internal Queues, one
+ * for each priority supported by the EventQueue. All Events on a particular
+ * internal Queue have identical priority.
+ */
+class Queue {
+    EventQueueItem head;
+    EventQueueItem tail;
 }
 
 class EventQueueItem {

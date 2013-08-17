@@ -1,7 +1,7 @@
 /*
- * @(#)StandardExtendedTextLabel.java	1.7 98/09/21
+ * @(#)StandardExtendedTextLabel.java	1.9 99/04/22
  *
- * Copyright 1998-1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -12,7 +12,7 @@
  * you entered into with Sun.
  */
 /*
- * @(#)StandardExtendedTextLabel.java	1.7 98/09/21
+ * @(#)StandardExtendedTextLabel.java	1.9 99/04/22
  *
  * (C) Copyright IBM Corp. 1998, All Rights Reserved
  */
@@ -401,48 +401,15 @@ class StandardExtendedTextLabel extends ExtendedTextLabel {
       }
     }
 
-    // create the charinfo
+    StandardGlyphVector gv = new StandardGlyphVector(font, glyphs, gStart, length, frc);
 
-    AffineTransform xf = (AffineTransform)frc.getTransform().clone();
-    xf.scale(font.getSize2D(), font.getSize2D());
-    xf.preConcatenate(font.getTransform());
-    double[] matrix = new double[6];
-    xf.getMatrix(matrix);
+    // create the charinfo, assume 1-1 chars to glyphs
 
-    float[] charinfo = new float[length * numvals];
-    charinfo[0] = (float)matrix[4];
-    charinfo[1] = (float)matrix[5];
-
-    NativeFontWrapper.getGlyphInfo(font, glyphs, gStart, length, 
-				   matrix, frc.usesFractionalMetrics(), frc.isAntiAliased(), 
-				   charinfo);
-
-    // create the glyph vector
-
-    if (glyphs != context) { // may need to compress out '\uffff', leave it alone if in original source text
-      for (int i = 0; i < length; ++i) {
-	if (glyphs[i] == '\uffff') {
-	  for (int j = i + 1; j < length; ++j) {
-	    if (glyphs[j] == '\uffff') continue;
-	    glyphs[i++] = glyphs[j];
-	  }
-	  length = i; // !!! length is now number of glyphs
-	  break;
-	}
-      }
-    }
-
-    // !!! StandardGlyphVector constructor can't take offset and length into unicode array.
-    if (gStart != 0 || length != glyphs.length) {
-      char[] nglyphs = new char[length];
-      System.arraycopy(glyphs, gStart, nglyphs, 0, length);
-      glyphs = nglyphs;
-    }
-    GlyphVector gv = new StandardGlyphVector(font, glyphs, frc);
+    float[] charinfo = gv.getGlyphInfo();
 
     // create the metrics, ignore dropped chars, !!! linemetrics length is bogus
 
-    LineMetrics metrics = font.getLineMetrics(glyphs, 0, length, frc);
+    LineMetrics metrics = font.getLineMetrics(glyphs, gStart, length, frc);
 
     // default lineIsLTR to dataIsLTR
 

@@ -1,10 +1,10 @@
 /*
- * @(#)InetAddress.java	1.62 98/09/28
+ * @(#)InetAddress.java	1.65 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -28,7 +28,7 @@ import sun.net.InetAddressCachePolicy;
  * create a new <code>InetAddress</code> instance.
  *
  * @author  Chris Warth
- * @version 1.62, 09/28/98
+ * @version 1.65, 04/22/99
  * @see     java.net.InetAddress#getAllByName(java.lang.String)
  * @see     java.net.InetAddress#getByName(java.lang.String)
  * @see     java.net.InetAddress#getLocalHost()
@@ -278,6 +278,8 @@ class InetAddress implements java.io.Serializable {
     private static InetAddress[]    unknown_array; // put THIS in cache
     static InetAddress	    anyLocalAddress;
     static InetAddressImpl  impl;
+
+    private static HashMap          lookupTable = new HashMap();
 
     static final class CacheEntry {
 
@@ -564,53 +566,130 @@ class InetAddress implements java.io.Serializable {
 	    }
 	}
 
-	synchronized (addressCache) {
-	    obj = getCachedAddress(host);
+	obj = getCachedAddress(host);
 
 	/* If no entry in cache, then do the host lookup */
 
-	    if (obj == null) {
-		try {
-		    /*
-		     * Do not put the call to lookup() inside the
-		     * constructor.  if you do you will still be
-		     * allocating space when the lookup fails.
-		     */
-		    byte[][] byte_array = impl.lookupAllHostAddr(host);
-		    InetAddress[] addr_array =
-			new InetAddress[byte_array.length];
-
-		    for (int i = 0; i < byte_array.length; i++) {
-			byte addr[] = byte_array[i];
-			addr_array[i] = new InetAddress(host, addr);
-		    }
-		    obj = addr_array;
-		} catch (UnknownHostException e) {
-		    obj  = unknown_array;
-		}
-		cacheAddress(host, obj);
-	    }
-	} /* end synchronized block */
-
-	if (obj == unknown_array) {
-	    /*
-	     * We currently cache the fact that a host is unknown.
-	     */
-	    throw new UnknownHostException(host);
+	if (obj == null) {
+	    obj = getAddressFromNameService(host);
 	}
+        if (obj == unknown_array)
+            throw new UnknownHostException(host);
 
 	/* Make a copy of the InetAddress array */
 	try {
-	      objcopy = ((InetAddress [])obj).clone();
-	      // the following line is a hack, to ensure that the code
-	      // can compile for both the broken compiler and the fixed one.
-	      if (objcopy == null)
-		  throw new CloneNotSupportedException();
+	    objcopy = ((InetAddress [])obj).clone();
+	    // the following line is a hack, to ensure that the code
+	    // can compile for both the broken compiler and the fixed one.
+	    if (objcopy == null)
+		throw new CloneNotSupportedException();
 	} catch (CloneNotSupportedException cnse) {
-	      cnse.printStackTrace();
+	    cnse.printStackTrace();
 	}
 
 	return (InetAddress [])objcopy;
+    }
+
+    private static Object getAddressFromNameService(String host) {
+	Object obj = null;
+
+	// Check whether the host is in the lookupTable.
+	// 1) If the host isn't in the lookupTable when
+	//    checkLookupTable() is called, checkLookupTable()
+	//    would add the host in the lookupTable and
+	//    return null. So we will do the lookup.
+	// 2) If the host is in the lookupTable when
+	//    checkLookupTable() is called, the current thread
+	//    would be blocked until the host is removed
+	//    from the lookupTable. Then this thread
+	//    should try to look up the addressCache.
+	//     i) if it found the address in the
+	//        addressCache, checkLookupTable()  would
+	//        return the address.
+	//     ii) if it didn't find the address in the
+	//         addressCache for any reason,
+	//         it should add the host in the
+	//         lookupTable and return null so the
+	//         following code would do  a lookup itself.
+	if ((obj = checkLookupTable(host)) == null) {
+	    // This is the first thread which looks up the address 
+	    // this host or the cache entry for this host has been
+	    // expired so this thread should do the lookup.
+	    try {
+		/*
+		 * Do not put the call to lookup() inside the
+		 * constructor.  if you do you will still be
+		 * allocating space when the lookup fails.
+		 */
+		byte[][] byte_array;
+		byte_array = impl.lookupAllHostAddr(host);
+		InetAddress[] addr_array =
+		    new InetAddress[byte_array.length];
+
+		for (int i = 0; i < byte_array.length; i++) {
+		    byte addr[] = byte_array[i];
+		    addr_array[i] = new InetAddress(host, addr);
+		}
+		obj = addr_array;
+	    } catch (UnknownHostException e) {
+		obj  = unknown_array;
+	    } finally {
+		// Cache the address.
+		cacheAddress(host, obj);
+		// Delete the host from the lookupTable, and
+		// notify all threads waiting for the monitor
+		// for lookupTable.
+		updateLookupTable(host);
+	    }
+	}
+
+	return obj;
+    }
+	
+		
+    private static Object checkLookupTable(String host) {
+	// make sure obj  is null.
+	Object obj = null;
+	
+	synchronized (lookupTable) {
+	    // If the host isn't in the lookupTable, add it in the
+	    // lookuptable and return null. The caller should do
+	    // the lookup.
+	    if (lookupTable.containsKey(host) == false) {
+		lookupTable.put(host, null);
+		return obj;
+	    }
+
+	    // If the host is in the lookupTable, it means that another
+	    // thread is trying to look up the address of this host.
+	    // This thread should wait.
+	    while (lookupTable.containsKey(host)) {
+		try {
+		    lookupTable.wait();
+		} catch (InterruptedException e) {
+		}
+	    }
+	}
+
+	// The other thread has finished looking up the address of
+	// the host. This thread should retry to get the address
+	// from the addressCache. If it doesn't get the address from
+	// the cache,  it will try to look up the address itself.
+	obj = getCachedAddress(host);
+	if (obj == null) {
+	    synchronized (lookupTable) {
+		lookupTable.put(host, null);
+	    }
+	}
+	 
+	return obj;
+    }
+
+    private static void updateLookupTable(String host) {
+	synchronized (lookupTable) {
+	    lookupTable.remove(host);
+	    lookupTable.notifyAll();
+	}
     }
 
     /**

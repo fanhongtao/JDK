@@ -1,10 +1,10 @@
 /*
- * @(#)JPopupMenu.java	1.117 98/08/28
+ * @(#)JPopupMenu.java	1.131 99/05/03
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -52,7 +52,7 @@ import java.applet.Applet;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.117 08/28/98
+ * @version 1.131 05/03/99
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -107,6 +107,11 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * be cleaned up at remove time to allow GC.
      */
     private static Hashtable listenerRegistry = null;
+
+    /* Lock object used in place of class object for synchronization. 
+     * (4187686)
+     */
+    private static final Object classLock = new Object();
 
     /**
      *  Set the default value for the <b>lightWeightPopupEnabled</b>
@@ -163,79 +168,94 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
         return cache;
     }
 
-    static synchronized void recycleHeavyPopup(Popup aPopup) {
-        Vector cache;
-        final Frame  f = getFrame((Component)aPopup);
-        Hashtable heavyPopupCache = getHeavyPopupCache();
-        if (heavyPopupCache.containsKey(f)) {
-            cache = (Vector)heavyPopupCache.get(f);
-        } else {
-            cache = new Vector();
-            heavyPopupCache.put(f, cache);
-            // Clean up if the Frame is closed
-            f.addWindowListener(new WindowAdapter() {
-                public void windowClosed(WindowEvent e) {
-                    Hashtable heavyPopupCache2 = getHeavyPopupCache();
-                    heavyPopupCache2.remove(f);
-                }
-            });
-        }
+    static void recycleHeavyPopup(Popup aPopup) {
+	synchronized (classLock) {
+	    Vector cache;
+	    final Frame  f = getFrame((Component)aPopup);
+	    Hashtable heavyPopupCache = getHeavyPopupCache();
+	    if (heavyPopupCache.containsKey(f)) {
+		cache = (Vector)heavyPopupCache.get(f);
+	    } else {
+		cache = new Vector();
+		heavyPopupCache.put(f, cache);
+		// Clean up if the Frame is closed
+		f.addWindowListener(new WindowAdapter() {
+		    public void windowClosed(WindowEvent e) {
+			Hashtable heavyPopupCache2 = getHeavyPopupCache();
+			heavyPopupCache2.remove(f);
+		    }
+		});
+	    }
         
-        if(cache.size() < MAX_CACHE_SIZE) 
-            cache.addElement(aPopup);
+	    if(cache.size() < MAX_CACHE_SIZE) {
+		cache.addElement(aPopup);
+	    }
+	}
     }
 
-    static synchronized Popup getRecycledHeavyPopup(Frame f) {
-        Vector cache;
-        Hashtable heavyPopupCache = getHeavyPopupCache();
-        if (heavyPopupCache.containsKey(f)) {
-            cache = (Vector)heavyPopupCache.get(f);
-        } else {
-            return null;
-        }
-        int c;
-        if((c=cache.size()) > 0) {
-            Popup r = (Popup)cache.elementAt(0);
-            cache.removeElementAt(0);
-            return r;
-        }
-        return null;
-    }
-
-    
-    static synchronized void recycleLightPopup(Popup aPopup) {
-        Vector lightPopupCache = getLightPopupCache();
-        if(lightPopupCache.size() < MAX_CACHE_SIZE) 
-            lightPopupCache.addElement(aPopup);
-    }
-
-    static synchronized Popup getRecycledLightPopup() {
-        Vector lightPopupCache = getLightPopupCache();
-        int c;
-        if((c=lightPopupCache.size()) > 0) {
-            Popup r = (Popup)lightPopupCache.elementAt(0);
-            lightPopupCache.removeElementAt(0);
-            return r;
-        }
-        return null;
+    static Popup getRecycledHeavyPopup(Frame f) {
+	synchronized (classLock) {
+	    Vector cache;
+	    Hashtable heavyPopupCache = getHeavyPopupCache();
+	    if (heavyPopupCache.containsKey(f)) {
+		cache = (Vector)heavyPopupCache.get(f);
+	    } else {
+		return null;
+	    }
+	    int c;
+	    if((c=cache.size()) > 0) {
+		Popup r = (Popup)cache.elementAt(0);
+		cache.removeElementAt(0);
+		return r;
+	    }
+	    return null;
+	}
     }
 
     
-    static synchronized void recycleMediumPopup(Popup aPopup) {
-        Vector mediumPopupCache = getMediumPopupCache();
-        if(mediumPopupCache.size() < MAX_CACHE_SIZE) 
-            mediumPopupCache.addElement(aPopup);
+    static void recycleLightPopup(Popup aPopup) {
+	synchronized (classLock) {
+	    Vector lightPopupCache = getLightPopupCache();
+	    if (lightPopupCache.size() < MAX_CACHE_SIZE) {
+		lightPopupCache.addElement(aPopup);
+	    }
+	}
     }
 
-    static synchronized Popup getRecycledMediumPopup() {
-        Vector mediumPopupCache = getMediumPopupCache();
-        int c;
-        if((c=mediumPopupCache.size()) > 0) {
-            Popup r = (Popup)mediumPopupCache.elementAt(0);
-            mediumPopupCache.removeElementAt(0);
-            return r;
-        }
-        return null;
+    static Popup getRecycledLightPopup() {
+	synchronized (classLock) {
+	    Vector lightPopupCache = getLightPopupCache();
+	    int c;
+	    if((c=lightPopupCache.size()) > 0) {
+		Popup r = (Popup)lightPopupCache.elementAt(0);
+		lightPopupCache.removeElementAt(0);
+		return r;
+	    }
+	    return null;
+	}
+    }
+
+    
+    static void recycleMediumPopup(Popup aPopup) {
+	synchronized (classLock) {
+	    Vector mediumPopupCache = getMediumPopupCache();
+	    if(mediumPopupCache.size() < MAX_CACHE_SIZE) {
+		mediumPopupCache.addElement(aPopup);
+	    }
+	}
+    }
+
+    static Popup getRecycledMediumPopup() {
+	synchronized (classLock) {
+	    Vector mediumPopupCache = getMediumPopupCache();
+	    int c;
+	    if((c=mediumPopupCache.size()) > 0) {
+		Popup r = (Popup)mediumPopupCache.elementAt(0);
+		mediumPopupCache.removeElementAt(0);
+		return r;
+	    }
+	    return null;
+	}
     }
     
 
@@ -377,14 +397,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
         mi.setEnabled(a.isEnabled());
         mi.addActionListener(a);
         add(mi);
-        PropertyChangeListener actionPropertyChangeListener = 
-            createActionChangeListener(mi);
-	if (listenerRegistry == null) {
-	    listenerRegistry = new Hashtable();
-	}
-	listenerRegistry.put(mi, a);
-	listenerRegistry.put(a, actionPropertyChangeListener);
-        a.addPropertyChangeListener(actionPropertyChangeListener);
+	registerMenuItemForAction(mi, a);
         return mi;
     }
 
@@ -397,14 +410,52 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
 	super.remove(comp);
 	if (comp instanceof JMenuItem) {
 	    JMenuItem item = (JMenuItem)comp;
-	    if (listenerRegistry != null) { 
-		ActionChangedListener p = (ActionChangedListener)listenerRegistry.remove(item);
+	    unregisterMenuItemForAction(item);
+	}
+    }
+
+    /**
+     * Removes the component at the specified index from this popup menu.
+     *
+     * @param       index the position of the item to be removed. 
+     * @exception   IllegalArgumentException if the value of 
+     *                       <code>index</code> is less than 0.
+     */
+    public void remove(int pos) {
+        if (pos < 0) {
+            throw new IllegalArgumentException("index less than zero.");
+        }
+        if (pos > getComponentCount() -1) {
+            throw new IllegalArgumentException("index greater than the number of items.");
+        }
+	Component c = getComponent(pos);
+	if (c instanceof JMenuItem)
+	    unregisterMenuItemForAction((JMenuItem)c);
+
+	super.remove(pos);
+    }
+
+    private void registerMenuItemForAction(JMenuItem mi, Action a) {
+        PropertyChangeListener actionPropertyChangeListener = 
+            createActionChangeListener(mi);
+	if (listenerRegistry == null) {
+	    listenerRegistry = new Hashtable();
+	}
+	listenerRegistry.put(mi, actionPropertyChangeListener);
+	listenerRegistry.put(actionPropertyChangeListener, a);
+        a.addPropertyChangeListener(actionPropertyChangeListener);
+    }
+
+    private void unregisterMenuItemForAction(JMenuItem item) {
+	if (listenerRegistry != null) { 
+	    ActionChangedListener p = (ActionChangedListener)listenerRegistry.remove(item);
+	    if (p!=null) {
 		Action a = (Action)listenerRegistry.remove(p);
-		item.removeActionListener(a);
-		if (p!=null)
-		    p.setTarget(null);
-		if (a!=null)
+		if (a!=null) {
+		    item.removeActionListener(a);		
 		    a.removePropertyChangeListener(p);
+		}
+		p.setTarget(null);
 	    }
 	}
     }
@@ -428,7 +479,12 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
             } else if (propertyName.equals("enabled")) {
                 Boolean enabledState = (Boolean) e.getNewValue();
                 menuItem.setEnabled(enabledState.booleanValue());
-            }
+            } else if (e.getPropertyName().equals(Action.SMALL_ICON)) {
+                Icon icon = (Icon) e.getNewValue();
+                menuItem.setIcon(icon);
+                menuItem.invalidate();
+                menuItem.repaint();
+            } 
         }
 	public void setTarget(JMenuItem b) {
 	    this.menuItem = b;
@@ -476,7 +532,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      *       bound: true
      */
     public void setLabel(String label) {
-        String oldValue = label;
+        String oldValue = this.label;
         this.label = label;
         firePropertyChange("label", oldValue, label);
         if (accessibleContext != null) {
@@ -944,6 +1000,17 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
     }
 
     /**
+     * Returns the component at the specified index.
+     * This method is obsolete, please use <code>getComponent(int i)</code> instead.
+     * 
+     * @param i  the index of the component, where 0 is the first 
+     * @return the Component at that index 
+     */
+    public Component getComponentAtIndex(int i) {
+        return getComponent(i);
+    }
+
+    /**
      * Returns the index of the specified component.
      * 
      * @param  the Component to find
@@ -959,21 +1026,6 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
                 return i;
         }
         return -1;
-    }
-
-    /**
-     * Returns the component at the specified index.
-     * 
-     * @param i  the index of the component, where 0 is the first 
-     * @return the Component at that index 
-     */
-    public Component getComponentAtIndex(int i) {
-        int ncomponents = this.getComponentCount();
-        if (i <= ncomponents) {
-            Component[] component = this.getComponents();
-            return component[i];
-        }
-        return null;
     }
 
     /**
@@ -1420,7 +1472,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
              * @param f the Font
              * @return the FontMetrics, if supported, the object; 
              * otherwise, null
-             * @see getFont
+             * @see #getFont
              */
             public FontMetrics getFontMetrics(Font f) {
                 return WindowPopup.this.getFontMetrics(f);
@@ -1671,7 +1723,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
 		    if(p.getParent() instanceof JInternalFrame)
 			continue;		    
                     parent = ((JRootPane)p).getLayeredPane();
-                    for(p = parent.getParent(); p != null && !(p instanceof java.awt.Window) ; 
+                    for(p = parent.getParent(); p != null && (!(p instanceof java.awt.Window)); 
                         p = p.getParent());
                     parentWindow = (Window)p;
                     break;
@@ -1801,12 +1853,10 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
         }
 
         public void update(Graphics g) {
-	    // System.out.println("PanelPopup update " + getLocation());
             paint(g);
         }
         
         public void paint(Graphics g) {
-	    // System.out.println("PanelPopup paint " + getLocation());
             super.paint(g);
         }
         
@@ -1819,33 +1869,28 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
 	    Container parent = null;
 	    if (invoker != null)
 		parent = invoker.getParent();
-            Window parentWindow = null;
-	    
-            for(Container p = parent; p != null; p = p.getParent()) {
-                if(p instanceof JRootPane) {
-                    parent = ((JRootPane)p).getLayeredPane();
-                    for(p = parent.getParent(); p != null && !(p instanceof java.awt.Window) ; 
-                        p = p.getParent());
-                    parentWindow = (Window)p;
-                    break;
-                } else if(p instanceof Window) {
-                    parent = p;
-                    parentWindow = (Window)p;
-                    break;
-                }
-            }
-            Point p = convertScreenLocationToParent(parent,desiredLocationX,desiredLocationY);
-            this.setLocation(p.x,p.y);
-            if(parent instanceof JLayeredPane) {
-		// System.out.println("PanelPopup added to LayeredPane");
+	    /*
+	      Find the top level window,  
+	      if it has a layered pane,
+	      add to that, otherwise
+	      add to the window. */
 
-                ((JLayeredPane)parent).add(this,JLayeredPane.POPUP_LAYER,0);
-            } else
-                parent.add(this);
-        }
-
+	    while(!(parent instanceof Window || parent instanceof Applet) && (parent!=null)) {
+		parent = parent.getParent();
+	    }
+	    if (parent instanceof RootPaneContainer) {
+		parent = ((RootPaneContainer)parent).getLayeredPane();
+		Point p = convertScreenLocationToParent(parent,desiredLocationX,desiredLocationY);
+		this.setLocation(p.x,p.y);
+		((JLayeredPane)parent).add(this,JLayeredPane.POPUP_LAYER,0);
+	    } else {
+		Point p = convertScreenLocationToParent(parent,desiredLocationX,desiredLocationY);
+		this.setLocation(p.x,p.y);
+		parent.add(this);
+	    }
+	}
+          
         public void hide() {
-	    // System.out.println("PanelPopup hide");
             Container parent = getParent();
             Rectangle r = this.getBounds();
             if(parent != null)
@@ -1905,14 +1950,11 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
         }
 
         public void setLocationOnScreen(int x,int y) {
-	    // System.out.println("PanelPopup set Location on screen");
             Container parent = getParent();
             if(parent != null) {
-		// System.out.println("PanelPopup set Location on screen -- parent " + parent);
                 Point p = convertScreenLocationToParent(parent,x,y);
                 this.setLocation(p.x,p.y);
             } else {
-		// System.out.println("PanelPopup set Location on screen -- NULL parent");
                 desiredLocationX = x;
                 desiredLocationY = y;
             }
@@ -1926,9 +1968,6 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JPopupMenu.
      */
@@ -1948,8 +1987,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
             lastPopupTypeString = "HEAVY_WEIGHT_POPUP";
         } else lastPopupTypeString = "";
 	String lightWeightPopupEnabledString = (lightWeightPopupEnabled ?
-						"true" : "false");
-
+						"true" : "false");	
 	return super.paramString() +
 	",desiredLocationX=" + desiredLocationX +
 	",desiredLocationY=" + desiredLocationY +
@@ -2103,7 +2141,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
         /**
 	 * Returns the name of the L&F class that renders this component.
 	 *
-	 * @return "ToolBarSeparatorUI"
+	 * @return "PopupMenuSeparatorUI"
 	 * @see JComponent#getUIClassID
 	 * @see UIDefaults#getUI
 	 */

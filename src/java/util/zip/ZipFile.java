@@ -1,10 +1,10 @@
 /*
- * @(#)ZipFile.java	1.37 98/09/24
+ * @(#)ZipFile.java	1.39 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -26,7 +26,7 @@ import java.security.AccessController;
 /**
  * This class is used to read entries from a zip file.
  *
- * @version	1.37, 09/24/98
+ * @version	1.39, 04/22/99
  * @author	David Connelly
  */
 public
@@ -142,8 +142,13 @@ class ZipFile implements ZipConstants {
 	    return in;
 	case DEFLATED:
 	    return new InflaterInputStream(in, getInflater()) {
+                private boolean isClosed = false;
+                
 		public void close() {
-		    releaseInflater(inf);
+                    if (!isClosed) {
+                        releaseInflater(inf);
+                        isClosed = true;
+                    }
 		}
 		// Override fill() method to provide an extra "dummy" byte
 		// at the end of the input stream. This is required when

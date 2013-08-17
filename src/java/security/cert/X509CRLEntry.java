@@ -1,5 +1,5 @@
 /*
- * @(#)X509CRLEntry.java	1.8 98/06/29
+ * @(#)X509CRLEntry.java	1.9 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -49,7 +49,7 @@ import java.util.Set;
  * @see X509Extension
  *
  * @author Hemma Prafullchandra
- * @version 1.8 00/05/10
+ * @version 1.9 98/12/03
  */
 
 public abstract class X509CRLEntry implements X509Extension {

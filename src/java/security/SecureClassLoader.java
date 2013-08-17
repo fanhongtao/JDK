@@ -1,5 +1,5 @@
 /*
- * @(#)SecureClassLoader.java	1.71 00/04/19
+ * @(#)SecureClassLoader.java	1.71 00/03/08
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -24,7 +24,7 @@ import sun.security.util.Debug;
  * classes with an associated code source and permissions which are
  * retrieved by the system policy by default.
  *
- * @version 1.71, 04/19/00
+ * @version 1.71, 03/08/00
  * @author  Li Gong 
  * @author  Roland Schemers
  */
@@ -62,7 +62,7 @@ public class SecureClassLoader extends ClassLoader {
 	if (security != null) {
 	    security.checkCreateClassLoader();
 	}
-        initialized = true;
+	initialized = true;
     }
 
     /**
@@ -85,7 +85,7 @@ public class SecureClassLoader extends ClassLoader {
 	if (security != null) {
 	    security.checkCreateClassLoader();
 	}
-        initialized = true;
+	initialized = true;
     }
 
     /**
@@ -126,7 +126,7 @@ public class SecureClassLoader extends ClassLoader {
      */
     protected PermissionCollection getPermissions(CodeSource codesource)
     {
-        check();
+	check();
 	Policy p = Policy.getPolicyNoCheck();
 
 	PermissionCollection perms;
@@ -167,13 +167,14 @@ public class SecureClassLoader extends ClassLoader {
 	}
 	return pd;
     }
+
     /*
      * Check to make sure the class loader has been initialized.
      */
-    private void check() {
-      if (!initialized) {
-          throw new SecurityException("ClassLoader object not initialized");
-      }
+    private void check() { 
+	if (!initialized) {
+	    throw new SecurityException("ClassLoader object not initialized");
+	}
     }
 
 }

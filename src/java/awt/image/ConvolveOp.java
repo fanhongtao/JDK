@@ -1,10 +1,10 @@
 /*
- * @(#)ConvolveOp.java	1.36 98/09/12
+ * @(#)ConvolveOp.java	1.39 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -127,6 +127,14 @@ public class ConvolveOp implements BufferedImageOp, RasterOp {
      * a BufferedImage will be created with the source ColorModel.
      * The IllegalArgumentException may be thrown if the source is the
      * same as the destination.
+     * @param src the source <code>BufferedImage</code> to filter
+     * @param dst the destination <code>BufferedImage</code> for the 
+     *        filtered <code>src</code>
+     * @return the filtered <code>BufferedImage</code>
+     * @throws NullPointerException if <code>src</code> is <code>null</code>
+     * @throws IllegalArgumentException if <code>src</code> equals
+     *         <code>dst</code>
+     * @throws ImagingOpException if <code>src</code> cannot be filtered
      */
     public final BufferedImage filter (BufferedImage src, BufferedImage dst) {
         if (src == null) {
@@ -192,6 +200,16 @@ public class ConvolveOp implements BufferedImageOp, RasterOp {
      * If the destination Raster is null, a new Raster will be created.
      * The IllegalArgumentException may be thrown if the source is
      * the same as the destination.
+     * @param src the source <code>Raster</code> to filter
+     * @param dst the destination <code>WritableRaster</code> for the 
+     *        filtered <code>src</code>
+     * @return the filtered <code>WritableRaster</code>
+     * @throws NullPointerException if <code>src</code> is <code>null</code>
+     * @throws ImagingOpException if <code>src</code> and <code>dst</code>
+     *         do not have the same number of bands
+     * @throws ImagingOpException if <code>src</code> cannot be filtered
+     * @throws IllegalArgumentException if <code>src</code> equals 
+     *         <code>dst</code>
      */
     public final WritableRaster filter (Raster src, WritableRaster dst) {
         if (dst == null) {

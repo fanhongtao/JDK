@@ -1,14 +1,15 @@
 /*
- * @(#)Runtime.java	1.49 00/04/19
+ * @(#)Runtime.java	1.47 98/10/17
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
+ * All rights reserved.
+ *
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
- * 
  */
 
 package java.lang;
@@ -25,7 +26,7 @@ import java.util.StringTokenizer;
  * An application cannot create its own instance of this class. 
  *
  * @author  unascribed
- * @version 1.49, 04/19/00
+ * @version 1.47, 10/17/98
  * @see     java.lang.Runtime#getRuntime()
  * @since   JDK1.0
  */
@@ -249,9 +250,6 @@ public class Runtime {
      * @see     java.lang.SecurityManager#checkExec(java.lang.String)
      */
     public Process exec(String cmdarray[], String envp[]) throws IOException {
-        cmdarray = (String[])cmdarray.clone();
-        envp = (envp != null ? (String[])envp.clone() : null);
-
         if (cmdarray.length == 0) {
             throw new IndexOutOfBoundsException();            
         }

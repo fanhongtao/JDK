@@ -35,6 +35,7 @@ package java.util;
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.util.Hashtable;
+import sun.misc.SoftCache;
 import java.lang.ref.SoftReference;
 
 /**
@@ -278,6 +279,8 @@ import java.lang.ref.SoftReference;
  * @see MissingResourceException
  */
 abstract public class ResourceBundle {
+    /** Static key used by findBundle for resource lookups. */
+    private static final ResourceCacheKey cacheKey = new ResourceCacheKey();
 
     /**
      * Sole constructor.  (For invocation by subclass constructors, typically
@@ -316,7 +319,9 @@ abstract public class ResourceBundle {
                 obj = parent.getObject(key);
             }
             if (obj == null)
-                throw new MissingResourceException("Can't find resource",
+                throw new MissingResourceException("Can't find resource for bundle "
+                                                   +this.getClass().getName()
+                                                   +", key "+key,
                                                    this.getClass().getName(),
                                                    key);
         }
@@ -415,8 +420,8 @@ abstract public class ResourceBundle {
             localeName.append("_").append( Locale.getDefault().toString() );
             lookup = findBundle(baseName, localeName, loader, true);
             if( lookup == null ) {
-                throw new MissingResourceException("can't find resource for "
-                                                   + baseName + "_" + locale,
+                throw new MissingResourceException("Can't find resource for base name "
+                                                   + baseName + ", locale " + locale,
                                                    baseName + "_" + locale,"");
             }
         }
@@ -449,6 +454,69 @@ abstract public class ResourceBundle {
         this.parent = parent;
     }
 
+     /**
+      * Key used for cached resource bundles.  The key checks
+      * both the resource name and its class loader to determine
+      * if the resource is a match to the requested one.  The
+      * loader may be null, but the searchName must have a
+      * non-null value.
+      */
+    private static class ResourceCacheKey implements Cloneable {
+        private SoftReference loaderRef;
+        private String searchName;
+        private int hashCodeCache;
+
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+ 	    if (null == other) {
+                return false;
+            }
+ 	    if (!(other instanceof ResourceCacheKey)) {
+                return false;
+            }
+ 	    ResourceCacheKey otherEntry = (ResourceCacheKey)other;
+            boolean result = hashCodeCache == otherEntry.hashCodeCache;
+            if (result) {
+                  //are the names the same
+                result = searchName.equals(otherEntry.searchName);
+                if (result) {
+                    final boolean hasLoaderRef = loaderRef != null;
+                      //are refs (both non-null) or (both null)
+                    result = (hasLoaderRef && (otherEntry.loaderRef != null)) || (loaderRef == otherEntry.loaderRef);
+                      //if both non-null, check that they reference the same loader
+                    if (result && hasLoaderRef) {
+                        result = loaderRef.get() == otherEntry.loaderRef.get();
+                    }
+                }
+            }
+            return result;
+ 	}
+
+ 	public int hashCode() {
+           return hashCodeCache;
+ 	}
+
+        public Object clone() {
+            try {
+                return super.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new InternalError();
+            }
+        }
+
+        public void setKeyValues(ClassLoader loader, String searchName) {
+            this.searchName = searchName;
+            hashCodeCache = searchName.hashCode();
+            if (loader == null) {
+                this.loaderRef = null;
+            } else {
+                loaderRef = new SoftReference(loader);
+                hashCodeCache ^= loader.hashCode();
+            }
+        }
+    }
 
     /**
      * The internal routine that does the real work of finding and loading
@@ -466,37 +534,43 @@ abstract public class ResourceBundle {
         Vector cacheCandidates = new Vector();
         int lastUnderbar;
         InputStream stream;
+          //Use the loader itself as a NOTFOUND value.  The key only maintains a SoftReference
+          //to the loader, so when the loader gets GCed, the NOTFOUND table entries will
+          //be GCed with it.  A ClassLoader is never a valid resource so we don't have to 
+          //worry about it ever showing up in the cache as an actual ResourceValue.
+        Object NOTFOUND;
+        if (loader == null) {
+            NOTFOUND = NOLOADER_NOTFOUND;
+        } else {
+            NOTFOUND = loader; //use the loader itself as the NOTFOUND value
+        }
 
         searchLoop:
         while (true) {
             searchName = baseName + localeStr;
-            String cacheName;
-            if (loader != null) {
-                cacheName = "["+Integer.toString(loader.hashCode())+"]";
-            } else {
-                cacheName = "";
-            }
-            cacheName += searchName;
 
             // First, look in the cache.  We may either find the bundle we're
             // looking for or we may find that the bundle was not found by a
             // previous search.
             synchronized (cacheList) {
-                SoftReference ref = (SoftReference)(cacheList.get(cacheName));
-                if (ref != null)
-                    lookup = ref.get();
-                else
-                    lookup = null;
+                //we use a static shared cacheKey to avoid the object
+                //unless the lookup fails.
+                cacheKey.setKeyValues(loader, searchName);
+		lookup = cacheList.get(cacheKey);
+
+                    //If the value == the class loader, this
+                    //signifies that a prior search failed
+                if( lookup == NOTFOUND ) {
+                    localeName.setLength(0);
+                    break searchLoop;
+                }
+                if( lookup != null ) {
+                    localeName.setLength(0);
+                    break searchLoop;
+                }
+                cacheCandidates.addElement( cacheKey.clone() );
+                cacheKey.setKeyValues(null, "");
             }
-            if( lookup == NOTFOUND ) {
-                localeName.setLength(0);
-                break searchLoop;
-            }
-            if( lookup != null ) {
-                localeName.setLength(0);
-                break searchLoop;
-            }
-            cacheCandidates.addElement( cacheName );
 
             // Next search for a class
             try {
@@ -567,7 +641,7 @@ abstract public class ResourceBundle {
                 // Add a positive result to the cache. The result may include
                 // NOTFOUND
                 for( int i=0; i<cacheCandidates.size(); i++ ) {
-                    cacheList.put(cacheCandidates.elementAt(i), new SoftReference(lookup));
+                    cacheList.put(cacheCandidates.elementAt(i), lookup);
                 }
             }
 
@@ -607,6 +681,13 @@ abstract public class ResourceBundle {
      */
     protected ResourceBundle parent = null;
 
-    private static final Integer NOTFOUND = new Integer(-1);
-    private static Hashtable cacheList = new Hashtable();
+     	//This is a SoftCache, allowing bundles to be
+     	//removed from the cache if they are no longer
+     	//needed.  This will also allow the cache keys
+     	//to be reclaimed along with the ClassLoaders
+     	//they reference.
+    private static SoftCache cacheList = new SoftCache();
+
+        //The NOTFOUND value used when the class loader is null
+    private static final Object NOLOADER_NOTFOUND = new Integer(-1);
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)AbstractList.java	1.25 98/09/30
+ * @(#)AbstractList.java	1.26 99/01/21
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -47,7 +47,7 @@ package java.util;
  * collection being implemented admits a more efficient implementation.
  *
  * @author  Josh Bloch
- * @version 1.25 09/30/98
+ * @version 1.26 01/21/99
  * @see Collection
  * @see List
  * @see AbstractSequentialList
@@ -353,8 +353,8 @@ public abstract class AbstractList extends AbstractCollection implements List {
      * Returns a list iterator of the elements in this list (in proper
      * sequence), starting at the specified position in the list.  The
      * specified index indicates the first element that would be returned by
-     * an initial call to the <tt>nextElement</tt> method.  An initial call to
-     * the <tt>previousElement</tt> method would return the element with the
+     * an initial call to the <tt>next</tt> method.  An initial call to
+     * the <tt>previous</tt> method would return the element with the
      * specified index minus one.<p>
      *
      * This implementation returns a straightforward implementation of the

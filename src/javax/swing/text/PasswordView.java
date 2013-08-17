@@ -1,5 +1,5 @@
 /*
- * @(#)PasswordView.java	1.8 98/09/11
+ * @(#)PasswordView.java	1.9 98/10/29
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -24,7 +24,7 @@ import javax.swing.JPasswordField;
  * component to a JPasswordField).
  *
  * @author  Timothy Prinzing
- * @version 1.8 09/11/98
+ * @version 1.9 10/29/98
  * @see     View
  */
 public class PasswordView extends FieldView {
@@ -134,7 +134,7 @@ public class PasswordView extends FieldView {
 	    char echoChar = f.getEchoChar();
 	    FontMetrics m = f.getFontMetrics(f.getFont());
 	    
-	    Rectangle alloc = a.getBounds();
+	    Rectangle alloc = adjustAllocation(a).getBounds();
 	    int dx = (pos - getStartOffset()) * m.charWidth(echoChar);
 	    alloc.x += dx;
 	    alloc.width = 1;
@@ -162,10 +162,16 @@ public class PasswordView extends FieldView {
 	    JPasswordField f = (JPasswordField) c;
 	    char echoChar = f.getEchoChar();
 	    FontMetrics m = f.getFontMetrics(f.getFont());
-	    
+	    a = adjustAllocation(a);
 	    Rectangle alloc = (a instanceof Rectangle) ? (Rectangle)a :
                               a.getBounds();
 	    n = ((int)fx - alloc.x) / m.charWidth(echoChar);
+	    if (n < 0) {
+		n = 0;
+	    }
+	    else if (n > (getStartOffset() + getDocument().getLength())) {
+		n = getDocument().getLength() - getStartOffset();
+	    }
 	}
 	return getStartOffset() + n;
     }

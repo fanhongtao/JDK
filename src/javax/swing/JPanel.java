@@ -1,5 +1,5 @@
 /*
- * @(#)JPanel.java	1.29 98/08/28
+ * @(#)JPanel.java	1.30 98/09/01
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -40,7 +40,7 @@ import java.io.IOException;
  * @beaninfo
  * description: A generic lightweight container.
  * 
- * @version 1.29 08/28/98
+ * @version 1.30 09/01/98
  * @author Arnaud Weber
  * @author Steve Wilson
  */
@@ -144,9 +144,6 @@ public class JPanel extends JComponent implements Accessible
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JPanel.
      */

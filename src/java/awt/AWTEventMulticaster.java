@@ -1,7 +1,7 @@
 /*
- * @(#)AWTEventMulticaster.java	1.18 98/09/21
+ * @(#)AWTEventMulticaster.java	1.20 99/04/22
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -35,10 +35,10 @@ import java.io.IOException;
  * public myComponent extends Component {
  *     ActionListener actionListener = null;
  *
- *     public void addActionListener(ActionListener l) {
+ *     public synchronized void addActionListener(ActionListener l) {
  *	   actionListener = AWTEventMulticaster.add(actionListener, l);
  *     }
- *     public void removeActionListener(ActionListener l) {
+ *     public synchronized void removeActionListener(ActionListener l) {
  *  	   actionListener = AWTEventMulticaster.remove(actionListener, l);
  *     }
  *     public void processEvent(AWTEvent e) {
@@ -49,7 +49,7 @@ import java.io.IOException;
  * }
  * </code></pre>
  *
- * @version 	1.18, 09/21/98
+ * @version 	1.20, 04/22/99
  * @author      John Rose
  * @author 	Amy Fowler
  */

@@ -1,5 +1,5 @@
 /*
- * @(#)IdentityScope.java	1.43 98/09/24
+ * @(#)IdentityScope.java	1.44 98/12/03
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -43,7 +43,7 @@ import java.util.Properties;
  * @see Principal
  * @see Key
  *
- * @version 1.43 00/05/10
+ * @version 1.44 98/12/03
  * @author Benjamin Renaud
  *
  * @deprecated This class is no longer used. Its functionality has been

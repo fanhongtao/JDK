@@ -1,10 +1,10 @@
 /*
- * @(#)BasicListUI.java	1.44 98/08/28
+ * @(#)BasicListUI.java	1.50 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -30,7 +30,7 @@ import java.beans.PropertyChangeEvent;
  * A Windows L&F implementation of ListUI.
  * <p>
  *
- * @version 1.44 08/28/98
+ * @version 1.50 04/22/99
  * @author Hans Muller
  * @author Philip Milne
  */
@@ -256,18 +256,34 @@ public class BasicListUI extends ListUI
 			KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
 			JComponent.WHEN_FOCUSED);
 	list.registerKeyboardAction(new IncrementLeadSelectionAction
+		        ("SelectPreviousRow", CHANGE_SELECTION, -1),
+			KeyStroke.getKeyStroke("KP_UP"),
+			JComponent.WHEN_FOCUSED);
+	list.registerKeyboardAction(new IncrementLeadSelectionAction
 		        ("ExtendSelectPreviousRow", EXTEND_SELECTION, -1),
 			KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.
 			SHIFT_MASK), JComponent.WHEN_FOCUSED);
+	list.registerKeyboardAction(new IncrementLeadSelectionAction
+		        ("ExtendSelectPreviousRow", EXTEND_SELECTION, -1),
+			KeyStroke.getKeyStroke("shift KP_UP"), 
+				    JComponent.WHEN_FOCUSED);
 	// down
 	list.registerKeyboardAction(new IncrementLeadSelectionAction
 		        ("SelectNextRow", CHANGE_SELECTION, 1),
 			KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
 			JComponent.WHEN_FOCUSED);
 	list.registerKeyboardAction(new IncrementLeadSelectionAction
+		        ("SelectNextRow", CHANGE_SELECTION, 1),
+			KeyStroke.getKeyStroke("KP_DOWN"),
+			JComponent.WHEN_FOCUSED);
+	list.registerKeyboardAction(new IncrementLeadSelectionAction
 		        ("ExtendSelectPreviousRow", EXTEND_SELECTION, 1),
 			KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.
 			SHIFT_MASK), JComponent.WHEN_FOCUSED);
+	list.registerKeyboardAction(new IncrementLeadSelectionAction
+		        ("ExtendSelectPreviousRow", EXTEND_SELECTION, 1),
+			KeyStroke.getKeyStroke("shift KP_DOWN"),
+				    JComponent.WHEN_FOCUSED);
 
 	// home
 	list.registerKeyboardAction(new HomeAction
@@ -310,7 +326,7 @@ public class BasicListUI extends ListUI
 			InputEvent.SHIFT_MASK), JComponent.WHEN_FOCUSED);
 
 	// select all
-	Action selectAll = new SelectAllAction("SelectAll");
+	ActionListener selectAll = new SelectAllAction("SelectAll");
 	list.registerKeyboardAction(selectAll,
 				    KeyStroke.getKeyStroke(KeyEvent.VK_A, 
 				    InputEvent.CTRL_MASK),
@@ -341,14 +357,20 @@ public class BasicListUI extends ListUI
 	// up
         list.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_UP,
 							     0));
+        list.unregisterKeyboardAction(KeyStroke.getKeyStroke("KP_UP"));
         list.unregisterKeyboardAction(KeyStroke.getKeyStroke
 				      (KeyEvent.VK_UP, InputEvent.SHIFT_MASK));
+        list.unregisterKeyboardAction(KeyStroke.getKeyStroke
+				      ("shift KP_UP"));
 
 	// down
         list.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.
 							     VK_DOWN, 0));
+        list.unregisterKeyboardAction(KeyStroke.getKeyStroke("KP_DOWN"));
         list.unregisterKeyboardAction(KeyStroke.getKeyStroke
 				    (KeyEvent.VK_DOWN, InputEvent.SHIFT_MASK));
+        list.unregisterKeyboardAction(KeyStroke.getKeyStroke
+				    ("shift KP_DOWN"));
 
 	// home
         list.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_HOME,
@@ -645,7 +667,6 @@ public class BasicListUI extends ListUI
             return ((row < 0) || (row >= nrows)) ? -1 : row;
         }
 	else if (nrows > cellHeights.length) {
-	    System.out.println("nrows = " + nrows + " cellHeights.length = " + cellHeights.length);
 	    return -1;
 	}
         else {
@@ -1258,9 +1279,8 @@ public class BasicListUI extends ListUI
     /**
      * A generaic action this is only enabled when the JList is enabled.
      */
-    private abstract class ListAction extends AbstractAction {
+    private abstract class ListAction implements ActionListener {
 	protected ListAction(String name) {
-	    super (name);
 	}
 
 	public boolean isEnabled() { return (list != null &&

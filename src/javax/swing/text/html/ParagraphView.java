@@ -1,10 +1,10 @@
 /*
- * @(#)ParagraphView.java	1.13 98/09/25
+ * @(#)ParagraphView.java	1.17 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -23,13 +23,14 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.View;
 import javax.swing.text.ViewFactory;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
 
 /**
  * Displays the a paragraph, and uses css attributes for its
  * configuration.
  *
  * @author  Timothy Prinzing
- * @version 1.13 09/25/98
+ * @version 1.17 04/22/99
  */
 
 public class ParagraphView extends javax.swing.text.ParagraphView {
@@ -100,6 +101,7 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
      */
     protected void setPropertiesFromAttributes() {
 	if (attr != null) {
+	    super.setPropertiesFromAttributes();
 	    setInsets((short) painter.getInset(TOP, this),
 		      (short) painter.getInset(LEFT, this),
 		      (short) painter.getInset(BOTTOM, this),
@@ -170,6 +172,7 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
      * @returns true if the paragraph should be displayed.
      */
     public boolean isVisible() {
+	
 	int n = getLayoutViewCount() - 1;
 	for (int i = 0; i < n; i++) {
 	    View v = getLayoutView(i);
@@ -183,9 +186,40 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
 		return false;
 	    }
 	}
+	// If it's the last paragraph and not editable, it shouldn't
+	// be visible.
+	if (getStartOffset() == getDocument().getLength()) {
+	    boolean editable = false;
+	    Component c = getContainer();
+	    if (c instanceof JTextComponent) {
+		editable = ((JTextComponent)c).isEditable();
+	    }
+	    if (!editable) {
+		return false;
+	    }
+	}
 	return true;
     }
 
+    /**
+     * Renders using the given rendering surface and area on that
+     * surface.  This is implemented to delgate to the superclass
+     * after stashing the base coordinate for tab calculations.
+     *
+     * @param g the rendering surface to use
+     * @param a the allocated region to render into
+     * @see View#paint
+     */
+    public void paint(Graphics g, Shape a) {
+	Rectangle r;
+	if (a instanceof Rectangle) {
+	    r = (Rectangle) a;
+	} else {
+	    r = a.getBounds();
+	}
+	painter.paint(g, r.x, r.y, r.width, r.height, this);
+        super.paint(g, a);
+    }
 
     /**
      * Determines the preferred span for this view.  Returns

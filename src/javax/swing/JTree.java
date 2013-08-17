@@ -1,10 +1,10 @@
 /*
- * @(#)JTree.java	1.78 98/05/11
+ * @(#)JTree.java	1.110 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -153,7 +153,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
     /**
      * Maps from TreePath to Boolean indicating whether or not the
-     * pareticular path is expanded. This ONLY indicates whether a 
+     * particular path is expanded. This ONLY indicates whether a 
      * given path is expanded, and NOT if it is visible or not. That
      * information must be determined by visiting all the parent
      * paths and seeing if they are visible.
@@ -1686,12 +1686,19 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
         TreeSelectionModel         oldValue = this.selectionModel;
 
+	if (this.selectionModel != null && selectionRedirector != null) {
+            this.selectionModel.removeTreeSelectionListener
+		                (selectionRedirector);
+	}
         if (accessibleContext != null) {
            this.selectionModel.removeTreeSelectionListener((TreeSelectionListener)accessibleContext);
            selectionModel.addTreeSelectionListener((TreeSelectionListener)accessibleContext);
         }
 
         this.selectionModel = selectionModel;
+	if (selectionRedirector != null) {
+            this.selectionModel.addTreeSelectionListener(selectionRedirector);
+	}
         firePropertyChange(SELECTION_MODEL_PROPERTY, oldValue,
                            this.selectionModel);
 
@@ -2132,6 +2139,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
 	}
 
         s.writeObject(values);
+	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
+	    ui.installUI(this);
+	}
     }
 
     private void readObject(ObjectInputStream s) 
@@ -2183,10 +2193,6 @@ public class JTree extends JComponent implements Scrollable, Accessible
 	    treeModelListener = createTreeModelListener();
 	    if(treeModelListener != null)
 		treeModel.addTreeModelListener(treeModelListener);
-	}
-
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
 	}
     }
 
@@ -2648,7 +2654,15 @@ public class JTree extends JComponent implements Scrollable, Accessible
 	    if(parent == null)
 		return;
 
-	    if(expandedState.get(parent) != null) {
+	    if (parent.getPathCount() == 1) {
+		// New root, remove everything!
+		clearToggledPaths();
+		if(!treeModel.isLeaf(treeModel.getRoot())) {
+		    // Mark the root as expanded, if it isn't a leaf.
+		    expandedState.put(parent, Boolean.TRUE);
+		}
+	    }
+	    else if(expandedState.get(parent) != null) {
 		Vector              toRemove = new Vector(1);
 		boolean             isExpanded = isExpanded(parent);
 
@@ -2845,9 +2859,6 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JTree.
      */
@@ -2912,7 +2923,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
         public AccessibleJTree() {
             // Add a tree model listener for JTree
-             JTree.this.getModel().addTreeModelListener(this);
+            JTree.this.getModel().addTreeModelListener(this);
 	    JTree.this.addTreeExpansionListener(this);      
 	    JTree.this.addTreeSelectionListener(this);      
             leadSelectionPath = JTree.this.getLeadSelectionPath();
@@ -3076,7 +3087,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
         public Accessible getAccessibleAt(Point p) {
             TreePath path = getClosestPathForLocation(p.x, p.y);
             if (path != null) {
-                return new AccessibleJTreeNode(JTree.this, path, JTree.this);
+		// JTree.this is NOT the parent; parent will get computed later
+                return new AccessibleJTreeNode(JTree.this, path, null);
             } else {
                 return null;
             }
@@ -3111,7 +3123,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
                 } else {
                     Object[] objPath = {model.getRoot()};
                     TreePath path = new TreePath(objPath);
-                    return new AccessibleJTreeNode(JTree.this, path, JTree.this);
+                    return new AccessibleJTreeNode(JTree.this, path, 
+						   JTree.this);
                 }
             }
             return null;
@@ -3120,8 +3133,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
         /**
          * Get the index of this object in its accessible parent. 
          *
-         * @return the index of this object in its parent; -1 if this 
-         * object does not have an accessible parent.
+         * @return the index of this object in its parent.  Since a JTree
+         * top-level object does not have an accessible parent.
          * @see #getAccessibleParent
          */
         public int getAccessibleIndexInParent() {
@@ -3253,10 +3266,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
             private JTree tree = null;
             private TreeModel treeModel = null;
             private Object obj = null;
-            private Object objParent = null;
             private TreePath path = null;
             private Accessible accessibleParent = null;
-            private int index = -1;
+            private int index = 0;
             private boolean isLeaf = false;
 
             /**
@@ -3268,22 +3280,6 @@ public class JTree extends JComponent implements Scrollable, Accessible
                 accessibleParent = ap;
                 treeModel = t.getModel();
                 obj = p.getLastPathComponent();
-                Object[] objPath = p.getPath();
-                if (objPath.length > 1) {
-                    objParent = objPath[objPath.length-2];
-                    if (treeModel != null) {
-                        index = treeModel.getIndexOfChild(objParent, obj);
-                    }
-                    Object[] objParentPath = new Object[objPath.length-1];
-                    java.lang.System.arraycopy(objPath, 0, objParentPath, 0, objPath.length-1);
-                    TreePath parentPath = new TreePath(objParentPath);
-                    this.setAccessibleParent(accessibleParent);
-                } else {
-                    if (treeModel != null) {
-                        index = treeModel.getIndexOfChild(treeModel.getRoot(), obj);
-                        this.setAccessibleParent(tree);
-                    }
-                }
                 if (treeModel != null) {
                     isLeaf = treeModel.isLeaf(obj);
                 }
@@ -3486,6 +3482,33 @@ public class JTree extends JComponent implements Scrollable, Accessible
              * object does not have an Accessible parent
              */
             public Accessible getAccessibleParent() {
+		// someone wants to know, so we need to create our parent
+		// if we don't have one (hey, we're a talented kid!)
+		if (accessibleParent == null) {
+		    Object[] objPath = path.getPath();
+		    if (objPath.length > 1) {
+			Object objParent = objPath[objPath.length-2];
+			if (treeModel != null) {
+			    index = treeModel.getIndexOfChild(objParent, obj);
+			}
+			Object[] objParentPath = new Object[objPath.length-1];
+			java.lang.System.arraycopy(objPath, 0, objParentPath,
+						   0, objPath.length-1);
+			TreePath parentPath = new TreePath(objParentPath);
+			accessibleParent = new AccessibleJTreeNode(tree, 
+								   parentPath, 
+								   null);
+			this.setAccessibleParent(accessibleParent);
+		    } else if (treeModel != null) {
+			accessibleParent = tree; // we're the top!
+			index = 0; // we're an only child!
+//			TreePath parentPath = new TreePath(treeModel.getRoot());
+//			accessibleParent = new AccessibleJTreeNode(tree, 
+//								   parentPath, 
+//								   null);
+			this.setAccessibleParent(accessibleParent);
+		    }
+		}
                 return accessibleParent;
             }
     
@@ -3497,6 +3520,10 @@ public class JTree extends JComponent implements Scrollable, Accessible
              * @see #getAccessibleParent
              */
             public int getAccessibleIndexInParent() {
+		// index is invalid 'till we have an accessibleParent...
+		if (accessibleParent == null) {
+		    getAccessibleParent();
+		}
                 return index;
             }
     
@@ -3534,14 +3561,16 @@ public class JTree extends JComponent implements Scrollable, Accessible
             }
     
             /** 
-             * Gets the locale of the component. If the component does not have a 
-             * locale, then the locale of its parent is returned.  
+             * Gets the locale of the component. If the component does not have
+             * a locale, then the locale of its parent is returned.  
              *
-             * @return This component's locale. If this component does not have a locale, the locale of its parent is returned.
+             * @return This component's locale. If this component does not have 
+	     * a locale, the locale of its parent is returned.
              * @exception IllegalComponentStateException 
-             * If the Component does not have its own locale and has not yet been added to a containment hierarchy such that the locale can be
+             * If the Component does not have its own locale and has not yet 
+	     * been added to a containment hierarchy such that the locale can be
              * determined from the containing parent. 
-             * @see setLocale
+             * @see #setLocale
              */
             public Locale getLocale() {
                 AccessibleContext ac = getCurrentAccessibleContext();

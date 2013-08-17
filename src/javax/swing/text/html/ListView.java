@@ -1,10 +1,10 @@
 /*
- * @(#)ListView.java	1.21 98/08/26
+ * @(#)ListView.java	1.23 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -21,7 +21,7 @@ import javax.swing.text.*;
  * A view implementation to display an html list
  *
  * @author  Timothy Prinzing
- * @version 1.21 08/26/98
+ * @version 1.23 04/22/99
  */
 public class ListView extends BlockView  {
 
@@ -103,6 +103,11 @@ public class ListView extends BlockView  {
     protected void paintChild(Graphics g, Rectangle alloc, int index) {
 	listPainter.paint(g, alloc.x, alloc.y, alloc.width, alloc.height, this, index);
 	super.paintChild(g, alloc, index);
+    }
+
+    protected void setPropertiesFromAttributes() {
+	super.setPropertiesFromAttributes();
+	listPainter = getStyleSheet().getListPainter(getAttributes());
     }
 
     private StyleSheet.ListPainter listPainter;

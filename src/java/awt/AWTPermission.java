@@ -1,5 +1,5 @@
 /*
- * @(#)AWTPermission.java	1.11 98/10/02
+ * @(#)AWTPermission.java	1.12 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -98,7 +98,7 @@ import java.security.BasicPermission;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.11 00/05/10
+ * @version 1.12 98/12/03
  *
  * @author Marianne Mueller
  * @author Roland Schemers

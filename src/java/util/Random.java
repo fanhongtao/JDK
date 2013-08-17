@@ -1,10 +1,10 @@
 /*
- * @(#)Random.java	1.24 98/11/11
+ * @(#)Random.java	1.27 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -30,8 +30,7 @@ package java.util;
  * are permitted to use other algorithms, so long as they adhere to the 
  * general contracts for all the methods.
  * <p>
- * The algorithms implemented by class <tt>Random</tt> use three state 
- * variables, which are <tt>protected</tt>. They also use a 
+ * The algorithms implemented by class <tt>Random</tt> use a 
  * <tt>protected</tt> utility method that on each invocation can supply 
  * up to 32 pseudorandomly generated bits.
  * <p>
@@ -39,7 +38,7 @@ package java.util;
  * class <code>Math</code> simpler to use.
  *
  * @author  Frank Yellin
- * @version 1.24, 11/11/98
+ * @version 1.27, 04/22/99
  * @see     java.lang.Math#random()
  * @since   JDK1.0
  */
@@ -144,8 +143,12 @@ class Random implements java.io.Serializable {
     private static final int BYTES_PER_INT = 4;
 
     /**
-     * Generates a user specified number of random bytes.
-     *
+     * Generates random bytes and places them into a user-supplied 
+     * byte array.  The number of random bytes produced is equal to 
+     * the length of the byte array.
+     * 
+     * @param bytes  the non-null byte array in which to put the 
+     *               random bytes.
      * @since   JDK1.1
      */
     public void nextBytes(byte[] bytes) {
@@ -171,7 +174,7 @@ class Random implements java.io.Serializable {
      * contract of <tt>nextInt</tt> is that one <tt>int</tt> value is 
      * pseudorandomly generated and returned. All 2<font size="-1"><sup>32
      * </sup></font> possible <tt>int</tt> values are produced with 
-     * (approximately) equal probability. The method <tt>setSeed</tt> is 
+     * (approximately) equal probability. The method <tt>nextInt</tt> is 
      * implemented by class <tt>Random</tt> as follows:
      * <blockquote><pre>
      * public int nextInt() {  return next(32); }</pre></blockquote>
@@ -241,6 +244,9 @@ class Random implements java.io.Serializable {
         if (n<=0)
             throw new IllegalArgumentException("n must be positive");
 
+        if ((n & -n) == n)  // i.e., n is a power of 2
+            return (int)((n * (long)next(31)) >> 31);
+
         int bits, val;
         do {
             bits = next(31);
@@ -255,7 +261,7 @@ class Random implements java.io.Serializable {
      * contract of <tt>nextLong</tt> is that one long value is pseudorandomly 
      * generated and returned. All 2<font size="-1"><sup>64</sup></font> 
      * possible <tt>long</tt> values are produced with (approximately) equal 
-     * probability. The method <tt>setSeed</tt> is implemented by class 
+     * probability. The method <tt>nextLong</tt> is implemented by class 
      * <tt>Random</tt> as follows:
      * <blockquote><pre>
      * public long nextLong() {
@@ -300,7 +306,7 @@ class Random implements java.io.Serializable {
      * <i>m&nbsp;x&nbsp</i>2<font size="-1"><sup>-24</sup></font>, where 
      * <i>m</i> is a positive integer less than 2<font size="-1"><sup>24</sup>
      * </font>, are produced with (approximately) equal probability. The 
-     * method <tt>setSeed</tt> is implemented by class <tt>Random</tt> as 
+     * method <tt>nextFloat</tt> is implemented by class <tt>Random</tt> as 
      * follows:
      * <blockquote><pre>
      * public float nextFloat() {
@@ -340,7 +346,7 @@ class Random implements java.io.Serializable {
      * values of the form <i>m&nbsp;x&nbsp;</i>2<font size="-1"><sup>-53</sup>
      * </font>, where <i>m</i> is a positive integer less than 
      * 2<font size="-1"><sup>53</sup></font>, are produced with 
-     * (approximately) equal probability. The method <tt>setSeed</tt> is 
+     * (approximately) equal probability. The method <tt>nextDouble</tt> is 
      * implemented by class <tt>Random</tt> as follows:
      * <blockquote><pre>
      * public double nextDouble() {
@@ -384,7 +390,7 @@ class Random implements java.io.Serializable {
      * <tt>double</tt> value, chosen from (approximately) the usual 
      * normal distribution with mean <tt>0.0</tt> and standard deviation 
      * <tt>1.0</tt>, is pseudorandomly generated and returned. The method 
-     * <tt>setSeed</tt> is implemented by class <tt>Random</tt> as follows:
+     * <tt>nextGaussian</tt> is implemented by class <tt>Random</tt> as follows:
      * <blockquote><pre>
      * synchronized public double nextGaussian() {
      *    if (haveNextNextGaussian) {
@@ -397,7 +403,7 @@ class Random implements java.io.Serializable {
      *                    v2 = 2 * nextDouble() - 1;   // between -1.0 and 1.0
      *                    s = v1 * v1 + v2 * v2;
      *            } while (s >= 1);
-     *            double norm = Math.sqrt(-2 * Math.log(s)/s);
+     *            double multiplier = Math.sqrt(-2 * Math.log(s)/s);
      *            nextNextGaussian = v2 * multiplier;
      *            haveNextNextGaussian = true;
      *            return v1 * multiplier;

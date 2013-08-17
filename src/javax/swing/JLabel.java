@@ -1,10 +1,10 @@
 /*
- * @(#)JLabel.java	1.84 98/08/28
+ * @(#)JLabel.java	1.89 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -27,7 +27,7 @@ import javax.accessibility.*;
 
 
 /**
- * A display area for a short text string or an image,
+ * A display area for a short text string or an image, 
  * or both.
  * A label does not react to input events.
  * As a result, it cannot get the keyboard focus.
@@ -42,13 +42,19 @@ import javax.accessibility.*;
  * by setting the vertical and horizontal alignment.
  * By default, labels are vertically centered 
  * in their display area.
- * Text-only labels are left-aligned, by default;
+ * Text-only labels are leading edge aligned, by default;
  * image-only labels are horizontally centered, by default.
  * <p>
  * You can also specify the position of the text
  * relative to the image.
- * By default, text is to the right of the image,
+ * By default, text is on the trailing edge of the image,
  * with the text and image vertically aligned.
+ * <p>
+ * A label's leading and trailing edge are determined from the value of its
+ * {@link java.awt.ComponentOrientation} property.  At present, the default 
+ * ComponentOrientation setting maps the leading edge to left and the trailing
+ * edge to right.  
+ *
  * <p>
  * Finally, you can use the <code>setIconTextGap</code> method
  * to specify how many pixels
@@ -70,7 +76,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A component that displays a short string and an icon.
  * 
- * @version 1.84 08/28/98
+ * @version 1.89 04/22/99
  * @author Hans Muller
  */
 public class JLabel extends JComponent implements SwingConstants, Accessible
@@ -89,9 +95,9 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
     private boolean disabledIconSet = false;
             
     private int verticalAlignment = CENTER;
-    private int horizontalAlignment = LEFT;
+    private int horizontalAlignment = LEADING;
     private int verticalTextPosition = CENTER;
-    private int horizontalTextPosition = RIGHT;
+    private int horizontalTextPosition = TRAILING;
     private int iconTextGap = 4;
 
     protected Component labelFor = null;
@@ -113,15 +119,17 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      * Creates a <code>JLabel</code> instance with the specified
      * text, image, and horizontal alignment.
      * The label is centered vertically in its display area.
-     * The text is to the right of the image.
+     * The text is on the trailing edge of the image.
      *
      * @param text  The text to be displayed by the label.
      * @param icon  The image to be displayed by the label.
      * @param horizontalAlignment  One of the following constants
      *           defined in <code>SwingConstants</code>:
      *           <code>LEFT</code>,
-     *           <code>CENTER</code>, or
-     *           <code>RIGHT</code>.
+     *           <code>CENTER</code>,
+     *           <code>RIGHT</code>,
+     *           <code>LEADING</code> or
+     *           <code>TRAILING</code>.
      */
     public JLabel(String text, Icon icon, int horizontalAlignment) {
         setText(text);
@@ -140,8 +148,10 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      * @param horizontalAlignment  One of the following constants
      *           defined in <code>SwingConstants</code>:
      *           <code>LEFT</code>,
-     *           <code>CENTER</code>, or
-     *           <code>RIGHT</code>.
+     *           <code>CENTER</code>,
+     *           <code>RIGHT</code>,
+     *           <code>LEADING</code> or
+     *           <code>TRAILING</code>.
      */
     public JLabel(String text, int horizontalAlignment) {
         this(text, null, horizontalAlignment);
@@ -149,13 +159,13 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 
     /**
      * Creates a <code>JLabel</code> instance with the specified text.
-     * The label is aligned against the left side of its display area,
+     * The label is aligned against the leading edge of its display area,
      * and centered vertically.
      *
      * @param text  The text to be displayed by the label.
      */
     public JLabel(String text) {
-        this(text, null, LEFT);
+        this(text, null, LEADING);
     }
 
     /**
@@ -167,8 +177,10 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      * @param horizontalAlignment  One of the following constants
      *           defined in <code>SwingConstants</code>:
      *           <code>LEFT</code>,
-     *           <code>CENTER</code>, or
-     *           <code>RIGHT</code>.
+     *           <code>CENTER</code>, 
+     *           <code>RIGHT</code>,
+     *           <code>LEADING</code> or
+     *           <code>TRAILING</code>.
      */
     public JLabel(Icon image, int horizontalAlignment) {
         this(null, image, horizontalAlignment);
@@ -190,11 +202,11 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      * no image and with an empty string for the title.
      * The label is centered vertically 
      * in its display area.
-     * The label's contents, once set, will be displayed at the left 
+     * The label's contents, once set, will be displayed on the leading edge 
      * of the label's display area.
      */
     public JLabel() {
-        this("", null, LEFT);
+        this("", null, LEADING);
     }
 
 
@@ -613,8 +625,10 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      * @return   The value of the horizontalAlignment property, one of the 
      *           following constants defined in <code>SwingConstants</code>:
      *           <code>LEFT</code>,
-     *           <code>CENTER</code>, or
-     *           <code>RIGHT</code>.
+     *           <code>CENTER</code>, 
+     *           <code>RIGHT</code>,
+     *           <code>LEADING</code> or
+     *           <code>TRAILING</code>.
      *
      * @see #setHorizontalAlignment
      * @see SwingConstants
@@ -630,10 +644,10 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      *
      * @param alignment  One of the following constants
      *           defined in <code>SwingConstants</code>:
-     *           <code>LEFT</code> (the default for text-only labels),
+     *           <code>LEFT</code>,
      *           <code>CENTER</code> (the default for image-only labels),
      *           <code>RIGHT</code>,
-     *           <code>LEADING</code> or
+     *           <code>LEADING</code> (the default for text-only labels) or
      *           <code>TRAILING</code>.
      *
      * @see SwingConstants
@@ -719,8 +733,10 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      * @return   One of the following constants
      *           defined in <code>SwingConstants</code>:
      *           <code>LEFT</code>,
-     *           <code>CENTER</code>, or
-     *           <code>RIGHT</code>.
+     *           <code>CENTER</code>, 
+     *           <code>RIGHT</code>,
+     *           <code>LEADING</code> or
+     *           <code>TRAILING</code>.
      *
      * @see SwingConstants
      */
@@ -737,9 +753,9 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      *           defined in <code>SwingConstants</code>:
      *           <code>LEFT</code>,
      *           <code>CENTER</code>,
-     *           <code>RIGHT</code> (the default),
+     *           <code>RIGHT</code>,
      *           <code>LEADING</code>, or
-     *           <code>TRAILING</code>.
+     *           <code>TRAILING</code> (the default).
      * @exception IllegalArgumentException
      *
      * @see SwingConstants
@@ -783,9 +799,6 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JLabel.
      */
@@ -934,6 +947,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      *
      * @see #getDisplayedMnemonic
      * @see #setDisplayedMnemonic
+     * 
      * @beaninfo
      *        bound: true
      *  description: The component this is labelling.
@@ -944,10 +958,10 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
         firePropertyChange("labelFor", oldC, c);        
 
         if (oldC instanceof JComponent) {
-            ((JComponent) c).putClientProperty(LABELED_BY_PROPERTY,null);
+            ((JComponent)oldC).putClientProperty(LABELED_BY_PROPERTY, null);
         }
         if (c instanceof JComponent) {
-            ((JComponent) c).putClientProperty(LABELED_BY_PROPERTY,this);
+            ((JComponent)c).putClientProperty(LABELED_BY_PROPERTY, this);
         }
     }
 

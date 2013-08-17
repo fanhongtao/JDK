@@ -1,5 +1,5 @@
 /*
- * @(#)ClassLoader.java	1.126 00/05/09
+ * @(#)ClassLoader.java	1.128 00/03/08
  *
  * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -127,7 +127,7 @@ import sun.misc.CompoundEnumeration;
  *     }
  * </pre></blockquote><hr>
  *
- * @version 1.126, 05/09/00
+ * @version 1.128, 03/08/00
  * @see     java.lang.Class
  * @see     java.lang.Class#newInstance()
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
@@ -149,6 +149,16 @@ public abstract class ClassLoader {
     private ClassLoader parent;
 
     /*
+     * Hashtable that maps packages to certs
+     */
+    private Hashtable package2certs = new Hashtable(11);
+
+    /*
+     * shared among all packages with unsigned classes
+     */
+    java.security.cert.Certificate[] nocerts;
+
+    /*
      * The classes loaded by this class loader. The only purpose of this
      * table is to keep the classes from being GC'ed until the loader
      * is GC'ed.
@@ -160,7 +170,7 @@ public abstract class ClassLoader {
      * loaded by this loader.
      */
     private Set domains = new HashSet();
-
+    
     /* 
      * Called by the VM to record every loaded class with this loader.
      */
@@ -299,26 +309,26 @@ public abstract class ClassLoader {
      * a class.
      */
     private synchronized Class loadClassInternal(String name)
-      throws ClassNotFoundException {
+	throws ClassNotFoundException {
 
-      return loadClass(name);
+	return loadClass(name);
     }
 
     private void checkPackageAccess(Class cls, ProtectionDomain pd) {
-      final SecurityManager sm = System.getSecurityManager();
-      if (sm != null) {
-          final String name = cls.getName();
+	final SecurityManager sm = System.getSecurityManager();
+	if (sm != null) {
+	    final String name = cls.getName();
             final int i = name.lastIndexOf('.');
-          if (i != -1) {
+	    if (i != -1) {
                 AccessController.doPrivileged(new PrivilegedAction() {
                     public Object run() {
-                      sm.checkPackageAccess(name.substring(0, i));
-                      return null;
+		        sm.checkPackageAccess(name.substring(0, i));
+		        return null;
                     }
                 }, new AccessControlContext(new ProtectionDomain[] {pd}));
-          }
-      }
-      domains.add(pd);
+	    }
+	}
+	domains.add(pd);
     }
 
     /**
@@ -398,6 +408,11 @@ public abstract class ClassLoader {
      * @exception  IndexOutOfBoundsException if either <code>off</code> or 
      *             <code>len</code> is negative, or if 
      *             <code>off+len</code> is greater than <code>b.length</code>.
+     * @exception  SecurityException if an attempt is made to add this class
+     *             to a package that contains classes that were signed by
+     *             a different set of certificates then this class, which
+     *             is unsigned.
+     *
      * @see        ClassLoader#loadClass(java.lang.String, boolean)
      * @see        ClassLoader#resolveClass(java.lang.Class)
      * @see        java.security.ProtectionDomain
@@ -414,8 +429,32 @@ public abstract class ClassLoader {
 
     /**
      * Converts an array of bytes into an instance of class Class,
-     * with an optional ProtectionDomain. Before the
-     * class can be used it must be resolved.
+     * with an optional ProtectionDomain. If the domain is <code>null</code>,
+     * then a default domain will be assigned to the class as specified
+     * in the documentation for {@link #defineClass(String,byte[],int,int)}.
+     * Before the class can be used it must be resolved.
+     *
+     * <p>The first class defined in a package determines the exact set of
+     * certificates that all subsequent classes defined in that package must
+     * contain. The set of certificates for a class is obtained from the 
+     * <code>CodeSource</code> within the <code>ProtectionDomain</code> of
+     * the class. Any classes added to that package must contain
+     * the same set of certificates or a <code>SecurityException</code>
+     * will be thrown. Note that if the <code>name</code> argument is
+     * null, this check is not performed. You should always pass in the
+     * name of the class you are defining as well as the bytes. This
+     * ensures that the class you are defining is indeed the class
+     * you think it is.
+     *
+     * @exception  ClassFormatError if the data did not contain a valid class
+     * @exception  IndexOutOfBoundsException if either <code>off</code> or 
+     *             <code>len</code> is negative, or if 
+     *             <code>off+len</code> is greater than <code>b.length</code>.
+     *
+     * @exception  SecurityException if an attempt is made to add this class
+     *             to a package that contains classes that were signed by
+     *             a different set of certificates then this class.
+     *
      * @param name the name of the class
      * @param b the class bytes
      * @param off the start offset of the class bytes
@@ -433,20 +472,100 @@ public abstract class ClassLoader {
 	    protectionDomain = getDefaultDomain();
 	}
 
+	if (name != null)
+	    checkCerts(name, protectionDomain.getCodeSource());
 	Class c = defineClass0(name, b, off, len, protectionDomain);
 	if (protectionDomain.getCodeSource() != null) {
 	    java.security.cert.Certificate certs[] = 
-	        protectionDomain.getCodeSource().getCertificates();
+		protectionDomain.getCodeSource().getCertificates();
 	    if (certs != null)
-	        setSigners(c, certs);
+		setSigners(c, certs);
 	}
 	return c;
     }
 
     private Class checkFindBootstrapClass(String name)
-        throws ClassNotFoundException {
-        check();
-        return findBootstrapClass(name);
+	throws ClassNotFoundException {
+	check();
+	return findBootstrapClass(name);
+    }
+
+    private synchronized void checkCerts(String name, CodeSource cs)
+    {
+	int i = name.lastIndexOf('.');
+	String pname = (i == -1) ? "" : name.substring(0,i);
+	java.security.cert.Certificate[] pcerts = 
+	    (java.security.cert.Certificate[]) package2certs.get(pname);
+        if (pcerts == null) {
+	    // first class in this package gets to define which
+	    // certificates must be the same for all other classes
+	    // in this package
+	    if (cs != null) {
+		pcerts = cs.getCertificates();
+	    }
+	    if (pcerts == null) {
+		if (nocerts == null)
+		    nocerts = new java.security.cert.Certificate[0];
+		pcerts = nocerts;
+	    }
+	    package2certs.put(pname, pcerts);
+	} else {
+	    java.security.cert.Certificate[] certs = null;
+	    if (cs != null) {
+		certs = cs.getCertificates();
+	    }
+
+	    if (!compareCerts(pcerts,certs)) {
+		throw new SecurityException("class \""+ name+
+					    "\"'s signer information does not match signer information of other classes in the same package");
+	    }
+	}
+    }
+
+    /**
+     * check to make sure the certs for the new class (certs) are
+     * the same as the certs for the first class inserted 
+     * in the package (pcerts)
+     */
+    private boolean compareCerts(java.security.cert.Certificate[] pcerts, 
+				 java.security.cert.Certificate[] certs)
+    {
+	// certs can be null, indicating no certs. 
+	if ((certs == null) || (certs.length == 0)) {
+	    return pcerts.length == 0;
+	}
+
+	// the length must be the same at this point
+	if (certs.length != pcerts.length)
+	    return false;
+
+	// go through and make sure all the certs in one array
+	// are in the other and vice-versa.
+	boolean match;
+	for (int i=0; i < certs.length; i++) {
+	    match = false;
+	    for (int j=0; j < pcerts.length; j++) {
+		if (certs[i].equals(pcerts[j])) {
+		    match = true;
+		    break;
+		}
+	    }
+	    if (!match) return false;
+	}
+
+	// now do the same for pcerts
+	for (int i=0; i < pcerts.length; i++) {
+	    match = false;
+	    for (int j=0; j < certs.length; j++) {
+		if (pcerts[i].equals(certs[j])) {
+		    match = true;
+		    break;
+		}
+	    }
+	    if (!match) return false;
+	}
+
+	return true;
     }
 
     /**
@@ -546,14 +665,13 @@ public abstract class ClassLoader {
     }
 
     private Class findBootstrapClass0(String name)
-      throws ClassNotFoundException {
-      check();
-      return findBootstrapClass(name);
+	throws ClassNotFoundException {
+	check();
+	return findBootstrapClass(name);
     }
-
+	
     private native Class defineClass0(String name, byte[] b, int off, int len,
-      ProtectionDomain pd);
-
+	ProtectionDomain pd);
     private native void resolveClass0(Class c);
     private native Class findBootstrapClass(String name)
 	throws ClassNotFoundException;
@@ -992,7 +1110,7 @@ public abstract class ClassLoader {
      * by the VM when it loads the library, and used by the VM to pass
      * the correct version of JNI to the native methods.
      *
-     * @version 1.126, 05/09/00
+     * @version 1.128, 03/08/00
      * @see     java.lang.ClassLoader
      * @since   JDK1.2
      */ 

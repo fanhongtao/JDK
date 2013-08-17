@@ -1,10 +1,10 @@
-/**
- * @(#)BasicComboBoxUI.java	1.89 98/09/20
+/*
+ * @(#)BasicComboBoxUI.java	1.100 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -47,7 +47,8 @@ import java.beans.PropertyChangeEvent;
  *    KeyHandler
  *
  *
- * @version 1.89 09/20/98
+ * @version 1.94 11/02/98
+ * @author Arnaud Weber
  * @author Tom Santos
  */
 public class BasicComboBoxUI extends ComboBoxUI {
@@ -78,6 +79,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
     // Listeners that are attached to the JComboBox
     protected KeyListener keyListener;
     protected FocusListener focusListener;
+    FocusListener editorFocusListener;
     protected ItemListener itemListener;
     protected PropertyChangeListener propertyChangeListener;
 
@@ -100,6 +102,9 @@ public class BasicComboBoxUI extends ComboBoxUI {
     // Cached the size that the display needs to render the largest item
     Dimension cachedDisplaySize = new Dimension( 0, 0 );
 
+    // Used for calculating the default size.
+    static DefaultListCellRenderer textRenderer = new DefaultListCellRenderer();
+
 
     //========================
     // begin UI Initialization
@@ -117,35 +122,35 @@ public class BasicComboBoxUI extends ComboBoxUI {
         popup = createPopup();
         listBox = popup.getList();
 
-	Object keyNav = c.getClientProperty( LIGHTWEIGHT_KEYBOARD_NAVIGATION );
-	if ( keyNav != null ) {
-	    if ( keyNav.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_ON ) ) {
-	        lightNav = true;
-	    }
-	    else if ( keyNav.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_OFF ) ) {
-	        lightNav = false;
-	    }
-	}
+        Object keyNav = c.getClientProperty( LIGHTWEIGHT_KEYBOARD_NAVIGATION );
+        if ( keyNav != null ) {
+            if ( keyNav.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_ON ) ) {
+                lightNav = true;
+            }
+            else if ( keyNav.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_OFF ) ) {
+                lightNav = false;
+            }
+        }
 
         if ( comboBox.getRenderer() == null || comboBox.getRenderer() instanceof UIResource ) {
-	    comboBox.setRenderer( createRenderer() );
+            comboBox.setRenderer( createRenderer() );
         }
-	
+
         if ( comboBox.getEditor() == null || comboBox.getEditor() instanceof UIResource ) {
-	    comboBox.setEditor( createEditor() );
+            comboBox.setEditor( createEditor() );
         }
 
         installComponents();
         installListeners();
 
 
-	if ( arrowButton != null ) {
-	    configureArrowButton();
-	}
-	
-	if ( editor != null ) {
-	    configureEditor();
-	}
+        if ( arrowButton != null ) {
+            configureArrowButton();
+        }
+
+        if ( editor != null ) {
+            configureEditor();
+        }
 
         comboBox.setLayout( createLayoutManager() );
 
@@ -180,7 +185,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
 
         uninstallComponents();
         uninstallListeners();
-	uninstallDefaults();
+        uninstallDefaults();
 
         if ( comboBox.getRenderer() == null || comboBox.getRenderer() instanceof UIResource ) {
             comboBox.setRenderer( null );
@@ -195,7 +200,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
         popupKeyListener = null;
         popupMouseListener = null;
         popupMouseMotionListener = null;
-	propertyChangeListener = null;
+        propertyChangeListener = null;
         popup = null;
         listBox = null;
         comboBox = null;
@@ -211,7 +216,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
                                           "ComboBox.background",
                                           "ComboBox.foreground",
                                           "ComboBox.font" );
-	LookAndFeel.installBorder( comboBox, "ComboBox.border" );
+        LookAndFeel.installBorder( comboBox, "ComboBox.border" );
     }
 
     /**
@@ -219,30 +224,30 @@ public class BasicComboBoxUI extends ComboBoxUI {
      */
     protected void installListeners() {
         if ( (itemListener = createItemListener()) != null ) {
-	    comboBox.addItemListener( itemListener );
-	}
+            comboBox.addItemListener( itemListener );
+        }
         if ( (propertyChangeListener = createPropertyChangeListener()) != null ) {
-	    comboBox.addPropertyChangeListener( propertyChangeListener );
-	}
-	if ( (keyListener = createKeyListener()) != null ) {
-	    comboBox.addKeyListener( keyListener );
-	}
-	if ( (focusListener = createFocusListener()) != null ) {
-	    comboBox.addFocusListener( focusListener );
-	}
-	if ( (popupMouseListener = popup.getMouseListener()) != null ) {
-	    comboBox.addMouseListener( popupMouseListener );
-	}
-	if ( (popupMouseMotionListener = popup.getMouseMotionListener()) != null ) {
-	    comboBox.addMouseMotionListener( popupMouseMotionListener );
-	}
-	if ( (popupKeyListener = popup.getKeyListener()) != null ) {
-	    comboBox.addKeyListener( popupKeyListener );
-	}
+            comboBox.addPropertyChangeListener( propertyChangeListener );
+        }
+        if ( (keyListener = createKeyListener()) != null ) {
+            comboBox.addKeyListener( keyListener );
+        }
+        if ( (focusListener = createFocusListener()) != null ) {
+            comboBox.addFocusListener( focusListener );
+        }
+        if ( (popupMouseListener = popup.getMouseListener()) != null ) {
+            comboBox.addMouseListener( popupMouseListener );
+        }
+        if ( (popupMouseMotionListener = popup.getMouseMotionListener()) != null ) {
+            comboBox.addMouseMotionListener( popupMouseMotionListener );
+        }
+        if ( (popupKeyListener = popup.getKeyListener()) != null ) {
+            comboBox.addKeyListener( popupKeyListener );
+        }
         if ( comboBox.getModel() != null ) {
-	    if ( (listDataListener = createListDataListener()) != null ) {
-	        comboBox.getModel().addListDataListener( listDataListener );
-	    }
+            if ( (listDataListener = createListDataListener()) != null ) {
+                comboBox.getModel().addListDataListener( listDataListener );
+            }
         }
     }
 
@@ -255,7 +260,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
                                           "ComboBox.background",
                                           "ComboBox.foreground",
                                           "ComboBox.font" );
-	LookAndFeel.uninstallBorder( comboBox );
+        LookAndFeel.uninstallBorder( comboBox );
     }
 
     /**
@@ -263,30 +268,30 @@ public class BasicComboBoxUI extends ComboBoxUI {
      */
     protected void uninstallListeners() {
         if ( keyListener != null ) {
-	    comboBox.removeKeyListener( keyListener );
-	}
+            comboBox.removeKeyListener( keyListener );
+        }
         if ( itemListener != null ) {
-	    comboBox.removeItemListener( itemListener );
-	}
+            comboBox.removeItemListener( itemListener );
+        }
         if ( propertyChangeListener != null ) {
-	    comboBox.removePropertyChangeListener( propertyChangeListener );
-	}
-	if ( focusListener != null ) {
-	    comboBox.removeFocusListener( focusListener );
-	}
-	if ( popupMouseListener != null ) {
-	    comboBox.removeMouseListener( popupMouseListener );
-	}
-	if ( popupMouseMotionListener != null ) {
+            comboBox.removePropertyChangeListener( propertyChangeListener );
+        }
+        if ( focusListener != null ) {
+            comboBox.removeFocusListener( focusListener );
+        }
+        if ( popupMouseListener != null ) {
+            comboBox.removeMouseListener( popupMouseListener );
+        }
+        if ( popupMouseMotionListener != null ) {
             comboBox.removeMouseMotionListener( popupMouseMotionListener );
-	}
-	if ( popupKeyListener != null ) {
-	    comboBox.removeKeyListener( popupKeyListener );
-	}
+        }
+        if ( popupKeyListener != null ) {
+            comboBox.removeKeyListener( popupKeyListener );
+        }
         if ( comboBox.getModel() != null ) {
-	    if ( listDataListener != null ) {
-	        comboBox.getModel().removeListDataListener( listDataListener );
-	    }
+            if ( listDataListener != null ) {
+                comboBox.getModel().removeListDataListener( listDataListener );
+            }
         }
     }
 
@@ -387,18 +392,18 @@ public class BasicComboBoxUI extends ComboBoxUI {
     public class KeyHandler extends KeyAdapter {
         public void keyPressed( KeyEvent e ) {
             if ( comboBox.isEnabled() &&
-		 !isNavigationKey( e.getKeyCode() ) &&
-		 isTypeAheadKey( e ) ) {
+                 !isNavigationKey( e.getKeyCode() ) &&
+                 isTypeAheadKey( e ) ) {
 
-	        if ( comboBox.selectWithKeyChar(e.getKeyChar()) ) {
-		    e.consume();
-		}
-	    }
-	} 
-      
+                if ( comboBox.selectWithKeyChar(e.getKeyChar()) ) {
+                    e.consume();
+                }
+            }
+        } 
+
         boolean isTypeAheadKey( KeyEvent e ) {
-	    return !e.isAltDown() && !e.isControlDown() && !e.isMetaDown();
-	}
+            return !e.isAltDown() && !e.isControlDown() && !e.isMetaDown();
+        }
     }
 
     /**
@@ -417,17 +422,17 @@ public class BasicComboBoxUI extends ComboBoxUI {
 
         public void focusLost( FocusEvent e ) {
             hasFocus = false;
-	    // GES, 980818:
-	    // Note that the second check here is a workaround to bug
-	    // 4168483.  There is a bogus focusLost sent to the
-	    // ComboBox with isTemporary false when a mediumweight menu 
-	    // is popped up.  Until this is fixed in AWT, we make the
-	    // tradeoff of not popping down mediumweight popups when
-	    // the combobox loses focus.  Although this means that the
-	    // combobox does not remove such menus when you tab out,
-	    // it is seen as more desirable than the alternative which 
-	    // is that mediumweight combobox menus dissappear immediately
-	    // on popup, rendering them completely unusable.
+            // GES, 980818:
+            // Note that the second check here is a workaround to bug
+            // 4168483.  There is a bogus focusLost sent to the
+            // ComboBox with isTemporary false when a mediumweight menu 
+            // is popped up.  Until this is fixed in AWT, we make the
+            // tradeoff of not popping down mediumweight popups when
+            // the combobox loses focus.  Although this means that the
+            // combobox does not remove such menus when you tab out,
+            // it is seen as more desirable than the alternative which 
+            // is that mediumweight combobox menus dissappear immediately
+            // on popup, rendering them completely unusable.
             if ( !e.isTemporary() && comboBox.isLightWeightPopupEnabled()) {
                 setPopupVisible(comboBox, false);
             }
@@ -444,65 +449,65 @@ public class BasicComboBoxUI extends ComboBoxUI {
      */
     public class ListDataHandler implements ListDataListener {
         public void contentsChanged( ListDataEvent e ) {
-	    if ( !(e.getIndex0() == -1 && e.getIndex1() == -1) ) {
+            if ( !(e.getIndex0() == -1 && e.getIndex1() == -1) ) {
                 isMinimumSizeDirty = true;
-		comboBox.revalidate();
-	    }
+                comboBox.revalidate();
+            }
 
             if ( editor != null ) {
                 comboBox.configureEditor( comboBox.getEditor(), comboBox.getSelectedItem() );
             }
 
-	    comboBox.repaint();
+            comboBox.repaint();
         }
 
         public void intervalAdded( ListDataEvent e ) {
-	    int index0 = e.getIndex0();
-	    int index1 = e.getIndex1();
+            int index0 = e.getIndex0();
+            int index1 = e.getIndex1();
 
-	    if ( index0 == 0 && comboBox.getItemCount() - ((index1 - index0) + 1) == 0 ) {
-	        contentsChanged( e );
-	    }
-	    else if ( !(index0 == -1 && index1 == -1) ) {
-	        ListCellRenderer renderer = comboBox.getRenderer();
-		ComboBoxModel model = comboBox.getModel();
-		Component c;
-		Dimension size;
-		int widestWidth = cachedDisplaySize.width;
-		int tallestHeight = cachedDisplaySize.height;
+            if ( index0 == 0 && comboBox.getItemCount() - ((index1 - index0) + 1) == 0 ) {
+                contentsChanged( e );
+            }
+            else if ( !(index0 == -1 && index1 == -1) ) {
+                ListCellRenderer renderer = comboBox.getRenderer();
+                ComboBoxModel model = comboBox.getModel();
+                Component c;
+                Dimension size;
+                int widestWidth = cachedDisplaySize.width;
+                int tallestHeight = cachedDisplaySize.height;
 
-	        for ( int i = index0; i <= index1; ++i ) {
-		    c = renderer.getListCellRendererComponent( listBox, model.getElementAt( i ), -1, false, false );
-		    currentValuePane.add( c );
-		    c.setFont( comboBox.getFont() );
-		    size = c.getPreferredSize();
-		    widestWidth = Math.max( widestWidth, size.width );
-		    tallestHeight = Math.max( tallestHeight, size.height );
-		    currentValuePane.remove( c );
-		}
+                for ( int i = index0; i <= index1; ++i ) {
+                    c = renderer.getListCellRendererComponent( listBox, model.getElementAt( i ), -1, false, false );
+                    currentValuePane.add( c );
+                    c.setFont( comboBox.getFont() );
+                    size = c.getPreferredSize();
+                    widestWidth = Math.max( widestWidth, size.width );
+                    tallestHeight = Math.max( tallestHeight, size.height );
+                    currentValuePane.remove( c );
+                }
 
-		if ( cachedDisplaySize.width < widestWidth || cachedDisplaySize.height < tallestHeight ) {
-		    if ( cachedDisplaySize.width < widestWidth ) {
-		        cachedMinimumSize.width += widestWidth - cachedDisplaySize.width;
-		    }
-		    
-		    if ( cachedDisplaySize.height < tallestHeight ) {
-		        cachedMinimumSize.height += tallestHeight - cachedDisplaySize.height;
-		    }
-		    
-		    cachedDisplaySize.setSize( tallestHeight, widestWidth );
-		    
-		    comboBox.revalidate();
+                if ( cachedDisplaySize.width < widestWidth || cachedDisplaySize.height < tallestHeight ) {
+                    if ( cachedDisplaySize.width < widestWidth ) {
+                        cachedMinimumSize.width += widestWidth - cachedDisplaySize.width;
+                    }
 
-		    if ( editor != null ) {
-		        comboBox.configureEditor( comboBox.getEditor(), comboBox.getSelectedItem() ); 
-		    }
-		}
-	    }
+                    if ( cachedDisplaySize.height < tallestHeight ) {
+                        cachedMinimumSize.height += tallestHeight - cachedDisplaySize.height;
+                    }
+
+                    cachedDisplaySize.setSize( tallestHeight, widestWidth );
+
+                    comboBox.revalidate();
+
+                    if ( editor != null ) {
+                        comboBox.configureEditor( comboBox.getEditor(), comboBox.getSelectedItem() ); 
+                    }
+                }
+            }
         }
 
         public void intervalRemoved( ListDataEvent e ) {
-	    contentsChanged( e );
+            contentsChanged( e );
         }
     }
 
@@ -538,25 +543,25 @@ public class BasicComboBoxUI extends ComboBoxUI {
         public void propertyChange(PropertyChangeEvent e) {
             String propertyName = e.getPropertyName();
 
-	    if ( propertyName.equals( "model" ) ) {
-	        ComboBoxModel newModel = (ComboBoxModel)e.getNewValue();
-	        ComboBoxModel oldModel = (ComboBoxModel)e.getOldValue();
-		
-		if ( oldModel != null && listDataListener != null ) {
-		    oldModel.removeListDataListener( listDataListener );
-		}
+            if ( propertyName.equals( "model" ) ) {
+                ComboBoxModel newModel = (ComboBoxModel)e.getNewValue();
+                ComboBoxModel oldModel = (ComboBoxModel)e.getOldValue();
 
-		if ( newModel != null && listDataListener != null ) {
-		    newModel.addListDataListener( listDataListener );
-		}
+                if ( oldModel != null && listDataListener != null ) {
+                    oldModel.removeListDataListener( listDataListener );
+                }
 
-		if ( editor != null ) {
-		    comboBox.configureEditor( comboBox.getEditor(), comboBox.getSelectedItem() ); 
-		}
-		isMinimumSizeDirty = true;
-		comboBox.revalidate();
-		comboBox.repaint();
-	    }
+                if ( newModel != null && listDataListener != null ) {
+                    newModel.addListDataListener( listDataListener );
+                }
+
+                if ( editor != null ) {
+                    comboBox.configureEditor( comboBox.getEditor(), comboBox.getSelectedItem() ); 
+                }
+                isMinimumSizeDirty = true;
+                comboBox.revalidate();
+                comboBox.repaint();
+            }
             else if ( propertyName.equals( "editor" ) && comboBox.isEditable() ) {
                 removeEditor();
                 addEditor();
@@ -564,28 +569,49 @@ public class BasicComboBoxUI extends ComboBoxUI {
             else if ( propertyName.equals( "editable" ) ) {
                 if ( comboBox.isEditable() ) {
                     comboBox.setRequestFocusEnabled( false );
-		    if ( popupKeyListener != null ) {
-		        comboBox.removeKeyListener( popupKeyListener );
-			    }
+                    if ( popupKeyListener != null ) {
+                        comboBox.removeKeyListener( popupKeyListener );
+                    }
                     addEditor();
-		    if ( editor != null ) {
-		        configureEditor(); 
-		    }
+                    if ( editor != null ) {
+                        configureEditor(); 
+                    }
+
+                    // This will make the editor fire an ActionEvent if the currently
+                    // edited editor has a value in it that is different from the
+                    // selected item in the model.  This allows people to enter data in
+                    // a combo box and tab-out without allowing an inconsistency between
+                    // what's displayed and what the current value of the combo box is.
+                    editorFocusListener = new FocusAdapter() {
+                        public void focusLost( FocusEvent e ) {
+                            Object item = comboBox.getEditor().getItem();
+                            if ( !e.isTemporary() &&
+                                 item != null &&
+                                 !item.equals( comboBox.getSelectedItem() ) ) {
+                                comboBox.actionPerformed( new ActionEvent( editor, 0, "" ) );
+                            }
+                        }
+                    };
+
+                    editor.addFocusListener( editorFocusListener );
                 }
                 else {
                     comboBox.setRequestFocusEnabled( true );
-		    if ( popupKeyListener != null ) {
-		        comboBox.addKeyListener( popupKeyListener );
-		    }
+                    if ( popupKeyListener != null ) {
+                        comboBox.addKeyListener( popupKeyListener );
+                    }
                     removeEditor();
+                    editor.removeFocusListener( editorFocusListener );
                 }
-		
-		// Double revalidation seems to be necessary here.  Switching to editable can cause
-		// strange layout problems otherwise.
-		comboBox.revalidate();
-		comboBox.validate();
-		comboBox.revalidate();
-		comboBox.repaint();
+
+                updateToolTipTextForChildren();
+
+                // Double revalidation seems to be necessary here.  Switching to editable can cause
+                // strange layout problems otherwise.
+                comboBox.revalidate();
+                comboBox.validate();
+                comboBox.revalidate();
+                comboBox.repaint();
             }
             else if ( propertyName.equals( "enabled" ) ) {
                 boolean cbIsEnabled = comboBox.isEnabled();
@@ -609,22 +635,36 @@ public class BasicComboBoxUI extends ComboBoxUI {
                     setPopupVisible(comboBox, true);
                 }
             }
-	    else if ( propertyName.equals( "font" ) ) {
-	        listBox.setFont( comboBox.getFont() );
-		if ( editor != null ) {
-		    editor.setFont( comboBox.getFont() );
-		}
-	    }
-	    else if ( propertyName.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION ) ) {
-	        Object newValue = e.getNewValue();
-		if ( newValue.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_ON ) ) {
-		    lightNav = true;
-		}
-		else if ( newValue.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_OFF ) ) {
-		    lightNav = false;
-		}
-	    }
+            else if ( propertyName.equals( "font" ) ) {
+                listBox.setFont( comboBox.getFont() );
+                if ( editor != null ) {
+                    editor.setFont( comboBox.getFont() );
+                }
+                isMinimumSizeDirty = true;
+                comboBox.validate();
+            }
+            else if ( propertyName.equals( JComponent.TOOL_TIP_TEXT_KEY ) ) {
+                updateToolTipTextForChildren();
+            }
+            else if ( propertyName.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION ) ) {
+                Object newValue = e.getNewValue();
+                if ( newValue.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_ON ) ) {
+                    lightNav = true;
+                }
+                else if ( newValue.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_OFF ) ) {
+                    lightNav = false;
+                }
+            }
         }     
+    }
+
+    void updateToolTipTextForChildren() {
+        Component[] children = comboBox.getComponents();
+        for ( int i = 0; i < children.length; ++i ) {
+            if ( children[i] instanceof JComponent ) {
+                ((JComponent)children[i]).setToolTipText( comboBox.getToolTipText() );
+            }
+        }
     }
 
     /**
@@ -734,9 +774,9 @@ public class BasicComboBoxUI extends ComboBoxUI {
      */
     protected void configureEditor() {
         editor.setFont( comboBox.getFont() );
-	if ( popupKeyListener != null ) {
-	    editor.addKeyListener( popupKeyListener );
-	}
+        if ( popupKeyListener != null ) {
+            editor.addKeyListener( popupKeyListener );
+        }
 
         if ( editor instanceof Accessible ) {
             AccessibleContext ac = ((Accessible) editor).getAccessibleContext();
@@ -753,8 +793,8 @@ public class BasicComboBoxUI extends ComboBoxUI {
      */
     protected void unconfigureEditor() {
         if ( popupKeyListener != null ) {
-	    editor.removeKeyListener( popupKeyListener );
-	}
+            editor.removeKeyListener( popupKeyListener );
+        }
     }
 
     /**
@@ -762,14 +802,14 @@ public class BasicComboBoxUI extends ComboBoxUI {
      */
     public void configureArrowButton() {
         if ( arrowButton != null ) {
-	    arrowButton.setEnabled( comboBox.isEnabled() );
+            arrowButton.setEnabled( comboBox.isEnabled() );
             arrowButton.setRequestFocusEnabled(false);
-	    if ( popupMouseListener != null ) {
-	        arrowButton.addMouseListener( popupMouseListener );
-	    }
-	    if ( popupMouseMotionListener != null ) {
-	        arrowButton.addMouseMotionListener( popupMouseMotionListener );
-	    }
+            if ( popupMouseListener != null ) {
+                arrowButton.addMouseListener( popupMouseListener );
+            }
+            if ( popupMouseMotionListener != null ) {
+                arrowButton.addMouseMotionListener( popupMouseMotionListener );
+            }
             arrowButton.resetKeyboardActions();
         }
     }
@@ -779,12 +819,12 @@ public class BasicComboBoxUI extends ComboBoxUI {
      */
     public void unconfigureArrowButton() {
         if ( arrowButton != null ) {
-	    if ( popupMouseListener != null ) {
-	        arrowButton.removeMouseListener( popupMouseListener );
-	    }
-	    if ( popupMouseMotionListener != null ) {
-	        arrowButton.removeMouseMotionListener( popupMouseMotionListener );
-	    }
+            if ( popupMouseListener != null ) {
+                arrowButton.removeMouseListener( popupMouseListener );
+            }
+            if ( popupMouseMotionListener != null ) {
+                arrowButton.removeMouseMotionListener( popupMouseMotionListener );
+            }
         }
     }
 
@@ -899,7 +939,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
             if ( popup instanceof Accessible ) {
                 AccessibleContext ac = ((Accessible) popup).getAccessibleContext();
                 ac.setAccessibleParent(comboBox);
-                return (Accessible) popup;
+                return(Accessible) popup;
             }
             break;
         case 1:
@@ -907,7 +947,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
                  && (editor instanceof Accessible) ) {
                 AccessibleContext ac = ((Accessible) editor).getAccessibleContext();
                 ac.setAccessibleParent(comboBox);
-                return (Accessible) editor;
+                return(Accessible) editor;
             }
             break;
         }
@@ -930,7 +970,11 @@ public class BasicComboBoxUI extends ComboBoxUI {
      * if they change the navigation keys.
      */
     protected boolean isNavigationKey( int keyCode ) {
-        return keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_DOWN;
+        return keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_DOWN ||
+        // This is horrible, but necessary since these aren't 
+        // supported until JDK 1.2
+        keyCode == KeyStroke.getKeyStroke("KP_UP").getKeyCode() || 
+        keyCode == KeyStroke.getKeyStroke("KP_DOWN").getKeyCode();
     }  
 
     /**
@@ -940,21 +984,21 @@ public class BasicComboBoxUI extends ComboBoxUI {
     protected void selectNextPossibleValue() {
         int si;
 
-	if ( lightNav ) {
-	    si = listBox.getSelectedIndex();
-	}
-	else {
-	    si = comboBox.getSelectedIndex();
-	}
+        if ( lightNav ) {
+            si = listBox.getSelectedIndex();
+        }
+        else {
+            si = comboBox.getSelectedIndex();
+        }
 
         if ( si < comboBox.getModel().getSize() - 1 ) {
-	    if ( lightNav ) {
-	        listBox.setSelectedIndex( si + 1 );
-		listBox.ensureIndexIsVisible( si + 1 );
-	    }
-	    else {
-	        comboBox.setSelectedIndex(si+1);
-	    }
+            if ( lightNav ) {
+                listBox.setSelectedIndex( si + 1 );
+                listBox.ensureIndexIsVisible( si + 1 );
+            }
+            else {
+                comboBox.setSelectedIndex(si+1);
+            }
             comboBox.repaint();
         }
     }
@@ -966,21 +1010,21 @@ public class BasicComboBoxUI extends ComboBoxUI {
     protected void selectPreviousPossibleValue() {
         int si;
 
-	if ( lightNav ) {
-	    si = listBox.getSelectedIndex();
-	}
-	else {
-	    si = comboBox.getSelectedIndex();
-	}
+        if ( lightNav ) {
+            si = listBox.getSelectedIndex();
+        }
+        else {
+            si = comboBox.getSelectedIndex();
+        }
 
         if ( si > 0 ) {
-	    if ( lightNav ) {
-	        listBox.setSelectedIndex( si - 1 );
-		listBox.ensureIndexIsVisible( si - 1 );
-	    }
-	    else {
+            if ( lightNav ) {
+                listBox.setSelectedIndex( si - 1 );
+                listBox.ensureIndexIsVisible( si - 1 );
+            }
+            else {
                 comboBox.setSelectedIndex(si-1);
-	    }
+            }
 
             comboBox.repaint();
         }
@@ -1033,9 +1077,9 @@ public class BasicComboBoxUI extends ComboBoxUI {
         Component c;
 
         if ( comboBox.getSelectedIndex() == -1 ) {
-           return;
+            return;
         }
-        
+
         if ( hasFocus && !isPopupVisible(comboBox) ) {
             c = renderer.getListCellRendererComponent( listBox,
                                                        comboBox.getSelectedItem(),
@@ -1101,15 +1145,26 @@ public class BasicComboBoxUI extends ComboBoxUI {
     //
 
     /** 
-     * Return the dimension the the combo box should have if by default
-     * if there is no current value and no value in the list of possible
-     * values.
+     * Return the default size of an empty combo box. 
      */
     protected Dimension getDefaultSize() {
-        return new Dimension(100,20);
+        ListCellRenderer renderer = comboBox.getRenderer();
+        Component c = textRenderer.getListCellRendererComponent( listBox, " ", -1, false, false );
+        currentValuePane.add( c );
+        c.setFont( comboBox.getFont() );
+        int height = c.getPreferredSize().height;
+        currentValuePane.remove( c );
+        return new Dimension( 100, height );
     }
 
     protected Dimension getDisplaySize() {
+        // This is special code for empty editable combo boxes.
+        if ( comboBox.isEditable() ) {
+            if ( comboBox.getModel().getSize() == 0 ) {
+                return new Dimension( 100, editor.getPreferredSize().height );
+            }
+        }
+
         int i,c;
         Dimension result = new Dimension();
         ListCellRenderer renderer = comboBox.getRenderer();
@@ -1134,13 +1189,13 @@ public class BasicComboBoxUI extends ComboBoxUI {
                 result.height = Math.max(result.height,d.height);
             }
 
-	    cachedDisplaySize.setSize( result.width, result.height );
+            cachedDisplaySize.setSize( result.width, result.height );
 
             return result;
         }
-        else
+        else {
             return getDefaultSize();
-
+        }
     }
 
     //
@@ -1157,18 +1212,52 @@ public class BasicComboBoxUI extends ComboBoxUI {
      * supplied.  Add more actions as you need them.
      */
     protected void installKeyboardActions() {
-        AbstractAction escAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent e){
-	        setPopupVisible(comboBox, false);
-            }
-            public boolean isEnabled(){
-                return comboBox.isEnabled();
+        ActionListener escAction = new ActionListener() {
+            public void actionPerformed( ActionEvent e ) {
+                if ( comboBox.isEnabled() ) {
+                    setPopupVisible( comboBox, false );
+                }
             }
         };
 
         comboBox.registerKeyboardAction( escAction,
-					 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),
-					 JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+                                         KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),
+                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+        class KeyToListDispatcher implements ActionListener {
+            int keyCode;
+
+            public KeyToListDispatcher( int keyCode ) {
+                this.keyCode = keyCode;
+            }
+
+            public void actionPerformed( ActionEvent e ) {
+                if ( isPopupVisible( comboBox ) ) {
+                    KeyEvent keyEvent = new KeyEvent( popup.getList(),
+                                                      KeyEvent.KEY_PRESSED,
+                                                      0,
+                                                      0,
+                                                      keyCode );
+                    popup.getList().dispatchEvent( keyEvent );
+                }
+            }
+        }
+
+        comboBox.registerKeyboardAction( new KeyToListDispatcher( KeyEvent.VK_PAGE_UP ),
+                                         KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP,0),
+                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+        comboBox.registerKeyboardAction( new KeyToListDispatcher( KeyEvent.VK_PAGE_DOWN ),
+                                         KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN,0),
+                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+        comboBox.registerKeyboardAction( new KeyToListDispatcher( KeyEvent.VK_HOME ),
+                                         KeyStroke.getKeyStroke(KeyEvent.VK_HOME,0),
+                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+        comboBox.registerKeyboardAction( new KeyToListDispatcher( KeyEvent.VK_END ),
+                                         KeyStroke.getKeyStroke(KeyEvent.VK_END,0),
+                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
 
     /**
@@ -1176,6 +1265,10 @@ public class BasicComboBoxUI extends ComboBoxUI {
      */
     protected void uninstallKeyboardActions() {
         comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0));
+        comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP,0));
+        comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN,0));
+        comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_HOME,0));
+        comboBox.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_END,0));
     }
 
     //

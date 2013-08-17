@@ -1,10 +1,10 @@
 /*
- * @(#)PixelInterleavedSampleModel.java	1.8 98/08/03
+ * @(#)PixelInterleavedSampleModel.java	1.11 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -39,7 +39,9 @@ public class PixelInterleavedSampleModel extends ComponentSampleModel
 {
     /**
      * Constructs a PixelInterleavedSampleModel with the specified parameters.
-     * The number of bands will be given by the length of the bandOffsets array.     * @param dataType  The data type for storing samples.
+     * The number of bands will be given by the length of the bandOffsets 
+     * array.
+     * @param dataType  The data type for storing samples.
      * @param w         The width (in pixels) of the region of
      *                  image data described.
      * @param h         The height (in pixels) of the region of
@@ -47,6 +49,13 @@ public class PixelInterleavedSampleModel extends ComponentSampleModel
      * @param pixelStride The pixel stride of the image data.
      * @param scanlineStride The line stride of the image data.
      * @param bandOffsets The offsets of all bands.
+     * @throws IllegalArgumentException if any offset between bands is
+     *         greater than the scanline stride
+     * @throws IllegalArgumentException if the product of 
+     *         <code>pixelStride</code> and <code>w</code> is greater
+     *         than <code>scanlineStride</code>
+     * @throws IllegalArgumentException if <code>pixelStride</code> is 
+     *         less than any offset between bands
      */
     public PixelInterleavedSampleModel(int dataType,
                                        int w, int h,

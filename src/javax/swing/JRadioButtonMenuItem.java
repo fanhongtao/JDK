@@ -1,5 +1,5 @@
 /*
- * @(#)JRadioButtonMenuItem.java	1.31 98/08/28
+ * @(#)JRadioButtonMenuItem.java	1.33 98/11/02
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -52,7 +52,7 @@ import javax.accessibility.*;
  * @beaninfo
  *   attribute: isContainer false
  *
- * @version 1.31 08/28/98
+ * @version 1.33 11/02/98
  * @author Georges Saab
  * @author David Karlton
  * @see ButtonGroup
@@ -132,62 +132,10 @@ public class JRadioButtonMenuItem extends JMenuItem implements Accessible {
      * @param icon  the image that the button should display
      */
     public JRadioButtonMenuItem(String text, Icon icon, boolean selected) {
+	super(text, icon);
         setModel(new JToggleButton.ToggleButtonModel());
-        init(text, icon);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setHorizontalTextPosition(JButton.RIGHT);
-        setHorizontalAlignment(JButton.LEFT);
         setSelected(selected);
-        updateUI();
     }
-    /**
-     * Initialize the JRadioButtonMenuItem with the specified text
-     * and Icon.
-     *
-     * @param text the text to display
-     * @param icon the icon to display
-     */
-    protected void init(String text, Icon icon) {
-        if(text != null) {
-            setText(text);
-            
-            if(icon != null) {
-                setVerticalTextPosition(BOTTOM);
-            } 
-        }
-        
-        if(icon != null) {
-            setIcon(icon);
-        }
-        
-        // Listen for Focus events
-        addFocusListener(
-            new FocusListener() {
-            public void focusGained(FocusEvent event) {}
-            public void focusLost(FocusEvent event) {
-                // When focus is lost, repaint if 
-                // we focus information is painted
-                if(isFocusPainted()) {
-                    repaint();
-                }
-            }
-        }
-        );
-    }
-    
-    
-    /**
-     * Notification from the UIFactory that the L&F has changed. 
-     * Called to replace the UI with the latest version from the 
-     * UIFactory.
-     *
-     * @see JComponent#updateUI
-     */
-    public void updateUI() {
-        setUI((MenuItemUI)UIManager.getUI(this));
-    }
-
 
     /**
      * Returns the name of the L&F class that renders this component.
@@ -226,9 +174,6 @@ public class JRadioButtonMenuItem extends JMenuItem implements Accessible {
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JRadioButtonMenuItem.
      */

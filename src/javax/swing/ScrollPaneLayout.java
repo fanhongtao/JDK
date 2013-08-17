@@ -1,10 +1,10 @@
 /*
- * @(#)ScrollPaneLayout.java	1.32 98/10/06
+ * @(#)ScrollPaneLayout.java	1.34 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -41,7 +41,7 @@ import java.io.Serializable;
  * @see JScrollPane
  * @see JViewport
  *
- * @version 1.32 10/06/98
+ * @version 1.34 04/22/99
  * @author Hans Muller
  */
 public class ScrollPaneLayout
@@ -260,7 +260,7 @@ public class ScrollPaneLayout
 	    lowerLeft = null;
 	}
 	else if (c == lowerRight) {
-	    lowerLeft = null;
+	    lowerRight = null;
 	}
 	else if (c == upperLeft) {
 	    upperLeft = null;

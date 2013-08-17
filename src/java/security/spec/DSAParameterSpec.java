@@ -1,5 +1,5 @@
 /*
- * @(#)DSAParameterSpec.java	1.8 98/09/21
+ * @(#)DSAParameterSpec.java	1.9 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -21,7 +21,7 @@ import java.math.BigInteger;
  * 
  * @author Jan Luehe
  *
- * @version 1.8, 00/05/10
+ * @version 1.9 98/12/03
  *
  * @see AlgorithmParameterSpec
  *

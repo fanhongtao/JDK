@@ -1,5 +1,5 @@
 /*
- * @(#)JTableHeader.java	1.35 98/09/18
+ * @(#)JTableHeader.java	1.36 98/10/08
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -42,7 +42,7 @@ import java.io.IOException;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.35 09/18/98
+ * @version 1.36 10/08/98
  * @author Alan Chung
  * @author Philip Milne
  * @see javax.swing.JTable
@@ -751,11 +751,11 @@ public class JTableHeader extends JComponent implements TableColumnModelListener
             public AccessibleStateSet getAccessibleStateSet() {
                 AccessibleContext ac = getCurrentAccessibleContext();
                 if (ac != null) {
-		    AccessibleStateSet states = ac.getAccessibleStateSet();
-		    if (isShowing()) {
-			states.add(AccessibleState.SHOWING);
-		    }
-		    return states;
+                    AccessibleStateSet states = ac.getAccessibleStateSet();
+                    if (isShowing()) {
+                        states.add(AccessibleState.SHOWING);
+                    }
+                    return states;
                 } else {
                     return new AccessibleStateSet();  // must be non null?
                 }
@@ -1011,11 +1011,11 @@ public class JTableHeader extends JComponent implements TableColumnModelListener
             }
 
             public boolean isShowing() {
-		if (isVisible() && JTableHeader.this.isShowing()) {
-		    return true;
-		} else {
-		    return false;
-		}
+                if (isVisible() && JTableHeader.this.isShowing()) {
+                    return true;
+                } else {
+                    return false;
+                }
             }
 
             public boolean contains(Point p) {

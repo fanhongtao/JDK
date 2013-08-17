@@ -1,5 +1,5 @@
 /*
- * @(#)Acl.java	1.15 98/09/21
+ * @(#)Acl.java	1.16 98/12/03
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -74,7 +74,7 @@ import java.security.Principal;
  * @see java.security.acl.Owner
  * @see java.security.acl.Acl#getPermissions
  * 
- * @version 1.15, 00/05/10
+ * @version 1.16, 98/12/03
  * @author Satish Dharmaraj 
  */
 

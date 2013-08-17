@@ -1,10 +1,10 @@
 /*
- * @(#)JMenuItem.java	1.69 98/08/28
+ * @(#)JMenuItem.java	1.76 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -45,7 +45,7 @@ import javax.accessibility.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.69 08/28/98
+ * @version 1.76 04/22/99
  * @author Georges Saab
  * @author David Karlton
  * @see JPopupMenu
@@ -97,11 +97,6 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
     public JMenuItem(String text, Icon icon) {
         setModel(new DefaultButtonModel());
         init(text, icon);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setHorizontalTextPosition(JButton.RIGHT);
-        setHorizontalAlignment(JButton.LEFT);
-        updateUI();
     }
 
     /**
@@ -114,12 +109,7 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
     public JMenuItem(String text, int mnemonic) {
         setModel(new DefaultButtonModel());
         init(text, null);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setHorizontalTextPosition(JButton.LEFT);
-        setHorizontalAlignment(JButton.LEFT);
         setMnemonic(mnemonic);
-        updateUI();
     }
 
     /**
@@ -139,6 +129,11 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
         
         // Listen for Focus events
         addFocusListener(new MenuItemFocusListener());
+	setBorderPainted(false);
+        setFocusPainted(false);
+        setHorizontalTextPosition(JButton.TRAILING);
+        setHorizontalAlignment(JButton.LEADING);
+	updateUI();
     }
 
     private static class MenuItemFocusListener implements FocusListener,
@@ -281,13 +276,13 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
      *       preferred: true
      */
     public void setAccelerator(KeyStroke keyStroke) {
-        if (accelerator != null)
-            unregisterKeyboardAction(accelerator);
+	KeyStroke oldAccelerator = accelerator;
+        if (oldAccelerator != null)
+            unregisterKeyboardAction(oldAccelerator);
 
-        // PENDING(ges) change this to a (lighter) ActionListener which implements
-        // Serializable
+        // PENDING(ges) Make this implement Serializable
 	if (keyStroke != null) {
-	    registerKeyboardAction(new AbstractAction(){
+	    registerKeyboardAction(new ActionListener(){
 		public void actionPerformed(ActionEvent e) {
 		    MenuSelectionManager.defaultManager().clearSelectedPath();
 		    doClick();
@@ -295,6 +290,7 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
 	    } , keyStroke, WHEN_IN_FOCUSED_WINDOW);
 	}
         this.accelerator = keyStroke;
+	firePropertyChange("accelerator", oldAccelerator, accelerator);
     }
 
     /**
@@ -368,7 +364,7 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
     }
 
     /**
-     * Hanlde a keystroke in a menu.
+     * Handle a keystroke in a menu.
      *
      * @param e  a MenuKeyEvent object
      */
@@ -600,9 +596,6 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JMenuItem.
      */

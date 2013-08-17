@@ -1,10 +1,10 @@
 /*
- * @(#)MetalSplitPaneDivider.java	1.8 98/08/28
+ * @(#)MetalSplitPaneDivider.java	1.11 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -30,7 +30,7 @@ import javax.swing.plaf.basic.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.8 08/28/98
+ * @version 1.11 04/22/99
  * @author Steve Wilson
  * @author Ralph kar
  */
@@ -48,14 +48,27 @@ class MetalSplitPaneDivider extends BasicSplitPaneDivider
 
     private int inset = 2;
 
+    private Color controlColor = MetalLookAndFeel.getControl();
+    private Color primaryControlColor = MetalLookAndFeel.getPrimaryControl();
+
     public MetalSplitPaneDivider(BasicSplitPaneUI ui) {
         super(ui);
         setLayout(new MetalDividerLayout());
     }
 
     public void paint(Graphics g) {
+	MetalBumps usedBumps;
+	if (splitPane.hasFocus()) {
+	    usedBumps = focusBumps;
+	    g.setColor(primaryControlColor);
+	}
+	else {
+	    usedBumps = bumps;
+	    g.setColor(controlColor);
+	}
+	Rectangle clip = g.getClipBounds();
+	g.fillRect(clip.x, clip.y, clip.width, clip.height);
         Dimension  size = getSize();
-        MetalBumps usedBumps = (splitPane.hasFocus()) ? focusBumps : bumps;
         size.width -= inset * 2;
         size.height -= inset * 2;
         usedBumps.setBumpArea(size);
@@ -146,6 +159,11 @@ class MetalSplitPaneDivider extends BasicSplitPaneDivider
                     }
                 }
             }
+
+	    // Don't want the button to participate in focus traversable.
+	    public boolean isFocusTraversable() {
+		return false;
+	    }
         };
         b.setFocusPainted(false);
         b.setBorderPainted(false);
@@ -235,6 +253,11 @@ class MetalSplitPaneDivider extends BasicSplitPaneDivider
                     }
                 }
             }
+
+	    // Don't want the button to participate in focus traversable.
+	    public boolean isFocusTraversable() {
+		return false;
+	    }
         };
         b.setFocusPainted(false);
         b.setBorderPainted(false);

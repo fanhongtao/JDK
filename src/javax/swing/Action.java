@@ -1,5 +1,5 @@
 /*
- * @(#)Action.java	1.14 98/08/26
+ * @(#)Action.java	1.15 98/10/30
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -73,7 +73,14 @@ import java.beans.*;
  * deactivated all at once by invoking the Action object's <code>setEnabled</code>
  * method.
  *
- * @version 1.14 08/26/98
+ * Note that Action implementations tend to be more expensive in terms of
+ * storage than a typical ActionListener, which does not offer the benefits
+ * of centralized control of functionality and broadcast of property changes.
+ * For this reason, you should take care to only use Actions where their
+ * benefits are desired, and use a simple ActionListener where they
+ * are not necessary.
+ *
+ * @version 1.15 10/30/98
  * @author Georges Saab
  * @see AbstractAction
  */

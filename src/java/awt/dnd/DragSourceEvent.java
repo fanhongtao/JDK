@@ -1,7 +1,7 @@
 /*
- * @(#)DragSourceEvent.java	1.4 98/09/21
+ * @(#)DragSourceEvent.java	1.9 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -19,11 +19,9 @@ import java.awt.dnd.DragSourceContext;
 import java.util.EventObject;
 
 /**
- * <p>
- * base class for DragSourceDragEvent and DragSourceDropEvent
- * </p>
- *
- * @version 1.4
+ * This class is the base class for 
+ * <code>DragSourceDragEvent</code> and 
+ * <code>DragSourceDropEvent</code>.
  * @since JDK1.2
  *
  */
@@ -31,16 +29,23 @@ import java.util.EventObject;
 public class DragSourceEvent extends EventObject {
 
     /**
-     * construct a DragSourceEvent
+     * Construct a <code>DragSourceEvent</code>
+     * given a specified <code>DragSourceContext</code>.
+     * <P>
+     * @param dsc the <code>DragSourceContext</code>
      */
 
     public DragSourceEvent(DragSourceContext dsc) { super(dsc); }
 
     /**
-     * @return the DragSourceContext that originated the event
+     * This method returns the <code>DragSourceContext</code> that 
+     * originated the event.
+     * <P>
+     * @return the <code>DragSourceContext</code> that originated the event
      */
 
     public DragSourceContext getDragSourceContext() {
 	return (DragSourceContext)getSource();
     }
 }
+

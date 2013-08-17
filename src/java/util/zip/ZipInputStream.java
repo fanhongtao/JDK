@@ -1,10 +1,10 @@
 /*
- * @(#)ZipInputStream.java	1.21 98/07/24
+ * @(#)ZipInputStream.java	1.23 99/04/22
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -25,7 +25,7 @@ import java.io.PushbackInputStream;
  * entries.
  *
  * @author	David Connelly
- * @version	1.21, 07/24/98
+ * @version	1.23, 04/22/99
  */
 public
 class ZipInputStream extends InflaterInputStream implements ZipConstants {
@@ -57,6 +57,9 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
      */
     public ZipInputStream(InputStream in) {
 	super(new PushbackInputStream(in, 512), new Inflater(true), 512);
+        if(in == null) {
+            throw new NullPointerException("in is null");
+        }
     }
 
     /**

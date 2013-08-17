@@ -1,10 +1,10 @@
 /*
- * @(#)BasicMenuBarUI.java	1.67 98/08/26
+ * @(#)BasicMenuBarUI.java	1.71 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -24,7 +24,10 @@ import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.FlowLayout;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.border.*;
 import javax.swing.plaf.*;
@@ -34,7 +37,7 @@ import javax.swing.plaf.*;
  * A default L&F implementation of MenuBarUI.  This implementation
  * is a "combined" view/controller.
  *
- * @version 1.67 08/26/98
+ * @version 1.71 04/22/99
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -43,6 +46,7 @@ public class BasicMenuBarUI extends MenuBarUI  {
     protected JMenuBar              menuBar = null;
     protected ContainerListener     containerListener;
     protected ChangeListener        changeListener;
+    private PropertyChangeListener  propertyChangeListener;
 
     public static ComponentUI createUI(JComponent x) {
 	return new BasicMenuBarUI();
@@ -59,9 +63,13 @@ public class BasicMenuBarUI extends MenuBarUI  {
 
     protected void installDefaults() {
 	if (menuBar.getLayout() == null ||
-	    menuBar.getLayout() instanceof UIResource)
-	    menuBar.setLayout(new DefaultMenuLayout(menuBar, BoxLayout.X_AXIS));
-
+	    menuBar.getLayout() instanceof UIResource) {
+            if( BasicGraphicsUtils.isLeftToRight(menuBar) ) {
+                menuBar.setLayout(new DefaultMenuLayout(menuBar,BoxLayout.X_AXIS));
+            } else {
+                menuBar.setLayout(new RightToLeftMenuLayout());
+            }
+        }
 	menuBar.setOpaque(true);
 	LookAndFeel.installBorder(menuBar,"MenuBar.border");
 	LookAndFeel.installColorsAndFont(menuBar,
@@ -73,6 +81,7 @@ public class BasicMenuBarUI extends MenuBarUI  {
     protected void installListeners() {
         containerListener = createContainerListener();
         changeListener = createChangeListener();
+        propertyChangeListener = createPropertyChangeListener();
 	
         for (int i = 0; i < menuBar.getMenuCount(); i++) {
             JMenu menu = menuBar.getMenu(i);
@@ -80,6 +89,7 @@ public class BasicMenuBarUI extends MenuBarUI  {
 		menu.getModel().addChangeListener(changeListener);        
 	}
 	menuBar.addContainerListener(containerListener);
+        menuBar.addPropertyChangeListener(propertyChangeListener);
     }
 
     protected void installKeyboardActions() {
@@ -105,6 +115,7 @@ public class BasicMenuBarUI extends MenuBarUI  {
 
     protected void uninstallListeners() {
 	menuBar.removeContainerListener(containerListener);
+        menuBar.removePropertyChangeListener(propertyChangeListener);
 
         for (int i = 0; i < menuBar.getMenuCount(); i++) {
 	    JMenu menu = menuBar.getMenu(i);
@@ -114,6 +125,7 @@ public class BasicMenuBarUI extends MenuBarUI  {
 
 	containerListener = null;
 	changeListener = null;
+        propertyChangeListener = null;
     }
 
     protected void uninstallKeyboardActions() {
@@ -131,6 +143,10 @@ public class BasicMenuBarUI extends MenuBarUI  {
         return new ChangeHandler();
     }
 
+    private PropertyChangeListener createPropertyChangeListener() {
+        return new PropertyChangeHandler();
+    }
+
     private class ChangeHandler implements ChangeListener {
 	public void stateChanged(ChangeEvent e) {
 	    int i,c;
@@ -144,6 +160,29 @@ public class BasicMenuBarUI extends MenuBarUI  {
 	}
     }
 
+    /*
+     * This PropertyChangeListener is used to adjust the default layout
+     * manger when the menuBar is given a right-to-left ComponentOrientation.
+     * This is a hack to work around the fact that the DefaultMenuLayout
+     * (BoxLayout) isn't aware of ComponentOrientation.  When BoxLayout is
+     * made aware of ComponentOrientation, this listener will no longer be
+     * necessary.
+     */
+    private class PropertyChangeHandler implements PropertyChangeListener {
+        public void propertyChange(PropertyChangeEvent e) {
+            String name = e.getPropertyName();
+            if( name.equals("componentOrientation")
+                && (menuBar.getLayout() instanceof UIResource) )
+            {
+                if( BasicGraphicsUtils.isLeftToRight(menuBar) ) {
+                    menuBar.setLayout(new DefaultMenuLayout(menuBar,BoxLayout.X_AXIS));
+                } else {
+                    menuBar.setLayout(new RightToLeftMenuLayout());
+                }
+            }
+        }
+    }
+    
     public Dimension getPreferredSize(JComponent c) {
         return null;
     }
@@ -170,11 +209,10 @@ public class BasicMenuBarUI extends MenuBarUI  {
     }
 
 
-    private static class TakeFocus extends AbstractAction {
+    private static class TakeFocus implements ActionListener {
 	JMenuBar menuBar;
 
         TakeFocus(JMenuBar menuBar) {
-	    super("takeFocus");
 	    this.menuBar = menuBar;
 	}
 	
@@ -195,7 +233,14 @@ public class BasicMenuBarUI extends MenuBarUI  {
 	    return menuBar.isEnabled();
 	}
     }
-    
+
+    private static class RightToLeftMenuLayout
+        extends FlowLayout implements UIResource
+    {
+        private RightToLeftMenuLayout() {
+            super(3/*FlowLayout.LEADING*/,0,0);
+        }
+    }
 }
 
 

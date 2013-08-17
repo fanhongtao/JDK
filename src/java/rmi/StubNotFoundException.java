@@ -1,7 +1,7 @@
 /*
- * @(#)StubNotFoundException.java	1.7 98/09/21
+ * @(#)StubNotFoundException.java	1.9 99/04/22
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -16,13 +16,12 @@ package java.rmi;
 
 /**
  * A <code>StubNotFoundException</code> is thrown if a valid stub class
- * could not be found for a remote object when it is exported or when
- * a remote object is passed in a remote method call as a parameter or
- * return value.  A <code>StubNotFoundException</code> may also be
+ * could not be found for a remote object when it is exported.
+ * A <code>StubNotFoundException</code> may also be
  * thrown when an activatable object is registered via the
  * <code>java.rmi.activation.Activatable.register</code> method.
  * 
- * @version 1.7, 09/21/98
+ * @version 1.9, 04/22/99
  * @author  Roger Riggs
  * @since   JDK1.1
  * @see	    java.rmi.server.UnicastRemoteObject

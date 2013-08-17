@@ -1,5 +1,5 @@
 /*
- * @(#)Container.java	1.150 00/04/19
+ * @(#)Container.java	1.161 00/03/08
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -15,6 +15,7 @@ package java.awt;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.awt.peer.ContainerPeer;
+import java.awt.peer.ComponentPeer;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.FocusEvent;
@@ -24,6 +25,9 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
 import java.awt.event.AWTEventListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowListener;
+import java.awt.event.WindowEvent;
 
 /**
  * A generic Abstract Window Toolkit(AWT) container object is a component 
@@ -34,7 +38,7 @@ import java.awt.event.AWTEventListener;
  * within the container.  If no index is specified when adding a
  * component to a container, it will be added to the end of the list
  * (and hence to the bottom of the stacking order).
- * @version 	1.150 04/19/00
+ * @version 	1.161 03/08/00
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see       java.awt.Container#add(java.awt.Component, int)
@@ -191,7 +195,7 @@ public class Container extends Component {
     public Insets insets() {
 	if (this.peer != null && this.peer instanceof ContainerPeer) {
 	    ContainerPeer peer = (ContainerPeer)this.peer;
-	    return peer.insets();
+	    return (Insets)peer.insets().clone();
 	}
 	return new Insets(0, 0, 0, 0);
     }
@@ -402,7 +406,7 @@ public class Container extends Component {
     		/* Search backwards, expect that more recent additions
 		 * are more likely to be removed.
     	    	 */
-                Component component[] = this.component;
+		Component component[] = this.component;
 		for (int i = ncomponents; --i >= 0; ) {
 		    if (component[i] == comp) {
     	    	    	remove(i);
@@ -520,7 +524,6 @@ public class Container extends Component {
 	if (!valid) {
 	    synchronized (getTreeLock()) {
 		if (!valid && peer != null) {
-                    Cursor oldCursor = getCursor();
 		    ContainerPeer p = null;
 		    if (peer instanceof ContainerPeer) {
 			p = (ContainerPeer) peer;
@@ -1117,6 +1120,75 @@ public class Container extends Component {
 	return null;
     }
 
+    /*
+     * Set the cursor image to a predefined cursor.
+     * @param <code>cursor</code> One of the constants defined
+     *            by the <code>Cursor</code> class.
+     * @see       java.awt.Component#getCursor
+     * @see       java.awt.Cursor
+     * @since     JDK1.1
+     */
+    public synchronized void setCursor(Cursor cursor) {
+        if (dispatcher != null) {
+            Component cursorOn = dispatcher.getCursorOn();
+
+            // if mouse is on a lightweight component, we should not
+            // call setCursor on the nativeContainer
+            if (cursorOn != null) {
+                this.cursor = cursor;
+
+                // it could be that cursorOn will inherit cursor
+                dispatcher.updateCursor(cursorOn);
+		return;
+            }
+        }
+        super.setCursor(cursor);
+    }
+
+    /**
+     * Update the cursor is decided by the dispatcher 
+     * This method is used when setCursor on a lightweight  
+     */
+    void updateCursor(Component comp) {
+	if (dispatcher != null) {
+	    dispatcher.updateCursor(comp);
+	}
+    }
+
+    /**
+     * Fetchs the top-most (deepest) lightweight component whose cursor 
+     * should be displayed.
+     */
+    Component getCursorTarget(int x, int y) {
+	int ncomponents = this.ncomponents;
+        Component component[] = this.component;
+	for (int i = 0 ; i < ncomponents ; i++) {
+	    Component comp = component[i];
+	    if ((comp != null) && (comp.contains(x - comp.x, y - comp.y)) &&
+		(comp.visible == true)) {
+		// found a component that intersects the point, see if there is 
+		// a deeper possibility.
+		if (comp instanceof Container) {
+		    Container child = (Container) comp;
+		    Component deeper = child.getCursorTarget(x - child.x, y - child.y);
+		    if (deeper != null) {
+			return deeper;
+		    }
+		} else {
+		    return comp;
+		}
+	    }
+	}
+	
+        if (contains(x,y) && (peer instanceof java.awt.peer.LightweightPeer)) {
+	    return this;
+	}
+
+	// no possible target
+	return null;
+    }
+
+
     /**
      * This is called by lightweight components that want the containing
      * windowed parent to enable some kind of events on their behalf.
@@ -1143,7 +1215,7 @@ public class Container extends Component {
 
     Window getWindow() {
         Container w = this;
-        while(!(w instanceof Window)) {
+        while( !(w instanceof Window) ) {
             w = w.getParent();
         }
         return (Window)w;
@@ -1172,7 +1244,8 @@ public class Container extends Component {
                 Component window = this;
                 while (!(window instanceof Window))
                     window = window.getParent();
-                if (((Window)window).isActive()) {
+                if (((Window)window).isActive() ||
+					! (window instanceof Frame || window instanceof Dialog) 				) {
                     peer.requestFocus();
 		}
                 Toolkit.getEventQueue().changeKeyEventFocus(this);
@@ -1361,6 +1434,9 @@ public class Container extends Component {
             Component component[] = this.component;
 	    for (int i = 0 ; i < ncomponents ; i++) {
 	        component[i].removeNotify();
+	    }
+	    if ( dispatcher != null ) {
+		dispatcher.dispose();
 	    }
 	    super.removeNotify();
         }
@@ -1587,6 +1663,15 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
 	eventMask = 0;
     }
 
+    /*
+     * Clean up any resources allocated when dispatcher was created;
+     * should be called from Container.removeNotify
+     */
+    void dispose() {
+	//System.out.println("Disposing lw dispatcher");
+	stopListeningForOtherDrags();
+    }
+
     /**
      * Enables events to lightweight components.
      */
@@ -1661,26 +1746,37 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
      * @param e the event
      */
     boolean dispatchEvent(AWTEvent e) {
+	boolean ret = false;
 	if ((eventMask & PROXY_EVENT_MASK) != 0) {
 	    if ((e instanceof MouseEvent) && 
 		((eventMask & MOUSE_MASK) != 0)) {
 		
 		MouseEvent me = (MouseEvent) e;
-		return processMouseEvent(me);
+		ret = processMouseEvent(me);
 
 	    } else if (e instanceof FocusEvent) {
 		
 		FocusEvent fe = (FocusEvent) e;
-		return processFocusEvent(fe);
+		 ret = processFocusEvent(fe);
 
 	    } else if (e instanceof KeyEvent) {
 
 		KeyEvent ke = (KeyEvent) e;
-		return processKeyEvent(ke);
+		ret = processKeyEvent(ke);
 
 	    }
 	}
-	return false;
+
+        if (e instanceof MouseEvent) {
+            // find out what component the mouse moved in
+            MouseEvent me = (MouseEvent) e;
+
+            if (me.getID() == MouseEvent.MOUSE_MOVED) {
+                cursorOn = nativeContainer.getCursorTarget(me.getX(), me.getY());
+                updateCursor(cursorOn);
+            }
+        }
+	return ret;
     }
 
     private boolean processKeyEvent(KeyEvent e) {
@@ -1756,11 +1852,10 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
 		retargetMouseEvent(mouseEventTarget, id, e);
 		lwOver = nativeContainer.getMouseEventTarget(e.getX(), e.getY(),false);
 		setMouseTarget(lwOver, e);
-		if (lwOver != releasedTarget) {
+
 		// fix 4155217
 		// component was hidden or moved in user code MOUSE_RELEASED handling
-		    isClickOrphaned = true;
-		}
+		isClickOrphaned = lwOver != releasedTarget;
 		break;
 	    }
 	    
@@ -1848,6 +1943,11 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
 	targetLastEntered = targetEnter;
     }
 
+    /*
+     * Listens to global mouse drag events so even drags originating
+     * from other heavyweight containers will generate enter/exit
+     * events in this container
+     */
     private void startListeningForOtherDrags() {
 	//System.out.println("Adding AWTEventListener");
 	java.security.AccessController.doPrivileged(
@@ -1967,18 +2067,56 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
 	    } else {
 		target.dispatchEvent(retargeted);
 	    }
-
-            // update cursor if needed.  This is done after the event has
-            // been sent to the target so the target has a chance to change
-            // the cursor after reacting to the event.
-	    Cursor c = target.getCursor();
-	    if (nativeContainer.getCursor() != c) {
-		//System.out.println("Setting cursor to: " + c.getType());
-		nativeContainer.setCursor(c);
-	    }
         }
     }
 	
+     /**
+      * Set the cursor for a lightweight component
+      * Enforce that null cursor means inheriting from parent
+      */
+     void updateCursor(Component comp) {
+ 
+ 	// if user wants to change the cursor, we do it even mouse is dragging 
+         // so LightweightDispatcher's dragging state is not checked here
+ 	if (comp != cursorOn) {
+ 	   return;
+ 	}
+ 
+        if (comp == null) {
+           comp = nativeContainer;
+        }
+
+        Cursor cursor = comp.getIntrinsicCursor();
+        while (cursor == null && comp != nativeContainer) {
+            comp = comp.getParent();
+	    
+	    if (comp == null) {
+		cursor = nativeContainer.getCursor();
+		break;
+	    }
+            cursor = comp.getIntrinsicCursor();
+        }
+ 
+ 	if (cursor != lightCursor) {
+ 	    lightCursor = cursor;
+ 
+ 	    // Only change the cursor on the peer, because we want client code to think
+ 	    // that the Container's cursor only changes in response to setCursor calls.
+ 	    ComponentPeer ncPeer = nativeContainer.getPeer();
+ 	    if (ncPeer != null) {
+ 		ncPeer.setCursor(cursor);
+ 	    }
+ 	}
+     }
+ 
+     /**
+      * get the lightweight component mouse cursor is on 
+      * null means the nativeContainer
+      */
+     Component getCursorOn() {
+ 	return cursorOn;
+     }
+ 
     // --- member variables -------------------------------
 
     /**
@@ -2004,6 +2142,11 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
     private transient Component mouseEventTarget;
 
     /**
+     * lightweight component the cursor is on 
+     */
+    private transient Component cursorOn;
+
+    /**
      * The last component entered
      */
     private transient Component targetLastEntered;
@@ -2026,11 +2169,14 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
     private boolean dragging;
 
     /**
-     * The cursor used by the native container that is hosting the
-     * lightweight components.  Since the Cursor used by the lightweight
-     * components overwrites the Cursor set in the native container
-     * we need to stash the native cursor so we can restore it after
-     * the lightweight components are done having their cursor shown.
+     * The cursor that is currently displayed for the lightwieght
+     * components.  Remember this cursor, so we do not need to
+     * change cursor on every mouse event.
+     */
+    private transient Cursor lightCursor;
+
+    /**
+     * This variable is not used, but kept for serialization compatibility
      */
     private Cursor nativeCursor;
 

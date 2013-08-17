@@ -1,0 +1,26 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SwingSet demo</title>
+  </head>
+
+  <body>
+      <h1>SwingSet demo</h1>
+
+    This demonstrates downloading the swing.jar file with an applet.  To run
+    it, you must first create the file SwingSet.jar in the same directory
+    as this html file using the following command:<p>
+
+    <ul>
+      <li><code>jar cvf SwingSet.jar *.class *.txt images</code>
+    </ul><p>
+
+    Then copy the JAR files from the swing release 
+    ("<code>copy ..\..\*.jar classes</code>").<p>
+
+    <applet code=SwingSetApplet  
+      archive="swing.jar,windows.jar,motif.jar,SwingSet.jar" 
+      width=695 height=525>
+    </applet>
+  </body>
+</html>

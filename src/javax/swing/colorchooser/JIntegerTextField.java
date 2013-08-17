@@ -1,5 +1,5 @@
 /*
- * @(#)JIntegerTextField.java	1.3 98/08/26
+ * @(#)JIntegerTextField.java	1.6 98/11/02
  *
  * Copyright 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -23,7 +23,7 @@ import javax.swing.text.*;
 /**
   * A text field which takes integer values
   *
-  * @version 1.3 08/26/98
+  * @version 1.6 11/02/98
   * @author Steve Wilson
   */
 class JIntegerTextField extends JTextField {
@@ -37,6 +37,12 @@ class JIntegerTextField extends JTextField {
     protected void installKeyboardActions() {
         KeyStroke upKey = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
         KeyStroke downKey = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
+
+        KeyStroke numUpKey = KeyStroke.getKeyStroke("KP_UP");
+        KeyStroke numDownKey = KeyStroke.getKeyStroke("KP_DOWN");
+	registerKeyboardAction(new ValueDelta(1), numUpKey, JComponent.WHEN_FOCUSED);
+	registerKeyboardAction(new ValueDelta(-1), numDownKey, JComponent.WHEN_FOCUSED);
+
 	registerKeyboardAction(new ValueDelta(1), upKey, JComponent.WHEN_FOCUSED);
 	registerKeyboardAction(new ValueDelta(-1), downKey, JComponent.WHEN_FOCUSED);
     }

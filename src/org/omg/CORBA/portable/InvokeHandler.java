@@ -1,10 +1,10 @@
 /*
- * @(#)InvokeHandler.java	1.3 98/09/08
+ * @(#)InvokeHandler.java	1.6 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -12,6 +12,11 @@
  * you entered into with Sun.
  */
 package org.omg.CORBA.portable;
+
+/**
+This interface provides a dispatching mechanism for an incoming call.
+It is invoked by the ORB to dispatch a request to a servant.
+*/
 
 public interface InvokeHandler {
     /**
@@ -30,19 +35,23 @@ public interface InvokeHandler {
      * beyond the lifetime of a method invocation.
      *
      * Servant behaviour is defined as follows:
-     * 1. Determine correct method, and unmarshal parameters from
+     * <p>1. Determine correct method, and unmarshal parameters from
      *    InputStream.
-     * 2. Invoke method implementation.
-     * 3. If no user exception, create a normal reply using
+     * <p>2. Invoke method implementation.
+     * <p>3. If no user exception, create a normal reply using
      *    ResponseHandler.
-     * 4. If user exception occurred, create exception reply using
+     * <p>4. If user exception occurred, create exception reply using
      *    ResponseHandler.
-     * 5. Marshal reply into OutputStream returned by
+     * <p>5. Marshal reply into OutputStream returned by
      *    ResponseHandler.
-     * 6. Return OutputStream to ORB.
-	 * 
-	 * @see <a href="package-summary.html#unimpl><code>portable</code>
-	 * package comments for unimplemented features</a>
+     * <p>6. Return OutputStream to ORB.
+     * <p>
+     * @param method The method name.
+     * @param input The <code>InputStream</code> containing the marshalled arguments.
+     * @param handler The <code>ResponseHandler</code> which the servant uses
+     * to construct a proper reply
+     * @return The <code>OutputStream</code> created by the
+     * ResponseHandler which contains the marshalled reply
      */
 
     OutputStream _invoke(String method, InputStream input,

@@ -1,10 +1,10 @@
 /*
- * @(#)MulticastSocket.java	1.28 98/10/14
+ * @(#)MulticastSocket.java	1.31 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -134,24 +134,16 @@ class MulticastSocket extends DatagramSocket {
      * specifies how many "hops" that the packet will be forwarded
      * on the network before it expires.
      *
-     * <p>This method may only be used to set time-to-live value
-     * between 1 and 127. The behavior if the value is outside that
-     * range is undefined.
+     * <p>The ttl is an <b>unsigned</b> 8-bit quantity, and so <B>must</B> be
+     * in the range <code> 0 <= ttl <= 0xFF </code>.
      *
      * @param ttl the time-to-live
      *
-     * @deprecated use the setTimeToLive method instead, which allows
-     * you to set time-to-live values from 0 (excluded) to 255
-     * (included).
+     * @deprecated use the setTimeToLive method instead, which uses
+     * <b>int</b> instead of <b>byte</b> as the type for ttl.
      */
     public void setTTL(byte ttl) throws IOException {
-	int ittl = -1;
-	if (ttl < 0) {
-	    ittl = ttl & 0xff;
-	} else {
-	    ittl = (int)ttl;
-	}
-	setTimeToLive(ittl);
+	impl.setTTL(ttl);
     }
 
     /**
@@ -161,13 +153,13 @@ class MulticastSocket extends DatagramSocket {
      * specifies how many "hops" that the packet will be forwarded
      * on the network before it expires.
      *
-     * <P>The ttl is <B>must</B> be in the range <code> 0 < ttl <=
+     * <P> The ttl <B>must</B> be in the range <code> 0 <= ttl <=
      * 255</code> or an IllegalArgumentException will be thrown.
      *
      * @param ttl the time-to-live
      */
     public void setTimeToLive(int ttl) throws IOException {
-	if (ttl < 1 || ttl > 255) {
+	if (ttl < 0 || ttl > 255) {
 	    throw new IllegalArgumentException("ttl out of range");
 	}
 	impl.setTimeToLive(ttl);
@@ -175,20 +167,13 @@ class MulticastSocket extends DatagramSocket {
 
     /**
      * Get the default time-to-live for multicast packets sent out on
-     * the socket. This method will truncate any time to live values
-     * greater than 127 to 127.
+     * the socket.
      *
-     * @deprecated use the getTimeToLive method instead, which allows
-     * you to get time-to-live values from 0 (excluded) to 255
-     * (included).
+     * @deprecated use the getTimeToLive method instead, which returns
+     * an <b>int</b> instead of a <b>byte</b>.
      */
     public byte getTTL() throws IOException {
-	int ttl = getTimeToLive();
-	if (ttl > 127) {
-	    return (byte)127;
-	} else {
-	    return (byte)ttl;
-	}
+	return impl.getTTL();
     }
 
     /**
@@ -200,7 +185,8 @@ class MulticastSocket extends DatagramSocket {
     }
 
     /**
-     * Joins a multicast group.
+     * Joins a multicast group.Its behavior may be affected
+     * by <code>setInterface</code>.
      * 
      * <p>If there is a security manager, this method first
      * calls its <code>checkMulticast</code> method
@@ -226,7 +212,8 @@ class MulticastSocket extends DatagramSocket {
     }
 
     /**
-     * Leave a multicast group.
+     * Leave a multicast group. Its behavior may be affected
+     * by <code>setInterface</code>.
      * 
      * <p>If there is a security manager, this method first
      * calls its <code>checkMulticast</code> method
@@ -251,9 +238,9 @@ class MulticastSocket extends DatagramSocket {
     }
 
     /**
-     * Set the outgoing network interface for multicast packets on this
-     * socket, to other than the system default.  Useful for multihomed
-     * hosts.
+     * Set the multicast network interface used by methods
+     * whose behavior would be affected by the value of the
+     * network interface. Useful for multihomed hosts.
      */
     public void setInterface(InetAddress inf) throws SocketException {
 	impl.setOption(SocketOptions.IP_MULTICAST_IF, inf);
@@ -273,7 +260,8 @@ class MulticastSocket extends DatagramSocket {
      * need only be used in instances where a particular TTL is desired;
      * otherwise it is preferable to set a TTL once on the socket, and
      * use that default TTL for all packets.  This method does <B>not
-     * </B> alter the default TTL for the socket.
+     * </B> alter the default TTL for the socket. Its behavior may be
+     * affected by <code>setInterface</code>.
      *
      * <p>If there is a security manager, this method first performs some
      * security checks. First, if <code>p.getAddress().isMulticastAddress()</code>

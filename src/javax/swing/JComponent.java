@@ -1,15 +1,14 @@
 /*
- * @(#)JComponent.java	2.96 99/06/11
+ * @(#)JComponent.java	2.111 00/03/08
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
+ * 
  */
 package javax.swing;
 
@@ -87,7 +86,7 @@ import java.awt.Graphics2D;
  * @see #setToolTipText
  * @see #setAutoscrolls
  *
- * @version 2.96 06/11/99
+ * @version 2.111 03/08/00
  * @author Hans Muller
  * @author Arnaud Weber
  */
@@ -134,6 +133,11 @@ public abstract class JComponent extends Container implements Serializable
     /* A "scratch pad" rectangle used by the painting code.
      */
     private transient Rectangle tmpRect;
+
+    /** Set in _paintImmediately. Will indicate the child that initiated
+     * the painting operation. If paintingChild is opaque, no need to paint
+     * any child components after paintingChild. Test used in paintChildren. */
+    transient Component         paintingChild;
 
     /**
      * Constant used for registerKeyboardAction() which
@@ -342,12 +346,43 @@ public abstract class JComponent extends Container implements Serializable
      */
     protected void paintChildren(Graphics g) {
         boolean isJComponent;
-        Graphics sg = SwingGraphics.createSwingGraphics(g);
+	Graphics sg = null;
 
         try {
             synchronized(getTreeLock()) {
 		boolean printing = getFlag(IS_PRINTING);
-                for (int i = getComponentCount() - 1 ; i >= 0 ; i--) {
+		int i = getComponentCount() - 1;
+		if (i < 0) {
+		    return;
+		}
+		sg = SwingGraphics.createSwingGraphics(g);
+		// If we are only to paint to a specific child, determine
+		// its index.
+		if (paintingChild != null &&
+		    (paintingChild instanceof JComponent) &&
+		    ((JComponent)paintingChild).isOpaque()) {
+		    for (; i >= 0; i--) {
+			if (getComponent(i) == paintingChild){
+			    break;
+			}
+		    }
+		}
+		if(tmpRect == null) {
+		    tmpRect = new Rectangle();
+		}
+		boolean checkSiblings = (!isOptimizedDrawingEnabled() &&
+					 checkIfChildObscuredBySibling());
+	        
+		Rectangle clipBounds = null;
+                if (checkSiblings) {
+		    clipBounds = sg.getClipBounds();
+		    if (clipBounds == null) {
+		        clipBounds = new Rectangle(0, 0, _bounds.width,
+			                           _bounds.height);
+		    }
+                }
+                
+                for (; i >= 0 ; i--) {
                     Component comp = getComponent(i);
                     if (comp != null && isLightweightComponent(comp) && 
                         (comp.isVisible() == true)) {
@@ -355,9 +390,6 @@ public abstract class JComponent extends Container implements Serializable
                         isJComponent = (comp instanceof JComponent);
 
                         if(isJComponent) {
-                            if(tmpRect == null) {
-                                tmpRect = new Rectangle();
-                            }
                             cr = tmpRect;
                             ((JComponent)comp).getBounds(cr);
                         } else {
@@ -375,8 +407,39 @@ public abstract class JComponent extends Container implements Serializable
 
 
                         if (hitClip) {
+			    if (checkSiblings && i > 0) {
+				int x = cr.x;
+				int y = cr.y;
+				int width = cr.width;
+				int height = cr.height;
+			        
+				SwingUtilities.computeIntersection
+				     (clipBounds.x, clipBounds.y,
+				      clipBounds.width, clipBounds.height, cr);
+		                
+
+
+
+
+
+
+
+
+
+
+				if(rectangleIsObscuredBySibling(i, cr.x, cr.y,
+						      cr.width, cr.height)) {
+				    continue;
+				}
+				cr.x = x;
+				cr.y = y;
+				cr.width = width;
+				cr.height = height;
+			    }
                             Graphics cg = SwingGraphics.createSwingGraphics(
                                 sg, cr.x, cr.y, cr.width, cr.height);
+			    cg.setColor(comp.getForeground());
+			    cg.setFont(comp.getFont());
                             boolean shouldSetFlagBack = false;
                             try {
                                 if(isJComponent) {
@@ -425,7 +488,9 @@ public abstract class JComponent extends Container implements Serializable
                 }
             }
         } finally {
-            sg.dispose();
+	    if (sg != null) {
+		sg.dispose();
+	    }
         }
     }
 
@@ -492,11 +557,33 @@ public abstract class JComponent extends Container implements Serializable
             RepaintManager repaintManager = RepaintManager.currentManager(this);
 	  
 	    Rectangle clipRect = co.getClipBounds();
-            int clipX = clipRect.x;
-            int clipY = clipRect.y;
-            int clipW = clipRect.width;
-            int clipH = clipRect.height;
+            int clipX;
+            int clipY;
+            int clipW;
+            int clipH;
+	    if (clipRect == null) {
+                clipX = clipY = 0;
+		clipW = _bounds.width;
+		clipH = _bounds.height;
+            }
+	    else {
+	        clipX = clipRect.x;
+		clipY = clipRect.y;
+		clipW = clipRect.width;
+		clipH = clipRect.height;
+            }
 	    
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -522,12 +609,15 @@ public abstract class JComponent extends Container implements Serializable
                 shouldClearPaintFlags = true;
             }
 
+	    int bw,bh;
 	    boolean printing = getFlag(IS_PRINTING);
             if(!printing && repaintManager.isDoubleBufferingEnabled() &&
-               !getFlag(ANCESTOR_USING_BUFFER) && isDoubleBuffered()) {
-                int bw,bh;
+               !getFlag(ANCESTOR_USING_BUFFER) && isDoubleBuffered() &&
+                (offscr = repaintManager.getOffscreenBuffer
+		 (this,clipW,clipH)) != null &&
+	        (bw = offscr.getWidth(null)) > 0 &&
+	        (bh = offscr.getHeight(null)) > 0) {
                 int x,y,maxx,maxy;
-                offscr = repaintManager.getOffscreenBuffer(this,clipW,clipH);
 
                 Graphics sg = 
                     SwingGraphics.createSwingGraphics(offscr.getGraphics());
@@ -623,7 +713,7 @@ public abstract class JComponent extends Container implements Serializable
 	    setFlag(IS_PRINTING, false);
 	}
     }
-    
+
     /**
      *  Returns true if the receiving component is currently painting a tile.
      *  If this method returns true, paint will be called again for another
@@ -1284,6 +1374,9 @@ public abstract class JComponent extends Container implements Serializable
      * Overrides <code>Component.setVisible</code>.
      * 
      * @param aFlag  true to make the component visible
+     *
+     * @beaninfo
+     *    attribute: visualUpdate true
      */
     public void setVisible(boolean aFlag) {
         if(aFlag != isVisible()) {
@@ -1293,6 +1386,10 @@ public abstract class JComponent extends Container implements Serializable
                 Rectangle r = getBounds();
                 parent.repaint(r.x,r.y,r.width,r.height);
             }
+	    // Some (all should) LayoutManagers do not consider components
+	    // that are not visible. As such we need to revalidate when the
+	    // visible bit changes.
+	    revalidate();
 
             if (accessibleContext != null) {
 	        if (aFlag) {
@@ -1349,14 +1446,14 @@ public abstract class JComponent extends Container implements Serializable
      */
     public void setForeground(Color fg) {
         Color oldFg = getForeground();
-        super.setForeground(fg);
-        // foreground already bound in AWT1.2
-        if (!SwingUtilities.is1dot2) {
-            firePropertyChange("foreground", oldFg, fg);
-        }
-        if (fg != oldFg) {
-            repaint();
-        }
+	super.setForeground(fg);
+	if ((oldFg != null) ? !oldFg.equals(fg) : ((fg != null) && !fg.equals(oldFg))) {
+	    // foreground already bound in AWT1.2
+	    if (!SwingUtilities.is1dot2) {
+		firePropertyChange("foreground", oldFg, fg);
+	    }
+	    repaint();
+	}
     }
 
     /**
@@ -1371,15 +1468,15 @@ public abstract class JComponent extends Container implements Serializable
      *  description: The background color of the component.
      */
     public void setBackground(Color bg) {
-        Color oldBg = getBackground();
-        super.setBackground(bg);
-        // background already bound in AWT1.2
-        if (!SwingUtilities.is1dot2) {
-            firePropertyChange("background", oldBg, bg);
-        }
-        if (bg != oldBg) {
-            repaint();
-        }
+	Color oldBg = getBackground();
+	super.setBackground(bg);
+	if ((oldBg != null) ? !oldBg.equals(bg) : ((bg != null) && !bg.equals(oldBg))) {
+	    // background already bound in AWT1.2
+	    if (!SwingUtilities.is1dot2) {
+		firePropertyChange("background", oldBg, bg);
+	    }
+	    repaint();
+	}
     }
 
     /**
@@ -1402,6 +1499,7 @@ public abstract class JComponent extends Container implements Serializable
         }
         if (font != oldFont) {
             revalidate();
+	    repaint();
         }
     }
         
@@ -1769,7 +1867,7 @@ public abstract class JComponent extends Container implements Serializable
             }
         } else {
             if (autoscroller != null) {
-                autoscroller.stop();
+                autoscroller.dispose();
                 autoscroller = null;
             }
         }
@@ -2872,7 +2970,7 @@ public abstract class JComponent extends Container implements Serializable
             }
 
             if (x >= childBounds.x && (x + width) <= (childBounds.x + childBounds.width) &&
-                y >= childBounds.y && (y + height) <= (childBounds.y + childBounds.height)) {
+                y >= childBounds.y && (y + height) <= (childBounds.y + childBounds.height) && child.isVisible()) {
 
                 if(child instanceof JComponent) {
 //		    System.out.println("A) checking opaque: " + ((JComponent)child).isOpaque() + "  " + child);
@@ -3084,6 +3182,28 @@ public abstract class JComponent extends Container implements Serializable
 
 
     /**
+     * Add a PropertyChangeListener for a specific property.  The listener
+     * will be invoked only when a call on firePropertyChange names that
+     * specific property.
+     *
+     * If listener is null, no exception is thrown and no action is performed.
+     *
+     * @param propertyName  The name of the property to listen on.
+     * @param listener  The PropertyChangeListener to be added
+     */
+    public synchronized void addPropertyChangeListener(
+				String propertyName,
+				PropertyChangeListener listener) {
+	if (listener == null) {
+	    return;
+	}
+	if (changeSupport == null) {
+	    changeSupport = new SwingPropertyChangeSupport(this);
+	}
+	changeSupport.addPropertyChangeListener(propertyName, listener);
+    }
+
+    /**
      * Remove a PropertyChangeListener from the listener list.
      * This removes a PropertyChangeListener that was registered
      * for all properties.
@@ -3098,6 +3218,25 @@ public abstract class JComponent extends Container implements Serializable
         }
     }
 
+
+    /**
+     * Remove a PropertyChangeListener for a specific property.
+     * If listener is null, no exception is thrown and no action is performed.
+     *
+     * @param propertyName  The name of the property that was listened on.
+     * @param listener  The PropertyChangeListener to be removed
+     */
+    public synchronized void removePropertyChangeListener(
+				String propertyName,
+				PropertyChangeListener listener) {
+	if (listener == null) {
+	    return;
+	}
+	if (changeSupport == null) {
+	    return;
+	}
+	changeSupport.removePropertyChangeListener(propertyName, listener);
+    }
 
     /**
      * Support for reporting constrained property changes.  This method can be called
@@ -3430,6 +3569,10 @@ public abstract class JComponent extends Container implements Serializable
 
     private Rectangle paintImmediatelyClip = new Rectangle(0,0,0,0);
 
+    void setPaintingChild(Component paintingChild) {
+	this.paintingChild = paintingChild;
+    }
+
     void _paintImmediately(int x, int y, int w, int h) {
         Graphics g;
         Container c;
@@ -3444,6 +3587,13 @@ public abstract class JComponent extends Container implements Serializable
         JComponent paintingComponent = this;
 
         RepaintManager repaintManager = RepaintManager.currentManager(this);
+	// parent Container's up to Window or Applet. First container is
+	// the direct parent. Note that in testing it was faster to 
+	// alloc a new Vector vs keeping a stack of them around, and gc
+	// seemed to have a minimal effect on this.
+	Vector path = new Vector(7);
+	int pIndex = -1;
+	int pCount = 0;
 
 	tmpX = tmpY = tmpWidth = tmpHeight = 0;
 
@@ -3458,14 +3608,17 @@ public abstract class JComponent extends Container implements Serializable
 	boolean ontop = alwaysOnTop() && isOpaque();
 
 	for (c = this; c != null && !(c instanceof Window) && !(c instanceof Applet); c = c.getParent()) {
+	        path.addElement(c);
 		if(!ontop && (c instanceof JComponent) &&
                    !(((JComponent)c).isOptimizedDrawingEnabled())) {
 		    paintingComponent = (JComponent)c;
+		    pIndex = pCount;
 		    offsetX = offsetY = 0;
 		    hasBuffer = false; /** Get rid of any buffer since we draw from here and
 					*  we might draw something larger
 					*/
 		}
+		pCount++;
 		
 		// look to see if the parent (and therefor this component)
 		// is double buffered
@@ -3500,35 +3653,73 @@ public abstract class JComponent extends Container implements Serializable
 	if(paintImmediatelyClip.width <= 0 || paintImmediatelyClip.height <= 0) {
 	    return;
 	}
-	
+
         paintImmediatelyClip.x -= offsetX;
         paintImmediatelyClip.y -= offsetY;
 	
-        try {
-            g = SwingGraphics.createSwingGraphics(paintingComponent.getGraphics());
-        } catch(NullPointerException e) {
-            g = null;
-            e.printStackTrace();
-        }
+	// Notify the Components that are going to be painted of the
+	// child component to paint to.
+	if(paintingComponent != this) {
+	    Component comp;
+	    int i = pIndex;
+	    for(; i > 0 ; i--) {
+		comp = (Component) path.elementAt(i);
+		if(comp instanceof JComponent) {
+		    ((JComponent)comp).setPaintingChild
+			               ((Component)path.elementAt(i-1));
+		}
+	    }
+	}
 
-        if(g == null) {
-            System.err.println("In paintImmediately null graphics");
-            return;
-        }
+	try {
+	    try {
+	        Graphics pcg = paintingComponent.getGraphics();
+		g = SwingGraphics.createSwingGraphics(pcg);
+		pcg.dispose();
+	    } catch(NullPointerException e) {
+		g = null;
+		e.printStackTrace();
+	    }
 
-        if(hasBuffer) {
-            Image offscreen = repaintManager.getOffscreenBuffer(bufferedComponent,paintImmediatelyClip.width,paintImmediatelyClip.height);
-            paintWithBuffer(paintingComponent,g,paintImmediatelyClip,offscreen);
-            g.dispose();
-        } else {
-	    //System.out.println("has no buffer");
-            g.setClip(paintImmediatelyClip.x,paintImmediatelyClip.y,paintImmediatelyClip.width,paintImmediatelyClip.height);
-            try {
-                paintingComponent.paint(g);
-            } finally {
-                g.dispose();
-            }
-        }
+	    if(g == null) {
+		System.err.println("In paintImmediately null graphics");
+		return;
+	    }
+
+	    Image offscreen;
+	    if(hasBuffer && (offscreen = repaintManager.getOffscreenBuffer
+			     (bufferedComponent,paintImmediatelyClip.width,
+			      paintImmediatelyClip.height)) != null &&
+	       offscreen.getWidth(null) > 0 &&
+	       offscreen.getHeight(null) > 0) {
+		paintWithBuffer(paintingComponent,g,paintImmediatelyClip,
+				offscreen);
+		g.dispose();
+	    } else {
+		//System.out.println("has no buffer");
+		g.setClip(paintImmediatelyClip.x,paintImmediatelyClip.y,
+		       paintImmediatelyClip.width,paintImmediatelyClip.height);
+		try {
+		    paintingComponent.paint(g);
+		} finally {
+		    g.dispose();
+		}
+	    }
+	}
+	finally {
+	    // Reset the painting child for the parent components.
+	    if(paintingComponent != this) {
+		Component comp;
+		int i = pIndex;
+		for(; i > 0 ; i--) {
+		    comp = (Component) path.elementAt(i);
+		    if(comp instanceof JComponent) {
+			((JComponent)comp).setPaintingChild(null);
+		    }
+		}
+	    }
+	    path.removeAllElements();
+	}
     }
 
     private void paintWithBuffer(JComponent paintingComponent,Graphics g,Rectangle clip,Image offscreen) {
@@ -3567,6 +3758,54 @@ public abstract class JComponent extends Container implements Serializable
             paintingComponent.setFlag(IS_PAINTING_TILE,false);
             og.dispose();
         }
+    }
+
+    /**
+     *  Return true if the component at index compIndex is obscured by
+     *  an opaque sibling that is painted after it.
+     *  The rectangle is in the receiving component coordinate system.
+     */
+    // NOTE: This will tweak tmpRect!
+    boolean rectangleIsObscuredBySibling(int compIndex, int x, int y,
+					 int width, int height) {
+	int i;
+	Component sibling;
+	Rectangle siblingRect;
+
+	for(i = compIndex - 1 ; i >= 0 ; i--) {
+	    sibling = getComponent(i);
+	    if(!sibling.isVisible())
+		continue;
+	    if(sibling instanceof JComponent) {
+		if(!((JComponent)sibling).isOpaque())
+		    continue;
+		siblingRect = ((JComponent)sibling).getBounds(tmpRect);
+	    }
+	    else {
+		siblingRect = sibling.getBounds();
+	    }
+	    // NOTE(sky): I could actually intersect x,y,width,height here.
+	    // This tests for COMPLETE obscuring by another component,
+	    // if multiple siblings obscure the region true should be
+	    // returned.
+	    if (x >= siblingRect.x && (x + width) <=
+		(siblingRect.x + siblingRect.width) &&
+		y >= siblingRect.y && (y + height) <=
+		(siblingRect.y + siblingRect.height)) {
+		return true;
+	    }
+	}
+	return false;
+    }
+
+    /**
+     * Returns true, which implies that before checking if a child should
+     * be painted it is first check that the child is not obscured by another 
+     * sibling. This is only checked if <code>isOptimizedDrawingEnabled</code>
+     * return false.
+     */
+    boolean checkIfChildObscuredBySibling() {
+	return true;
     }
 
 
@@ -3636,10 +3875,29 @@ public abstract class JComponent extends Container implements Serializable
 	public void focusGained(FocusEvent e) {}
 	public void focusLost(FocusEvent e) {}
 	private void writeObject(ObjectOutputStream s) throws IOException {
+  	    boolean internalFrameCheck = false;
+	    boolean old = false;
+	    JInternalFrame j = null;
+
 	    s.defaultWriteObject();
 	    if (ui != null) {
-		ui.uninstallUI(JComponent.this);
+	      // need to disable rootpane checking for InternalFrame: 4172083
+	      if (JComponent.this instanceof JInternalFrame){
+		j = (JInternalFrame)JComponent.this;
+		internalFrameCheck = true;
+		old = j.isRootPaneCheckingEnabled();
+		j.setRootPaneCheckingEnabled(false);
+	      }
+	      ui.uninstallUI(JComponent.this);
+	      if (internalFrameCheck){
+		j.setRootPaneCheckingEnabled(old);
+		j = null;
+	      }
 	    }
+
+            if (getToolTipText() != null) {
+                ToolTipManager.sharedInstance().unregisterComponent(JComponent.this);
+            }            
 	}
     }
 
@@ -3724,7 +3982,6 @@ public abstract class JComponent extends Container implements Serializable
 			roots.removeElementAt(i--); // !!
 			break;
 		    }
-		    p = p.getParent();
 		}
 	    }
 	    
@@ -3761,6 +4018,10 @@ public abstract class JComponent extends Container implements Serializable
 	    }
 	}
 	cb.registerComponent(this);
+
+        if (getToolTipText() != null) {
+            ToolTipManager.sharedInstance().registerComponent(this);
+        }
     }
 
 
@@ -3785,9 +4046,6 @@ public abstract class JComponent extends Container implements Serializable
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JComponent.
      */

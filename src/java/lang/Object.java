@@ -1,7 +1,7 @@
 /*
- * @(#)Object.java	1.47 98/10/01
+ * @(#)Object.java	1.49 99/04/22
  *
- * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * Copyright 1994-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -20,7 +20,7 @@ package java.lang;
  * including arrays, implement the methods of this class. 
  *
  * @author  unascribed
- * @version 1.47, 10/01/98
+ * @version 1.49, 04/22/99
  * @see     java.lang.Class
  * @since   JDK1.0
  */
@@ -130,12 +130,12 @@ public class Object {
      * will be true, and that the expression:
      * <blockquote>
      * <pre>
-     * x.close.getClass() == x.getClass()</pre></blockquote>
+     * x.clone().getClass() == x.getClass()</pre></blockquote>
      * will be <tt>true</tt>, but these are not absolute requirements. 
      * While it is typically the case that:
      * <blockquote>
      * <pre>
-     * x.close.equals(x)</pre></blockquote>
+     * x.clone().equals(x)</pre></blockquote>
      * will be <tt>true</tt>, this is not an absolute requirement. 
      * Copying an object will typically entail creating a new instance of 
      * its class, but it also may require copying of internal data 

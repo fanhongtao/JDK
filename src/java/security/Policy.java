@@ -1,5 +1,5 @@
 /*
- * @(#)Policy.java	1.59 98/09/24
+ * @(#)Policy.java	1.61 99/02/01
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.

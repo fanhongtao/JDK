@@ -1,10 +1,10 @@
 /*
- * @(#)ByteLookupTable.java	1.24 98/08/07
+ * @(#)ByteLookupTable.java	1.27 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -45,6 +45,13 @@ public class ByteLookupTable extends LookupTable {
      * values before indexing into the arrays.  The number of
      * bands is the length of the data argument.  The
      * data array for each band is stored as a reference.
+     * @param offset the value subtracted from the input values 
+     *        before indexing into the arrays
+     * @param data an array of byte arrays representing a lookup
+     *        table for each band
+     * @throws IllegalArgumentException if <code>offset</code> is
+     *         is less than 0 or if the length of <code>data</code>
+     *         is less than 1
      */
     public ByteLookupTable(int offset, byte data[][]) {
         super(offset,data.length);
@@ -59,10 +66,16 @@ public class ByteLookupTable extends LookupTable {
 
     /**
      * Constructs a ByteLookupTable object from an array
-     * of bytes representing a lookup table for each
-     * band.  The offset will be subtracted from input
+     * of bytes representing a lookup table to be applied to all 
+     * bands.  The offset will be subtracted from input
      * values before indexing into the array.  
      * The data array is stored as a reference.
+     * @param offset the value subtracted from the input values
+     *        before indexing into the array
+     * @param data an array of bytes
+     * @throws IllegalArgumentException if <code>offset</code> is
+     *         is less than 0 or if the length of <code>data</code>
+     *         is less than 1
      */
     public ByteLookupTable(int offset, byte data[]) {
         super(offset,data.length);
@@ -76,7 +89,7 @@ public class ByteLookupTable extends LookupTable {
      * Returns the lookup table data by reference.  If this ByteLookupTable
      * was constructed using a single byte array, the length of the returned
      * array is one.
-     * @return ByteLookupTable data array.
+     * @return the data array of this <code>ByteLookupTable</code>.
      */
     public final byte[][] getTable(){
         return data;

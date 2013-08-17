@@ -1,10 +1,10 @@
 /*
- * @(#)TextComponent.java	1.48 98/08/31
+ * @(#)TextComponent.java	1.51 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -37,7 +37,7 @@ import sun.awt.SunToolkit;
  * is the target of editing operations. It is also referred
  * to as the <em>selected text</em>.
  *
- * @version	1.44, 08/11/98
+ * @version	1.51, 04/22/99
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -56,7 +56,7 @@ public class TextComponent extends Component {
 
     /**
      * A boolean indicating whether or not this TextComponent is editable.
-     * It will be <code>true</code> if the text componet
+     * It will be <code>true</code> if the text component
      * is editable and <code>false</code> if not.
      *
      * @serial
@@ -100,7 +100,9 @@ public class TextComponent extends Component {
      * Constructs a new text component initialized with the 
      * specified text. Sets the value of the cursor to 
      * <code>Cursor.TEXT_CURSOR</code>.
-     * @param      text the initial text that the component presents.
+     * @param      text       the text to be displayed. If
+     *             <code>text</code> is <code>null</code>, the empty
+     *             string <code>""</code> will be displayed.
      * @see        java.awt.Cursor
      */
     TextComponent(String text) {
@@ -147,7 +149,7 @@ public class TextComponent extends Component {
      * text component to be the specified text. 
      * @param       t   the new text.
      *                  If this parameter is <code>null</code> then
-     *                  the text is set to the empty  string "".
+     *                  the text is set to the empty string "".
      * @see         java.awt.TextComponent#getText  
      */
     public synchronized void setText(String t) {
@@ -198,8 +200,8 @@ public class TextComponent extends Component {
      * If the flag is set to <code>true</code>, this text component 
      * becomes user editable. If the flag is set to <code>false</code>, 
      * the user cannot change the text of this text component. 
-     * @param     t   a flag indicating whether this text component 
-     *                      should be user editable.
+     * @param     b   a flag indicating whether this text component 
+     *                      is user editable.
      * @see       java.awt.TextComponent#isEditable
      */
     public synchronized void setEditable(boolean b) {
@@ -295,10 +297,16 @@ public class TextComponent extends Component {
      * The length of the selection is endPosition-startPosition, so the 
      * character at endPosition is not selected.  
      * If the start and end positions of the selected text are equal,  
-     * all text is deselected.   
+     * all text is deselected.  
+     * <p> 
      * If the caller supplies values that are inconsistent or out of 
      * bounds, the method enforces these constraints silently, and 
-     * without failure.
+     * without failure. Specifically, if the start position or end 
+     * position is greater than the length of the text, it is reset to 
+     * equal the text length. If the start position is less than zero, 
+     * it is reset to zero, and if the end position is less than the 
+     * start position, it is reset to the start position.
+     * 
      * @param        selectionStart the zero-based index of the first 
                        character to be selected.  
      * @param        selectionEnd the zero-based end position of the 
@@ -391,8 +399,8 @@ public class TextComponent extends Component {
     }
 
     /**
-     * Adds the specified text event listener to recieve text events 
-     * from this textcomponent.
+     * Adds the specified text event listener to receive text events 
+     * from this text component.
      * If l is null, no exception is thrown and no action is performed.
      *
      * @param l the text event listener
@@ -407,7 +415,7 @@ public class TextComponent extends Component {
 
     /**
      * Removes the specified text event listener so that it no longer
-     * receives text events from this textcomponent
+     * receives text events from this text component
      * If l is null, no exception is thrown and no action is performed.
      *
      * @param         	l     the text listener.
@@ -435,7 +443,7 @@ public class TextComponent extends Component {
     }     
 
     /**
-     * Processes events on this textcomponent. If the event is a
+     * Processes events on this text component. If the event is a
      * TextEvent, it invokes the processTextEvent method,
      * else it invokes its superclass's processEvent.
      * @param e the event
@@ -499,10 +507,8 @@ public class TextComponent extends Component {
 	}
     }
 
-    /* 
-     * Serialization support.  Since the value of the fields
-     * selectionStart, and selectionEnd, and text aren't neccessarily
-     * up to date we sync them up with the peer before serializing.
+    /*
+     * Serialization support.
      */
     /**
      * The textComponent SerializedDataVersion.
@@ -513,57 +519,67 @@ public class TextComponent extends Component {
 
     /**
      * Writes default serializable fields to stream.  Writes
-     * a list of serializable ItemListener(s) as optional data.
-     * The non-serializable ItemListner(s) are detected and
+     * a list of serializable TextListener(s) as optional data.
+     * The non-serializable TextListener(s) are detected and
      * no attempt is made to serialize them.
      *
-     * @serialData Null terminated sequence of 0 or more pairs.
-     *             The pair consists of a String and Object.
+     * @serialData Null terminated sequence of zero or more pairs.
+     *             A pair consists of a String and Object.
      *             The String indicates the type of object and
      *             is one of the following :
-     *             itemListenerK indicating and ItemListener object.
+     *             textListenerK indicating and TextListener object.
      *
      * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-     * @see java.awt.Component.itemListenerK
+     * @see java.awt.Component.textListenerK
      */
     private void writeObject(java.io.ObjectOutputStream s)
-      throws java.io.IOException 
+      throws IOException 
     {
-      TextComponentPeer peer = (TextComponentPeer)this.peer;
-      if (peer != null) {
-	text = peer.getText();
-	selectionStart = peer.getSelectionStart();
-	selectionEnd = peer.getSelectionEnd();
-      }
-      s.defaultWriteObject();
+        // Serialization support.  Since the value of the fields
+        // selectionStart, selectionEnd, and text aren't necessarily
+        // up to date, we sync them up with the peer before serializing.
+        TextComponentPeer peer = (TextComponentPeer)this.peer;
+        if (peer != null) {
+            text = peer.getText();
+            selectionStart = peer.getSelectionStart();
+            selectionEnd = peer.getSelectionEnd();
+        }
 
-      AWTEventMulticaster.save(s, textListenerK, textListener);
-      s.writeObject(null);
+        s.defaultWriteObject();
+
+        AWTEventMulticaster.save(s, textListenerK, textListener);
+        s.writeObject(null);
     }
 
     /**
-     * Read the ObjectInputStream and if it isnt null
-     * add a listener to receive item events fired
-     * by the TextComponent.
-     * Unrecognised keys or values will be Ignored.
+     * Read the ObjectInputStream, and if it isn't null, 
+     * add a listener to receive text events fired by the 
+     * TextComponent.  Unrecognized keys or values will be 
+     * ignored.
      * 
-     * @see removeActionListener()
-     * @see addActionListener()
+     * @see removeTextListener()
+     * @see addTextListener()
      */
     private void readObject(ObjectInputStream s)
         throws ClassNotFoundException, IOException 
     {
         s.defaultReadObject();
 
+        // Make sure the state we just read in for text, 
+        // selectionStart and selectionEnd has legal values
+	this.text = (text != null) ? text : "";
+        select(selectionStart, selectionEnd);
+
         Object keyOrNull;
         while(null != (keyOrNull = s.readObject())) {
 	    String key = ((String)keyOrNull).intern();
 
-	    if (textListenerK == key) 
+	    if (textListenerK == key) {
 	        addTextListener((TextListener)(s.readObject()));
-
-	    else // skip value for unrecognized key
+            } else { 
+                // skip value for unrecognized key
 	        s.readObject();
+            }
         }
 	enableInputMethodsIfNecessary();
 	checkSystemClipboardAccess();

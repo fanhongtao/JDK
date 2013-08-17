@@ -1,10 +1,10 @@
 /*
- * @(#)MinimalHTMLWriter.java	1.6 98/08/26
+ * @(#)MinimalHTMLWriter.java	1.8 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -50,7 +50,7 @@ import javax.swing.text.*;
  * </html>
  *
  * @author Sunita Mani
- * @version 1.6, 08/26/98
+ * @version 1.8, 04/22/99
  */
 
 public class MinimalHTMLWriter extends AbstractWriter {
@@ -64,6 +64,9 @@ public class MinimalHTMLWriter extends AbstractWriter {
     private static final int BOLD = 0x01;
     private static final int ITALIC = 0x02;
     private static final int UNDERLINE = 0x04;
+
+    // Used to map StyleConstants to CSS.
+    private static final CSS css = new CSS();
 
     private int fontMask = 0;
 
@@ -143,7 +146,9 @@ public class MinimalHTMLWriter extends AbstractWriter {
 		indent();
 		write(name.toString());
 		write(':');
-		write(attr.getAttribute(name).toString());
+		write(css.styleConstantsValueToCSSValue
+		      ((StyleConstants)name, attr.getAttribute(name)).
+		      toString());
 		write(';');
 		write(NEWLINE);
 	    }
@@ -543,7 +548,9 @@ public class MinimalHTMLWriter extends AbstractWriter {
 
 	Color color = (Color)attr.getAttribute(StyleConstants.Foreground);
 	if (color != null) {
-	    style += "color: " + color + separator;
+	    style += "color: " + css.styleConstantsValueToCSSValue
+		                    ((StyleConstants)StyleConstants.Foreground,
+				     color) + separator;
 	}
 	Integer size = (Integer)attr.getAttribute(StyleConstants.FontSize);
 	if (size != null) {

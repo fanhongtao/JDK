@@ -1,10 +1,10 @@
 /*
- * @(#)JScrollPane.java	1.57 98/08/28
+ * @(#)JScrollPane.java	1.61 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -43,7 +43,7 @@ import java.io.IOException;
  *    </TD>
  *    </TR>
  * </TABLE>
- * The JViewPort provides a window, or &quot;viewport&quot; onto a data 
+ * The JViewport provides a window, or &quot;viewport&quot; onto a data 
  * source -- for example, a text file. That data source is the 
  * &quot;scrollable client&quot; (aka data model) displayed by the 
  * JViewport view. A JScrollPane basically consists of JScrollBars, a JViewport, 
@@ -90,7 +90,7 @@ import java.io.IOException;
  *     attribute: containerDelegate getViewport
  *   description: A specialized container that manages a viewport, optional scrollbars and headers
  *
- * @version 1.57 08/28/98
+ * @version 1.61 04/22/99
  * @author Hans Muller
  */
 public class JScrollPane extends JComponent implements ScrollPaneConstants, Accessible
@@ -789,6 +789,7 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
      * @beaninfo
      *       expert: true
      *        bound: true
+     *    attribute: visualUpdate true
      *  description: The viewport child for this scrollpane
      * 
      */
@@ -806,6 +807,9 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
 	if (accessibleContext != null) {
 	    ((AccessibleJScrollPane)accessibleContext).resetViewPort();
 	}
+
+	revalidate();
+	repaint();
     }
 
 
@@ -919,6 +923,7 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
      * @beaninfo
      *        bound: true
      *  description: The column header child for this scrollpane
+     *    attribute: visualUpdate true
      */
     public void setColumnHeader(JViewport columnHeader) {
 	JViewport old = getColumnHeader();
@@ -930,6 +935,9 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
 	    remove(columnHeader);
 	}
 	firePropertyChange("columnHeader", old, columnHeader);
+
+	revalidate();
+	repaint();
     }
 
 
@@ -1055,9 +1063,6 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JScrollPane.
      */

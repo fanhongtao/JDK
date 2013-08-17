@@ -1,10 +1,10 @@
 /*
- * @(#)ToolTipManager.java	1.35 98/08/26
+ * @(#)ToolTipManager.java	1.40 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -18,12 +18,12 @@ package javax.swing;
 import java.awt.event.*;
 import java.applet.*;
 import java.awt.*;
-
+import java.io.Serializable;
 /**
  * Manages all the ToolTips in the system.
  *
  * @see JComponent#createToolTip
- * @version 1.35 08/26/98
+ * @version 1.40 04/22/99
  * @author Dave Moore
  * @author Rich Schiavi
  */
@@ -47,7 +47,7 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
     private long timerEnter = 0;
    
     private KeyStroke postTip,hideTip;
-    private AbstractAction postTipAction, hideTipAction;
+    private ActionListener postTipAction, hideTipAction;
 
     private FocusListener focusChangeListener = null;
 
@@ -64,7 +64,7 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 
 	// create accessibility actions 
 	postTip = KeyStroke.getKeyStroke(KeyEvent.VK_F1,Event.CTRL_MASK);
-	postTipAction = new AbstractAction(){
+	postTipAction = new ActionListener(){
 	  public void actionPerformed(ActionEvent e){
 	    if (tipWindow != null) // showing we unshow
 	      hideTipWindow();
@@ -74,30 +74,26 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 	      exitTimer.stop();
 	      insideTimer.stop();
 	      insideComponent = (JComponent)e.getSource();
-	      toolTipText = insideComponent.getToolTipText();
-	      preferredLocation = new Point(10,insideComponent.getHeight()+10);  // manual set
-	      showTipWindow();
-	      // put a focuschange listener on to bring the tip down
-	      if (focusChangeListener == null){
-		focusChangeListener = createFocusChangeListener();
+	      if (insideComponent != null){
+		toolTipText = insideComponent.getToolTipText();
+		preferredLocation = new Point(10,insideComponent.getHeight()+10);  // manual set
+		showTipWindow();
+		// put a focuschange listener on to bring the tip down
+		if (focusChangeListener == null){
+		  focusChangeListener = createFocusChangeListener();
+		}
+		insideComponent.addFocusListener(focusChangeListener); 
 	      }
-	      insideComponent.addFocusListener(focusChangeListener); 
 	    }
-	  }
-	  public boolean isEnabled(){
-	    return true;
 	  }
 	};
 	hideTip = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0);
-	hideTipAction = new AbstractAction(){
+	hideTipAction = new ActionListener(){
 	  public void actionPerformed(ActionEvent e){
 	    hideTipWindow();
 	    JComponent jc = (JComponent)e.getSource();
 	    jc.removeFocusListener(focusChangeListener);
 	    preferredLocation = null;
-	  }
-	  public boolean isEnabled(){
-	    return true;
 	  }
 	};
     }

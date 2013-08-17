@@ -1,5 +1,5 @@
 /*
- * @(#)SymbolTest.java	1.1 98/07/09
+ * @(#)SymbolTest.java	1.2 98/12/10
  *
  * Copyright (c) 1997 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -38,7 +38,7 @@ public class SymbolTest extends Applet implements ActionListener, ItemListener {
 
     static final int SYMBOL_BASE = 0x2200;
     static final int DINGBAT_BASE = 0x2700;
-    static final int GREEK_BASE = 0x3300;
+    static final int GREEK_BASE = 0x0370;
 
     public void init() {
 	setLayout(new BorderLayout());
@@ -47,7 +47,9 @@ public class SymbolTest extends Applet implements ActionListener, ItemListener {
 
         panel.add(new Label("Font:"));
         Choice fontList = new Choice();
+
         String[] fontNames = getToolkit().getFontList();
+
         for (int i = 0; i < fontNames.length; i++) {
             fontList.addItem(fontNames[i]);
         }
@@ -67,7 +69,7 @@ public class SymbolTest extends Applet implements ActionListener, ItemListener {
         sp.add(symbols);
         add("Center", sp);
 
-        add("South", new Label("Symbols=0x2200, Dingbats=0x2700, Greek=0x3300"));
+        add("South", new Label("Symbols=0x2200, Dingbats=0x2700, Greek=0x0370"));
     }
 
     public void itemStateChanged(ItemEvent e) {

@@ -1,5 +1,5 @@
 /*
- * @(#)BasicSeparatorUI.java	1.17 98/08/26
+ * @(#)BasicSeparatorUI.java	1.18 98/11/05
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -28,7 +28,7 @@ import javax.swing.plaf.SeparatorUI;
  * A Basic L&F implementation of SeparatorUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.17 08/26/98
+ * @version 1.18 11/05/98
  * @author Georges Saab
  * @author Jeff Shapiro
  */
@@ -57,14 +57,11 @@ public class BasicSeparatorUI extends SeparatorUI
 
     protected void installDefaults( JSeparator s )
     {
-        shadow = UIManager.getColor( "Separator.shadow" );
-        highlight = UIManager.getColor( "Separator.highlight" );
+        LookAndFeel.installColors( s, "Separator.background", "Separator.foreground" );
     }
 
     protected void uninstallDefaults( JSeparator s )
     {
-        shadow = null;
-        highlight = null;
     }
 
     protected void installListeners( JSeparator s )
@@ -79,7 +76,22 @@ public class BasicSeparatorUI extends SeparatorUI
     {
         Dimension s = c.getSize();
 
-	BasicGraphicsUtils.drawGroove( g, 0, 0, s.width, s.height, shadow, highlight );
+	if ( ((JSeparator)c).getOrientation() == JSeparator.VERTICAL )
+	{
+	  g.setColor( c.getForeground() );
+	  g.drawLine( 0, 0, 0, s.height );
+
+	  g.setColor( c.getBackground() );
+	  g.drawLine( 1, 0, 1, s.height );
+	}
+	else  // HORIZONTAL
+	{
+	  g.setColor( c.getForeground() );
+	  g.drawLine( 0, 0, s.width, 0 );
+
+	  g.setColor( c.getBackground() );
+	  g.drawLine( 0, 1, s.width, 1 );
+	}
     }
 
     public Dimension getPreferredSize( JComponent c )

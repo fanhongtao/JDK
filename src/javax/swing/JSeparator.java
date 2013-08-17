@@ -1,5 +1,5 @@
 /*
- * @(#)JSeparator.java	1.32 98/08/28
+ * @(#)JSeparator.java	1.34 98/11/19
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -35,7 +35,7 @@ import java.io.IOException;
  *
  * @beaninfo
  *      attribute: isContainer false
- * @version 1.32 08/28/98
+ * @version 1.34 11/19/98
  * @author Georges Saab
  * @author Jeff Shapiro
  */
@@ -70,7 +70,6 @@ public class JSeparator extends JComponent implements SwingConstants, Accessible
         updateUI();
     }
 
-    /**
     /**
      * Returns the L&F object that renders this component.
      *
@@ -190,9 +189,6 @@ public class JSeparator extends JComponent implements SwingConstants, Accessible
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JSeparator.
      */

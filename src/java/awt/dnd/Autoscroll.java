@@ -1,10 +1,10 @@
 /*
- * @(#)Autoscroll.java	1.3 98/03/31
+ * @(#)Autoscroll.java	1.6 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -18,50 +18,51 @@ import java.awt.Insets;
 import java.awt.Point;
 
 /**
- * <p>
  * During DnD operations it is possible that a user may wish to drop the 
  * subject of the operation on a region of a scrollable GUI control that is
  * not currently visible to the user.
- * </p>
  * <p>
  * In such situations it is desirable that the GUI control detect this
  * and institute a scroll operation in order to make obscured region(s)
  * visible to the user. This feature is known as autoscrolling.
- * </p>
  * <p>
- * If a GUI control is both an active DropTarget and is also scrollable it
- * can receive notifications of autoscrolling gestures, by the user, from
+ * If a GUI control is both an active <code>DropTarget</code>
+ * and is also scrollable, it
+ * can receive notifications of autoscrolling gestures by the user from
  * the DnD system by implementing this interface.
- * </p>
  * <p>
  * An autoscrolling gesture is initiated by the user by keeping the drag
- * cursor motionless with a border region of the Component, referred to as
+ * cursor motionless with a border region of the <code>Component</code>, 
+ * referred to as
  * the "autoscrolling region", for a predefined period of time, this will
- * result in repeated scroll requests to the Component until the Drag cursor
- * resumes its motion.
- * </p>
+ * result in repeated scroll requests to the <code>Component</code> 
+ * until the drag <code>Cursor</code> resumes its motion.
  *
- * @version 1.3
+ * @version 1.6
  * @since JDK1.2
- *
  */
 
 public interface Autoscroll {
 
     /**
-     * return the Insets describing the autoscrolling region or border relative
+     * This method returns the <code>Insets</code> describing 
+     * the autoscrolling region or border relative
      * to the geometry of the implementing Component.
-     *
-     * This value is read once by the DropTarget upon entry of the drag cursor
-     * into the associated Component.
+     * <P>
+     * This value is read once by the <code>DropTarget</code> 
+     * upon entry of the drag <code>Cursor</code>
+     * into the associated <code>Component</code>.
+     * <P>
+     * @return the Insets
      */
 
     public Insets getAutoscrollInsets();
 
     /**
-     * notify the Component to autoscroll
-     *
-     * @param cursorLocn the location of the cursor that triggered this operation
+     * notify the <code>Component</code> to autoscroll
+     * <P>
+     * @param cursorLocn A <code>Point</code> indicating the 
+     * location of the cursor that triggered this operation.
      */
 
     public void autoscroll(Point cursorLocn);

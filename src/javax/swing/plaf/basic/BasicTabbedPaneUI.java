@@ -1,10 +1,10 @@
 /*
- * @(#)BasicTabbedPaneUI.java	1.70 98/08/26
+ * @(#)BasicTabbedPaneUI.java	1.79 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -17,16 +17,17 @@ package javax.swing.plaf.basic;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
+import javax.swing.text.View;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
-
+import java.util.Vector;
 /**
  * A Basic L&F implementation of TabbedPaneUI.
  *
- * @version 1.70 08/26/98
+ * @version 1.79 04/22/99
  * @author Amy Fowler
  * @author Philip Milne
  * @author Steve Wilson
@@ -60,6 +61,16 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
     protected KeyStroke leftKey;
     protected KeyStroke rightKey;
 
+    // hania 10/29/98: if the above (upKey, etc) need to be
+    // protected fields (and I don't really understand why they do), then so
+    // do the ones below (kpUpKey, etc). I am making them private
+    // until we can make a release where API changes are allowed.
+  
+    private KeyStroke kpUpKey;
+    private KeyStroke kpDownKey;
+    private KeyStroke kpLeftKey;
+    private KeyStroke kpRightKey;
+
 // Transient variables (recalculated each time TabbedPane is layed out)
 
     protected int tabRuns[] = new int[10];
@@ -75,6 +86,8 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
     protected PropertyChangeListener propertyChangeListener;
     protected MouseListener mouseListener;
     protected FocusListener focusListener;
+    // PENDING(api): See comment for ContainerHandler
+    private   ContainerListener containerListener;
 
 // Private instance data
 
@@ -82,7 +95,8 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
     private Insets currentTabAreaInsets = new Insets(0,0,0,0);
 
     private Component visibleComponent;
-
+    // PENDING(api): See comment for ContainerHandler
+    private Vector htmlViews;
 
 // UI creation
 
@@ -96,7 +110,7 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
         this.tabPane = (JTabbedPane)c;
 
         c.setLayout(createLayoutManager());
-        installDefaults();      
+        installDefaults(); 
         installListeners();
         installKeyboardActions();
 
@@ -160,7 +174,13 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
         if ((focusListener = createFocusListener()) != null) {
             tabPane.addFocusListener(focusListener);
         }
- 
+	// PENDING(api) : See comment for ContainerHandler
+        if ((containerListener = new ContainerHandler()) != null) {
+            tabPane.addContainerListener(containerListener);
+	    if (tabPane.getTabCount()>0) {
+		htmlViews = createHTMLVector();
+	    }
+	}
     }
 
     protected void uninstallListeners() {
@@ -171,6 +191,15 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
         if (focusListener != null) {
             tabPane.removeFocusListener(focusListener);
             focusListener = null;
+        }
+	// PENDING(api): See comment for ContainerHandler
+        if (containerListener != null) {
+            tabPane.removeContainerListener(containerListener);
+            containerListener = null;
+	    if (htmlViews!=null) {
+		htmlViews.removeAllElements();
+		htmlViews = null;
+	    }
         }
         if (tabChangeListener != null) {
             tabPane.removeChangeListener(tabChangeListener);
@@ -188,7 +217,7 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
 
     protected FocusListener createFocusListener() {
         return new FocusHandler();
-    }
+    }    
 
     protected ChangeListener createChangeListener() {
         return new TabSelectionHandler();
@@ -204,104 +233,97 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
         // out into protected inner classes in the next release where
         // API changes are allowed
         //
+        // hania, 10/29/98: I broke them out into private inner classes
+        // in the process of adding bindings for the VK_KP arrow keys.
+        // Those private classes should be changed to protected in the
+        // next release where API changes are allowed.
+
+        ActionListener rightAction = new RightAction();
+	ActionListener leftAction = new LeftAction();
+	ActionListener upAction = new UpAction();
+	ActionListener downAction = new DownAction();
+	ActionListener pageUpAction = new PageUpAction();
+	ActionListener pageDownAction = new PageDownAction();
+	ActionListener requestFocusAction = new RequestFocusAction();
+	ActionListener requestFocusForVisibleAction = new RequestFocusForVisibleAction();
+
         rightKey = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT,0);
+	kpRightKey = KeyStroke.getKeyStroke("KP_RIGHT");
         tabPane.registerKeyboardAction(
-            new AbstractAction() {
-                public void actionPerformed(ActionEvent e) {
-                    navigateSelectedTab(EAST);
-                }
-                public boolean isEnabled() { 
-                    return tabPane.isEnabled(); 
-                }
-            },
+            rightAction,
             rightKey, 
             JComponent.WHEN_FOCUSED);
 
-        leftKey = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT,0);
         tabPane.registerKeyboardAction(
-            new AbstractAction() {
-                public void actionPerformed(ActionEvent e) {
-                    navigateSelectedTab(WEST);
-                }
-                public boolean isEnabled() { 
-                    return tabPane.isEnabled(); 
-                }
-            }, 
+            rightAction,
+            kpRightKey, 
+            JComponent.WHEN_FOCUSED);
+
+
+        leftKey = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT,0);
+	kpLeftKey = KeyStroke.getKeyStroke("KP_LEFT");
+        tabPane.registerKeyboardAction(
+            leftAction,
             leftKey, 
             JComponent.WHEN_FOCUSED);
 
-        upKey = KeyStroke.getKeyStroke(KeyEvent.VK_UP,0);
         tabPane.registerKeyboardAction(
-            new AbstractAction() {
-                public void actionPerformed(ActionEvent e) {
-                    navigateSelectedTab(NORTH);
-                }
-                public boolean isEnabled() { 
-                    return tabPane.isEnabled(); 
-                }
-            },
+            leftAction, 
+            kpLeftKey, 
+            JComponent.WHEN_FOCUSED);
+
+        upKey = KeyStroke.getKeyStroke(KeyEvent.VK_UP,0);
+	kpUpKey = KeyStroke.getKeyStroke("KP_UP");
+        tabPane.registerKeyboardAction(
+            upAction,
             upKey, 
             JComponent.WHEN_FOCUSED);
 
-        downKey = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,0);
         tabPane.registerKeyboardAction(
-            new AbstractAction() {
-                public void actionPerformed(ActionEvent e) {
-                    navigateSelectedTab(SOUTH);
-                }
-                public boolean isEnabled() { 
-                    return tabPane.isEnabled(); 
-                }
-            },
-            downKey, 
+            upAction,
+            kpUpKey, 
+            JComponent.WHEN_FOCUSED);
+
+        downKey = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,0);
+        kpDownKey = KeyStroke.getKeyStroke("KP_DOWN");
+        tabPane.registerKeyboardAction(
+            downAction,
+            downKey,
             JComponent.WHEN_FOCUSED);
 
         tabPane.registerKeyboardAction(
-            new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                    navigateSelectedTab(EAST);
-                }
-                public boolean isEnabled() { 
-                    return tabPane.isEnabled(); 
-                }
-            },
+            downAction,
+            kpDownKey,
+            JComponent.WHEN_FOCUSED);
+
+        tabPane.registerKeyboardAction(
+            pageDownAction,
             KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, InputEvent.CTRL_MASK),
             JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
         tabPane.registerKeyboardAction(
-            new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                    navigateSelectedTab(WEST);
-                }
-                public boolean isEnabled() { 
-                    return tabPane.isEnabled(); 
-                }
-            },
+            pageUpAction,
             KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, InputEvent.CTRL_MASK),
             JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
         tabPane.registerKeyboardAction(
-            new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                    tabPane.requestFocus();
-                }
-                public boolean isEnabled() { 
-                    return tabPane.isEnabled(); 
-                }
-            },
+	    requestFocusAction,
             KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_MASK),
             JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
         tabPane.registerKeyboardAction(
-            new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                    requestFocusForVisibleComponent();
-                }
-                public boolean isEnabled() { 
-                    return true; 
-                }
-            },
+	    requestFocusAction,
+            KeyStroke.getKeyStroke("control KP_UP"),
+            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+        tabPane.registerKeyboardAction(
+            requestFocusForVisibleAction,
             KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_MASK),
+            JComponent.WHEN_FOCUSED);
+            
+        tabPane.registerKeyboardAction(
+            requestFocusForVisibleAction,
+            KeyStroke.getKeyStroke("control KP_DOWN"),
             JComponent.WHEN_FOCUSED);
             
     }
@@ -311,7 +333,14 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
         tabPane.unregisterKeyboardAction(downKey);
         tabPane.unregisterKeyboardAction(leftKey);
         tabPane.unregisterKeyboardAction(rightKey);
-        upKey = downKey = rightKey = leftKey = null;
+
+        tabPane.unregisterKeyboardAction(kpUpKey);
+        tabPane.unregisterKeyboardAction(kpDownKey);
+        tabPane.unregisterKeyboardAction(kpLeftKey);
+        tabPane.unregisterKeyboardAction(kpRightKey);
+
+        upKey = downKey = rightKey = leftKey =
+	kpUpKey = kpDownKey = kpRightKey = kpLeftKey = null;
 
         tabPane.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 
                                                                 InputEvent.CTRL_MASK));
@@ -321,6 +350,8 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
                                                                 InputEvent.CTRL_MASK));
         tabPane.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 
                                                                 InputEvent.CTRL_MASK));
+        tabPane.unregisterKeyboardAction(KeyStroke.getKeyStroke("control KP_DOWN"));
+        tabPane.unregisterKeyboardAction(KeyStroke.getKeyStroke("control KP_UP"));
     }
 
 // Geometry
@@ -331,13 +362,13 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
     }
 
     public Dimension getMinimumSize(JComponent c) {
-        // Default to LayoutManager's minimumLayoutSize
-        return null;
+	// Default to LayoutManager's minimumLayoutSize
+ 	return null;
     }
     
     public Dimension getMaximumSize(JComponent c) {
-        // Default to LayoutManager's maximumLayoutSize
-        return null;
+	// Default to LayoutManager's maximumLayoutSize
+	return null;
     }
 
 // UI Rendering 
@@ -449,21 +480,28 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
 
         g.setFont(font);
 
-        if (tabPane.isEnabled() && tabPane.isEnabledAt(tabIndex)) {
-            g.setColor(tabPane.getForegroundAt(tabIndex));
-            g.drawString(title,
-                     textRect.x,
-                     textRect.y + metrics.getAscent());
+	View v;
+	if (htmlViews!=null &&
+	    (v = (View)htmlViews.elementAt(tabIndex))!=null) {
+	    v.paint(g, textRect);
+	} else {
+	    if (tabPane.isEnabled() && tabPane.isEnabledAt(tabIndex)) {
+		g.setColor(tabPane.getForegroundAt(tabIndex));
+		g.drawString(title,
+			     textRect.x,
+			     textRect.y + metrics.getAscent());
+		
+	    } else { // tab disabled
+		g.setColor(tabPane.getBackgroundAt(tabIndex).brighter());
+		g.drawString(title, 
+			     textRect.x, textRect.y + metrics.getAscent());
+		g.setColor(tabPane.getBackgroundAt(tabIndex).darker());
+		g.drawString(title, 
+			     textRect.x - 1, textRect.y + metrics.getAscent() - 1);
+	    }
+	}
+    } 
 
-        } else { // tab disabled
-            g.setColor(tabPane.getBackgroundAt(tabIndex).brighter());
-            g.drawString(title, 
-                         textRect.x, textRect.y + metrics.getAscent());
-            g.setColor(tabPane.getBackgroundAt(tabIndex).darker());
-            g.drawString(title, 
-                         textRect.x - 1, textRect.y + metrics.getAscent() - 1);
-        }
-    }
 
     protected int getTabLabelShiftX(int tabPlacement, int tabIndex, boolean isSelected) {
         Rectangle tabRect = rects[tabIndex];
@@ -867,7 +905,14 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
     }
 
     protected int calculateTabHeight(int tabPlacement, int tabIndex, int fontHeight) {
-        int height = fontHeight;
+	int height = 0;
+	View v;
+	if ( (htmlViews!=null) && 
+	     ((v = (View)htmlViews.elementAt(tabIndex)) != null)) {
+	    height += (int)v.getPreferredSpan(View.Y_AXIS);
+	} else {
+	    height += fontHeight;
+	}
         Icon icon = getIconForTab(tabIndex);
         Insets tabInsets = getTabInsets(tabPlacement, tabIndex);
 
@@ -891,16 +936,22 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
     }
 
     protected int calculateTabWidth(int tabPlacement, int tabIndex, FontMetrics metrics) {
-        String title = tabPane.getTitleAt(tabIndex);
         Icon icon = getIconForTab(tabIndex);
         Insets tabInsets = getTabInsets(tabPlacement, tabIndex);
         int width = tabInsets.left + tabInsets.right + 3;
+	View v;
 
         if (icon != null) {
             width += icon.getIconWidth() + textIconGap;
         }
-        width += SwingUtilities.computeStringWidth(metrics, title);
-
+	if ((htmlViews!=null) && 
+	    ((v = (View)htmlViews.elementAt(tabIndex)) != null)) {
+	    width += (int)v.getPreferredSpan(View.X_AXIS);
+	} else {
+	    String title = tabPane.getTitleAt(tabIndex);
+	    width += SwingUtilities.computeStringWidth(metrics, title);
+	}
+	
         return width;
     }
     
@@ -1172,8 +1223,77 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
              }
         }
         return false;
-    }  
+    }
   
+    // The private inner classes below should be changed to protected the
+    // next time API changes are allowed.
+  
+    private abstract class KeyAction implements ActionListener {
+        public boolean isEnabled() { 
+            return tabPane.isEnabled(); 
+        }
+    };
+
+    private class RightAction extends KeyAction {
+        public void actionPerformed(ActionEvent e) {
+            navigateSelectedTab(EAST);
+        }
+    };
+    
+    private class LeftAction extends KeyAction {
+        public void actionPerformed(ActionEvent e) {
+            navigateSelectedTab(WEST);
+        }
+    };
+
+    private class UpAction extends KeyAction {
+        public void actionPerformed(ActionEvent e) {
+            navigateSelectedTab(NORTH);
+        }
+    };
+
+    private class DownAction extends KeyAction {
+        public void actionPerformed(ActionEvent e) {
+            navigateSelectedTab(SOUTH);
+        }
+    };
+
+    private class PageUpAction extends KeyAction {
+        public void actionPerformed(ActionEvent e) {
+	    int tabPlacement = tabPane.getTabPlacement();
+	    if (tabPlacement == TOP|| tabPlacement == BOTTOM) {
+		navigateSelectedTab(WEST); 
+	    } else {
+		navigateSelectedTab(NORTH);
+	    }
+        }
+    };
+
+    private class PageDownAction extends KeyAction {
+        public void actionPerformed(ActionEvent e) {
+	    int tabPlacement = tabPane.getTabPlacement();
+	    if (tabPlacement == TOP || tabPlacement == BOTTOM) {
+		navigateSelectedTab(EAST); 
+	    } else {
+		navigateSelectedTab(SOUTH);
+	    }
+        }
+    };
+
+    private class RequestFocusAction extends KeyAction {
+        public void actionPerformed(ActionEvent e) {
+            tabPane.requestFocus();
+        }
+    };
+
+    private class RequestFocusForVisibleAction implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            requestFocusForVisibleComponent();
+        }
+        public boolean isEnabled() { 
+            return true; 
+        }
+    };
 
     /**
      * This inner class is marked &quot;public&quot; due to a compiler bug.
@@ -1208,26 +1328,6 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
             for (int i = 0; i < tabPane.getTabCount(); i++) {
                 Component component = tabPane.getComponentAt(i);
                 Dimension size = zeroSize;
-                if (component instanceof JComponent) { 
-                /* There is currently some question over what
-                   Components should do when asked for sizing
-                   information in the case where the Component has no
-                   mechanism to find it's font. As of 9.1.97, some
-                   Components throw NullPointer exceptions when sent
-                   getMinimumSize().  Normally a component can ask
-                   it's parent for it's font but the TabbedPane
-                   currently does not add these components to their
-                   superview: so they are orphans unless they are the
-                   selected item.  JComponents have the right behavior
-                   anyway, but for those that might not, set the fonts
-                   of all children to our Font when their Font is
-                   null. 
-                   */
-                 
-                    if (component.getFont() == null) { 
-                        component.setFont(tabPane.getFont()); 
-                    }
-                }
                 size = minimum? component.getMinimumSize() : 
                                 component.getPreferredSize();
                       
@@ -1271,10 +1371,11 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
                 for (int i = 0; i < tabCount; i++) {
                     int tabWidth = calculateTabWidth(tabPlacement, i, metrics);
 
-                    if (x != 0 && x + tabWidth > width) { 
+                    if (x != 0 && x + tabWidth > width) {
                         rows++;
                         x = 0;
-                    }            
+                    } 
+                    x += tabWidth;
                 }
                 total = calculateTabAreaHeight(tabPlacement, rows, maxTabHeight);
             }
@@ -1299,6 +1400,7 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
                         columns++;
                         y = 0;
                     }
+                    y += tabHeight;
                 }                    
                 total = calculateTabAreaWidth(tabPlacement, columns, maxTabWidth);
             }
@@ -1775,4 +1877,83 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
            }
         }
     }
+
+    /* GES 2/3/99:
+       The container listener code was added to support HTML
+       rendering of tab titles.
+       
+       Ideally, we would be able to listen for property changes
+       when a tab is added or its text modified.  At the moment 
+       there are no such events because the Beans spec doesn't
+       allow 'indexed' property changes (i.e. tab 2's text changed 
+       from A to B).
+       
+       In order to get around this, we listen for tabs to be added
+       or removed by listening for the container events.  we then
+       queue up a runnable (so the component has a chance to complete
+       the add) which checks the tab title of the new component to see
+       if it requires HTML rendering.
+       
+       The Views (one per tab title requiring HTML rendering) are
+       stored in the htmlViews Vector, which is only allocated after
+       the first time we run into an HTML tab.  Note that this vector
+       is kept in step with the number of pages, and nulls are added
+       for those pages whose tab title do not require HTML rendering.
+       
+       This makes it easy for the paint and layout code to tell
+       whether to invoke the HTML engine without having to check
+       the string during time-sensitive operations.
+       
+       When we have added a way to listen for tab additions and
+       changes to tab text, this code should be removed and
+       replaced by something which uses that.  */
+    
+    private class ContainerHandler implements ContainerListener {
+	public void componentAdded(ContainerEvent e) {
+	    JTabbedPane tp = (JTabbedPane)e.getContainer();
+	    Component child = e.getChild();
+	    int index = tp.indexOfComponent(child);
+	    String title = tp.getTitleAt(index);
+	    boolean isHTML = BasicHTML.isHTMLString(title);
+            if (isHTML) {
+                if (htmlViews==null) {    // Initialize vector
+                    htmlViews = createHTMLVector();
+                } else {                  // Vector already exists
+                    View v = BasicHTML.createHTMLView(tp, title);
+                    htmlViews.insertElementAt(v, index);
+                }
+            } else {                             // Not HTML
+                if (htmlViews!=null) {           // Add placeholder
+                    htmlViews.insertElementAt(null, index);
+                }                                // else nada!
+            }
+        }
+	public void componentRemoved(ContainerEvent e) {
+	    JTabbedPane tp = (JTabbedPane)e.getContainer();
+	    Component child = e.getChild();
+	    int index = tp.indexOfComponent(child);
+	    if (htmlViews != null && htmlViews.size()>=index) {
+		htmlViews.removeElementAt(index);
+	    }	    
+	}
+    }
+    
+    private Vector createHTMLVector() {
+	Vector htmlViews = new Vector();
+	int count = tabPane.getTabCount();
+	if (count>0) {
+	    for (int i=0 ; i<count; i++) {
+		String title = tabPane.getTitleAt(i);
+		if (BasicHTML.isHTMLString(title)) {
+		    htmlViews.addElement(BasicHTML.createHTMLView(tabPane, title));
+		} else {
+		    htmlViews.addElement(null);
+		}
+	    }
+	}
+	return htmlViews;
+    }
+    
 }
+
+

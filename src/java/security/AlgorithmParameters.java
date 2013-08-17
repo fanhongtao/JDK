@@ -1,5 +1,5 @@
 /*
- * @(#)AlgorithmParameters.java	1.13 98/08/10
+ * @(#)AlgorithmParameters.java	1.14 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -56,7 +56,7 @@ import java.security.spec.InvalidParameterSpecException;
  *
  * @author Jan Luehe
  *
- * @version 1.13, 00/05/10
+ * @version 1.14 98/12/03
  *
  * @see java.security.spec.AlgorithmParameterSpec
  * @see java.security.spec.DSAParameterSpec

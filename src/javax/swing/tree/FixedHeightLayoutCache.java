@@ -1,10 +1,10 @@
 /*
- * @(#)FixedHeightLayoutCache.java	1.8 98/08/28
+ * @(#)FixedHeightLayoutCache.java	1.10 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -32,7 +32,7 @@ import java.util.Stack;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.8 08/28/98
+ * @version 1.10 04/22/99
  * @author Scott Violet
  */
 
@@ -340,21 +340,28 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 	    /* Only need to update the children if the node has been
 	       expanded once. */
 	    // PENDING(scott): make sure childIndexs is sorted!
-	    if(changedParent != null && changedIndexs != null &&
-	       (maxCounter = changedIndexs.length) > 0) {
-		Object       parentValue = changedParent.getUserObject();
+	    if (changedParent != null) {
+		if (changedIndexs != null &&
+		    (maxCounter = changedIndexs.length) > 0) {
+		    Object       parentValue = changedParent.getUserObject();
 
-		for(int counter = 0; counter < maxCounter; counter++) {
-		    FHTreeStateNode    child = changedParent.
+		    for(int counter = 0; counter < maxCounter; counter++) {
+			FHTreeStateNode    child = changedParent.
 			         getChildAtModelIndex(changedIndexs[counter]);
 
-		    if(child != null) {
-			child.setUserObject(treeModel.getChild(parentValue,
+			if(child != null) {
+			    child.setUserObject(treeModel.getChild(parentValue,
 						     changedIndexs[counter]));
+			}
 		    }
+		    if(changedParent.isVisible() && changedParent.isExpanded())
+			visibleNodesChanged();
 		}
-		if(changedParent.isVisible() && changedParent.isExpanded())
+		// Null for root indicates it changed.
+		else if (changedParent == root && changedParent.isVisible() &&
+			 changedParent.isExpanded()) {
 		    visibleNodesChanged();
+		}
 	    }
 	}
     }
@@ -1184,7 +1191,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 		    if(shouldRemove)
 			treeSelectionModel.removeSelectionPaths(selPaths);
 		}
-		if(adjustRows && isVisible())
+		if(adjustRows && isVisible() && treeSelectionModel != null)
 		    treeSelectionModel.resetRowSelection();
 	    }
 	}

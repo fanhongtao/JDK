@@ -1,5 +1,5 @@
 /*
- * @(#)MatteBorder.java	1.13 98/08/28
+ * @(#)MatteBorder.java	1.14 98/10/20
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -32,7 +32,7 @@ import javax.swing.Icon;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.13 08/28/98
+ * @version 1.14 10/20/98
  * @author Amy Fowler
  */
 public class MatteBorder extends EmptyBorder
@@ -160,12 +160,30 @@ public class MatteBorder extends EmptyBorder
      * @param c the component for which this border insets value applies
      */
     public Insets getBorderInsets(Component c) {
+        Insets i = new Insets(0,0,0,0);
+        return getBorderInsets(c, i);
+    }
+
+    /** 
+     * Reinitialize the insets parameter with this Border's current Insets. 
+     * @param c the component for which this border insets value applies
+     * @param insets the object to be reinitialized
+     */
+    public Insets getBorderInsets(Component c, Insets insets) {
         if (tileIcon != null && top == -1 && bottom == -1 && left == -1 && right == -1) {
             int w = tileIcon.getIconWidth();
             int h = tileIcon.getIconHeight();
-            return new Insets(h,w,h,w);
+            insets.top = h;
+            insets.right = w;
+            insets.bottom = h;
+            insets.left = w;
+        } else {
+            insets.left = left;
+            insets.top = top;
+            insets.right = right;
+            insets.bottom = bottom;
         }
-        return new Insets(top, left, bottom, right);
+        return insets;
     }
 
     /**

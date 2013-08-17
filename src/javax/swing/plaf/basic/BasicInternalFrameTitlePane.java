@@ -1,10 +1,10 @@
 /*
- * @(#)BasicInternalFrameTitlePane.java	1.23 98/08/28
+ * @(#)BasicInternalFrameTitlePane.java	1.28 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -35,7 +35,7 @@ import java.beans.PropertyVetoException;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.23 08/28/98
+ * @version 1.28 04/22/99
  * @author David Kloba
  * @author Steve Wilson
  */
@@ -101,7 +101,6 @@ public class BasicInternalFrameTitlePane extends JComponent
 	add(maxButton);
 	add(closeButton);
 
-	add(menuBar);
     }
 
     protected void createActions() {
@@ -130,16 +129,23 @@ public class BasicInternalFrameTitlePane extends JComponent
 	notSelectedTextColor = UIManager.getColor("InternalFrame.inactiveTitleForeground");
     }
 
-    protected void uninstallDefaults() {
-        maxIcon = null;
-	minIcon = null;
-	iconIcon = null;
-	closeIcon = null;
 
-	selectedTitleColor = null;
-	selectedTextColor = null;
-	notSelectedTitleColor = null;
-	notSelectedTextColor = null;
+    protected void uninstallDefaults() {
+    }
+
+
+    public void addNotify() {
+	super.addNotify();
+	addSystemMenuItems(windowMenu);
+	enableActions();
+    }
+
+    public void removeNotify() {
+	super.removeNotify();
+	if (windowMenu!=null) {
+	    windowMenu.removeAll();
+	}
+	uninstallDefaults();
     }
 
     protected void createButtons() {
@@ -173,9 +179,9 @@ public class BasicInternalFrameTitlePane extends JComponent
 
     protected void assembleSystemMenu() {
         menuBar = createSystemMenuBar();
-	windowMenu = createSystemMenu();
+	windowMenu = createSystemMenu();	    
 	menuBar.add(windowMenu);
-	addSystemMenuItems(windowMenu);
+	// moved to addNotify - addSystemMenuItems(windowMenu);
 	enableActions();
     }
 
@@ -206,7 +212,7 @@ public class BasicInternalFrameTitlePane extends JComponent
     }
       
     protected void showSystemMenu(){
-      //      windowMenu.setPopupMenuVisible(true);
+	//      windowMenu.setPopupMenuVisible(true);
       //      windowMenu.setVisible(true);
       windowMenu.doClick();
     }

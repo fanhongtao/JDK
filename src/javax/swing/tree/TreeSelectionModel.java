@@ -1,5 +1,5 @@
 /*
- * @(#)TreeSelectionModel.java	1.12 98/08/26
+ * @(#)TreeSelectionModel.java	1.13 98/11/17
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -21,8 +21,10 @@ import java.beans.PropertyChangeListener;
   * This interface represents the current state of the selection for
   * the tree component.  It will keep track of the selected rows, but
   * in order to select by row you will need to go directly to the tree.
+  * <p>resetRowSelection is called from any of the methods that update
+  * the selected paths.
   *
-  * @version 1.12 08/26/98
+  * @version 1.13 11/17/98
   * @author Scott Violet
   */
 

@@ -1,5 +1,5 @@
 /*
- * @(#)Key.java	1.42 98/06/29
+ * @(#)Key.java	1.43 98/12/03
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -60,7 +60,7 @@ package java.security;
  * @see Identity
  * @see Signer
  *
- * @version 1.42 00/05/10
+ * @version 1.43 98/12/03
  * @author Benjamin Renaud
  */
 

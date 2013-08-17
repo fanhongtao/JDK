@@ -1,5 +1,5 @@
 /*
- * @(#)BasicScrollPaneUI.java	1.42 98/08/26
+ * @(#)BasicScrollPaneUI.java	1.43 98/10/30
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -37,7 +37,7 @@ import java.io.Serializable;
 /**
  * A default L&F implementation of ScrollPaneUI.
  *
- * @version 1.42 08/26/98
+ * @version 1.43 10/30/98
  * @author Hans Muller
  */
 public class BasicScrollPaneUI
@@ -443,9 +443,8 @@ public class BasicScrollPaneUI
     /**
      * A generaic action this is only enabled when the JList is enabled.
      */
-    private abstract class ScrollPaneAction extends AbstractAction {
+    private abstract class ScrollPaneAction implements ActionListener {
 	protected ScrollPaneAction(String name) {
-	    super (name);
 	}
 
 	public boolean isEnabled() { return (scrollpane != null &&

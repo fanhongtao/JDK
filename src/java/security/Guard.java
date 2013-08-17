@@ -1,5 +1,5 @@
 /*
- * @(#)Guard.java	1.6 98/06/29
+ * @(#)Guard.java	1.7 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -25,7 +25,7 @@ package java.security;
  *
  * @see GuardedObject
  *
- * @version 1.6 00/05/10
+ * @version 1.7 98/12/03
  * @author Roland Schemers
  * @author Li Gong
  */

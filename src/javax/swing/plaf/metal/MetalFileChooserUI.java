@@ -1,10 +1,10 @@
 /*
- * @(#)MetalFileChooserUI.java	1.17 98/08/28
+ * @(#)MetalFileChooserUI.java	1.23 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -29,7 +29,7 @@ import java.util.*;
 /**
  * Basic L&F implementation of a FileChooser.
  *
- * @version 1.17 08/28/98
+ * @version 1.23 04/22/99
  * @author Jeff Dinkins
  */
 public class MetalFileChooserUI extends BasicFileChooserUI {
@@ -57,7 +57,12 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 
     private static final Dimension hstrut10 = new Dimension(10, 1);
     private static final Dimension hstrut25 = new Dimension(25, 1);
+
+    private static final Dimension  vstrut2 = new Dimension(1, 2);
     private static final Dimension vstrut10 = new Dimension(1, 10);
+    private static final Dimension vstrut15 = new Dimension(1, 15);
+    private static final Dimension vstrut20 = new Dimension(1, 20);
+
     private static final Insets shrinkwrap = new Insets(0,0,0,0);
 
     private static int PREF_WIDTH = 500;
@@ -107,7 +112,6 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	super(filechooser);
     }
 
-
     public void installComponents(JFileChooser fc) {
 	// set to a Y BoxLayout. The chooser will be layed out top to bottom.
 	fc.setLayout(new BoxLayout(fc, BoxLayout.Y_AXIS));
@@ -126,7 +130,6 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	fc.add(Box.createRigidArea(vstrut10));
 
 	// ComboBox Label
-
      	JLabel l = new JLabel(lookInLabelText);
      	l.setDisplayedMnemonic(lookInLabelMnemonic);
 	l.setAlignmentX(JComponent.LEFT_ALIGNMENT);
@@ -236,9 +239,10 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 
      	JLabel fnl = new JLabel(fileNameLabelText);
      	fnl.setDisplayedMnemonic(fileNameLabelMnemonic);
+	fnl.setAlignmentY(0);
 	labelPanel.add(fnl);
 
-	labelPanel.add(Box.createRigidArea(vstrut10));
+	labelPanel.add(Box.createRigidArea(vstrut20));
 
      	JLabel ftl = new JLabel(filesOfTypeLabelText);
      	ftl.setDisplayedMnemonic(filesOfTypeLabelMnemonic);
@@ -250,8 +254,14 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	// file entry and filters
 	JPanel fileAndFilterPanel = new JPanel();
 	fileAndFilterPanel.setLayout(new BoxLayout(fileAndFilterPanel, BoxLayout.Y_AXIS));
+	fileAndFilterPanel.add(Box.createRigidArea(vstrut2));
 
-	filenameTextField = new JTextField();
+	filenameTextField = new JTextField() {
+	    public Dimension getMaximumSize() {
+		return new Dimension(Short.MAX_VALUE, super.getPreferredSize().height);
+	    }
+	};
+
 	fnl.setLabelFor(filenameTextField);
 	filenameTextField.addActionListener(getApproveSelectionAction());
 	File f = fc.getSelectedFile();
@@ -260,8 +270,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	}
 
 	fileAndFilterPanel.add(filenameTextField);
-
-	fileAndFilterPanel.add(Box.createRigidArea(vstrut10));
+	fileAndFilterPanel.add(Box.createRigidArea(vstrut15));
 
 	filterComboBoxModel = createFilterComboBoxModel();
 	fc.addPropertyChangeListener(filterComboBoxModel);
@@ -277,11 +286,13 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	JPanel buttonPanel = new JPanel();
 	buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
 
+	Dimension buttonSize = new Dimension();
 	approveButton = new JButton(getApproveButtonText(fc)) {
 	    public Dimension getMaximumSize() {
-		return new Dimension(Short.MAX_VALUE, Short.MAX_VALUE);
+		return approveButton.getPreferredSize().width > cancelButton.getPreferredSize().width ?
+		       approveButton.getPreferredSize() : cancelButton.getPreferredSize();
 	    }
-	};
+	}; 
 	approveButton.setMnemonic(getApproveButtonMnemonic(fc));
 	approveButton.addActionListener(getApproveSelectionAction());
 	approveButton.setToolTipText(getApproveButtonToolTipText(fc));
@@ -290,9 +301,10 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 
 	cancelButton = new JButton(cancelButtonText) {
 	    public Dimension getMaximumSize() {
-		return new Dimension(Short.MAX_VALUE, Short.MAX_VALUE);
+		return approveButton.getPreferredSize().width > cancelButton.getPreferredSize().width ?
+		       approveButton.getPreferredSize() : cancelButton.getPreferredSize();
 	    }
-	};
+	}; 
 	cancelButton.setMnemonic(cancelButtonMnemonic);
 	cancelButton.setToolTipText(cancelButtonToolTipText);
 	cancelButton.addActionListener(getCancelSelectionAction());
@@ -340,7 +352,6 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	list.addMouseListener(createSingleClickListener(fc, list));
 	JScrollPane scrollpane = new JScrollPane(list);
 
-
 	p.add(scrollpane, BorderLayout.CENTER);
 	return p;
     }
@@ -353,6 +364,14 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     boolean editing = false;
     int editX = 20;
     int editWidth = 200;
+
+    private void setEditIndex(int i) {
+	lastIndex = i;
+    }
+
+    private void resetEditIndex() {
+	lastIndex = -1;
+    }
 
     private void cancelEdit() {
 	editing = false;
@@ -374,7 +393,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	public void mouseClicked(MouseEvent e) {
 	    if (e.getClickCount() == 1) {
 		int index = list.locationToIndex(e.getPoint());
-		if(lastIndex == index && editing == false) {
+                if(index >= 0 && lastIndex == index && editing == false) {
 		    editing = true;
 		    Rectangle r = list.getCellBounds(index, index);
 		    list.add(editCell);
@@ -383,10 +402,17 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 		    editCell.setBounds(editX + r.x, r.y, editWidth, r.height);
 		    editCell.selectAll();
 		} else {
-		    lastIndex = index;
+		    if(index >= 0) {
+			setEditIndex(index);
+		    } else {
+			resetEditIndex();
+		    }
 		    cancelEdit();
 		}
 	    } else {
+		// on double click (open or drill down one directory) be
+		// sure to clear the edit index
+		resetEditIndex();
 		cancelEdit();
 	    }
 	    list.repaint();
@@ -406,6 +432,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
                 File f2 = getFileChooser().getFileSystemView().createFileObject(
                         getFileChooser().getCurrentDirectory(), newFileName
                 );
+
 		if(f.renameTo(f2)) {
 		    rescanCurrentDirectory(getFileChooser());
 		} else {
@@ -462,6 +489,16 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	return new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
     }
 
+    void setFileSelected() {
+	File f = getFileChooser().getSelectedFile();
+	if(f != null && getModel().contains(f)) {
+	    list.setSelectedIndex(getModel().indexOf(f));
+	    list.ensureIndexIsVisible(list.getSelectedIndex());
+	} else {
+	    list.clearSelection();
+	}
+    }
+
     /*
      * Listen for filechooser property changes, such as
      * the selected file changing, or the type of the dialog changing.
@@ -475,13 +512,13 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 		    File f = (File) e.getNewValue();
 		    if(f != null) {
 			setFileName(getFileChooser().getName(f));
-			if(getModel().contains(f)) {
-			    list.setSelectedIndex(getModel().indexOf(e.getNewValue()));
-			    list.ensureIndexIsVisible(list.getSelectedIndex());
-			}
+		    } else {
+			setFileName(null);
 		    }
+		    setFileSelected();
 		} else if(prop.equals(JFileChooser.DIRECTORY_CHANGED_PROPERTY)) {
 		    cancelEdit();
+		    resetEditIndex();
 		    clearIconCache();
 		    list.clearSelection();
 		    File currentDirectory = getFileChooser().getCurrentDirectory();
@@ -492,7 +529,10 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 			// PENDING(jeff) - broken - fix
 			getNewFolderAction().setEnabled(currentDirectory.canWrite());
 		    }
-		} else if(prop.equals(JFileChooser.FILE_SELECTION_MODE_CHANGED_PROPERTY)) {
+		} else if(prop.equals(JFileChooser.FILE_FILTER_CHANGED_PROPERTY) || 
+		          prop.equals(JFileChooser.FILE_SELECTION_MODE_CHANGED_PROPERTY)) {
+		    cancelEdit();
+		    resetEditIndex();
 		    clearIconCache();
 		    list.clearSelection();
 		} else if(prop == JFileChooser.ACCESSORY_CHANGED_PROPERTY) {
@@ -701,6 +741,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
                     directory.getCanonicalPath()
                 );
 	    } catch (IOException e) {
+		return; 
 	    }
 
 	    // create File instances of each directory leading up to the top
@@ -726,6 +767,8 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	    if(topIndex < 0) {
 		if(directories.contains(f)) {
 		    topIndex = directories.indexOf(f); 
+		} else {
+		    directories.addElement(f);
 		}
 	    }
 

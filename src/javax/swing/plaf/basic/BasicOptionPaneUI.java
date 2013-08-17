@@ -1,5 +1,5 @@
 /*
- * @(#)BasicOptionPaneUI.java	1.29 98/08/26
+ * @(#)BasicOptionPaneUI.java	1.30 98/10/30
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -49,7 +49,7 @@ import java.beans.PropertyChangeListener;
  * The Container, message, icon, and buttons are all determined from
  * abstract methods.
  * 
- * @version 1.29 08/26/98
+ * @version 1.30 10/30/98
  * @author James Gosling
  * @author Scott Violet
  * @author Amy Fowler
@@ -167,12 +167,9 @@ public class BasicOptionPaneUI extends OptionPaneUI {
         // API changes are allowed
         //
         optionPane.registerKeyboardAction(
-            new AbstractAction() {
+            new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     optionPane.setValue(new Integer(JOptionPane.CLOSED_OPTION));
-                }
-                public boolean isEnabled() { 
-                    return true;
                 }
             },
             KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), 

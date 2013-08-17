@@ -1,10 +1,10 @@
 /*
- * @(#)SwingGraphics.java	1.25 98/08/31
+ * @(#)SwingGraphics.java	1.28 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -17,12 +17,19 @@ package javax.swing;
  * A private graphics to access clip bounds without creating a new
  * rectangle
  *
- * @version 1.25 08/31/98
+ * @version 1.28 04/22/99
  * @author Arnaud Weber
  */
 
-import java.awt.*;
-import java.awt.image.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.image.ImageObserver;
 import java.util.Stack;
 
 
@@ -36,26 +43,25 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
     Color currentColor;
     Font currentFont;
 
+    Color currentXORMode;  // If null, graphics object is in normal paint mode.
+
     int translateX = 0;    // translation delta since initialization
     int translateY = 0;
 
     /* The SwingGraphics this object was cloned from, if any. */
     SwingGraphics previous;
 
-    /* Can this context be restored to its original state? */
-    private boolean restorable = true;
-
     /* diagnostic aids -- should be false for production builds. */
-    private static final boolean trace = false;   // trace creates and disposes
-    private static final boolean verbose = false; // show reuse hits/misses
-    private static final boolean debug = false;   // show bad params, misc.
+    private static final boolean TRACE = false;   // trace creates and disposes
+    private static final boolean VERBOSE = false; // show reuse hits/misses
+    private static final boolean DEBUG = false;   // show bad params, misc.
 
     public Graphics create() {
         return createSwingGraphics(this);
     }
 
     public Graphics create(int x,int y,int w,int h) {
-        if (debug && (w <= 0 || h <= 0)) {
+        if (DEBUG && (w <= 0 || h <= 0)) {
             System.out.println("bad size:  " + w + "x" + h);
             Thread.dumpStack();
         }
@@ -63,18 +69,12 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
     }
 
     public Graphics subGraphics() {
-        Graphics g = graphics;
-
-        /* We've handed our monitored object out, and can no longer track
-         * its state. */
-	restorable = false;
-
-        return g;
+        return graphics;
     }
 
     SwingGraphics(Graphics g) {
         if(g == null) {
-            Thread.currentThread().dumpStack();
+            Thread.dumpStack();
         }
         init(g);
     }
@@ -101,7 +101,8 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
             }
             currentColor = sg.currentColor;
             currentFont = sg.currentFont;
-            if (verbose) {
+	    currentXORMode = sg.currentXORMode;
+            if (VERBOSE) {
                 System.out.print('.');    // '.' means "cache" hit
                 System.out.flush();
             }
@@ -129,7 +130,20 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
             }
             currentColor = g.getColor();
             currentFont = g.getFont();
-            if (verbose) {
+
+	    /* We're cheating a bit here -- there's no way to query what
+	     * the current screen mode or XOR color is with the Graphics 
+	     * API, but Swing apps don't see the original graphics object,
+	     * only SwingGraphics wrappers.  We're therefore assuming
+	     * that XOR mode isn't set when wrapping a graphics object, 
+	     * on the assumption that the app wasn't twisted enough to 
+	     * get a hold of a "raw" graphics object and set its
+	     * XOR mode before passing it on to Swing.  If it is that
+	     * twisted, it deserved whatever screen it gets. :-)
+	     */
+	    currentXORMode = null;
+
+            if (VERBOSE) {
                 System.out.print('*');    // '.' means "cache" miss
                 System.out.flush();
             }
@@ -138,7 +152,7 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
 
     public static Graphics createSwingGraphics(Graphics g) {
         if (g == null) {
-            Thread.currentThread().dumpStack();
+            Thread.dumpStack();
             return null;
         }
 
@@ -175,8 +189,10 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
     static Graphics createSwingGraphics(Graphics g, int x, int y,
                                         int width, int height) {
       
+	// Disable SwingGraphics wrapping on 1.2...
         return g.create(x, y, width, height);
         
+
 
 
 
@@ -205,6 +221,14 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
 
     public void translate(int x,int y) {
         graphics.translate(x,y);
+	if (TRACE) {
+	    System.out.println("translate: 0x" + 
+			       Integer.toHexString(hashCode()) +
+			       " x=" + x + ", y=" + y + 
+			       ", clipRect=" + clipRect +
+			       " current translate " + translateX + " " +
+			       translateY);
+	}
         translateX += x;
         translateY += y;
         clipRect.x -= x;
@@ -222,16 +246,12 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
 
     public void setPaintMode() {
         graphics.setPaintMode();
-
-        /* There's no way to restore the original paint mode. */
-	restorable = false;
+	currentXORMode = null;
     }
 
     public void setXORMode(Color c1) {
         graphics.setXORMode(c1);
-
-        /* There's no way to restore the original XOR mode. */
-	restorable = false;
+	currentXORMode = c1;
     }
 
     public Font getFont() {
@@ -306,7 +326,7 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
 
     public void copyArea(int x, int y, int width, int height,
                          int dx, int dy) {
-        if (debug && (width <= 0 || height <= 0)) {
+        if (DEBUG && (width <= 0 || height <= 0)) {
             System.out.println("bad size:  " + width + "x" + height);
             Thread.dumpStack();
         }
@@ -319,7 +339,7 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
     }
 
     public void fillRect(int x, int y, int width, int height) {
-        if (debug && (width <= 0 || height <= 0)) {
+        if (DEBUG && (width <= 0 || height <= 0)) {
             System.out.println("bad size:  " + width + "x" + height);
             Thread.dumpStack();
         }
@@ -328,7 +348,7 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
     }
 
     public void drawRect(int x, int y, int width, int height) {
-        if (debug && (width <= 0 || height <= 0)) {
+        if (DEBUG && (width <= 0 || height <= 0)) {
             System.out.println("bad size:  " + width + "x" + height);
             Thread.dumpStack();
         }
@@ -337,7 +357,7 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
     }
 
     public void clearRect(int x, int y, int width, int height) {
-        if (debug && (width <= 0 || height <= 0)) {
+        if (DEBUG && (width <= 0 || height <= 0)) {
             System.out.println("bad size:  " + width + "x" + height);
             Thread.dumpStack();
         }
@@ -347,7 +367,7 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
 
     public void drawRoundRect(int x, int y, int width, int height,
                               int arcWidth, int arcHeight) {
-        if (debug && (width <= 0 || height <= 0)) {
+        if (DEBUG && (width <= 0 || height <= 0)) {
             System.out.println("bad size:  " + width + "x" + height);
             Thread.dumpStack();
         }
@@ -357,7 +377,7 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
 
     public void fillRoundRect(int x, int y, int width, int height,
                               int arcWidth, int arcHeight) {
-        if (debug && (width <= 0 || height <= 0)) {
+        if (DEBUG && (width <= 0 || height <= 0)) {
             System.out.println("bad size:  " + width + "x" + height);
             Thread.dumpStack();
         }
@@ -376,7 +396,7 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
     }
 
     public void drawOval(int x, int y, int width, int height) {
-        if (debug && (width <= 0 || height <= 0)) {
+        if (DEBUG && (width <= 0 || height <= 0)) {
             System.out.println("bad size:  " + width + "x" + height);
             Thread.dumpStack();
         }
@@ -385,7 +405,7 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
     }
 
     public void fillOval(int x, int y, int width, int height) {
-        if (debug && (width <= 0 || height <= 0)) {
+        if (DEBUG && (width <= 0 || height <= 0)) {
             System.out.println("bad size:  " + width + "x" + height);
             Thread.dumpStack();
         }
@@ -395,7 +415,7 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
 
     public void drawArc(int x, int y, int width, int height,
                         int startAngle, int arcAngle) {
-        if (debug && (width <= 0 || height <= 0)) {
+        if (DEBUG && (width <= 0 || height <= 0)) {
             System.out.println("bad size:  " + width + "x" + height);
             Thread.dumpStack();
         }
@@ -405,7 +425,7 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
 
     public void fillArc(int x, int y, int width, int height,
                         int startAngle, int arcAngle) {
-        if (debug && (width <= 0 || height <= 0)) {
+        if (DEBUG && (width <= 0 || height <= 0)) {
             System.out.println("bad size:  " + width + "x" + height);
             Thread.dumpStack();
         }
@@ -413,12 +433,12 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
         graphics.fillArc(x,y,width,height,startAngle,arcAngle);
     }
 
-    public void drawPolyline(int xPoints[], int yPoints[],
+    public void drawPolyline(int[] xPoints, int[] yPoints,
                              int nPoints) {
         graphics.drawPolyline(xPoints,yPoints,nPoints);
     }
 
-    public void drawPolygon(int xPoints[], int yPoints[],
+    public void drawPolygon(int[] xPoints, int[] yPoints,
                             int nPoints) {
         graphics.drawPolygon(xPoints,yPoints,nPoints);
     }
@@ -427,7 +447,7 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
         graphics.drawPolygon(p);
     }
 
-    public void fillPolygon(int xPoints[], int yPoints[],
+    public void fillPolygon(int[] xPoints, int[] yPoints,
                             int nPoints) {
         graphics.fillPolygon(xPoints,yPoints,nPoints);
     }
@@ -446,11 +466,11 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
     }
      
 
-    public void drawChars(char data[], int offset, int length, int x, int y) {
+    public void drawChars(char[] data, int offset, int length, int x, int y) {
         graphics.drawChars(data, offset, length, x, y);
     }
 
-    public void drawBytes(byte data[], int offset, int length, int x, int y) {
+    public void drawBytes(byte[] data, int offset, int length, int x, int y) {
 	graphics.drawBytes(data, offset, length, x, y);
     }
 
@@ -462,7 +482,7 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
     public boolean drawImage(Image img, int x, int y,
                              int width, int height,
                              ImageObserver observer) {
-        if (debug && (width <= 0 || height <= 0)) {
+        if (DEBUG && (width <= 0 || height <= 0)) {
             System.out.println("bad size:  " + width + "x" + height);
             Thread.dumpStack();
         }
@@ -480,7 +500,7 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
                              int width, int height,
                              Color bgcolor,
                              ImageObserver observer) {
-        if (debug && (width <= 0 || height <= 0)) {
+        if (DEBUG && (width <= 0 || height <= 0)) {
             System.out.println("bad size:  " + width + "x" + height);
             Thread.dumpStack();
         }
@@ -505,26 +525,23 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
 
     /* Restore the shared sub-graphics object to its original state. */
     private void resetGraphics() {
-        if (trace) {
+        if (TRACE) {
             System.out.println("resetGraphics: 0x" + 
                                Integer.toHexString(hashCode()));
         }
-	if (restorable) {
-	    restoreGraphics();
-	} else {
-	    replaceGraphics();
-	}
-    }
 
-    /* The shared sub-graphics object can be restored to the previous
-     * state of this object, so do so.
-     */
-    private void restoreGraphics() {
         if (currentFont != previous.currentFont) {
             setFont(previous.currentFont);
         }
         if (currentColor != previous.currentColor) {
             setColor(previous.currentColor);
+        }
+        if (currentXORMode != previous.currentXORMode) {
+	    if (previous.currentXORMode == null) {
+		setPaintMode();
+	    } else {
+		setXORMode(previous.currentXORMode);
+	    }
         }
         if (translateX != 0 || translateY != 0) {
             translate(-translateX, -translateY);
@@ -538,41 +555,14 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
         }
     }
 
-    /* The shared sub-graphics object has been modified in an unrestorable
-     * way, so re-create one and substitute the new one for the clobbered
-     * one in our stack.  This is an expensive operation.
-     */
-    private void replaceGraphics() {
-        if (trace || debug) {
-            System.out.println("replaceGraphics: 0x" + 
-                               Integer.toHexString(hashCode()));
-        }
-        graphics = originalGraphics.create();
-        redoTranslate();
-        graphics.setColor(currentColor);
-        graphics.setFont(currentFont);
-        graphics.setClip(clipRect.x, clipRect.y, clipRect.width, clipRect.height);
-    }
-
-    /* Reapply any translate operation.  This method is recursive so
-     * that the multiple translates are applied in in the same order
-     * as the SwingGraphics stack.
-     */
-    private void redoTranslate() {
-        if (previous != null) {
-            previous.redoTranslate();
-        }
-        if (translateX != 0 || translateY != 0) {
-            graphics.translate(translateX, translateY);
-        }
-    }
-
     public void dispose() {
-        if (trace) {
+        if (TRACE) {
             System.out.println(
                 "dispose: 0x" + Integer.toHexString(hashCode()) + 
                 "(" + (previous == null ? "null" : 
-                       Integer.toHexString(previous.hashCode())) + ")");
+                       Integer.toHexString(previous.hashCode())) + ")" +
+		" graphics? " + (graphics != null) + " translate " +
+		translateX + " " + translateY);
         }
         if (graphics != null) {
             if (previous != null) {
@@ -581,8 +571,12 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
             } else {
                 // Bottom of stack, truly dispose of the wrapped object.
                 graphics.dispose();
+		translateX = translateY = 0;
             }
         }
+	else {
+	    translateX = translateY = 0;
+	}
         graphics = null;
         SwingGraphics.recycleSwingGraphics(this);
     }
@@ -623,21 +617,25 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
 
     private static Stack pool = new Stack();
 
-    private static synchronized void recycleSwingGraphics(SwingGraphics g) {
-        if (debug) {
-            if (pool.indexOf(g) != -1) {
-                System.out.println("Tried to recycle the same graphics twice!");
-                Thread.dumpStack();
-            }
-        }
-        pool.push(g);
+    private static void recycleSwingGraphics(SwingGraphics g) {
+	synchronized (pool) {
+	    if (DEBUG) {
+		if (pool.indexOf(g) != -1) {
+		    System.out.println("Tried to recycle the same graphics twice!");
+		    Thread.dumpStack();
+		}
+	    }
+	    pool.push(g);
+	}
     }
 
-    private static synchronized SwingGraphics getRecycledSwingGraphics() {
+    private static SwingGraphics getRecycledSwingGraphics() {
         SwingGraphics r = null;
-        if (pool.size() > 0) {
-            r = (SwingGraphics) pool.pop();
-        }
+	synchronized (pool) {
+	    if (pool.size() > 0) {
+		r = (SwingGraphics) pool.pop();
+	    }
+	}
         return r;
     }
 

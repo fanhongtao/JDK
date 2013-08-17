@@ -1,10 +1,10 @@
 /*
- * @(#)Class.java	1.97 98/10/30
+ * @(#)Class.java	1.100 99/04/22
  *
- * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * Copyright 1994-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -50,7 +50,7 @@ import java.io.ObjectStreamField;
  * </pre></blockquote>
  *
  * @author  unascribed
- * @version 1.97, 10/30/98
+ * @version 1.100, 04/22/99
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
  * @since   JDK1.0
  */
@@ -235,7 +235,9 @@ class Class implements java.io.Serializable {
     public Object newInstance() 
         throws InstantiationException, IllegalAccessException
     {
-        checkMemberAccess(Member.PUBLIC, ClassLoader.getCallerClassLoader());
+	if (System.getSecurityManager() != null) {
+	    checkMemberAccess(Member.PUBLIC, ClassLoader.getCallerClassLoader());
+	}
 	return newInstance0();
     }
 
@@ -598,7 +600,7 @@ class Class implements java.io.Serializable {
      * security checks are performed:
      * If there is a security manager, the security manager's 
      * <code>checkMemberAccess</code> method is called
-     * with <code>this</code> and <code>Member.DECLARED</code> 
+     * with <code>this</code> and <code>Member.PUBLIC</code> 
      * as its arguments, where <code>this</code> is this class or the superclass
      * whose members are being determined. If the class is in a package, then 
      * the security manager's <code>checkPackageAccess</code> 

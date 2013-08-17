@@ -1,10 +1,10 @@
 /*
- * @(#)jvmpi.h	1.17 98/10/14
+ * @(#)jvmpi.h	1.19 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -552,7 +552,7 @@ enum {
  *                          jobjectID        class loader
  *                          jobjectID        signers
  *                          jobjectID        protection domain
- *                          void *           reserved
+ *                          jobjectID        class name
  *                          void *           reserved
  *
  *                          u4               instance size (in bytes)

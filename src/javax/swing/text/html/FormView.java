@@ -1,5 +1,5 @@
 /*
- * @(#)FormView.java	1.5 98/09/21
+ * @(#)FormView.java	1.6 98/11/19
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -76,7 +76,7 @@ import javax.swing.text.*;
  *
  * @author Timothy Prinzing
  * @author Sunita Mani
- * @version 1.5 09/21/98
+ * @version 1.6 11/19/98
  */
 public class FormView extends ComponentView implements ActionListener {
 
@@ -194,14 +194,14 @@ public class FormView extends ComponentView implements ActionListener {
 	} else if (type.equals("checkbox")) {
 	    c = new JCheckBox();
 	    if (model != null) {
-		boolean checked = ((String)attr.getAttribute(HTML.Attribute.CHECKED) != null);
+		boolean checked = (attr.getAttribute(HTML.Attribute.CHECKED) != null);
 		((JToggleButton.ToggleButtonModel) model).setSelected(checked);
 		((JCheckBox)c).setModel((JToggleButton.ToggleButtonModel)model);
 	    }
 	} else if (type.equals("radio")) {
 	    c = new JRadioButton();
 	    if (model != null) {
-		boolean checked = ((String)attr.getAttribute(HTML.Attribute.CHECKED) != null);
+		boolean checked = (attr.getAttribute(HTML.Attribute.CHECKED) != null);
 		((JToggleButton.ToggleButtonModel)model).setSelected(checked);
 		((JRadioButton)c).setModel((JToggleButton.ToggleButtonModel)model);
 	    }

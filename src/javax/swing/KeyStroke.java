@@ -1,5 +1,5 @@
 /*
- * @(#)KeyStroke.java	1.28 98/08/28
+ * @(#)KeyStroke.java	1.31 98/11/10
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -16,6 +16,7 @@ package javax.swing;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
 import java.util.Hashtable;
+import java.util.StringTokenizer;
 import java.io.Serializable;
 
 /**
@@ -46,7 +47,7 @@ import java.io.Serializable;
  * @see JComponent#registerKeyboardAction
  * @see #getKeyStroke
  *
- * @version 1.28 08/28/98
+ * @version 1.31 11/10/98
  * @author Arnaud Weber
  */
 public class KeyStroke implements Serializable {
@@ -70,7 +71,14 @@ public class KeyStroke implements Serializable {
 
     static final int MIN_ASCII_CACHE_INDEX = '\n'; 
     static final int MAX_ASCII_CACHE_INDEX = 0x7F;
-    /* It is impossible to instantiate a KeyStroke. Use getKeyStroke() instead **/
+
+    /* Lock object used in place of class object for synchronization. 
+     * (4187686)
+     */
+    private static final Object classLock = new Object();
+
+    /* It is impossible to instantiate a KeyStroke.  Use getKeyStroke() 
+     * instead */
     private KeyStroke() {
         
     }
@@ -78,7 +86,7 @@ public class KeyStroke implements Serializable {
     static KeyStroke getCachedKeyCharKeyStroke(char keyChar,boolean onKeyRelease) {
         KeyStroke result = null;
         if(keyChar >= MIN_ASCII_CACHE_INDEX && keyChar < MAX_ASCII_CACHE_INDEX) {
-            synchronized(KeyStroke.class) {
+            synchronized(classLock) {
                 KeyStroke cache[];
                 if(onKeyRelease) 
                     cache = (KeyStroke[])SwingUtilities.appContextGet(
@@ -95,7 +103,7 @@ public class KeyStroke implements Serializable {
 
     static void cacheKeyCharKeyStroke(KeyStroke ks,boolean onKeyRelease) {
         if(ks.keyChar >= MIN_ASCII_CACHE_INDEX && ks.keyChar < MAX_ASCII_CACHE_INDEX) {
-            synchronized(KeyStroke.class) {
+            synchronized(classLock) {
                 if(onKeyRelease) {
                     KeyStroke releasedKeyCharKeyStrokeCache[] = (KeyStroke[])
                         SwingUtilities.appContextGet(releasedCharCacheKey);
@@ -137,7 +145,7 @@ public class KeyStroke implements Serializable {
         KeyStroke result = null;
         if(keyCode >= MIN_ASCII_CACHE_INDEX && keyCode < MAX_ASCII_CACHE_INDEX &&
            (subIndex = subIndexForModifier(modifiers)) != -1) {
-            synchronized(KeyStroke.class) {
+            synchronized(classLock) {
                 KeyStroke cache[][];
                 if(onKeyRelease) 
                     cache = (KeyStroke[][])SwingUtilities.appContextGet(
@@ -157,7 +165,7 @@ public class KeyStroke implements Serializable {
         int subIndex = -1;
         if(ks.keyCode >= MIN_ASCII_CACHE_INDEX && ks.keyCode < MAX_ASCII_CACHE_INDEX &&
            (subIndex = subIndexForModifier(ks.modifiers)) != -1) {
-            synchronized(KeyStroke.class) {
+            synchronized(classLock) {
                 KeyStroke cache[][] = null;
                 if(ks.onKeyRelease) {
                     KeyStroke[][] pressedKeyCodeKeyStrokeCache = (KeyStroke[][])
@@ -323,16 +331,104 @@ public class KeyStroke implements Serializable {
     }
 
     /**
-     * Return a shared instance of a key stroke matching a string
-     * representation.
-     *
-     * @param representation a String specifying a KeyStroke
-     * @return a KeyStroke object matching the specification. 
+     * Parse a string with the following syntax and return an a KeyStroke:
+     * <pre>
+     *    "&lt;modifiers&gt;* &lt;key&gt;"
+     *    modifiers := shift | control | meta | alt | button1 | button2 | button3
+     *    key := KeyEvent keycode name, i.e. the name following "VK_".
+     * </pre>
+     * Here are some examples:
+     * <pre>
+     *     "INSERT" => new KeyStroke(0, KeyEvent.VK_INSERT);
+     *     "control DELETE" => new KeyStroke(InputEvent.CTRL_MASK, KeyEvent.VK_DELETE);
+     *     "alt shift X" => new KeyStroke(InputEvent.ALT_MASK | InputEvent.SHIFT_MASK, KeyEvent.VK_X);
+     * </pre>
      */
-    public static KeyStroke getKeyStroke(String representation) {
-        // Not implemented
-        return null;
+    public static KeyStroke getKeyStroke(String s) {
+	StringTokenizer st = new StringTokenizer(s);
+	String token;
+	int mask = 0;
+
+	while((token = st.nextToken()) != null) {
+	    int tokenMask = 0;
+
+	    /* if token matches a modifier keyword update mask and continue */
+
+	    for(int i = 0; (tokenMask == 0) && (i < modifierKeywords.length); i++) {
+		tokenMask = modifierKeywords[i].getModifierMask(token);
+	    }
+
+	    if (tokenMask != 0) {
+		mask |= tokenMask;
+		continue;
+	    }
+
+	    /* otherwise token is the keycode name less the "VK_" prefix */
+
+	    String keycodeName = versionMap("VK_" + token);
+	    int keycode;	    
+	    try {
+		keycode = KeyEvent.class.getField(keycodeName).getInt(KeyEvent.class);
+	    }
+	    catch (Exception e) {
+		e.printStackTrace();
+		throw new Error("Unrecognized keycode name: " + keycodeName);
+	    }
+
+	    return KeyStroke.getKeyStroke(keycode, mask);
+	}
+
+	throw new Error("Can't parse KeyStroke: \"" + s + "\"");
     }
+
+    private static String versionMap(String s) {
+	if (!SwingUtilities.is1dot2) {
+	    if (s.equals("VK_KP_UP")) {
+		s = "VK_UP";
+	    }
+	    if (s.equals("VK_KP_DOWN")) {
+		s = "VK_DOWN";
+	    }
+	    if (s.equals("VK_KP_LEFT")) {
+		s = "VK_LEFT";
+	    }
+	    if (s.equals("VK_KP_RIGHT")) {
+		s = "VK_RIGHT";
+	    }
+	}
+
+	return s;
+    }
+
+    /*
+     * // see getKeyStroke (String)
+     */
+    private static class ModifierKeyword {
+	final String keyword;
+	final int mask;
+	ModifierKeyword(String keyword, int mask) {
+	    this.keyword = keyword;
+	    this.mask = mask;
+	}
+	int getModifierMask(String s) {
+	    return (s.equals(keyword)) ? mask : 0;
+	}
+    };
+
+
+    /*
+     * // see getKeyStroke (String)
+     */
+    private static ModifierKeyword[] modifierKeywords = {
+	new ModifierKeyword("shift", InputEvent.SHIFT_MASK),
+	new ModifierKeyword("control", InputEvent.CTRL_MASK),
+	new ModifierKeyword("ctrl", InputEvent.CTRL_MASK),
+	new ModifierKeyword("meta", InputEvent.META_MASK),
+	new ModifierKeyword("alt", InputEvent.ALT_MASK),
+	new ModifierKeyword("button1", InputEvent.BUTTON1_MASK),
+	new ModifierKeyword("button2", InputEvent.BUTTON2_MASK),
+	new ModifierKeyword("button3", InputEvent.BUTTON3_MASK)
+    };
 
     /**
      * Returns the character defined by this KeyStroke object.

@@ -1,5 +1,5 @@
 /*
- * @(#)ContentModelState.java	1.4 98/08/26
+ * @(#)ContentModelState.java	1.5 98/11/19
  *
  * Copyright 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -30,7 +30,7 @@ package javax.swing.text.html.parser;
  * @see Element
  * @see ContentModel
  * @author Arthur van Hoff
- * @version 	1.4 08/26/98
+ * @version 	1.5 11/19/98
  */
 class ContentModelState {
     ContentModel model;
@@ -85,7 +85,7 @@ class ContentModelState {
     public boolean terminate() {
 	switch (model.type) {
 	  case '+':
-	    if ((value == 0) && !((ContentModel)model).empty()) {
+	    if ((value == 0) && !(model).empty()) {
 		return false;
 	    }
 	  case '*':

@@ -1,5 +1,5 @@
 /*
- * @(#)Signer.java	1.34 98/09/24
+ * @(#)Signer.java	1.35 98/12/03
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -26,7 +26,7 @@ import java.io.*;
  *
  * @see Identity
  *
- * @version 1.34 00/05/10
+ * @version 1.35 98/12/03
  * @author Benjamin Renaud
  *
  * @deprecated This class is no longer used. Its functionality has been

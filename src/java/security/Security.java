@@ -1,5 +1,5 @@
 /*
- * @(#)Security.java	1.84 98/10/15
+ * @(#)Security.java	1.89 99/02/03
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -23,7 +23,7 @@ import java.io.*;
  * methods. One of its primary uses is to manage providers.
  *
  * @author Benjamin Renaud
- * @version 1.84, 00/05/10
+ * @version 1.89, 99/02/03
  */
 
 public final class Security {
@@ -322,20 +322,23 @@ public final class Security {
 	if (pp != null)
 	    return pp;
 
-        for (int i = 0; i < providers.size(); i++) {
-            Provider prov = (Provider)providers.elementAt(i);
-	    try {
-		pp = getEngineClassName(algName, prov.getName(), engineType);
-	    } catch (NoSuchAlgorithmException e) {
-		continue;
-	    } catch (NoSuchProviderException e) {
-		// can't happen except for sync failures
-		continue;
-	    }
+	synchronized (Security.class) {
+	    for (int i = 0; i < providers.size(); i++) {
+		Provider prov = (Provider)providers.elementAt(i);
+		try {
+		    pp = getEngineClassName(algName, prov.getName(),
+					    engineType);
+		} catch (NoSuchAlgorithmException e) {
+		    continue;
+		} catch (NoSuchProviderException e) {
+		    // can't happen except for sync failures
+		    continue;
+		}
 
-	    /* Cache it */
-	    engineCache.put(key, pp);
-	    return pp;
+		/* Cache it */
+		engineCache.put(key, pp);
+		return pp;
+	    }
 	}
 
 	throw new NoSuchAlgorithmException(engineType + " not available");
@@ -395,9 +398,7 @@ public final class Security {
      * the preference order in which providers are searched for
      * requested algorithms. Note that it is not guaranteed that this
      * preference will be respected. The position is 1-based, that is,
-     * 1 is most preferred, followed by 2, and so on. Sometimes it
-     * will be legal to add a provider, but only in the last position,
-     * in which case the <code>position</code> argument will be ignored. 
+     * 1 is most preferred, followed by 2, and so on.
      * 
      * <p>If the given provider is installed at the requested position,
      * the provider that used to be at that position, and all providers
@@ -436,7 +437,8 @@ public final class Security {
      * @see #removeProvider 
      * @see java.security.SecurityPermission
      */
-    public static int insertProviderAt(Provider provider, int position) {
+    public static synchronized int insertProviderAt(Provider provider,
+						    int position) {
 	reloadProviders();
 
 	check("insertProvider."+provider.getName());
@@ -526,12 +528,14 @@ public final class Security {
      * @see #getProvider
      * @see #addProvider
      */
-    public static void removeProvider(String name) {
+    public static synchronized void removeProvider(String name) {
 	reloadProviders();
 	check("removeProvider."+name);
 	Provider provider = getProvider(name);
 	if (provider != null) {
-	    providers.removeElement(provider);
+	    for (Iterator i=providers.iterator(); i.hasNext(); )
+		if (i.next()==provider)
+		    i.remove();
 
 	    // empty provider-property cache
 	    providerPropertiesCache.clear();
@@ -545,7 +549,7 @@ public final class Security {
      * 
      * @return an array of all the installed providers.
      */
-    public static Provider[] getProviders() {
+    public static synchronized Provider[] getProviders() {
 	reloadProviders();
 	Provider[] result = new Provider[providers.size()];
 	providers.copyInto(result);
@@ -564,8 +568,8 @@ public final class Security {
      * @see #removeProvider
      * @see #addProvider
      */
-    public static Provider getProvider(String name) {
-	// Search through the list of already loaded providers
+    public static synchronized Provider getProvider(String name) {
+	reloadProviders();
 	Enumeration enum = providers.elements();
 	while (enum.hasMoreElements()) {
 	    Provider prov = (Provider)enum.nextElement();
@@ -573,22 +577,6 @@ public final class Security {
 		return prov;
 	    }
 	}
-	// See if the requested provider is among the providers that need
-	// to be reloaded
-	if (reloadProviders) {
-	    int provsSize = providers.size();
-	    reloadProviders();
-	    if (providers.size() > provsSize) {
-		enum = providers.elements();
-		while (enum.hasMoreElements()) {
-		    Provider prov = (Provider)enum.nextElement();
-		    if (prov.getName().equals(name)) {
-			return prov;
-		    }
-		}
-	    }
-	}
-
 	return null;
     }
 

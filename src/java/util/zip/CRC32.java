@@ -1,10 +1,10 @@
 /*
- * @(#)CRC32.java	1.19 98/07/24
+ * @(#)CRC32.java	1.21 99/04/22
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -18,7 +18,7 @@ package java.util.zip;
  * A class that can be used to compute the CRC-32 of a data stream.
  *
  * @see		Checksum
- * @version 	1.19, 07/24/98
+ * @version 	1.21, 04/22/99
  * @author 	David Connelly
  */
 public
@@ -34,7 +34,7 @@ class CRC32 implements Checksum {
     }
 
     /**
-     * Creates a new Adler32 class.
+     * Creates a new CRC32 class.
      */
     public CRC32() {
     }

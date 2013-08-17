@@ -1,5 +1,5 @@
 /*
- * @(#)JProgressBar.java	1.70 98/08/28
+ * @(#)JProgressBar.java	1.71 98/09/01
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -45,7 +45,7 @@ import javax.swing.plaf.ProgressBarUI;
  *      attribute: isContainer false
  *    description: A component that displays an integer value.
  *
- * @version 1.70 08/28/98
+ * @version 1.71 09/01/98
  * @author Michael C. Albers
  */
 public class JProgressBar extends JComponent implements SwingConstants, Accessible
@@ -686,9 +686,6 @@ public class JProgressBar extends JComponent implements SwingConstants, Accessib
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JProgressBar.
      */

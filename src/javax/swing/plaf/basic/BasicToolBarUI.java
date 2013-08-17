@@ -1,10 +1,10 @@
 /*
- * @(#)BasicToolBarUI.java	1.45 98/08/26
+ * @(#)BasicToolBarUI.java	1.53 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -40,7 +40,7 @@ import javax.swing.plaf.*;
  * is a "combined" view/controller.
  * <p>
  *
- * @version 1.45 08/26/98
+ * @version 1.53 04/22/99
  * @author Georges Saab
  * @author Jeff Shapiro
  */
@@ -72,6 +72,16 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
     protected KeyStroke leftKey;
     protected KeyStroke rightKey;
 
+    // hania 10/29/98: if the above (upKey, etc) need to be
+    // protected fields (and I don't really understand why they do), then so
+    // do the ones below (kpUpKey, etc). I am making them private
+    // until we can make a release where API changes are allowed.
+  
+    private KeyStroke kpUpKey;
+    private KeyStroke kpDownKey;
+    private KeyStroke kpLeftKey;
+    private KeyStroke kpRightKey;
+
     private static String FOCUSED_COMP_INDEX = "JToolBar.focusedCompIndex";
 
     public static ComponentUI createUI( JComponent c )
@@ -93,7 +103,7 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
         dockingSensitivity = 0;
         floating = false;
         floatingX = floatingY = 0;
- 	floatingFrame = createFloatingFrame(toolBar);
+        floatingFrame = null;
 
 	setOrientation( toolBar.getOrientation() );
 	c.setOpaque(true);
@@ -231,57 +241,59 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 
     protected void installKeyboardActions( )
     {
+        ActionListener upAction = new UpAction();
+	ActionListener downAction = new DownAction();
+	ActionListener leftAction = new LeftAction();
+	ActionListener rightAction = new RightAction();
+
         upKey    = KeyStroke.getKeyStroke( KeyEvent.VK_UP,0 );
         downKey  = KeyStroke.getKeyStroke( KeyEvent.VK_DOWN,0 );
         leftKey  = KeyStroke.getKeyStroke( KeyEvent.VK_LEFT,0 );
         rightKey = KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT,0 );
 
+        kpUpKey    = KeyStroke.getKeyStroke( "KP_UP" );
+        kpDownKey  = KeyStroke.getKeyStroke( "KP_DOWN" );
+        kpLeftKey  = KeyStroke.getKeyStroke( "KP_LEFT" );
+        kpRightKey = KeyStroke.getKeyStroke( "KP_RIGHT" );
+
         toolBar.registerKeyboardAction(
-            new AbstractAction() {
-                public void actionPerformed(ActionEvent e) {
-                    navigateFocusedComp(NORTH);
-                }
-                public boolean isEnabled() { 
-                    return true; 
-                }
-            },
+            upAction,
             upKey, 
             JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
         toolBar.registerKeyboardAction(
-            new AbstractAction() {
-                public void actionPerformed(ActionEvent e) {
-                    navigateFocusedComp(SOUTH);
-                }
-                public boolean isEnabled() { 
-                    return true; 
-                }
-            },
+            downAction,
             downKey, 
             JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
         toolBar.registerKeyboardAction(
-            new AbstractAction() {
-                public void actionPerformed(ActionEvent e) {
-                    navigateFocusedComp(WEST);
-                }
-                public boolean isEnabled() { 
-                    return true; 
-                }
-            }, 
+            leftAction, 
             leftKey, 
             JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
         toolBar.registerKeyboardAction(
-            new AbstractAction() {
-                public void actionPerformed(ActionEvent e) {
-                    navigateFocusedComp(EAST);
-                }
-                public boolean isEnabled() { 
-                    return true; 
-                }
-            },
+            rightAction,
             rightKey, 
+            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+        toolBar.registerKeyboardAction(
+            upAction,
+            kpUpKey, 
+            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+        toolBar.registerKeyboardAction(
+            downAction,
+            kpDownKey, 
+            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+        toolBar.registerKeyboardAction(
+            leftAction, 
+            kpLeftKey, 
+            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+        toolBar.registerKeyboardAction(
+            rightAction,
+            kpRightKey, 
             JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
 
@@ -294,6 +306,13 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 	toolBar.unregisterKeyboardAction( rightKey );
         
 	upKey = downKey = rightKey = leftKey = null;
+
+        toolBar.unregisterKeyboardAction( kpUpKey );
+	toolBar.unregisterKeyboardAction( kpDownKey );
+	toolBar.unregisterKeyboardAction( kpLeftKey );
+	toolBar.unregisterKeyboardAction( kpRightKey );
+        
+	kpUpKey = kpDownKey = kpRightKey = kpLeftKey = null;
     }
 
     protected void navigateFocusedComp( int direction )
@@ -352,6 +371,7 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 
     protected JFrame createFloatingFrame(JToolBar toolbar) {
 	JFrame frame = new JFrame(toolbar.getName());
+	frame.setResizable(false);
 	WindowListener wl = createFrameListener();
 	frame.addWindowListener(wl);
         return frame;
@@ -366,10 +386,10 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 	    if(p != null && p instanceof Frame)
 		frame = (Frame) p;
 	}
-	if(frame == null) {
+	if(floatingFrame == null) {
 	    floatingFrame = createFloatingFrame(toolBar);
-	    frame = floatingFrame;
 	}
+	frame = floatingFrame;
 
 	DragWindow dragWindow = new DragWindow(frame);
 	return dragWindow;
@@ -418,6 +438,8 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 		floatingFrame.setLocation(floatingX, floatingY);
 		floatingFrame.show();
 	    } else {
+		if (floatingFrame == null)
+		    floatingFrame = createFloatingFrame(toolBar);
 		floatingFrame.setVisible(false);
 		floatingFrame.getContentPane().remove(toolBar);
 		String constraint = getDockingConstraint(dockingSource,
@@ -640,6 +662,39 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 	return new FrameListener();
     }
 
+    // The private inner classes below should be changed to protected the
+    // next time API changes are allowed.
+  
+    private abstract class KeyAction implements ActionListener {
+        public boolean isEnabled() { 
+            return true;
+        }
+    };
+
+    private class RightAction extends KeyAction {
+        public void actionPerformed(ActionEvent e) {
+            navigateFocusedComp(EAST);
+        }
+    };
+    
+    private class LeftAction extends KeyAction {
+        public void actionPerformed(ActionEvent e) {
+            navigateFocusedComp(WEST);
+        }
+    };
+
+    private class UpAction extends KeyAction {
+        public void actionPerformed(ActionEvent e) {
+            navigateFocusedComp(NORTH);
+        }
+    };
+
+    private class DownAction extends KeyAction {
+        public void actionPerformed(ActionEvent e) {
+            navigateFocusedComp(SOUTH);
+        }
+    };
+
     protected class FrameListener extends WindowAdapter {
 	public void windowClosing(WindowEvent w) {	    
 	    setFloating(false, null);
@@ -765,8 +820,15 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 		this.orientation = o;
 		Dimension size = getSize();
 		setSize(new Dimension(size.height, size.width));
-		if (offset!=null)
-		    setOffset(new Point(offset.y, offset.x));
+		if (offset!=null) {
+                    if( BasicGraphicsUtils.isLeftToRight(toolBar) ) {
+                        setOffset(new Point(offset.y, offset.x));
+                    } else if( o == JToolBar.HORIZONTAL ) {
+                        setOffset(new Point( size.height-offset.y, offset.x));
+                    } else {
+                        setOffset(new Point(offset.y, size.width-offset.x));
+                    }
+                }
 		repaint();
 	    }
 	}

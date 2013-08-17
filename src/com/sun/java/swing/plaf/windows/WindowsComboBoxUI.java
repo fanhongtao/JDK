@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsComboBoxUI.java	1.17 98/08/28
+ * @(#)WindowsComboBoxUI.java	1.18 98/10/30
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -32,11 +32,12 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.17 08/28/98
+ * @version 1.18 10/30/98
  * @author Tom Santos
  */
 
 public class WindowsComboBoxUI extends BasicComboBoxUI {
+    private static final JTextField sizer = new JTextField();
 
     public static ComponentUI createUI(JComponent c) {
         return new WindowsComboBoxUI();
@@ -46,9 +47,30 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
         super.installUI( c );
         comboBox.setRequestFocusEnabled( true );
     }
+    
+    public Dimension getMinimumSize( JComponent c ) {
+        if ( !isMinimumSizeDirty ) {
+            return new Dimension( cachedMinimumSize );
+        }
+        
+        Dimension size = getDisplaySize();
+        Insets insets = getInsets();
+        
+        if ( comboBox.getRenderer() instanceof UIResource ) {
+            sizer.setFont( comboBox.getFont() );
+            size.height = sizer.getPreferredSize().height;
+        }
+        else {
+            size.height += insets.top + insets.bottom;
+        }
+        
+        int buttonSize = size.height - (insets.top + insets.bottom);
+        size.width +=  insets.left + insets.right + buttonSize;
 
-    public void paint(Graphics g, JComponent c) {
-        super.paint( g, c );
+        cachedMinimumSize.setSize( size.width, size.height ); 
+        isMinimumSizeDirty = false;
+
+        return size;
     }
 
     protected void selectNextPossibleValue() {
@@ -58,7 +80,7 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
     protected void selectPreviousPossibleValue() {
         super.selectPreviousPossibleValue();
     } 
-  
+
     JComboBox windowsGetComboBox() {
         return comboBox;
     }
@@ -66,37 +88,35 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
     protected void installKeyboardActions() {
         super.installKeyboardActions();
 
-        AbstractAction downAction = new AbstractAction() {
+        ActionListener downAction = new ActionListener() {
             public void actionPerformed( ActionEvent e ) {
-                if ( !windowsGetComboBox().isEditable() ||
-                     (windowsGetComboBox().isEditable() && isPopupVisible(windowsGetComboBox())) ) {
-                    selectNextPossibleValue();
+                if ( windowsGetComboBox().isEnabled() ) {
+                    if ( !windowsGetComboBox().isEditable() ||
+                         (windowsGetComboBox().isEditable() && isPopupVisible(windowsGetComboBox())) ) {
+                        selectNextPossibleValue();
+                    }
                 }
-            }
-            public boolean isEnabled() {
-                return windowsGetComboBox().isEnabled();
             }
         };
 
         comboBox.registerKeyboardAction( downAction,
-					 KeyStroke.getKeyStroke( KeyEvent.VK_DOWN, 0 ),
-					 JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+                                         KeyStroke.getKeyStroke( KeyEvent.VK_DOWN, 0 ),
+                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
-        AbstractAction upAction = new AbstractAction() {
+        ActionListener upAction = new ActionListener() {
             public void actionPerformed( ActionEvent e ) {
-                if ( !windowsGetComboBox().isEditable() ||
-                     (windowsGetComboBox().isEditable() && isPopupVisible(windowsGetComboBox())) ) {
-                    selectPreviousPossibleValue();
+                if ( windowsGetComboBox().isEnabled() ) {
+                    if ( !windowsGetComboBox().isEditable() ||
+                         (windowsGetComboBox().isEditable() && isPopupVisible(windowsGetComboBox())) ) {
+                        selectPreviousPossibleValue();
+                    }
                 }
             }
-            public boolean  isEnabled() {
-                return windowsGetComboBox().isEnabled();
-            }        
         };
 
         comboBox.registerKeyboardAction( upAction,
-					 KeyStroke.getKeyStroke( KeyEvent.VK_UP, 0 ),
-					 JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+                                         KeyStroke.getKeyStroke( KeyEvent.VK_UP, 0 ),
+                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
 
     void windowsSetPopupVisible( boolean visible ) {
@@ -117,7 +137,7 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
      * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of <FooUI>.
-     */    	     
+     */          
     public class WindowsComboPopup extends BasicComboPopup {
         // This is here because the compiler isn't currently letting this
         // inner class have access to its parent's inherited data members.
@@ -133,13 +153,21 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
         }
 
         /**
-	 * This inner class is marked &quot;public&quot; due to a compiler bug.
-	 * This class should be treated as a &quot;protected&quot; inner class.
-	 * Instantiate it only within subclasses of <FooUI>.
-	 */    	     
+         * This inner class is marked &quot;public&quot; due to a compiler bug.
+         * This class should be treated as a &quot;protected&quot; inner class.
+         * Instantiate it only within subclasses of <FooUI>.
+         */          
         public class InvocationKeyHandler extends BasicComboPopup.InvocationKeyHandler {
             public void keyReleased( KeyEvent e ) {
-                if ( e.isAltDown() && e.getKeyCode() != KeyEvent.VK_ALT ) {
+                if ( e.getKeyCode() == KeyEvent.VK_F4 ) {
+                    if ( isVisible() ) {
+                        hide();
+                    }
+                    else {
+                        show();
+                    }
+                }
+                else if ( e.isAltDown() && e.getKeyCode() != KeyEvent.VK_ALT ) {
                     if ( e.getKeyCode() == KeyEvent.VK_UP ||
                          e.getKeyCode() == KeyEvent.VK_DOWN ) {
                         if ( isVisible() ) {
@@ -156,9 +184,9 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
                            e.getKeyCode() == KeyEvent.VK_DOWN) ) {
                     show();
                 }
-		else if ( !comboBox.isEditable() && isVisible() ) {
-		    super.keyReleased( e );
-		}
+                else if ( !comboBox.isEditable() && isVisible() ) {
+                    super.keyReleased( e );
+                }
             }
         }
     }

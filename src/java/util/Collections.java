@@ -1,10 +1,10 @@
 /*
- * @(#)Collections.java	1.32 98/11/05
+ * @(#)Collections.java	1.34 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -30,7 +30,7 @@ import java.io.Serializable;
  * a mergesort, but it does have to be <i>stable</i>.)
  *
  * @author  Josh Bloch
- * @version 1.32 11/05/98
+ * @version 1.34 04/22/99
  * @see	    Collection
  * @see	    Set
  * @see	    List
@@ -1495,7 +1495,9 @@ public class Collections {
     /**
      * The empty set (immutable).  This set is serializable.
      */
-    public static final Set EMPTY_SET = new AbstractSet() {
+    public static final Set EMPTY_SET = new EmptySet();
+
+    private static class EmptySet extends AbstractSet implements Serializable {
         public Iterator iterator() {
             return new Iterator() {
                 public boolean hasNext() {
@@ -1513,12 +1515,15 @@ public class Collections {
         public int size() {return 0;}
 
         public boolean contains(Object obj) {return false;}
-    };
+    }
 
     /**
      * The empty list (immutable).  This list is serializable.
      */
-    public static final List EMPTY_LIST = new AbstractList() {
+    public static final List EMPTY_LIST = new EmptyList();
+
+    private static class EmptyList extends AbstractList
+                                   implements Serializable {
         public int size() {return 0;}
 
         public boolean contains(Object obj) {return false;}
@@ -1526,7 +1531,7 @@ public class Collections {
         public Object get(int index) {
             throw new IndexOutOfBoundsException("Index: "+index);
         }
-    };
+    }
 
     /**
      * Returns an immutable set containing only the specified object.
@@ -1534,31 +1539,39 @@ public class Collections {
      *
      * @return an immutable set containing only the specified object.
      */
-    public static Set singleton(final Object o) {
-	return new AbstractSet() {
-            public Iterator iterator() {
-                return new Iterator() {
-                    private boolean hasNext = true;
-                    public boolean hasNext() {
-                        return hasNext;
-                    }
-                    public Object next() {
-                        if (hasNext) {
-                            hasNext = false;
-                            return o;
-                        }
-                        throw new NoSuchElementException();
-                    }
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-                };
-            }
+    public static Set singleton(Object o) {
+	return new SingletonSet(o);
+    }
 
-	    public int size() {return 1;}
+    private static class SingletonSet extends AbstractSet
+                                      implements Serializable
+    {
+        private Object element;
 
-	    public boolean contains(Object obj) {return eq(obj, o);}
-        };
+        SingletonSet(Object o) {element = o;}
+
+        public Iterator iterator() {
+            return new Iterator() {
+                private boolean hasNext = true;
+                public boolean hasNext() {
+                    return hasNext;
+                }
+                public Object next() {
+                    if (hasNext) {
+                        hasNext = false;
+                        return element;
+                    }
+                    throw new NoSuchElementException();
+                }
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
+
+        public int size() {return 1;}
+
+        public boolean contains(Object o) {return eq(o, element);}
     }
 
     /**
@@ -1576,26 +1589,37 @@ public class Collections {
      * @see    List#addAll(Collection)
      * @see    List#addAll(int, Collection)
      */
-    public static List nCopies(final int n, final Object o) {
-	if (n < 0)
-	    throw new IllegalArgumentException("List length = " + n);
+    public static List nCopies(int n, Object o) {
+        return new CopiesList(n, o);
+    }
 
-	return new AbstractList() {
-	    public int size() {
-		return n;
-	    }
+    private static class CopiesList extends AbstractList
+                                    implements Serializable
+    {
+        int n;
+        Object element;
 
-	    public boolean contains(Object obj) {
-		return n != 0 && eq(obj, o);
-	    }
+        CopiesList(int n, Object o) {
+            if (n < 0)
+                throw new IllegalArgumentException("List length = " + n);
+            this.n = n;
+            element = o;
+        }
 
-	    public Object get(int index) {
-		if (index<0 || index>=n)
-		    throw new IndexOutOfBoundsException("Index: "+index+
-							", Size: "+n);
-		return o;
-	    }
-        };
+        public int size() {
+            return n;
+        }
+
+        public boolean contains(Object obj) {
+            return n != 0 && eq(obj, element);
+        }
+
+        public Object get(int index) {
+            if (index<0 || index>=n)
+                throw new IndexOutOfBoundsException("Index: "+index+
+                                                    ", Size: "+n);
+            return element;
+        }
     }
 
     /**

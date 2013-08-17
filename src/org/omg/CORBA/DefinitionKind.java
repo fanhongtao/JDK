@@ -1,7 +1,7 @@
 /*
- * @(#)DefinitionKind.java	1.12 98/10/11
+ * @(#)DefinitionKind.java	1.15 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -11,6 +11,7 @@
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
  */
+
 /*
  * File: ./org/omg/CORBA/DefinitionKind.java
  * From: ./ir.idl
@@ -19,6 +20,12 @@
  */
 
 package org.omg.CORBA;
+
+/**
+* This class defines the constants used to identify the type of an Interface Repository object.
+* @see IRObject
+*/
+
 public class DefinitionKind implements org.omg.CORBA.portable.IDLEntity {
      public static final int _dk_none = 0,
 	  		     _dk_all = 1,
@@ -45,6 +52,9 @@ public class DefinitionKind implements org.omg.CORBA.portable.IDLEntity {
 	  		     _dk_ValueMember = 22,
                              _dk_Native = 23;
      public static final DefinitionKind dk_none = new DefinitionKind(_dk_none);
+     /** The wildcard definition kind, useful in all occasions where any
+     * <code>DefinitionKind</code> is appropriate. The Containers contents method
+     * makes use of this to return all contained definitions of any kind.*/
      public static final DefinitionKind dk_all = new DefinitionKind(_dk_all);
      public static final DefinitionKind dk_Attribute = new DefinitionKind(_dk_Attribute);
      public static final DefinitionKind dk_Constant = new DefinitionKind(_dk_Constant);
@@ -68,9 +78,17 @@ public class DefinitionKind implements org.omg.CORBA.portable.IDLEntity {
      public static final DefinitionKind dk_ValueBox = new DefinitionKind(_dk_ValueBox);
      public static final DefinitionKind dk_ValueMember = new DefinitionKind(_dk_ValueMember);
      public static final DefinitionKind dk_Native = new DefinitionKind(_dk_Native);
+     /**
+     * Returns the code identifying the type of an IR object.
+     * @return the code of this DefinitionKind.
+     */
      public int value() {
          return _value;
      }
+     /**
+     * Returns the DefinitionKind corresponding to the given code.
+     * @param i the code of a DefinitionKind.
+     */
      public static DefinitionKind from_int(int i)  throws  org.omg.CORBA.BAD_PARAM {
            switch (i) {
              case _dk_none:
@@ -128,9 +146,8 @@ public class DefinitionKind implements org.omg.CORBA.portable.IDLEntity {
      protected DefinitionKind(int _value){
          this._value = _value;
      }
-
-/**
- * @serial
- */
+     /**
+      * @serial
+      */
      private int _value;
 }

@@ -1,10 +1,10 @@
 /*
- * @(#)Arc2D.java	1.14 98/10/19
+ * @(#)Arc2D.java	1.17 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -604,7 +604,7 @@ public abstract class Arc2D extends RectangularShape {
      * x,y coordinates of the starting point of the arc.
      */
     public Point2D getStartPoint() {
-	double angle = Math.toRadians(getAngleStart());
+	double angle = Math.toRadians(-getAngleStart());
 	double x = getX() + (Math.cos(angle) * 0.5 + 0.5) * getWidth();
 	double y = getY() + (Math.sin(angle) * 0.5 + 0.5) * getHeight();
 	return new Point2D.Double(x, y);
@@ -620,7 +620,7 @@ public abstract class Arc2D extends RectangularShape {
      * x,y coordinates  of the ending point of the arc.
      */
     public Point2D getEndPoint() {
-	double angle = Math.toRadians(getAngleStart() + getAngleExtent());
+	double angle = Math.toRadians(-getAngleStart() - getAngleExtent());
 	double x = getX() + (Math.cos(angle) * 0.5 + 0.5) * getWidth();
 	double y = getY() + (Math.sin(angle) * 0.5 + 0.5) * getHeight();
 	return new Point2D.Double(x, y);
@@ -751,13 +751,23 @@ public abstract class Arc2D extends RectangularShape {
 	double dist = radius / Math.sin(theta);
 	double x = p2.getX() + dist * Math.cos(bisect);
 	double y = p2.getY() + dist * Math.sin(bisect);
-	theta += Math.PI / 2.0;
-	if (diff < 0.0) {
-	    theta = -theta;
+	// REMIND: This needs some work...
+	if (ang1 < ang2) {
+	    ang1 -= Math.PI / 2.0;
+	    ang2 += Math.PI / 2.0;
+	} else {
+	    ang1 += Math.PI / 2.0;
+	    ang2 -= Math.PI / 2.0;
 	}
-	ang1 = Math.toDegrees(bisect + theta);
-	ang2 = Math.toDegrees(bisect - theta);
-	setArcByCenter(x, y, radius, ang1, ang2 - ang1, type);
+	ang1 = Math.toDegrees(-ang1);
+	ang2 = Math.toDegrees(-ang2);
+	diff = ang2 - ang1;
+	if (diff < 0) {
+	    diff += 360;
+	} else {
+	    diff -= 360;
+	}
+	setArcByCenter(x, y, radius, ang1, diff, type);
     }
 
     /**
@@ -784,8 +794,8 @@ public abstract class Arc2D extends RectangularShape {
      * @param p The <CODE>Point2D</CODE> that defines the starting angle.
      */
     public void setAngleStart(Point2D p) {
-	setAngleStart(Math.toDegrees(Math.atan2(p.getY() - getCenterY(),
-						p.getX() - getCenterX())));
+	setAngleStart(-Math.toDegrees(Math.atan2(p.getY() - getCenterY(),
+						 p.getX() - getCenterX())));
     }
 
     /**
@@ -803,8 +813,10 @@ public abstract class Arc2D extends RectangularShape {
     public void setAngles(double x1, double y1, double x2, double y2) {
 	double x = getCenterX();
 	double y = getCenterY();
-	double ang1 = Math.atan2(y1 - y, x1 - x);
-	double ang2 = Math.atan2(y2 - y, x2 - x);
+	// Note: reversing the Y equations negates the angle to adjust
+	// for the upside down coordinate system.
+	double ang1 = Math.atan2(y - y1, x1 - x);
+	double ang2 = Math.atan2(y - y2, x2 - x);
 	ang2 -= ang1;
 	if (ang2 <= 0.0) {
 	    ang2 += Math.PI * 2.0;
@@ -865,9 +877,18 @@ public abstract class Arc2D extends RectangularShape {
     }
 
     /**
-     * Returns the high-precision bounding box of the arc.
+     * Returns the high-precision bounding box of the arc.  The bounding  
+     * box contains only the part of this <code>Arc2D</code> that is 
+     * in between the starting and ending angles and contains the pie
+     * wedge, if this <code>Arc2D</code> has a <code>PIE</code> closure type.
+     * <p>
+     * This method differs from the 
+     * {@link RectangularShape#getBounds() getBounds} in that the 
+     * <code>getBounds</code> method only returns the bounds of the 
+     * enclosing ellipse of this <code>Arc2D</code> without considering
+     * the starting and ending angles of this <code>Arc2D</code>.
      * 
-     * return The <CODE>Rectangle2D</CODE> that represents the arc's 
+     * @return the <CODE>Rectangle2D</CODE> that represents the arc's 
      * bounding box.
      */
     public Rectangle2D getBounds2D() {
@@ -896,7 +917,7 @@ public abstract class Arc2D extends RectangularShape {
 		// 5 is end angle
 		angle += getAngleExtent();
 	    }
-	    double rads = Math.toRadians(angle);
+	    double rads = Math.toRadians(-angle);
 	    double xe = Math.cos(rads);
 	    double ye = Math.sin(rads);
 	    x1 = Math.min(x1, xe);
@@ -932,11 +953,26 @@ public abstract class Arc2D extends RectangularShape {
      * Normalizes the specified angle into the range -180 to 180.
      */
     static double normalizeDegrees(double angle) {
-	if (angle > 180.0 || angle <= -180.0) {
-	    angle = Math.toRadians(angle);
-	    double x = Math.cos(angle);
-	    double y = Math.sin(angle);
-	    angle = Math.toDegrees(Math.atan2(y, x));
+	if (angle > 180.0) {
+	    if (angle <= (180.0 + 360.0)) {
+		angle = angle - 360.0;
+	    } else {
+		angle = Math.IEEEremainder(angle, 360.0);
+		// IEEEremainder can return -180 here for some input values...
+		if (angle == -180.0) {
+		    angle = 180.0;
+		}
+	    }
+	} else if (angle <= -180.0) {
+	    if (angle > (-180.0 - 360.0)) {
+		angle = angle + 360.0;
+	    } else {
+		angle = Math.IEEEremainder(angle, 360.0);
+		// IEEEremainder can return -180 here for some input values...
+		if (angle == -180.0) {
+		    angle = 180.0;
+		}
+	    }
 	}
 	return angle;
     }
@@ -1003,7 +1039,8 @@ public abstract class Arc2D extends RectangularShape {
 	if (angExt >= 360.0) {
 	    return true;
 	}
-	boolean inarc = containsAngle(Math.toDegrees(Math.atan2(normy, normx)));
+	boolean inarc = containsAngle(-Math.toDegrees(Math.atan2(normy,
+								 normx)));
 	if (type == PIE) {
 	    return inarc;
 	}
@@ -1021,10 +1058,10 @@ public abstract class Arc2D extends RectangularShape {
 	}
 	// The point is inside the pie triangle iff it is on the same
 	// side of the line connecting the ends of the arc as the center.
-	double angle = Math.toRadians(getAngleStart());
+	double angle = Math.toRadians(-getAngleStart());
 	double x1 = Math.cos(angle);
 	double y1 = Math.sin(angle);
-	angle += Math.toRadians(getAngleExtent());
+	angle += Math.toRadians(-getAngleExtent());
 	double x2 = Math.cos(angle);
 	double y2 = Math.sin(angle);
 	boolean inside = (Line2D.relativeCCW(x1, y1, x2, y2, x, y) *
@@ -1047,6 +1084,9 @@ public abstract class Arc2D extends RectangularShape {
 
   public boolean intersects(double x, double y, double w, double h) {
 
+      /*
+       * REMIND: Verify correct handling of "upside down angles".
+       */
       /*
         Change around so that is really works this time
         We check each of the four line segments for intersection with an
@@ -1292,7 +1332,7 @@ public abstract class Arc2D extends RectangularShape {
 	// For a PIE shape we have an additional test for the case where
 	// the angular extents are greater than 180 degrees and all four
 	// rectangular corners are inside the shape but one of the
-	// rectangles edges spans across the "missing wedge" of the arc.
+	// rectangle edges spans across the "missing wedge" of the arc.
 	// We can test for this case by checking if the rectangle intersects
 	// either of the pie angle segments.
 	if (origrect == null) {
@@ -1302,13 +1342,13 @@ public abstract class Arc2D extends RectangularShape {
 	double halfH = getHeight() / 2.0;
 	double xc = getX() + halfW;
 	double yc = getY() + halfH;
-	double angle = Math.toRadians(getAngleStart());
+	double angle = Math.toRadians(-getAngleStart());
 	double xe = xc + halfW * Math.cos(angle);
 	double ye = yc + halfH * Math.sin(angle);
 	if (origrect.intersectsLine(xc, yc, xe, ye)) {
 	    return false;
 	}
-	angle += Math.toRadians(getAngleExtent());
+	angle += Math.toRadians(-getAngleExtent());
 	xe = xc + halfW * Math.cos(angle);
 	ye = yc + halfH * Math.sin(angle);
 	return !origrect.intersectsLine(xc, yc, xe, ye);

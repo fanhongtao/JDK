@@ -1,5 +1,5 @@
 /*
- * @(#)Option.java	1.4 98/09/21
+ * @(#)Option.java	1.5 98/11/19
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -24,7 +24,7 @@ import javax.swing.text.*;
  * used to represent the &lt;select&gt; element.
  *
  * @author  Timothy Prinzing
- * @version 1.4 09/21/98
+ * @version 1.5 11/19/98
  */
 public class Option  {
 
@@ -37,7 +37,7 @@ public class Option  {
      */
     public Option(AttributeSet attr) {
 	this.attr = attr.copyAttributes();
-	selected = ((String)attr.getAttribute(HTML.Attribute.SELECTED) != null);
+	selected = (attr.getAttribute(HTML.Attribute.SELECTED) != null);
     }
 
     /**

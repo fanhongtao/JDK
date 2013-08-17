@@ -1,10 +1,10 @@
 /*
- * @(#)Policy.java	1.2 98/06/29
+ * @(#)Policy.java	1.5 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -24,17 +24,22 @@ package org.omg.CORBA;
 
 public interface Policy extends org.omg.CORBA.Object
 {
-    /** This readonly attribute returns the constant value
-     *  that corresponds to the type of the Policy object.
-     */
+    /** Returns the constant value that corresponds
+    * to the type of the policy object. The values of PolicyTypes are allocated by OMG.
+    * New values for PolicyType should be obtained from OMG by sending mail
+    * to request@omg.org. In general the constant values that are allocated
+    * are defined in conjunction with the definition of the corresponding Policy object.
+    * @return the constant value that corresponds to the type of the policy object
+    */
     public int policy_type();
 
-    /** This operation copies the policy object. The copy does not retain
-     *  any relationships that the policy had with any domain, or object.
-     */
+    /** Copies this policy object. The copy does not retain
+    *  any relationships that the policy had with any domain, or object.
+    * @return the copy of the policy object
+    */
     public org.omg.CORBA.Policy copy();
 
-    /** This operation destroys the policy object. It is the responsibility
+    /** Destroys this policy object. It is the responsibility
      *  of the policy object to determine whether it can be destroyed.
      */
     public void destroy();

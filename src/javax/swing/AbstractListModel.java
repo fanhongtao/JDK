@@ -1,5 +1,5 @@
 /*
- * @(#)AbstractListModel.java	1.18 98/08/28
+ * @(#)AbstractListModel.java	1.19 98/10/27
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -28,7 +28,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.18 08/28/98
+ * @version 1.19 10/27/98
  * @author Hans Muller
  */
 public abstract class AbstractListModel implements ListModel, Serializable
@@ -77,7 +77,7 @@ public abstract class AbstractListModel implements ListModel, Serializable
 	for (int i = listeners.length - 2; i >= 0; i -= 2) {
 	    if (listeners[i] == ListDataListener.class) {
 		if (e == null) {
-		    e = new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, index0, index1);
+		    e = new ListDataEvent(source, ListDataEvent.CONTENTS_CHANGED, index0, index1);
 		}
 		((ListDataListener)listeners[i+1]).contentsChanged(e);
 	    }	       
@@ -106,7 +106,7 @@ public abstract class AbstractListModel implements ListModel, Serializable
 	for (int i = listeners.length - 2; i >= 0; i -= 2) {
 	    if (listeners[i] == ListDataListener.class) {
 		if (e == null) {
-		    e = new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, index0, index1);
+		    e = new ListDataEvent(source, ListDataEvent.INTERVAL_ADDED, index0, index1);
 		}
 		((ListDataListener)listeners[i+1]).intervalAdded(e);
 	    }	       
@@ -135,7 +135,7 @@ public abstract class AbstractListModel implements ListModel, Serializable
 	for (int i = listeners.length - 2; i >= 0; i -= 2) {
 	    if (listeners[i] == ListDataListener.class) {
 		if (e == null) {
-		    e = new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, index0, index1);
+		    e = new ListDataEvent(source, ListDataEvent.INTERVAL_REMOVED, index0, index1);
 		}
 		((ListDataListener)listeners[i+1]).intervalRemoved(e);
 	    }	       

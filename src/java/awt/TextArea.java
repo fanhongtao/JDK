@@ -1,10 +1,10 @@
 /*
- * @(#)TextArea.java	1.50 98/08/13
+ * @(#)TextArea.java	1.52 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -14,6 +14,9 @@
 package java.awt;
 
 import java.awt.peer.TextAreaPeer;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.io.IOException;
 
 /**
  * A <code>TextArea</code> object is a multi-line region
@@ -31,7 +34,7 @@ import java.awt.peer.TextAreaPeer;
  * new TextArea("Hello", 5, 40);
  * </pre></blockquote><hr>
  * <p>
- * @version	1.50, 08/13/98
+ * @version	1.52, 04/22/99
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -39,9 +42,8 @@ public class TextArea extends TextComponent {
 
     /**
      * The number of rows in the TextArea.
-     * The number of Rows will determine the text area's
-     * height and the number of rows is not limited.
-     * Should be non negative.
+     * This parameter will determine the text area's height.  
+     * Guaranteed to be non-negative.  
      *
      * @serial
      * @see getRows()
@@ -51,9 +53,10 @@ public class TextArea extends TextComponent {
 
     /**
      * The number of columns in the TextArea.
-     * The number of columns will determine the text area's
-     * width and the number of columns is not limited.
-     * Should be non negative.
+     * A column is an approximate average character
+     * width that is platform-dependent.
+     * This parameter will determine the text area's width.  
+     * Guaranteed to be non-negative.  
      *
      * @serial
      * @see getColumns()
@@ -119,8 +122,9 @@ public class TextArea extends TextComponent {
 
     /**
      * Constructs a new text area.
-     * This text area is created with both vertical and
-     * horizontal scroll bars.
+     * This text area is created with scrollbar visibility equal to 
+     * {@link #SCROLLBARS_BOTH}, so both vertical and horizontal 
+     * scrollbars will be visible for this text area.
      */
     public TextArea() {
 	this("", 0, 0, SCROLLBARS_BOTH);
@@ -128,8 +132,9 @@ public class TextArea extends TextComponent {
 
     /**
      * Constructs a new text area with the specified text.
-     * This text area is created with both vertical and
-     * horizontal scroll bars.
+     * This text area is created with scrollbar visibility equal to 
+     * {@link #SCROLLBARS_BOTH}, so both vertical and horizontal 
+     * scrollbars will be visible for this text area.
      * @param     text the text to be displayed.
      */
     public TextArea(String text) {
@@ -138,8 +143,9 @@ public class TextArea extends TextComponent {
 
     /**
      * Constructs a new empty text area with the specified number of
-     * rows and columns. The text area is created with scrollbar 
-     * visibility equal to {@link #SCROLLBARS_BOTH}, so both 
+     * rows and columns.  A column is an approximate average character
+     * width that is platform-dependent.  The text area is created with 
+     * scrollbar visibility equal to {@link #SCROLLBARS_BOTH}, so both 
      * vertical and horizontal scrollbars will be visible for this 
      * text area.
      * @param rows the number of rows
@@ -152,8 +158,11 @@ public class TextArea extends TextComponent {
     /**
      * Constructs a new text area with the specified text,
      * and with the specified number of rows and columns.
-     * This text area is created with both vertical and
-     * horizontal scroll bars.
+     * A column is an approximate average character
+     * width that is platform-dependent.  The text area is created with 
+     * scrollbar visibility equal to {@link #SCROLLBARS_BOTH}, so both 
+     * vertical and horizontal scrollbars will be visible for this 
+     * text area.
      * @param     text      the text to be displayed.
      * @param     rows      the number of rows.
      * @param     columns   the number of columns.
@@ -177,21 +186,30 @@ public class TextArea extends TextComponent {
      * <code>scrollbars</code> argument is invalid and will result in 
      * this text area being created with scrollbar visibility equal to 
      * the default value of {@link #SCROLLBARS_BOTH}.
-     * @param     text the text to be displayed.
-     * @param     rows the number of rows.
-     * @param     columns the number of columns.
-     * @param     scrollbars a constant that determines what
-     *                scrollbars are created to view the text area.
-     * @since     JDK1.1
+     * @param      text       the text to be displayed. If
+     *             <code>text</code> is <code>null</code>, the empty
+     *             string <code>""</code> will be displayed.
+     * @param      rows       the number of rows.  If
+     *             <code>rows</code> is less than <code>0</code>,
+     *             <code>rows</code> is set to <code>0</code>.
+     * @param      columns    the number of columns.  If
+     *             <code>columns</code> is less than <code>0</code>,
+     *             <code>columns</code> is set to <code>0</code>.
+     * @param      scrollbars  a constant that determines what
+     *             scrollbars are created to view the text area.
+     * @since      JDK1.1
      */
     public TextArea(String text, int rows, int columns, int scrollbars) {
 	super(text);
-	this.rows = rows;
-	this.columns = columns;
-        if ((scrollbars >= SCROLLBARS_BOTH) && (scrollbars <= SCROLLBARS_NONE)) 
+
+        this.rows = (rows >= 0) ? rows : 0;
+        this.columns = (columns >= 0) ? columns : 0;
+
+        if ((scrollbars >= SCROLLBARS_BOTH) && (scrollbars <= SCROLLBARS_NONE)) {
        	    this.scrollbarVisibility = scrollbars;
-        else 
+        } else {
             this.scrollbarVisibility = SCROLLBARS_BOTH;
+        }
     }
 
     /**
@@ -307,8 +325,9 @@ public class TextArea extends TextComponent {
      * @param       rows   the number of rows.
      * @see         java.awt.TextArea#getRows
      * @see         java.awt.TextArea#setColumns
-     * @exception   IllegalArgumentException if the value supplied
-     *                  for <code>rows</code> is less than zero.
+     * @exception   IllegalArgumentException   if the value
+     *                 supplied for <code>rows</code>
+     *                 is less than <code>0</code>.
      * @since       JDK1.1
      */
     public void setRows(int rows) {
@@ -337,8 +356,9 @@ public class TextArea extends TextComponent {
      * @param       columns   the number of columns.
      * @see         java.awt.TextArea#getColumns
      * @see         java.awt.TextArea#setRows
-     * @exception   IllegalArgumentException if the value supplied
-     *                  for <code>columns</code> is less than zero.
+     * @exception   IllegalArgumentException   if the value
+     *                 supplied for <code>columns</code>
+     *                 is less than <code>0</code>.
      * @since       JDK1.1
      */
     public void setColumns(int columns) {
@@ -502,4 +522,40 @@ public class TextArea extends TextComponent {
 	  ", scrollbarVisibility=" + sbVisStr;
     }
 
+
+    /*
+     * Serialization support.
+     */
+    /**
+     * The textArea Serialized Data Version.
+     *
+     * @serial
+     */
+    private int textAreaSerializedDataVersion = 1;
+
+
+    /**
+     * Read the ObjectInputStream.  
+     */
+    private void readObject(ObjectInputStream s)
+      throws ClassNotFoundException, IOException
+    {
+        s.defaultReadObject();
+
+        // Make sure the state we just read in for columns, rows, 
+        // and scrollbarVisibility has legal values
+        if (columns < 0) {
+            columns = 0;
+        }
+        if (rows < 0) {
+            rows = 0;
+        }
+
+        if ((scrollbarVisibility < SCROLLBARS_BOTH) || 
+            (scrollbarVisibility > SCROLLBARS_NONE)) {
+            this.scrollbarVisibility = SCROLLBARS_BOTH;
+        }
+    }
+
 }
+

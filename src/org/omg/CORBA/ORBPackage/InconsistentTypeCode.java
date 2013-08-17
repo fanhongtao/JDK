@@ -1,10 +1,10 @@
 /*
- * @(#)InconsistentTypeCode.java	1.5 98/10/11
+ * @(#)InconsistentTypeCode.java	1.8 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -22,11 +22,19 @@ package org.omg.CORBA.ORBPackage;
  */
 public final class InconsistentTypeCode
 	extends org.omg.CORBA.UserException {
-    //	constructor
+    /**
+    * Constructs an <code>InconsistentTypeCode</code> user exception
+    * with no reason message.
+    */
     public InconsistentTypeCode() {
 	super();
     }
 
+    /**
+    * Constructs an <code>InconsistentTypeCode</code> user exception
+    * with the specified reason message.
+    * @param reason The String containing a reason message
+    */
     public InconsistentTypeCode(String reason) {
 	super(reason);
     }

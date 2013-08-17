@@ -1,10 +1,10 @@
 /*
- * @(#)BasicTableUI.java	1.71 98/08/26
+ * @(#)BasicTableUI.java	1.83 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -29,9 +29,8 @@ import javax.swing.text.*;
 /**
  * BasicTableUI implementation
  *
- * @version 1.71 08/26/98
+ * @version 1.83 04/22/99
  * @author Philip Milne
- * @author Alan Chung
  */
 public class BasicTableUI extends TableUI
 {
@@ -47,78 +46,102 @@ public class BasicTableUI extends TableUI
     // Listeners that are attached to the JTable
     protected KeyListener keyListener;
     protected FocusListener focusListener;
-    protected MouseInputListener mouseInputListener;  
+    protected MouseInputListener mouseInputListener; 
+	
+    private Hashtable registeredKeyStrokes = new Hashtable(); 
 
 //
 //  Helper class for keyboard actions
 //
 
-    private class NavigationalAction extends AbstractAction {
-        private int dx;
-        private int dy;
-	private boolean toggle; 
-	private boolean extend; 
-	private boolean moveAnchor; 
-	private boolean inSelection; 
+    private static class NavigationalAction implements ActionListener {
+        protected int dx;
+        protected int dy;
+	protected boolean toggle; 
+	protected boolean extend; 
+	protected boolean inSelection; 
 
-	private int anchorRow; 
-	private int anchorColumn; 
-	private int leadRow; 
-	private int leadColumn; 
+	protected int anchorRow; 
+	protected int anchorColumn; 
+	protected int leadRow; 
+	protected int leadColumn; 
 
-        private NavigationalAction(int dx, int dy, boolean toggle, boolean extend, 
-				  boolean moveAnchor, boolean inSelection) {
+        protected NavigationalAction(int dx, int dy, boolean toggle, boolean extend, 
+				  boolean inSelection) {
             this.dx = dx;
             this.dy = dy; 
 	    this.toggle = toggle; 
 	    this.extend = extend; 
-	    this.moveAnchor = moveAnchor; 
 	    this.inSelection = inSelection; 
         }
 
-        private boolean inRange(int index, int min, int max) { 
-	    return index >= min && index < max; 
-	} 
+	private int clipToRange(int i, int a, int b) { 
+	    return Math.min(Math.max(i, a), b-1);
+	}
+
+	private void moveWithinTableRange(JTable table, int dx, int dy, boolean changeLead) { 
+	    if (changeLead) { 
+		leadRow = clipToRange(leadRow+dy, 0, table.getRowCount()); 
+		leadColumn = clipToRange(leadColumn+dx, 0, table.getColumnCount()); 
+	    }
+	    else { 
+		anchorRow = clipToRange(anchorRow+dy, 0, table.getRowCount()); 
+		anchorColumn = clipToRange(anchorColumn+dx, 0, table.getColumnCount()); 
+	    }
+	}
 
 	private int selectionSpan(ListSelectionModel sm) { 
 	    return sm.getMaxSelectionIndex() - sm.getMinSelectionIndex() + 1;
 	}
 
-	private int indexSign(int index, ListSelectionModel sm) { 
-	    if (index < sm.getMinSelectionIndex()) {
-		return -1; 
-	    }
-	    if (index > sm.getMaxSelectionIndex()) {
-		return 1; 
-	    }
-	    return 0; 
+	private int compare(int i, ListSelectionModel sm) { 
+	    return compare(i, sm.getMinSelectionIndex(), sm.getMaxSelectionIndex()+1); 
 	}
 
-	private boolean inTableRange(int row, int col) {
-	    return (inRange(row, 0, table.getRowCount()) &&
-		    inRange(col, 0, table.getColumnCount())); 
+	private int compare(int i, int a, int b) { 
+	    return (i < a) ? -1 : (i >= b) ? 1 : 0 ; 
 	}
 
-	private void limitToSelectedRange(boolean ignoreCarry) {
+	private boolean moveWithinSelectedRange(JTable table, int dx, int dy, boolean ignoreCarry) {
 	    ListSelectionModel rsm = table.getSelectionModel(); 
 	    ListSelectionModel csm = table.getColumnModel().getSelectionModel(); 
 
-	    int rowSgn = indexSign(anchorRow, rsm); 
-	    int colSgn = indexSign(anchorColumn, csm); 
-	    anchorRow =    anchorRow - selectionSpan(rsm) * rowSgn;  
-	    anchorColumn = anchorColumn - selectionSpan(csm) * colSgn; 
-	    if (!ignoreCarry) {
-		anchorRow = anchorRow + colSgn; 
-		anchorColumn = anchorColumn + rowSgn; 
-		// Tabbing, for example from bottom right, should take us 
-		// to top left ie. we ignore carry here. 
-		limitToSelectedRange(true); 
+	    int newAnchorRow =    anchorRow + dy;  
+	    int newAnchorColumn = anchorColumn + dx; 
+
+	    int rowSgn; 
+	    int colSgn; 
+	    int rowCount = selectionSpan(rsm); 
+	    int columnCount = selectionSpan(csm); 
+
+	    boolean canStayInSelection = (rowCount * columnCount > 1); 
+	    if (canStayInSelection) { 
+		rowSgn = compare(newAnchorRow, rsm); 
+		colSgn = compare(newAnchorColumn, csm); 
 	    }
+	    else { 
+		// If there is only one selected cell, there is no point 
+		// in trying to stay within the selected area. Move outside 
+		// the selection, wrapping at the table boundaries. 
+		rowCount = table.getRowCount(); 
+		columnCount = table.getColumnCount(); 
+		rowSgn = compare(newAnchorRow, 0, rowCount); 
+		colSgn = compare(newAnchorColumn, 0, columnCount); 
+
+	    }
+
+	    anchorRow    = newAnchorRow - rowCount * rowSgn;  
+	    anchorColumn = newAnchorColumn - columnCount * colSgn; 
+
+	    if (!ignoreCarry) {
+		return moveWithinSelectedRange(table, rowSgn, colSgn, true); 
+	    }
+	    return canStayInSelection; 
 	}
 
         public void actionPerformed(ActionEvent e) { 
-	    // PENDING(milne): Should consume event. 
-	    ListSelectionModel rsm = table.getSelectionModel(); 
+            JTable table = (JTable)e.getSource(); 
+            ListSelectionModel rsm = table.getSelectionModel(); 
 	    anchorRow =    rsm.getAnchorSelectionIndex(); 
             leadRow =      rsm.getLeadSelectionIndex(); 
 
@@ -129,41 +152,96 @@ public class BasicTableUI extends TableUI
 	    int oldAnchorRow = anchorRow; 
 	    int oldAnchorColumn = anchorColumn; 
 
-	    // If there is only one selected cell, there is no point 
-	    // in trying to stay within the selection - move the 
-	    // selection instead. 
-	    boolean noWhereToGo = (selectionSpan(rsm)*selectionSpan(csm) == 1);
-
-            if (!inSelection || noWhereToGo) {
-		if (moveAnchor) {
-		    anchorRow    = anchorRow + dy; 
-		    anchorColumn = anchorColumn + dx; 
-		    if (inTableRange(anchorRow, anchorColumn)) { 
-			updateSelection(anchorRow, anchorColumn, false, extend);
-		    }
+            if (!inSelection) { 
+		moveWithinTableRange(table, dx, dy, extend); 
+		if (!extend) {
+		    updateSelection(table, anchorRow, anchorColumn, false, extend);
 		}
 		else {
-		    leadRow    = leadRow + dy; 
-		    leadColumn = leadColumn + dx; 
-		    if (inTableRange(leadRow, leadColumn)) {
-			updateSelection(leadRow, leadColumn, false, extend);
-		    }
+		    updateSelection(table, leadRow, leadColumn, false, extend);
 		}
             }
 	    else {
-		anchorRow = anchorRow + dy; 
-		anchorColumn = anchorColumn + dx; 
-		limitToSelectedRange(false); 
-		rsm.setAnchorSelectionIndex(anchorRow); 
-		csm.setAnchorSelectionIndex(anchorColumn); 
+		if (moveWithinSelectedRange(table, dx, dy, false)) { 
+		    rsm.setAnchorSelectionIndex(anchorRow); 
+		    csm.setAnchorSelectionIndex(anchorColumn); 
+		} 
+		else {
+		    updateSelection(table, anchorRow, anchorColumn, false, false); 
+		}
 	    }
 
-
-	    if (table.isEditing() && 
-		(oldAnchorRow    != rsm.getAnchorSelectionIndex() || 
-		 oldAnchorColumn != csm.getAnchorSelectionIndex())) {
-		table.getCellEditor().stopCellEditing();
+            if (table.isEditing() && 
+                (oldAnchorRow    != rsm.getAnchorSelectionIndex() || 
+                 oldAnchorColumn != csm.getAnchorSelectionIndex())) {
+                table.getCellEditor().stopCellEditing();
             }
+        }
+    }
+
+    private static class PagingAction extends NavigationalAction { 
+
+	private boolean forwards; 
+	private boolean vertically; 
+	private boolean toLimit; 
+
+        private PagingAction(boolean extend, boolean forwards, 
+			     boolean vertically, boolean toLimit) { 
+            super(0, 0, false, extend, false); 
+	    this.forwards = forwards; 
+	    this.vertically = vertically; 
+	    this.toLimit = toLimit; 
+	}
+
+        public void actionPerformed(ActionEvent e) { 
+            JTable table = (JTable)e.getSource(); 
+	    if (toLimit) { 
+		if (vertically) { 
+		    int rowCount = table.getRowCount(); 
+		    this.dx = 0; 
+		    this.dy = forwards ? rowCount : -rowCount; 
+		}
+		else { 
+		    int colCount = table.getColumnCount(); 
+		    this.dx = forwards ? colCount : -colCount; 
+		    this.dy = 0; 
+		}
+	    }
+	    else { 
+		if (!(table.getParent().getParent() instanceof JScrollPane)) {
+		    return; 
+		}
+
+		Dimension delta = table.getParent().getSize(); 
+		ListSelectionModel sm = (vertically) 
+		    ? table.getSelectionModel() 
+		    : table.getColumnModel().getSelectionModel(); 		
+
+		int start = (extend) ? sm.getLeadSelectionIndex() 
+                                     : sm.getAnchorSelectionIndex(); 
+
+		if (vertically) { 
+		    Rectangle r = table.getCellRect(start, 0, true); 
+		    r.y += forwards ? delta.height : -delta.height; 
+		    this.dx = 0; 
+		    int newRow = table.rowAtPoint(r.getLocation()); 
+		    if (newRow == -1 && forwards) { 
+			newRow = table.getRowCount(); 
+		    }
+		    this.dy = newRow - start; 
+		}
+		else {
+		    Rectangle r = table.getCellRect(0, start, true); 	
+		    r.x += forwards ? delta.width : -delta.width;
+		    int newColumn = table.columnAtPoint(r.getLocation()); 
+		    if (newColumn == -1 && forwards) { 
+			newColumn = table.getColumnCount(); 
+		    }
+		    this.dx = newColumn - start; 
+		    this.dy = 0; 
+		}
+	    }
+	    super.actionPerformed(e); 
         }
     }
 
@@ -182,37 +260,53 @@ public class BasicTableUI extends TableUI
         public void keyReleased(KeyEvent e) { }
 
         public void keyTyped(KeyEvent e) { 
-	    if (e.getKeyChar() == '\t' || e.getKeyChar() == '\n' ) {
-		return; 
-	    }
+            KeyStroke keyStroke = KeyStroke.getKeyStroke(e.getKeyChar(), e.getModifiers());
 
-            int selectedRow = table.getSelectedRow();
-            int selectedColumn = table.getSelectedColumn();
-            if (selectedRow != -1 && selectedColumn != -1 && !table.isEditing()) {
-                boolean editing = table.editCellAt(selectedRow, selectedColumn);
-                table.requestFocus();
-                if (!editing) {
+            // We register all actions using ANCESTOR_OF_FOCUSSED_COMPONENT 
+            // which means that we might perform the appropriate action 
+            // in the table and then forward it to the editor if the editor
+            // had focus. Make sure this doesn't happen by checking our 
+            // private list of registered actions. 
+            if (registeredKeyStrokes.get(keyStroke) != null) {
+                return; 
+            }
+
+            // The AWT seems to generate an unconsumed \r event when
+            // ENTER (\n) is pressed. 
+            if (e.getKeyChar() == '\r') {
+                return; 
+            }
+
+            int anchorRow = table.getSelectionModel().getAnchorSelectionIndex();
+            int anchorColumn = 
+		table.getColumnModel().getSelectionModel().getAnchorSelectionIndex();
+            if (anchorRow != -1 && anchorColumn != -1 && !table.isEditing()) {
+                if (!table.editCellAt(anchorRow, anchorColumn)) {
                     return;
                 }
             }
 
+            // Forwarding events this way seems to put the textfield 
+            // in a state where it believes it has focus. In reality 
+            // the table retains focus - though it is difficult for 
+            // a user to tell, since the caret is visible and flashing. 
+        	
+            // Calling table.requestFocus() here, to get the focus back to 
+            // the table, seems to have no effect. 
+        	
             Component editorComp = table.getEditorComponent();
             if (table.isEditing() && editorComp != null) {
-     // Have to give the textField the focus temporarily so
-     // that it can perform the action.
-                char keyChar = e.getKeyChar();
                 if (editorComp instanceof JTextField) {
                     JTextField textField = (JTextField)editorComp;
                     Keymap keyMap = textField.getKeymap();
-                    KeyStroke key = KeyStroke.getKeyStroke(keyChar, 0);
-                    Action action = keyMap.getAction(key);
+                    Action action = keyMap.getAction(keyStroke);
                     if (action == null) {
                         action = keyMap.getDefaultAction();
                     }
                     if (action != null) {
                         ActionEvent ae = new ActionEvent(textField,
                                                          ActionEvent.ACTION_PERFORMED,
-                                                         String.valueOf(keyChar));
+                                                         String.valueOf(e.getKeyChar()));
                         action.actionPerformed(ae);
 			e.consume();
                     }
@@ -232,23 +326,15 @@ public class BasicTableUI extends TableUI
      */
     public class FocusHandler implements FocusListener {
 
-        private void repaintAnchorCell() {
-            int anchorRow = table.getSelectedRow();
-            int anchorColumn = table.getSelectedColumn();
+        private void repaintAnchorCell( ) {
+            int anchorRow = table.getSelectionModel().getAnchorSelectionIndex();
+            int anchorColumn = 
+		table.getColumnModel().getSelectionModel().getAnchorSelectionIndex();
             Rectangle dirtyRect = table.getCellRect(anchorRow, anchorColumn, false);
             table.repaint(dirtyRect);
         }
 
-        public void focusGained(FocusEvent e) {
-            if (table.getRowCount() <= 0) {
-                return;
-            }
-            if (table.getSelectedColumn() == -1) {
-                table.setColumnSelectionInterval(0, 0);
-            }
-            if (table.getSelectedRow() == -1) {
-                table.setRowSelectionInterval(0, 0);
-            }
+        public void focusGained(FocusEvent e) { 
             repaintAnchorCell();
         }
 
@@ -267,8 +353,7 @@ public class BasicTableUI extends TableUI
      * Instantiate it only within subclasses of BasicTableUI.
      */
     public class MouseInputHandler implements MouseInputListener {
-        // Workaround for mousePressed bug in AWT 1.1
-        private boolean phantomMousePressed = false;
+
         // Component recieving mouse events during editing. May not be editorComponent.
         private Component dispatchComponent;
 
@@ -276,13 +361,21 @@ public class BasicTableUI extends TableUI
 
         public void mouseClicked(MouseEvent e) {}
 
+        private void setDispatchComponent(MouseEvent e) { 
+            Component editorComponent = table.getEditorComponent();
+            Point p = e.getPoint();
+            Point p2 = SwingUtilities.convertPoint(table, p, editorComponent);
+            dispatchComponent = SwingUtilities.getDeepestComponentAt(editorComponent, 
+                                                                 p2.x, p2.y);
+        }
+
         private boolean repostEvent(MouseEvent e) { 
-	    if (dispatchComponent == null) {
-	        return false; 
-	    }
-	    MouseEvent e2 = SwingUtilities.convertMouseEvent(table, e, dispatchComponent);
-	    dispatchComponent.dispatchEvent(e2); 
-	    return true; 
+            if (dispatchComponent == null) {
+                return false; 
+            }
+            MouseEvent e2 = SwingUtilities.convertMouseEvent(table, e, dispatchComponent);
+            dispatchComponent.dispatchEvent(e2); 
+            return true; 
         }
 
         private void setValueIsAdjusting(boolean flag) {
@@ -295,12 +388,6 @@ public class BasicTableUI extends TableUI
 	        return;
 	    }
 
-            if (phantomMousePressed == true) {
-                return;
-            }
-
-            phantomMousePressed = true;
-
             Point p = e.getPoint();
             int row = table.rowAtPoint(p);
             int column = table.columnAtPoint(p);
@@ -309,28 +396,19 @@ public class BasicTableUI extends TableUI
                 return;
             }
 
-            boolean startedNewEditor = table.editCellAt(row, column, e);
-	    boolean repostEvent = table.isEditing() && startedNewEditor; 
-
-            if (repostEvent) {
-                Component editorComponent = table.getEditorComponent();
-		Point p2 = SwingUtilities.convertPoint(table, p, editorComponent);
-                dispatchComponent = SwingUtilities.getDeepestComponentAt(editorComponent, 
-									 p2.x, p2.y);
+            if (table.editCellAt(row, column, e)) {
+                setDispatchComponent(e); 
                 repostEvent(e); 
+            } 
+	    else { 
+		table.requestFocus();
 	    }
-
-	    /* Adjust the selection if the event was not forwarded 
-	     * to the editor above *or* the editor declares that it 
-	     * should change selection even when events are forwarded 
-	     * to it. 
-	     */
-	    // PENDING(philip): Ought to convert mouse event, e, here. 
-	    if (!repostEvent || table.getCellEditor().shouldSelectCell(e)) {
-                table.requestFocus(); 
+        	
+            CellEditor editor = table.getCellEditor(); 
+            if (editor == null || editor.shouldSelectCell(e)) { 
                 setValueIsAdjusting(true);
-                updateSelection(row, column, e.isControlDown(), e.isShiftDown());  
-            }
+                updateSelection(table, row, column, e.isControlDown(), e.isShiftDown());  
+	    }
         }
 
         public void mouseReleased(MouseEvent e) {
@@ -338,44 +416,38 @@ public class BasicTableUI extends TableUI
 	        return;
 	    }
 
-            phantomMousePressed = false;
 	    repostEvent(e); 
 	    dispatchComponent = null;
 	    setValueIsAdjusting(false);
         }
 
 
-        public void mouseEntered(MouseEvent e) {
-            dispatchComponent = null;
-        }
+        public void mouseEntered(MouseEvent e) {}
 
-        public void mouseExited(MouseEvent e) {
-            dispatchComponent = null;
-        }
+        public void mouseExited(MouseEvent e) {}
 
 //  The Table's mouse motion listener methods.
 
-        public void mouseMoved(MouseEvent e) {
-            dispatchComponent = null;
-        }
+        public void mouseMoved(MouseEvent e) {}
 
         public void mouseDragged(MouseEvent e) {
 	    if (!SwingUtilities.isLeftMouseButton(e)) {
 	        return;
 	    }
 
-            if (repostEvent(e)) {
-	        return;
-	    }
-
-            Point p = e.getPoint();
-            int row = table.rowAtPoint(p);
-            int column = table.columnAtPoint(p);
-	    // The autoscroller can generate drag events outside the Table's range. 
-            if ((column == -1) || (row == -1)) {
-                return;
+            repostEvent(e); 
+        	
+            CellEditor editor = table.getCellEditor();         
+            if (editor == null || editor.shouldSelectCell(e)) {
+                Point p = e.getPoint();
+                int row = table.rowAtPoint(p);
+                int column = table.columnAtPoint(p);
+	        // The autoscroller can generate drag events outside the Table's range. 
+                if ((column == -1) || (row == -1)) {
+                    return;
+                }
+	        updateSelection(table, row, column, false, true); 
             }
-	    updateSelection(row, column, false, true);
         }
     }
 
@@ -476,20 +548,54 @@ public class BasicTableUI extends TableUI
         table.addMouseMotionListener(mouseInputListener);
     }
 
+    private void registerKeyboardAction(ActionListener action, KeyStroke keyStroke) { 
+        registeredKeyStrokes.put(keyStroke, action); 
+        table.registerKeyboardAction(action, keyStroke, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT); 
+    }
+        
     private void registerKey(int keyEvent, int mask, int dx, int dy) { 
 	boolean toggle = (mask & ActionEvent.CTRL_MASK) != 0;
 	boolean extend = (mask & ActionEvent.SHIFT_MASK) != 0; 
-	boolean moveAnchor = !extend; 
-        registerKey(keyEvent, mask, dx, dy, toggle, extend, moveAnchor, false);
+        registerKey(keyEvent, mask, dx, dy, toggle, extend, false);
     }
 
     private void registerKey(int keyEvent, int mask, int dx, int dy, 
-			     boolean toggle, boolean extend, 
-			     boolean moveAnchor, boolean inSelection) { 
-        table.registerKeyboardAction(
-		 new NavigationalAction(dx, dy, toggle, 
-					extend, moveAnchor, inSelection),
-		 KeyStroke.getKeyStroke(keyEvent, mask), JComponent.WHEN_FOCUSED);
+			     boolean toggle, boolean extend, boolean inSelection) { 
+	registerKeyboardAction(
+		 new NavigationalAction(dx, dy, toggle, extend, inSelection),
+		 KeyStroke.getKeyStroke(keyEvent, mask));
+    }
+	
+    private void registerScrollKey(int keyEvent, int mask, boolean forwards, 
+                                   boolean vertically, boolean toLimit) { 
+        boolean extend = (mask & ActionEvent.SHIFT_MASK) != 0; 
+        registerKeyboardAction(
+                 new PagingAction(extend, forwards, vertically, toLimit),
+                 KeyStroke.getKeyStroke(keyEvent, mask));
+    }
+
+
+    /* This version should only be used for events which are new
+     * in JDK 1.2 like "shift KP_UP".
+     */
+    private void registerKey(String keyEvent, int dx, int dy) { 
+	// This is a less than perfect way of doing things:
+	KeyStroke ks = 	KeyStroke.getKeyStroke(keyEvent);
+	int mask = ks.getModifiers();
+	boolean toggle = (mask & ActionEvent.CTRL_MASK) != 0;
+	boolean extend = (mask & ActionEvent.SHIFT_MASK) != 0; 
+	
+        registerKey(keyEvent, dx, dy, toggle, extend, false);
+    }
+
+    /* This version should only be used for events which are new
+     * in JDK 1.2 like "shift KP_UP".
+     */
+    private void registerKey(String keyEvent, int dx, int dy, 
+			     boolean toggle, boolean extend, boolean inSelection) { 
+        registerKeyboardAction(
+		 new NavigationalAction(dx, dy, toggle, extend, inSelection),
+		 KeyStroke.getKeyStroke(keyEvent));
     }
 
     /**
@@ -499,35 +605,78 @@ public class BasicTableUI extends TableUI
     {
 	int shift = ActionEvent.SHIFT_MASK; 
 	int ctrl =  ActionEvent.CTRL_MASK; 
+	int cShft = shift | ctrl; 
 
         registerKey(KeyEvent.VK_RIGHT,     0,  1,  0);
         registerKey(KeyEvent.VK_LEFT ,     0, -1,  0);
         registerKey(KeyEvent.VK_DOWN ,     0,  0,  1);
         registerKey(KeyEvent.VK_UP   ,     0,  0, -1);
 
+        registerKey("KP_RIGHT",  1,  0);
+        registerKey("KP_LEFT" , -1,  0); 
+        registerKey("KP_DOWN" ,  0,  1);
+        registerKey("KP_UP"   ,  0, -1);
+
         registerKey(KeyEvent.VK_RIGHT, shift,  1,  0);
         registerKey(KeyEvent.VK_LEFT , shift, -1,  0);
         registerKey(KeyEvent.VK_DOWN , shift,  0,  1);
         registerKey(KeyEvent.VK_UP   , shift,  0, -1);
 
-        registerKey(KeyEvent.VK_TAB  ,     0,  1,  0, true, false, true, true);
-        registerKey(KeyEvent.VK_TAB  , shift, -1,  0, true, false, true, true);
-        registerKey(KeyEvent.VK_ENTER,     0,  0,  1, true, false, true, true);
-        registerKey(KeyEvent.VK_ENTER, shift,  0, -1, true, false, true, true); 
+        registerKey("shift KP_RIGHT",  1,  0);
+        registerKey("shift KP_LEFT" , -1,  0);
+        registerKey("shift KP_DOWN" ,  0,  1);
+        registerKey("shift KP_UP"   ,  0, -1);
 
-        table.registerKeyboardAction(new AbstractAction() {
-	    public void actionPerformed(ActionEvent e) { 
-		// PENDING(milne): Should consume event. 
-		table.selectAll(); 
-	    }
-	}, KeyStroke.getKeyStroke(KeyEvent.VK_A, ctrl), JComponent.WHEN_FOCUSED); 
+        registerScrollKey(KeyEvent.VK_PAGE_UP,       0, false,  true, false);
+        registerScrollKey(KeyEvent.VK_PAGE_DOWN,     0, true,   true, false);
+        registerScrollKey(KeyEvent.VK_HOME,          0, false, false, true);
+        registerScrollKey(KeyEvent.VK_END,           0, true,  false, true); 
 
-        table.registerKeyboardAction(new AbstractAction() {
+        registerScrollKey(KeyEvent.VK_PAGE_UP,   shift, false,  true, false);
+        registerScrollKey(KeyEvent.VK_PAGE_DOWN, shift, true,   true, false); 
+        registerScrollKey(KeyEvent.VK_HOME,      shift, false, false, true);
+        registerScrollKey(KeyEvent.VK_END,       shift, true,  false, true); 
+
+        registerScrollKey(KeyEvent.VK_PAGE_UP,    ctrl, false, false, false);
+        registerScrollKey(KeyEvent.VK_PAGE_DOWN,  ctrl, true,  false, false);
+        registerScrollKey(KeyEvent.VK_HOME,       ctrl, false,  true, true);
+        registerScrollKey(KeyEvent.VK_END,        ctrl, true,   true, true); 
+
+        registerScrollKey(KeyEvent.VK_PAGE_UP,   cShft, false, false, false);
+        registerScrollKey(KeyEvent.VK_PAGE_DOWN, cShft, true,  false, false); 
+        registerScrollKey(KeyEvent.VK_HOME,      cShft, false,  true, true);
+        registerScrollKey(KeyEvent.VK_END,       cShft, true,   true, true); 
+
+        registerKey(KeyEvent.VK_TAB  ,     0,  1,  0, true, false, true);
+        registerKey(KeyEvent.VK_TAB  , shift, -1,  0, true, false, true);
+        registerKey(KeyEvent.VK_ENTER,     0,  0,  1, true, false, true);
+        registerKey(KeyEvent.VK_ENTER, shift,  0, -1, true, false, true); 
+
+        registerKeyboardAction(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { 
+                table.selectAll(); 
+            }
+        }, KeyStroke.getKeyStroke(KeyEvent.VK_A, ctrl)); 
+
+        registerKeyboardAction(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { 
+                table.removeEditor(); 
+            }
+        }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0)); 
+
+	registerKeyboardAction(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) { 
-		// PENDING(milne): Should consume event. 
-		table.removeEditor(); 
+		ListSelectionModel rsm = table.getSelectionModel(); 
+		int anchorRow =    rsm.getAnchorSelectionIndex(); 
+		ListSelectionModel csm = table.getColumnModel().getSelectionModel(); 
+		int anchorColumn = csm.getAnchorSelectionIndex(); 
+		table.editCellAt(anchorRow, anchorColumn); 
+	    	Component other = table.hasFocus() ? table.getEditorComponent() : table; 
+	    	other.requestFocus(); 
 	    }
-	}, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_FOCUSED); 
+	}, 
+	KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
+
     }
 
 //  Uninstallation
@@ -556,26 +705,12 @@ public class BasicTableUI extends TableUI
     }
 
     protected void uninstallKeyboardActions() {
-	int shift = ActionEvent.SHIFT_MASK; 
-	int ctrl =  ActionEvent.CTRL_MASK; 
-
-        table.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_UP   , 0));
-        table.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN , 0));
-        table.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0));
-        table.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT , 0));
-
-        table.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_UP   , shift));
-        table.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN , shift));
-        table.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, shift));
-        table.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT , shift));
-
-        table.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_TAB  ,     0));
-        table.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_TAB  , shift));
-        table.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,     0));
-        table.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, shift));
-
-        table.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_A     , ctrl));
-        table.unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0)); 
+        Enumeration keyStrokes = registeredKeyStrokes.keys(); 
+    	while (keyStrokes.hasMoreElements()) { 
+    	    KeyStroke keyStroke = (KeyStroke)keyStrokes.nextElement(); 
+    	    table.unregisterKeyboardAction(keyStroke);
+    	}
+    
     }
 
 //
@@ -700,41 +835,40 @@ public class BasicTableUI extends TableUI
 
     /*
      * This method paints horizontal lines regardless of whether the
-     * table is set to paint one automatically.
+     * table is set to paint them automatically.
      */
     private void paintHorizontalLines(Graphics g) {
-        Rectangle r = g.getClipBounds();
-        Rectangle rect = r;
-        int delta = table.getRowHeight() + table.getRowMargin();
-        int firstIndex = table.rowAtPoint(new Point(0, r.y));
-        int  lastIndex = lastVisibleRow(r);
-        int y = delta*firstIndex+(delta-1);
+        Rectangle rect = g.getClipBounds();
 
-        for (int index = firstIndex; index <= lastIndex; index ++) {
-            if ((y >= rect.y) && (y <= (rect.y + rect.height))) {
-                g.drawLine(rect.x, y, rect.x + rect.width - 1, y);
-            }
+        int firstIndex = table.rowAtPoint(new Point(0, rect.y));
+        int  lastIndex = lastVisibleRow(rect);
+
+        int tableWidth = table.getColumnModel().getTotalColumnWidth();
+
+        int delta = table.getRowHeight() + table.getRowMargin();
+        int y = delta * firstIndex;
+
+        for (int index = firstIndex; index <= lastIndex; index ++) { 
             y += delta;
+	    g.drawLine(0, y - 1, tableWidth - 1, y - 1);
         }
     }
 
     /*
      * This method paints vertical lines regardless of whether the
-     * table is set to paint one automatically.
+     * table is set to paint them automatically.
      */
     private void paintVerticalLines(Graphics g) {
-        Rectangle rect = g.getClipBounds();
         int x = 0;
         int count = table.getColumnCount();
-        int horizontalSpacing = table.getIntercellSpacing().width;
-        for (int index = 0; index <= count; index ++) {
-            if ((x > 0) && (((x-1) >= rect.x) && ((x-1) <= (rect.x + rect.width)))){
-                g.drawLine(x - 1, rect.y, x - 1, rect.y + rect.height - 1);
-            }
+	TableColumnModel cm = table.getColumnModel(); 
+        int columnMargin = cm.getColumnMargin(); 
+        int rowHeight = table.getRowHeight() + table.getRowMargin(); 
+	int tableHeight = rowHeight * table.getRowCount(); 
 
-            if (index < count)
-                x += ((TableColumn)table.getColumnModel().getColumn(index)).
-                    getWidth() + horizontalSpacing;
+        for (int index = 0; index < count; index ++) {
+	    x += cm.getColumn(index).getWidth() + columnMargin; 
+            g.drawLine(x - 1, 0, x - 1, tableHeight - 1);
         }
     }
 
@@ -855,7 +989,7 @@ public class BasicTableUI extends TableUI
         return lastIndex;
     }
 
-    private void updateSelectionModel(ListSelectionModel sm, int index,
+    private static void updateSelectionModel(ListSelectionModel sm, int index,
                                  boolean toggle, boolean extend) {
         if (!extend) {
             if (!toggle) {
@@ -875,7 +1009,7 @@ public class BasicTableUI extends TableUI
         }
     }
 
-    private void updateSelection(int rowIndex, int columnIndex,
+    private static void updateSelection(JTable table, int rowIndex, int columnIndex,
                                    boolean toggle, boolean extend) {
         // Autoscrolling support.
         Rectangle cellRect = table.getCellRect(rowIndex, columnIndex, false);
@@ -894,4 +1028,3 @@ public class BasicTableUI extends TableUI
     }
 
 }  // End of Class BasicTableUI
-

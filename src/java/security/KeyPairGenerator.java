@@ -1,5 +1,5 @@
 /*
- * @(#)KeyPairGenerator.java	1.40 98/08/07
+ * @(#)KeyPairGenerator.java	1.41 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -89,7 +89,7 @@ import java.security.spec.AlgorithmParameterSpec;
  *
  * @author Benjamin Renaud
  *
- * @version 1.40, 00/05/10
+ * @version 1.41, 98/12/03
  *
  * @see java.security.spec.AlgorithmParameterSpec
  */

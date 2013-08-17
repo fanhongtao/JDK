@@ -1,5 +1,5 @@
 /*
- * @(#)JToggleButton.java	1.37 98/09/04
+ * @(#)JToggleButton.java	1.38 98/10/08
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -46,7 +46,7 @@ import java.io.IOException;
  * 
  * @see JRadioButton
  * @see JCheckBox
- * @version 1.37 09/04/98
+ * @version 1.38 10/08/98
  * @author Jeff Dinkins
  */
 public class JToggleButton extends AbstractButton implements Accessible {
@@ -276,9 +276,6 @@ public class JToggleButton extends AbstractButton implements Accessible {
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JToggleButton.
      */
@@ -316,7 +313,7 @@ public class JToggleButton extends AbstractButton implements Accessible {
      * version of Swing.  A future release of Swing will provide support for
      * long term persistence.
      */
-    protected class AccessibleJToggleButton extends AccessibleAbstractButton 
+    protected class AccessibleJToggleButton extends AccessibleAbstractButton
 	    implements ItemListener {
 
 	public AccessibleJToggleButton() {

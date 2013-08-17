@@ -1,5 +1,5 @@
 /*
- * @(#)ListSelectionModel.java	1.14 98/08/26
+ * @(#)ListSelectionModel.java	1.15 98/10/21
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -27,7 +27,7 @@ import javax.swing.event.*;
  * a closed interval, i.e. the interval includes both index0 and
  * index1.
  * 
- * @version 1.14 08/26/98
+ * @version 1.15 10/21/98
  * @author Hans Muller
  * @author Philip Milne
  * @see DefaultListSelectionModel
@@ -120,8 +120,8 @@ public interface ListSelectionModel
 
     
     /**
-     * Return the first index argument from the most recent
-     * call to setSelectionInterval() or addSelectionInterval().
+     * Return the first index argument from the most recent call to 
+     * setSelectionInterval(), addSelectionInterval() or removeSelectionInterval().
      * The most recent index0 is considered the "anchor" and the most recent
      * index1 is considered the "lead".  Some interfaces display these
      * indices specially, e.g. Windows95 displays the lead index with a 
@@ -143,8 +143,8 @@ public interface ListSelectionModel
 
 
     /**
-     * Return the second index argument from the most recent
-     * call to setSelectionInterval() or addSelectionInterval().
+     * Return the second index argument from the most recent call to 
+     * setSelectionInterval(), addSelectionInterval() or removeSelectionInterval().
      * 
      * @see #getAnchorSelectionIndex
      * @see #setSelectionInterval

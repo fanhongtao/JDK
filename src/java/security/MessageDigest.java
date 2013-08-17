@@ -1,5 +1,5 @@
 /*
- * @(#)MessageDigest.java	1.62 98/07/17
+ * @(#)MessageDigest.java	1.63 98/12/03
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -70,7 +70,7 @@ import java.io.ByteArrayInputStream;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.62 00/05/10
+ * @version 1.63 98/12/03
  *
  * @see DigestInputStream
  * @see DigestOutputStream

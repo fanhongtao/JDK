@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultBoundedRangeModel.java	1.30 98/08/28
+ * @(#)DefaultBoundedRangeModel.java	1.32 98/10/26
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -29,7 +29,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.30 08/28/98
+ * @version 1.32 10/26/98
  * @author David Kloba
  * @author Hans Muller
  * @see BoundedRangeModel
@@ -78,7 +78,10 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
      */
     public DefaultBoundedRangeModel(int value, int extent, int min, int max)
     {
-        if ((max >= min) && (value >= min) && ((value + extent) <= max)) {
+        if ((max >= min) && 
+	    (value >= min) && 
+	    ((value + extent) >= value) &&   
+	    ((value + extent) <= max)) {
             this.value = value;
             this.extent = extent;
             this.min = min;
@@ -248,16 +251,27 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
      */
     public void setRangeProperties(int newValue, int newExtent, int newMin, int newMax, boolean adjusting)
     {
-        if(newMin > newMax)
+        if (newMin > newMax) {
             newMin = newMax;
-        if(newValue > newMax)
+	}
+        if (newValue > newMax) {
             newMax = newValue;
-        if(newValue < newMin)
+	}
+        if (newValue < newMin) {
             newMin = newValue;
-        if((newExtent + newValue) > newMax)
+	}
+
+	/* Convert the addends to long so that extent can be 
+	 * Integer.MAX_VALUE without rolling over the sum.
+	 * A JCK test covers this, see bug 4097718.
+	 */
+        if (((long)newExtent + (long)newValue) > newMax) {
             newExtent = newMax - newValue;
-        if(newExtent < 0)
+	}
+	
+        if (newExtent < 0) {
             newExtent = 0;
+	}
 
         boolean isChange =
             (newValue != value) ||

@@ -1,5 +1,5 @@
 /*
- * @(#)UnresolvedPermissionCollection.java	1.5 98/07/30
+ * @(#)UnresolvedPermissionCollection.java	1.6 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -24,7 +24,7 @@ import java.util.*;
  * @see java.security.Permissions
  * @see java.security.UnresolvedPermission
  *
- * @version 1.5 00/05/10
+ * @version 1.6 98/12/03
  *
  * @author Roland Schemers
  */

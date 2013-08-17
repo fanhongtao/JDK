@@ -1,10 +1,10 @@
 /*
- * @(#)RepaintManager.java	1.32 98/08/26
+ * @(#)RepaintManager.java	1.35 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -25,7 +25,7 @@ import java.applet.*;
  * of repaints to be minimized, for example by collapsing multiple 
  * requests into a single repaint for members of a component tree.
  *
- * @version 1.32 08/26/98
+ * @version 1.35 04/22/99
  * @author Arnaud Weber
  */
 public class RepaintManager 
@@ -35,8 +35,8 @@ public class RepaintManager
     Vector    invalidComponents;
     boolean   doubleBufferingEnabled = true;
     Image     doubleBuffer;
-    Dimension doubleBufferMaxSize;
     Dimension doubleBufferSize;
+    private Dimension doubleBufferMaxSize;
 
     private static final Object repaintManagerKey = RepaintManager.class;
 
@@ -93,7 +93,6 @@ public class RepaintManager
      * RepaintManager.currentManager(JComponent) (normally "this").
      */
     public RepaintManager() {
-        doubleBufferMaxSize = Toolkit.getDefaultToolkit().getScreenSize();
     }
 
 
@@ -478,14 +477,21 @@ public class RepaintManager
     public Image getOffscreenBuffer(Component c,int proposedWidth,int proposedHeight) {
         Image result;
         int width,height;
+	Dimension maxSize = getDoubleBufferMaximumSize();
 
-        if(proposedWidth > doubleBufferMaxSize.width)
-            width = doubleBufferMaxSize.width;
+	if (proposedWidth < 1) {
+	    width = 1;
+	}
+        else if(proposedWidth > maxSize.width)
+            width = maxSize.width;
         else
             width = proposedWidth;
 
-        if(proposedHeight > doubleBufferMaxSize.height) 
-            height =doubleBufferMaxSize.height;
+	if (proposedHeight < 1) {
+	    height = 1;
+	}
+        else if(proposedHeight > maxSize.height) 
+            height = maxSize.height;
         else
             height = proposedHeight;
 
@@ -537,6 +543,9 @@ public class RepaintManager
      * @return a Dimension object representing the maximum size
      */
     public Dimension getDoubleBufferMaximumSize() {
+	if (doubleBufferMaxSize == null) {
+	    doubleBufferMaxSize = Toolkit.getDefaultToolkit().getScreenSize();
+	}
         return doubleBufferMaxSize;
     }
 
@@ -547,9 +556,6 @@ public class RepaintManager
      */
     public void setDoubleBufferingEnabled(boolean aFlag) {
         doubleBufferingEnabled = aFlag;
-	if(!doubleBufferingEnabled) {
-	  doubleBuffer = null;
-	}
     }
 
     /**

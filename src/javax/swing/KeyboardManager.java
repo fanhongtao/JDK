@@ -1,10 +1,10 @@
 /*
- * @(#)JComponent.java	2.81 98/07/17
+ * @(#)KeyboardManager.java	1.7 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -286,37 +286,43 @@ class KeyboardManager {
 
     public void registerMenuBar(JMenuBar mb) {
         Container top = getTopAncestor(mb);
-
 	Hashtable keyMap = (Hashtable)containerMap.get(top);
-
 
 	if (keyMap ==  null) {  // lazy evaluate one
 	     keyMap = registerNewTopContainer(top);
 	}
+	// use the menubar class as the key
+	Vector menuBars = (Vector)keyMap.get(JMenuBar.class); 
 
-	Vector menuBars = (Vector)keyMap.get(JMenuBar.class); // use the menubar class as the key
-	if (menuBars == null) {  // if we don't have a list of menubars, then make one.
+	if (menuBars == null) {  // if we don't have a list of menubars, 
+	                         // then make one.
 	    menuBars = new Vector();
 	    keyMap.put(JMenuBar.class, menuBars);
 	}
-	menuBars.addElement(mb);
-	//	System.out.println("registered a menubar");
+
+	if (!menuBars.contains(mb)) {
+	    menuBars.addElement(mb);
+	}
     }
 
-    public void unregisterMenuBar(JMenuBar mb) {
 
-	 Hashtable keyMap = null;
-	 Enumeration iter = containerMap.elements();
-
-	 while(iter.hasMoreElements()) {
-	     keyMap = (Hashtable)iter.nextElement();
-	     Vector v = (Vector)keyMap.get(JMenuBar.class);
-	     if (v != null) {
-	         v.removeElement(mb);
-	     }
-	 }
+    public void unregisterMenuBar(JMenuBar mb) { 
+	Object topContainer = getTopAncestor(mb);
+	Hashtable keyMap = (Hashtable)containerMap.get(topContainer);
+	if (keyMap!=null) {
+	    Vector v = (Vector)keyMap.get(JMenuBar.class);
+	    if (v != null) {
+		v.removeElement(mb);
+		if (v.isEmpty()) {
+		    keyMap.remove(JMenuBar.class);
+		    if (keyMap.isEmpty()) {
+			// remove table to enable GC
+			containerMap.remove(topContainer);  
+		    }
+		} 
+	    }
+	}
     }
-
     protected Hashtable registerNewTopContainer(Container topContainer) {
 	     Hashtable keyMap = new Hashtable();
 	     containerMap.put(topContainer, keyMap);

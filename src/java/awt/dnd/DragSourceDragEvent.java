@@ -1,10 +1,10 @@
 /*
- * @(#)DragSourceDragEvent.java	1.8 98/10/17
+ * @(#)DragSourceDragEvent.java	1.16 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -17,15 +17,15 @@ package java.awt.dnd;
 import java.awt.dnd.DragSourceEvent;
 
 /**
- * <p>
- * The DragSourceDragEvent is delivered from the DragSourceContextPeer,
- * via the DragSourceContext, to the currently registered DragSourceListener.
+ * The <code>DragSourceDragEvent</code> is 
+ * delivered from the <code>DragSourceContextPeer</code>,
+ * via the <code>DragSourceContext</code>, to the currently 
+ * registered <code>DragSourceListener</code>.
  * It contains state regarding the current state of the operation to enable
  * the operations initiator to provide the end user with the appropriate
  * drag over feedback.
- * </p>
  *
- * @version 1.8
+ * @version 1.16
  * @since JDK1.2
  *
  */
@@ -33,17 +33,19 @@ import java.awt.dnd.DragSourceEvent;
 public class DragSourceDragEvent extends DragSourceEvent {
 
     /**
-     * Constructs a DragSourceDragEvent. This class is typically 
-     * instantiated by the DragSourceClientPeer rather than directly 
+     * Constructs a <code>DragSourceDragEvent</code>. 
+     * This class is typically 
+     * instantiated by the <code>DragSourceContextPeer</code> 
+     * rather than directly 
      * by client code.
-     * 
-     * @param dsc the DragSourceContext that is to manage 
+     * <P>
+     * @param dsc the <code>DragSourceContext</code> that is to manage 
      *            notifications for this event.
      * @param dropAction the value of one of the static fields from 
-     *        {@link DNDConstants} indicating the type of user drop 
+     *        <code>DNDConstants</code> indicating the type of user drop 
      *        action this event represents.
      * @param actions the value of one of the static fields from 
-     *        {@link DNDConstants} indicating the type of target drop
+     *        <code>DNDConstants</code> indicating the type of target drop
      *        action supported by and returned from the current drop target.
      * @param modifiers specifies the state of the input device modifiers 
      *        associated with the user gesture.
@@ -58,7 +60,11 @@ public class DragSourceDragEvent extends DragSourceEvent {
     }
 
     /**
-     * @return the logical intersection of the current target, source and user actions
+     * This method returns the logical intersection of the current target, 
+     * source, and user actions.
+     * <P>
+     * @return the logical intersection 
+     * of the current target, source and user actions
      */
 
     public int getTargetActions() {
@@ -66,7 +72,12 @@ public class DragSourceDragEvent extends DragSourceEvent {
     }
 
     /**
-     * @return the current device modifiers
+     * This method returns an <code>int</code> representing
+     * the current state of the input device modifiers
+     * associated with the user's gesture. Typically these
+     * would be mouse buttons or keyboard modifiers.
+     * <P>
+     * @return the current state of the input device modifiers
      */
 
     public int getGestureModifiers() {
@@ -74,13 +85,22 @@ public class DragSourceDragEvent extends DragSourceEvent {
     }
 
     /**
-     * @return the users currently selected drop action
+     * This method returns an <code>int</code> representing 
+     * the user's currently selected drop action.
+     * <P>
+     * @return the user's currently selected drop action
      */
 
     public int getUserAction() { return dropAction; }
 
     /**
-     * @return the effective drop action which is the intersection of the users
+     * This method returns an <code>int</code> representing   
+     * the effective drop action which is the 
+     * intersection of the user's
+     * selected action, and the source and target actions.     
+     * <P>
+     * @return the effective drop action which is the 
+     * intersection of the user's
      * selected action, and the source and target actions.
      */
 
@@ -96,3 +116,11 @@ public class DragSourceDragEvent extends DragSourceEvent {
     private int	    dropAction       = DnDConstants.ACTION_NONE;
     private int	    gestureModifiers = 0;
 }
+
+
+
+
+
+
+
+

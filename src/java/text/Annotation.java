@@ -1,10 +1,10 @@
 /*
- * @(#)Annotation.java	1.7 98/07/07
+ * @(#)Annotation.java	1.9 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -45,7 +45,8 @@ package java.text;
 public class Annotation {
 
     /**
-     * Constructs an annotation record with the given value.
+     * Constructs an annotation record with the given value, which
+     * may be null.
      * @param value The value of the attribute
      */
     public Annotation(Object value) {
@@ -53,7 +54,7 @@ public class Annotation {
     }
 
     /**
-     * Returns the value of the attribute.
+     * Returns the value of the attribute, which may be null.
      */
     public Object getValue() {
         return value;

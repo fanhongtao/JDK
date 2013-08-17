@@ -1,5 +1,5 @@
 /*
- * @(#)JLayeredPane.java	1.32 98/08/28
+ * @(#)JLayeredPane.java	1.33 98/09/01
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -125,7 +125,7 @@ import javax.accessibility.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  * 
- * @version 1.32 08/28/98
+ * @version 1.33 09/01/98
  * @author David Kloba
  */
 public class JLayeredPane extends JComponent implements Accessible {
@@ -659,9 +659,6 @@ public class JLayeredPane extends JComponent implements Accessible {
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JLayeredPane.
      */

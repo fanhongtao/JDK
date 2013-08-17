@@ -1,10 +1,10 @@
 /*
- * @(#)Hashtable.java	1.70 98/09/30
+ * @(#)Hashtable.java	1.72 99/04/22
  *
- * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * Copyright 1994-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -86,7 +86,7 @@ import java.io.*;
  *
  * @author  Arthur van Hoff
  * @author  Josh Bloch
- * @version 1.70, 09/30/98
+ * @version 1.72, 04/22/99
  * @see     Object#equals(java.lang.Object)
  * @see     Object#hashCode()
  * @see     Hashtable#rehash()
@@ -508,8 +508,8 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 
 	buf.append("{");
 	for (int i = 0; i <= max; i++) {
-	    Entry e = (Entry) (it.next());
-	    buf.append(e.key + "=" + e.value);
+	    Map.Entry e = (Map.Entry) (it.next());
+	    buf.append(e.getKey() + "=" + e.getValue());
 	    if (i < max)
 		buf.append(", ");
 	}
@@ -682,7 +682,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 
 	Iterator i = entrySet().iterator();
 	while (i.hasNext()) {
-	    Entry e = (Entry) i.next();
+	    Map.Entry e = (Map.Entry) i.next();
 	    Object key = e.getKey();
 	    Object value = e.getValue();
 	    if (value == null) {

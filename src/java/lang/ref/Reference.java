@@ -1,10 +1,10 @@
 /*
- * @(#)Reference.java	1.23 98/09/30
+ * @(#)Reference.java	1.25 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -21,7 +21,7 @@ package java.lang.ref;
  * implemented in close cooperation with the garbage collector, this class may
  * not be subclassed directly.
  *
- * @version  1.23, 98/09/30
+ * @version  1.25, 99/04/22
  * @author   Mark Reinhold
  * @since    JDK1.2
  */
@@ -196,18 +196,17 @@ public abstract class Reference {
     /* -- Constructors -- */
 
     Reference(Object referent) {
-	this(referent, ReferenceQueue.NULL);
+	this(referent, null);
     }
 
     Reference(Object referent, ReferenceQueue queue) {
-	this.referent= referent;
-	this.queue = queue;
+	this.referent = referent;
 	if (referent == null) {
 	    /* Immediately make this instance inactive */
 	    this.queue = ReferenceQueue.NULL;
 	    this.next = this;
 	} else {
-	    this.queue = queue;
+	    this.queue = (queue == null) ? ReferenceQueue.NULL : queue;
 	    this.next = null;
 	}
     }

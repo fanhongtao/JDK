@@ -1,10 +1,10 @@
 /*
- * @(#)DropTargetDragEvent.java	1.7 98/04/21
+ * @(#)DropTargetDragEvent.java	1.12 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -24,28 +24,33 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * <p>
- * The DropTargetDragEvent is delivered to a DropTargetListener via its
- * dragEnter() and dragOver().
- * </p>
+ * The <code>DropTargetDragEvent</code> is delivered to a 
+ * <code>DropTargetListener</code> via its
+ * dragEnter() and dragOver() methods.
  *
- * @version 1.7
+ * @version 1.12
  * @since JDK1.2
- *
  */
 
 public class DropTargetDragEvent extends DropTargetEvent {
 
     /**
-     * construct an Event
-     *
+     * Construct a <code>DropTargetDragEvent</code> given the
+     * <code>DropTargetContext</code> for this operation,
+     * the location of the "Drag" <code>Cursor</code>'s hotspot 
+     * in the <code>Component</code>'s coordinates, the
+     * currently selected user drop action, and current 
+     * set of actions supported by the source.
+     * <P>
      * @param dtc        The DropTargetContext for this operation
-     * @param cursorLocn The location of the "Drag" Cursors hotspot in Component coordinates
+     * @param cursorLocn The location of the "Drag" Cursor's 
+     * hotspot in Component coordinates
      * @param dropAction The currently selected user drop action
      * @param srcActions The current set of actions supported by the source
-     *
-     * @throw NullPointerException if the dtc or cursorLocn are null
-     * @throw IllegalArgumentException if the dropAction or srcActions are illegal values
+     * <P>
+     * @throws NullPointerException if cursorLocn is null
+     * @throws IllegalArgumentException if the dropAction or 
+     * srcActions are illegal values, or if dtc is null
      */
 
     public DropTargetDragEvent(DropTargetContext dtc, Point cursorLocn, int dropAction, int srcActions)  {
@@ -67,7 +72,13 @@ public class DropTargetDragEvent extends DropTargetEvent {
     }
 
     /**
-     * @return the current cursor location in Component's coords.
+     * This method returns a <code>Point</code>
+     * indicating the <code>Cursor</code>'s current
+     * location within the <code>Component'</code>s
+     * coordinates.
+     * <P>
+     * @return the current cursor location in 
+     * <code>Component</code>'s coords.
      */
 
     public Point getLocation() {
@@ -76,6 +87,9 @@ public class DropTargetDragEvent extends DropTargetEvent {
 
 
     /**
+     * This method returns the current <code>DataFlavor</code>s from the
+     * <code>DropTargetContext</code>.
+     * <P>
      * @return current DataFlavors from the DropTargetContext
      */
 
@@ -84,7 +98,10 @@ public class DropTargetDragEvent extends DropTargetEvent {
     }
 
     /**
-     * @return a java.util.List of the Current DataFlavors
+     * This method returns the current <code>DataFlavor</code>s
+     * as a <code>java.util.List</code>
+     * <P>
+     * @return a <code>java.util.List</code> of the Current <code>DataFlavor</code>s
      */
 
     public List getCurrentDataFlavorsAsList() {
@@ -92,6 +109,11 @@ public class DropTargetDragEvent extends DropTargetEvent {
     }
 
     /**
+     * This method returns a <code>boolean</code> indicating
+     * if the specified <code>DataFlavor</code> is supported.
+     * <P>
+     * @param df the <code>DataFlavor</code> to test
+     * <P>
      * @return if a particular DataFlavor is supported
      */
 
@@ -100,12 +122,18 @@ public class DropTargetDragEvent extends DropTargetEvent {
     }
 
     /**
+     * This method returns an <code>int</code> representing
+     * set of actions supported by the source.
+     * <P>
      * @return source actions
      */
 
     public int getSourceActions() { return actions; }
 
     /**
+     * This method returns an <code>int</code>
+     * representing the currently selected drop action.
+     * <P>
      * @return currently selected drop action
      */
 
@@ -118,7 +146,7 @@ public class DropTargetDragEvent extends DropTargetEvent {
      * dragOver() and dragActionChanged() methods if the implementation
      * wishes to accept an operation from the srcActions other than the one
      * selected by the user as represented by the dropAction.
-     *
+     * <P>
      * @param dragOperation the operation accepted by the target
      */
 
@@ -143,3 +171,8 @@ public class DropTargetDragEvent extends DropTargetEvent {
     private int			actions;
     private int			dropAction;
 }
+
+
+
+
+

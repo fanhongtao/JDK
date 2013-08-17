@@ -1,10 +1,10 @@
 /*
- * @(#)VariableHeightLayoutCache.java	1.7 98/08/28
+ * @(#)VariableHeightLayoutCache.java	1.11 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -33,7 +33,7 @@ import java.util.Vector;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.7 08/28/98
+ * @version 1.11 04/22/99
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -354,23 +354,24 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 		/* Update the size of the changed node, as well as all the
 		   child indexs that are passed in. */
 		changedNode.updatePreferredSize();
-		if(changedIndexs != null) {
+		if(changedNode.hasBeenExpanded() && changedIndexs != null) {
 		    int                counter;
 		    TreeStateNode      changedChildNode;
 
 		    for(counter = 0; counter < changedIndexs.length;
 			counter++) {
-			try {
-			    changedChildNode = (TreeStateNode)changedNode
+			changedChildNode = (TreeStateNode)changedNode
 				    .getChildAt(changedIndexs[counter]);
-			    /* Reset the user object. */
-			    changedChildNode.setUserObject
+			/* Reset the user object. */
+			changedChildNode.setUserObject
 				    (treeModel.getChild(changedValue,
 						     changedIndexs[counter]));
-			    changedChildNode.updatePreferredSize();
-			}
-			catch (Exception ex) {}
+			changedChildNode.updatePreferredSize();
 		    }
+		}
+		else if (changedNode == root) {
+		    // Null indicies for root indicates it changed.
+		    changedNode.updatePreferredSize();
 		}
 		if(!isFixedRowHeight()) {
 		    int          aRow = changedNode.getRow();
@@ -485,31 +486,26 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 				      changedParentNode.isExpanded()));
 		    for(counter = changedIndexs.length - 1;counter >= 0;
 			counter--) {
-			try
-			{
-			    removedNode = (TreeStateNode)changedParentNode.
+			removedNode = (TreeStateNode)changedParentNode.
 				getChildAt(changedIndexs[counter]);
-			    if(removedNode.isExpanded())
-				removedNode.collapse(false);
+			if(removedNode.isExpanded())
+			    removedNode.collapse(false);
 
-			    /* Let the selection model now. */
-			    if(makeInvisible) {
-				removedRow = removedNode.getRow();
-				if(removedRow != -1) {
-				    visibleNodes.removeElementAt(removedRow);
-				    if(treeSelectionModel != null) {
-					TreePath oldPath = removedNode.
+			/* Let the selection model now. */
+			if(makeInvisible) {
+			    removedRow = removedNode.getRow();
+			    if(removedRow != -1) {
+				visibleNodes.removeElementAt(removedRow);
+				if(treeSelectionModel != null) {
+				    TreePath oldPath = removedNode.
 					    getTreePath();
 
-					treeSelectionModel.removeSelectionPath
-					    (oldPath);
-				    }
+				    treeSelectionModel.removeSelectionPath
+					(oldPath);
 				}
 			    }
-			    changedParentNode.remove(changedIndexs[counter]);
-			} catch (Exception ex) {
-			    System.err.println("Exception removing node" + ex);
 			}
+			changedParentNode.remove(changedIndexs[counter]);
 		    }
 		    if(changedParentNode.getChildCount() == 0) {
 			// Update the size of the parent.
@@ -709,13 +705,10 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 	Object                 newValue;
 	TreeStateNode          newChildNode;
 
-	try
-	{
-	    newValue = treeModel.getChild(parent.getValue(), childIndex);
-	    newChildNode = createNodeForValue(newValue);
-	    parent.insert(newChildNode, childIndex);
-	    newChildNode.updatePreferredSize(-1);
-	} catch (Exception ex) { newChildNode = null; }
+	newValue = treeModel.getChild(parent.getValue(), childIndex);
+	newChildNode = createNodeForValue(newValue);
+	parent.insert(newChildNode, childIndex);
+	newChildNode.updatePreferredSize(-1);
 	isParentRoot = (parent == root);
 	if(newChildNode != null && parent.isExpanded() &&
 	   (parent.getRow() != -1 || isParentRoot)) {
@@ -1189,7 +1182,7 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 
 		childCount += maxCounter;
 		for(int counter = 0; counter < maxCounter; counter++)
-		    ((TreeStateNode)getChildAt(counter)).
+		    childCount += ((TreeStateNode)getChildAt(counter)).
 			            getVisibleChildCount();
 	    }
 	    return childCount;
@@ -1513,7 +1506,7 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 
 		if(myRow == -1)
 		    markSizeInvalid();
-		else
+		else if (adjustTree)
 		    updatePreferredSize(myRow);
 
 		if(!isFixed) {

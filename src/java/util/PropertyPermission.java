@@ -1,10 +1,10 @@
 /*
- * @(#)PropertyPermission.java	1.14 98/09/15
+ * @(#)PropertyPermission.java	1.17 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -61,7 +61,7 @@ import java.security.*;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.14 00/05/10
+ * @version 1.17 99/04/22
  *
  * @author Roland Schemers
  */
@@ -118,7 +118,7 @@ public final class PropertyPermission extends BasicPermission {
 		throw new IllegalArgumentException("invalid actions mask");
 
 	if (getName() == null)
-		throw new IllegalArgumentException("name can't be null");
+		throw new NullPointerException("name can't be null");
 
 	this.mask = mask;
     }

@@ -1,10 +1,10 @@
 /*
- * @(#)JMenu.java	1.111 98/09/20
+ * @(#)JMenu.java	1.123 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -22,6 +22,7 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.*;
 import java.beans.*;
 
@@ -60,7 +61,7 @@ import javax.accessibility.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.111 09/20/98
+ * @version 1.123 04/22/99
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -100,6 +101,8 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      */
     private static Hashtable listenerRegistry = null;
 
+    private int delay;
+
     /**
      * Creates a new JMenu with no text.
      */
@@ -113,8 +116,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      * @param s  The text for the menu label
      */
     public JMenu(String s) {
-        init(s, null);
-        updateUI();
+	super(s);
     }
 
     /**
@@ -180,7 +182,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
 
         super.setModel(newModel);
 
-        if (oldModel != null) {
+        if (oldModel != null && menuChangeListener != null) {
             oldModel.removeChangeListener(menuChangeListener);
             menuChangeListener = null;
         }
@@ -257,38 +259,101 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     public void setPopupMenuVisible(boolean b) {
 	if (!isEnabled())
 	    return;
-        boolean isVisible = isPopupMenuVisible();
+	boolean isVisible = isPopupMenuVisible();
         if (b != isVisible) {
             ensurePopupMenuCreated();
             // Set location of popupMenu (pulldown or pullright)
             //  Perhaps this should be dictated by L&F
-            int x = 0;
-            int y = 0;
             if ((b==true) && isShowing()) {
-                Container parent = getParent();
-                Dimension s = getSize();
-                if (parent instanceof JPopupMenu) {
-                    // System.out.println("Pullright: " + getText());
-                    x = s.width;
-                    y = 0;
-                } else {
-                    // System.out.println("Pulldown: " + getText());
-                    x = 0;
-                    y = s.height;
-                }
-                
-                popupMenu.show(this, x, y);
+		Point p = getPopupMenuOrigin();
+		getPopupMenu().show(this, p.x, p.y);
             } else {
-                popupMenu.setVisible(false);
+                getPopupMenu().setVisible(false);
             }
         }
 
     }
 
-    private int delay = 0;
+    /**
+     * Compute the origin for the JMenu's popup menu.
+     *
+     * @returns a Point in the coordinate space of the menu instance
+     * which should be used as the origin of the JMenu's popup menu.
+     */
+    private Point getPopupMenuOrigin() {
+	int x = 0;
+	int y = 0;
+	JPopupMenu pm = getPopupMenu();
+	// Figure out the sizes needed to caclulate the menu position
+	Dimension screenSize =Toolkit.getDefaultToolkit().getScreenSize();
+	Dimension s = getSize();
+	Dimension pmSize = pm.getSize();
+	// For the first time the menu is popped up, 
+	// the size has not yet been initiated
+	if (pmSize.width==0) {
+	    pmSize = pm.getPreferredSize();
+	}
+	Point position = getLocationOnScreen();
+	
+	Container parent = getParent();
+	if (parent instanceof JPopupMenu) {
+	    // We are a submenu (pull-right)
+
+            if( SwingUtilities.isLeftToRight(this) ) {
+                // First determine x:
+                if (position.x+s.width + pmSize.width < screenSize.width) {
+                    x = s.width;         // Prefer placement to the right
+                } else {
+                    x = 0-pmSize.width;  // Otherwise place to the left
+                }
+            } else {
+                // First determine x:
+                if (position.x < pmSize.width) {
+                    x = s.width;         // Prefer placement to the right
+                } else {
+                    x = 0-pmSize.width;  // Otherwise place to the left
+                }
+            }
+            // Then the y:
+            if (position.y+pmSize.height < screenSize.height) {
+                y = 0;                       // Prefer dropping down
+            } else {
+                y = s.height-pmSize.height;  // Otherwise drop 'up'
+            }
+	} else {
+	    // We are a toplevel menu (pull-down)
+
+            if( SwingUtilities.isLeftToRight(this) ) {
+                // First determine the x:
+                if (position.x+pmSize.width < screenSize.width) {
+                    x = 0;                     // Prefer extending to right 
+                } else {
+                    x = s.width-pmSize.width;  // Otherwise extend to left
+                }
+            } else {
+                // First determine the x:
+                if (position.x+s.width < pmSize.width) {
+                    x = 0;                     // Prefer extending to right 
+                } else {
+                    x = s.width-pmSize.width;  // Otherwise extend to left
+                }
+            }
+	    // Then the y:
+	    if (position.y+s.height+pmSize.height < screenSize.height) {
+		y = s.height;          // Prefer dropping down
+	    } else {
+		y = 0-pmSize.height;   // Otherwise drop 'up'
+	    }
+	}
+	return new Point(x,y);
+    }
+
 
     /**
      * Returns the suggested delay before the menu's PopupMenu is popped up or down.
+     * Each look and feel may determine its own policy for observing the delay
+     * property.  In most cases, the delay is not observed for top level menus
+     * or while dragging.
      *
      * @return an int -- the number of milliseconds to delay
      */
@@ -298,6 +363,9 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     
     /**
      * Sets the suggested delay before the menu's PopupMenu is popped up or down.
+     * Each look and feel may determine its own policy for observing the delay
+     * property.  In most cases, the delay is not observed for top level menus
+     * or while dragging.
      *
      * @param       d the number of milliseconds to delay
      * @exception   IllegalArgumentException if the value of 
@@ -309,7 +377,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     public void setDelay(int d) {
         if (d < 0)
             throw new IllegalArgumentException("Delay must be a positive integer");
-        
+
         delay = d;
     }
 
@@ -345,7 +413,8 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      * @param y the y coordinate of the popup's new position
      */
     public void setMenuLocation(int x, int y) {
-        popupMenu.setLocation(x, y);
+        if (popupMenu != null)
+	    popupMenu.setLocation(x, y);
     }
 
     /**
@@ -372,7 +441,9 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     public Component add(Component c) {
  	if (c instanceof JComponent) {	
 	    AccessibleContext ac = ((JComponent) c).getAccessibleContext();
-	    ac.setAccessibleParent(this);
+	    if (ac != null) {
+		ac.setAccessibleParent(this);
+	    }
 	}
         ensurePopupMenuCreated();
         popupMenu.add(c);
@@ -404,14 +475,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
         mi.setEnabled(a.isEnabled());   
         mi.addActionListener(a);
         add(mi);
-        PropertyChangeListener actionPropertyChangeListener = 
-            createActionChangeListener(mi);
-	if (listenerRegistry == null) {
-	    listenerRegistry = new Hashtable();
-	}
-	listenerRegistry.put(mi, a);
-	listenerRegistry.put(a, actionPropertyChangeListener);
-        a.addPropertyChangeListener(actionPropertyChangeListener);
+	registerMenuItemForAction(mi, a);
         return mi;
     }
 
@@ -504,11 +568,65 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
         }
 
         ensurePopupMenuCreated();
-        JMenuItem mi = new JMenuItem((String)a.getValue(Action.NAME));
+        JMenuItem mi = new JMenuItem((String)a.getValue(Action.NAME),
+				     (Icon)a.getValue(Action.SMALL_ICON));
+        mi.setHorizontalTextPosition(JButton.RIGHT);
+        mi.setVerticalTextPosition(JButton.CENTER);
+        mi.setEnabled(a.isEnabled());   
         mi.addActionListener(a);
         popupMenu.insert(mi, pos);
-        a.addPropertyChangeListener(new ActionChangedListener(mi));
+	registerMenuItemForAction(mi, a);
         return mi;
+    }
+
+    private void registerMenuItemForAction(JMenuItem mi, Action a) {
+        PropertyChangeListener actionPropertyChangeListener = 
+            createActionChangeListener(mi);
+	if (listenerRegistry == null) {
+	    listenerRegistry = new Hashtable();
+	}
+	listenerRegistry.put(mi, actionPropertyChangeListener);
+	listenerRegistry.put(actionPropertyChangeListener, a);
+        a.addPropertyChangeListener(actionPropertyChangeListener);
+    }
+
+    private void unregisterMenuItemForAction(JMenuItem item) {
+	if (listenerRegistry != null) { 
+	    ActionChangedListener p = (ActionChangedListener)listenerRegistry.remove(item);
+	    if (p!=null) {
+		Action a = (Action)listenerRegistry.remove(p);
+		if (a!=null) {
+		    item.removeActionListener(a);		
+		    a.removePropertyChangeListener(p);
+		}
+		p.setTarget(null);
+	    }
+	}
+    }
+
+    private void clearListenerRegistry() {
+	// Some GCs we have run across are not so good at removing
+	// circular references, so we'll null these out ourselves:
+	if (listenerRegistry!=null) {
+	    for (Enumeration e = listenerRegistry.keys() ; e.hasMoreElements() ;) {
+		Object key = e.nextElement();
+		if (key == this) {     // Only snarf our own listings! 4190759
+		    JMenuItem item = (JMenuItem)key;
+		    ActionChangedListener p = 
+			(ActionChangedListener)listenerRegistry.get(item);
+		    if (p!=null) {
+			Action a = (Action)listenerRegistry.get(p);
+			if (a!=null) {
+			    item.removeActionListener(a);		
+			    a.removePropertyChangeListener(p);
+			}
+			p.setTarget(null);
+		    }
+		    
+		}     
+	    }
+	    listenerRegistry.clear();
+	}
     }
 
     /**
@@ -547,8 +665,9 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
             JMenuItem mi = (JMenuItem) c;
             return mi;
         }
-        // PENDING(ges): Should probably do something better here
-        return this;
+
+        // 4173633
+        return null;
     }
 
     /**
@@ -577,16 +696,9 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      * @param       item the JMenuItem to be removed from the menu
      */
     public void remove(JMenuItem item) {
-        popupMenu.remove(item);
-	if (listenerRegistry != null) { 
-	    ActionChangedListener p = (ActionChangedListener)listenerRegistry.remove(item);
-	    Action a = (Action)listenerRegistry.remove(p);
-	    item.removeActionListener(a);
-	    if (p!=null)
-		p.setTarget(null);
-	    if (a!=null)
-		a.removePropertyChangeListener(p);
-	}
+        if (popupMenu != null)
+	    popupMenu.remove(item);
+	unregisterMenuItemForAction(item);
     }
 
     /**
@@ -600,8 +712,14 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
         if (pos < 0) {
             throw new IllegalArgumentException("index less than zero.");
         }
-
-        popupMenu.remove(pos);
+        if (pos > getItemCount()) {
+            throw new IllegalArgumentException("index greater than the number of items.");
+        }
+	Component c = getItem(pos);
+	if (c instanceof JMenuItem)
+	    unregisterMenuItemForAction((JMenuItem)c);
+        if (popupMenu != null)
+	    popupMenu.remove(pos);
     }
 
     /**
@@ -610,17 +728,17 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      * @param       c the component to be removed
      */
     public void remove(Component c) {
-        popupMenu.remove(c);
+        if (popupMenu != null)
+	    popupMenu.remove(c);
     }
 
     /**
      * Remove all menu items from this menu.
      */
     public void removeAll() {
-        int nitems = getMenuComponentCount();
-        for (int i = 0 ; i < nitems ; i++) {
-            remove(0);
-        }
+        if (popupMenu != null)
+	    popupMenu.removeAll();
+	clearListenerRegistry();
     }
 
     /**
@@ -785,8 +903,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
         for (int i = listeners.length-2; i>=0; i-=2) {
             if (listeners[i]==MenuListener.class) {
                 if (listeners[i+1]== null) {
-                    throw new Error(getText() +" has a NULL Listener!! " 
-                                       + i);
+		    throw new Error(getText() +" has a NULL Listener!! " + i);		    
                 } else {
                     // Lazily create the event:
                     if (menuEvent == null)
@@ -813,8 +930,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
         for (int i = listeners.length-2; i>=0; i-=2) {
             if (listeners[i]==MenuListener.class) {
                 if (listeners[i+1]== null) {
-                    System.out.println(getText() +" has a NULL Listener!! " 
-                                       + i);
+                    throw new Error(getText() +" has a NULL Listener!! " + i);
                 } else {
                     // Lazily create the event:
                     if (menuEvent == null)
@@ -858,8 +974,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
         public void stateChanged(ChangeEvent e) {               
             ButtonModel model = (ButtonModel) e.getSource();
             boolean modelSelected = model.isSelected();
-            // System.out.println("Model selected = " + modelSelected +
-            // " isSelected = " + isSelected);
+
             if (modelSelected != isSelected) {
                 if (modelSelected == true) {
                     fireMenuSelected();
@@ -1058,9 +1173,6 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JMenu.
      */

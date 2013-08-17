@@ -1,10 +1,10 @@
 /*
- * @(#)ViewportLayout.java	1.24 98/08/28
+ * @(#)ViewportLayout.java	1.27 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -39,7 +39,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.24 08/28/98
+ * @version 1.27 04/22/99
  * @author Hans Muller
  */
 public class ViewportLayout implements LayoutManager, Serializable

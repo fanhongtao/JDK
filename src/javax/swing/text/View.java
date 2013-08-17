@@ -1,10 +1,10 @@
 /*
- * @(#)View.java	1.30 98/08/26
+ * @(#)View.java	1.35 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -18,13 +18,175 @@ import javax.swing.SwingConstants;
 import javax.swing.event.*;
 
 /**
- * A view of some portion of document model.  Provides
- * a mapping to model coordinates from view coordinates
- * and a mapping to view coordinates from model coordinates.
- * A view also provides rendering and layout services.
+<p>
+A very important part of the text package is the View class.  As the name 
+suggests it represents a view of the text model, or a piece of the text
+model.  It is this class that is responsible for the look of the text component.  
+The view is not intended to be some completely new thing that one must learn, 
+but rather is much like a lightweight component.  In fact, the original View
+implementation was a lightweight component.   There were several reasons why
+the Component implementation was abandoned in favor of an alternative.
+
+  <ol>
+  <li>
+  <p>There was barely had time to get the lightweight component support in the 
+  1.1 version of the JDK.  There simply wasn't time to lighten up the component 
+  further to where it would need to be to be used for text purposes.  The additions
+  made to JComponent increased the memory consumption, and as it currently stands 
+  it's much too heavy for representing text.
+  </p>
+  <li>
+  <p>The layout semantics aren't quite right for text, and changing the current layout 
+  semantics of component might break existing applications.
+  </p>
+  <li>
+  <p>The component api uses integers, but in 1.2 one can use floating point device 
+  independent coordinates.  An api that works in both 1.1 and 1.2 would be convenient 
+  for minimizing transition difficulties.  The View class uses the Shape interface
+  and float arguments to enable View implementations in JDK 1.2 and later while
+  still functioning in the older 1.1 JDK.
+  </p>
+  </ol>
+
+<p>
+By default, a view is very light.  It contains a reference to the parent 
+view from which it can fetch many things without holding state, and it 
+contains a reference to a portion of the model (Element).  A view does not 
+have to exactly represent an element in the model, that is simply a typical 
+and therefore convenient mapping.  A view can alternatively maintain a couple 
+of Position objects to maintain it's location in the model (i.e. represent 
+a fragment of an element).  This is typically the result of formatting where 
+views have been broken down into pieces.  The convenience of a substantial 
+relationship to the element makes it easier to build factories to produce the 
+views, and makes it easier  to keep track of the view pieces as the model is 
+changed and the view must be changed to reflect the model.  Simple views 
+therefore represent an Element directly and complex views do not.
+<p>
+A view has the following responsibilities:
+  <dl>
+
+    <dt><b>Participate in layout.</b>
+    <dd>
+    <p>The view has a setSize method which is like doLayout and setSize in 
+    Component combined.  The view has a preferenceChanged method which is 
+    like invalidate in Component except that one can invalidate just one axis 
+    and the child requesting the change is identified.
+    <p>A View expresses the size that it would like to be in terms of three
+    values, a minimum, a preferred, and a maximum span.  Layout in a view is
+    can be done independantly upon each axis.  For a properly functioning View
+    implementation, the minimum span will be &lt;= the preferred span which in turn
+    will be &lt;= the maximum span.
+    </p>
+    <p align=center><img src="View-flexibility.jpg">
+    <p>The minimum set of methods for layout are:
+    <ul>
+    <li><a href="#getMinimumSpan">getMinimumSpan</a>
+    <li><a href="#getPreferredSpan">getPreferredSpan</a>
+    <li><a href="#getMaximumSpan">getMaximumSpan</a>
+    <li><a href="#getAlignment">getAlignment</a>
+    <li><a href="#preferenceChanged">preferenceChanged</a>
+    <li><a href="#setSize">setSize</a>
+    </ul>
+  
+  <p>The setSize method should be prepared to be called a number of times
+    (i.e. It may be called even if the size didn't change).  The setSize method
+    is generally called to make sure the View layout is complete prior to trying
+    to perform an operation on it that requires an up-to-date layout.  A views
+    size should <em>always</em> be set to a value within the minimum and maximum
+    span specified by that view.  Additionally, the view must always call the
+    preferenceChanged method on the parent if it has changed the values for the
+    layout it would like, and expects the parent to honor.  The parent View is
+    not required to recognize a change until the preferenceChanged has been sent.
+    This allows parent View implementations to cache the child requirements if
+    desired.  The calling sequence looks something like the following:
+    </p>
+    <p align=center><img src="View-layout.jpg">
+    <p>The exact calling sequence is up to the layout functionality of
+    the parent view (if the view has any children).  The view may collect
+    the preferences of the children prior to determining what it will give 
+    each child, or it might iteratively update the children one at a time.
+    </p>
+
+    <dt><b>Render a portion of the model.</b>
+    <dd>
+    <p>This is done in the paint method, which is pretty much like a component 
+    paint method.  Views are expected to potentially populate a fairly large 
+    tree.  A View has the following semantics for rendering:
+    </p>
+    <ul>
+    <li>The view gets it's allocation from the parent at paint time, so it 
+    must be prepared to redo layout if the allocated area is different from 
+    what it is prepared to deal with.
+    <li>The coordinate system is the same as the hosting Component (i.e. the
+    Component returned by the <a href="#getContainer">getContainer</a> method).
+    This means a child view lives in the same coordinate system as the parent
+    view unless the parent has explicitly changed the coordinate system.
+    To schedule itself to be repainted a view can call repaint on the hosting
+    Component.
+    <li>The default is to <em>not clip</em> the children.  It is more effecient
+    to allow a view to clip only if it really feels it needs clipping.
+    <li>The Graphics object given is not initialized in any way.  A view should
+    set any settings needed.
+    <li>A View is inherently transparent.  While a view may render into it's
+    entire allocation, typically a view does not.  Rendering is performed by
+    tranversing down the tree of View implementations.  Each View is responsible
+    for rendering it's children.  This behavior is depended upon for thread
+    safety.  While view implementations do not necessarily have to be implemented
+    with thread safety in mind, other view implementations that do make use of
+    concurrency can depend upon a tree traversal to guarantee thread safety.
+    <li>The order of views relative to the model is up to the implementation.
+    Although child views will typically be arranged in the same order that they
+    occur in the model, they may be visually arranged in an entirely different 
+    order.  View implementations may have Z-Order associated with them if the
+    children are overlapping.
+    </ul>
+    <p>The methods for rendering are:
+    <ul>
+    <li><a href="#paint">paint</a>
+    </ul>
+    <p>
+
+    <dt><b>Translate between the model and view coordinate systems.</b>
+    <dd>
+    <p>Because the view objects are produced from a factory and therefore cannot 
+    necessarily be counted upon to be in a particular pattern, one must be able 
+    to perform translation to properly locate spatial representation of the model.  
+    The methods for doing this are:
+    <ul>
+    <li><a href="#modelToView">modelToView</a>
+    <li><a href="#viewToModel">viewToModel</a>
+    <li><a href="#getDocument">getDocument</a>
+    <li><a href="#getElement">getElement</a>
+    <li><a href="#getStartOffset">getStartOffset</a>
+    <li><a href="#getEndOffset">getEndOffset</a>
+    </ul>
+    <p>The layout must be valid prior to attempting to make the translation.
+    The translation is not valid, and must not be attempted while changes
+    are being broadcasted from the model via a DocumentEvent.  
+    </p>
+
+    <dt><b>Respond to changes from the model.</b>
+    <dd>
+    <p>If the overall view is represented by many pieces (which is the best situation 
+    if one want to be able to change the view and write the least amount of new code), 
+    it would be impractical to have a huge number of DocumentListeners.  If each 
+    view listened to the model, only a few would actually be interested in the 
+    changes broadcasted at any given time.   Since the model has no knowledge of 
+    views, it has no way to filter the broadcast of change information.  The view 
+    hierarchy itself is instead responsible for propagating the change information.  
+    At any level in the view hierarchy, that view knows enough about it's children to 
+    best distribute the change information further.   Changes are therefore broadcasted 
+    starting from the root of the view hierarchy.
+    The methods for doing this are:
+    <ul>
+    <li><a href="#insertUpdate">insertUpdate</a>
+    <li><a href="#removeUpdate">removeUpdate</a>
+    <li><a href="#changedUpdate">changedUpdate</a>
+    </ul>    
+    <p>
  *
  * @author  Timothy Prinzing
- * @version 1.30 08/26/98
+ * @version 1.35 04/22/99
  */
 public abstract class View implements SwingConstants {
 
@@ -118,7 +280,10 @@ public abstract class View implements SwingConstants {
      * @see javax.swing.JComponent#revalidate
      */
     public void preferenceChanged(View child, boolean width, boolean height) {
-	getParent().preferenceChanged(child, width, height);
+	View parent = getParent();
+	if (parent != null) {
+	    parent.preferenceChanged(this, width, height);
+	}
     }
 
     /**
@@ -241,10 +406,10 @@ public abstract class View implements SwingConstants {
 	    break;
 	case WEST:
 	    if(pos == -1) {
-		pos = getEndOffset() - 1;
+		pos = Math.max(0, getEndOffset() - 1);
 	    }
 	    else {
-		pos -= 1;
+		pos = Math.max(0, pos - 1);
 	    }
 	    break;
 	case EAST:
@@ -252,7 +417,7 @@ public abstract class View implements SwingConstants {
 		pos = getStartOffset();
 	    }
 	    else {
-		pos += 1;
+		pos = Math.min(pos + 1, getDocument().getLength());
 	    }
 	    break;
 	default:

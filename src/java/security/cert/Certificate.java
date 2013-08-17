@@ -1,5 +1,5 @@
 /*
- * @(#)Certificate.java	1.13 98/08/13
+ * @(#)Certificate.java	1.14 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -41,7 +41,7 @@ import java.security.SignatureException;
  * @see CertificateFactory
  *
  * @author Hemma Prafullchandra
- * @version 1.13 00/05/10
+ * @version 1.14 98/12/03
  */
 
 public abstract class Certificate {

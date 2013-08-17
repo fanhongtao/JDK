@@ -1,10 +1,10 @@
 /*
- * @(#)AbstractWriter.java	1.7 98/08/26
+ * @(#)AbstractWriter.java	1.10 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -22,11 +22,11 @@ import java.util.Enumeration;
  * AbstractWriter is an abstract class that actually
  * does the work of writing out the element tree
  * including the attributes.  In terms of how much is
- * written out per line, the writer defaults to 80.
+ * written out per line, the writer defaults to 100.
  * But this value can be set by subclasses.
  *
  * @author Sunita Mani
- * @version 1.7, 08/26/98
+ * @version 1.10, 04/22/99
  */
 
 public abstract class AbstractWriter {
@@ -40,6 +40,10 @@ public abstract class AbstractWriter {
     private int currLength = 0;
     private int startOffset = 0;
     private int endOffset = 0;
+    // If (indentLevel * indentSpace) becomes >= maxLineLength, this will
+    // get incremened instead of indentLevel to avoid indenting going greater
+    // than line length.
+    private int offsetIndent = 0;
     protected static final char NEWLINE = '\n';
 
     /**
@@ -211,14 +215,28 @@ public abstract class AbstractWriter {
      * Increments the indent level.
      */
     protected void incrIndent() {
-	indentLevel++;
+	// Only increment to a certain point.
+	if (offsetIndent > 0) {
+	    offsetIndent++;
+	}
+	else {
+	    if (++indentLevel * indentSpace >= maxLineLength) {
+		offsetIndent++;
+		--indentLevel;
+	    }
+	}
     }
 
     /**
      * Decrements the indent level.
      */
     protected void decrIndent() {
-	indentLevel--;
+	if (offsetIndent > 0) {
+	    --offsetIndent;
+	}
+	else {
+	    indentLevel--;
+	}
     }
 
     /**

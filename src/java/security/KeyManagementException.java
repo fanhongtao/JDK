@@ -1,5 +1,5 @@
 /*
- * @(#)KeyManagementException.java	1.8 98/09/21
+ * @(#)KeyManagementException.java	1.9 98/12/03
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -25,7 +25,7 @@ package java.security;
  * <li>ExpiredKeyException
  * </ul>
  *
- * @version 1.8, 00/05/10
+ * @version 1.9 98/12/03
  * @author Benjamin Renaud
  *
  * @see Key

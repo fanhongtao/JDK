@@ -1,10 +1,10 @@
 /*
- * @(#)MimeType.java	1.12 98/09/09
+ * @(#)MimeType.java	1.14 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -210,6 +210,8 @@ MimeTypeParameterList(rawdata.substring(semIndex));
      * the same as the what is in the given type.
      */
     public boolean match(MimeType type) {
+	if (type == null)
+            return false;
         return primaryType.equals(type.getPrimaryType())
                     && (subType.equals("*")
                             || type.getSubType().equals("*")
@@ -221,6 +223,8 @@ MimeTypeParameterList(rawdata.substring(semIndex));
      * the same as the content type described in rawdata.
      */
     public boolean match(String rawdata) throws MimeTypeParseException {
+        if (rawdata == null)
+            return false;
         return match(new MimeType(rawdata));
     }
     

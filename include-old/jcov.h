@@ -1,10 +1,10 @@
 /*
- * @(#)jcov.h	1.9 98/09/15
+ * @(#)jcov.h	1.11 99/04/22
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -43,6 +43,6 @@ extern void coverage_switch(JavaFrame *frame, unsigned char *pc, int key, int lo
 extern void coverage_lookupswitch(JavaFrame *frame, unsigned char *pc, int npairs, int nodef);
 extern void coverage_native_method(struct methodblock *mb);
 
-extern int  jcov_write_data(void);
+extern void jcov_write_data(void);
 
 #endif /* !_JAVASOFT_JCOV_H_ */

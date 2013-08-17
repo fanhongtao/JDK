@@ -1,5 +1,5 @@
 /*
- * @(#)DSAKey.java	1.11 98/09/21
+ * @(#)DSAKey.java	1.12 98/12/03
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -22,7 +22,7 @@ package java.security.interfaces;
  * @see java.security.Key
  * @see java.security.Signature
  * 
- * @version 1.11, 00/05/10
+ * @version 1.12 98/12/03
  * @author Benjamin Renaud 
  * @author Josh Bloch 
  */

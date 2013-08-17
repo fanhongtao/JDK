@@ -1,7 +1,7 @@
 /*
- * @(#)TreeModelListener.java	1.9 98/09/21
+ * @(#)TreeModelListener.java	1.11 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -20,7 +20,7 @@ import java.util.EventListener;
  * TreeChangeListener defines the interface for an object that listens
  * to changes in a TreeModel.
  *
- * @version 1.9 09/21/98
+ * @version 1.11 04/22/99
  * @author Rob Davis
  * @author Ray Ryan
  */
@@ -33,6 +33,8 @@ public interface TreeModelListener extends EventListener {
      * changed and may affect presentation. Example: the name of a
      * file has changed, but it is in the same location in the file
      * system.</p>
+     * <p>To indicate the root has changed, childIndices and children
+     * will be null. </p>
      * 
      * <p>e.path() returns the path the parent of the changed node(s).</p>
      * 

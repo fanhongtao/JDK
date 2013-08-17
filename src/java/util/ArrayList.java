@@ -1,10 +1,10 @@
 /*
- * @(#)ArrayList.java	1.17 98/09/30
+ * @(#)ArrayList.java	1.19 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -65,7 +65,7 @@ package java.util;
  * future.
  *
  * @author  Josh Bloch
- * @version 1.17 09/30/98
+ * @version 1.19 04/22/99
  * @see	    Collection
  * @see	    List
  * @see	    LinkedList
@@ -113,11 +113,9 @@ public class ArrayList extends AbstractList implements List, Cloneable,
      * 110% the size of the specified collection.
      */
     public ArrayList(Collection c) {
-	this((c.size()*110)/100);	// Allow 10% room for growth
-
-	Iterator i = c.iterator();
-	while (i.hasNext())
-	    elementData[size++] = i.next();
+        size = c.size();
+	elementData = new Object[(size*110)/100]; // Allow 10% room for growth
+        c.toArray(elementData);
     }
 
     /**

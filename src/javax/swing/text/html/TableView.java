@@ -1,10 +1,10 @@
 /*
- * @(#)TableView.java	1.7 98/08/26
+ * @(#)TableView.java	1.12 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -15,10 +15,12 @@ package javax.swing.text.html;
 
 import java.awt.*;
 import javax.swing.SizeRequirements;
+import javax.swing.event.DocumentEvent;
 import javax.swing.text.Element;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.View;
+import javax.swing.text.ViewFactory;
 
 /**
  * HTML table view.  Extends the basic table support to
@@ -27,7 +29,7 @@ import javax.swing.text.View;
  * into the table formatting and rendering operations.
  *
  * @author  Timothy Prinzing
- * @version 1.7 08/26/98
+ * @version 1.12 04/22/99
  */
 class TableView extends javax.swing.text.TableView {
 
@@ -67,16 +69,6 @@ class TableView extends javax.swing.text.TableView {
     }
 
     /**
-     * Creates a new table cell.
-     *
-     * @param elem an element
-     * @return the cell
-     */
-    protected TableCell createTableCell(Element elem) {
-	return new CellView(elem);
-    }
-
-    /**
      * Creates a new table row.
      *
      * @param elem an element
@@ -110,6 +102,49 @@ class TableView extends javax.swing.text.TableView {
 	}
     }
     
+    /**
+     * Calculate the requirements of the table along the minor
+     * axis (i.e. the major axis of the rows).
+     * This is implemented
+     * to provide the superclass behavior and then adjust it if the 
+     * CSS width or height attribute is specified and applicable to
+     * the axis.
+     */
+    protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
+	SizeRequirements rr = super.calculateMinorAxisRequirements(axis, r);
+	adjustSizeForCSS(axis, rr);
+	return rr;
+    }
+
+    void adjustSizeForCSS(int axis, SizeRequirements r) {
+	if (axis == X_AXIS) {
+	    Object widthValue = attr.getAttribute(CSS.Attribute.WIDTH);
+	    if (widthValue != null) {
+		int width = (int) ((CSS.LengthValue)widthValue).getValue();
+		r.minimum = r.preferred = width;
+		r.maximum = Math.max(r.maximum, width);
+	    }
+	} else {
+	    Object heightValue = attr.getAttribute(CSS.Attribute.HEIGHT);
+	    if (heightValue != null) {
+		int height = (int) ((CSS.LengthValue)heightValue).getValue();
+		r.minimum = r.preferred = height;
+		r.maximum = Math.max(r.maximum, height);
+	    }
+	}
+    }
+
+    /**
+     * Fetch the ViewFactory to use for the table.  This
+     * is implemented to create a Factory that routes 
+     * build requests for row and cell elements to the
+     * createTableRow and createTableCell methods, otherwise
+     * it delegates to the given factory.
+     */
+    /*protected*/ ViewFactory createViewFactory(ViewFactory f) {
+	return new TableFactory(f);
+    }
+
     // --- View methods --------------------------------
 
     /**
@@ -151,6 +186,75 @@ class TableView extends javax.swing.text.TableView {
 	super.paint(g, a);
     }
 
+    /**
+     * Fetches the ViewFactory implementation that is feeding
+     * the view hierarchy.  
+     * This replaces the ViewFactory with an implementation that
+     * calls through to the createTableRow and createTableCell
+     * methods.   If the element given to the factory isn't a
+     * table row or cell, the request is delegated to the factory
+     * produced by the superclass behavior.
+     *
+     * @return the factory, null if none
+     */
+    public ViewFactory getViewFactory() {
+	return createViewFactory(super.getViewFactory());
+    }
+
+    /**
+     * Gives notification that something was inserted into 
+     * the document in a location that this view is responsible for. 
+     * This replaces the ViewFactory with an implementation that
+     * calls through to the createTableRow and createTableCell
+     * methods.   If the element given to the factory isn't a
+     * table row or cell, the request is delegated to the factory
+     * passed as an argument.
+     *
+     * @param e the change information from the associated document
+     * @param a the current allocation of the view
+     * @param f the factory to use to rebuild if the view has children
+     * @see View#insertUpdate
+     */
+    public void insertUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+	super.insertUpdate(e, a, createViewFactory(f));
+    }
+
+    /**
+     * Gives notification that something was removed from the document
+     * in a location that this view is responsible for.
+     * This replaces the ViewFactory with an implementation that
+     * calls through to the createTableRow and createTableCell
+     * methods.   If the element given to the factory isn't a
+     * table row or cell, the request is delegated to the factory
+     * passed as an argument.
+     *
+     * @param e the change information from the associated document
+     * @param a the current allocation of the view
+     * @param f the factory to use to rebuild if the view has children
+     * @see View#removeUpdate
+     */
+    public void removeUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+	super.removeUpdate(e, a, createViewFactory(f));
+    }
+
+    /**
+     * Gives notification from the document that attributes were changed
+     * in a location that this view is responsible for.
+     * This replaces the ViewFactory with an implementation that
+     * calls through to the createTableRow and createTableCell
+     * methods.   If the element given to the factory isn't a
+     * table row or cell, the request is delegated to the factory
+     * passed as an argument.
+     *
+     * @param e the change information from the associated document
+     * @param a the current allocation of the view
+     * @param f the factory to use to rebuild if the view has children
+     * @see View#changedUpdate
+     */
+    public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+	super.changedUpdate(e, a, createViewFactory(f));
+    }
+
     // --- variables ---------------------------------------
 
     private AttributeSet attr;
@@ -187,13 +291,23 @@ class TableView extends javax.swing.text.TableView {
 	    return doc.getStyleSheet();
 	}
 
+	public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+	    super.changedUpdate(e, a, createViewFactory(f));
+	    int pos = e.getOffset();
+	    if (pos <= getStartOffset() && (pos + e.getLength()) >=
+		getEndOffset()) {
+		attr = getStyleSheet().getViewAttributes(this);
+	    }
+	}
+	
         private AttributeSet attr;
     }
 
     /**
-     * A view of an html table cell.
+     * Default view of an html table cell.  This needs to be moved
+     * somewhere else.
      */
-    class CellView extends javax.swing.text.TableView.TableCell {
+    static class CellView extends BlockView {
 
 	/**
 	 * Constructs a TableCell for the given element.
@@ -201,73 +315,7 @@ class TableView extends javax.swing.text.TableView {
 	 * @param elem the element that this view is responsible for
 	 */
         public CellView(Element elem) {
-	    super(elem);
-	    StyleSheet sheet = getStyleSheet();
-	    attr = sheet.getViewAttributes(this);
-	}
-
-	/**
-	 * Establishes the parent view for this view.  This is
-	 * guaranteed to be called before any other methods if the
-	 * parent view is functioning properly.
-	 * <p> 
-	 * This is implemented
-	 * to forward to the superclass as well as call the
-	 * <a href="#setPropertiesFromAttributes">setPropertiesFromAttributes</a>
-	 * method to set the paragraph properties from the css
-	 * attributes.  The call is made at this time to ensure
-	 * the ability to resolve upward through the parents 
-	 * view attributes.
-	 *
-	 * @param parent the new parent, or null if the view is
-	 *  being removed from a parent it was previously added
-	 *  to
-	 */
-        public void setParent(View parent) {
-	    super.setParent(parent);
-	    StyleSheet sheet = getStyleSheet();
-	    painter = sheet.getBoxPainter(attr);
-	    setPropertiesFromAttributes();
-	}
-
-	/**
-	 * Gets the number of columns this cell spans (e.g. the
-	 * grid width).  This is implemented return the number
-	 * specified by the html <em>colspan</em> attribute.
-         *
-         * @return the number of columns
-	 */
-	public int getColumnCount() {
-	    AttributeSet a = getElement().getAttributes();
-	    String s = (String) a.getAttribute(HTML.Attribute.COLSPAN);
-	    if (s != null) {
-		try {
-		    return Integer.parseInt(s);
-		} catch (NumberFormatException nfe) {
-		    return 1;
-		}
-	    }
-	    return 1;
-	}
-
-	/**
-	 * Gets the number of rows this cell spans (that is, the
-	 * grid height).  This is implemented return the number
-	 * specified by the html <em>rowspan</em> attribute.
-         *
-         * @return the number of rows
-	 */
-	public int getRowCount() {
-	    AttributeSet a = getElement().getAttributes();
-	    String s = (String) a.getAttribute(HTML.Attribute.ROWSPAN);
-	    if (s != null) {
-		try {
-		    return Integer.parseInt(s);
-		} catch (NumberFormatException nfe) {
-		    return 1;
-		}
-	    }
-	    return 1;
+	    super(elem, Y_AXIS);
 	}
 
 	/**
@@ -349,52 +397,34 @@ class TableView extends javax.swing.text.TableView {
 	    req.maximum = Integer.MAX_VALUE;
 	    return req;
 	}
+    }
 
-	/**
-	 * Fetches the attributes to use when rendering.  This is
-	 * implemented to multiplex the attributes specified in the
-	 * model with a StyleSheet.
-	 */
-        public AttributeSet getAttributes() {
-	    return attr;
+    class TableFactory implements ViewFactory {
+
+	TableFactory(ViewFactory f) {
+	    this.f = f;
 	}
 
-	/**
-	 * Update any cached values that come from attributes.
-	 */
-        protected void setPropertiesFromAttributes() {
-	    if (attr != null) {
-		setInsets((short) painter.getInset(TOP, this),
-			  (short) painter.getInset(LEFT, this),
-			  (short) painter.getInset(BOTTOM, this),
-			  (short) painter.getInset(RIGHT, this));
+        public View create(Element elem) {
+	    Object o = elem.getAttributes().getAttribute(StyleConstants.NameAttribute);
+	    if (o instanceof HTML.Tag) {
+		HTML.Tag kind = (HTML.Tag) o;
+		if (kind == HTML.Tag.TR) {
+		    return createTableRow(elem);
+/*
+		} else if ((kind == HTML.Tag.TD) || (kind == HTML.Tag.TH)) {
+		    return createTableCell(elem);
+		    */
+		} else if (kind == HTML.Tag.CAPTION) {
+		    return new ParagraphView(elem);
+		}
 	    }
+	    // default is to delegate to the normal factory
+	    return f.create(elem);
+	    
 	}
 
-        protected StyleSheet getStyleSheet() {
-	    HTMLDocument doc = (HTMLDocument) getDocument();
-	    return doc.getStyleSheet();
-	}
-
-	/**
-	 * Renders using the given rendering surface and area on that
-	 * surface.  This is implemented to delegate to the superclass 
-	 * after adjusting the allocation if needed because the 
-	 * cell spans multiple grid points (eg. muliple columns
-	 * and/or rows).
-	 *
-	 * @param g the rendering surface to use
-	 * @param alloc the allocated region to render into
-	 * @see View#paint
-	 */
-        public void paint(Graphics g, Shape alloc) {
-	    Rectangle a = (Rectangle) alloc;
-	    painter.paint(g, a.x, a.y, a.width, a.height, this);
-	    super.paint(g, a);
-	}
-
-        private AttributeSet attr;
-        private StyleSheet.BoxPainter painter;
+	ViewFactory f;
     }
 
 }

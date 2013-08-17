@@ -1,5 +1,5 @@
 /*
- * @(#)EventListenerList.java	1.22 98/08/28
+ * @(#)EventListenerList.java	1.23 98/10/01
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -78,7 +78,7 @@ import java.util.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.22 08/28/98
+ * @version 1.23 10/01/98
  * @author Georges Saab
  * @author Hans Muller
  * @author James Gosling
@@ -136,13 +136,15 @@ public class EventListenerList implements Serializable {
      * @param l the listener to be added
      */
     public synchronized void add(Class t, EventListener l) {
+	if (l==null) {
+	    // In an ideal world, we would do an assertion here
+	    // to help developers know they are probably doing
+	    // something wrong
+	    return;
+	}
 	if (!t.isInstance(l)) {
 	    throw new IllegalArgumentException("Listener " + l +
 					 " is not of type " + t);
-	}
-	if (l ==null) {
-	    throw new IllegalArgumentException("Listener " + l +
-					 " is null");
 	}
 	if (listenerList == NULL_ARRAY) {
 	    // if this is the first listener added, 
@@ -167,15 +169,16 @@ public class EventListenerList implements Serializable {
      * @param l the listener to be removed
      */
     public synchronized void remove(Class t, EventListener l) {
+	if (l ==null) {
+	    // In an ideal world, we would do an assertion here
+	    // to help developers know they are probably doing
+	    // something wrong
+	    return;
+	}
 	if (!t.isInstance(l)) {
 	    throw new IllegalArgumentException("Listener " + l +
 					 " is not of type " + t);
 	}
-	if (l ==null) {
-	    throw new IllegalArgumentException("Listener " + l +
-					 " is null");
-	}
-
 	// Is l on the list?
 	int index = -1;
 	for (int i = listenerList.length-2; i>=0; i-=2) {

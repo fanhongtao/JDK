@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultTableCellRenderer.java	1.14 98/08/28
+ * @(#)DefaultTableCellRenderer.java	1.15 98/09/01
  *
  * Copyright 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -34,7 +34,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.14 08/28/98
+ * @version 1.15 09/01/98
  * @author Philip Milne 
  * @see JTable
  */

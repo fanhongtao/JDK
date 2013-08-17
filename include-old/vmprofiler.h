@@ -1,10 +1,10 @@
 /*
- * @(#)vmprofiler.h	1.24 98/09/15
+ * @(#)vmprofiler.h	1.26 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -66,7 +66,7 @@ void jvmpi_method_entry(ExecEnv *ee, JHandle *h);
 void jvmpi_method_exit(ExecEnv *ee);
 
 void jvmpi_load_compiled_method(compiled_method_t *compiled_method_info);
-void jvmpi_unload_compiled_method(ExecEnv *ee);
+void jvmpi_unload_compiled_method(struct methodblock *mb);
 
 ClassClass * jvmpi_get_object_info(JHandle *h, int *is_array, int *size);
 unsigned long jvmpi_get_heap_size(void);

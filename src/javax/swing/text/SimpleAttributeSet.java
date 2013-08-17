@@ -1,5 +1,5 @@
 /*
- * @(#)SimpleAttributeSet.java	1.27 98/08/28
+ * @(#)SimpleAttributeSet.java	1.28 98/11/06
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -32,7 +32,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.27 08/28/98
+ * @version 1.28 11/06/98
  * @author Tim Prinzing
  */
 public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cloneable
@@ -284,6 +284,9 @@ public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cl
      *            <code>false</code> otherwise.
      */
     public boolean equals(Object obj) {
+	if (this == obj) {
+	    return true;
+	}
 	if (obj instanceof AttributeSet) {
 	    AttributeSet attrs = (AttributeSet) obj;
 	    return isEqual(attrs);
@@ -354,6 +357,13 @@ public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cl
 	}
 	public AttributeSet getResolveParent() {
 	    return null;
+	}
+	public boolean equals(Object obj) {
+	    if (this == obj) {
+		return true;
+	    }
+	    return ((obj instanceof AttributeSet) &&
+		    (((AttributeSet)obj).getAttributeCount() == 0));
 	}
     };
 }

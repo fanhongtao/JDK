@@ -5,9 +5,9 @@ Metalworks is a simple Swing-based simulated email application.  It shows off se
 Running Metalworks
 ==================
 
-To run the Metalworks demo on 1.2:
-  java Metalworks
- 
+To run the Metalworks demo on 1.2 <all platforms>:
+  java -jar Metalworks.jar
+
 
 To run the Metalworks demo on 1.1.x on Solaris:
   setenv SWING_HOME <path to swing release>

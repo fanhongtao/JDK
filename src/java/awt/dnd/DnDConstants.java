@@ -1,10 +1,10 @@
 /*
- * @(#)DnDConstants.java	1.4 98/06/19
+ * @(#)DnDConstants.java	1.12 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -15,9 +15,10 @@
 package java.awt.dnd;
 
 /**
- * @version 1.4
+ * This class contains constant values representing
+ * the type of action(s) to be performed by a Drag and Drop operation.
+ * @version 1.12
  * @since JDK1.2
- *
  */
 
 public final class DnDConstants {
@@ -25,31 +26,50 @@ public final class DnDConstants {
     private DnDConstants() {} // define null private constructor.
 
     /**
-     * DnD operation actions/verbs ...
+     * An <code>int</code> representing no action. 
      */
-
     public static final int ACTION_NONE		= 0x0;
+
+    /**
+     * An <code>int</code> representing a &quot;copy&quot; action.
+     */
     public static final int ACTION_COPY		= 0x1;
+
+    /**
+     * An <code>int</code> representing a &quot;move&quot; action.
+     */
     public static final int ACTION_MOVE		= 0x2;
+
+    /**
+     * An <code>int</code> representing a &quot;copy&quot; or 
+     * &quot;move&quot; action.
+     */
     public static final int ACTION_COPY_OR_MOVE	= ACTION_COPY | ACTION_MOVE;
 
     /**
-     * DnD operation action/verb
+     * An <code>int</code> representing a &quot;link&quot; action.
      *
-     * The link verb is found in many, if not all native DnD platforms, the
-     * actual interpretation of LINK semantics is not only highly platform
-     * dependent but is also application dependent. Broadly speaking the
+     * The link verb is found in many, if not all native DnD platforms, and the
+     * actual interpretation of LINK semantics is both platform
+     * and application dependent. Broadly speaking, the
      * semantic is "do not copy, or move the operand, but create a reference
      * to it". Defining the meaning of "reference" is where ambiguity is
      * introduced.
      *
-     * The vern is provided for completness. but its use is not recommended
+     * The verb is provided for completeness, but its use is not recommended
      * for DnD operations between logically distinct applications where 
      * misinterpretation of the operations semantics could lead to confusing
      * results for the user.
      */
 
     public static final int ACTION_LINK	        = 0x40000000;
+
+    /**
+     * An <code>int</code> representing a &quot;reference&quot; 
+     * action (synonym for ACTION_LINK).
+     */
     public static final int ACTION_REFERENCE    = ACTION_LINK;
 
 }
+
+

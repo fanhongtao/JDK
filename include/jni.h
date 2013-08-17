@@ -1,10 +1,10 @@
 /*
- * @(#)jni.h	1.44 98/09/15
+ * @(#)jni.h	1.46 99/04/22
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -1903,16 +1903,21 @@ struct JavaVM_ {
 #endif
 };
 
-JNIEXPORT jint JNICALL
+#ifdef _JNI_IMPLEMENTATION_
+#define _JNI_IMPORT_OR_EXPORT_ JNIEXPORT
+#else
+#define _JNI_IMPORT_OR_EXPORT_ JNIIMPORT
+#endif
+_JNI_IMPORT_OR_EXPORT_ jint JNICALL
 JNI_GetDefaultJavaVMInitArgs(void *args);
 
-JNIEXPORT jint JNICALL
+_JNI_IMPORT_OR_EXPORT_ jint JNICALL
 JNI_CreateJavaVM(JavaVM **pvm, void **penv, void *args);
 
-JNIEXPORT jint JNICALL
+_JNI_IMPORT_OR_EXPORT_ jint JNICALL
 JNI_GetCreatedJavaVMs(JavaVM **, jsize, jsize *);
 
-/* Defined in native libraries. */
+/* Defined by native libraries. */
 JNIEXPORT jint JNICALL
 JNI_OnLoad(JavaVM *vm, void *reserved);
 

@@ -1,10 +1,10 @@
 /*
- * @(#)GridBagLayout.java	1.32 98/09/04
+ * @(#)GridBagLayout.java	1.34 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -396,6 +396,14 @@ public class GridBagLayout implements LayoutManager2,
     return constraints;
   }
 
+  /**
+   * Removes the constraints for the specified component in this layout
+   * @param       comp the component to be modified.
+   */
+  private void removeConstraints(Component comp) {
+    comptable.remove(comp);
+  }
+
     /**
      * Determines the origin of the layout grid.
      * Most applications do not call this method directly.
@@ -541,6 +549,7 @@ public class GridBagLayout implements LayoutManager2,
      * @see      java.awt.Container#removeAll()
    */
   public void removeLayoutComponent(Component comp) {
+    removeConstraints(comp);
   }
 
   /**

@@ -1,5 +1,5 @@
 /*
- * @(#)MotifComboBoxUI.java	1.24 98/08/28
+ * @(#)MotifComboBoxUI.java	1.25 98/10/30
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -30,7 +30,7 @@ import java.awt.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.24 08/28/98
+ * @version 1.25 10/30/98
  * @author Arnaud Weber
  */
 public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
@@ -156,7 +156,13 @@ public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
         arrowIcon.paintIcon(c,g,r.x,r.y);
         if ( !comboBox.isEditable() ) {
             Border border = comboBox.getBorder();
-            Insets in = border.getBorderInsets(comboBox);
+            Insets in;
+            if ( border != null ) {
+                in = border.getBorderInsets(comboBox);
+            }
+            else {
+                in = new Insets( 0, 0, 0, 0 );
+            }
             // Draw the separation
             r.x -= (HORIZ_MARGIN + 2);
             r.y = in.top;
@@ -192,7 +198,13 @@ public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
     protected Rectangle rectangleForArrowIcon() {
         Rectangle b = comboBox.getBounds();
         Border border = comboBox.getBorder();
-        Insets in = border.getBorderInsets(comboBox);
+        Insets in;
+        if ( border != null ) {
+            in = border.getBorderInsets(comboBox);
+        }
+        else {
+            in = new Insets( 0, 0, 0, 0 );
+        }
         b.x = in.left;
         b.y = in.top;
         b.width -= (in.left + in.right);
@@ -329,12 +341,11 @@ public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
     protected void installKeyboardActions() {
         super.installKeyboardActions();
 
-        AbstractAction downAction = new AbstractAction() {
+        ActionListener downAction = new ActionListener() {
             public void actionPerformed( ActionEvent e ) {
-                motifGetUI().selectNextPossibleValue();
-            }
-            public boolean isEnabled() {
-                return motifGetComboBox().isEnabled() && isPopupVisible(motifGetComboBox());
+                if ( motifGetComboBox().isEnabled() && isPopupVisible(motifGetComboBox()) ) {
+                    motifGetUI().selectNextPossibleValue();
+                }
             }
         };
 
@@ -342,13 +353,12 @@ public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
 						 KeyStroke.getKeyStroke( KeyEvent.VK_DOWN, 0 ),
 						 JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
-        AbstractAction upAction = new AbstractAction() {
+        ActionListener upAction = new ActionListener() {
             public void actionPerformed( ActionEvent e ) {
-                motifGetUI().selectPreviousPossibleValue();
+                if ( motifGetComboBox().isEnabled() && isPopupVisible(motifGetComboBox()) ) {
+                    motifGetUI().selectPreviousPossibleValue();
+                }
             }
-            public boolean isEnabled(){
-                return motifGetComboBox().isEnabled() && isPopupVisible(motifGetComboBox());
-            }       
         };
 
         motifGetComboBox().registerKeyboardAction( upAction,

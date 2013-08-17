@@ -1,10 +1,10 @@
 /*
- * @(#)UIDefaults.java	1.28 98/08/28
+ * @(#)UIDefaults.java	1.31 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -41,7 +41,7 @@ import java.beans.PropertyChangeEvent;
  * long term persistence.
  *
  * @see UIManager
- * @version 1.28 08/28/98
+ * @version 1.31 04/22/99
  * @author Hans Muller
  */
 public class UIDefaults extends Hashtable
@@ -306,7 +306,7 @@ public class UIDefaults extends Hashtable
             Class cls = (Class)get(className);
             if (cls == null) {
 		if (uiClassLoader == null) {
-		    cls = Class.forName(className);
+		    cls = SwingUtilities.loadSystemClass(className);
 		}
 		else {
 		    cls = uiClassLoader.loadClass(className);
@@ -369,7 +369,9 @@ public class UIDefaults extends Hashtable
      */
     public ComponentUI getUI(JComponent target)
     {
-	ClassLoader uiClassLoader = target.getClass().getClassLoader();
+        Object cl = get("ClassLoader");
+	ClassLoader uiClassLoader = 
+	    (cl != null) ? (ClassLoader)cl : target.getClass().getClassLoader();
         Class uiClass = getUIClass(target.getUIClassID(), uiClassLoader);
         Object uiObject = null;
 

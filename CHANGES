@@ -1,12 +1,13 @@
-                                CHANGES
+                              CHANGES
 
                     Java(R) 2 SDK, Standard Edition
                      Java(R) 2 Runtime Environment
-                           JDK/JRE 1.2.1_004
+                           JDK/JRE 1.2.2_005
+                               05/05/2000
 
 
 This CHANGES file summarizes the changes between the FCS version of 
-JDK/JRE 1.2.1 and this patch version, JDK/JRE 1.2.1_004. For changes
+JDK/JRE 1.2.2 and this patch version, JDK/JRE 1.2.2_005. For changes
 in the Java platform since earlier releases, see the the
 following document on the Java Software web site:
 
@@ -17,115 +18,202 @@ following document on the Java Software web site:
 ----------------------------------------------------------------------
 INTRODUCTION
 -----------------------------------------------------------------------
-This is patch 004 of the 1.2.1 version of the Java Development
-Kit. For each patch release, it is the Java(R) 2 SDK
-Windows 95/98/NT production release, and the 
+This is patch 005 of the 1.2.2 version of the Java Development
+Kit. For each patch release of the 1.2.2 version, 
+it is the Java(R) 2 SDK Windows 95/98/NT production release, and the 
 Solaris(tm) reference implementation of the Java 2 SDK source base.
 
 For the WIN32 production release, the Java(tm) Plug-in product 
-is included with the JRE 1.2.1 software.
+is included with the JRE 1.2.2 software.
 
 -----------------------------------------------------------------------
-BUGS FIXED IN PATCH JDK/JRE 1.2.1_004
+BUGS FIXED IN PATCH JDK/JRE 1.2.2_005
 -----------------------------------------------------------------------
 
-This is a maintenance release due to the copyright year change.
+4088877 - two modal dialog can be shown at the same time
+
+4192193 - Modal Dialog : Visual basic hangs when a bean creates a 
+          modal dialog
+
+4199374 - Component.requestFocus() fails for components on JWindow
+
+4215746 - sun.jdbc.odbc.JdbcOdbcObject.CharsToBytes lose converted 
+          bytes for Japanese
+
+4220847 - Java App continuously hangs in _XFlushInt
+
+4230891 - Control Panel fails to launch under different NT login
+
+4234316 - JdbcOdbc bridge: level 3.0 '... StoresMixedCase...' 
+          returns incorrect vlaues
+
+4234318 - JdbcOdbc 3.0 incorrect column names
+
+4234356 - Large strings being truncated.
+
+4234457 - Closed JInternalFrame can remain in desktop with Windows
+          look & feel
+
+4254005 - JTextfield gets no focus in JWindow
+
+4281574 - Keyboard behaviour on JTable
+
+4287145 - Java Plug-in Control Panel doesn't show up
+
+4294016 - Another java.awt.dnd.DropTarget causing JNI Global Reference 
+          leak?
+
+4298156 - win32: Modifiers are Not Delivered Properly with Events
+
+4301064 - name resolution problem with java plugin
+
+4301082 - Windows 2000 in Classic VM BAT crashes when select back button
+
+4301264 - ActionPerformed Event Fails to Fire for JButton
+
+4301312 - A character string retrieved from database is truncated 
+          at illegal position
+
+4301852 - Drag and Drop Failure in 1.2.2-004
+
+4302883 - setRequestProperty(key,value) when redirection is turned off
+
+4317236 - NZD: JPI 1.2.2-004 or 1.3 crashing IE on NT
+
+4317555 - JDK1.2.2-FCS installation has wrong registry entry for "java.exe"
 
 -----------------------------------------------------------------------
-BUGS FIXED IN PATCH JDK/JRE 1.2.1-003
+BUGS FIXED IN PATCH JDK/JRE 1.2.2-004
 -----------------------------------------------------------------------
-4250595 - Java performance with JDK1.1.8.
 
-4197699 - Incorrect WEEK_OF_YEAR for Gregorian Calendar.
+4237348 - Spec/docs inconsistent with impl on Date.parse with 2-digit 
+          year
 
-4262807 - Support needed for large applet deployment
-
-4182066 - SimpleDateFormat parsing years -1 through -9 to
-          1999 through 1991
-
-4209272 - SimpleDateFormat w/lenient mode false, throws exception 
-          for Feb 29 in leap years  
-
-4208960 - TimeZone.getOffset doesn't work with february 29th.
+4208960 - TimeZone.getOffset doesn't work with february 29th
 
 4254589 - Doc: GregorianCalendar needs to specify behavior for
-          leap year add/roll.
+          leap year add/roll
 
-4237348 - Spec/docs inconsistent with impl on Date.parse with 
-          2-digit year
-
-          Bug fixes 4254589 and 4237348  requires clarification on the
-          documentation only.Please refer to the online documentation at
-          Please refer to the online documentation at
-          http://java.sun.com/products/jdk/1.2/docs/api/index.html
-          for  the updated changes.
+4281301 - java plugin 1.2.2 on win95 throws NullPointerExceptions 
+          when disposing objects
 
 -----------------------------------------------------------------------
-BUGS FIXED IN PATCH JDK/JRE 1.2.1-002
+BUGS FIXED IN PATCH JDK/JRE 1.2.2-003
 -----------------------------------------------------------------------
-4171851 - Memory leaks in AWT when interfacing with MOTIF.
-  
-4180147 - Screen can be frozen when interacting with MB3 using 
-          AWT on Motif.
 
-4178494 - Min/Max buttons not created with Frame and JFrame when 
-          not resizable.
-  
-4203480 - Inconsistent results from printing plugin within Netscape
-          & IE on Windows.
- 
-4031571 - Multiple threads using jdbc-odbc bridge hang on query 
-          w/ exclusive lock.
-          
-4212283 - Exception ignored in while debugging class loaded by 
-          custom loader.
-          
-4218471 - No repaint on win32 when print dialog displayed.
+4257083 - jdk1.2.2: Memory Leak in JInternalFrame
 
-4197666 - Socket descriptors leak into processes spawned by Java 
-          programs on windows.
-           
+4263853 - java plugin 1.2.2 has memory leaks on win95
+
+4239717 - Reloading applet causes memory leak in plugin 1.2... still
+
+4224888 - java.awt.dnd.DropTarget causing JNI Global Reference leak?
+
+4227245 - 42 Java2D+Printing Additional~PDL~output for win32
+
+-----------------------------------------------------------------------
+BUGS FIXED IN PATCH JDK/JRE 1.2.2-002
+-----------------------------------------------------------------------
+
+4250393 - KEY_TYPED events come through without modifiers,
+          even if the CTRL key is down.
+
+4159610 - Menu accelerator gets inserted into text.
+          (Duplicate bugs: 4246708, 4193779)
+
+4193779 - Modifiers not delivered with KEY_TYPED events on Solaris.
+
+4185668 - Huge print files generated by jdk1.2 rc1.
+          (Duplicate bug: 4227245)
+
+4242639 - Printing quality problem on Canon and NEC.
+   
+4203480 - Inconsistent results from printing plugin within
+          Netscape & IE on Windows.
+
+4181790 - Popup menu displayed incorrect entries on Win32 on 1.1.6, 1.2.
+
+4212283 - Exception ignored in while debugging class loaded by custom 
+          loader.
+          
+4129511 - Win32: There are 5 pixels before and after the text displayed 
+          in a TextField.
+          
+4187432 - EnableModeless(false) does not prevent modeless dialogs.
+
+4224808 - AWT deadlock on dual processor machine.
+
 4225955 - Resizing dialogs.
 
 4232374 - Modal Dialogs Cause Enabled-States to be Reset.
 
-4233976 - ResultSet not closing.
- 
-4234356 - Large strings being truncated.
+4197648 - Printing moderatly large images takes FOREVER...
 
-4234316 - JdbcOdbc, level 3.0 '...StoresMixedCase...' returns 
-          incorrect values.
-
-4234318 - JdbcOdbc 3.0 incorrect column names.  
-    
-4239482 - Inefficient printing of swing classes.
-
-4129511 - Win32: There are 5 pixels before and after the text 
-          displayed in a TextField.
-	  
 4232879 - Disposing Dialog nullifies TextField.requestFocus() call.
 
-4234481 - Monospaced/Bold fonts show up as variable width.
+4234481 - Monospaced/Bold fonts show up as variable width. Duplicate of 
+          4191318 - Win-95: bold and/or italic fonts are always serif.
+     
+4224237 - JDK1.2 Printing on certain Printers is too long.
 
+4225068 - MemLeak in SwingUtilities/RepaintManager showing in Swing-Applets.
+
+4239482 - Inefficient printing of swing classes.
+
+4243518 - All menus are in black with SwingSet (java demo) on PGX32 display.
+
+4246580 - Printing of images doesn't work in Plugin1.2.2.
+
+4236062 - Consistent crash on dual processor NT.
+
+4229795 - Printable.print(...) called 100s of times leading
+          to HUGE print jobs.
+          
+4200180 - Window.toFront() unreliable on Win32.
+
+4251646 - OutputStreamWriter outputs illegal characters with
+          JIS.
+
+4252361 - Distributor w/ JDK 1.2 dumps core when publisher publishes a 
+          pub. to it.
+
+4190429 - Java 2: drawString is slow on win32 when no Direct Draw is available.
+
+4218471 - No repaint on win32 when print dialog displayed.
+
+4239717 - Reloading applet causes memory leak in plugin 1.2... still.
+
+4250595 - Java performance issue on Solaris.
+ 
+4225493 - POST requests in EA Plugin 1.2.1.k from Netscape
 
 -----------------------------------------------------------------------
-BUGS FIXED IN PATCH JDK/JRE 1.2.1-001
+BUGS FIXED IN PATCH JDK/JRE 1.2.2-001
 -----------------------------------------------------------------------
 
-4220850 - getOutputStream()in URLConnection results in
-          StringIndexOutOfBounds Exception.
+4256530 - accessClassInPackage permission does not get overidden.
 
-4194080 - Java Plugin doesn't load classes from lib\ext
-          on Netscape Win32 install(JDK 1.2).
+4242924 - Use aggressive classloading to avoid deadlock
+          in SecurityManager
 
-4236891 - "Dead-spot" in dialog where no component can get focus.
+4262807 - Support needed for large applet deployment.
 
 -----------------------------------------------------------------------
 PROBLEM REPORTING
 -----------------------------------------------------------------------
+If a problem is found with this update release,
+please report it in detail to the Sun Support Engineer who handles your
+account. The Sun Support Engineer will relay the reported problem
+to the Sustaining Engineering group responsible for the release.
 
-If a problem is found with this patch, please report it in detail
-to the Sun Support Engineer that released this patch to you. The Sun 
-Support Engineer will relay the reported problem to the Sustaining 
-Engineering group responsible for the patch.
+If you have downloaded this update release from http://java.sun.com,
+and you would like to report bugs or feature requests,
+please go to this web page:
+
+	  http://java.sun.com/cgi-bin/bugreport.cgi
+
+-----------------------------------------------------------------------
+Copyright (C) 1996-2000 Sun Microsystems, Inc.
+901 San Antonio Rd., Palo Alto, CA 94303 USA
+All rights reserved.
 

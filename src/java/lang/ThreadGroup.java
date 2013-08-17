@@ -1,10 +1,10 @@
 /*
- * @(#)ThreadGroup.java	1.43 98/10/01
+ * @(#)ThreadGroup.java	1.45 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -28,7 +28,7 @@ import sun.misc.VM;
  * parent thread group or any other thread groups. 
  *
  * @author  unascribed
- * @version 1.43, 10/01/98
+ * @version 1.45, 04/22/99
  * @since   JDK1.0
  */
 /* The locking strategy for this code is to try to lock only one level of the
@@ -535,24 +535,8 @@ class ThreadGroup {
      *     {@link Thread#stop} for details.
      */
     public final void stop() {
-	int ngroupsSnapshot;
-	ThreadGroup[] groupsSnapshot;
-	synchronized (this) {
-	    checkAccess();
-	    for (int i = 0 ; i < nthreads ; i++) {
-		threads[i].stop();
-	    }
-	    ngroupsSnapshot = ngroups;
-	    if (groups != null) {
-		groupsSnapshot = new ThreadGroup[ngroupsSnapshot];
-		System.arraycopy(groups, 0, groupsSnapshot, 0, ngroupsSnapshot);
-	    } else {
-		groupsSnapshot = null;
-	    }
-	}
-	for (int i = 0 ; i < ngroupsSnapshot ; i++) {
-	    groupsSnapshot[i].stop();
-	}
+        if (stopOrSuspend(false))
+            Thread.currentThread().stop();
     }
 
     /**
@@ -613,24 +597,43 @@ class ThreadGroup {
      *     {@link Thread#suspend} for details.
      */
     public final void suspend() {
+        if (stopOrSuspend(true))
+            Thread.currentThread().suspend();
+    }
+
+    /**
+     * Helper method: recursively stops or suspends (as directed by the
+     * boolean argument) all of the threads in this thread group and its
+     * subgroups, except the current thread.  This method returns true
+     * if (and only if) the current thread is found to be in this thread
+     * group or one of its subgroups.
+     */
+    private boolean stopOrSuspend(boolean suspend) {
+        boolean suicide = false;
+        Thread us = Thread.currentThread();
 	int ngroupsSnapshot;
-	ThreadGroup[] groupsSnapshot;
+	ThreadGroup[] groupsSnapshot = null;
 	synchronized (this) {
 	    checkAccess();
 	    for (int i = 0 ; i < nthreads ; i++) {
-		threads[i].suspend();
+                if (threads[i]==us)
+                    suicide = true;
+                else if (suspend)
+                    threads[i].suspend();
+                else
+                    threads[i].stop();
 	    }
+
 	    ngroupsSnapshot = ngroups;
 	    if (groups != null) {
 		groupsSnapshot = new ThreadGroup[ngroupsSnapshot];
 		System.arraycopy(groups, 0, groupsSnapshot, 0, ngroupsSnapshot);
-	    } else {
-		groupsSnapshot = null;
 	    }
 	}
-	for (int i = 0 ; i < ngroupsSnapshot ; i++) {
-	    groupsSnapshot[i].suspend();
-	}
+	for (int i = 0 ; i < ngroupsSnapshot ; i++)
+	    suicide = groupsSnapshot[i].stopOrSuspend(suspend) || suicide;
+
+        return suicide;
     }
 
     /**

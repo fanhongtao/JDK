@@ -1,5 +1,5 @@
 /*
- * @(#)Permissions.java	1.37 98/07/30
+ * @(#)Permissions.java	1.39 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -46,7 +46,7 @@ import java.util.ArrayList;
  * @see PermissionCollection
  * @see AllPermission
  * 
- * @version 1.37, 00/05/10
+ * @version 1.39, 98/12/03
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -254,7 +254,7 @@ implements Serializable
 	    n = 0;
 	    for (int j=0; j < signers.length; j++) {
 		if (signers[j] instanceof java.security.cert.Certificate) {
-		    certs[n] = (java.security.cert.Certificate)signers[j];
+		    certs[n++] = (java.security.cert.Certificate)signers[j];
 		}
 	    }
 	}
@@ -340,7 +340,7 @@ final class PermissionsEnumerator implements Enumeration {
  * @see Permission
  * @see Permissions
  *
- * @version 1.37, 00/05/10
+ * @version 1.39, 00/04/06
  *
  * @author Roland Schemers
  */

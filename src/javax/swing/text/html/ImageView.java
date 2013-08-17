@@ -1,10 +1,10 @@
 /*
- * @(#)ImageView.java	1.27 98/08/26
+ * @(#)ImageView.java	1.36 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -28,12 +28,10 @@ import javax.swing.event.*;
  * Supports scaling via the HEIGHT and WIDTH parameters.
  *
  * @author  Jens Alfke
- * @version 1.27 08/26/98
+ * @version 1.36 04/22/99
  * @see IconView
  */
-class ImageView extends View implements ImageObserver,
-					MouseListener, MouseMotionListener,
-					Runnable {
+class ImageView extends View implements ImageObserver, MouseListener, MouseMotionListener {
 
     // --- Attribute Values ------------------------------------------
     
@@ -62,48 +60,74 @@ class ImageView extends View implements ImageObserver,
     
     
     private void initialize( Element elem ) {
-        fElement = elem;
-        
-	// Request image from document's cache:
-	AttributeSet attr = elem.getAttributes();
-	URL src = getSourceURL();
-	if( src != null ) {
-	    Dictionary cache = (Dictionary) getDocument().getProperty(IMAGE_CACHE_PROPERTY);
-	    if( cache != null )
-	        fImage = (Image) cache.get(src);
-	    else
-	        fImage = Toolkit.getDefaultToolkit().getImage(src);
+	synchronized(this) {
+	    loading = true;
+	    fWidth = fHeight = 0;
 	}
+	int width = 0;
+	int height = 0;
+	boolean customWidth = false;
+	boolean customHeight = false;
+	try {
+	    fElement = elem;
+        
+	    // Request image from document's cache:
+	    AttributeSet attr = elem.getAttributes();
+	    URL src = getSourceURL();
+	    if( src != null ) {
+		Dictionary cache = (Dictionary) getDocument().getProperty(IMAGE_CACHE_PROPERTY);
+		if( cache != null )
+		    fImage = (Image) cache.get(src);
+		else
+		    fImage = Toolkit.getDefaultToolkit().getImage(src);
+	    }
 	
-	// Get height/width from params or image or defaults:
-	fHeight = getIntAttr(HTML.Attribute.HEIGHT,-1);
-	boolean customHeight = (fHeight>0);
-	if( !customHeight && fImage != null )
-	    fHeight = fImage.getHeight(this);
-	if( fHeight <= 0 )
-	    fHeight = DEFAULT_HEIGHT;
+	    // Get height/width from params or image or defaults:
+	    height = getIntAttr(HTML.Attribute.HEIGHT,-1);
+	    customHeight = (height>0);
+	    if( !customHeight && fImage != null )
+		height = fImage.getHeight(this);
+	    if( height <= 0 )
+		height = DEFAULT_HEIGHT;
 		
-	fWidth = getIntAttr(HTML.Attribute.WIDTH,-1);
-	boolean customWidth = (fWidth>0);
-	if( !customWidth && fImage != null )
-	    fWidth = fImage.getWidth(this);
-	if( fWidth <= 0 )
-	    fWidth = DEFAULT_WIDTH;
-	
-	// Make sure the image starts loading:
-	if( fImage != null )
-	    if( customWidth && customHeight )
-	        Toolkit.getDefaultToolkit().prepareImage(fImage,fHeight,fWidth,this);
-	    else
-	        Toolkit.getDefaultToolkit().prepareImage(fImage,-1,-1,this);
-	
-	if( DEBUG ) {
+	    width = getIntAttr(HTML.Attribute.WIDTH,-1);
+	    customWidth = (width>0);
+	    if( !customWidth && fImage != null )
+		width = fImage.getWidth(this);
+	    if( width <= 0 )
+		width = DEFAULT_WIDTH;
+
+	    // Make sure the image starts loading:
 	    if( fImage != null )
-	    	System.out.println("ImageInfo: new on "+src+" ("+fWidth+"x"+fHeight+")");
-	    else
-	    	System.out.println("ImageInfo: couldn't get image at "+src);
-	    if(isLink()) System.out.println("           It's a link! Border = "+getBorder());
-	    //((AbstractDocument.AbstractElement)elem).dump(System.out,4);
+		if( customWidth && customHeight )
+		    Toolkit.getDefaultToolkit().prepareImage(fImage,height,
+							     width,this);
+		else
+		    Toolkit.getDefaultToolkit().prepareImage(fImage,-1,-1,
+							     this);
+	
+	    if( DEBUG ) {
+		if( fImage != null )
+		    System.out.println("ImageInfo: new on "+src+
+				       " ("+fWidth+"x"+fHeight+")");
+		else
+		    System.out.println("ImageInfo: couldn't get image at "+
+				       src);
+		if(isLink())
+		    System.out.println("           It's a link! Border = "+
+				       getBorder());
+		//((AbstractDocument.AbstractElement)elem).dump(System.out,4);
+	    }
+	} finally {
+	    synchronized(this) {
+		loading = false;
+		if (customWidth || fWidth == 0) {
+		    fWidth = width;
+		}
+		if (customHeight || fHeight == 0) {
+		    fHeight = height;
+		}
+	    }
 	}
     }
     
@@ -170,9 +194,11 @@ class ImageView extends View implements ImageObserver,
     private URL getSourceURL( ) {
  	String src = (String) fElement.getAttributes().getAttribute(HTML.Attribute.SRC);
  	if( src==null ) return null;
-	URL reference = (URL) fElement.getDocument().getProperty(Document.StreamDescriptionProperty);
+
+	URL reference = ((HTMLDocument)getDocument()).getBase();
         try {
- 	    return new URL(reference,src); 	
+ 	    URL u = new URL(reference,src);
+	    return u;
         } catch (MalformedURLException e) {
 	    return null;
         }
@@ -334,20 +360,17 @@ if(DEBUG) System.out.println("ImageView: changedUpdate end; valign="+getVertical
     protected int getSelectionState( ) {
     	int p0 = fElement.getStartOffset();
     	int p1 = fElement.getEndOffset();
-    	JTextComponent textComp = (JTextComponent)fContainer;
-    	Highlighter highlighter = textComp.getHighlighter();
-    	Highlighter.Highlight[] hi = highlighter.getHighlights();
-    	for( int i=hi.length-1; i>=0; i-- ) {
-    	    Highlighter.Highlight h =  hi[i];
-    	    int start = h.getStartOffset();
-    	    int end   = h.getEndOffset();
-    	    if( start<=p0 && end>=p1 ) {
-    	    	if( start==p0 && end==p1 && isEditable() )
-    	    	    return 2;
-    	    	else
-    	    	    return 1;
-    	    }
-    	}
+	if (fContainer instanceof JTextComponent) {
+	    JTextComponent textComp = (JTextComponent)fContainer;
+	    int start = textComp.getSelectionStart();
+	    int end = textComp.getSelectionEnd();
+	    if( start<=p0 && end>=p1 ) {
+		if( start==p0 && end==p1 && isEditable() )
+		    return 2;
+		else
+		    return 1;
+	    }
+	}
     	return 0;
     }
     
@@ -364,10 +387,14 @@ if(DEBUG) System.out.println("ImageView: changedUpdate end; valign="+getVertical
 
     // --- Progressive display ---------------------------------------------
     
+    // This can come on any thread. If we are in the process of reloading
+    // the image and determining our state (loading == true) we don't fire
+    // preference changed, or repaint, we just reset the fWidth/fHeight as
+    // necessary and return. This is ok as we know when loading finishes
+    // it will pick up the new height/width, if necessary.
     public boolean imageUpdate( Image img, int flags, int x, int y,
     				int width, int height ) {
-    	
-    	if( fImage==null )
+    	if( fImage==null || fImage != img )
     	    return false;
     	    
     	// Bail out if there was an error:
@@ -378,21 +405,44 @@ if(DEBUG) System.out.println("ImageView: changedUpdate end; valign="+getVertical
         }
         
         // Resize image if necessary:
-        boolean resized = false;
+	short changed = 0;
         if( (flags & ImageObserver.HEIGHT) != 0 )
             if( ! getElement().getAttributes().isDefined(HTML.Attribute.HEIGHT) ) {
-                fHeight = height;
-                resized = true;
+		changed |= 1;
             }
         if( (flags & ImageObserver.WIDTH) != 0 )
             if( ! getElement().getAttributes().isDefined(HTML.Attribute.WIDTH) ) {
-                fWidth = width;
-                resized = true;
+		changed |= 2;
             }
-        if( resized ) {
+	synchronized(this) {
+	    if ((changed & 1) == 1) {
+		fWidth = width;
+	    }
+	    if ((changed & 2) == 2) {
+		fHeight = height;
+	    }
+	    if (loading) {
+		// No need to resize or repaint, still in the process of
+		// loading.
+		return true;
+	    }
+	}
+        if( changed != 0 ) {
             // May need to resize myself, asynchronously:
             if( DEBUG ) System.out.println("ImageView: resized to "+fWidth+"x"+fHeight);
-	    SwingUtilities.invokeLater(this);	// call run() later
+	    
+	    Document doc = getDocument();
+	    try {
+	      if (doc instanceof AbstractDocument) {
+		((AbstractDocument)doc).readLock();
+	      }
+	      preferenceChanged(this,true,true);
+	    } finally {
+	      if (doc instanceof AbstractDocument) {
+		((AbstractDocument)doc).readUnlock();
+	      }
+	    }			
+	      
 	    return true;
         }
 	
@@ -403,30 +453,16 @@ if(DEBUG) System.out.println("ImageView: changedUpdate end; valign="+getVertical
 	    if( sIsInc )
 	        repaint(sIncRate);
         
-        return true;
+        return ((flags & ALLBITS) == 0);
     }
-        
-    public void run( ) {
-if(DEBUG)System.out.println("ImageView: Called preferenceChanged");
-        preferenceChanged(this,true,true);
-    }
-    
+					  /*        
     /**
      * Static properties for incremental drawing.
      * Swiped from Component.java
      * @see #imageUpdate
      */
-    private static boolean sIsInc;
-    private static int sIncRate;
-    static {
-	String s;
-
-	s = System.getProperty("awt.image.incrementaldraw");
-	sIsInc = (s == null || s.equals("true"));
-
-	s = System.getProperty("awt.image.redrawrate");
-	sIncRate = (s != null) ? Integer.parseInt(s) : 100;
-    }
+    private static boolean sIsInc = true;
+    private static int sIncRate = 100;
 
     // --- Layout ----------------------------------------------------------
 
@@ -597,10 +633,10 @@ if(DEBUG)System.out.println("ImageView: Called preferenceChanged");
     	    
     	    if( e.isShiftDown() && fImage!=null ) {
     	    	// Make sure size is proportional to actual image size:
-    	    	int imgWidth = fImage.getWidth(this);
-    	    	int imgHeight = fImage.getHeight(this);
+    	    	float imgWidth = fImage.getWidth(this);
+    	    	float imgHeight = fImage.getHeight(this);
     	    	if( imgWidth>0 && imgHeight>0 ) {
-    	    	    float prop = (float)imgHeight / (float)imgWidth;
+    	    	    float prop = imgHeight / imgWidth;
     	    	    float pwidth = height / prop;
     	    	    float pheight= width * prop;
     	    	    if( pwidth > width )
@@ -633,7 +669,6 @@ if(DEBUG)System.out.println("ImageView: Called preferenceChanged");
     public void mouseExited(MouseEvent e){
     }
     
-
     // --- Static icon accessors -------------------------------------------
 
     private Icon makeIcon(final String gifFile) throws IOException {
@@ -644,10 +679,7 @@ if(DEBUG)System.out.println("ImageView: Called preferenceChanged");
          * Class.getResourceAsStream just returns raw
          * bytes, which we can convert to an image.
          */
-        InputStream resource;
-
-	//PENDING(prinz): Use new security model
-	resource = ImageView.class.getResourceAsStream(gifFile);
+	InputStream resource = HTMLEditorKit.getResourceAsStream(gifFile);
 
         if (resource == null) {
             System.err.println(ImageView.class.getName() + "/" + 
@@ -702,6 +734,9 @@ if(DEBUG)System.out.println("ImageView: Called preferenceChanged");
     private Component fComponent;
     private Point     fGrowBase;        // base of drag while growing image
     private boolean   fGrowProportionally;	// should grow be proportional?
+    /** Set to true, while the receiver is locked, to indicate the reciever
+     * is loading the image. This is used in imageUpdate. */
+    private boolean   loading;
     
     // --- constants and static stuff --------------------------------
 

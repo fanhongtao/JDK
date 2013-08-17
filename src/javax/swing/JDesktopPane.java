@@ -1,5 +1,5 @@
 /*
- * @(#)JDesktopPane.java	1.24 98/08/28
+ * @(#)JDesktopPane.java	1.26 98/10/15
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -51,7 +51,7 @@ import java.io.IOException;
  * @see JInternalFrame.JDesktopIcon
  * @see DesktopManager
  *
- * @version 1.24 08/28/98
+ * @version 1.26 10/15/98
  * @author David Kloba
  */
 public class JDesktopPane extends JLayeredPane implements Accessible
@@ -62,7 +62,7 @@ public class JDesktopPane extends JLayeredPane implements Accessible
      */
     private static final String uiClassID = "DesktopPaneUI";
 
-    DesktopManager desktopManager;
+    transient DesktopManager desktopManager;
 
     /** 
      * Creates a new JDesktopPane.
@@ -226,9 +226,6 @@ public class JDesktopPane extends JLayeredPane implements Accessible
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JDesktopPane.
      */

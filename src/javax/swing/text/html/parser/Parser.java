@@ -1,5 +1,5 @@
 /*
- * @(#)Parser.java	1.16 98/08/26
+ * @(#)Parser.java	1.17 98/11/06
  *
  * Copyright 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -45,7 +45,7 @@ import sun.misc.MessageUtils;
  * @see DTD
  * @see Tag
  * @see SimpleAttributeSet
- * @version 1.16, 08/26/98
+ * @version 1.17, 11/06/98
  * @author Arthur van Hoff
  * @author Sunita Mani
  */
@@ -89,6 +89,15 @@ class Parser implements DTDConstants {
      *
      */
     protected boolean strict = false;
+
+
+    /** Number of \r\n's encountered. */
+    private int crlfCount;
+    /** Number of \r's encountered. A \r\n will not increment this. */
+    private int crCount;
+    /** Number of \n's encountered. A \r\n will not increment this. */
+    private int lfCount;
+
 
     public Parser(DTD dtd) {
 	this.dtd = dtd;
@@ -668,12 +677,17 @@ class Parser implements DTDConstants {
 	      case '\n':
 		ln++;
 		ch = readCh();
+		lfCount++;
 		break;
 
 	      case '\r':
 		ln++;
 		if ((ch = readCh()) == '\n') {
 		    ch = readCh();
+		    crlfCount++;
+		}
+		else {
+		    crCount++;
 		}
 		break;
 	      case ' ':
@@ -765,12 +779,17 @@ class Parser implements DTDConstants {
 		  case '\n':
 		    ln++;
 		    ch = readCh();
+		    lfCount++;
 		    break;
 
 		  case '\r':
 		    ln++;
 		    if ((ch = readCh()) == '\n') {
 			ch = readCh();
+			crlfCount++;
+		    }
+		    else {
+			crCount++;
 		    }
 		    break;
 
@@ -796,12 +815,17 @@ class Parser implements DTDConstants {
 	  case '\n':
 	    ln++;
 	    ch = readCh();
+	    lfCount++;
 	    break;
 
 	  case '\r':
 	    ln++;
 	    if ((ch = readCh()) == '\n') {
 		ch = readCh();
+		crlfCount++;
+	    }
+	    else {
+		crCount++;
 	    }
 	    break;
 
@@ -899,6 +923,7 @@ class Parser implements DTDConstants {
 	      case '\n':
 		ln++;
 		ch = readCh();
+		lfCount++;
 		break;
 
 	      case '>':
@@ -909,6 +934,10 @@ class Parser implements DTDConstants {
 		ln++;
 		if ((ch = readCh()) == '\n') {
 		    ch = readCh();
+		    crlfCount++;
+		}
+		else {
+		    crCount++;
 		}
 		c = '\n';
 		break;
@@ -966,12 +995,17 @@ class Parser implements DTDConstants {
 	      case '\n':
 		ln++;
 		ch = readCh();
+		lfCount++;
 		break;
 
 	      case '\r':
 		ln++;
 		if ((ch = readCh()) == '\n') {
 		    ch = readCh();
+		    crlfCount++;
+		}
+		else {
+		    crCount++;
 		}
                 c = '\n';
 		break;
@@ -1013,6 +1047,7 @@ class Parser implements DTDConstants {
 	      case '\n':
 		ln++;
 		ch = readCh();
+		lfCount++;
 		if (delim < 0) {
 		    return getString(0);
 		}
@@ -1023,6 +1058,10 @@ class Parser implements DTDConstants {
 
 		if ((ch = readCh()) == '\n') {
 		    ch = readCh();
+		    crlfCount++;
+		}
+		else {
+		    crCount++;
 		}
 		if (delim < 0) {
 		    return getString(0);
@@ -1265,6 +1304,7 @@ class Parser implements DTDConstants {
 	    case '\n':
 		ln++;
 		ch = readCh();
+		lfCount++;
 		break;
 	    case '"':
 		ch = readCh();
@@ -1273,6 +1313,10 @@ class Parser implements DTDConstants {
 		ln++;
 		if ((ch = readCh()) == '\n') {
 		    ch = readCh();
+		    crlfCount++;
+		}
+		else {
+		    crCount++;
 		}
 		break;
 	    default:
@@ -1394,11 +1438,16 @@ class Parser implements DTDConstants {
 		      case '\n':
 			ln++;
 			ch = readCh();
+			lfCount++;
 			break;
 		      case '\r':
 			ln++;
 			if ((ch = readCh()) == '\n') {
 			    ch = readCh();
+			    crlfCount++;
+			}
+			else {
+			    crCount++;
 			}
 			break;
 
@@ -1651,11 +1700,16 @@ class Parser implements DTDConstants {
 	if (!elem.isEmpty())  {
 	    if (ch == '\n') {
 		ln++;
+		lfCount++;
 		ch = readCh();
 	    } else if (ch == '\r') {
 		ln++;
 		if ((ch = readCh()) == '\n') {
 		    ch = readCh();
+		    crlfCount++;
+		}
+		else {
+		    crCount++;
 		}
 	    }
 	}
@@ -1770,6 +1824,7 @@ class Parser implements DTDConstants {
 
 	      case '\n':
 		ln++;
+		lfCount++;
 		ch = readCh();
 		if ((stack != null) && stack.pre) {
 		    break;
@@ -1782,6 +1837,10 @@ class Parser implements DTDConstants {
 		c = '\n';
 		if ((ch = readCh()) == '\n') {
 		    ch = readCh();
+		    crlfCount++;
+		}
+		else {
+		    crCount++;
 		}
 		if ((stack != null) && stack.pre) {
 		    break;
@@ -1828,6 +1887,28 @@ class Parser implements DTDConstants {
 	}
     }
 
+    /**
+     * Returns the end of line string. This will return the end of line
+     * string that has been encountered the most, one of \r, \n or \r\n.
+     */
+    String getEndOfLineString() {
+	if (crlfCount >= crCount) {
+	    if (lfCount >= crlfCount) {
+		return "\n";
+	    }
+	    else {
+		return "\r\n";
+	    }
+	}
+	else {
+	    if (crCount > lfCount) {
+		return "\r";
+	    }
+	    else {
+		return "\n";
+	    }
+	}
+    }
 
     /**
      * Parse an HTML stream, given a DTD.
@@ -1840,6 +1921,8 @@ class Parser implements DTDConstants {
 	seenHtml = false;
 	seenHead = false;
 	seenBody = false;
+
+	crCount = lfCount = crlfCount = 0;
 
 	try {
 	    try {

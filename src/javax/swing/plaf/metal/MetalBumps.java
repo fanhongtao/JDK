@@ -1,10 +1,10 @@
 /*
- * @(#)MetalBumps.java	1.15 98/08/26
+ * @(#)MetalBumps.java	1.17 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -22,7 +22,7 @@ import java.util.*;
 /**
  * Implements the bumps used throughout the Metal Look and Feel.
  * 
- * @version 1.15 08/26/98
+ * @version 1.17 04/22/99
  * @author Tom Santos
  * @author Steve Wilson
  */
@@ -232,8 +232,9 @@ class BumpBuffer {
 	if (component == null ) {
 	    component = new Canvas();
 	    frame.add( component, BorderLayout.CENTER );
-	    frame.addNotify();
 	}
+	// fix for 4185993 (moved this outside if block)
+	frame.addNotify();
     }
 
 }

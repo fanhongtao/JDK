@@ -1,10 +1,10 @@
 /*
- * @(#)JRootPane.java	1.37 98/08/28
+ * @(#)JRootPane.java	1.47 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -140,7 +140,7 @@ import java.io.Serializable;
  * @see <a href="http://java.sun.com/products/jfc/swingdoc-archive/mixing.html">
  * Mixing Heavy and Light Components</a>
  *
- * @version 1.37 08/28/98
+ * @version 1.47 04/22/99
  * @author David Kloba
  */
 /// PENDING(klobad) Who should be opaque in this component?
@@ -183,7 +183,6 @@ public class JRootPane extends JComponent implements Accessible {
         setContentPane(createContentPane());
         setLayout(createRootLayout());
         setDoubleBuffered(true);
-        setBackground(UIManager.getColor("control"));
     }
 
     /** Called by the constructor methods to create the default layeredPane. 
@@ -437,29 +436,52 @@ public class JRootPane extends JComponent implements Accessible {
     public void setDefaultButton(JButton defaultButton) { 
         JButton oldDefault = this.defaultButton;
 
-        this.defaultButton = defaultButton;
-        if (defaultPressAction == null) {
-            defaultPressAction = new DefaultAction(this, true);
-            defaultReleaseAction = new DefaultAction(this, false);
-            // Eventually we should get the KeyStroke from the UI
-            // but hardcode it for now....
-            registerKeyboardAction(defaultPressAction, 
+        if (oldDefault != defaultButton) {
+            this.defaultButton = defaultButton;
+
+            if (defaultButton != null) {
+                if (defaultPressAction == null) {
+                    defaultPressAction = new DefaultAction(this, true);
+                    defaultReleaseAction = new DefaultAction(this, false);
+                   // Eventually we should get the KeyStroke from the UI
+                   // but hardcode it for now....
+                    registerKeyboardAction(defaultPressAction, 
                                    KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), 
                                    JComponent.WHEN_IN_FOCUSED_WINDOW);
-            registerKeyboardAction(defaultReleaseAction, 
+
+                    registerKeyboardAction(defaultReleaseAction, 
                                    KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true), 
                                    JComponent.WHEN_IN_FOCUSED_WINDOW);
-        }
-        if (oldDefault != defaultButton) {
-            defaultPressAction.setOwner(defaultButton);
-            defaultReleaseAction.setOwner(defaultButton);
+
+                    registerKeyboardAction(defaultPressAction, 
+                                   KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 
+                                                          InputEvent.CTRL_MASK, false), 
+                                   JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+                    registerKeyboardAction(defaultReleaseAction, 
+                                   KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,            
+                                                          InputEvent.CTRL_MASK, true), 
+                                   JComponent.WHEN_IN_FOCUSED_WINDOW);
+                }
+                defaultPressAction.setOwner(defaultButton);
+                defaultReleaseAction.setOwner(defaultButton);
+            } else {
+                unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false));
+                unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true));
+                unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 
+                                                                InputEvent.CTRL_MASK, false));
+                unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 
+                                                                InputEvent.CTRL_MASK, true));
+                defaultPressAction = null;
+                defaultReleaseAction = null;
+            }
 
             if (oldDefault != null) {
                 oldDefault.repaint();
             }
             if (defaultButton != null) {
                 defaultButton.repaint();
-            }
+            } 
         }
 
         firePropertyChange("defaultButton", oldDefault, defaultButton);        
@@ -478,7 +500,6 @@ public class JRootPane extends JComponent implements Accessible {
         JRootPane root;
         boolean press;
         DefaultAction(JRootPane root, boolean press) {
-            super(press? "pressedAction" : "releasedAction");
             this.root = root;
             this.press = press;
         }
@@ -513,6 +534,57 @@ public class JRootPane extends JComponent implements Accessible {
             add(glassPane, 0);
         }
     }
+
+    /**
+     * Locates the visible child component that contains the specified
+     * position.  The top-most child component is returned in the case 
+     * where there is overlap in the components.  If the containing child 
+     * component is a Container, this method will continue searching for 
+     * the deepest nested child component.  Components which are not
+     * visible are ignored during the search.<p>
+     *
+     * This method is similar to Container.findComponentAt, except that
+     * the JRootPane.glassPane is ignored during the search.  This
+     * is needed to to support drag&drop.  Since the glassPane is the
+     * same size as the JRootPane instance, if there's a need to
+     * test whether the mouse is over the glassPane, just test that it's
+     * over the JRootPane instead.
+     *
+     * @param x the <i>x</i> coordinate
+     * @param y the <i>y</i. coordinate
+     * @return null if the component does not contain the position.
+     * If there is no child component at the requested point and the 
+     * point is within the bounds of this instance, then this 
+     * JRootPane itself is returned.
+     * @see Container.findComponentAt
+     * @see Container.getComponentAt
+     */
+
+    public Component findComponentAt(int x, int y) {
+	if (!contains(x, y)) {
+	    return null;
+	}
+        int ncomponents = countComponents();
+        Component component[] = getComponents();
+        for (int i = 0 ; i < ncomponents ; i++) {
+            Component comp = component[i];
+            if (comp != null) {
+		if (comp == glassPane) {  // don't use equals()
+		    continue;
+                } else if (comp instanceof Container) {
+                    comp = ((Container)comp).findComponentAt(x - comp.getX(),
+							     y - comp.getY());
+                } else {
+                    comp = comp.locate(x - comp.getX(), y - comp.getY());
+                }
+                if (comp != null && comp.isVisible()) {
+                    return comp;
+                }
+            }
+        }
+	return this;
+    }
+ 
 
 ///////////////////////////////////////////////////////////////////////////////
 //// Begin Inner Classes
@@ -650,9 +722,6 @@ public class JRootPane extends JComponent implements Accessible {
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JRootPane.
      */

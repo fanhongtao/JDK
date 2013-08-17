@@ -1,5 +1,5 @@
 /*
- * @(#)BoxLayout.java	1.19 98/08/28
+ * @(#)BoxLayout.java	1.20 98/10/20
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -85,7 +85,7 @@ import java.io.PrintStream;
  * @see Component#getAlignmentY
  *
  * @author   Timothy Prinzing
- * @version  1.19 08/28/98
+ * @version  1.20 10/20/98
  */
 public class BoxLayout implements LayoutManager2, Serializable {
 
@@ -221,8 +221,8 @@ public class BoxLayout implements LayoutManager2, Serializable {
 
         Dimension size = new Dimension(xTotal.minimum, yTotal.minimum);
         Insets insets = target.getInsets();
-        size.width = (int) Math.min((long) + size.width + (long) insets.left + (long) insets.right, Integer.MAX_VALUE);
-        size.height = (int) Math.min((long) + size.height + (long) insets.top + (long) insets.bottom, Integer.MAX_VALUE);
+        size.width = (int) Math.min((long) size.width + (long) insets.left + (long) insets.right, Integer.MAX_VALUE);
+        size.height = (int) Math.min((long) size.height + (long) insets.top + (long) insets.bottom, Integer.MAX_VALUE);
         return size;
     }
 

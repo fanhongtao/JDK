@@ -1,10 +1,10 @@
 /*
- * @(#)BasicButtonUI.java	1.93 98/08/26
+ * @(#)BasicButtonUI.java	1.97 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -24,11 +24,12 @@ import java.awt.event.*;
 import javax.swing.plaf.ButtonUI;
 import javax.swing.plaf.UIResource;
 import javax.swing.plaf.ComponentUI;
+import javax.swing.text.View;
 
 /**
  * BasicButton implementation
  *
- * @version 1.93 08/26/98
+ * @version 1.97 04/22/99
  * @author Jeff Dinkins
  */
 public class BasicButtonUI extends ButtonUI{
@@ -66,7 +67,13 @@ public class BasicButtonUI extends ButtonUI{
         installDefaults((AbstractButton) c);
         installListeners((AbstractButton) c);
         installKeyboardActions((AbstractButton) c);
+	BasicHTML.updateRenderer(c, ((AbstractButton) c).getText());
     }
+
+    private Color defaultForeground = null;
+    private Color defaultBackground = null;
+    private Font defaultFont = null;
+    private Border defaultBorder = null;
 
     protected void installDefaults(AbstractButton b) {
         // load shared instance defaults
@@ -75,6 +82,12 @@ public class BasicButtonUI extends ButtonUI{
             defaultTextIconGap = ((Integer)UIManager.get(pp + "textIconGap")).intValue();
             defaultTextShiftOffset = ((Integer)UIManager.get(pp + "textShiftOffset")).intValue();
         
+	    // next four lines part of optimized component defaults installation
+	   /* defaultForeground = UIManager.getColor(pp + "foreground");
+	    defaultBackground = UIManager.getColor(pp + "background");
+	    defaultFont = UIManager.getFont(pp + "font");
+	    defaultBorder = UIManager.getBorder(pp + "border");*/
+
             defaults_initialized = true;
         }
 
@@ -88,7 +101,34 @@ public class BasicButtonUI extends ButtonUI{
         if(b.getMargin() == null || (b.getMargin() instanceof UIResource)) {
             b.setMargin(UIManager.getInsets(pp + "margin"));
         }
-        LookAndFeel.installColorsAndFont(b, pp + "background", pp + "foreground", pp + "font");
+
+	// *** begin optimized defaults install ***
+
+/*	Color currentForeground = b.getForeground();
+	Color currentBackground = b.getBackground();
+	Font currentFont = b.getFont();
+	Border currentBorder = b.getBorder();
+
+	if (currentForeground == null || currentForeground instanceof UIResource) {
+	      b.setForeground(defaultForeground);
+	}
+
+	if (currentBackground == null || currentBackground instanceof UIResource) {
+              b.setBackground(defaultBackground);
+	}
+
+	if (currentFont == null || currentFont instanceof UIResource) {
+	      b.setFont(defaultFont);
+	}
+
+	if (currentBorder == null || currentBorder instanceof UIResource) {
+	      b.setBorder(defaultBorder);
+	} */
+
+	// *** end optimized defaults install ***
+
+	// old code below works for component defaults installation, but it is slow
+	LookAndFeel.installColorsAndFont(b, pp + "background", pp + "foreground", pp + "font");
         LookAndFeel.installBorder(b, pp + "border");
 
     }
@@ -123,6 +163,7 @@ public class BasicButtonUI extends ButtonUI{
         uninstallKeyboardActions((AbstractButton) c);
         uninstallListeners((AbstractButton) c);
         uninstallDefaults((AbstractButton) c);
+	BasicHTML.updateRenderer(c, "");
     }
 
     protected void uninstallKeyboardActions(AbstractButton b) {
@@ -216,7 +257,12 @@ public class BasicButtonUI extends ButtonUI{
         }
 
         if (text != null && !text.equals("")){
-            paintText(g, c,textRect, text);
+	    View v = (View) c.getClientProperty(BasicHTML.propertyKey);
+	    if (v != null) {
+		v.paint(g, textRect);
+	    } else {
+		paintText(g, c,textRect, text);
+	    }
         }
 
         if (b.isFocusPainted() && b.hasFocus()) {
@@ -262,23 +308,23 @@ public class BasicButtonUI extends ButtonUI{
         ButtonModel model = b.getModel();
         FontMetrics fm = g.getFontMetrics();
 
-        /* Draw the Text */
-        if(model.isEnabled()) {
-            /*** paint the text normally */
-            g.setColor(b.getForeground());
-            BasicGraphicsUtils.drawString(g,text, model.getMnemonic(),
-                                          textRect.x + getTextShiftOffset(),
-                                          textRect.y + fm.getAscent() + getTextShiftOffset());
-        }
-        else {
-            /*** paint the text disabled ***/
-            g.setColor(b.getBackground().brighter());
-            BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                          textRect.x, textRect.y + fm.getAscent());
-            g.setColor(b.getBackground().darker());
-            BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                          textRect.x - 1, textRect.y + fm.getAscent() - 1);
-        }
+	/* Draw the Text */
+	if(model.isEnabled()) {
+	    /*** paint the text normally */
+	    g.setColor(b.getForeground());
+	    BasicGraphicsUtils.drawString(g,text, model.getMnemonic(),
+					  textRect.x + getTextShiftOffset(),
+					  textRect.y + fm.getAscent() + getTextShiftOffset());
+	}
+	else {
+	    /*** paint the text disabled ***/
+	    g.setColor(b.getBackground().brighter());
+	    BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
+					  textRect.x, textRect.y + fm.getAscent());
+	    g.setColor(b.getBackground().darker());
+	    BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
+					  textRect.x - 1, textRect.y + fm.getAscent() - 1);
+	}
     }
         
     protected void paintFocus(Graphics g, AbstractButton b,
@@ -306,7 +352,12 @@ public class BasicButtonUI extends ButtonUI{
     //          Layout Methods
     // ********************************
     public Dimension getMinimumSize(JComponent c) {
-        return getPreferredSize(c);
+        Dimension d = getPreferredSize(c);
+	View v = (View) c.getClientProperty(BasicHTML.propertyKey);
+	if (v != null) {
+	    d.width -= v.getPreferredSpan(View.X_AXIS) - v.getMinimumSpan(View.X_AXIS);
+	}
+	return d;
     }
 
     public Dimension getPreferredSize(JComponent c) {
@@ -315,7 +366,12 @@ public class BasicButtonUI extends ButtonUI{
     }
 
     public Dimension getMaximumSize(JComponent c) {
-        return getPreferredSize(c);
+        Dimension d = getPreferredSize(c);
+	View v = (View) c.getClientProperty(BasicHTML.propertyKey);
+	if (v != null) {
+	    d.width += v.getMaximumSpan(View.X_AXIS) - v.getPreferredSpan(View.X_AXIS);
+	}
+	return d;
     }
 
 

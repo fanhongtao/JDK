@@ -1,10 +1,10 @@
 /*
  * %W% %E%
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -418,12 +418,24 @@ public class JTabbedPane extends JComponent
                     GrayFilter.createDisabledImage(
                         ((ImageIcon)icon).getImage()));
         }
+
+        // If component already exists, remove corresponding
+        // tab so that new tab gets added correctly
+        // Note: we are allowing component=null because of compatibility,
+        // but we really should throw an exception because much of the
+        // rest of the JTabbedPane implementation isn't designed to deal
+        // with null components for tabs.
+        int i;
+        if (component != null && (i = indexOfComponent(component)) != -1) {
+            removeTabAt(i);
+        }
+
+        pages.insertElementAt(new Page(this, title != null? title : "", icon, disabledIcon,
+                                       component, tip), index);
         if (component != null) {
             component.setVisible(false);
             addImpl(component, null, -1);
         }
-        pages.insertElementAt(new Page(this, title != null? title : "", icon, disabledIcon,
-                                       component, tip), index);
 
         if (pages.size() == 1) {
             setSelectedIndex(0);
@@ -909,6 +921,8 @@ public class JTabbedPane extends JComponent
         Page page = (Page)pages.elementAt(index);
         if (component != page.component) {
             if (page.component != null) {
+                // REMIND(aim): this is really silly;
+                // why not if (page.component.getParent() == this) remove(component)
                 synchronized(getTreeLock()) {
                     int count = getComponentCount();
                     Component children[] = getComponents();
@@ -922,6 +936,7 @@ public class JTabbedPane extends JComponent
             page.component = component;
             component.setVisible(getSelectedIndex() == index);
             addImpl(component, null, -1);
+            
             revalidate();
         }
     }
@@ -960,8 +975,13 @@ public class JTabbedPane extends JComponent
      * @param component the component for the tab
      */
     public int indexOfComponent(Component component) {
-        for(int i = 0; i < getTabCount(); i++) { 
-            if (getComponentAt(i).equals(component)) { 
+        for(int i = 0; i < getTabCount(); i++) {
+            Component c = getComponentAt(i);
+            if (c != null) {
+                if (c.equals(component)) { 
+                    return i;
+                }
+            } else if (c == component) {
                 return i;
             }
         }
@@ -1005,9 +1025,6 @@ public class JTabbedPane extends JComponent
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JTabbedPane.
      */

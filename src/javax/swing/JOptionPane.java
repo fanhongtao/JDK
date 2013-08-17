@@ -1,5 +1,5 @@
 /*
- * @(#)JOptionPane.java	1.44 98/08/28
+ * @(#)JOptionPane.java	1.46 98/09/29
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -243,7 +243,7 @@ import javax.accessibility.*;
  *      attribute: isContainer true
  *    description: A component which implements standard dialog box controls.
  *
- * @version 1.44 08/28/98
+ * @version 1.46 09/29/98
  * @author James Gosling
  * @author Scott Violet
  */
@@ -427,6 +427,9 @@ public class JOptionPane extends JComponent implements Accessible
         JOptionPane    pane = new JOptionPane(message, messageType,
                                               OK_CANCEL_OPTION, icon,
                                               null, null);
+
+        // Workaround for bug#4135218
+        pane.adjustPreferredSize();
 
         pane.setWantsInput(true);
         pane.setSelectionValues(selectionValues);
@@ -627,6 +630,8 @@ public class JOptionPane extends JComponent implements Accessible
         JOptionPane             pane = new JOptionPane(message, messageType,
                                                        optionType, icon,
                                                        options, initialValue);
+        // Workaround for bug#4135218
+        pane.adjustPreferredSize();
 
         pane.setInitialValue(initialValue);
 
@@ -1850,9 +1855,6 @@ public class JOptionPane extends JComponent implements Accessible
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JOptionPane.
      */
@@ -1895,6 +1897,16 @@ public class JOptionPane extends JComponent implements Accessible
         ",messageType=" + messageTypeString +
         ",optionType=" + optionTypeString +
         ",wantsInput=" + wantsInputString;
+    }
+
+    // Workaround for bug#4135218: make the optionpane's
+    // preferred size be a little bigger than we need, hence
+    // when AWT creates it a little too small, we're still ok.
+    private void adjustPreferredSize() {
+        Dimension prefSize = getPreferredSize();
+        prefSize.width+=5;
+        prefSize.height+=2;
+        setPreferredSize(prefSize);
     }
 
 ///////////////////

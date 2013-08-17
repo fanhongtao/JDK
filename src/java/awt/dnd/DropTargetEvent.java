@@ -1,10 +1,10 @@
 /*
- * @(#)DropTargetEvent.java	1.7 98/04/14
+ * @(#)DropTargetEvent.java	1.10 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -25,13 +25,14 @@ import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetContext;
 
 /**
- * <p>
- * The DropTargetEvent is the base class for both the DropTargetDragEvent and
- * The DropTargetDropEvent. It encapsulates the current state of the Drag and
- * Drop operations, in particular the current DropTargetContext.
- * </p>
+ * The <code>DropTargetEvent</code> is the base 
+ * class for both the <code>DropTargetDragEvent</code>
+ * and the <code>DropTargetDropEvent</code>. 
+ * It encapsulates the current state of the Drag and
+ * Drop operations, in particular the current 
+ * <code>DropTargetContext</code>.
  *
- * @version 1.7
+ * @version 1.10
  * @since JDK1.2
  *
  */
@@ -39,7 +40,10 @@ import java.awt.dnd.DropTargetContext;
 public class DropTargetEvent extends java.util.EventObject {
 
     /**
-     * Construct a DropTargetEvent
+     * Construct a <code>DropTargetEvent</code> with 
+     * a specified <code>DropTargetContext</code>.
+     * <P>
+     * @param dtc the <code>DropTargetContext</code>
      */
 
     public DropTargetEvent(DropTargetContext dtc) {
@@ -49,12 +53,19 @@ public class DropTargetEvent extends java.util.EventObject {
     }
 
     /**
-     * @return the DropTargetContext
+     * This method returns the <code>DropTargetContext</code>
+     * associated with this <code>DropTargetEvent</code>.
+     * <P>
+     * @return the <code>DropTargetContext</code>
      */
 
     public DropTargetContext getDropTargetContext() {
 	return context;
     }
 
+    /**
+     * The <code>DropTargetConext</code> associated with this
+     * <code>DropTargetEvent</code>.
+     */
     protected DropTargetContext   context;
 }

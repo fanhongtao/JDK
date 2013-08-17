@@ -1,10 +1,10 @@
 /*
- * @(#)MetalIconFactory.java	1.36 98/08/28
+ * @(#)MetalIconFactory.java	1.39 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -32,7 +32,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.36 08/28/98
+ * @version 1.39 04/22/99
  * @author Michael C. Albers
  */
 public class MetalIconFactory implements Serializable {
@@ -1544,7 +1544,7 @@ public class MetalIconFactory implements Serializable {
   //
 
     static private final Dimension menuArrowIconSize = new Dimension( 4, 8 );
-    static private final Dimension menuCheckIconSize = new Dimension( 12, 10 );
+    static private final Dimension menuCheckIconSize = new Dimension( 10, 10 );
     static private final int xOff = 4;
 
     private static class MenuArrowIcon implements Icon, UIResource, Serializable
@@ -1571,11 +1571,17 @@ public class MetalIconFactory implements Serializable {
 		    g.setColor( b.getForeground() );
 		}
 	    }
-
-	    g.drawLine( 0, 0, 0, 7 );
-	    g.drawLine( 1, 1, 1, 6 );
-	    g.drawLine( 2, 2, 2, 5 );
-	    g.drawLine( 3, 3, 3, 4 );
+            if( MetalUtils.isLeftToRight(b) ) {
+                g.drawLine( 0, 0, 0, 7 );
+                g.drawLine( 1, 1, 1, 6 );
+                g.drawLine( 2, 2, 2, 5 );
+                g.drawLine( 3, 3, 3, 4 );
+            } else {
+                g.drawLine( 4, 0, 4, 7 );
+                g.drawLine( 3, 1, 3, 6 );
+                g.drawLine( 2, 2, 2, 5 );
+                g.drawLine( 1, 3, 1, 4 );
+            }
 
 	    g.translate( -x, -y );
 	}
@@ -1622,7 +1628,7 @@ public class MetalIconFactory implements Serializable {
 	    boolean isPressed = model.isPressed();
 	    boolean isArmed = model.isArmed();
 	    
-	    g.translate( x + xOff, y );
+	    g.translate( x, y );
 
 	    if ( isEnabled )
 	    {
@@ -1685,7 +1691,7 @@ public class MetalIconFactory implements Serializable {
 		g.drawLine( 4, 5, 9, 0 );
 	    }
 
-	    g.translate( -(x + xOff), -y );
+	    g.translate( -x, -y );
 	}
 
 	public int getIconWidth() { return menuCheckIconSize.width; }
@@ -1706,7 +1712,7 @@ public class MetalIconFactory implements Serializable {
 	    boolean isPressed = model.isPressed();
 	    boolean isArmed = model.isArmed();
 	    
-	    g.translate( x + xOff, y );
+	    g.translate( x, y );
 
 	    if ( isEnabled )
 	    {
@@ -1789,7 +1795,7 @@ public class MetalIconFactory implements Serializable {
 		g.drawLine( 3, 6, 5, 6 );
 	    }
 
-	    g.translate( -(x + xOff), -y );
+	    g.translate( -x, -y );
 	}
 
 	public int getIconWidth() { return menuCheckIconSize.width; }

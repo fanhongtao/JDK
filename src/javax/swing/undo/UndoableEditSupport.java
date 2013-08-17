@@ -1,5 +1,5 @@
 /*
- * @(#)UndoableEditSupport.java	1.8 98/08/26
+ * @(#)UndoableEditSupport.java	1.9 98/09/01
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -21,7 +21,7 @@ import java.util.*;
  * A support class used for managing UndoableEdit listeners.
  *
  * @author Ray Ryan
- * @version 1.8 08/26/98
+ * @version 1.9 09/01/98
  */
 public class UndoableEditSupport {
     protected int updateLevel;

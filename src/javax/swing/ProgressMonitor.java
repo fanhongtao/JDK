@@ -1,5 +1,5 @@
 /*
- * @(#)ProgressMonitor.java	1.17 98/08/26
+ * @(#)ProgressMonitor.java	1.18 98/10/21
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -11,8 +11,12 @@
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
  */
- 
+
+
+
 package javax.swing;
+
+
 
 import java.io.*;
 import java.awt.BorderLayout;
@@ -24,12 +28,14 @@ import java.beans.PropertyChangeListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-/** A class to monitor the progress of some operation.  If it looks
+
+
+/** A class to monitor the progress of some operation. If it looks
  * like it will take a while, a progress dialog will be popped up.
- * When the ProgressMonitor is created it is given a numeric range and a descriptive
- * string.  As the operation progresses, call the setProgress method
+ * When the ProgressMonitor is created it is given a numeric range and a
+ * descriptive string. As the operation progresses, call the setProgress method
  * to indicate how far along the [min,max] range the operation is.
- * Initially, there is no ProgressDialog.  After the first millisToDecideToPopup
+ * Initially, there is no ProgressDialog. After the first millisToDecideToPopup
  * milliseconds (default 500) the progress monitor will predict how long
  * the operation will take.  If it is longer than millisToPopup (default 2000,
  * 2 seconds) a ProgressDialog will be popped up.
@@ -41,22 +47,28 @@ import java.awt.event.WindowEvent;
  * <p>
  * @see ProgressMonitorInputStream
  * @author James Gosling
- * @version 1.17 08/26/98
+ * @version 1.18 10/21/98
  */
-public class ProgressMonitor {
-    private int millisToDecideToPopup = 500;
-    private int millisToPopup = 2000;
-    private int min, max, v, lastDisp;
-    private int reportDelta;
+public class ProgressMonitor extends Object
+{
     private ProgressMonitor root;
-    private JDialog dialog;
-    private JOptionPane pane;
-    private JProgressBar myBar;
-    private JLabel noteLabel;
-    private Component parentComponent;
-    private String note;
-    private Object message;
-    private long T0;
+    private JDialog         dialog;
+    private JOptionPane     pane;
+    private JProgressBar    myBar;
+    private JLabel          noteLabel;
+    private Component       parentComponent;
+    private String          note;
+    private Object[]        cancelOption = null;
+    private Object          message;
+    private long            T0;
+    private int             millisToDecideToPopup = 500;
+    private int             millisToPopup = 2000;
+    private int             min;
+    private int             max;
+    private int             v;
+    private int             lastDisp;
+    private int             reportDelta;
+
 
     /**
      * Constructs a graphic object that shows progress, typically by filling
@@ -66,7 +78,8 @@ public class ProgressMonitor {
      * @param message a descriptive message that will be shown
      *        to the user to indicate what operation is being monitored.
      *        This does not change as the operation progresses.
-     *        See the message parameters to methods in {@link JOptionsPane#message}
+     *        See the message parameters to methods in
+     *        {@link JOptionsPane#message}
      *        for the range of values.
      * @param note a short note describing the state of the
      *        operation.  As the operation progresses, you can call
@@ -80,74 +93,106 @@ public class ProgressMonitor {
      * @see JDialog
      * @see JOptionPane
      */
-    public ProgressMonitor(Component parentComponent, Object message, String note, int min, int max) {
-        this(parentComponent,message,note,min,max,null);
+    public ProgressMonitor(Component parentComponent,
+                           Object message,
+                           String note,
+                           int min,
+                           int max) {
+        this(parentComponent, message, note, min, max, null);
     }
-    /** Some day I want to put in groups of progress monitors... */
-    private ProgressMonitor(Component parentComponent, Object message, String note,
-			    int min, int max, ProgressMonitor group) {
+
+
+    private ProgressMonitor(Component parentComponent,
+                            Object message,
+                            String note,
+                            int min,
+                            int max,
+                            ProgressMonitor group) {
         this.min = min;
         this.max = max;
         this.parentComponent = parentComponent;
-        reportDelta = (max-min)/100;
-        if (reportDelta<1) reportDelta = 1;
+
+        cancelOption = new Object[1];
+        cancelOption[0] = UIManager.getString("OptionPane.cancelButtonText");
+
+        reportDelta = (max - min) / 100;
+        if (reportDelta < 1) reportDelta = 1;
         v = min;
         this.message = message;
-	this.note = note;
+        this.note = note;
         if (group != null) {
-            root = group.root != null ? group.root : group;
+            root = (group.root != null) ? group.root : group;
             T0 = root.T0;
             dialog = root.dialog;
-        } else {
+        }
+        else {
             T0 = System.currentTimeMillis();
         }
     }
-    private static class ProgressOptionPane extends JOptionPane {
-	ProgressOptionPane(Object messageList) {
-	    super(messageList, JOptionPane.INFORMATION_MESSAGE,
-		  JOptionPane.OK_CANCEL_OPTION, null, null, null);
-	}
-	public int getMaxCharactersPerLineCount() { return 60; }
 
-	// Equivalent to JOptionPane.createDialog, but create a modeless dialog.
-	// This is necessary because the Solaris implementation doesn't
-	// support Dialog.setModal yet.
-	public JDialog createDialog(Component parentComponent, String title) {
-	    Frame frame = JOptionPane.getFrameForComponent(parentComponent);
-	    final JDialog dialog = new JDialog(frame, title, false);
-	    Container contentPane = dialog.getContentPane();
 
-	    contentPane.setLayout(new BorderLayout());
-	    contentPane.add(this, BorderLayout.CENTER);
-	    dialog.pack();
-	    dialog.setLocationRelativeTo(parentComponent);
-	    dialog.addWindowListener(new WindowAdapter() {
-		boolean gotFocus = false;
-		public void windowClosing(WindowEvent we) {
-		    setValue(null);
-		}
-		public void windowActivated(WindowEvent we) {
-		    // Once window gets focus, set initial focus
-		    if (!gotFocus) {
-			selectInitialValue();
-			gotFocus = true;
-		    }
-		}
-	    });
-	    addPropertyChangeListener(new PropertyChangeListener() {
-		public void propertyChange(PropertyChangeEvent event) {
-		    if(dialog.isVisible() && 
-		       event.getSource() == ProgressOptionPane.this &&
-		       (event.getPropertyName().equals(VALUE_PROPERTY) ||
-			event.getPropertyName().equals(INPUT_VALUE_PROPERTY))) {
-			dialog.setVisible(false);
-			dialog.dispose();
-		    }
-		}
-	    });
-	    return dialog;
-	}
-    };
+    private class ProgressOptionPane extends JOptionPane
+    {
+        ProgressOptionPane(Object messageList) {
+            super(messageList,
+                  JOptionPane.INFORMATION_MESSAGE,
+                  JOptionPane.DEFAULT_OPTION,
+                  null,
+                  ProgressMonitor.this.cancelOption,
+                  null);
+        }
+
+
+        public int getMaxCharactersPerLineCount() {
+            return 60;
+        }
+
+
+        // Equivalent to JOptionPane.createDialog,
+        // but create a modeless dialog.
+        // This is necessary because the Solaris implementation doesn't
+        // support Dialog.setModal yet.
+        public JDialog createDialog(Component parentComponent, String title) {
+            Frame frame = JOptionPane.getFrameForComponent(parentComponent);
+            final JDialog dialog = new JDialog(frame, title, false);
+            Container contentPane = dialog.getContentPane();
+
+            contentPane.setLayout(new BorderLayout());
+            contentPane.add(this, BorderLayout.CENTER);
+            dialog.pack();
+            dialog.setLocationRelativeTo(parentComponent);
+            dialog.addWindowListener(new WindowAdapter() {
+                boolean gotFocus = false;
+
+                public void windowClosing(WindowEvent we) {
+                    setValue(null);
+                }
+
+                public void windowActivated(WindowEvent we) {
+                    // Once window gets focus, set initial focus
+                    if (!gotFocus) {
+                        selectInitialValue();
+                        gotFocus = true;
+                    }
+                }
+            });
+
+            addPropertyChangeListener(new PropertyChangeListener() {
+                public void propertyChange(PropertyChangeEvent event) {
+                    if(dialog.isVisible() && 
+                       event.getSource() == ProgressOptionPane.this &&
+                       (event.getPropertyName().equals(VALUE_PROPERTY) ||
+                        event.getPropertyName().equals(INPUT_VALUE_PROPERTY))){
+                        dialog.setVisible(false);
+                        dialog.dispose();
+                    }
+                }
+            });
+            return dialog;
+        }
+    }
+
+
     /** 
      * Indicate the progress of the operation being monitored.
      * If the specified value is >= the maximum, the progress
@@ -160,32 +205,46 @@ public class ProgressMonitor {
      */
     public void setProgress(int nv) {
         v = nv;
-        if (nv >= max) close();
-        else if (nv>=lastDisp+reportDelta) {
+        if (nv >= max) {
+            close();
+        }
+        else if (nv >= lastDisp + reportDelta) {
             lastDisp = nv;
-            if(myBar != null) myBar.setValue(nv);
+            if (myBar != null) {
+                myBar.setValue(nv);
+            }
             else {
                 long T = System.currentTimeMillis();
                 long dT = (int)(T-T0);
                 if (dT >= millisToDecideToPopup) {
                     int predictedCompletionTime;
-                    if (nv>min)
-                    predictedCompletionTime = (int)((long)dT*(max-min)/(nv-min));
-                    else predictedCompletionTime = millisToPopup;
-                    if (predictedCompletionTime>=millisToPopup) {
+                    if (nv > min) {
+                        predictedCompletionTime = (int)((long)dT *
+                                                        (max - min) /
+                                                        (nv - min));
+                    }
+                    else {
+                        predictedCompletionTime = millisToPopup;
+                    }
+                    if (predictedCompletionTime >= millisToPopup) {
                         myBar = new JProgressBar();
-			myBar.setMinimum(min);
-			myBar.setMaximum(max);
-			myBar.setValue(nv);
-			if (note != null) noteLabel = new JLabel(note);
-			pane = new ProgressOptionPane(new Object[]{message, noteLabel, myBar});
-			dialog = pane.createDialog(parentComponent, "Progress...");
-			dialog.show();
+                        myBar.setMinimum(min);
+                        myBar.setMaximum(max);
+                        myBar.setValue(nv);
+                        if (note != null) noteLabel = new JLabel(note);
+                        pane = new ProgressOptionPane(new Object[] {message,
+                                                                    noteLabel,
+                                                                    myBar});
+                        dialog = pane.createDialog(parentComponent,
+                                                   "Progress...");
+                        dialog.show();
                     }
                 }
             }
         }
     }
+
+
     /** 
      * Indicate that the operation is complete.  This happens automatically
      * when the value set by setProgress is >= max, but it may be called
@@ -196,47 +255,68 @@ public class ProgressMonitor {
             dialog.setVisible(false);
             dialog.dispose();
             dialog = null;
-	    pane = null;
+            pane = null;
             myBar = null;
         }
     }
+
+
     /**
      * Returns the minimum value -- the lower end of the progress value.
      *
      * @return an int representing the minimum value
      * @see #setMinimum
      */
-    public int getMinimum() { return min; }
+    public int getMinimum() {
+        return min;
+    }
+
+
     /**
      * Specifies the minimum value.
      *
      * @param m  an int specifying the minimum value
      * @see #getMinimum
      */
-    public void setMinimum(int m) { min = m; }
+    public void setMinimum(int m) {
+        min = m;
+    }
+
+
     /**
      * Returns the maximum value -- the higher end of the progress value.
      *
      * @return an int representing the maximum value
      * @see #setMaximum
      */
-    public int getMaximum() { return max; }
+    public int getMaximum() {
+        return max;
+    }
+
+
     /**
      * Specifies the maximum value.
      *
      * @param m  an int specifying the maximum value
      * @see #getMaximum
      */
-    public void setMaximum(int m) { max = m; }
+    public void setMaximum(int m) {
+        max = m;
+    }
+
+
     /** 
-     * Returns true if the user does some UI action to cancel this operation.
-     * (like hitting the Cancel button on the progress dialog).
+     * Returns true if the user hits the Cancel button in the progress dialog.
      */
     public boolean isCanceled() {
-	if (pane == null) return false;
-	Object v = pane.getValue();
-	return v!=null && v instanceof Integer && ((Integer)v).intValue()==2;
+        if (pane == null) return false;
+        Object v = pane.getValue();
+        return ((v != null) &&
+                (cancelOption.length == 1) &&
+                (v.equals(cancelOption[0])));
     }
+
+
     /**
      * Specifies the amount of time to wait before deciding whether or
      * not to popup a progress monitor.
@@ -248,6 +328,8 @@ public class ProgressMonitor {
     public void setMillisToDecideToPopup(int millisToDecideToPopup) {
         this.millisToDecideToPopup = millisToDecideToPopup;
     }
+
+
     /**
      * Returns the amount of time this object waits before deciding whether
      * or not to popup a progress monitor.
@@ -256,7 +338,11 @@ public class ProgressMonitor {
      *        in milliseconds
      * @see #setMillisToDecideToPopup
      */
-    public int getMillisToDecideToPopup() { return millisToDecideToPopup; }
+    public int getMillisToDecideToPopup() {
+        return millisToDecideToPopup;
+    }
+
+
     /**
      * Specifies the amount of time it will take for the popup to appear.
      * (If the predicted time remaining is less than this time, the popup
@@ -268,13 +354,19 @@ public class ProgressMonitor {
     public void setMillisToPopup(int millisToPopup) {
         this.millisToPopup = millisToPopup;
     }
+
+
     /**
      * Returns the amount of time it will take for the popup to appear.
      *
      * @param millisToPopup  an int specifying the time in milliseconds
      * @see #setMillisToPopup
      */
-    public int getMillisToPopup() { return millisToPopup; }
+    public int getMillisToPopup() {
+        return millisToPopup;
+    }
+
+
     /**
      * Specifies the additional note that is displayed along with the
      * progress message. Used, for example, to show which file the
@@ -285,9 +377,12 @@ public class ProgressMonitor {
      */
     public void setNote(String note) {
         this.note = note;
-        if (noteLabel != null)
+        if (noteLabel != null) {
             noteLabel.setText(note);
+        }
     }
+
+
     /**
      * Specifies the additional note that is displayed along with the
      * progress message.
@@ -295,5 +390,7 @@ public class ProgressMonitor {
      * @return a String specifying the note to display
      * @see #setNote
      */
-    public String getNote() { return note; }
+    public String getNote() {
+        return note;
+    }
 }

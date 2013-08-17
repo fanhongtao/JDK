@@ -1,5 +1,5 @@
 /*
- * @(#)Component.java	1.225 00/04/19
+ * @(#)Component.java	1.237 00/03/08
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -54,7 +54,7 @@ import sun.awt.ConstrainableGraphics;
  * lightweight component. A lightweight component is a component that is
  * not associated with a native opaque window.
  *
- * @version 	1.225, 04/19/00
+ * @version 	1.226, 12/15/98
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  */
@@ -157,7 +157,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @see #getCursor
      * @see #setCursor
      */
-    Cursor	cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+    Cursor	cursor;
 
     /**
      * The locale for the component.
@@ -490,10 +490,6 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * Associate a DropTarget with this Component.
      *
      * @param dt The DropTarget
-     *
-     * @throw SecurityException
-     * @throw IllegalArgumentException
-     * @throw UnsupportedOperationException
      */
 
     public synchronized void setDropTarget(DropTarget dt) {
@@ -1739,7 +1735,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * this component returns true for the current cursor location.
      * Setting the cursor of a <code>Container</code> causes that cursor 
      * to be displayed within all of the container's subcomponents,
-     * except for any subcomponents that are using a non-default cursor. 
+     * except for those that have a non-null cursor. 
      * 
      * @param cursor One of the constants defined 
      *        by the <code>Cursor</code> class.
@@ -1754,19 +1750,35 @@ public abstract class Component implements ImageObserver, MenuContainer,
     public synchronized void setCursor(Cursor cursor) {
 	this.cursor = cursor;
     	ComponentPeer peer = this.peer;
-	if (peer != null) {
+        if (peer instanceof java.awt.peer.LightweightPeer) {
+            getNativeContainer().updateCursor(this);
+        } else if (peer != null) {
 	    peer.setCursor(cursor);
 	}
     }
 
     /**
-     * Gets the cursor set on this component.
-     * @return     The cursor for this component.
-     * @see        java.awt.Component#setCursor
-     * @see        java.awt.Cursor
+     * Gets the cursor set in the component. If the component does
+     * not have a cursor set, the cursor of its parent is returned.
+     * If no Cursor is set in the entire hierarchy, Cursor.DEFAULT_CURSOR is
+     * returned.
+     * @see #setCursor
      * @since      JDK1.1
      */
     public Cursor getCursor() {
+        Cursor cursor = this.cursor;
+        if (cursor != null) {
+            return cursor;
+        }
+        Container parent = this.parent;
+        if (parent != null) {
+            return parent.getCursor();
+        } else {
+            return Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+        }
+    }
+
+    Cursor getIntrinsicCursor() {
 	return cursor;
     }
 
@@ -1814,11 +1826,15 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @since     JDK1.0
      */
     public void update(Graphics g) {
-	if ((! (peer instanceof java.awt.peer.LightweightPeer)) &&
-			(! (this instanceof Label)) && (! (this instanceof TextField))){
-	    g.clearRect(0, 0, width, height);
-	}
-	paint(g);
+        if ((this instanceof java.awt.Canvas) ||
+            (this instanceof java.awt.Panel)  ||
+            (this instanceof java.awt.Frame)  ||
+            (this instanceof java.awt.Dialog) ||
+            (this instanceof java.awt.Window)) {
+
+            g.clearRect(0, 0, width, height);
+        }
+        paint(g);
     }
 
     /**
@@ -1959,10 +1975,10 @@ public abstract class Component implements ImageObserver, MenuContainer,
 	    cg.setFont(getFont());
 	    try {
 	        if (peer instanceof java.awt.peer.LightweightPeer) {
-		    lightweightPrint(g);
+		    lightweightPrint(cg);
 		}
 		else {
-		    peer.print(g);
+		    peer.print(cg);
 		}
 	    } finally {
 	        cg.dispose();
@@ -2288,6 +2304,8 @@ public abstract class Component implements ImageObserver, MenuContainer,
 
     /**
      * Dispatches an event to this component or one of its sub components.
+     * Calls processEvent() before returning for 1.1-style events which
+     * have been enabled for the Component.
      * @param e the event
      */
     public final void dispatchEvent(AWTEvent e) {
@@ -2899,14 +2917,10 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * This implementation of coalesceEvents coalesces two event types:
      * mouse move (and drag) events, and paint (and update) events.
      * For mouse move events the last event is always returned, causing
-     * intermediate moves to be discarded.  For paint events where the
-     * update rectangles intersect, an event is returned which has an
-     * update rectangle which is the union of the two events.
-     * <p>
-     * Note:  this method must never be synchronized (nor methods it
-     * invokes), as it is called from the underlying native event
-     * code.  Any deadlock with an overwritten version of this method
-     * is the responsibility of the party who overwrote this method!
+     * intermediate moves to be discarded. For paint events where the
+     * update rectangle of one paint event is completely contained within
+     * the update rectangle of the other paint event, the event with the
+     * smaller rectangle is discarded.
      *
      * @param  existingEvent  the event already on the EventQueue.
      * @param  newEvent       the event being posted to the EventQueue.
@@ -2928,7 +2942,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
 
         switch (id) {
           case Event.MOUSE_MOVE:
-          case Event.MOUSE_DRAG:
+          case Event.MOUSE_DRAG: {
               MouseEvent e = (MouseEvent)existingEvent;
               if (e.getModifiers() == ((MouseEvent)newEvent).getModifiers()) {
                   // Just return the newEvent, causing the old to be
@@ -2936,6 +2950,26 @@ public abstract class Component implements ImageObserver, MenuContainer,
                   return newEvent;
               }
               break;
+          }
+          case PaintEvent.PAINT:
+          case PaintEvent.UPDATE: {
+              // This approach to coalescing paint events seems to be
+              // better than any heuristic for unioning rectangles.
+ 
+              PaintEvent existingPaintEvent = (PaintEvent) existingEvent;
+              PaintEvent newPaintEvent = (PaintEvent) newEvent;
+              Rectangle existingRect = existingPaintEvent.getUpdateRect();
+              Rectangle newRect = newPaintEvent.getUpdateRect();
+              
+              if (existingRect.contains(newRect)) {
+                  return existingEvent;
+              }
+              if (newRect.contains(existingRect)) {
+                  return newEvent;
+              }
+ 
+              break;
+          }
         }
         return null;
     }
@@ -3936,7 +3970,12 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @author Laura Werner, IBM
      */
     public void setComponentOrientation(ComponentOrientation o) {
+        ComponentOrientation oldValue = componentOrientation;
         componentOrientation = o;
+
+	// This is a bound property, so report the change to
+	// any registered listeners.  (Cheap if there are none.)
+	firePropertyChange("componentOrientation", oldValue, o);
 
 	// This could change the preferred size of the Component.
 	if (valid) {

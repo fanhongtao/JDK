@@ -1,10 +1,10 @@
 /*
- * @(#)MetalToolBarUI.java	1.15 98/08/26
+ * @(#)MetalToolBarUI.java	1.18 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -41,22 +41,28 @@ import javax.swing.plaf.basic.*;
  * is a "combined" view/controller.
  * <p>
  *
- * @version 1.15 08/26/98
+ * @version 1.18 04/22/99
  * @author Jeff Shapiro
  */
 public class MetalToolBarUI extends BasicToolBarUI
 {
-    private static Border rolloverBorder = new MetalBorders.RolloverButtonBorder();
-    private static Border nonRolloverBorder = new MetalBorders.ButtonBorder();
+    private static Border rolloverBorder = new CompoundBorder( 
+        new MetalBorders.RolloverButtonBorder(), new BasicBorders.MarginBorder() );
+
+    private static Border nonRolloverBorder = new CompoundBorder(
+        new MetalBorders.ButtonBorder(), new BasicBorders.MarginBorder() );
 
     protected ContainerListener contListener;
     protected PropertyChangeListener rolloverListener;
 
     private Hashtable borderTable = new Hashtable();
+    private Hashtable marginTable = new Hashtable();
+
     private boolean rolloverBorders = false;
 
     private static String IS_ROLLOVER = "JToolBar.isRollover";
 
+    private final static Insets insets0 = new Insets( 0, 0, 0, 0 );
 
     public static ComponentUI createUI( JComponent c )
     {
@@ -71,12 +77,20 @@ public class MetalToolBarUI extends BasicToolBarUI
 
 	if ( rolloverProp != null )
 	{
-	    setRolloverBorders( ((Boolean)rolloverProp).booleanValue() );
+	    rolloverBorders = ((Boolean)rolloverProp).booleanValue();
 	}
 	else
 	{
-	    setRolloverBorders( false );
+	    rolloverBorders = false;
 	}
+
+	SwingUtilities.invokeLater( new Runnable()
+	{
+	    public void run()
+	    {
+	        setRolloverBorders( isRolloverBorders() );
+	    }
+	});
     }
 
     public void uninstallUI( JComponent c )
@@ -211,6 +225,12 @@ public class MetalToolBarUI extends BasicToolBarUI
 		    b.setBorder( rolloverBorder );
 		}
 		
+		if ( b.getMargin() == null || b.getMargin() instanceof UIResource )
+		{
+		    marginTable.put( b, b.getMargin() );
+		    b.setMargin( insets0 );
+		}
+
 		b.setRolloverEnabled( true );
 	    }
 	}
@@ -234,6 +254,12 @@ public class MetalToolBarUI extends BasicToolBarUI
 		    b.setBorder( nonRolloverBorder );
 		}
 
+		if ( b.getMargin() == null || b.getMargin() instanceof UIResource )
+		{
+		    marginTable.put( b, b.getMargin() );
+		    b.setMargin( insets0 );
+		}
+
 		b.setRolloverEnabled( false );
 	    }
 	}
@@ -250,6 +276,11 @@ public class MetalToolBarUI extends BasicToolBarUI
 	        if ( b.getBorder() == rolloverBorder || b.getBorder() == nonRolloverBorder )
 		{
 		    b.setBorder( (Border)borderTable.remove( b ) );
+		}
+
+		if ( b.getMargin() == insets0 )
+		{
+		    b.setMargin( (Insets)marginTable.remove( b ) );
 		}
 
 		b.setRolloverEnabled( false );
@@ -319,14 +350,18 @@ public class MetalToolBarUI extends BasicToolBarUI
             if (!toolBar.isEnabled()) {
                 return;
             }
-	    setDragOffset( e.getPoint() );
 	    pressedInBumps = false;
 
 	    Rectangle bumpRect = new Rectangle();
 
 	    if ( toolBar.getSize().height <= toolBar.getSize().width )  // horizontal
 	    {
-		bumpRect.setBounds( 0, 0, 14, toolBar.getSize().height );
+                if( MetalUtils.isLeftToRight(toolBar) ) {
+                    bumpRect.setBounds( 0, 0, 14, toolBar.getSize().height );
+                } else {
+                    bumpRect.setBounds( toolBar.getSize().width-14, 0, 
+                                        14, toolBar.getSize().height );
+                }  
 	    }
 	    else  // vertical
 	    {
@@ -336,6 +371,14 @@ public class MetalToolBarUI extends BasicToolBarUI
 	    if ( bumpRect.contains( e.getPoint() ) )
 	    {
 	        pressedInBumps = true;
+                
+                Point dragOffset = e.getPoint();
+                if( !MetalUtils.isLeftToRight(toolBar) ) {
+                    dragOffset.x -= toolBar.getSize().width 
+                                    - toolBar.getPreferredSize().width;
+                }
+                setDragOffset( dragOffset );
+                
 	    }
 	}
 

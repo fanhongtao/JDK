@@ -1,10 +1,10 @@
 /*
- * @(#)JFrame.java	1.59 98/09/29
+ * @(#)JFrame.java	1.65 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -84,7 +84,7 @@ import javax.accessibility.*;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window which can be minimized to an icon.
  *
- * @version 1.59 09/29/98
+ * @version 1.65 04/22/99
  * @author Jeff Dinkins
  * @author Georges Saab
  * @author David Kloba
@@ -143,7 +143,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
         /*if[JDK1.2]
           // workaround for bug 4170760
           enableInputMethods(false);
-        /*end[JDK1.2]*/
+          end[JDK1.2]*/
         setRootPane(createRootPane());
         setBackground(UIManager.getColor("control"));
         setRootPaneCheckingEnabled(true);
@@ -193,6 +193,9 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
               case DO_NOTHING_ON_CLOSE:
                  default: 
                  break;
+	      case 3: // EXIT_ON_CLOSE:
+		System.exit(0);
+		break;
             }
         }
     }
@@ -215,6 +218,8 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * invoking any registered WindowListener objects
      * <li>DISPOSE_ON_CLOSE - automatically hide and dispose the 
      * frame after invoking any registered WindowListener objects
+     * <li>EXIT_ON_CLOSE - Exit the application by way of System.exit.
+     * Only use this in applications.
      * </ul>
      * <p>
      * The value is set to HIDE_ON_CLOSE by default.
@@ -226,6 +231,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      *        enum: DO_NOTHING_ON_CLOSE WindowConstants.DO_NOTHING_ON_CLOSE
      *              HIDE_ON_CLOSE       WindowConstants.HIDE_ON_CLOSE
      *              DISPOSE_ON_CLOSE    WindowConstants.DISPOSE_ON_CLOSE
+     *              EXIT_ON_CLOSE       3
      * description: The frame's default close operation.
      */
     public void setDefaultCloseOperation(int operation) {
@@ -351,6 +357,21 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
         else {
             super.addImpl(comp, constraints, index);
         }
+    }
+
+    /** 
+     * Removes the specified component from this container.
+     * @param comp the component to be removed
+     * @see #add
+     */
+    public void remove(Component comp) {
+	if (comp == rootPane) {
+	    super.remove(comp);
+	} else {
+	    // Client mistake, but we need to handle it to avoid a
+	    // common object leak in client applications.
+	    getContentPane().remove(comp);
+	}
     }
 
 
@@ -506,9 +527,6 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JFrame.
      */
@@ -520,6 +538,8 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
             defaultCloseOperationString = "DISPOSE_ON_CLOSE";
         } else if (defaultCloseOperation == DO_NOTHING_ON_CLOSE) {
             defaultCloseOperationString = "DO_NOTHING_ON_CLOSE";
+        } else if (defaultCloseOperation == 3) {
+            defaultCloseOperationString = "EXIT_ON_CLOSE";
         } else defaultCloseOperationString = "";
 	String rootPaneString = (rootPane != null ?
 				 rootPane.toString() : "");
@@ -760,7 +780,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
          *
          * @param f the Font
          * @return the FontMetrics, if supported, the object; otherwise, null
-         * @see getFont
+         * @see #getFont
          */
         public FontMetrics getFontMetrics(Font f) {
             return JFrame.this.getFontMetrics(f);

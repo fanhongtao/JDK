@@ -1,7 +1,7 @@
 /*
- * @(#)RTFReader.java	1.9 98/09/21
+ * @(#)RTFReader.java	1.13 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -75,7 +75,6 @@ class RTFReader extends RTFParser
    *  Unicode character. */
   int skippingCharacters;  
 
-  
   static private Dictionary straightforwardAttributes;
   static {
       straightforwardAttributes = RTFAttributes.attributesByKeyword();
@@ -184,7 +183,7 @@ public void handleText(String text)
 	return;
     }
 
-    warnings.println("Text with no destination. oops.");
+    warning("Text with no destination. oops.");
 }
 
 /** The default color for text which has no specified color. */
@@ -200,8 +199,6 @@ Color defaultColor()
  */
 public void begingroup()
 {
-//    warnings.println("--- begingroup ---");
-
     if (skippingCharacters > 0) {
 	/* TODO this indicates an error in the RTF. Log it? */
 	skippingCharacters = 0;
@@ -229,8 +226,6 @@ public void begingroup()
  */
 public void endgroup()
 {
-//    warnings.println("--- endgroup, level=" + level + " ---");
-
     if (skippingCharacters > 0) {
 	/* NB this indicates an error in the RTF. Log it? */
 	skippingCharacters = 0;
@@ -255,7 +250,7 @@ protected void setRTFDestination(Destination newDestination)
     Dictionary previousState = (Dictionary)parserState.get("_savedState");
     if (previousState != null) {
 	if (rtfDestination != previousState.get("dst")) {
-	    warnings.println("Warning, RTF destination overridden, invalid RTF.");
+	    warning("Warning, RTF destination overridden, invalid RTF.");
 	    rtfDestination.close();
 	}
     }
@@ -280,7 +275,7 @@ public void close()
 
     /* RTFParser should have ensured that all our groups are closed */
 
-    warnings.println("RTF filter done.");
+    warning("RTF filter done.");
 
     super.close();
 }
@@ -510,14 +505,14 @@ public void setCharacterSet(String name)
     try {
         set = getCharacterSet(name);
     } catch (Exception e) {
-	warnings.println("Exception loading RTF character set \"" + name + "\": " + e);
+	warning("Exception loading RTF character set \"" + name + "\": " + e);
 	set = null;
     }
 
     if (set != null) {
 	translationTable = (char[])set;
     } else {
-	warnings.println("Unknown RTF character set \"" + name + "\"");
+	warning("Unknown RTF character set \"" + name + "\"");
 	if (!name.equals("ansi")) {
 	    try {
 		translationTable = (char[])getCharacterSet("ansi");
@@ -532,12 +527,11 @@ public void setCharacterSet(String name)
 
 /** Adds a character set to the RTFReader's list
  *  of known character sets */
-public static synchronized void 
+public static void 
 defineCharacterSet(String name, char[] table)
 {
     if (table.length < 256)
 	throw new IllegalArgumentException("Translation table must have 256 entries.");
-
     characterSets.put(name, table);
 }
 
@@ -547,7 +541,7 @@ defineCharacterSet(String name, char[] table)
  *
  *  @returns the character set
  */
-public static synchronized Object
+public static Object
 getCharacterSet(String name)
     throws IOException
 {
@@ -555,7 +549,6 @@ getCharacterSet(String name)
 
     set = (char [])characterSets.get(name);
     if (set == null) {
-      System.err.println("reading charset " + name);
       InputStream charsetStream = null;
       /* TODO: when class names are allowed as literal Class objects, 
 	 change this to use the nicer syntax */
@@ -741,12 +734,11 @@ class FonttblDestination implements Destination
     public void close()
     {
         Enumeration nums = fontTable.keys();
-        warnings.println("Done reading font table.");
+        warning("Done reading font table.");
         while(nums.hasMoreElements()) {
             Integer num = (Integer)nums.nextElement();
-            warnings.println("Number " + num + ": " + fontTable.get(num));
+            warning("Number " + num + ": " + fontTable.get(num));
         }
-        warnings.println();
     }
 }
 
@@ -781,7 +773,7 @@ class ColortblDestination implements Destination
     public void close()
     {
 	int count = proTemTable.size();
-        warnings.println("Done reading color table, " + count + " entries.");
+        warning("Done reading color table, " + count + " entries.");
 	colorTable = new Color[count];
 	proTemTable.copyInto(colorTable);
     }
@@ -841,7 +833,7 @@ class StylesheetDestination
 	    Style defined;
 	    style = (StyleDefiningDestination)styles.nextElement();
 	    defined = style.realize();
-	    warnings.println("Style "+style.number+" ("+style.styleName+"): "+defined);
+	    warning("Style "+style.number+" ("+style.styleName+"): "+defined);
 	    String stype = (String)defined.getAttribute(Constants.StyleType);
 	    Vector toSet;
 	    if (stype.equals(Constants.STSection)) {
@@ -1070,7 +1062,7 @@ abstract class AttributeTrackingDestination implements Destination
         /* This should really be in TextHandlingDestination, but
 	 * since *nobody* does anything with binary blobs, this
 	 * is more convenient. */
-	warnings.println("Unexpected binary data in RTF file.");
+	warning("Unexpected binary data in RTF file.");
     }
 
     public void begingroup()
@@ -1219,7 +1211,7 @@ abstract class AttributeTrackingDestination implements Destination
 	}
 
 	if (keyword.equals("fs")) {
-	    StyleConstants.setFontSize(characterAttributes, (int)(parameter / 2));
+	    StyleConstants.setFontSize(characterAttributes, (parameter / 2));
 	    return true;
 	}
 
@@ -1242,7 +1234,7 @@ abstract class AttributeTrackingDestination implements Destination
 	/* TODO: Other kinds of underlining */
 	
 	if (keyword.equals("tx") || keyword.equals("tb")) {
-	    float tabPosition = ((float)parameter) / 20f;
+	    float tabPosition = parameter / 20f;
 	    int tabAlignment, tabLeader;
 	    Number item;
 	    

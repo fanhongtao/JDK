@@ -1,10 +1,10 @@
 /*
- * @(#)AccessControlContext.java	1.22 98/07/20
+ * @(#)AccessControlContext.java	1.24 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -400,10 +400,7 @@ public final class AccessControlContext {
 	    }
 	}
 
-	// the new context is privileged if either one of the contexts
-	// was privileged. XXX: is this right?
-
-	return new AccessControlContext(pd, isPrivileged || tacc.isPrivileged);
+	return new AccessControlContext(pd, isPrivileged);
     }
 
     /**

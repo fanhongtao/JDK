@@ -29,11 +29,9 @@ decompile, reverse engineer Software.  Software is not designed or
 licensed for use in on-line control of aircraft, air traffic, aircraft
 navigation or aircraft communications; or in the design, construction,
 operation or maintenance of any nuclear facility.  You warrant that
-you will not use Software for these purposes.  You may not publish or
-provide the results of any benchmark or comparison tests run on
-Software to any third party without the prior written consent of Sun.
-No right, title or interest in or to any trademark, service mark, logo
-or trade name of Sun or its licensors is granted under this Agreement.
+you will not use Software for these purposes.  No right, title or 
+interest in or to any trademark, service mark, logo or trade name of 
+Sun or its licensors is granted under this Agreement.
 
 3. LIMITED WARRANTY.  Sun warrants to you that for a period of ninety
 (90) days from the date of purchase, as evidenced by a copy of the
@@ -104,7 +102,7 @@ representative of each party.
 For inquiries please contact: Sun Microsystems, Inc.  901 San Antonio
 Road, Palo Alto, California 94303
 
-           JAVA(R) 2 SDK, STANDARD EDITION, VERSION 1.2.1_004 
+           JAVA(TM) 2 SDK, STANDARD EDITION, VERSION 1.2.2_005 
                     SUPPLEMENTAL LICENSE TERMS
 
 These supplemental terms ("Supplement") add to the terms of the Binary
@@ -125,12 +123,14 @@ class file naming convention; and (iii) agree to the extent Programs
 are developed which utilize the Windows 95/98 style graphical user
 interface or components contained therein, such applets or
 applications may only be developed to run on a Windows 95/98 or
-Windows NT platform.  Refer to the Java Runtime Environment Version
-1.2.1_004 binary code license
-(http://java.sun.com/products/JDK/1.2/index.html) for the availability
+Windows NT platform.  Refer to the Java 2 Runtime Environment Version
+1.2.2_005 binary code license
+(http://java.sun.com/products/jdk/1.2/jre/LICENSE) for the availability
 of runtime code which may be distributed with Java applets and
-applications.  2.  Java Platform Interface. In the event that Licensee
-creates an additional API(s) which: (i) extends the functionality of a
+applications.  
+
+2.  Java Platform Interface. In the event that Licensee creates an 
+additional API(s) which: (i) extends the functionality of a
 Java Environment; and, (ii) is exposed to third party software
 developers for the purpose of developing additional software which
 invokes such additional API, Licensee must promptly publish broadly an

@@ -1,10 +1,10 @@
 /*
- * @(#)DragSourceContext.java	1.19 98/07/07
+ * @(#)DragSourceContext.java	1.35 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -36,41 +36,92 @@ import java.io.IOException;
 import java.util.TooManyListenersException;
 
 /**
- * <p>
  * The DragSourceContext class is responsible for managing the initiator side
  * of the Drag and Drop protocol. In particular it is responsible for managing
  * event notifications to the DragSourceListener, and providing the
  * Transferable state to enable the data transfer.
- * </p>
+ * <P>
+ * An instance of this class is created as a result 
+ * of a <code>DragSource's</code> startDrag() method being successfully 
+ * invoked. This instance is responsible for tracking the state 
+ * of the operation on behalf of the
+ * <code>DragSource</code> and dispatching state changes to 
+ * the <code>DragSourceListener</code>.
+ * <P>
+ * Note that the <code>DragSourceContext</code> itself 
+ * implements the <code>DragSourceListener</code> 
+ * interface. This is to allow the platform peer 
+ * (the <code>DragSourceContextPeer</code> instance) 
+ * created by the <code>DragSource</code> to notify 
+ * the <code>DragSourceContext</code> of
+ * changes in state in the ongiong operation. This allows the
+ * <code>DragSourceContext</code> to interpose 
+ * itself between the platform and the
+ * <code>DragSourceListener</code> provided by 
+ * the initiator of the operation.
  *
- * @version 1.19
+ * @version 1.35
  * @since JDK1.2
- *
  */
 
 public class DragSourceContext implements DragSourceListener {
 
     // used by updateCurrentCursor
 
+    /**
+     * An <code>int</code> used by updateCurrentCursor() 
+     * indicating that the <code>Cursor</code> should change
+     * to the default (no drop) <code>Cursor</code>.
+     */
     protected static final int DEFAULT = 0;
+
+    /**
+     * An <code>int</code> used by updateCurrentCursor()
+     * indicating that the <code>Cursor</code> 
+     * has entered a <code>DropTarget</code>. 
+     */
     protected static final int ENTER   = 1;
+
+    /**
+     * An <code>int</code> used by updateCurrentCursor()
+     * indicating that the <code>Cursor</code> is 
+     * over a <code>DropTarget</code>. 
+     */
     protected static final int OVER    = 2;
+
+    /**
+     * An <code>int</code> used by updateCurrentCursor()
+     * indicating that the user operation has changed. 
+     */ 
+
     protected static final int CHANGED = 3;
 	
     /**
-     * construct a DragSourceContext (called from DragSource)
-     *
-     * @param dscp	 The DragSourceContextPeer for this Drag
+     * Called from <code>DragSource</code>, this 
+     * constructor creates 
+     * a new <code>DragSourceContext</code> given the 
+     * <code>DragSourceContextPeer</code> for this Drag, 
+     * the <code>DragGestureEvent</code> that triggered the Drag, 
+     * the initial <code>Cursor</code> to use for the Drag, an (optional) 
+     * <code>Image</code> to display while the Drag is taking place, 
+     * the offset of the <code>Image</code> origin from the 
+     * hotspot at the instant of the triggering event, 
+     * the <code>Transferable</code> subject data, and the 
+     * <code>DragSourceListener</code> to use during the Drag and 
+     * Drop operation. This constructor is called 
+     * from <code>DragSource.</code>
+     * <P>
+     * @param dscp	 The <code>DragSourceContextPeer</code> for this drag
      * @param trigger	 The triggering event
-     * @param dragCursor The initial Cursor
-     * @param dragImage  The image to drag (or null)
+     * @param dragCursor The initial <code>Cursor</code> 
+     * @param dragImage  The <code>Image</code> to drag (or <code>null</code>)
      * @param offset	 The offset of the image origin from the hotspot
      *			 at the instant of the triggering event
-     * @param t		 The Transferable
-     * @param dsl	 The DragSourceListener
-     *
-     * @throw IllegalArgumentException
-     * @throw NullPointerException
+     * @param t		 The <code>Transferable</code>
+     * @param dsl	 The <code>DragSourceListener</code>
+     * <P>
+     * @throws IllegalArgumentException if trigger instance is incomplete
+     * @throws NullPointerException if dscp, dsl, trigger, or t are null
      */
  
     public DragSourceContext(DragSourceContextPeer dscp, DragGestureEvent trigger, Cursor dragCursor, Image dragImage, Point offset, Transferable t, DragSourceListener dsl) {
@@ -112,24 +163,38 @@ public class DragSourceContext implements DragSourceListener {
     }
 
     /**
-     * @return the DragSource that instantiated this DragSourceContext
+     * This method returns the <code>DragSource</code> 
+     * that instantiated this <code>DragSourceContext</code>.
+     * <P>
+     * @return the <code>DragSource</code> that 
+     * instantiated this <code>DragSourceContext</code>
      */
 
     public DragSource   getDragSource() { return dragSource; }
 
     /**
-     * @return the Component that started the Drag
+     * This method returns the <code>Component</code> associated with this 
+     * <code>DragSourceContext</code>.
+     * <P>
+     * @return the <code>Component</code> that started the drag
      */
 
     public Component    getComponent() { return component; }
 
     /**
-     * @return the Event that triggered the Drag
+     * This method returns the <code>DragGestureEvent</code>
+     * that initially  triggered the drag.
+     * <P>
+     * @return the Event that triggered the drag
      */
 
     public DragGestureEvent getTrigger() { return trigger; }
 
     /**
+     * This method returns an <code>int</code> 
+     * representing the current action(s) 
+     * associated with this <code>DragSourceContext.</code>
+     * <P>
      * @return the current actions
      */
 
@@ -138,7 +203,11 @@ public class DragSourceContext implements DragSourceListener {
     }
 
     /**
-     * change the drag cursor
+     * This method sets the current drag <code>Cursor.</code>
+     * <P>
+     * @param c the <code>Cursor</code> to display.
+     * Note that while <code>null</code> is not prohibited,
+     * it is not an acceptable value for this parameter.
      */
 
     public void setCursor(Cursor c) {
@@ -150,13 +219,25 @@ public class DragSourceContext implements DragSourceListener {
     }
 
     /**
-     * @return the current drag cursor
+     * This method returns the current drag <code>Cursor</code>. 
+     * <P>
+     * @return the current drag <code>Cursor</code>
      */
 
     public Cursor getCursor() { return cursor; }
 
     /**
-     * change the DragSourceListener
+     * Add a <code>DragSourceListener</code> to this
+     * <code>DragSourceContext</code> if one has not already been added.
+     * If a <code>DragSourceListener</code> already exists, 
+     * this method throws a <code>TooManyListenersException</code>.
+     * <P>
+     * @param dsl the <code>DragSourceListener</code> to add.
+     * Note that while <code>null</code> is not prohibited,
+     * it is not acceptable as a parameter.
+     * <P>
+     * @throws <code>TooManyListenersException</code> if
+     * a <code>DragSourceListener</code> has already been added
      */
 
     public synchronized void addDragSourceListener(DragSourceListener dsl) throws TooManyListenersException {
@@ -171,7 +252,12 @@ public class DragSourceContext implements DragSourceListener {
     }
 
     /**
-     * change the DragSourceListener
+     * This method removes the specified <code>DragSourceListener</code>
+     * from  this <code>DragSourceContext</code>.
+     * <P>
+     * @param dsl the <code>DragSourceListener</code> to remove.
+     * Note that while <code>null</code> is not prohibited,
+     * it is not acceptable as a parameter.
      */
 
     public synchronized void removeDragSourceListener(DragSourceListener dsl) {
@@ -182,7 +268,8 @@ public class DragSourceContext implements DragSourceListener {
     }
 
     /**
-     * notify the peer that the Transferables DataFlavors have changed
+     * This method notifies the peer that 
+     * the Transferable's DataFlavors have changed.
      */
 
     public void transferablesFlavorsChanged() {
@@ -190,7 +277,13 @@ public class DragSourceContext implements DragSourceListener {
     }
 
     /**
-     * intercept the dragEnter event from the peer
+     * This method 
+     * intercepts the <code>DragSourceDragEvent</code>
+     * associated with dragEnter() from the peer.
+     * <P>
+     * Note: This method is called by the peer implementation, not the user.
+     * <P>
+     * @param dsde the intercepted <code>DragSourceDragEvent</code>
      */
 
     public synchronized void dragEnter(DragSourceDragEvent dsde) {
@@ -200,7 +293,13 @@ public class DragSourceContext implements DragSourceListener {
     }
 
     /**
-     * intercept the dragOver event from the peer
+     * This method 
+     * intercepts the <code>DragSourceDragEvent</code>
+     * associated with dragOver() from the peer.
+     * <P>
+     * Note: This method is called by the peer implementation, not the user.
+     * <P>
+     * @param dsde the intercepted <code>DragSourceDragEvent</code>
      */
 
     public synchronized void dragOver(DragSourceDragEvent dsde) {
@@ -210,7 +309,12 @@ public class DragSourceContext implements DragSourceListener {
     }
 
     /**
-     * intercept the dragExit event from the peer
+     * This method intercepts the <code>DragSourceEvent</code>
+     * associated with dragExit() from the peer.
+     * <P>
+     * Note: This method is called by the peer implementation, not the user.
+     * <P>
+     * @param dse the intercepted <code>DragSourceEvent</code>
      */
 
     public synchronized void dragExit(DragSourceEvent dse) {
@@ -220,7 +324,12 @@ public class DragSourceContext implements DragSourceListener {
     }
 
     /**
-     * intercept the dragGestureChanged event from the peer
+     * This method intercepts the <code>DragSourceDragEvent</code> 
+     * associated with dropActionChanged() from the peer.
+     * <P>
+     * Note: This method is called by the peer implementation, not the user.
+     * <P>
+     * @param dsde the intercepted <code>DragSourceDragEvent</code>
      */
 
     public synchronized void dropActionChanged(DragSourceDragEvent dsde) {
@@ -232,17 +341,35 @@ public class DragSourceContext implements DragSourceListener {
     }
 
     /**
-     * intercept the dragDropEnd event from the peer
+     * This method intercepts the <code>DragSourceDropEvent</code> 
+     * associated with dragDropEnd() from the peer.
+     * <P>
+     * Note: This method is called by the peer implementation, not the user.
+     * The value of <code>null</code> is not acceptable as a parameter
+     * to this method.
+     * <P>
+     * @param dsde the intercepted <code>DragSourceDropEvent</code>
      */
 
     public synchronized void dragDropEnd(DragSourceDropEvent dsde) {
 	if (listener != null) listener.dragDropEnd(dsde);
     }
 
+
+    /**
+     * This method returns the <code>Transferable</code>
+     * associated with this <code>DragSourceContext.</code>
+     * <P>
+     * @return the <code>Transferable</code>
+     */
     public Transferable getTransferable() { return transferable; }
    
     /**
      * check the cursor for updates and implement defaults
+     * <P>
+     * @param dropOp the user's currently selected operation
+     * @param targetAct the current target's supported actions
+     * @param status the constant
      */
 
     protected void updateCurrentCursor(int dropOp, int targetAct, int status) {
@@ -314,3 +441,17 @@ public class DragSourceContext implements DragSourceListener {
 
     private boolean		  cursorDirty = true;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

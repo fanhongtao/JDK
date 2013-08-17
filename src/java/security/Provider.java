@@ -1,5 +1,5 @@
 /*
- * @(#)Provider.java	1.39 98/10/27
+ * @(#)Provider.java	1.41 98/12/03
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -37,7 +37,7 @@ import java.util.*;
  * in the "Java Cryptography Architecture API Specification &amp; Reference"
  * for information about how providers work and how to install them.
  *
- * @version 1.39 00/05/10
+ * @version 1.41 98/12/03
  * @author Benjamin Renaud
  */
 public abstract class Provider extends Properties {
@@ -62,6 +62,11 @@ public abstract class Provider extends Properties {
      * @serial
      */
     private double version;
+
+
+    private transient Set entrySet = null;
+    private transient int entrySetCallCount = 0;
+
 
     /**
      * Constructs a provider with the specified name, version number,
@@ -228,10 +233,25 @@ public abstract class Provider extends Properties {
      * @see   java.util.Map.Entry
      * @since JDK1.2
      */
-    public Set entrySet() {
-	return Collections.unmodifiableMap(this).entrySet();
+    public synchronized Set entrySet() {
+	if (entrySet == null) {
+	    if (entrySetCallCount++ == 0)  // Initial call
+		entrySet = Collections.unmodifiableMap(this).entrySet();
+	    else
+		return super.entrySet();   // Recursive call
+	}
+	
+	// This exception will be thrown if the implementation of 
+	// Collections.unmodifiableMap.entrySet() is changed such that it
+	// no longer calls entrySet() on the backing Map.  (Provider's
+	// entrySet implementation depends on this "implementation detail",
+	// which is unlikely to change.
+	if (entrySetCallCount != 2)
+	    throw new RuntimeException("Internal error.");
+	
+	return entrySet;
     }
-
+    
     /**
      * Returns an unmodifiable Set view of the property keys contained in 
      * this provider.
@@ -239,7 +259,7 @@ public abstract class Provider extends Properties {
      * @since JDK1.2
      */
     public Set keySet() {
-	return Collections.unmodifiableMap(this).keySet();
+	return Collections.unmodifiableSet(super.keySet());
     }
 
     /*
@@ -249,7 +269,7 @@ public abstract class Provider extends Properties {
      * @since JDK1.2
      */
     public Collection values() {
-	return Collections.unmodifiableMap(this).values();
+	return Collections.unmodifiableCollection(super.values());
     }
 
     /**
@@ -334,4 +354,5 @@ public abstract class Provider extends Properties {
     // Declare serialVersionUID to be compatible with JDK1.1
     static final long serialVersionUID = -4298000515446427739L;
 }
+
 

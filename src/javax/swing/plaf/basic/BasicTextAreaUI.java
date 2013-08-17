@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTextAreaUI.java	1.53 98/08/28
+ * @(#)BasicTextAreaUI.java	1.54 98/10/20
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -34,7 +34,7 @@ import javax.swing.plaf.*;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.53 08/28/98
+ * @version 1.54 10/20/98
  */
 public class BasicTextAreaUI extends BasicTextUI {
 
@@ -77,8 +77,8 @@ public class BasicTextAreaUI extends BasicTextUI {
      * @param evt the property change event
      */
     protected void propertyChange(PropertyChangeEvent evt) {
-	if (evt.getPropertyName().equals("LineWrap") ||
-	    evt.getPropertyName().equals("WrapStyleWord")) {
+	if (evt.getPropertyName().equals("lineWrap") ||
+	    evt.getPropertyName().equals("wrapStyleWord")) {
 	    // rebuild the view
 	    modelChanged();
 	}

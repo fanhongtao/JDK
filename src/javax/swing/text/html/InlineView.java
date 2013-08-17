@@ -1,5 +1,5 @@
 /*
- * @(#)InlineView.java	1.9 98/09/10
+ * @(#)InlineView.java	1.12 98/09/25
  *
  * Copyright 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -13,8 +13,10 @@
  */
 package javax.swing.text.html;
 
+import java.awt.Shape;
 import java.awt.FontMetrics;
 import java.text.BreakIterator;
+import javax.swing.event.DocumentEvent;
 import javax.swing.text.*;
 
 /**
@@ -22,7 +24,7 @@ import javax.swing.text.*;
  * based upon css attributes.
  *
  * @author  Timothy Prinzing
- * @version 1.9 09/10/98
+ * @version 1.12 09/25/98
  */
 public class InlineView extends LabelView {
 
@@ -35,6 +37,22 @@ public class InlineView extends LabelView {
 	super(elem);
 	StyleSheet sheet = getStyleSheet();
 	attr = sheet.getViewAttributes(this);
+    }
+
+    /**
+     * Gives notification from the document that attributes were changed
+     * in a location that this view is responsible for.
+     *
+     * @param e the change information from the associated document
+     * @param a the current allocation of the view
+     * @param f the factory to use to rebuild if the view has children
+     * @see View#changedUpdate
+     */
+    public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+	super.changedUpdate(e, a, f);
+	StyleSheet sheet = getStyleSheet();
+	attr = sheet.getViewAttributes(this);
+	preferenceChanged(null, true, true);
     }
 
     /**
@@ -92,15 +110,17 @@ public class InlineView extends LabelView {
     protected void setPropertiesFromAttributes() {
 	super.setPropertiesFromAttributes();
 	AttributeSet a = getAttributes();
-	String decor = (String) a.getAttribute(CSS.Attribute.TEXT_DECORATION);
-	boolean u = (decor != null) ? (decor.indexOf("underline") >= 0) : false;
+	Object decor = a.getAttribute(CSS.Attribute.TEXT_DECORATION);
+	boolean u = (decor != null) ? 
+	  (decor.toString().indexOf("underline") >= 0) : false;
 	setUnderline(u);
-	boolean s = (decor != null) ? (decor.indexOf("line-through") >= 0) : false;
+	boolean s = (decor != null) ? 
+	  (decor.toString().indexOf("line-through") >= 0) : false;
 	setStrikeThrough(s);
-	String vAlign = (String) a.getAttribute(CSS.Attribute.VERTICAL_ALIGN);
-	s = (vAlign != null) ? (vAlign.indexOf("sup") >= 0) : false;
+        Object vAlign = a.getAttribute(CSS.Attribute.VERTICAL_ALIGN);
+	s = (vAlign != null) ? (vAlign.toString().indexOf("sup") >= 0) : false;
 	setSuperscript(s);
-	s = (vAlign != null) ? (vAlign.indexOf("sub") >= 0) : false;
+	s = (vAlign != null) ? (vAlign.toString().indexOf("sub") >= 0) : false;
 	setSubscript(s);
     }
 
@@ -110,32 +130,6 @@ public class InlineView extends LabelView {
 	return doc.getStyleSheet();
     }
 
-    /**
-     * Returns false if the contents of the view are merely a "\n".
-     * If the contents are merely a newline, it is fair to say that
-     * the element corresponding to this view was deliberately inserted
-     * for purposes of editing.
-     */
-    public boolean isVisible() {
-	int p0 = getStartOffset();
-	int p1 = getEndOffset();
-	if ((p1 - p0) == 1) {
-	    Document doc = getDocument();
-	    try {
-		doc.getText(p0, p1 - p0, buff);
-		if (Character.isWhitespace(buff.array[buff.offset])) {
-		    return false;
-		}
-	    } catch (BadLocationException e) {
-		return false;
-	    }
-	}
-	return true;
-    }
-
     AttributeSet attr;
 
-    // buffer to fetch text, since only one thread at a time
-    // will access this view type.
-    static Segment buff = new Segment();
 }

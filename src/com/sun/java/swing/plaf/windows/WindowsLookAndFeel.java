@@ -1,10 +1,10 @@
 /*
- * @(#)WindowsLookAndFeel.java	1.48 98/09/14
+ * @(#)WindowsLookAndFeel.java	1.56 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -49,7 +49,7 @@ import java.util.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.48 09/14/98
+ * @version 1.50 11/20/98
  * @author unattributed
  */
 public class WindowsLookAndFeel extends BasicLookAndFeel
@@ -163,7 +163,7 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
     }
 
     private void loadResourceBundle(UIDefaults table) {
-        ResourceBundle bundle = ResourceBundle.getBundle("javax.swing.plaf.metal.resources.metal");
+        ResourceBundle bundle = ResourceBundle.getBundle("com.sun.java.swing.plaf.windows.resources.windows");
 	Enumeration iter = bundle.getKeys();
 	while(iter.hasMoreElements()) {
 	    String key = (String)iter.nextElement();
@@ -212,6 +212,7 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
                    "shift INSERT", DefaultEditorKit.pasteAction,
                    "shift DELETE", DefaultEditorKit.cutAction,	    
 	              "control A", DefaultEditorKit.selectAllAction,
+	     "control BACK_SLASH", "unselect"/*DefaultEditorKit.unselectAction*/,
 	             "shift LEFT", DefaultEditorKit.selectionBackwardAction,
 	            "shift RIGHT", DefaultEditorKit.selectionForwardAction,
 	           "control LEFT", DefaultEditorKit.previousWordAction,
@@ -239,10 +240,15 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	     "control shift LEFT", DefaultEditorKit.selectionPreviousWordAction,
 	    "control shift RIGHT", DefaultEditorKit.selectionNextWordAction,
 		      "control A", DefaultEditorKit.selectAllAction,
+	     "control BACK_SLASH", "unselect"/*DefaultEditorKit.unselectAction*/,
 			   "HOME", DefaultEditorKit.beginLineAction,
 			    "END", DefaultEditorKit.endLineAction,
 		     "shift HOME", DefaultEditorKit.selectionBeginLineAction,
 		      "shift END", DefaultEditorKit.selectionEndLineAction,
+		   "control HOME", DefaultEditorKit.beginAction,
+		    "control END", DefaultEditorKit.endAction,
+	     "control shift HOME", DefaultEditorKit.selectionBeginAction,
+	      "control shift END", DefaultEditorKit.selectionEndAction,
 			     "UP", DefaultEditorKit.upAction,
 			   "DOWN", DefaultEditorKit.downAction,
 			"PAGE_UP", DefaultEditorKit.pageUpAction,
@@ -281,12 +287,17 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
                                            table.getColor("controlHighlight"),
                                            table.getColor("controlLtHighlight")),
                                       marginBorder);
-
+/*
        Object comboBoxBorder = new WindowsBorders.ComboBoxBorder(
                                            table.getColor("controlShadow"),
                                            table.getColor("controlDkShadow"),
                                            table.getColor("controlHighlight"));
-
+*/
+       Object comboBoxBorder = new BasicBorders.FieldBorder(
+                                                            table.getColor("controlShadow"),
+                                                            table.getColor("controlDkShadow"),
+                                                            table.getColor("controlHighlight"),
+                                                            table.getColor("controlLtHighlight"));
 
 	
         Object menuItemCheckIcon = WindowsIconFactory.getMenuItemCheckIcon();
@@ -294,6 +305,8 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
         Object menuItemArrowIcon = WindowsIconFactory.getMenuItemArrowIcon();
 
         Object menuArrowIcon = WindowsIconFactory.getMenuArrowIcon();
+
+	Object menuItemAcceleratorDelimiter = new String("+");
 
         Object[] defaults = {
 	    "TextField.keyBindings", fieldBindings,
@@ -351,6 +364,7 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
             "MenuItem.background", table.get("menu"),
             "MenuItem.selectionForeground", table.get("textHighlightText"),
             "MenuItem.selectionBackground", table.get("textHighlight"),
+	    "MenuItem.acceleratorDelimiter", menuItemAcceleratorDelimiter,
             "MenuItem.checkIcon", menuItemCheckIcon,
             "MenuItem.arrowIcon", menuItemArrowIcon,
 

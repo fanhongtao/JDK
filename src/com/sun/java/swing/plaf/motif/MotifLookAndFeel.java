@@ -1,5 +1,5 @@
 /*
- * @(#)MotifLookAndFeel.java	1.109 98/09/14
+ * @(#)MotifLookAndFeel.java	1.112 99/02/22
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -51,7 +51,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.109 09/14/98
+ * @version 1.112 02/22/99
  * @author unattributed
  */
 public class MotifLookAndFeel extends BasicLookAndFeel
@@ -448,7 +448,27 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
 					  DefaultEditorKit.insertBreakAction),
 	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0),
-					  DefaultEditorKit.insertTabAction)
+					  DefaultEditorKit.insertTabAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SLASH, 
+								 InputEvent.CTRL_MASK),
+					  "unselect"/*DefaultEditorKit.unselectAction*/),
+
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 
+								 InputEvent.CTRL_MASK),
+					  DefaultEditorKit.beginAction),
+
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_END, 
+								 InputEvent.CTRL_MASK),
+					  DefaultEditorKit.endAction),
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 
+								 InputEvent.CTRL_MASK |
+								 InputEvent.SHIFT_MASK),
+					  DefaultEditorKit.selectionBeginAction),
+
+	    new JTextComponent.KeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_END, 
+								 InputEvent.CTRL_MASK |
+								 InputEvent.SHIFT_MASK),
+					  DefaultEditorKit.selectionEndAction)
 	};
 
         // *** Tree
@@ -613,8 +633,11 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "Label.background", table.get("control"),
             "Label.foreground", table.get("controlText"),
 
-            "Separator.shadow", table.get("controlShadow"),
-            "Separator.highlight", table.get("controlLtHighlight"),
+            "Separator.shadow", table.get("controlShadow"),          // DEPRECATED - DO NOT USE!
+            "Separator.highlight", table.get("controlLtHighlight"),  // DEPRECATED - DO NOT USE!
+
+            "Separator.background", table.get("controlLtHighlight"),
+            "Separator.foreground", table.get("controlShadow"),
 
             "List.focusCellHighlightBorder", focusCellHighlightBorder,
 

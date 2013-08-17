@@ -1,10 +1,10 @@
 /*
- * @(#)RMISecurityManager.java	1.23 98/07/15
+ * @(#)RMISecurityManager.java	1.25 99/04/22
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -32,11 +32,7 @@ import java.security.*;
  * System.setSecurityManager(new RMISecurityManager());
  * </pre>
  *
- * <p>The <code>RMISecurityManager</code> overrides several
- * of <code>java.lang.SecurityManager</code>'s methods that deal with
- * thread or package access.
- *
- * @version 1.23, 07/15/98
+ * @version 1.25, 04/22/99
  * @author  Roger Riggs
  * @author  Peter Jones
  * @since JDK1.1
@@ -48,42 +44,5 @@ public class RMISecurityManager extends SecurityManager {
      * @since JDK1.1
      */
     public RMISecurityManager() {
-    }
-
-    /**
-     * Throws a <code>SecurityException</code> if the 
-     * calling thread is not allowed to access the package specified by 
-     * the argument. 
-     * <p>
-     * This method is used by the <code>loadClass</code> method of class 
-     * loaders. 
-     *
-     * @param      pkg   the package name.
-     * @exception  SecurityException  if the caller does not have
-     *             permission to access the specified package.
-     * @see        java.lang.ClassLoader#loadClass(java.lang.String, boolean)
-     */
-    public void checkPackageAccess(final String pkgname) {
-	final boolean[] check = { false };
-	AccessController.doPrivileged(new PrivilegedAction(){
-	    public Object run() {
-		int i;
-		String pkg = pkgname;
-		do {
-		    String prop = "package.restrict.access." + pkg;
-		    if (Boolean.getBoolean(prop)) {
-			check[0] = true;
-			break;
-		    }
-		    if ((i = pkg.lastIndexOf('.')) != -1) {
-			pkg = pkg.substring(0, i);
-		    }
-		} while (i != -1);
-		return null;
-	    }
-	});
-
-    	if (check[0])
-	    super.checkPackageAccess(pkgname);
     }
 }

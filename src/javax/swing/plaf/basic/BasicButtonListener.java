@@ -1,5 +1,5 @@
 /*
- * @(#)BasicButtonListener.java	1.36 98/08/26
+ * @(#)BasicButtonListener.java	1.39 98/11/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -23,7 +23,7 @@ import javax.swing.event.*;
 /**
  * Button Listener
  *
- * @version 1.36 08/26/98
+ * @version 1.39 11/03/98
  * @author Jeff Dinkins 
  * @author Arnaud Weber (keyboard UI support)
  */
@@ -44,17 +44,11 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
     // These two keystrokes can be shared accross all buttons. 
     private static KeyStroke spacePressedKeyStroke = null;
     private static KeyStroke spaceReleasedKeyStroke = null;
-    private static KeyStroke enterPressedKeyStroke = null;
-    private static KeyStroke enterReleasedKeyStroke = null;    
   
     public BasicButtonListener(AbstractButton b) {
 	if(spacePressedKeyStroke == null) {
 	    spacePressedKeyStroke = KeyStroke.getKeyStroke(' ', 0, false);
 	    spaceReleasedKeyStroke = KeyStroke.getKeyStroke(' ', 0,true);
-	}
-	if (enterPressedKeyStroke == null) {
-	    enterPressedKeyStroke = KeyStroke.getKeyStroke('\n', 0, false); // use \n?
-	    enterReleasedKeyStroke = KeyStroke.getKeyStroke('\n', 0, true);
 	}
     }
 
@@ -67,6 +61,11 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
 
 	if(prop.equals(AbstractButton.CONTENT_AREA_FILLED_CHANGED_PROPERTY)) {
 	    checkOpacity((AbstractButton) e.getSource() );
+	}
+
+	if(prop.equals(AbstractButton.TEXT_CHANGED_PROPERTY)) {
+	    AbstractButton b = (AbstractButton) e.getSource();
+	    BasicHTML.updateRenderer(b, b.getText());
 	}
     }
 
@@ -86,10 +85,6 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
 
 	b.registerKeyboardAction(pressedAction, spacePressedKeyStroke, JComponent.WHEN_FOCUSED);
 	b.registerKeyboardAction(releasedAction, spaceReleasedKeyStroke, JComponent.WHEN_FOCUSED);
-	if(!(b instanceof JToggleButton)) {
-	    b.registerKeyboardAction(pressedAction,enterPressedKeyStroke,JComponent.WHEN_FOCUSED);
-	    b.registerKeyboardAction(releasedAction,enterReleasedKeyStroke,JComponent.WHEN_FOCUSED);
-	}
 
 	int m = b.getMnemonic();
 	if(m != 0) {
@@ -118,14 +113,6 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
 
  	if(spaceReleasedKeyStroke != null) {
 	    b.unregisterKeyboardAction(spaceReleasedKeyStroke);
-	}
-
-	if (enterPressedKeyStroke != null && !(b instanceof JToggleButton)) {
-	    b.unregisterKeyboardAction(enterPressedKeyStroke);
-	}
-
-	if (enterReleasedKeyStroke != null && !(b instanceof JToggleButton)) {
-	    b.unregisterKeyboardAction(enterReleasedKeyStroke);
 	}
 
  	if(altPressedKeyStroke != null) {
@@ -233,10 +220,9 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
     };
 	
 
-    static class PressedAction extends AbstractAction {
+    static class PressedAction implements ActionListener {
 	AbstractButton b = null;
         PressedAction(AbstractButton b) {
-	    super("pressedAction");
 	    this.b = b;
 	}
 	
@@ -258,10 +244,9 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
 	}
     }
 
-   static class ReleasedAction extends AbstractAction {
+   static class ReleasedAction implements ActionListener {
 	AbstractButton b = null;
         ReleasedAction(AbstractButton b) {
-	    super("releasedAction");
 	    this.b = b;
 	}
 	

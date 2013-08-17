@@ -1,5 +1,5 @@
 /*
- *  @(#)IndexColorModel.java	1.73 98/09/14
+ *  @(#)IndexColorModel.java	1.74 98/12/02
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -321,7 +321,7 @@ public class IndexColorModel extends ColorModel {
               hasalpha ? Transparency.TRANSLUCENT
                        : (trans >= 0 ? Transparency.BITMASK
                                     : Transparency.OPAQUE),
-              ColorModel.getDefaultTransferType(bits));
+              transferType);
 
         if (bits < 1 || bits > 32) {
             throw new IllegalArgumentException("Number of bits must be between"

@@ -1,10 +1,10 @@
 /*
- * @(#)Arrays.java	1.26 98/09/30
+ * @(#)Arrays.java	1.29 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -28,7 +28,7 @@ package java.util;
  * have to be a mergesort, but it does have to be <i>stable</i>.)
  *
  * @author  Josh Bloch
- * @version 1.26 09/30/98
+ * @version 1.29 04/22/99
  * @see Comparable
  * @see Comparator
  * @since JDK1.2
@@ -2161,6 +2161,7 @@ public class Arrays {
     private static class ArrayList extends AbstractList
     				   implements java.io.Serializable
     {
+        private static final long serialVersionUID = -2764017481108945198L;
 	private Object[] a;
 
 	ArrayList(Object[] array) {
@@ -2184,5 +2185,22 @@ public class Arrays {
 	    a[index] = element;
 	    return oldValue;
 	}
+
+        public int indexOf(Object o) {
+            if (o==null) {
+                for (int i=0; i<a.length; i++)
+                    if (a[i]==null)
+                        return i;
+            } else {
+                for (int i=0; i<a.length; i++)
+                    if (o.equals(a[i]))
+                        return i;
+            }
+            return -1;
+        }
+
+        public boolean contains(Object o) {
+            return indexOf(o) != -1;
+        }
     }
 }

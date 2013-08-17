@@ -1,5 +1,5 @@
 /*
- * @(#)JPasswordField.java	1.30 98/09/11
+ * @(#)JPasswordField.java	1.31 98/09/11
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -45,7 +45,7 @@ import java.io.IOException;
  *  attribute: isContainer false
  *
  * @author  Timothy Prinzing
- * @version 1.30, 09/11/98
+ * @version 1.31, 09/11/98
  */
 public class JPasswordField extends JTextField {
 
@@ -263,9 +263,6 @@ public class JPasswordField extends JTextField {
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JPasswordField.
      */

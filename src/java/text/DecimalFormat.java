@@ -1,5 +1,5 @@
 /*
- * @(#)DecimalFormat.java	1.48 98/09/21
+ * @(#)DecimalFormat.java	1.50 99/01/28
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 1998 - All Rights Reserved
@@ -155,6 +155,21 @@ import java.util.Hashtable;
  * negative prefix and suffix; the number of digits, minimal digits, and other
  * characteristics are all the same as the positive pattern. That means that
  * "#,##0.0#;(#)" has precisely the same result as "#,##0.0#;(#,##0.0#)".
+ *
+ * <p>If the maximum number of fraction digits is lower than the actual number
+ * of fraction digits, then <code>format()</code> will round the result to the
+ * maximum number of fraction digits.  The rounding is performed according to
+ * the IEEE 754 default rounding mode known as <em>half even</em>:  Numbers are
+ * rounded toward the nearest truncated value, unless both truncated values are
+ * equidistant, in which case the value ending in an even digit is chosen.
+ * 
+ * <p>For example, formatting the number 1.2499 with a maximum of two fraction
+ * digits gives two possible values, 1.24 and 1.25.  The distance to 1.24 is
+ * 0.0099 and the distance to 1.25 is 0.0001, so 1.25 is chosen.  On the other
+ * hand, when rounding 1.245 to two fraction digits, the two possible values are
+ * again 1.24 and 1.25, but the distance to each is the same: 0.005.  In this
+ * case 1.24 is chosen because it ends in an even digit.
+ *
  * <p>
  * The exponent character must be immediately followed by one or more
  * digit characters. Example: "0.###E0". The number of digit characters
@@ -192,7 +207,7 @@ import java.util.Hashtable;
  * @see          java.text.Format
  * @see          java.text.NumberFormat
  * @see          java.text.ChoiceFormat
- * @version      1.48 09/21/98
+ * @version      1.50 01/28/99
  * @author       Mark Davis
  * @author       Alan Liu
  */
@@ -687,7 +702,7 @@ public class DecimalFormat extends NumberFormat {
         {
             doubleResult = Double.POSITIVE_INFINITY;
         }
-        else if (digitList.fitsIntoLong(status[STATUS_POSITIVE]))
+        else if (digitList.fitsIntoLong(status[STATUS_POSITIVE], isParseIntegerOnly()))
         {
             gotDouble = false;
             longResult = digitList.getLong();
@@ -729,7 +744,7 @@ public class DecimalFormat extends NumberFormat {
         {
             longResult = (long)doubleResult;
             gotDouble = (doubleResult != (double)longResult)
-                || (doubleResult == 0.0 && !status[STATUS_POSITIVE]);
+                || (doubleResult == 0.0 && !status[STATUS_POSITIVE] && !isParseIntegerOnly());
         }
 
         return gotDouble ? (Number)new Double(doubleResult) : (Number)new Long(longResult);
@@ -885,7 +900,7 @@ public class DecimalFormat extends NumberFormat {
                     DigitList exponentDigits = new DigitList();
 
                     if (subparse(text, pos, exponentDigits, true, stat) &&
-                    exponentDigits.fitsIntoLong(stat[STATUS_POSITIVE]))
+                    exponentDigits.fitsIntoLong(stat[STATUS_POSITIVE], true))
                     {
                     position = pos.index; // Advance past the exponent
                     exponent = (int)exponentDigits.getLong();

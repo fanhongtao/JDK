@@ -1,10 +1,10 @@
 /*
- * @(#)IconView.java	1.20 98/08/26
+ * @(#)IconView.java	1.22 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -27,7 +27,7 @@ import javax.swing.event.*;
  * factory.
  *
  * @author Timothy Prinzing
- * @version 1.20 08/26/98
+ * @version 1.22 04/22/99
  */
 public class IconView extends View  {
 
@@ -128,7 +128,7 @@ public class IconView extends View  {
 	    r.width = 0;
 	    return r;
 	}
-	return null;
+	throw new BadLocationException(pos + " not in range " + p0 + "," + p1, pos);
     }
 
     /**

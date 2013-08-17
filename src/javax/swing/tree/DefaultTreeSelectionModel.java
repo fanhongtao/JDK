@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultTreeSelectionModel.java	1.24 98/08/28
+ * @(#)DefaultTreeSelectionModel.java	1.25 98/11/17
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -27,6 +27,10 @@ import javax.swing.DefaultListSelectionModel;
  * the paths in the selection change, not the rows. In order
  * to be able to track row changes you may wish to become a listener 
  * for expansion events on the tree and test for changes from there.
+ * <p>resetRowSelection is called from any of the methods that update
+ * the selected paths. If you subclass and of these methods to
+ * filter what is allowed to be selected, be sure and message
+ * resetRowSelection if you do not message super.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with 
@@ -35,7 +39,7 @@ import javax.swing.DefaultListSelectionModel;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.24 08/28/98
+ * @version 1.25 11/17/98
  * @author Scott Violet
  */
 public class DefaultTreeSelectionModel extends Object implements Cloneable, Serializable, TreeSelectionModel

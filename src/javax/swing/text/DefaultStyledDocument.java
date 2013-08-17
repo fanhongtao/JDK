@@ -1,10 +1,10 @@
 /*
- * @(#)DefaultStyledDocument.java	1.96 98/09/07
+ * @(#)DefaultStyledDocument.java	1.100 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -49,7 +49,7 @@ import javax.swing.undo.UndoableEdit;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.96 09/07/98
+ * @version 1.100 04/22/99
  * @see     Document
  * @see     AbstractDocument
  */
@@ -529,7 +529,7 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 
 	    // Check for join previous of first content.
 	    if(first.getType() == ElementSpec.ContentType &&
-	       run.getEndOffset() <= docLength && cattr.isEqual(attr)) {
+	       cattr.isEqual(attr)) {
 		first.setDirection(ElementSpec.JoinPreviousDirection);
 	    }
 
@@ -575,7 +575,7 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 					   getElementIndex(endOffset));
 		    // Don't try joining to a branch!
 		    if(nextRun.isLeaf() &&
-		       attr.equals(nextRun.getAttributes())) {
+		       attr.isEqual(nextRun.getAttributes())) {
 			last.setDirection(ElementSpec.JoinNextDirection);
 		    }
 		}
@@ -1185,7 +1185,6 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 	    this.root = root;
 	    changes = new Vector();
 	    path = new Stack();
-	    endJoin = new Vector();
 	}
 
         /**
@@ -1223,10 +1222,24 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 	    // root element as well, but requires changes to the
 	    // DocumentEvent to inform the views that there is a new
 	    // root element.
-	    push(root, 0);
+
+	    // Recreate the ending fake element to have the correct offsets.
+	    Element elem = root;
+	    int index = elem.getElementIndex(0);
+	    while (! elem.isLeaf()) {
+		Element child = elem.getElement(index);
+		push(elem, index);
+		elem = child;
+		index = elem.getElementIndex(0);
+	    }
 	    ElemChanges ec = (ElemChanges) path.peek();
-	    for (int i = 0; i < root.getElementCount(); i++) {
-		ec.removed.addElement(root.getElement(i));
+	    Element child = ec.parent.getElement(ec.index);
+	    ec.added.addElement(createLeafElement(ec.parent,
+				child.getAttributes(), getLength(),
+				child.getEndOffset()));
+	    ec.removed.addElement(child);
+	    while (path.size() > 1) {
+		pop();
 	    }
 
 	    // fold in the specified subtree
@@ -1339,6 +1352,22 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 		    // PENDING(sky): Do I need to worry about order here?
 		    changes.addElement(change);
 		}
+	    }
+
+	    // An insert at 0 with an initial end implies some elements
+	    // will have no children (the bottomost leaf would have length 0)
+	    // this will find what element need to be removed and remove it.
+	    if (offset == 0 && fracturedParent != null &&
+		data[0].getType() == ElementSpec.EndTagType) {
+		int counter = 0;
+		while (counter < data.length &&
+		       data[counter].getType() == ElementSpec.EndTagType) {
+		    counter++;
+		}
+		ElemChanges change = insertPath[insertPath.length -
+					       counter - 1];
+		change.removed.insertElementAt(change.parent.getElement
+					       (--change.index), 0);
 	    }
 	}
 
@@ -1506,11 +1535,6 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 		path = new Stack();
 	    } else {
 		path.removeAllElements();
-	    }
-	    if (endJoin == null) {
-		endJoin = new Vector();
-	    } else {
-		endJoin.removeAllElements();
 	    }
 	    fracturedParent = null;
 	    fracturedChild = null;
@@ -2052,12 +2076,16 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 	    // Split the bottommost leaf. It will be recreated elsewhere.
 	    ElemChanges ec = (ElemChanges) path.peek();
 	    Element child = ec.parent.getElement(ec.index);
-	    Element newChild = createLeafElement(ec.parent,
+	    // Inserts at offset 0 do not need to recreate child (it would
+	    // have a length of 0!).
+	    if (offset != 0) {
+		Element newChild = createLeafElement(ec.parent,
 						 child.getAttributes(),
 						 child.getStartOffset(),
 						 offset);
 
-	    ec.added.addElement(newChild);
+		ec.added.addElement(newChild);
+	    }
 	    ec.removed.addElement(child);
 	    if(child.getEndOffset() != endOffset)
 		recreateLeafs = true;
@@ -2154,7 +2182,6 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 	transient int offset;
 	transient int length;
 	transient int endOffset;
-	transient Vector endJoin;  // Vector<ElementSpec>
 	transient Vector changes;  // Vector<ElemChanges>
 	transient Stack path;      // Stack<ElemChanges>
 	transient boolean insertOp;
@@ -2241,7 +2268,7 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
         public void undo() throws CannotUndoException {
 	    super.undo();
 	    MutableAttributeSet as = (MutableAttributeSet)element.getAttributes();
-	    as.removeAttributes(newAttributes);
+	    as.removeAttributes(as);
 	    as.addAttributes(copy);
 	}
 

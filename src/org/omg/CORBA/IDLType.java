@@ -1,7 +1,7 @@
 /*
- * @(#)IDLType.java	1.10 98/09/21
+ * @(#)IDLType.java	1.13 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -20,12 +20,18 @@
 
 package org.omg.CORBA;
 /**
-The IDLType interface is an abstract interface inherited by all
-IR objects that represent the OMG IDL types. It provides access
-to the TypeCode describing the type, and is used in defining the
-other interfaces wherever definitions of IDLType must be referenced.
- */public interface IDLType
+  * An abstract interface inherited by all Interface Repository
+  * (IR) objects that represent OMG IDL types. It provides access
+  * to the <code>TypeCode</code> object describing the type and is used in defining the
+  * other interfaces wherever definitions of <code>IDLType</code> must be referenced.
+  */
+public interface IDLType
     extends org.omg.CORBA.Object, org.omg.CORBA.portable.IDLEntity,
 	    org.omg.CORBA.IRObject {
+
+   /**
+    * Retrieves the <code>TypeCode</code> object describing the type of this object.
+    * @return the  <code>TypeCode</code> object describing this object
+    */
     org.omg.CORBA.TypeCode type();
 }

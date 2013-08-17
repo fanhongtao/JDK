@@ -1,10 +1,10 @@
 /*
- * @(#)SocketPermission.java	1.22 98/12/01
+ * @(#)SocketPermission.java	1.26 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -84,7 +84,7 @@ import java.io.IOException;
  * @see Permissions
  * @see SocketPermissions
  *
- * @version 1.22 00/05/10
+ * @version 1.26 99/04/22
  *
  * @author Marianne Mueller
  * @author Roland Schemers 
@@ -315,6 +315,9 @@ implements java.io.Serializable
 
 	host = getHost(host);
 
+	if (host == null) 
+		throw new NullPointerException("host can't be null");
+
 	// Set the integer mask that represents the actions
 
 	if ((mask & ALL) != mask) 
@@ -377,6 +380,14 @@ implements java.io.Serializable
      * @return the action mask
      */
     private static int getMask(String action) {
+
+	if (action == null) {
+	    throw new NullPointerException("action can't be null");
+	}
+
+	if (action.equals("")) {
+	    throw new IllegalArgumentException("action can't be empty");
+	}
 
 	int mask = NONE;
 
@@ -980,7 +991,7 @@ else its the cname?
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.22 00/05/10
+ * @version 1.26 00/04/06
  *
  * @author Roland Schemers
  */

@@ -1,10 +1,10 @@
 /*
- * @(#)BasicInternalFrameUI.java	1.49 98/08/26
+ * @(#)BasicInternalFrameUI.java	1.56 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -29,7 +29,7 @@ import java.io.Serializable;
 /**
  * A basic L&F implementation of JInternalFrame.  
  *
- * @version 1.49 08/26/98
+ * @version 1.56 04/22/99
  * @author David Kloba
  * @author Rich Schiavi
  */
@@ -52,7 +52,9 @@ public class BasicInternalFrameUI extends InternalFrameUI
     protected BasicInternalFrameTitlePane titlePane; // access needs this
 
     private static DesktopManager sharedDesktopManager;
-    private boolean clAdded = false; // bug 4145808
+    private boolean componentListenerAdded = false;
+
+    private Rectangle parentBounds = null;
 
     protected KeyStroke openMenuKey;
 
@@ -88,7 +90,9 @@ public class BasicInternalFrameUI extends InternalFrameUI
 
 	
 	frame.setOpaque(true);
-	frame.setMinimumSize(new Dimension(120, 24));
+        int height = getNorthPane().getMinimumSize().height +
+          frame.getInsets().top + frame.getInsets().bottom;
+       frame.setMinimumSize(new Dimension(120, height));
     }   
 
 
@@ -140,6 +144,8 @@ public class BasicInternalFrameUI extends InternalFrameUI
         frame.setLayout(internalFrameLayout = createLayoutManager());
         installMouseHandlers(frame);
 	glassPaneDispatcher = createGlassPaneDispatcher();
+	frame.getGlassPane().addMouseListener(glassPaneDispatcher);
+       	frame.getGlassPane().addMouseMotionListener(glassPaneDispatcher);
 	componentListener =  createComponentListener();
     }
 
@@ -162,7 +168,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
       propertyChangeListener = null;
       frame.getGlassPane().removeMouseListener(glassPaneDispatcher);
       frame.getGlassPane().removeMouseMotionListener(glassPaneDispatcher);
-      if (frame.getDesktopPane() != null)
+      if (frame.getDesktopPane() != null && componentListenerAdded)
 	frame.getDesktopPane().removeComponentListener(componentListener);
       glassPaneDispatcher = null;
       componentListener = null;
@@ -361,50 +367,47 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	/// Handle the action events from the Frame
 	} else if(JInternalFrame.IS_CLOSED_PROPERTY.equals(prop)) {
 	    if(newValue == Boolean.TRUE){
-                // bug 4145808
-		if (clAdded){
-		    frame.getDesktopPane().removeComponentListener(componentListener);
-		}
+	      if (componentListenerAdded)
+	        frame.getDesktopPane().removeComponentListener(componentListener);
 	        closeFrame(f);
 	    }
 	} else if(JInternalFrame.IS_MAXIMUM_PROPERTY.equals(prop)) {
 	    if(newValue == Boolean.TRUE)
 	      {
 		maximizeFrame(f);
-		if (f.getDesktopPane() != null){
-		    clAdded = true;
-		    f.getDesktopPane().addComponentListener(componentListener);
-		}
 	      }
 	    else 
 	      {
 	        minimizeFrame(f);
-		JDesktopPane pane = f.getDesktopPane();
-		if (pane != null){
-		  clAdded = false;
-		  pane.removeComponentListener(componentListener);
-		}
 	      }
 	} else if(JInternalFrame.IS_ICON_PROPERTY.equals(prop)) {
-	    if(newValue == Boolean.TRUE)
-		iconifyFrame(f);
-	    else
-	        deiconifyFrame(f);
+	    if (newValue == Boolean.TRUE) {
+	      iconifyFrame(f);
+	    }
+	    else{
+	      deiconifyFrame(f);
+	    }
 	} else if(JInternalFrame.IS_SELECTED_PROPERTY.equals(prop)) {
 	  Component glassPane = f.getGlassPane();
 	    if(newValue == Boolean.TRUE
 	            && oldValue == Boolean.FALSE) {
 		activateFrame(f);
-	    	glassPane.removeMouseListener(glassPaneDispatcher);
-      		glassPane.removeMouseMotionListener(glassPaneDispatcher);
+		//	glassPane.removeMouseListener(glassPaneDispatcher);
+		//	glassPane.removeMouseMotionListener(glassPaneDispatcher);
 		glassPane.setVisible(false);
 	    } else if(newValue == Boolean.FALSE
 	            && oldValue == Boolean.TRUE) {
 		deactivateFrame(f);
-		glassPane.addMouseListener(glassPaneDispatcher);
-       		glassPane.addMouseMotionListener(glassPaneDispatcher);
+		//	glassPane.addMouseListener(glassPaneDispatcher);
+		//	glassPane.addMouseMotionListener(glassPaneDispatcher);
 		glassPane.setVisible(true);
 	    }
+	} else if ( prop.equals("ancestor") ) {
+	  if ( !componentListenerAdded ) {
+	    f.getParent().addComponentListener(componentListener);
+	    componentListenerAdded = true;
+	    parentBounds = f.getParent().getBounds();
+	  }
 	}
     }
   }
@@ -913,13 +916,58 @@ public class BasicInternalFrameUI extends InternalFrameUI
 
     protected class ComponentHandler implements ComponentListener
     {
+
       /**
-       * Invoked when a maximized JInternalFrame's parent's size changes.
+       * Invoked when a JInternalFrame's parent's size changes.
        */
       public void componentResized(ComponentEvent e) {
-        Dimension d = ((Component)e.getSource()).getSize();
-        ((Component)e.getSource()).setBounds(0, 0, d.width, d.height);
-        ((Component)e.getSource()).validate();
+
+
+	//
+	// Get the JInternalFrame's parent container size
+	//
+
+	Rectangle parentNewBounds = ((Component) e.getSource()).getBounds();
+
+	JInternalFrame.JDesktopIcon icon = null;
+
+	if (frame != null) {
+	  icon = frame.getDesktopIcon();
+	
+	  //
+	  // Resize the internal frame if it is maximized and relocate
+	  // the associated icon as well.
+	  //
+
+	  if ( frame.isMaximum() ) {
+	    frame.setBounds(0, 0, parentNewBounds.width, parentNewBounds.height);
+	  }
+	}
+
+	//
+	// Relocate the icon base on the new parent bounds.
+	//
+	    
+	if (icon != null) {
+	  Rectangle iconBounds = icon.getBounds();
+	  int y = iconBounds.y + (parentNewBounds.height - parentBounds.height);
+	  icon.setBounds(iconBounds.x,y,iconBounds.width,iconBounds.height);
+	}
+
+	//
+	// Update the new parent bounds for next resize.
+	//
+	
+	if ( !parentBounds.equals(parentNewBounds) ) {
+	  parentBounds = parentNewBounds;
+	}
+
+
+	  //
+	  // Validate the component tree for this container.
+	  //
+	    
+	frame.validate();
       }
 
       /* Unused */
@@ -952,7 +1000,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
        * is inactive.
        */
       public void mousePressed(MouseEvent e) {
-	// what is goin on here is the GlassPane is up on the inactive
+	// what is going on here is the GlassPane is up on the inactive
 	// internalframe and want's to "catch" the first mousePressed on
 	// the frame in order to give it to the BorderLister (and not the
 	// underlying component) and let it activate the frame
@@ -960,7 +1008,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	  borderListener.mousePressed(e);
 	} 
 	// fix for 4152560
-	forwardMouseEvent(e);
+       	forwardMouseEvent(e);
       }
       /** 
      * Forward the mouseEntered event to the underlying child container.
@@ -994,6 +1042,8 @@ public class BasicInternalFrameUI extends InternalFrameUI
      * @see #mousePressed
      */
       public void mouseReleased(MouseEvent e) {
+	//System.out.println("forward release");
+	forwardMouseEvent(e);
       }
       /** 
      * Ignore mouseDragged events.
@@ -1071,12 +1121,18 @@ public class BasicInternalFrameUI extends InternalFrameUI
      * Dispatch an event clone, retargeted for the current mouse target.
      */
       void retargetMouseEvent(int id, MouseEvent e) {
+        // fix for bug #4202966 -- hania
+        // When retargetting a mouse event, we need to translate
+        // the event's coordinates relative to the target.
+        Point p = SwingUtilities.convertPoint(frame.getContentPane(),
+                                              e.getX(), e.getY(),
+                                              mouseEventTarget);
         MouseEvent retargeted = new MouseEvent(mouseEventTarget, 
                                                id, 
                                                e.getWhen(), 
                                                e.getModifiers(),
-                                               e.getX(), 
-                                               e.getY(), 
+                                               p.x, 
+                                               p.y, 
                                                e.getClickCount(), 
                                                e.isPopupTrigger());
         mouseEventTarget.dispatchEvent(retargeted);

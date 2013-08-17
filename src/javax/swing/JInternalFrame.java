@@ -1,15 +1,14 @@
 /*
- * @(#)JInternalFrame.java	1.79 98/08/31
+ * @(#)JInternalFrame.java	1.93 00/03/08
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
+ * 
  */
 
 package javax.swing;
@@ -72,7 +71,7 @@ import java.io.IOException;
  * @see JInternalFrame.JDesktopIcon
  * @see JRootPane
  *
- * @version 1.79 08/31/98
+ * @version 1.93 03/08/00
  * @author David Kloba
  * @author Rich Schiavi
  * @beaninfo
@@ -170,7 +169,6 @@ public class JInternalFrame extends JComponent implements
     public final static String IS_MAXIMUM_PROPERTY = "maximum";
     /** Constrained property name indicating that the frame is iconified. */
     public final static String IS_ICON_PROPERTY = "icon";
-
 
 
     /** 
@@ -406,6 +404,21 @@ public class JInternalFrame extends JComponent implements
         }
     }
 
+    /** 
+     * Removes the specified component from this container.
+     * @param comp the component to be removed
+     * @see #add
+     */
+    public void remove(Component comp) {
+	int oldCount = getComponentCount();
+	super.remove(comp);
+	if (oldCount == getComponentCount()) {
+	    // Client mistake, but we need to handle it to avoid a
+	    // common object leak in client applications.
+	    getContentPane().remove(comp);
+	}
+    }
+
 
     /**
      * By default the layout of this component may not be set,
@@ -620,7 +633,10 @@ public class JInternalFrame extends JComponent implements
      *     description: Indicates whether this frame can be closed.
      */
     public void setClosable(boolean b) {
+        Boolean oldValue = closable ? Boolean.TRUE : Boolean.FALSE; 
+        Boolean newValue = b ? Boolean.TRUE : Boolean.FALSE;
         closable = b;
+        firePropertyChange("closable", oldValue, newValue);
     }
  
     /** 
@@ -687,7 +703,10 @@ public class JInternalFrame extends JComponent implements
      *                  by the user.
      */
     public void setResizable(boolean b) {
+        Boolean oldValue = resizable ? Boolean.TRUE : Boolean.FALSE; 
+        Boolean newValue = b ? Boolean.TRUE : Boolean.FALSE;
         resizable = b;
+        firePropertyChange("resizable", oldValue, newValue);
     }
  
     /** 
@@ -769,7 +788,10 @@ public class JInternalFrame extends JComponent implements
      *     description: Determines whether this frame can be maximized.
      */
     public void setMaximizable(boolean b) {
+        Boolean oldValue = maximizable ? Boolean.TRUE : Boolean.FALSE; 
+        Boolean newValue = b ? Boolean.TRUE : Boolean.FALSE;
         maximizable = b;
+        firePropertyChange("maximizable", oldValue, newValue);
     }
  
     /** 
@@ -904,7 +926,7 @@ public class JInternalFrame extends JComponent implements
   public void setFrameIcon(Icon icon) {
         Icon oldIcon = frameIcon;
         frameIcon = icon;
-        firePropertyChange(MENU_BAR_PROPERTY, oldIcon, icon);  
+        firePropertyChange(FRAME_ICON_PROPERTY, oldIcon, icon);  
     }
 
     /** 
@@ -916,46 +938,6 @@ public class JInternalFrame extends JComponent implements
      */
     public Icon getFrameIcon()  {
         return frameIcon;
-    }
-
-    /**
-     * Get the background color of this object.
-     *
-     * @return the background color, if supported, of the object; 
-     * otherwise, null
-     */
-    public Color getBackground() {
-        return getContentPane().getBackground();
-    }
-
-    /**
-     * Set the background color of this object.
-     * (For transparency, see <code>isOpaque</code>.)
-     *
-     * @param c the new Color for the background
-     * @see #isOpaque
-     */
-    public void setBackground(Color c) {
-        getContentPane().setBackground(c);
-    }
-
-    /**
-     * Get the foreground color of this object.
-     *
-     * @return the foreground color, if supported, of the object; 
-     * otherwise, null
-     */
-    public Color getForeground() {
-        return getContentPane().getForeground();
-    }
-
-    /**
-     * Set the foreground color of this object.
-     *
-     * @param c the new Color for the foreground
-     */
-    public void setForeground(Color c) {
-        getContentPane().setForeground(c);
     }
 
     /** Convenience method that moves this component to position 0 if it's 
@@ -1045,7 +1027,11 @@ public class JInternalFrame extends JComponent implements
      *           bound: true
      *     description: The icon shown when this frame is minimized.
      */
-    public void setDesktopIcon(JDesktopIcon d) { desktopIcon = d; }
+    public void setDesktopIcon(JDesktopIcon d) { 
+	JDesktopIcon oldValue = getDesktopIcon();
+	desktopIcon = d; 
+	firePropertyChange("desktopIcon", oldValue, d);
+    }
 
     /** 
      * Returns the JDesktopIcon used when this JInternalFrame is iconified.
@@ -1171,7 +1157,6 @@ public class JInternalFrame extends JComponent implements
 	    break;
 	  case InternalFrameEvent.INTERNAL_FRAME_CLOSING:
 	    ((InternalFrameListener)listeners[i+1]).internalFrameClosing(e);
-	    doDefaultCloseAction();
 	    break;
 	  case InternalFrameEvent.INTERNAL_FRAME_CLOSED:
 	    ((InternalFrameListener)listeners[i+1]).internalFrameClosed(e);
@@ -1193,6 +1178,9 @@ public class JInternalFrame extends JComponent implements
 	  }
 	}
       }
+      if (id == InternalFrameEvent.INTERNAL_FRAME_CLOSING) {
+	  doDefaultCloseAction();
+      }
     }
 
     private void doDefaultCloseAction() {
@@ -1208,6 +1196,9 @@ public class JInternalFrame extends JComponent implements
                   dispose();  // only executes if close wasn't vetoed.
               } catch (PropertyVetoException pve) {}
               break;
+	  case 3: // EXIT_ON_CLOSE:
+	    System.exit(0);
+	    break;
           case DO_NOTHING_ON_CLOSE:
           default: 
               break;
@@ -1227,6 +1218,8 @@ public class JInternalFrame extends JComponent implements
      * invoking any registered InternalFrameListener objects
      * <li>DISPOSE_ON_CLOSE - automatically hide and dispose the 
      * window after invoking any registered InternalFrameListener objects
+     * <li>EXIT_ON_CLOSE - Exit the application by way of System.exit.
+     * Only use this in applications.
      * </ul>
      * <p>
      * The value is set to HIDE_ON_CLOSE by default.
@@ -1299,7 +1292,7 @@ public class JInternalFrame extends JComponent implements
 
     /**
      * Disposes of this internal frame. If the frame is not already
-     * closed, a frame-closing event is posted.
+     * closed, a frame-closed event is posted.
      */
     public void dispose() {
         if (isVisible()) {
@@ -1311,7 +1304,7 @@ public class JInternalFrame extends JComponent implements
             } catch (PropertyVetoException pve) {}
         }
         if (!isClosed) {
-	  fireInternalFrameEvent(InternalFrameEvent.INTERNAL_FRAME_CLOSING);
+	  firePropertyChange(IS_CLOSED_PROPERTY, Boolean.FALSE, Boolean.TRUE);
 	  fireInternalFrameEvent(InternalFrameEvent.INTERNAL_FRAME_CLOSED);
         }
     }
@@ -1376,9 +1369,6 @@ public class JInternalFrame extends JComponent implements
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JInternalFrame.
      */
@@ -1409,6 +1399,8 @@ public class JInternalFrame extends JComponent implements
             defaultCloseOperationString = "DISPOSE_ON_CLOSE";
         } else if (defaultCloseOperation == DO_NOTHING_ON_CLOSE) {
             defaultCloseOperationString = "DO_NOTHING_ON_CLOSE";
+        } else if (defaultCloseOperation == 3) {
+            defaultCloseOperationString = "EXIT_ON_CLOSE";
         } else defaultCloseOperationString = "";
 
 	return super.paramString() +
@@ -1428,6 +1420,22 @@ public class JInternalFrame extends JComponent implements
 	",rootPaneCheckingEnabled=" + rootPaneCheckingEnabledString +
 	",title=" + titleString;
     }
+
+    // ======= begin optimized frame dragging defence code ==============
+
+    boolean isDragging = false;
+    boolean danger = false;
+
+    protected void paintComponent(Graphics g) {
+      if (isDragging) {
+	//	   System.out.println("ouch");
+         danger = true;
+      }
+
+      super.paintComponent(g);
+   }
+
+    // ======= end optimized frame dragging defence code ==============
 
 /////////////////
 // Accessibility support

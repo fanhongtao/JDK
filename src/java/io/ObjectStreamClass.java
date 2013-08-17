@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectStreamClass.java	1.79 00/04/19
+ * @(#)ObjectStreamClass.java	1.79 00/03/08
  *
  * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -481,12 +481,12 @@ public class ObjectStreamClass implements java.io.Serializable {
 	validateLocalClass(cl);
 
 	/* Disable instance deserialization when one class is serializable 
-         * and the other is not or if both the classes are neither serializable
-         * nor externalizable.
-         */
-        if ((serializable != localClassDesc.serializable) ||
-            (externalizable != localClassDesc.externalizable) ||
-            (!serializable && !externalizable)) {
+	* and the other is not or if both the classes are neither serializable
+	* nor externalizable. 
+	*/
+	if ((serializable != localClassDesc.serializable) ||
+	    (externalizable != localClassDesc.externalizable) || 
+	    (!serializable && !externalizable)) {
 
 	    /* Delay signaling InvalidClassException until trying 
              * to deserialize an instance of this class. Allows
@@ -1040,9 +1040,9 @@ public class ObjectStreamClass implements java.io.Serializable {
 	    String name = (serializable || externalizable) ? 
   		              localClassDesc.getName() : getName();
 	    String stype = (serializable || localClassDesc.serializable) ? 
-                           "Serializable" :
-                           (externalizable || localClassDesc.externalizable) ?
-                           "Externalizable" : "Serializable or Externalizable";
+  		           "Serializable" : 
+  		           (externalizable || localClassDesc.externalizable) ?
+  		           "Externalizable" : "Serializable or Externalizable";
 	    throw new InvalidClassException(name, "is not " + stype);
 	}
     }

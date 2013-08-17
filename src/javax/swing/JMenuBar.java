@@ -1,10 +1,10 @@
 /*
- * @(#)JMenuBar.java	1.52 98/04/09
+ * @(#)JMenuBar.java	1.76 99/05/03
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -141,10 +141,14 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
      *
      * @param model the SingleSelectionModel to use
      * @see SingleSelectionModel
+     * @beaninfo
+     *       bound: true
+     * description: The selection model, recording which child is selected.
      */
     public void setSelectionModel(SingleSelectionModel model) {
-        final JMenuBar thisMenuBar = this;
-        selectionModel = model;
+	SingleSelectionModel oldValue = selectionModel;
+        this.selectionModel = model;
+        firePropertyChange("selectionModel", oldValue, selectionModel);
     }
 
 
@@ -202,18 +206,14 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
 
     /**
      * Returns the component at the specified index.
+     * This method is obsolete, please use <code>getComponent(int i)</code> instead.
      *
      * @param i an int specifying the position, where 0 = first
      * @return the Component at the position, or null for an
      *         invalid index
      */
-    public Component getComponentAtIndex(int i) {
-	int ncomponents = this.getComponentCount();
-	if (i>=0 && i < ncomponents) {
-	    Component[] component = this.getComponents();
-	    return component[i];
-	}
-	return null;
+    public Component getComponentAtIndex(int i) {	
+	return getComponent(i);
     }
 
     /**
@@ -255,7 +255,7 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
     }
 
     /** 
-     * Returns true if a the Menubar's border should be painted.
+     * Returns true if the Menubar's border should be painted.
      *
      * @return  true if the border should be painted, else false
      */
@@ -263,13 +263,23 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
         return paintBorder;
     }
 
-    /** 
-     * Determines whether the MenuBar's current border will be painted.
-     *
-     * @param s  true if the border should be painted, else false
+    /**
+     * Sets whether the border should be painted.
+     * @param b if true and border property is not null, the border is painted.
+     * @see #isBorderPainted
+     * @beaninfo
+     *        bound: true
+     *    attribute: visualUpdate true
+     *  description: Whether the border should be painted.
      */
-    public void setBorderPainted(boolean s) {
-        paintBorder = s;
+    public void setBorderPainted(boolean b) {
+        boolean oldValue = paintBorder;
+        paintBorder = b;
+        firePropertyChange("borderPainted", oldValue, paintBorder);
+        if (b != oldValue) {
+            revalidate();
+            repaint();
+        }
     }
 
     /**
@@ -292,10 +302,19 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
      *
      * @param margin an Insets object containing the margin values
      * @see Insets
+     * @beaninfo
+     *        bound: true
+     *    attribute: visualUpdate true
+     *  description: The space between the menubar's border and its contents
      */
-    public void setMargin(Insets margin) {
-        this.margin = margin;
-        invalidate();
+    public void setMargin(Insets m) {
+        Insets old = margin;
+        this.margin = m;
+        firePropertyChange("margin", old, m);
+        if (old == null || !m.equals(old)) {
+            revalidate();
+            repaint();
+        }
     }
 
     /**
@@ -345,11 +364,21 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
      * other menu elements.
      */
     public MenuElement[] getSubElements() {
-        int menuCount = getMenuCount();
+        MenuElement result[];
+        Vector tmp = new Vector();
+        int c = getComponentCount();
         int i;
-        MenuElement result[] = new MenuElement[menuCount];
-        for(i=0;i<menuCount;i++)
-            result[i] = getMenu(i);
+        Component m;
+
+        for(i=0 ; i < c ; i++) {
+            m = getComponent(i);
+            if(m instanceof MenuElement)
+                tmp.addElement(m);
+        }
+
+        result = new MenuElement[tmp.size()];
+        for(i=0,c=tmp.size() ; i < c ; i++) 
+            result[i] = (MenuElement) tmp.elementAt(i);
         return result;
     }
     
@@ -370,9 +399,6 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JMenuBar.
      */

@@ -1,10 +1,10 @@
 /*
- * @(#)GradientPaint.java	1.27 98/06/24
+ * @(#)GradientPaint.java	1.30 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -18,7 +18,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.ColorModel;
-import java.awt.image.BufferedImage;
 
 /**
  * The <code>GradientPaint</code> class provides a way to fill 
@@ -212,9 +211,7 @@ public class GradientPaint implements Paint {
 				      AffineTransform xform,
                                       RenderingHints hints) {
 
-        Point2D t1 = xform.transform(p1, null);
-        Point2D t2 = xform.transform(p2, null);
-        return (new GradientPaintContext(t1, t2, color1, color2, cyclic));
+        return new GradientPaintContext(p1, p2, xform, color1, color2, cyclic);
     }
 
     /**

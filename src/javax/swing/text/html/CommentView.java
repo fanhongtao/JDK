@@ -1,5 +1,5 @@
 /*
- * @(#)CommentView.java	1.4 98/08/26
+ * @(#)CommentView.java	1.5 98/11/19
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -31,7 +31,7 @@ import java.util.*;
  * not editable, the textarea will not be visible.
  *
  * @author  Scott Violet
- * @version 1.4, 08/26/98
+ * @version 1.5, 11/19/98
  */
 class CommentView extends HiddenTagView {
     CommentView(Element e) {
@@ -43,7 +43,7 @@ class CommentView extends HiddenTagView {
 	Document doc = getDocument();
 	Font font;
 	if (doc instanceof StyledDocument) {
-	    font = (Font)((StyledDocument)doc).getFont(getAttributes());
+	    font = ((StyledDocument)doc).getFont(getAttributes());
 	    ta.setFont(font);
 	}
 	else {

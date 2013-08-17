@@ -1,10 +1,10 @@
 /*
- * @(#)BasicTreeUI.java	1.93 98/08/26
+ * @(#)BasicTreeUI.java	1.106 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -31,7 +31,7 @@ import javax.swing.tree.*;
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.93 08/26/98
+ * @version 1.106 04/22/99
  * @author Scott Violet
  */
 
@@ -636,7 +636,7 @@ public class BasicTreeUI extends TreeUI
 	}
     }
 
-    private void registerKeyAction(Action action, KeyStroke ks) {
+    private void registerKeyAction(ActionListener action, KeyStroke ks) {
 	keyActions.addElement(ks);
 	tree.registerKeyboardAction(action, ks, JComponent.WHEN_FOCUSED);
     }
@@ -647,24 +647,40 @@ public class BasicTreeUI extends TreeUI
 	boolean changeSelection = changeSelectionWithFocus();
 
 	// YES! 33 key actions, yeesh!
-	keyActions = new Vector(33);
+        // hania: This became 43 when I added the keypad arrow key actions.
+	// hania: is counding the number of calls below really the best way
+        // to determine the size this vector needs to be initialized to?
+	keyActions = new Vector(43);
 	registerKeyAction(new TreeIncrementAction(-1, "UP", false,
 		  changeSelection), KeyStroke.getKeyStroke(KeyEvent.VK_UP,0));
-	
+	registerKeyAction(new TreeIncrementAction(-1, "UP", false,
+		  changeSelection), KeyStroke.getKeyStroke("KP_UP"));
 	registerKeyAction(new TreeIncrementAction(-1, "SELECT_UP", true,
                           true), KeyStroke.getKeyStroke(KeyEvent.VK_UP,
 			  InputEvent.SHIFT_MASK));
+	registerKeyAction(new TreeIncrementAction(-1, "SELECT_UP", true,
+                          true), KeyStroke.getKeyStroke("shift KP_UP"));
 	registerKeyAction(new TreeIncrementAction(1, "DOWN", false,
 		changeSelection), KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0));
+	registerKeyAction(new TreeIncrementAction(1, "DOWN", false,
+		changeSelection), KeyStroke.getKeyStroke("KP_DOWN" ));
 	registerKeyAction(new TreeIncrementAction(1, "SELECT_DOWN",
 			  true, true), KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,
 			  InputEvent.SHIFT_MASK));
+	registerKeyAction(new TreeIncrementAction(1, "SELECT_DOWN",
+			  true, true), KeyStroke.getKeyStroke("shift KP_DOWN"));
 	registerKeyAction(new TreeTraverseAction(1, "RIGHT",
 				 changeSelection),
 				 KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT,0));
+	registerKeyAction(new TreeTraverseAction(1, "RIGHT",
+				 changeSelection),
+				 KeyStroke.getKeyStroke("KP_RIGHT"));
 	registerKeyAction(new TreeTraverseAction(-1, "LEFT",
 				 changeSelection),
 				 KeyStroke.getKeyStroke(KeyEvent.VK_LEFT,0));
+	registerKeyAction(new TreeTraverseAction(-1, "LEFT",
+				 changeSelection),
+				 KeyStroke.getKeyStroke("KP_LEFT"));
 	registerKeyAction(new TreePageAction(-1, "P_UP", false,
 			       changeSelection),
 			       KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP,0));
@@ -697,7 +713,7 @@ public class BasicTreeUI extends TreeUI
 	keyActions.addElement(ks);
 	registerKeyAction(new TreeEditAction("EDIT_NODE"),
 				    KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
-	Action saAction = new TreeSelectAllAction("SELECT_ALL",true);
+	ActionListener  saAction = new TreeSelectAllAction("SELECT_ALL",true);
 	registerKeyAction(saAction, KeyStroke.getKeyStroke
 				    (KeyEvent.VK_A, InputEvent.CTRL_MASK));
 	registerKeyAction(saAction, KeyStroke.getKeyStroke
@@ -722,9 +738,14 @@ public class BasicTreeUI extends TreeUI
 	    registerKeyAction(new TreeIncrementAction(-1, "UP",
 			 false, false), KeyStroke.getKeyStroke(KeyEvent.VK_UP,
 			 InputEvent.CTRL_MASK));
+	    registerKeyAction(new TreeIncrementAction(-1, "UP",
+			 false, false), KeyStroke.getKeyStroke("ctrl KP_UP"));
 	    registerKeyAction(new TreeIncrementAction(1, "DOWN",
 			 false, false), KeyStroke.getKeyStroke
 			 (KeyEvent.VK_DOWN, InputEvent.CTRL_MASK));
+	    registerKeyAction(new TreeIncrementAction(1, "DOWN",
+			 false, false), KeyStroke.getKeyStroke
+			 ("ctrl KP_DOWN"));
 	    registerKeyAction(new TreePageAction(1, "LEAD_P_DOWN", false,
 			      false), KeyStroke.getKeyStroke
 			      (KeyEvent.VK_PAGE_DOWN, InputEvent.CTRL_MASK));
@@ -743,8 +764,14 @@ public class BasicTreeUI extends TreeUI
 			      HORIZONTAL, -10), KeyStroke.getKeyStroke
 			      (KeyEvent.VK_LEFT, InputEvent.CTRL_MASK));
 	    registerKeyAction(new ScrollAction(tree, SwingConstants.
+			      HORIZONTAL, -10), KeyStroke.getKeyStroke
+			      ("ctrl KP_LEFT"));
+	    registerKeyAction(new ScrollAction(tree, SwingConstants.
 			      HORIZONTAL, 10), KeyStroke.getKeyStroke
 			      (KeyEvent.VK_RIGHT, InputEvent.CTRL_MASK));
+	    registerKeyAction(new ScrollAction(tree, SwingConstants.
+			      HORIZONTAL, 10), KeyStroke.getKeyStroke
+			      ("ctrl KP_RIGHT"));
 	    registerKeyAction(new TreeAddSelectionAction("SELECT_NODE", false),
 			    KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0));
 	}
@@ -974,7 +1001,7 @@ public class BasicTreeUI extends TreeUI
 	    tree.removeKeyListener(keyListener);
 	}
 	if(treeExpansionListener != null) {
-	    tree.addTreeExpansionListener(treeExpansionListener);
+	    tree.removeTreeExpansionListener(treeExpansionListener);
 	}
 	if(treeModel != null && treeModelListener != null) {
 	    treeModel.removeTreeModelListener(treeModelListener);
@@ -1278,16 +1305,13 @@ public class BasicTreeUI extends TreeUI
 					       boolean isExpanded,
 					       boolean hasBeenExpanded,
 					       boolean isLeaf) {
-	// If already expanded, then paint the expand control!
-	if(isExpanded)
-	    return true;
 	if(isLeaf)
 	    return false;
 
 	int              depth = path.getPathCount() - 1;
 
-	if(!getShowsRootHandles() && (depth == 0 || (depth == 1 &&
-						     !isRootVisible())))
+	if((depth == 0 || (depth == 1 && !isRootVisible())) &&
+	   !getShowsRootHandles())
 	    return false;
 	return true;
     }
@@ -1616,16 +1640,6 @@ public class BasicTreeUI extends TreeUI
 		    if((testRect.y + testRect.height) > maxY)
 			counter = endRow;
 		}
-		// If this is the result of an expand the viewport might
-		// not know the new size, and scrollRectToVisible could fail.
-		// Thus, validate the components to pick up current size,
-		// and then scroll.
-		RepaintManager   manager = RepaintManager.currentManager
-			                       (tree);
-
-		if(manager != null) {
-		    manager.validateInvalidComponents();
-		}
 		tree.scrollRectToVisible(new Rectangle(visRect.x, beginY, 1,
 						  testRect.y + testRect.height-
 						  beginY));
@@ -1830,10 +1844,14 @@ public class BasicTreeUI extends TreeUI
 		    /* Create an instance of BasicTreeMouseListener to handle
 		       passing the mouse/motion events to the necessary
 		       component. */
-		    new MouseInputHandler(tree, SwingUtilities
-				 .getDeepestComponentAt(editingComponent,
-				    componentPoint.x, componentPoint.y),
-					       event);
+		    // We really want similiar behavior to getMouseEventTarget,
+		    // but it is package private.
+		    Component activeComponent = SwingUtilities.
+			            getDeepestComponentAt(editingComponent,
+				       componentPoint.x, componentPoint.y);
+		    if (activeComponent != null) {
+			new MouseInputHandler(tree, activeComponent, event);
+		    }
 		}
 		return true;
 	    }
@@ -2372,7 +2390,7 @@ public class BasicTreeUI extends TreeUI
     // PENDING(sky): Is this still needed?
     public class KeyHandler extends KeyAdapter {
 	/** Key code that is being generated for. */
-	protected Action             repeatKeyAction;
+	protected Action              repeatKeyAction;
 
 	/** Set to true while keyPressed is active. */
 	protected boolean            isKeyDown;
@@ -2420,13 +2438,14 @@ public class BasicTreeUI extends TreeUI
 	 */
 	public void focusGained(FocusEvent e) {
 	    if(tree != null) {
-		TreePath                  path = tree.getLeadSelectionPath();
+		Rectangle                 pBounds;
 
-		if(path != null)
-		    tree.repaint(getPathBounds(tree, path));
-		path = getLeadPath();
-		if(path != null)
-		    tree.repaint(getPathBounds(tree, path));
+		pBounds = getPathBounds(tree, tree.getLeadSelectionPath());
+		if(pBounds != null)
+		    tree.repaint(pBounds);
+		pBounds = getPathBounds(tree, getLeadPath());
+		if(pBounds != null)
+		    tree.repaint(pBounds);
 	    }
 	}
 
@@ -2570,7 +2589,6 @@ public class BasicTreeUI extends TreeUI
 	    if(event.getSource() == tree) {
 		String              changeName = event.getPropertyName();
 
-		completeEditing();
 		if(changeName.equals(JTree.CELL_RENDERER_PROPERTY)) {
 		    setCellRenderer((TreeCellRenderer)event.getNewValue());
 		}
@@ -2600,6 +2618,12 @@ public class BasicTreeUI extends TreeUI
 		}
 		else if(changeName.equals(JTree.SELECTION_MODEL_PROPERTY)) {
 		    setSelectionModel(tree.getSelectionModel());
+		}
+		else if(changeName.equals("font")) {
+		    completeEditing();
+		    if(treeState != null)
+			treeState.invalidateSizes();
+		    updateSize();
 		}
 	    }
 	}
@@ -2638,7 +2662,6 @@ public class BasicTreeUI extends TreeUI
 
 	private TreeTraverseAction(int direction, String name,
 				   boolean changeSelection) {
-	    super(name);
 	    this.direction = direction;
 	    this.changeSelection = changeSelection;
 	}
@@ -2719,7 +2742,6 @@ public class BasicTreeUI extends TreeUI
 	private TreePageAction(int direction, String name,
 			       boolean addToSelection,
 			       boolean changeSelection) {
-	    super(name);
 	    this.direction = direction;
 	    this.addToSelection = addToSelection;
 	    this.changeSelection = changeSelection;
@@ -2800,7 +2822,6 @@ public class BasicTreeUI extends TreeUI
 
 	public TreeScrollLRAction(int direction, String name,
 				  boolean addToSelection) {
-	    super(name);
 	    this.direction = direction;
 	    this.addToSelection = addToSelection;
 	}
@@ -2862,7 +2883,6 @@ public class BasicTreeUI extends TreeUI
 	private TreeIncrementAction(int direction, String name,
 				   boolean addToSelection,
 				    boolean changeSelection) {
-	    super(name);
 	    this.direction = direction;
 	    this.addToSelection = addToSelection;
 	    this.changeSelection = changeSelection;
@@ -2923,7 +2943,6 @@ public class BasicTreeUI extends TreeUI
 	private TreeHomeAction(int direction, String name,
 			       boolean addToSelection,
 			       boolean changeSelection) {
-	    super(name);
 	    this.direction = direction;
 	    this.changeSelection = changeSelection;
 	    this.addToSelection = addToSelection;
@@ -2994,7 +3013,6 @@ public class BasicTreeUI extends TreeUI
       */
     public class TreeToggleAction extends AbstractAction {
 	public TreeToggleAction(String name) {
-	    super(name);
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -3020,7 +3038,7 @@ public class BasicTreeUI extends TreeUI
     /**
      * Scrolls the component it is created with a specified amount.
      */
-    private static class ScrollAction extends AbstractAction {
+    private static class ScrollAction implements ActionListener {
 	private JComponent component;
 	private int direction;
 	private int amount;
@@ -3048,8 +3066,7 @@ public class BasicTreeUI extends TreeUI
 	    }
 	    component.scrollRectToVisible(visRect);
 	}
-
-	public boolean isEnabled() { return true; }
+	
     }
 
 
@@ -3058,7 +3075,6 @@ public class BasicTreeUI extends TreeUI
      */
     public class TreeCancelEditingAction extends AbstractAction {
 	public TreeCancelEditingAction(String name) {
-	    super(name);
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -3077,7 +3093,6 @@ public class BasicTreeUI extends TreeUI
      */
     private class TreeEditAction extends AbstractAction {
 	public TreeEditAction(String name) {
-	    super(name);
 	}
 
 	public void actionPerformed(ActionEvent ae) {
@@ -3104,7 +3119,6 @@ public class BasicTreeUI extends TreeUI
 	private boolean       selectAll;
 
 	public TreeSelectAllAction(String name, boolean selectAll) {
-	    super(name);
 	    this.selectAll = selectAll;
 	}
 
@@ -3152,7 +3166,6 @@ public class BasicTreeUI extends TreeUI
 	private boolean       changeAnchor;
 
 	public TreeAddSelectionAction(String name, boolean changeAnchor) {
-	    super(name);
 	    this.changeAnchor = changeAnchor;
 	}
 
@@ -3193,7 +3206,6 @@ public class BasicTreeUI extends TreeUI
      */
     private class TreeExtendSelectionAction extends AbstractAction {
 	public TreeExtendSelectionAction(String name) {
-	    super(name);
 	}
 
 	public void actionPerformed(ActionEvent ae) {
@@ -3263,15 +3275,21 @@ public class BasicTreeUI extends TreeUI
 	}
 
 	public void mouseEntered(MouseEvent e) {
-	    removeFromSource();
+	    if (!SwingUtilities.isLeftMouseButton(e)) {
+		removeFromSource();
+	    }
 	}
 	
 	public void mouseExited(MouseEvent e) {
-	    removeFromSource();
+	    if (!SwingUtilities.isLeftMouseButton(e)) {
+		removeFromSource();
+	    }
 	}
 
 	public void mouseDragged(MouseEvent e) {
-	    removeFromSource();
+	    if(destination != null)
+		destination.dispatchEvent(SwingUtilities.convertMouseEvent
+					  (source, e, destination));
 	}
 
 	public void mouseMoved(MouseEvent e) {

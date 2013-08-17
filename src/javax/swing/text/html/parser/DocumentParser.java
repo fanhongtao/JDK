@@ -1,5 +1,5 @@
 /*
- * @(#)DocumentParser.java	1.13 98/08/26
+ * @(#)DocumentParser.java	1.15 98/11/06
  *
  * Copyright 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -29,7 +29,7 @@ import sun.io.*;
  * A Parser for HTML Documents. Read an InputStream of HTML and
  * invoke the appropriate methods in the ParserCallback class.
  *
- * @version 	1.13 08/26/98
+ * @version 	1.15 11/06/98
  * @author      Sunita Mani
  */
 public class DocumentParser extends javax.swing.text.html.parser.Parser {
@@ -37,10 +37,18 @@ public class DocumentParser extends javax.swing.text.html.parser.Parser {
     private int inbody;
     private int intitle;
     private int inhead;
+    private int instyle;
     private boolean seentitle;
     private HTMLEditorKit.ParserCallback callback = null;
     private boolean ignoreCharSet = false;
     private static final boolean debugFlag = false;
+
+    private static HTML.UnknownTag EndOfLineTag;
+
+    static {
+	EndOfLineTag = new HTML.UnknownTag("__EndOfLineTag__");
+    }
+
 
     public DocumentParser(DTD dtd) {
 	super(dtd);
@@ -50,6 +58,13 @@ public class DocumentParser extends javax.swing.text.html.parser.Parser {
 	this.ignoreCharSet = ignoreCharSet;
 	this.callback = callback;
 	parse(in);
+
+	// This is a temporary way to notify the callback of the end of line
+	// string.
+	// In the future there will be a public way to determine this.
+	SimpleAttributeSet attr = new SimpleAttributeSet();
+	attr.addAttribute("__EndOfLineString__", getEndOfLineString());
+	callback.handleSimpleTag(EndOfLineTag, attr, getCurrentPos());
     }
 
     /**
@@ -65,7 +80,9 @@ public class DocumentParser extends javax.swing.text.html.parser.Parser {
 	    inhead++;
 	} else if (elem == dtd.title) {
 	    intitle++;
-	}
+	} else if (elem == dtd.style) {
+	    instyle++;
+	}	
 	if (debugFlag) {
 	    if (tag.fictional()) {
 		debug("Start Tag: " + tag.getHTMLTag() + " pos: " + getCurrentPos());
@@ -109,7 +126,8 @@ public class DocumentParser extends javax.swing.text.html.parser.Parser {
 		    }
 		}
 	    }
-	} else if (inbody != 0 || elem == dtd.meta || elem == dtd.base || elem == dtd.isindex) {
+	}
+	if (inbody != 0 || elem == dtd.meta || elem == dtd.base || elem == dtd.isindex || elem == dtd.style || elem == dtd.link) {
 	    if (debugFlag) {
 		if (tag.fictional()) {
 		    debug("Empty Tag: " + tag.getHTMLTag() + " pos: " + getCurrentPos());
@@ -139,6 +157,8 @@ public class DocumentParser extends javax.swing.text.html.parser.Parser {
 	    seentitle = true;
 	} else if (elem == dtd.head) {
             inhead--;
+	} else if (elem == dtd.style) {
+            instyle--;
 	}
 	if (debugFlag) {
 	    debug("End Tag: " + tag.getHTMLTag() + " pos: " + getCurrentPos());
@@ -152,7 +172,8 @@ public class DocumentParser extends javax.swing.text.html.parser.Parser {
      */
     protected void handleText(char data[]) {
 	if (data != null) {
-	    if (inbody != 0 || ((intitle != 0) && !seentitle)) {
+	    if (inbody != 0 || ((instyle != 0) ||
+				((intitle != 0) && !seentitle))) {
 		if (debugFlag) {
 		    debug("text:  ->" + new String(data) + "<-" + " pos: " + getCurrentPos());
 		}

@@ -1,10 +1,10 @@
 /*
- * @(#)List.java	1.67 98/08/31
+ * @(#)List.java	1.71 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -78,7 +78,7 @@ import java.io.IOException;
  * For multiple-selection scrolling lists, it is considered a better
  * user interface to use an external gesture (such as clicking on a
  * button) to trigger the action.
- * @version 	1.67, 08/31/98
+ * @version 	1.71, 04/22/99
  * @author 	Sami Shaio
  * @see         java.awt.event.ItemEvent
  * @see         java.awt.event.ItemListener
@@ -302,12 +302,11 @@ public class List extends Component implements ItemSelectable {
 
     /**
      * Adds the specified item to the the scrolling list
-     * at the position indicated by the index.
-     * The index is zero-based. If value of the index is
-     * less than <code>-1</code> then 
-     * an ArrayIndexOutOfBoundsException is thrown.
-     * If value of the index is greater than the number of
-     * items in the list then the item is added to the end.
+     * at the position indicated by the index.  The index is 
+     * zero-based.  If the value of the index is less than zero, 
+     * or if the value of the index is greater than or equal to 
+     * the number of items in the list, then the item is added 
+     * to the end of the list.
      * @param       item   the item to be added.
      *              If this parameter is null then the item is
      *              treated as an empty string, <code>""</code>.
@@ -325,11 +324,17 @@ public class List extends Component implements ItemSelectable {
 	if (index < -1 || index >= items.size()) {
 	    index = -1;
 	}
+
+        if (item == null) {
+            item = "";
+        }
+
 	if (index == -1) {
 	    items.addElement(item);
 	} else {
 	    items.insertElementAt(item, index);
 	}
+
 	ListPeer peer = (ListPeer)this.peer;
 	if (peer != null) {
 	    peer.addItem(item, index);

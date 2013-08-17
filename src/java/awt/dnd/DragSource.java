@@ -1,10 +1,10 @@
 /*
- * @(#)DragSource.java	1.14 98/04/21
+ * @(#)DragSource.java	1.26 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -38,14 +38,72 @@ import java.awt.dnd.peer.DragSourceContextPeer;
 import java.security.AccessController;
 
 /**
- * <p>
- * The DragSource class is a small class responsible for originating a
- * Drag and Drop gesture.
- * </p>
+ * The <code>DragSource</code> is the entity responsible 
+ * for the initiation of the Drag
+ * and Drop operation, and may be used in a number of scenarios: 
+ * <UL>
+ * <LI>1 default instance per JVM for the lifetime of that JVM. 
+ * <LI>1 instance per class of potential Drag Initiator object (e.g
+ * TextField). [implementation dependent] 
+ * <LI>1 per instance of a particular 
+ * <code>Component</code>, or application specific
+ * object associated with a <code>Component</code> 
+ * instance in the GUI. [implementation dependent] 
+ * <LI>Some other arbitrary association. [implementation dependent] 
+ *</UL>
  *
- * @version 1.14
+ * Once the <code>DragSource</code> is 
+ * obtained, a <code>DragGestureRecognizer</code> should
+ * also be obtained to associate the <code>DragSource</code>
+ * with a particular
+ * <code>Component</code>. 
+ * <P>
+ * The initial interpretation of the user's gesture, 
+ * and the subsequent starting of the drag operation 
+ * are the responsibility of the implementing
+ * <code>Component</code>, which is usually 
+ * implemented by a <code>DragGestureRecognizer</code>. 
+ *<P>
+ * When a drag gesture occurs, the 
+ * <code>DragSource</code>'s 
+ * startDrag() method shall be
+ * invoked in order to cause processing 
+ * of the user's navigational
+ * gestures and delivery of Drag and Drop 
+ * protocol notifications. A
+ * <code>DragSource</code> shall only 
+ * permit a single Drag and Drop operation to be
+ * current at any one time, and shall 
+ * reject any further startDrag() requests
+ * by throwing an <code>IllegalDnDOperationException</code> 
+ * until such time as the extant operation is complete. 
+ * <P>
+ * The startDrag() method invokes the 
+ * createDragSourceContext() method to
+ * instantiate an appropriate 
+ * <code>DragSourceContext</code> 
+ * and associate the <code>DragSourceContextPeer</code>
+ * with that. 
+ * <P>
+ * If the Drag and Drop System is 
+ * unable to initiate a drag operation for
+ * some reason, the startDrag() method throws 
+ * a <code>java.awt.dnd.InvalidDnDOperationException</code>
+ * to signal such a condition. Typically this 
+ * exception is thrown when the underlying platform
+ * system is either not in a state to 
+ * initiate a drag, or the parameters specified are invalid. 
+ * <P>
+ * Note that during the drag, the 
+ * set of operations exposed by the source
+ * at the start of the drag operation may not change 
+ * until the operation is complete. 
+ * The operation(s) are constant for the
+ * duration of the operation with respect to the 
+ * <code>DragSource</code>. 
+ *
+ * @version 1.26
  * @since JDK1.2
- *
  */
 
 public class DragSource {
@@ -64,16 +122,44 @@ public class DragSource {
 	}
     }
 
+   
     /**
-     * Default Cursor Constants
+     * The default <code>Cursor</code> to use with a copy operation 
+     * indicating that a drop is currently allowed.
      */
-
     public static final Cursor DefaultCopyDrop = load("DnD.Cursor.CopyDrop");
+
+    /**
+     * The default <code>Cursor</code> to use 
+     * with a move operation indicating that 
+     * a drop is currently allowed.
+     */
     public static final Cursor DefaultMoveDrop = load("DnD.Cursor.MoveDrop");
+
+    /**
+     * The default <code>Cursor</code> to use with a 
+     * link operation indicating that a 
+     * drop is currently allowed.
+     */
     public static final Cursor DefaultLinkDrop = load("DnD.Cursor.LinkDrop");
 
+    /**
+     * The default <code>Cursor</code> to use with 
+     * a copy operation indicating that a drop is currently not allowed.
+     */
     public static final Cursor DefaultCopyNoDrop = load("DnD.Cursor.CopyNoDrop");
+
+    /**
+     * The default <code>Cursor</code> to use with a move 
+     * operation indicating that a drop is currently not allowed.
+     */
     public static final Cursor DefaultMoveNoDrop = load("DnD.Cursor.MoveNoDrop");
+
+    /**
+     * The default <code>Cursor</code> to use 
+     * with a link operation indicating 
+     * that a drop is currently not allowed.
+     */
     public static final Cursor DefaultLinkNoDrop = load("DnD.Cursor.LinkNoDrop");
 
     /*
@@ -85,6 +171,9 @@ public class DragSource {
     private static DragSource dflt;
 
     /**
+     * This method returns the <code>DragSource</code> 
+     * object associated with the underlying platform.
+     * <P>
      * @return the platform DragSource
      */
 
@@ -95,6 +184,11 @@ public class DragSource {
     }
 
     /**
+     * This method returns a <code>boolean</code> 
+     * indicating whether or not drag 
+     * <code>Image</code> support 
+     * is available on the underlying platform.
+     * <P>
      * @return if the Drag Image support is available on this platform
      */
 
@@ -113,24 +207,37 @@ public class DragSource {
     }
 
     /**
-     * construct a DragSource
+     * Construct a new <code>DragSource</code>.
      */
 
     public DragSource() { super(); }
 
     /**
-     * start a Drag.
-     *
-     * @param trigger		The DragGestureEvemt that initiated the Drag
-     * @param dragCursor	The initial cursor or null for defaults
-     * @param dragImage		The image to drag or null
-     * @param imageOffset	The offset of the image origin from the hotspot
-     *				of the cursor at the instant of the trigger
-     * @param transferable	The subject data of the Drag
-     * @param dsl		The DragSourceListener
-     * @param flavorMap		The FlavorMap to use, or null
-     *
-     * @throw java.awt.dnd.InvalidDnDOperationException
+     * Start a drag, given the <code>DragGestureEvent</code> 
+     * that initiated the drag, the initial 
+     * <code>Cursor</code> to use,
+     * the <code>Image</code> to drag, 
+     * the offset of the <code>Image</code> origin 
+     * from the hotspot of the <code>Cursor</code> at 
+     * the instant of the trigger,
+     * the <code>Transferable</code> subject data 
+     * of the drag, the <code>DragSourceListener</code>, 
+     * and the <code>FlavorMap</code>. 
+     * <P>
+     * @param trigger	     The <code>DragGestureEvent</code> that initiated the drag
+     * @param dragCursor     The initial <code>Cursor</code> or <code>null</code> for defaults
+     * @param dragImage	     The image to drag or null,
+     * @param imageOffset    The offset of the <code>Image</code> origin from the hotspot
+     *			     of the <code>Cursor</code> at the instant of the trigger
+     * @param transferable   The subject data of the drag
+     * @param dsl	     The <code>DragSourceListener</code>
+     * @param flavorMap	     The <code>FlavorMap</code> to use, or <code>null</code>
+     * <P>
+     * @throws <code>java.awt.dnd.InvalidDnDOperationException</code> 
+     * if the Drag and Drop
+     * system is unable to initiate a drag operation, or if the user
+     * attempts to start a drag while an existing drag operation 
+     * is still executing.
      */
 
     public void startDrag(DragGestureEvent   trigger,
@@ -163,16 +270,26 @@ public class DragSource {
 }
 
     /**
-     * start a Drag.
-     *
-     * @param trigger		The DragGestureEvent that initiated the Drag
-     * @param actions		The drag "verbs" appropriate
-     * @param dragCursor	The initial cursor or null for defaults
-     * @param transferable	The subject data of the Drag
-     * @param dsl		The DragSourceListener
-     * @param flavorMap		The FlavorMap to use or null
-     *
-     * @throw java.awt.dnd.InvalidDnDOperationException
+     * Start a drag, given the <code>DragGestureEvent</code> 
+     * that initiated the drag, the initial 
+     * <code>Cursor</code> to use,
+     * the <code>Transferable</code> subject data 
+     * of the drag, the <code>DragSourceListener</code>, 
+     * and the <code>FlavorMap</code>. 
+     * <P>
+     * @param trigger	     The <code>DragGestureEvent</code> that 
+     * initiated the drag
+     * @param dragCursor     The initial <code>Cursor</code> or 
+     * <code>null</code> for defaults
+     * @param transferable   The subject data of the drag
+     * @param dsl	     The <code>DragSourceListener</code>
+     * @param flavorMap	     The <code>FlavorMap to use or <code>null</code>
+     * <P>
+     * @throws <code>java.awt.dnd.InvalidDnDOperationException</code> 
+     * if the Drag and Drop
+     * system is unable to initiate a drag operation, or if the user
+     * attempts to start a drag while an existing drag operation 
+     * is still executing.
      */
 
     public void startDrag(DragGestureEvent   trigger,
@@ -184,18 +301,29 @@ public class DragSource {
     }
 
     /**
-     * start a Drag.
-     *
-     * @param trigger		The DragGestureEvent that initiated the Drag
-     * @param actions		The drag "verbs" appropriate
-     * @param dragCursor	The initial cursor or null for defaults
-     * @param dragImage		The image to drag or null
-     * @param imageOffset	The offset of the image origin from the hotspot
-     *				of the cursor at the instant of the trigger
-     * @param transferable	The subject data of the Drag
-     * @param dsl		The DragSourceListener
-     *
-     * @throw java.awt.dnd.InvalidDnDOperationException
+     * Start a drag, given the <code>DragGestureEvent</code> 
+     * that initiated the drag, the initial <code>Cursor</code> 
+     * to use,
+     * the <code>Image</code> to drag, 
+     * the offset of the <code>Image</code> origin 
+     * from the hotspot of the <code>Cursor</code>
+     * at the instant of the trigger,
+     * the subject data of the drag, and 
+     * the <code>DragSourceListener</code>. 
+     * <P>
+     * @param trigger		The <code>DragGestureEvent</code> that initiated the drag
+     * @param dragCursor	The initial <code>Cursor</code> or <code>null</code> for defaults
+     * @param dragImage		The <code>Image</code> to drag or <code>null</code>
+     * @param imageOffset	The offset of the <code>Image</code> origin from the hotspot
+     *				of the <code>Cursor</code> at the instant of the trigger
+     * @param transferable	The subject data of the drag
+     * @param dsl		The <code>DragSourceListener</code>
+     * <P>
+     * @throws <code>java.awt.dnd.InvalidDnDOperationException</code> 
+     * if the Drag and Drop
+     * system is unable to initiate a drag operation, or if the user
+     * attempts to start a drag while an existing drag operation  
+     * is still executing.
      */
 
     public void startDrag(DragGestureEvent   trigger,
@@ -208,15 +336,23 @@ public class DragSource {
     }
 
     /**
-     * start a Drag.
-     *
-     * @param trigger		The DragGestureEvent that initiated the Drag
-     * @param actions		The drag "verbs" appropriate
-     * @param dragCursor	The initial cursor or null for defaults
-     * @param transferable	The subject data of the Drag
-     * @param dsl		The DragSourceListener
-     *
-     * @throw java.awt.dnd.InvalidDnDOperationException
+     * Start a drag, given the <code>DragGestureEvent</code> 
+     * that initiated the drag, the initial 
+     * <code>Cursor</code> to 
+     * use, 
+     * the <code>Transferable</code> subject data 
+     * of the drag, and the <code>DragSourceListener</code>. 
+     * <P>
+     * @param trigger		The <code>DragGestureEvent</code> that initiated the drag
+     * @param dragCursor	The initial <code>Cursor</code> or <code>null</code> for defaults
+     * @param transferable	The subject data of the drag
+     * @param dsl		The <code>DragSourceListener</code>
+     * <P>
+     * @throws <code>java.awt.dnd.InvalidDnDOperationException</code> 
+     * if the Drag and Drop
+     * system is unable to initiate a drag operation, or if the user
+     * attempts to start a drag while an existing drag operation 
+     * is still executing.
      */
 
     public void startDrag(DragGestureEvent   trigger,
@@ -227,19 +363,22 @@ public class DragSource {
     }
 
     /**
-     * Create the DragSourceContext to handle this Drag.
+     * Create the <code>DragSourceContext</code> to handle this drag.
      * 
-     * To incorporate a new DragSourceContext subclass, subclass DragSource and
+     * To incorporate a new <code>DragSourceContext</code> 
+     * subclass, subclass <code>DragSource</code> and
      * override this method.
-     *
-     * @param dscp 		The DragSourceContextPeer for this Drag
-     * @param trigger	        The DragGestureEvent that triggered the drag
-     * @param dragCursor	The initial cursor
-     * @param dragImage		The image to drag or null
-     * @param imageOffset	The offset of the image origin from the hotspot
+     * <P>
+     * @param dscp 		The <code>DragSourceContextPeer</code> for this drag
+     * @param trigger	        The <code>DragGestureEvent</code> that triggered the drag
+     * @param dragCursor	The initial <code>Cursor</code> to display
+     * @param dragImage		The <code>Image</code> to drag or <code>null</code>
+     * @param imageOffset	The offset of the <code>Image</code> origin from the hotspot
      *				of the cursor at the instant of the trigger
-     * @param transferable	The subject data of the Drag
-     * @param dsl		The DragSourceListener
+     * @param transferable	The subject data of the drag
+     * @param dsl		The <code>DragSourceListener</code>
+     * <P>
+     * @return the <code>DragSourceContext</code>
      */
 
     protected DragSourceContext createDragSourceContext(DragSourceContextPeer dscp, DragGestureEvent dgl, Cursor dragCursor, Image dragImage, Point imageOffset, Transferable t, DragSourceListener dsl) {
@@ -247,22 +386,33 @@ public class DragSource {
     }
 
     /**
-     * @return the FlavorMap for this DragSource
+     * This method returns the 
+     * <code>FlavorMap</code> for this <code>DragSource</code>.
+     * <P>
+     * @return the <code>FlavorMap</code> for this <code>DragSource</code>
      */
 
     public FlavorMap getFlavorMap() { return flavorMap; }
 
     /**
-     * Creates a new DragSourceRecognizer that implements the specified
-     * abstract subclass of DragGestureRecognizer, and sets the specified
-     * Component and DragGestureListener on the newly created object.
-     *
+     * Creates a new <code>DragGestureRecognizer</code> 
+     * that implements the specified
+     * abstract subclass of 
+     * <code>DragGestureRecognizer</code>, and 
+     * sets the specified <code>Component</code> 
+     * and <code>DragGestureListener</code> on 
+     * the newly created object.
+     * <P>
      * @param recognizerAbstractClass The requested abstract type
      * @param actions		      The permitted source drag actions
-     * @param c			      The Component target 
-     * @param dgl		      The DragGestureListener to notify
-     *
-     * @return the new DragGestureRecognizer or null
+     * @param c			      The <code>Component</code> target 
+     * @param dgl	 The <code>DragGestureListener</code> to notify
+     * <P>
+     * @return the new <code>DragGestureRecognizer</code> or <code>null</code>
+     * if the Toolkit.createDragGestureRecognizer() method
+     * has no implementation available for 
+     * the requested <code>DragGestureRecognizer</code>
+     * subclass and returns <code>null</code>.
      */
 
     public DragGestureRecognizer createDragGestureRecognizer(Class recognizerAbstractClass, Component c, int actions, DragGestureListener dgl) {
@@ -271,18 +421,26 @@ public class DragSource {
 
 	
     /**
-     * Creates a new DragSourceRecognizer that implements the default
-     * abstract subclass of DragGestureRecognizer for this DragSource,
-     * and sets the specified Component and DragGestureListener on the
+     * Creates a new <code>DragSourceRecognizer</code> 
+     * that implements the default
+     * abstract subclass of <code>DragGestureRecognizer</code>
+     * for this <code>DragSource</code>,
+     * and sets the specified <code>Component</code> 
+     * and <code>DragGestureListener</code> on the
      * newly created object. 
      *
-     * For this DragSource the defaut is MouseDragGestureRecognizer
-     *
-     * @param c	      The Component target for the recognizer
+     * For this <code>DragSource</code> 
+     * the default is <code>MouseDragGestureRecognizer</code>.
+     * <P>
+     * @param c	      The <code>Component</code> target for the recognizer
      * @param actions The permitted source actions
-     * @param dgl     The DragGestureListener to notify
-     *
-     * @return the new DragGestureRecognizer or null
+     * @param dgl     The <code>DragGestureListener</code> to notify
+     * <P>
+     * @return the new <code>DragGestureRecognizer</code> or <code>null</code>
+     * if the Toolkit.createDragGestureRecognizer() method
+     * has no implementation available for 
+     * the requested <code>DragGestureRecognizer</code>
+     * subclass and returns <code>null</code>.
      */
 
     public DragGestureRecognizer createDefaultDragGestureRecognizer(Component c, int actions, DragGestureListener dgl) {
@@ -295,3 +453,23 @@ public class DragSource {
 
     private transient FlavorMap flavorMap = defaultFlavorMap;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

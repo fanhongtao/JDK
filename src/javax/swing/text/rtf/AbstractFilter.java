@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractFilter.java	1.4 98/09/21
+ * @(#)AbstractFilter.java	1.6 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -95,6 +95,23 @@ abstract class AbstractFilter extends OutputStream
 	}
     }
 
+    public void readFromReader(Reader in)
+      throws IOException
+    {
+        char buf[];
+        int count;
+        
+	buf = new char[2048];
+	
+	while(true) {
+	    count = in.read(buf);
+	    if (count < 0)
+	        break;
+	    for (int i = 0; i < count; i++) {
+	      this.write(buf[i]);
+	    }
+	}
+    }
 
     public AbstractFilter()
     {

@@ -1,10 +1,10 @@
 /*
- * @(#)Vector.java	1.60 98/09/30
+ * @(#)Vector.java	1.62 99/04/22
  *
- * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * Copyright 1994-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -46,7 +46,7 @@ package java.util;
  *
  * @author  Lee Boynton
  * @author  Jonathan Payne
- * @version 1.60, 09/30/98
+ * @version 1.62, 04/22/99
  * @see Collection
  * @see List
  * @see ArrayList
@@ -136,11 +136,9 @@ public class Vector extends AbstractList implements List, Cloneable,
      * @since   JDK1.2
      */
     public Vector(Collection c) {
-	this((c.size()*110)/100);	// Allow 10% room for growth
-
-	Iterator i = c.iterator();
-	while (i.hasNext())
-	    elementData[elementCount++] = i.next();
+        elementCount = c.size();
+	elementData = new Object[(elementCount*110)/100]; // 10% for growth
+        c.toArray(elementData);
     }
 
     /**
@@ -223,6 +221,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * components at index <code>newSize</code> and greater are discarded.
      *
      * @param   newSize   the new size of this vector.
+     * @throws  ArrayIndexOutOfBoundsException if new size is negative.
      */
     public synchronized void setSize(int newSize) {
 	modCount++;

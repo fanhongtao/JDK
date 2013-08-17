@@ -1,10 +1,10 @@
 /*
- * @(#)MetalToolTipUI.java	1.10 98/08/28
+ * @(#)MetalToolTipUI.java	1.12 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -34,7 +34,7 @@ import javax.swing.plaf.basic.BasicToolTipUI;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.10 08/28/98
+ * @version 1.12 04/22/99
  * @author Steve Wilson
  */
 public class MetalToolTipUI extends BasicToolTipUI {
@@ -60,20 +60,15 @@ public class MetalToolTipUI extends BasicToolTipUI {
     }
 
     public void paint(Graphics g, JComponent c) {
+	super.paint(g, c);
 
-        FontMetrics metrics = Toolkit.getDefaultToolkit().getFontMetrics(g.getFont());
-        Dimension size = c.getSize();
-
-        g.setColor(c.getBackground());
-        g.fillRect(0, 0, size.width, size.height);
-
-	g.setColor(c.getForeground());
+        Font font = c.getFont();
+        FontMetrics metrics = Toolkit.getDefaultToolkit().getFontMetrics(font);
+	String keyText = getAcceleratorString();
 	String tipText = ((JToolTip)c).getTipText();
 	if (tipText == null) {
 	    tipText = "";
 	}
-	String keyText = getAcceleratorString();
-        g.drawString(tipText, 3, 2 + metrics.getAscent());
 	if (! (keyText.equals(""))) {  // only draw control key if there is one
 	    g.setFont(smallFont);
 	    g.setColor( MetalLookAndFeel.getPrimaryControlDarkShadow() );
@@ -84,19 +79,12 @@ public class MetalToolTipUI extends BasicToolTipUI {
     }
 
     public Dimension getPreferredSize(JComponent c) {
-        FontMetrics metrics = Toolkit.getDefaultToolkit().getFontMetrics(c.getFont());
-
-	String tipText = ((JToolTip)c).getTipText();
-	if (tipText == null) {
-	    tipText = "";
-	}
-
-	Dimension d = new Dimension(metrics.stringWidth(tipText) + 6, metrics.getHeight() + 4);
+	Dimension d = super.getPreferredSize(c);
 
 	String key = getAcceleratorString();
 	if (! (key.equals(""))) {
-            metrics = Toolkit.getDefaultToolkit().getFontMetrics(smallFont);	
-	    d.width += metrics.stringWidth(key) + padSpaceBetweenStrings;
+            FontMetrics fm = Toolkit.getDefaultToolkit().getFontMetrics(smallFont);	
+	    d.width += fm.stringWidth(key) + padSpaceBetweenStrings;
 	}
         return d;
     }

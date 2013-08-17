@@ -1,10 +1,10 @@
 /*
- * @(#)DefaultFocusManager.java	1.11 98/08/26
+ * @(#)DefaultFocusManager.java	1.14 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -25,7 +25,7 @@ import java.util.Stack;
 /**
  * Default swing focus manager implementation.
  *
- * @version 1.11 08/26/98
+ * @version 1.14 04/22/99
  * @author Arnaud Weber
  */
 public class DefaultFocusManager extends FocusManager {
@@ -54,8 +54,10 @@ public class DefaultFocusManager extends FocusManager {
             if(focusedComponent instanceof JComponent) {
                 JComponent fc = (JComponent) focusedComponent;
                 if(fc.isManagingFocus()) {
-                    if(!((anEvent.getModifiers() & ActionEvent.CTRL_MASK) == 
-                       ActionEvent.CTRL_MASK))
+		     int isctrl = (anEvent.getModifiers() &
+				   ActionEvent.CTRL_MASK);
+                     if ((isctrl != ActionEvent.CTRL_MASK) ||
+			 (anEvent.getKeyCode() == KeyEvent.VK_I))
                         return;
                 }
             }

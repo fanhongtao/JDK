@@ -1,5 +1,5 @@
 /*
- * @(#)JColorChooser.java	1.21 98/08/28
+ * @(#)JColorChooser.java	1.22 98/09/01
  *
  * Copyright 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -63,7 +63,7 @@ import javax.accessibility.*;
  *    description: A component that supports selecting a Color.
  *
  *
- * @version 1.21 08/28/98
+ * @version 1.22 09/01/98
  * @author James Gosling
  * @author Amy Fowler
  * @author Steve Wilson
@@ -437,9 +437,6 @@ public class JColorChooser extends JComponent implements Accessible {
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JColorChooser.
      */

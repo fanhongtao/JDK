@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsTextAreaUI.java	1.9 98/08/28
+ * @(#)WindowsTextAreaUI.java	1.11 98/10/29
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -17,11 +17,12 @@ package com.sun.java.swing.plaf.windows;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
 import javax.swing.*;
+import javax.swing.text.Caret;
 
 
 
 /**
- * Windows rendition of the component.
+ * Windows rendition of the component. 
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -31,6 +32,17 @@ import javax.swing.*;
  * long term persistence.
  */
 public class WindowsTextAreaUI extends BasicTextAreaUI {
+    /**
+     * Creates the object to use for a caret.  By default an
+     * instance of WindowsCaret is created.  This method
+     * can be redefined to provide something else that implements
+     * the InputPosition interface or a subclass of DefaultCaret.
+     *
+     * @return the caret object
+     */
+    protected Caret createCaret() {
+        return new WindowsTextUI.WindowsCaret();
+    }
 
     /**
      * Creates a UI for a JTextField.

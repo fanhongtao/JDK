@@ -1,10 +1,10 @@
 /*
- * @(#)BasicIconFactory.java	1.18 98/08/28
+ * @(#)BasicIconFactory.java	1.21 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -33,7 +33,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.18 08/28/98
+ * @version 1.21 04/22/99
  * @author David Kloba
  * @author Georges Saab
  */
@@ -149,17 +149,13 @@ public class BasicIconFactory implements Serializable
 	    ButtonModel model = b.getModel();
 	    boolean isSelected = model.isSelected();
 	    if (isSelected) {
-		y = y - getIconHeight() / 2;
-		y += 2;
-		g.drawLine(x+9, y+3, x+9, y+3);
-		g.drawLine(x+8, y+4, x+9, y+4);
-		g.drawLine(x+7, y+5, x+9, y+5);
-		g.drawLine(x+6, y+6, x+8, y+6);
-		g.drawLine(x+3, y+7, x+7, y+7);
-		g.drawLine(x+4, y+8, x+6, y+8);
-		g.drawLine(x+5, y+9, x+5, y+9);
-		g.drawLine(x+3, y+5, x+3, y+5);
-		g.drawLine(x+3, y+6, x+4, y+6);
+                g.drawLine(x+7, y+1, x+7, y+3);
+                g.drawLine(x+6, y+2, x+6, y+4);
+                g.drawLine(x+5, y+3, x+5, y+5);
+                g.drawLine(x+4, y+4, x+4, y+6);
+                g.drawLine(x+3, y+5, x+3, y+7);
+                g.drawLine(x+2, y+4, x+2, y+6);
+                g.drawLine(x+1, y+3, x+1, y+5);
 	    }
 	}
 	public int getIconWidth() { return 9; }
@@ -174,8 +170,8 @@ public class BasicIconFactory implements Serializable
 	    AbstractButton b = (AbstractButton) c;
 	    ButtonModel model = b.getModel();
 	    if (b.isSelected() == true) {
-		g.fillArc(2,4,getIconWidth()-2, getIconHeight()-2, 0, 360);
-	    }
+		g.fillArc(x+1,y+1,getIconWidth()-2, getIconHeight()-2, 0, 360);
+	    }            
 	}
         public int getIconWidth() { return 9; }  // was 12
 	public int getIconHeight() { return 9; }

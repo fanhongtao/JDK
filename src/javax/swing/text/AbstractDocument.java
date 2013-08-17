@@ -1,5 +1,5 @@
 /*
- * @(#)AbstractDocument.java	1.97 98/09/14
+ * @(#)AbstractDocument.java	1.100 98/11/19
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -66,7 +66,7 @@ import javax.swing.tree.TreeNode;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.97 09/14/98
+ * @version 1.100 11/19/98
  */
 public abstract class AbstractDocument implements Document, Serializable {
 
@@ -410,7 +410,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 		    new DefaultDocumentEvent(offs, len, DocumentEvent.EventType.REMOVE);
 
 		boolean isComposedTextElement = false;
-		if( getProperty(I18NProperty).equals( Boolean.TRUE ) ) {
+		if (Utilities.is1dot2) {
 		    // Check whether the position of interest is the composed text
 		    Element elem = getDefaultRootElement();
 		    while (!elem.isLeaf()) {
@@ -736,7 +736,7 @@ public abstract class AbstractDocument implements Document, Serializable {
             Element prevElem = bidiRoot.getElement(prevElemIndex);
             int prevLevel=StyleConstants.getBidiLevel(prevElem.getAttributes());
             //System.out.println("createbidiElements: prevElem= " + prevElem  + " prevLevel= " + prevLevel + "level[0] = " + levels[0]);
-            if( prevLevel==(int)levels[0] ) {
+            if( prevLevel==levels[0] ) {
                 firstSpanStart = prevElem.getStartOffset();
             } else if( prevElem.getEndOffset() > firstPStart ) {
                 newElements.addElement(new BidiElement(bidiRoot,
@@ -766,7 +766,7 @@ public abstract class AbstractDocument implements Document, Serializable {
             removeToIndex = nextElemIndex;
             Element nextElem = bidiRoot.getElement( nextElemIndex );
             int nextLevel = StyleConstants.getBidiLevel(nextElem.getAttributes());
-            if( nextLevel == (int)levels[levels.length-1] ) {
+            if( nextLevel == levels[levels.length-1] ) {
                 lastSpanEnd = nextElem.getEndOffset();
             } else if( nextElem.getStartOffset() < lastPEnd ) {
                 newNextElem = new BidiElement(bidiRoot, lastPEnd, 
@@ -1363,9 +1363,11 @@ public abstract class AbstractDocument implements Document, Serializable {
          * @param a the attributes for the element
          */
         public AbstractElement(Element parent, AttributeSet a) {
-	    attributes = (a != null) ? a.copyAttributes() : 
-		getAttributeContext().getEmptySet();
 	    this.parent = parent;
+	    attributes = getAttributeContext().getEmptySet();
+	    if (a != null) {
+		addAttributes(a);
+	    }
 	}
 
 	private final void indent(PrintWriter out, int n) {

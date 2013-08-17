@@ -1,7 +1,7 @@
 /*
- * @(#)JTextComponent.java	1.119 98/09/17
+ * @(#)JTextComponent.java	1.130 99/04/26
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  *
@@ -15,6 +15,7 @@ package javax.swing.text;
 
 import java.util.Hashtable;
 import java.util.Enumeration;
+import java.util.Vector;
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -27,11 +28,15 @@ import javax.accessibility.*;
 
 import java.awt.im.InputMethodRequests;
 import java.awt.font.TextHitInfo;
+import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.text.AttributedCharacterIterator.Attribute;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
 
 
 /**
@@ -61,30 +66,55 @@ import java.util.Set;
  * {@link #getActions} method.  These actions
  * can be bound to key events, fired from buttons, etc.
  *
- * <dt><b><font size=+1>Keymaps</font></b>
+ * <dt><b><font size=+1>Text Input</font></b>
  * <dd>
  * <p>
- * To facilitate flexible use of the keyboard, support for
- * creating keymaps and binding various keystrokes to some kind of 
- * action is provided.  In order to allow keymaps to be shared across 
- * multiple text components, they can use actions that extend TextAction.  
- * TextAction can determine which JTextComponent most recently has or had
- * focus and therefore is the subject of the action (In the case that the 
- * ActionEvent sent to the action doesn't contain the target text component 
- * as its source).
+ * The text components support flexible and internationalized text input, using 
+ * keymaps and the input method framework, while maintaining compatibility with 
+ * the AWT listener model.
  * <p>
- * The use of the keymap is encouraged, but backward compatibilty
- * with the awt mechanism is provided by giving the 
- * listeners a chance to steal the event by consuming it.
- * Keyboard event distribution is handled in the following order, with
- * each distribution capable of consuming the event.
- * <ol>
- * <li>focus manager
- * <li>registered KeyListener's
- * <li>keymap handling using the current keymap
- * <li>keyboard handling in JComponent (e.g. accelerators,
- * component navigation, etc.).
- * </ol>
+ * A {@link javax.swing.text.Keymap} lets an application bind key strokes to actions. 
+ * In order to allow keymaps to be shared across multiple text components, they 
+ * can use actions that extend TextAction. TextAction can determine which 
+ * JTextComponent most recently has or had focus and therefore is the subject of 
+ * the action (In the case that the ActionEvent sent to the action doesn't contain 
+ * the target text component as its source). 
+ * <p>
+ * The <a href="../../../../guide/intl/spec.html">input method framework</a> lets 
+ * text components interact with input methods, separate software components that 
+ * preprocess events to let users enter thousands of different characters using 
+ * keyboards with far fewer keys. JTextComponent is an <em>active client</em> of 
+ * the framework, so it implements the preferred user interface for interacting 
+ * with input methods. As a consequence, some key events do not reach the text 
+ * component because they are handled by an input method, and some text input 
+ * reaches the text component as committed text within an {@link 
+ * java.awt.event.InputMethodEvent} instead of as a key event. The complete text 
+ * input is the combination of the characters in keyTyped key events and committed 
+ * text in input method events.
+ * <p>
+ * The AWT listener model lets applications attach event listeners to components 
+ * in order to bind events to actions. Swing encourages the use of keymaps instead 
+ * of listeners, but maintains compatibility with listeners by giving the 
+ * listeners a chance to steal an event by consuming it.
+ * <p>
+ * Keyboard event and input method events are handled in the following stages, 
+ * with each stage capable of consuming the event:
+ * <table border=1>
+ * <tr><td>Stage<td>KeyEvent      <td>InputMethodEvent
+ * <tr><td>1.   <td>input methods <td>(generated here)
+ * <tr><td>2.   <td>focus manager <td>
+ * <tr><td>3.   <td>registered key listeners<td>registered input method listeners
+ * <tr><td>4.   <td>              <td>input method handling in JTextComponent
+ * <tr><td>5.   <td colspan=2>keymap handling using the current keymap
+ * <tr><td>6.   <td>keyboard handling in JComponent (e.g. accelerators, component navigation, etc.)<td>
+ * </table>
+ * <p>
+ * To maintain compatibility with applications that listen to key events but are 
+ * not aware of input method events, the input method handling in stage 4 provides 
+ * a compatibility mode for components that do not process input method events. 
+ * For these components, the committed text is converted to keyTyped key events 
+ * and processed in the key event pipeline starting at stage 3 instead of in the 
+ * input method event pipeline.
  * <p>
  * By default the component will create a keymap (named <b>DEFAULT_KEYMAP</b>) 
  * that is shared by all JTextComponent instances as the default keymap.  
@@ -162,7 +192,7 @@ import java.util.Set;
  *     attribute: isContainer false
  * 
  * @author  Timothy Prinzing
- * @version 1.119 09/17/98
+ * @version 1.130 04/26/99
  * @see Document
  * @see DocumentEvent
  * @see DocumentListener
@@ -172,7 +202,312 @@ import java.util.Set;
  * @see TextUI
  * @see View
  * @see ViewFactory
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* */
 public abstract class JTextComponent extends JComponent implements Scrollable, Accessible
 {
     /**
@@ -187,7 +522,9 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	
 	// enable InputMethodEvent for on-the-spot pre-editing
 	enableEvents(AWTEvent.KEY_EVENT_MASK | AWTEvent.INPUT_METHOD_EVENT_MASK);
+	needToSendKeyTypedEvent = !isProcessInputMethodEventOverridden();
 	
+
 
 
 
@@ -764,17 +1101,10 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * are not. Please see 
      * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
      * and Swing</A> for more information.     
-     * <p>
-     * If the component is not currently editable, beep and return.  Then if
-     * the underlying model is null, do nothing.
      *
      * @param content  the content to replace the selection with
      */
     public void replaceSelection(String content) {
-        if ((! isEditable()) || (! isEnabled())) {
-            getToolkit().beep();
-            return;
-        }
         Document doc = getDocument();
         if (doc != null) {
             try {
@@ -841,7 +1171,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     public void cut() {
 	if (isEditable() && isEnabled()) {
 	    try {
-		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		Clipboard clipboard = getToolkit().getSystemClipboard();
 		int p0 = Math.min(caret.getDot(), caret.getMark());
 		int p1 = Math.max(caret.getDot(), caret.getMark());
 		if (p0 != p1) {
@@ -866,7 +1196,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      */
     public void copy() {
         try {
-            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            Clipboard clipboard = getToolkit().getSystemClipboard();
             int p0 = Math.min(caret.getDot(), caret.getMark());
             int p1 = Math.max(caret.getDot(), caret.getMark());
             if (p0 != p1) {
@@ -889,7 +1219,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * @see #replaceSelection
      */ 
     public void paste() {
-	Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+	Clipboard clipboard = getToolkit().getSystemClipboard();
 	Transferable content = clipboard.getContents(this);
 	if (content != null) {
 	    try {
@@ -2067,8 +2397,8 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     private Position composedTextStart;
     private Position composedTextEnd;
     private ComposedTextCaret composedTextCaret;
-    private Caret originalCaret;
-    private int blinkRate;
+    private transient Caret originalCaret;
+    private boolean needToSendKeyTypedEvent;
     
 
     static class DefaultKeymap implements Keymap {
@@ -2132,8 +2462,67 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
         } 
 
         public KeyStroke[] getKeyStrokesForAction(Action a) {
-            // TBD
-            return null;
+	    if (a == null) {
+		return null;
+	    }
+	    KeyStroke[] retValue = null;
+	    // Determine local bindings first.
+	    Vector keyStrokes = null;
+	    for (Enumeration enum = bindings.keys();
+		 enum.hasMoreElements();) {
+		Object key = enum.nextElement();
+		if (bindings.get(key) == a) {
+		    if (keyStrokes == null) {
+			keyStrokes = new Vector();
+		    }
+		    keyStrokes.addElement(key);
+		}
+	    }
+	    // See if the parent has any.
+	    if (parent != null) {
+		KeyStroke[] pStrokes = parent.getKeyStrokesForAction(a);
+		if (pStrokes != null) {
+		    // Remove any bindings defined in the parent that
+		    // are locally defined.
+		    int rCount = 0;
+		    for (int counter = pStrokes.length - 1; counter >= 0;
+			 counter--) {
+			if (isLocallyDefined(pStrokes[counter])) {
+			    pStrokes[counter] = null;
+			    rCount++;
+			}
+		    }
+		    if (rCount > 0 && rCount < pStrokes.length) {
+			if (keyStrokes == null) {
+			    keyStrokes = new Vector();
+			}
+			for (int counter = pStrokes.length - 1; counter >= 0;
+			     counter--) {
+			    if (pStrokes[counter] != null) {
+				keyStrokes.addElement(pStrokes[counter]);
+			    }
+			}
+		    }
+		    else if (rCount == 0) {
+			if (keyStrokes == null) {
+			    retValue = pStrokes;
+			}
+			else {
+			    retValue = new KeyStroke[keyStrokes.size() +
+						    pStrokes.length];
+			    keyStrokes.copyInto(retValue);
+			    System.arraycopy(pStrokes, 0, retValue,
+					keyStrokes.size(), pStrokes.length);
+			    keyStrokes = null;
+			}
+		    }
+		}
+	    }
+	    if (keyStrokes != null) {
+		retValue = new KeyStroke[keyStrokes.size()];
+		keyStrokes.copyInto(retValue);
+	    }
+            return retValue;
         }
 
         public boolean isLocallyDefined(KeyStroke key) {
@@ -2376,9 +2765,19 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     }
 
     //
-    // An implementation of the InputMethodRequests interface.
+    // Overrides this method to watch the listener installed.
     //
-    class InputMethodRequestsHandler implements InputMethodRequests {
+    public void addInputMethodListener(InputMethodListener l) {
+    	super.addInputMethodListener(l);
+	if (l != null) {
+	    needToSendKeyTypedEvent = false;
+	}
+    }
+    
+    //
+    // Default implementation of the InputMethodRequests interface.
+    //
+    class InputMethodRequestsHandler implements InputMethodRequests, Serializable {
     	public AttributedCharacterIterator cancelLatestCommittedText(
 						Attribute[] attributes) {
 	    return new AttributedString("").getIterator();
@@ -2394,11 +2793,23 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     	}
 
     	public int getInsertPositionOffset() {
-	    return 0;
+	    return getCaretPosition();
     	}
 
     	public TextHitInfo getLocationOffset(int x, int y) {
-	    return TextHitInfo.leading(0);
+	    if (composedText == null) {
+	        return null;
+	    } else { 
+	        Point p = getLocationOnScreen();
+	        p.x = x - p.x;
+	        p.y = y - p.y;
+	        int pos = viewToModel(p);
+	        if ((pos >= composedTextStart.getOffset()) && (pos <= composedTextEnd.getOffset())) {
+	            return TextHitInfo.leading(pos - composedTextStart.getOffset());
+	        } else {
+	            return null;
+	        }
+	    }	
     	}
 
     	public Rectangle getTextLocation(TextHitInfo offset) {
@@ -2422,7 +2833,12 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 
     	public AttributedCharacterIterator getSelectedText(
 						Attribute[] attributes) {
-	    return new AttributedString("").getIterator();
+	    String selection = JTextComponent.this.getSelectedText();
+	    if (selection != null) {
+	        return new AttributedString(selection).getIterator();
+	    } else {
+	        return null;
+	    }
     	}
     }
 
@@ -2435,7 +2851,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     	int commitCount = e.getCommittedCharacterCount();
 	AttributedCharacterIterator text = e.getText();
 	int composedTextIndex;
-	StringBuffer strBuf = new StringBuffer();
 
 	// old composed text deletion
 	Document doc = getDocument();
@@ -2450,13 +2865,30 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	}
 	
 	if (text != null) {
+	    text.first();
+	    
 	    // committed text insertion
 	    if (commitCount > 0) {
-		for (char c = text.first(); commitCount > 0; 
-		     c = text.next(), commitCount--) {
-		    strBuf.append(c);
+		// Need to generate KeyTyped events for the committed text for components
+		// that are not aware they are active input method clients.
+		if (needToSendKeyTypedEvent) {
+		    for (char c = text.current(); commitCount > 0; 
+		         c = text.next(), commitCount--) {
+			KeyEvent ke = new KeyEvent(this, KeyEvent.KEY_TYPED, 
+						   System.currentTimeMillis(),
+						   0, KeyEvent.VK_UNDEFINED, c);
+			processKeyEvent(ke);
+		    }
+		} else {
+		    StringBuffer strBuf = new StringBuffer();
+		    for (char c = text.current(); commitCount > 0; 
+		         c = text.next(), commitCount--) {
+			strBuf.append(c);
+		    }
+		
+		    // map it to an ActionEvent
+		    mapCommittedTextToAction(new String(strBuf));
 		}
-		replaceSelection(new String(strBuf));
 	    }
 
 	    // new composed text insertion
@@ -2499,6 +2931,33 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     }
     
     //
+    // Map committed text to an ActionEvent. If the committed text length is 1,
+    // treat it as a KeyStroke, otherwise or there is no KeyStroke defined, 
+    // treat it just as a default action.
+    //
+    private void mapCommittedTextToAction(String committedText) {
+        Keymap binding = getKeymap();
+        if (binding != null) {
+            Action a = null;
+            if (committedText.length() == 1) {
+		KeyStroke k = KeyStroke.getKeyStroke(committedText.charAt(0));
+                a = binding.getAction(k);
+	    }
+
+	    if (a == null) { 
+	        a = binding.getDefaultAction();
+	    }
+
+            if (a != null) {
+                ActionEvent ae = new ActionEvent(this, 
+                                                 ActionEvent.ACTION_PERFORMED, 
+                                                 committedText);
+                a.actionPerformed(ae);
+            }
+        }
+    }
+
+    //
     // Sets the caret position according to the passed input method
     // event. Also, sets/resets composed text caret appropriately.
     //
@@ -2508,14 +2967,12 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	if (composedTextStart != null) {
 	    dot = composedTextStart.getOffset();
 	    if (!(caret instanceof ComposedTextCaret)) {
-	        
-		// Sets composed text caret
-		composedTextCaret = new ComposedTextCaret();
+		if (composedTextCaret == null) {
+		    composedTextCaret = new ComposedTextCaret();
+		}
 		originalCaret = caret;	
-		blinkRate = originalCaret.getBlinkRate();
-		setCaret(composedTextCaret);
-		caret.setBlinkRate(blinkRate);
-		caret.setVisible(true);
+		// Sets composed text caret
+	        exchangeCaret(originalCaret, composedTextCaret);
 	    }
 
 	    TextHitInfo caretPos = e.getCaret();
@@ -2525,40 +2982,72 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	    caret.setDot(dot);
 	} else if (caret instanceof ComposedTextCaret) {
 	    dot = caret.getDot();
-        
 	    // Restores original caret
-	    setCaret(originalCaret);
-	    caret.setBlinkRate(blinkRate);
-	    caret.setVisible(true);
+	    exchangeCaret(caret, originalCaret);
 	    caret.setDot(dot);
 	}
     }
 
+    private void exchangeCaret(Caret oldCaret, Caret newCaret) {
+	int blinkRate = oldCaret.getBlinkRate();
+	setCaret(newCaret);
+	caret.setBlinkRate(blinkRate);
+	caret.setVisible(hasFocus());
+    }
+
+    //
+    // Checks whether the client code overrides processInputMethodEvent.  If it is overridden,
+    // need not to generate KeyTyped events for committed text. If it's not, behave as an 
+    // passive input method client.
+    //
+    private boolean isProcessInputMethodEventOverridden() {
+	Boolean ret = (Boolean)AccessController.doPrivileged(new PrivilegedAction() {
+		public Object run() {
+		    Class[] classes = new Class[1];
+		    classes[0] = InputMethodEvent.class;
+
+		    for (Class c = JTextComponent.this.getClass(); 
+		         c != JTextComponent.class; c = c.getSuperclass()) {
+	    		try {
+			    Method m = c.getDeclaredMethod("processInputMethodEvent", classes);
+			    return Boolean.TRUE;
+	    		} catch (NoSuchMethodException nsme) {
+	    		    continue;
+	    		}
+		    }
+
+		    return Boolean.FALSE;
+		}
+            }
+        );
+
+	return ret.booleanValue();
+    }
+    
     //
     // Caret implementation for editing the composed text.
     //
-    class ComposedTextCaret extends DefaultCaret {
+    class ComposedTextCaret extends DefaultCaret implements Serializable {
 	Color bg;
 
-	//
-	// Constructor to get the background color of this component. This needs to be done
-	// using factory method later...
-	//
-	ComposedTextCaret() {
-	    super();
-	    Document doc = JTextComponent.this.getDocument();
+	//	
+	// Get the background color of the component
+	//	
+	public void install(JTextComponent c) {
+	    super.install(c);
+
+	    Document doc = c.getDocument();
 	    if (doc instanceof StyledDocument) {
 		StyledDocument sDoc = (StyledDocument)doc;
-		Element elem = sDoc.getCharacterElement(composedTextStart.getOffset());
+		Element elem = sDoc.getCharacterElement(c.composedTextStart.getOffset());
 	        AttributeSet attr = elem.getAttributes();
 	        bg = sDoc.getBackground(attr);
 	    }
 	
 	    if (bg == null) {
-	        bg = JTextComponent.this.getBackground();
+	        bg = c.getBackground();
 	    }
 	}
-
         
 	//
 	// Draw caret in XOR mode.
@@ -2566,8 +3055,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	public void paint(Graphics g) {
 	    if(isVisible()) {
 	        try {
-		    TextUI mapper = JTextComponent.this.getUI();
-		    Rectangle r = mapper.modelToView(JTextComponent.this, getDot(), getDotBias());
+		    Rectangle r = component.modelToView(getDot());
 		    g.setXORMode(bg);
 		    g.drawLine(r.x, r.y, r.x, r.y + r.height - 1);
 		    g.setPaintMode();
@@ -2576,6 +3064,50 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 		    //System.err.println("Can't render cursor");
 	        }
 	    }
+	}
+
+	//
+	// If some area other than the composed text is clicked by mouse,
+	// issue endComposition() to force commit the composed text.
+	//
+	protected void positionCaret(MouseEvent me) {
+	    JTextComponent host = component;
+	    Point pt = new Point(me.getX(), me.getY());
+	    int offset = host.viewToModel(pt);
+	    if ((offset < host.composedTextStart.getOffset()) ||
+	        (offset > host.composedTextEnd.getOffset())) {
+		try {
+		    // Issue endComposition
+		    Position newPos = host.getDocument().createPosition(offset); 
+		    host.getInputContext().endComposition();
+
+		    // Post a caret positioning runnable to assure that the positioning
+		    // occurs *after* committing the composed text.
+		    EventQueue.invokeLater(new DoSetCaretPosition(host, newPos));
+		} catch (BadLocationException ble) {
+		    System.err.println(ble);
+		}
+	    } else {
+	        // Normal processing
+	        super.positionCaret(me);
+	    }
+	}
+    }
+
+    //
+    // Runnable class for invokeLater() to set caret position later.
+    //
+    private class DoSetCaretPosition implements Runnable {
+        JTextComponent host; 
+	Position newPos;
+
+	DoSetCaretPosition(JTextComponent host, Position newPos) {
+	    this.host = host;
+	    this.newPos = newPos;
+	}
+
+	public void run() {
+	    host.setCaretPosition(newPos.getOffset());
 	}
     }
     

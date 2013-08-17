@@ -1,10 +1,10 @@
 /*
- * @(#)Manifest.java	1.24 98/11/03
+ * @(#)Manifest.java	1.26 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -26,10 +26,14 @@ import java.util.Iterator;
 /**
  * The Manifest class is used to maintain Manifest entry names and their
  * associated Attributes. There are main Manifest Attributes as well as
- * per-entry Attributes.
+ * per-entry Attributes. Documentation on the Manifest format can be
+ * found at :
+ * <blockquote><pre>
+ * http://java.sun.com/products/jdk/1.2/docs/guide/jar/manifest.html
+ * </pre></blockquote>
  *
  * @author  David Connelly
- * @version 1.24, 11/03/98
+ * @version 1.26, 04/22/99
  * @see	    Attributes
  * @since   JDK1.2
  */

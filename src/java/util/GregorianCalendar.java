@@ -1,10 +1,10 @@
 /*
- * @(#)GregorianCalendar.java	1.47 00/04/19
+ * @(#)GregorianCalendar.java	1.47 99/04/22
  *
  * (C) Copyright Taligent, Inc. 1996-1998 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996-1998 - All Rights Reserved
  *
- * Portions copyright (c) 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Portions copyright (c) 1996-1998 Sun Microsystems, Inc. All Rights Reserved.
  *
  *   The original version of this source code and documentation is copyrighted
  * and owned by Taligent, Inc., a wholly-owned subsidiary of IBM. These
@@ -77,7 +77,7 @@ package java.util;
  * <code>getFirstDayOfWeek()</code>, and the day of the week of January 1.
  * Weeks between week 1 of one year and week 1 of the following year are
  * numbered sequentially from 2 to 52 or 53 (as needed).
- *
+
  * <p>For example, January 1, 1998 was a Thursday.  If
  * <code>getFirstDayOfWeek()</code> is <code>MONDAY</code> and
  * <code>getMinimalDaysInFirstWeek()</code> is 4 (these are the values

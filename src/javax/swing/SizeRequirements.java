@@ -1,5 +1,5 @@
 /*
- * @(#)SizeRequirements.java	1.23 98/08/28
+ * @(#)SizeRequirements.java	1.24 98/10/20
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -77,7 +77,7 @@ import java.io.Serializable;
  * @see Component#getAlignmentX
  * @see Component#getAlignmentY
  *
- * @version 1.23 08/28/98
+ * @version 1.24 10/20/98
  * @author Timothy Prinzing
  */
 public class SizeRequirements implements Serializable {
@@ -258,7 +258,7 @@ public class SizeRequirements implements Serializable {
 	    pref += children[i].preferred;
 	    max += children[i].maximum;
 	}
-	if (allocated > pref) {
+	if (allocated >= pref) {
 	    expandedTile(allocated, min, pref, max, children, offsets, spans);
 	} else {
 	    compressedTile(allocated, min, pref, max, children, offsets, spans);

@@ -1,5 +1,5 @@
 /*
- * @(#)Graph.java	1.7 98/07/17
+ * @(#)Graph.java	1.8 98/10/28
  *
  * Copyright (c) 1997, 1998 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -275,10 +275,12 @@ class GraphPanel extends Panel
 
     public void mouseReleased(MouseEvent e) {
         removeMouseMotionListener(this);
-	pick.x = e.getX();
-	pick.y = e.getY();
-	pick.fixed = pickfixed;
-	pick = null;
+        if (pick != null) {
+            pick.x = e.getX();
+            pick.y = e.getY();
+            pick.fixed = pickfixed;
+            pick = null;
+        }
 	repaint();
 	e.consume();
     }

@@ -1,10 +1,10 @@
 /*
- * @(#)LinkedList.java	1.24 98/09/30
+ * @(#)LinkedList.java	1.26 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -55,7 +55,7 @@ package java.util;
  * undetermined time in the future.
  *
  * @author  Josh Bloch
- * @version 1.24 09/30/98
+ * @version 1.26 04/22/99
  * @see	    List
  * @see	    ArrayList
  * @see	    Vector
@@ -626,6 +626,8 @@ public class LinkedList extends AbstractSequentialList
 
         return a;
     }
+
+    private static final long serialVersionUID = 876323262645176354L;
 
     /**
      * Save the state of this <tt>LinkedList</tt> instance to a stream (that

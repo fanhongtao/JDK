@@ -1,10 +1,10 @@
 /*
- * @(#)AlphaComposite.java	1.27 98/05/04
+ * @(#)AlphaComposite.java	1.35 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -255,6 +255,10 @@ public final class AlphaComposite implements Composite {
     /**
      * Creates an <code>AlphaComposite</code> object with the specified rule.
      * @param rule the compositing rule
+     * @throws IllegalArgumentException if <code>rule</code> is not one of 
+     *         the following:  {@link #CLEAR}, {@link #SRC}, 
+     *         {@link #SRC_OVER}, {@link #DST_OVER}, {@link #SRC_IN}, 
+     *         {@link #DST_IN}, {@link #SRC_OUT}, or {@link #DST_OUT}
      */
     public static AlphaComposite getInstance(int rule) {
 	switch (rule) {

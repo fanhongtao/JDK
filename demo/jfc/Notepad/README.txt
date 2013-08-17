@@ -1,7 +1,6 @@
 
-To run the Notepad demo on 1.2:
-  java Notepad
-
+To run the Notepad demo on 1.2 <all platforms>:
+  java -jar Notepad.jar
 
 To run the Notepad demo on 1.1.x on Solaris:
   setenv SWING_HOME <path to swing release>

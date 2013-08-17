@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultSingleSelectionModel.java	1.21 98/08/28
+ * @(#)DefaultSingleSelectionModel.java	1.22 98/09/01
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -27,7 +27,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.21 08/28/98
+ * @version 1.22 09/01/98
  * @author Dave Moore
  */
 public class DefaultSingleSelectionModel implements SingleSelectionModel, 

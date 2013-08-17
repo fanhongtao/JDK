@@ -1,10 +1,10 @@
 /*
- * @(#)JToolBar.java	1.63 98/08/28
+ * @(#)JToolBar.java	1.70 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -19,6 +19,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.FlowLayout;
 import java.awt.event.*;
 import java.beans.*;
 
@@ -52,7 +53,7 @@ import java.util.Hashtable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.63 08/28/98
+ * @version 1.70 04/22/99
  * @author Georges Saab
  * @author Jeff Shapiro
  * @see Action
@@ -102,8 +103,14 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
 	}
 	else
 	{
-	    this.setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
+            if( SwingUtilities.isLeftToRight(this) ) {
+                this.setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
+            } else {
+                this.setLayout( new RightToLeftToolBarLayout() );
+            }
 	}
+
+        addPropertyChangeListener( new PropertyChangeHandler() );
 
         updateUI();
     }
@@ -239,7 +246,7 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
       * Checks whether the border should be painted.
       *
       * @return true if the border should be painted, else false
-      * @see setBorderPainted
+      * @see #setBorderPainted
       */
      public boolean isBorderPainted()
      {
@@ -251,7 +258,7 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
       * Sets whether the border should be painted.
       *
       * @param b if true, the border is painted.
-      * @see isBorderPainted
+      * @see #isBorderPainted
       * @beaninfo
       * description: Does the toolbar paint its borders?
       *       bound: true
@@ -263,7 +270,7 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
          {
 	     boolean old = paintBorder;
 	     paintBorder = b;
-	     firePropertyChange("borderpainted", old, b);
+	     firePropertyChange("borderPainted", old, b);
 	     revalidate();
 	     repaint();
 	 }
@@ -298,7 +305,7 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
       * Sets whether the toolbar can be made to float
       *
       * @param b if true, the toolbar can be dragged out
-      * @see isFloatable
+      * @see #isFloatable
       * @beaninfo
       * description: Can the toolbar be made to float by the user?
       *       bound: true
@@ -321,7 +328,7 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
      * Returns the current orientation of the toolbar
      *
      * @return an int representing the current orientation (HORIZONTAL/VERTICAL)
-     * @see setOrientation
+     * @see #setOrientation
      */
     public int getOrientation()
     {
@@ -332,7 +339,7 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
      * Set the orientation of the toolbar
      *
      * @param o  The new orientation (HORIZONTAL/VERTICAL)
-     * @see getOrientation
+     * @see #getOrientation
      * @beaninfo
      * description: The current orientation of the toolbar
      *       bound: true
@@ -349,9 +356,13 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
 
 	    if ( o == VERTICAL )
 	        setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
-	    else
-	        setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
-
+	    else {
+                if( SwingUtilities.isLeftToRight(this) ) {
+                    setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
+                } else {
+                    setLayout( new RightToLeftToolBarLayout() );
+                }
+            }
 	    firePropertyChange("orientation", old, o);
 	    revalidate();
 	    repaint();
@@ -404,14 +415,7 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
         b.setEnabled(a.isEnabled());
         b.addActionListener(a);
         add(b);
-	PropertyChangeListener actionPropertyChangeListener = 
-            createActionChangeListener(b);
-	if (listenerRegistry == null) {
-	    listenerRegistry = new Hashtable();
-	}
-	listenerRegistry.put(b, actionPropertyChangeListener);
-	listenerRegistry.put(actionPropertyChangeListener, a);
-	a.addPropertyChangeListener(actionPropertyChangeListener);
+	registerButtonForAction(b, a);
         return b;
     }
 
@@ -423,15 +427,7 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
 	super.remove(comp);
 	if (comp instanceof JButton) {
 	    JButton item = (JButton)comp;
-	    if (listenerRegistry != null) { 
-		ActionChangedListener p = (ActionChangedListener)listenerRegistry.remove(item);
-		Action a = (Action)listenerRegistry.remove(p);
-		item.removeActionListener(a);
-		if (p!=null)
-		    p.setTarget(null);
-		if (a!=null)
-		    a.removePropertyChangeListener(p);
-	    }
+	    unregisterButtonForAction(item);		    
 	}
     }
 
@@ -440,6 +436,31 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
         if (comp instanceof JButton) {
             ((JButton)comp).setDefaultCapable(false);
         }
+    }
+
+    private void registerButtonForAction(JButton b, Action a) {
+        PropertyChangeListener actionPropertyChangeListener = 
+            createActionChangeListener(b);
+	if (listenerRegistry == null) {
+	    listenerRegistry = new Hashtable();
+	}
+	listenerRegistry.put(b, actionPropertyChangeListener);
+	listenerRegistry.put(actionPropertyChangeListener, a);
+        a.addPropertyChangeListener(actionPropertyChangeListener);
+    }
+
+    private void unregisterButtonForAction(JButton item) {
+	if (listenerRegistry != null) { 
+	    ActionChangedListener p = (ActionChangedListener)listenerRegistry.remove(item);
+	    if (p!=null) {
+		Action a = (Action)listenerRegistry.remove(p);
+		if (a!=null) {
+		    item.removeActionListener(a);		
+		    a.removePropertyChangeListener(p);
+		}
+		p.setTarget(null);
+	    }
+	}
     }
 
     protected PropertyChangeListener createActionChangeListener(JButton b) {
@@ -595,9 +616,6 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JToolBar.
      */
@@ -618,6 +636,35 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
         ",paintBorder=" + paintBorderString;
     }
 
+    
+    /*
+     * This PropertyChangeListener is used to adjust the default layout
+     * manger when the toolBar is given a right-to-left ComponentOrientation.
+     * This is a hack to work around the fact that the DefaultMenuLayout
+     * (BoxLayout) isn't aware of ComponentOrientation.  When BoxLayout is
+     * made aware of ComponentOrientation, this listener will no longer be
+     * necessary.
+     */
+    private class PropertyChangeHandler implements PropertyChangeListener {
+        public void propertyChange(PropertyChangeEvent e) {
+            String name = e.getPropertyName();
+            if( name.equals("componentOrientation") ) {
+                if( SwingUtilities.isLeftToRight(JToolBar.this) ) {
+                    setLayout(new BoxLayout(JToolBar.this, BoxLayout.X_AXIS));
+                } else {
+                    setLayout(new RightToLeftToolBarLayout());
+                }
+            }
+        }
+    }
+    
+    private static class RightToLeftToolBarLayout
+        extends FlowLayout implements UIResource
+    {
+        private RightToLeftToolBarLayout() {
+            super(3/*FlowLayout.LEADING*/, 0, 0);
+        }
+    }
 
 /////////////////
 // Accessibility support

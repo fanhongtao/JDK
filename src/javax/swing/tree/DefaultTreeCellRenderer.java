@@ -1,10 +1,10 @@
 /*
- * @(#)DefaultTreeCellRenderer.java	1.27 98/08/28
+ * @(#)DefaultTreeCellRenderer.java	1.31 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -32,7 +32,7 @@ import java.util.*;
  * for short term storage or RMI between applications running the same
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
- * @version 1.27 08/28/98
+ * @version 1.31 04/22/99
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -97,25 +97,27 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
 
 
     /**
-      * Returns the default icon used to represent non-leaf nodes that are expanded.
+      * Returns the default icon, for the current laf, that is used to
+      * represent non-leaf nodes that are expanded.
       */
     public Icon getDefaultOpenIcon() {
-	return openIcon;
+	return UIManager.getIcon("Tree.openIcon");
     }
 
     /**
-      * Returns the default icon used to represent non-leaf nodes that are not
-      * expanded.
+      * Returns the default icon, for the current laf, that is used to
+      * represent non-leaf nodes that are not expanded.
       */
     public Icon getDefaultClosedIcon() {
-	return closedIcon;
+	return UIManager.getIcon("Tree.closedIcon");
     }
 
     /**
-      * Returns the default icon used to represent leaf nodes.
+      * Returns the default icon, for the current laf, that is used to
+      * represent leaf nodes.
       */
     public Icon getDefaultLeafIcon() {
-	return leafIcon;
+	return UIManager.getIcon("Tree.leafIcon");
     }
 
     /**
@@ -264,19 +266,32 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
 	String         stringValue = tree.convertValueToText(value, sel,
 					  expanded, leaf, row, hasFocus);
 
-	setEnabled(tree.isEnabled());
 	this.hasFocus = hasFocus;
 	setText(stringValue);
 	if(sel)
 	    setForeground(getTextSelectionColor());
 	else
 	    setForeground(getTextNonSelectionColor());
-	if (leaf) {
-	    setIcon(getLeafIcon());
-	} else if (expanded) {
-	    setIcon(getOpenIcon());
-	} else {
-	    setIcon(getClosedIcon());
+	// There needs to be a way to specify disabled icons.
+	if (!tree.isEnabled()) {
+	    setEnabled(false);
+	    if (leaf) {
+		setDisabledIcon(getLeafIcon());
+	    } else if (expanded) {
+		setDisabledIcon(getOpenIcon());
+	    } else {
+		setDisabledIcon(getClosedIcon());
+	    }
+	}
+	else {
+	    setEnabled(true);
+	    if (leaf) {
+		setIcon(getLeafIcon());
+	    } else if (expanded) {
+		setIcon(getOpenIcon());
+	    } else {
+		setIcon(getClosedIcon());
+	    }
 	}
 	    
 	selected = sel;
@@ -313,9 +328,13 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
 	    else if (imageOffset == -1) {
 		imageOffset = getLabelStart();
 	    }
-	    g.setColor(getBorderSelectionColor());
-	    g.drawRect(imageOffset, 0, getWidth() - 1 - imageOffset,
-		       getHeight() - 1);
+	    Color       bsColor = getBorderSelectionColor();
+
+	    if (bsColor != null) {
+		g.setColor(bsColor);
+		g.drawRect(imageOffset, 0, getWidth() - 1 - imageOffset,
+			   getHeight() - 1);
+	    }
 	}
 	super.paint(g);
     }
@@ -330,7 +349,7 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
 
     /**
      * Overrides <code>JComponent.getPreferredSize</code> to
-     * return slightly taller preferred size value.
+     * return slightly wider preferred size value.
      */
     public Dimension getPreferredSize() {
 	Dimension        retDimension = super.getPreferredSize();

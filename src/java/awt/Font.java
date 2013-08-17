@@ -1,10 +1,10 @@
 /*
- * @(#)Font.java	1.118 98/10/19
+ * @(#)Font.java	1.130 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -33,6 +33,7 @@ import sun.awt.font.StandardGlyphVector;
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineMetrics;
 import java.awt.font.GlyphVector;
+import java.awt.font.TextLayout;
 import java.awt.font.TransformAttribute;
 import sun.java2d.SunGraphicsEnvironment;
 import sun.java2d.loops.RasterOutputManager;
@@ -203,6 +204,8 @@ public class Font implements java.io.Serializable
     // cached values - performance
     private transient int numGlyphs = -1;
     private transient int missingGlyph = -1;
+    private transient int canRotate = -1;
+    private transient double[] matrix;
     private static Hashtable fontCache = new Hashtable(5, (float)0.9);
 
     /*
@@ -300,9 +303,11 @@ public class Font implements java.io.Serializable
     /**
      * Creates a new <code>Font</code> with the specified attributes.
      * This <code>Font</code> only recognizes keys defined in 
-     * {@link TextAttribute} as attributes. 
+     * {@link TextAttribute} as attributes.  If <code>attributes</code>
+     * is <code>null</code>, a new <code>Font</code> is initialized
+     * with default attributes.
      * @param attributes the attributes to assign to the new
-     *		<code>Font</code>
+     *		<code>Font</code>, or <code>null</code>
      */
     public Font(Map attributes){
 
@@ -358,8 +363,11 @@ public class Font implements java.io.Serializable
             return font;
         }
 
+        Hashtable copiedAttributes = new Hashtable(attributes);
+
         font = new Font(attributes);
-        fontCache.put(attributes, font);
+
+        fontCache.put(copiedAttributes, font);
 
         return font;
     }
@@ -379,7 +387,7 @@ public class Font implements java.io.Serializable
 	    }
 	    else {
 	      if ( obj instanceof AffineTransform){
-	         return (AffineTransform)obj;
+	         return new AffineTransform((AffineTransform)obj);
 	      }
 	    }
 	}else{
@@ -589,10 +597,13 @@ public class Font implements java.io.Serializable
 
     /**
      * Returns the <code>Font</code> that the <code>str</code> 
-     * argument describes.
-     * @param str the name of the font
+     * argument describes.  If <code>str</code> is <code>null</code>, 
+     * a new <code>Font</code> is returned with the name "dialog", a  
+     * size of 12 and a PLAIN style.
+     * @param str the name of the font, or <code>null</code>
      * @return the <code>Font</code> object that <code>str</code>
-     *		describes.
+     *		describes, or a new default <code>Font</code> if 
+     *          <code>str</code> is <code>null</code>.
      * @since JDK1.1
      */
     public static Font decode(String str) {
@@ -748,12 +759,28 @@ public class Font implements java.io.Serializable
      * @since JDK1.0
      */
     public boolean equals(Object obj) {
-	if (obj instanceof Font) {
+        if (obj == this) {
+	    return true;
+        }
+
+	if (obj != null) {
+	  try {
 	    Font font = (Font)obj;
+	    
+	    double[] thismat = this.getMatrix();
+	    double[] thatmat = font.getMatrix();
+	    
 	    return  (size == font.size)
-                    && (pointSize == font.pointSize)
-                    && (style == font.style)
-                    && name.equals(font.name);
+	      && (pointSize == font.pointSize)
+	      && (style == font.style)
+	      && name.equals(font.name)
+	      && thismat[0] == thatmat[0]
+	      && thismat[1] == thatmat[1]
+	      && thismat[2] == thatmat[2]
+	      && thismat[3] == thatmat[3];
+	  }
+	  catch (ClassCastException e) {
+	  }
 	}
 	return false;
     }
@@ -862,6 +889,20 @@ public class Font implements java.io.Serializable
             missingGlyph = NativeFontWrapper.getMissingGlyphCode(this);
         }
         return missingGlyph;
+    }
+
+    /**
+     * get the transform matrix for this font.
+     */
+    private double[] getMatrix() {
+        if (matrix == null) {
+          float ptSize = this.getSize2D();
+          AffineTransform tx = getTransform();
+          tx.scale(ptSize, ptSize);
+          matrix = new double[] { tx.getScaleX(), tx.getShearY(),
+				  tx.getShearX(), tx.getScaleY() };
+        }
+	return matrix;
     }
 
     /**
@@ -1082,11 +1123,7 @@ public class Font implements java.io.Serializable
      * @return the angle of the ITALIC style of this <code>Font</code>.
      */
     public float getItalicAngle(){
-        float ptSize = this.getSize2D();
-        AffineTransform tx = getTransform();
-        tx.scale(ptSize, ptSize);
-        double matrix[] = { tx.getScaleX(), tx.getShearY(),
-                            tx.getShearX(), tx.getScaleY()};
+        double matrix[] = getMatrix();
         return NativeFontWrapper.getItalicAngle(this, matrix, false, false);
     }
 
@@ -1146,6 +1183,33 @@ public class Font implements java.io.Serializable
         public final float getUnderlineThickness() {
             return underlineThickness;
         }
+
+        public final boolean equals(Object rhs) {
+	  if (rhs != null) {
+	    if (this == rhs) {
+	      return true;
+	    }
+	    try {
+	       FontLineMetrics rlm = (FontLineMetrics)rhs;
+
+	       // does not include numchars, which should never have been here anyway
+	       return ascent == rlm.ascent 
+		 && descent == rlm.descent
+		 && leading == rlm.leading
+		 && baselineIndex == rlm.baselineIndex
+		 && baselineOffsets[0] == rlm.baselineOffsets[0]
+		 && baselineOffsets[1] == rlm.baselineOffsets[1]
+		 && baselineOffsets[2] == rlm.baselineOffsets[2]
+		 && strikethroughOffset == rlm.strikethroughOffset
+		 && strikethroughThickness == rlm.strikethroughThickness
+		 && underlineOffset == rlm.underlineOffset
+		 && underlineThickness == rlm.underlineThickness;
+	    }
+	    catch (ClassCastException e) {
+	    }
+	  }
+	  return false;
+	}
     }
 
     /**
@@ -1166,7 +1230,7 @@ public class Font implements java.io.Serializable
     private FontLineMetrics defaultLineMetrics(FontRenderContext frc) {
         FontLineMetrics flm = new FontLineMetrics();
 
-        double [] matrix = {pointSize, 0, 0, pointSize};
+        double [] matrix = getMatrix();
         float [] metrics = new float[4];
         NativeFontWrapper.getFontMetrics(this, matrix,
                                         frc.isAntiAliased(),
@@ -1181,10 +1245,10 @@ public class Font implements java.io.Serializable
         flm.baselineOffsets     = new float[3];
         flm.baselineOffsets[0]  = 0;
 
-        flm.strikethroughOffset     = -(flm.ascent / 2);
+        flm.strikethroughOffset     = -(flm.ascent / 3.0f);
         flm.strikethroughThickness  = pointSize / 12.0f;
 
-        flm.underlineOffset     = flm.descent / 3.0f;
+        flm.underlineOffset     = 0f;
         flm.underlineThickness  = pointSize / 12.0f;
         return flm;
     }
@@ -1208,7 +1272,7 @@ public class Font implements java.io.Serializable
      * specified arguments.
      * @param str the specified <code>String</code>
      * @param beginIndex the initial offset of <code>str</code> 
-     * @param limit the length of <code>str</code>
+     * @param limit the end offset of <code>str</code>
      * @param frc the specified <code>FontRenderContext</code>
      * @return a <code>LineMetrics</code> object created with the
      * specified arguments.
@@ -1227,7 +1291,7 @@ public class Font implements java.io.Serializable
      * specified arguments.
      * @param chars an array of characters
      * @param beginIndex the initial offset of <code>chars</code>
-     * @param limit the length of <code>chars</code>
+     * @param limit the end offset of <code>chars</code>
      * @param frc the specified <code>FontRenderContext</code>
      * @return a <code>LineMetrics</code> object created with the
      * specified arguments.
@@ -1246,7 +1310,7 @@ public class Font implements java.io.Serializable
      * specified arguments.
      * @param ci the specified <code>CharacterIterator</code>
      * @param beginIndex the initial offset in <code>ci</code>
-     * @param limit the end index of <code>ci</code>
+     * @param limit the end offset of <code>ci</code>
      * @param frc the specified <code>FontRenderContext</code>
      * @return a <code>LineMetrics</code> object created with the
      * specified arguments.
@@ -1274,11 +1338,8 @@ public class Font implements java.io.Serializable
      * @since JDK1.2
      */
     public Rectangle2D getStringBounds( String str, FontRenderContext frc) {
-      GlyphVector  gv  = createGlyphVector(frc,str);
-      //            Rectangle    ga  = (Rectangle)gv.getVisualBounds();
-      Rectangle    ga  = (Rectangle)gv.getLogicalBounds();
-      Rectangle    ret = new Rectangle(0,0,ga.width,ga.height);
-      return ret;
+      char[] array = str.toCharArray();
+      return getStringBounds(array, 0, array.length, frc);
     }
 
    /**
@@ -1286,12 +1347,16 @@ public class Font implements java.io.Serializable
      * specified <code>FontRenderContext</code>.  The bounds is used
      * to layout the <code>String</code>.
      * @param str the specified <code>String</code>
-     * @param beginIndex the offset of the beginning of <code>str</code>
-     * @param limit the length of <code>str</code>
+     * @param beginIndex the initial offset of <code>str</code>
+     * @param limit the end offset of <code>str</code>
      * @param frc the specified <code>FontRenderContext</code>   
      * @return a <code>Rectangle2D</code> that is the bounding box of the
      * specified <code>String</code> in the specified
      * <code>FontRenderContext</code>.
+     * @throws IndexOutOfBoundsException if <code>beginIndex</code> is 
+     *         less than zero, or <code>limit</code> is greater than the
+     *         length of <code>str</code>, or <code>beginIndex</code>
+     *         is greater than <code>limit</code>.
      * @see FontRenderContext
      * @see Font#createGlyphVector
      * @since JDK1.2
@@ -1299,11 +1364,8 @@ public class Font implements java.io.Serializable
     public Rectangle2D getStringBounds( String str,
                                     int beginIndex, int limit,
                                     FontRenderContext frc) {
-      if( (beginIndex < str.length()) && ((beginIndex + limit) <= str.length()) ) {
-	String substr = str.substring(beginIndex,beginIndex + limit);
-	return getStringBounds(substr,frc);
-      } 
-      throw new StringIndexOutOfBoundsException();
+      String substr = str.substring(beginIndex, limit);
+      return getStringBounds(substr, frc);
     }
 
    /**
@@ -1313,22 +1375,44 @@ public class Font implements java.io.Serializable
      * created with the specified array of characters,
      * <code>beginIndex</code> and <code>limit</code>.
      * @param chars an array of characters
-     * @param beginIndex the initial offset of the array of
+     * @param beginIndex the initial offset in the array of
      * characters
-     * @param limit the length of the array of characters
+     * @param limit the end offset in the array of characters
      * @param frc the specified <code>FontRenderContext</code>   
      * @return a <code>Rectangle2D</code> that is the bounding box of the
      * specified array of characters in the specified
      * <code>FontRenderContext</code>.
+     * @throws IndexOutOfBoundsException if <code>beginIndex</code> is 
+     *         less than zero, or <code>limit</code> is greater than the
+     *         length of <code>chars</code>, or <code>beginIndex</code>
+     *         is greater than <code>limit</code>.
      * @see FontRenderContext
      * @see Font#createGlyphVector
      * @since JDK1.2
      */
-    public Rectangle2D getStringBounds( char [] chars,
+    public Rectangle2D getStringBounds(char [] chars,
                                     int beginIndex, int limit,
                                     FontRenderContext frc) {
-      String str = new String(chars,beginIndex,limit);
-      return getStringBounds(str,frc);
+      // this code should be in textlayout
+      // quick check for simple text, assume GV ok to use if simple
+      
+      boolean simple = true;
+      for (int i = beginIndex; i < limit; ++i) {
+	char c = chars[i];
+	if (c >= '\u0590' && c <= '\u206f') {
+	  simple = false;
+	  break;
+	}
+      }
+      if (simple) {
+	GlyphVector gv = new StandardGlyphVector(this, chars, beginIndex, limit - beginIndex, frc);
+	return gv.getLogicalBounds();
+      } else {
+	// need char array constructor on textlayout
+	String str = new String(chars, beginIndex, limit - beginIndex);
+	TextLayout tl = new TextLayout(str, this, frc);
+	return new Rectangle2D.Float(0, -tl.getAscent(), tl.getAdvance(), tl.getDescent() + tl.getLeading());
+      }
     }
 
    /**
@@ -1338,7 +1422,7 @@ public class Font implements java.io.Serializable
      * to layout the <code>String</code>.
      * @param ci the specified <code>CharacterIterator</code>
      * @param beginIndex the initial offset in <code>ci</code>
-     * @param limit the end index of <code>ci</code>
+     * @param limit the end offset in <code>ci</code>
      * @param frc the specified <code>FontRenderContext</code>   
      * @return a <code>Rectangle2D</code> that is the bounding box of the
      * characters indexed in the specified <code>CharacterIterator</code>
@@ -1346,30 +1430,30 @@ public class Font implements java.io.Serializable
      * @see FontRenderContext
      * @see Font#createGlyphVector
      * @since JDK1.2
+     * @throws IndexOutOfBoundsException if <code>beginIndex</code> is
+     *         less than the start index of <code>ci</code>, or 
+     *         <code>limit</code> is greater than the end index of 
+     *         <code>ci</code>, or <code>beginIndex</code> is greater 
+     *         than <code>limit</code>
      */
     public Rectangle2D getStringBounds(CharacterIterator ci,
                                     int beginIndex, int limit,
                                     FontRenderContext frc) {
-      if( limit > beginIndex ) {
-	char[]  arr = new char[limit];
-	int     li  = ci.getEndIndex();
-	int     idx = 0;
+      int start = ci.getBeginIndex();
+      int end = ci.getEndIndex();
+      if (beginIndex >= start
+	  && limit >= beginIndex
+	  && limit <= end) {
+	char[]  arr = new char[limit - beginIndex];
 
-	if( li < beginIndex ) {
-	  throw new ArrayIndexOutOfBoundsException();
-	}
-
-	if( beginIndex + limit > li ) {
-	  limit = li - beginIndex;
-	}
 	ci.setIndex(beginIndex);
-	for( idx = 0;idx < limit; idx++ ) {
+	for(int idx = 0; idx < arr.length; idx++) {
 	  arr[idx] = ci.current();
 	  ci.next();
 	}
 	return getStringBounds(arr,0,arr.length,frc);
       }
-      throw new ArrayIndexOutOfBoundsException();  
+      throw new IllegalArgumentException("beginIndex or limit out of bounds of iterator");  
     }
 
     /**
@@ -1380,13 +1464,13 @@ public class Font implements java.io.Serializable
      * for the character with the maximum bounds.
      */
     public Rectangle2D getMaxCharBounds(FontRenderContext frc) {
-        double [] matrix = {pointSize, 0, 0, pointSize};
+        double [] matrix = getMatrix();
         float [] metrics = new float[4];
         NativeFontWrapper.getFontMetrics(this, matrix,
                                         frc.isAntiAliased(),
                                         frc.usesFractionalMetrics(),
                                         metrics);
-        return new Rectangle2D.Float(0, 0,
+        return new Rectangle2D.Float(0, -metrics[0],
                                 metrics[3],
                                 metrics[0] + metrics[1] + metrics[2]);
     }
@@ -1542,4 +1626,3 @@ public class Font implements java.io.Serializable
     return lcid;
   }
 }
-

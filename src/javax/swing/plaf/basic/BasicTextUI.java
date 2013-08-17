@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTextUI.java	1.25 98/08/28
+ * @(#)BasicTextUI.java	1.28 98/11/20
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -35,6 +35,15 @@ import javax.swing.border.Border;
  * all of the properties.  Typically, a LAF implementation will
  * do more however.  At a minimum, a LAF would generally install
  * key bindings.
+ * <p>
+ * This class also provides some concurrency support if the 
+ * Document associated with the JTextComponent is a subclass of
+ * AbstractDocument.  Access to the View (or View hierarchy) is
+ * serialized between any thread mutating the model and the Swing
+ * event thread (which is expected to render, do model/view coordinate
+ * translation, etc).  <em>Any access to the root view should first
+ * aquire a read-lock on the AbstractDocument and release that lock
+ * in a finally block.</em>
  * <p>
  * An important method to define is the {@link #getPropertyPrefix} method
  * which is used as the basis of the keys used to fetch defaults
@@ -73,9 +82,9 @@ import javax.swing.border.Border;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.25 08/28/98
+ * @version 1.28 11/20/98
  */
-public abstract class BasicTextUI extends TextUI implements ViewFactory/*, Serializable*/ {
+public abstract class BasicTextUI extends TextUI implements ViewFactory {
 
     /**
      * Creates a new UI.
@@ -506,20 +515,43 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory/*, Seria
     }
 
     /**
-     * Paints the interface.  This is routed to
-     * SafePainter.render() under the guarantee that
+     * Superclass paints background in an uncontrollable way
+     * (i.e. one might want an image tiled into the background).
+     * To prevent this from happening twice, this method is
+     * reimplemented to simply paint.
+     * <p>
+     * <em>NOTE:</em> Superclass is also not thread-safe in 
+     * it's rendering of the background, although that's not
+     * an issue with the default rendering.
+     */
+    public void update(Graphics g, JComponent c) {
+	paint(g, c);
+    }
+
+    /**
+     * Paints the interface.  This is routed to the
+     * paintSafely method under the guarantee that
      * the model won't change from the view of this thread
-     * while it's rendering.  This enables the model to
-     * potentially be updated asynchronously.
+     * while it's rendering (if the associated model is
+     * derived from AbstractDocument).  This enables the 
+     * model to potentially be updated asynchronously.
      *
      * @param g the graphics context
      * @param c the editor component
      */
     public final void paint(Graphics g, JComponent c) {
 	if ((rootView.getViewCount() > 0) && (rootView.getView(0) != null)) {
-	    Runnable painter = new SafePainter(g);
 	    Document doc = editor.getDocument();
-	    doc.render(painter);
+	    try {
+		if (doc instanceof AbstractDocument) {
+		    ((AbstractDocument)doc).readLock();
+		}
+		paintSafely(g);
+	    } finally {
+		if (doc instanceof AbstractDocument) {
+		    ((AbstractDocument)doc).readUnlock();
+		}
+	    }
 	}
     }
 
@@ -616,9 +648,12 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory/*, Seria
 
 
     /**
-     * Gets the portion of the editor visibile on the screen.
+     * Gets the allocation to give the root View.  Due
+     * to an unfortunate set of historical events this 
+     * method is inappropriately named.  The Rectangle
+     * returned has nothing to do with visibility.  
      *
-     * @return the bounding box for the visible portion
+     * @return the bounding box for the root view
      */
     protected Rectangle getVisibleEditorRect() {
         Rectangle alloc = new Rectangle(editor.getSize());
@@ -642,22 +677,7 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory/*, Seria
      * @see TextUI#modelToView
      */
     public Rectangle modelToView(JTextComponent tc, int pos) throws BadLocationException {
-	Document doc = editor.getDocument();
-	Shape s = null;
-	try {
-	    if (doc instanceof AbstractDocument) {
-		((AbstractDocument)doc).readLock();
-	    }
-	    if (painted) {
-		Rectangle alloc = getVisibleEditorRect();
-		s = rootView.modelToView(pos, alloc);
-	    }
-	} finally {
-	    if (doc instanceof AbstractDocument) {
-		((AbstractDocument)doc).readUnlock();
-	    }
-	}
-        return (Rectangle) s;
+	return modelToView(tc, pos, Position.Bias.Forward);
     }
 
     /**
@@ -672,12 +692,23 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory/*, Seria
      * @see TextUI#modelToView
      */
     public Rectangle modelToView(JTextComponent tc, int pos, Position.Bias bias) throws BadLocationException {
-        if (painted) {
-            Rectangle alloc = getVisibleEditorRect();
-            Shape s = rootView.modelToView(pos, alloc, bias);
-            return s.getBounds();
-        }
-        return null;
+	Document doc = editor.getDocument();
+	try {
+	    if (doc instanceof AbstractDocument) {
+		((AbstractDocument)doc).readLock();
+	    }
+	    if (painted) {
+		Rectangle alloc = getVisibleEditorRect();
+		rootView.setSize(alloc.width, alloc.height);
+		Shape s = rootView.modelToView(pos, alloc, bias);
+		return s.getBounds();
+	    }
+	} finally {
+	    if (doc instanceof AbstractDocument) {
+		((AbstractDocument)doc).readUnlock();
+	    }
+	}
+	return null;
     }
 
     /**
@@ -692,22 +723,7 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory/*, Seria
      * @see TextUI#viewToModel
      */
     public int viewToModel(JTextComponent tc, Point pt) {
-	int offs = -1;
-	Document doc = editor.getDocument();
-	try {
-	    if (doc instanceof AbstractDocument) {
-		((AbstractDocument)doc).readLock();
-	    }
-	    if (painted) {
-		Rectangle alloc = getVisibleEditorRect();
-		offs = rootView.viewToModel(pt.x, pt.y, alloc);
-	    }
-	} finally {
-	    if (doc instanceof AbstractDocument) {
-		((AbstractDocument)doc).readUnlock();
-	    }
-	}
-        return offs;
+	return viewToModel(tc, pt, discardBias);
     }
 
     /**
@@ -723,11 +739,23 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory/*, Seria
      */
     public int viewToModel(JTextComponent tc, Point pt,
 			   Position.Bias[] biasReturn) {
-        if (painted) {
-            Rectangle alloc = getVisibleEditorRect();
-            return rootView.viewToModel(pt.x, pt.y, alloc, biasReturn);
-        }
-        return -1;
+	int offs = -1;
+	Document doc = editor.getDocument();
+	try {
+	    if (doc instanceof AbstractDocument) {
+		((AbstractDocument)doc).readLock();
+	    }
+	    if (painted) {
+		Rectangle alloc = getVisibleEditorRect();
+		rootView.setSize(alloc.width, alloc.height);
+		offs = rootView.viewToModel(pt.x, pt.y, alloc, biasReturn);
+	    }
+	} finally {
+	    if (doc instanceof AbstractDocument) {
+		((AbstractDocument)doc).readUnlock();
+	    }
+	}
+        return offs;
     }
 
     /**
@@ -750,12 +778,23 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory/*, Seria
     public int getNextVisualPositionFrom(JTextComponent t, int pos,
 		    Position.Bias b, int direction, Position.Bias[] biasRet)
 	            throws BadLocationException{
-        if (painted) {
-            Rectangle alloc = getVisibleEditorRect();
-            return rootView.getNextVisualPositionFrom(pos, b, alloc, direction,
-						      biasRet);
-        }
-        return -1;
+	Document doc = editor.getDocument();
+	try {
+	    if (doc instanceof AbstractDocument) {
+		((AbstractDocument)doc).readLock();
+	    }
+	    if (painted) {
+		Rectangle alloc = getVisibleEditorRect();
+		rootView.setSize(alloc.width, alloc.height);
+		return rootView.getNextVisualPositionFrom(pos, b, alloc, direction,
+							  biasRet);
+	    }
+	} finally {
+	    if (doc instanceof AbstractDocument) {
+		((AbstractDocument)doc).readUnlock();
+	    }
+	}
+	return -1;
     }
 
     /**
@@ -788,6 +827,7 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory/*, Seria
 		if (doc instanceof AbstractDocument) {
 		    ((AbstractDocument)doc).readLock();
 		}
+		rootView.setSize(alloc.width, alloc.height);
 		Shape toDamage = rootView.modelToView(p0, p0Bias,
                                                       p1, p1Bias, alloc);
 		Rectangle rect = (toDamage instanceof Rectangle) ?
@@ -818,6 +858,14 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory/*, Seria
      * text component (i.e. the root of the hierarchy) that 
      * can be traversed to determine how the model is being
      * represented spatially.
+     * <p>
+     * <font color=red><b>NOTE:</b>The View hierarchy can
+     * be traversed from the root view, and other things
+     * can be done as well.  Things done in this way cannot
+     * be protected like simple method calls through the TextUI.
+     * Therefore, proper operation in the presence of concurrency
+     * must be arranged by any logic that calls this method!
+     * </font>
      *
      * @param tc the text component for which this UI is installed
      * @return the view
@@ -872,6 +920,8 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory/*, Seria
     transient boolean painted;
     transient RootView rootView = new RootView();
     transient UpdateHandler updateHandler = new UpdateHandler();
+
+    private static final Position.Bias[] discardBias = new Position.Bias[1];
 
     /**
      * Root view that acts as a gateway between the component
@@ -1301,23 +1351,6 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory/*, Seria
 
         private View view;
 
-    }
-
-    class SafePainter implements Runnable {
-        
-        SafePainter(Graphics g) {
-            this.g = g;
-        }
-
-        /**
-         * Render the UI.  This will be called by the 
-         * associated model.
-         */
-        public void run() {
-            paintSafely(g);
-        }
-
-        Graphics g;
     }
 
     /**

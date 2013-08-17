@@ -1,5 +1,5 @@
 /*
- * @(#)AlgorithmParametersSpi.java	1.3 98/03/18
+ * @(#)AlgorithmParametersSpi.java	1.4 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -29,7 +29,7 @@ import java.security.spec.InvalidParameterSpecException;
  *
  * @author Jan Luehe
  *
- * @version 1.3, 00/05/10
+ * @version 1.4 98/12/03
  *
  * @see AlgorithmParameters
  * @see java.security.spec.AlgorithmParameterSpec

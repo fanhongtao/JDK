@@ -1,7 +1,7 @@
 
-To run the Stylepad demo on 1.2:
-  java Stylepad
- 
+To run the Stylepad demo on 1.2 <all platforms>:
+  java -jar Stylepad.jar
+
 
 To run the Stylepad demo on 1.1.x on Solaris:
   setenv SWING_HOME <path to swing release>

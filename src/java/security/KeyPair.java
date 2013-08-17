@@ -1,5 +1,5 @@
 /*
- * @(#)KeyPair.java	1.8 98/06/29
+ * @(#)KeyPair.java	1.9 98/12/03
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -24,7 +24,7 @@ import java.util.*;
  * @see PublicKey
  * @see PrivateKey
  *
- * @version 1.8 00/05/10
+ * @version 1.9 98/12/03
  * @author Benjamin Renaud
  */
 

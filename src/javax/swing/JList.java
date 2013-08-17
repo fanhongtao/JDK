@@ -1,10 +1,10 @@
 /*
- * @(#)JList.java	1.60 98/08/28
+ * @(#)JList.java	1.65 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -144,10 +144,20 @@ import java.io.Serializable;
  *       boolean isSelected,      // is the cell selected
  *       boolean cellHasFocus)    // the list and the cell have the focus
  *     {
- *        String s = value.toString();
+ *         String s = value.toString();
  *         setText(s);
- *         setIcon((s.length > 10) ? longIcon : shortIcon);
- *      return this;
+ *         setIcon((s.length() > 10) ? longIcon : shortIcon);
+ *   	   if (isSelected) {
+ *             setBackground(list.getSelectionBackground());
+ *	       setForeground(list.getSelectionForeground());
+ *	   }
+ *         else {
+ *	       setBackground(list.getBackground());
+ *	       setForeground(list.getForeground());
+ *	   }
+ *	   setEnabled(list.isEnabled());
+ *	   setFont(list.getFont());
+ *         return this;
  *     }
  * }
  *
@@ -197,7 +207,7 @@ import java.io.Serializable;
  * @beaninfo
  *   attribute: isContainer false
  *
- * @version 1.60 08/28/98
+ * @version 1.65 04/22/99
  * @author Hans Muller
  */
 public class JList extends JComponent implements Scrollable, Accessible
@@ -784,7 +794,9 @@ public class JList extends JComponent implements Scrollable, Accessible
      * description: The object that contains the data to be drawn by this JList.
      */
     public void setModel(ListModel model) {
-
+        if (model == null) {
+            throw new IllegalArgumentException("model must be non null");
+        }
         ListModel oldValue = dataModel;
         dataModel = model;
         firePropertyChange("model", oldValue, dataModel);
@@ -1520,9 +1532,6 @@ public class JList extends JComponent implements Scrollable, Accessible
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JList.
      */

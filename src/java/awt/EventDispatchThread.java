@@ -1,28 +1,40 @@
 /*
- * @(#)EventDispatchThread.java	1.26 98/08/11
+ * @(#)EventDispatchThread.java	1.32 00/03/08
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
+ * 
  */
 
 package java.awt;
+
+import java.lang.reflect.Method;
+import java.security.AccessController;
+import sun.security.action.GetPropertyAction;
+import java.awt.event.InputEvent;
 
 /**
  * EventDispatchThread is a package-private AWT class which takes
  * events off the EventQueue and dispatches them to the appropriate
  * AWT components.
  *
- * @version 1.26 08/11/98
+ * The Thread starts a "permanent" event pump with a call to
+ * pumpEvents(Conditional) in its run() method. Event handlers can choose to
+ * block this event pump at any time, but should start a new pump (<b>not</b>
+ * a new EventDispatchThread) by again calling pumpEvents(Conditional). This
+ * secondary event pump will exit automatically as soon as the Condtional
+ * evaluate()s to false and an additional Event is pumped and dispatched.
+ *
+ * @version 1.32 03/08/00
  * @author Tom Ball
  * @author Amy Fowler
  * @author Fred Ecks
+ * @author David Mendenhall
  */
 class EventDispatchThread extends Thread {
     private EventQueue theQueue;
@@ -42,7 +54,12 @@ class EventDispatchThread extends Thread {
 
 	// fix 4122683, 4128923
 	// Post an empty event to ensure getNextEvent is unblocked
-	theQueue.postEvent(new EmptyEvent());
+	//
+        // We have to use postEventPrivate instead of postEvent because
+        // EventQueue.pop calls EventDispatchThread.stopDispatching.
+        // Calling SunToolkit.flushPendingEvents in this case could
+        // lead to deadlock.
+	theQueue.postEventPrivate(new EmptyEvent());
 
 	// wait for the dispatcher to complete
 	if (Thread.currentThread() != this) {
@@ -62,23 +79,142 @@ class EventDispatchThread extends Thread {
     }
 
     public void run() {
-       while (doDispatch && !isInterrupted()) {
-            try {
-                AWTEvent event = theQueue.getNextEvent();
-                theQueue.dispatchEvent(event);
-            } catch (ThreadDeath death) {
-                return;
+        pumpEvents(new Conditional() {
+            public boolean evaluate() {
+                return true;
+            }
+        });
+    }
 
-	    } catch (InterruptedException interruptedException) {
-		return; // AppContext.dispose() interrupts all
-			// Threads in the AppContext
+    void pumpEvents(Conditional cond) {
+        pumpEventsForComponent(cond, null);
+    }
 
-            } catch (Throwable e) {
-                System.err.println(
-                    "Exception occurred during event dispatching:");
-                e.printStackTrace();
+    void pumpEventsForComponent(Conditional cond, Component modalComponent) {
+        while (doDispatch && cond.evaluate()) {
+            if (isInterrupted() || !pumpOneEventForComponent(modalComponent)) {
+                doDispatch = false;
             }
         }
+    }
+
+    boolean pumpOneEvent() {
+        return pumpOneEventForComponent(null);
+    }
+
+    boolean pumpOneEventForComponent(Component modalComponent) {
+        try {
+            AWTEvent event = theQueue.getNextEvent();
+            if (modalComponent != null) {
+        	while  (event instanceof InputEvent) { 
+		    Component c = (Component)event.getSource();
+		    // check if c's modalComponent's child
+		    while (c != modalComponent && c != null)
+			c = c.getParent();
+		    if (c != modalComponent)
+			event = theQueue.getNextEvent();
+		    else
+			break;
+		} 
+            } 
+            theQueue.dispatchEvent(event);
+            return true;
+        } catch (ThreadDeath death) {
+            return false;
+
+        } catch (InterruptedException interruptedException) {
+            return false; // AppContext.dispose() interrupts all
+                          // Threads in the AppContext
+
+        } catch (Throwable e) {
+	    if (!handleException(e)) {
+		System.err.println(
+                "Exception occurred during event dispatching:");
+		e.printStackTrace();
+	    }
+            return true;
+        }
+    }
+
+    private static final String handlerPropName = "sun.awt.exception.handler";
+    private static String handlerClassName = null;
+    private static String NO_HANDLER = new String();
+
+    /**
+     * Handles an exception thrown in the event-dispatch thread.
+     *
+     * <p> If the system property "sun.awt.exception.handler" is defined, then
+     * when this method is invoked it will attempt to do the following:
+     *
+     * <ol>
+     * <li> Load the class named by the value of that property, using the
+     *      current thread's context class loader,
+     * <li> Instantiate that class using its zero-argument constructor,
+     * <li> Find the resulting handler object's <tt>public void handle</tt>
+     *      method, which should take a single argument of type
+     *      <tt>Throwable</tt>, and
+     * <li> Invoke the handler's <tt>handle</tt> method, passing it the
+     *      <tt>thrown</tt> argument that was passed to this method.
+     * </ol>
+     *
+     * If any of the first three steps fail then this method will return
+     * <tt>false</tt> and all following invocations of this method will return
+     * <tt>false</tt> immediately.  An exception thrown by the handler object's
+     * <tt>handle</tt> will be caught, and will cause this method to return
+     * <tt>false</tt>.  If the handler's <tt>handle</tt> method is successfully
+     * invoked, then this method will return <tt>true</tt>.  This method will
+     * never throw any sort of exception.
+     *
+     * <p> <i>Note:</i> This method is a temporary hack to work around the
+     * absence of a real API that provides the ability to replace the
+     * event-dispatch thread.  The magic "sun.awt.exception.handler" property
+     * <i>will be removed</i> in a future release.
+     *
+     * @param  thrown  The Throwable that was thrown in the event-dispatch
+     *                 thread
+     *
+     * @returns  <tt>false</tt> if any of the above steps failed, otherwise
+     *           <tt>true</tt>.
+     */
+    private boolean handleException(Throwable thrown) {
+
+        try {
+
+            if (handlerClassName == NO_HANDLER) {
+                return false;   /* Already tried, and failed */
+            }
+
+            /* Look up the class name */
+            if (handlerClassName == null) {
+                handlerClassName = ((String) AccessController.doPrivileged(
+                    new GetPropertyAction(handlerPropName)));
+                if (handlerClassName == null) {
+                    handlerClassName = NO_HANDLER; /* Do not try this again */
+                    return false;
+                }
+            }
+
+            /* Load the class, instantiate it, and find its handle method */
+            Method m;
+            Object h;
+            try {
+                ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                Class c = Class.forName(handlerClassName, true, cl);
+                m = c.getMethod("handle", new Class[] { Throwable.class });
+                h = c.newInstance();
+            } catch (Throwable x) {
+                handlerClassName = NO_HANDLER; /* Do not try this again */
+                return false;
+            }
+
+            /* Finally, invoke the handler */
+            m.invoke(h, new Object[] { thrown });
+
+        } catch (Throwable x) {
+            return false;
+        }
+
+        return true;
     }
 
     boolean isDispatching(EventQueue eq) {

@@ -1,5 +1,5 @@
 /*
- * @(#)MotifGraphicsUtils.java	1.30 98/08/26
+ * @(#)MotifGraphicsUtils.java	1.35 99/02/15
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -25,8 +25,10 @@ import java.awt.Insets;
 import java.awt.event.KeyEvent;
 
 import javax.swing.plaf.basic.*;
+import javax.swing.text.View;
+
 /*
- * @version 1.30 08/26/98
+ * @version 1.35 02/15/99
  * @author Jeff Dinkins
  * @author Dave Kloba
  */
@@ -122,154 +124,164 @@ public class MotifGraphicsUtils implements SwingConstants
     {
 
         JMenuItem b = (JMenuItem) c;
-      ButtonModel model = b.getModel();
-
-      Dimension size = b.getSize();
-      Insets i = c.getInsets();
-      
-      Rectangle viewRect = new Rectangle(size);
-
-      viewRect.x += i.left;
-      viewRect.y += i.top;
-      viewRect.width -= (i.right + viewRect.x);
-      viewRect.height -= (i.bottom + viewRect.y);
-
-      Rectangle iconRect = new Rectangle();
-      Rectangle textRect = new Rectangle();
-      Rectangle acceleratorRect = new Rectangle();
-      Rectangle checkRect = new Rectangle();
-      Rectangle arrowRect = new Rectangle();
-
-      Font holdf = g.getFont();
-      Font f = c.getFont();
-      g.setFont(f);
-      FontMetrics fm = g.getFontMetrics(f);
-      FontMetrics fmAccel = g.getFontMetrics( UIManager.getFont("MenuItem.acceleratorFont") );
-
-      if (c.isOpaque()) {
-          if (model.isArmed()|| (c instanceof JMenu && model.isSelected())) {
-              g.setColor(background);
-          } else {
-              g.setColor(c.getBackground());
-          }
-          g.fillRect(0,0, size.width, size.height);
-      }
-
-      // get Accelerator text
-      KeyStroke accelerator =  b.getAccelerator();
-      String acceleratorText = "";
-      if (accelerator != null) {
-          int modifiers = accelerator.getModifiers();
-          if (modifiers > 0) {
-              acceleratorText = KeyEvent.getKeyModifiersText(modifiers);
-              acceleratorText += "+";
-          }
-          acceleratorText += KeyEvent.getKeyText(accelerator.getKeyCode());
-      }
-
-      // layout the text and icon
-      String text = layoutMenuItem(c, fm, b.getText(), fmAccel,
-                                   acceleratorText, b.getIcon(),
-                                   checkIcon, arrowIcon,
-                                   b.getVerticalAlignment(), 
-                                   b.getHorizontalAlignment(),
-                                   b.getVerticalTextPosition(), 
-                                   b.getHorizontalTextPosition(),
-                                   viewRect, iconRect, 
-                                   textRect, acceleratorRect,
-                                   checkRect, arrowRect,
-                                   b.getText() == null 
-                                   ? 0 : defaultTextIconGap,
-                                   defaultTextIconGap
-                                   );
-      
-      // Paint the Check
-      Color holdc = g.getColor();
-      if (checkIcon != null) {
-        if(model.isArmed() || (c instanceof JMenu && model.isSelected()))
-          g.setColor(foreground);
-        checkIcon.paintIcon(c, g, checkRect.x, checkRect.y);
-        g.setColor(holdc);
-      }
-
-      // Paint the Icon
-      if(b.getIcon() != null) { 
-        Icon icon;
-        if(!model.isEnabled()) {
-          icon = (Icon) b.getDisabledIcon();
-        } else if(model.isPressed() && model.isArmed()) {
-          icon = (Icon) b.getPressedIcon();
-          if(icon == null) {
-            // Use default icon
-            icon = (Icon) b.getIcon();
-          } 
-        } else {
-          icon = (Icon) b.getIcon();
-        }
-              
-        icon.paintIcon(c, g, iconRect.x, iconRect.y);
-      }
-
-      // Draw the Text
-      if(text != null && !text.equals("")) {
-        if(!model.isEnabled()) {
-          // *** paint the text disabled
-                g.setColor(b.getBackground().brighter());
-                BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                              textRect.x, textRect.y + fm.getAscent());
-                g.setColor(b.getBackground().darker());
-                BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                              textRect.x - 1, textRect.y + fm.getAscent() - 1);
-
-        } else {
-          // *** paint the text normally
-          if (model.isArmed()|| (c instanceof JMenu && model.isSelected())) {
-            g.setColor(foreground);
-          } else {
-            g.setColor(b.getForeground());
-          }
-          BasicGraphicsUtils.drawString(g,text, 
-                                        model.getMnemonic(),
-                                        textRect.x,
-                                        textRect.y + fm.getAscent());
-        }
-      }
-          
-      // Draw the Accelerator Text
-      if(acceleratorText != null && !acceleratorText.equals("")) {
-          g.setFont( UIManager.getFont("MenuItem.acceleratorFont") );
-          if(!model.isEnabled()) {
-              // *** paint the acceleratorText disabled
-              g.setColor(b.getBackground().brighter());
-              BasicGraphicsUtils.drawString(g,acceleratorText,0,
-                                            acceleratorRect.x, acceleratorRect.y + fm.getAscent());
-              g.setColor(b.getBackground().darker());
-              BasicGraphicsUtils.drawString(g,acceleratorText,0,
-                                            acceleratorRect.x - 1, acceleratorRect.y + fm.getAscent() - 1);
-          } else {
-              // *** paint the acceleratorText normally
-              if (model.isArmed()|| (c instanceof JMenu && model.isSelected()))
-                  {
-                      g.setColor(foreground);
-                  } else {
-                      g.setColor(b.getForeground());
-                  }
-              BasicGraphicsUtils.drawString(g,acceleratorText, 0,
-                                            acceleratorRect.x,
-                                            acceleratorRect.y + fm.getAscent());
-          }
-      }
-
-      // Paint the Arrow
-      if (arrowIcon != null) {
-        if(model.isArmed() || (c instanceof JMenu && model.isSelected()))
-          g.setColor(foreground);
-        if( !(b.getParent() instanceof JMenuBar) )
-          arrowIcon.paintIcon(c, g, arrowRect.x, arrowRect.y);
-      }
-
-      g.setColor(holdc);
-      g.setFont(holdf);
+	ButtonModel model = b.getModel();
+	
+	Dimension size = b.getSize();
+	Insets i = c.getInsets();
+	
+	Rectangle viewRect = new Rectangle(size);
+	
+	viewRect.x += i.left;
+	viewRect.y += i.top;
+	viewRect.width -= (i.right + viewRect.x);
+	viewRect.height -= (i.bottom + viewRect.y);
+	
+	Rectangle iconRect = new Rectangle();
+	Rectangle textRect = new Rectangle();
+	Rectangle acceleratorRect = new Rectangle();
+	Rectangle checkRect = new Rectangle();
+	Rectangle arrowRect = new Rectangle();
+	
+	Font holdf = g.getFont();
+	Font f = c.getFont();
+	g.setFont(f);
+	FontMetrics fm = g.getFontMetrics(f);
+	FontMetrics fmAccel = g.getFontMetrics( UIManager.getFont("MenuItem.acceleratorFont") );
+	
+	if (c.isOpaque()) {
+	    if (model.isArmed()|| (c instanceof JMenu && model.isSelected())) {
+		g.setColor(background);
+	    } else {
+		g.setColor(c.getBackground());
+	    }
+	    g.fillRect(0,0, size.width, size.height);
+	}
+	
+	// get Accelerator text
+	KeyStroke accelerator =  b.getAccelerator();
+	String acceleratorText = "";
+	if (accelerator != null) {
+	    int modifiers = accelerator.getModifiers();
+	    if (modifiers > 0) {
+		acceleratorText = KeyEvent.getKeyModifiersText(modifiers);
+		acceleratorText += "+";
+	    }
+	    acceleratorText += KeyEvent.getKeyText(accelerator.getKeyCode());
+	}
+	
+	// layout the text and icon
+	String text = layoutMenuItem(c, fm, b.getText(), fmAccel,
+				     acceleratorText, b.getIcon(),
+				     checkIcon, arrowIcon,
+				     b.getVerticalAlignment(), 
+				     b.getHorizontalAlignment(),
+				     b.getVerticalTextPosition(), 
+				     b.getHorizontalTextPosition(),
+				     viewRect, iconRect, 
+				     textRect, acceleratorRect,
+				     checkRect, arrowRect,
+				     b.getText() == null 
+				     ? 0 : defaultTextIconGap,
+				     defaultTextIconGap
+				     );
+	
+	// Paint the Check
+	Color holdc = g.getColor();
+	if (checkIcon != null) {
+	    if(model.isArmed() || (c instanceof JMenu && model.isSelected()))
+		g.setColor(foreground);
+	    checkIcon.paintIcon(c, g, checkRect.x, checkRect.y);
+	    g.setColor(holdc);
+	}
+	
+	// Paint the Icon
+	if(b.getIcon() != null) { 
+	    Icon icon;
+	    if(!model.isEnabled()) {
+		icon = (Icon) b.getDisabledIcon();
+	    } else if(model.isPressed() && model.isArmed()) {
+		icon = (Icon) b.getPressedIcon();
+		if(icon == null) {
+		    // Use default icon
+		    icon = (Icon) b.getIcon();
+		} 
+	    } else {
+		icon = (Icon) b.getIcon();
+	    }
+	    
+	    if (icon!=null) {
+		icon.paintIcon(c, g, iconRect.x, iconRect.y);
+	    }
+	}
+	
+	// Draw the Text
+	if(text != null && !text.equals("")) {
+	    // Once BasicHTML becomes public, use BasicHTML.propertyKey
+	    // instead of the hardcoded string below!
+	    View v = (View) c.getClientProperty("html");
+	    if (v != null) {
+		v.paint(g, textRect);
+	    } else {
+		
+		if(!model.isEnabled()) {
+		    // *** paint the text disabled
+		    g.setColor(b.getBackground().brighter());
+		    BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
+						  textRect.x, textRect.y + fmAccel.getAscent());
+		    g.setColor(b.getBackground().darker());
+		    BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
+						  textRect.x - 1, textRect.y + fmAccel.getAscent() - 1);
+		    
+		} else {
+		    // *** paint the text normally
+		    if (model.isArmed()|| (c instanceof JMenu && model.isSelected())) {
+			g.setColor(foreground);
+		    } else {
+			g.setColor(b.getForeground());
+		    }
+		    BasicGraphicsUtils.drawString(g,text, 
+						  model.getMnemonic(),
+						  textRect.x,
+						  textRect.y + fm.getAscent());
+		}
+	    }
+	}
+	
+	// Draw the Accelerator Text
+	if(acceleratorText != null && !acceleratorText.equals("")) {
+	    g.setFont( UIManager.getFont("MenuItem.acceleratorFont") );
+	    if(!model.isEnabled()) {
+		// *** paint the acceleratorText disabled
+		g.setColor(b.getBackground().brighter());
+		BasicGraphicsUtils.drawString(g,acceleratorText,0,
+					      acceleratorRect.x, acceleratorRect.y + fm.getAscent());
+		g.setColor(b.getBackground().darker());
+		BasicGraphicsUtils.drawString(g,acceleratorText,0,
+					      acceleratorRect.x - 1, acceleratorRect.y + fm.getAscent() - 1);
+	    } else {
+		// *** paint the acceleratorText normally
+		if (model.isArmed()|| (c instanceof JMenu && model.isSelected()))
+		    {
+			g.setColor(foreground);
+		    } else {
+			g.setColor(b.getForeground());
+		    }
+		BasicGraphicsUtils.drawString(g,acceleratorText, 0,
+					      acceleratorRect.x,
+					      acceleratorRect.y + fmAccel.getAscent());
+	    }
+	}
+	
+	// Paint the Arrow
+	if (arrowIcon != null) {
+	    if(model.isArmed() || (c instanceof JMenu && model.isSelected()))
+		g.setColor(foreground);
+	    if( !(b.getParent() instanceof JMenuBar) )
+		arrowIcon.paintIcon(c, g, arrowRect.x, arrowRect.y);
+	}
+	
+	g.setColor(holdc);
+	g.setFont(holdf);
     }
 
 
@@ -321,16 +333,13 @@ public class MotifGraphicsUtils implements SwingConstants
          * or and empty String was specified we substitute "" here 
          * and use 0,0,0,0 for acceleratorTextR.
          */
-
-        boolean acceleratorTextIsEmpty = (acceleratorText == null) || 
-            acceleratorText.equals("");
-
-        if (acceleratorTextIsEmpty) {
+        if( (acceleratorText == null) || acceleratorText.equals("") ) {
             acceleratorR.width = acceleratorR.height = 0;
             acceleratorText = "";
         }
         else {
-            acceleratorR.width = SwingUtilities.computeStringWidth( fmAccel, acceleratorText );
+            acceleratorR.width
+                = SwingUtilities.computeStringWidth(fmAccel, acceleratorText);
             acceleratorR.height = fmAccel.getHeight();
         }
 
@@ -356,22 +365,38 @@ public class MotifGraphicsUtils implements SwingConstants
             arrowIconR.width = arrowIconR.height = 0;
         }
         
-        textR.x += checkIconR.width + menuItemGap;
-        iconR.x += checkIconR.width + menuItemGap;
 
         Rectangle labelR = iconR.union(textR);
+        if( MotifGraphicsUtils.isLeftToRight(c) ) {
+            textR.x += checkIconR.width + menuItemGap;
+            iconR.x += checkIconR.width + menuItemGap;
 
-        // Position the Accelerator text rect
-        acceleratorR.x += (viewR.width - arrowIconR.width - 
-                           menuItemGap - acceleratorR.width);
-        acceleratorR.y = viewR.y + (viewR.height/2) - (acceleratorR.height/2);
+            // Position the Accelerator text rect
+            acceleratorR.x = viewR.x + viewR.width - arrowIconR.width 
+                             - menuItemGap - acceleratorR.width;
 
-        arrowIconR.x += (viewR.width - arrowIconR.width);
-        arrowIconR.y = viewR.y + (labelR.height/2) - (arrowIconR.height/2);
+            // Position the Check and Arrow Icons
+            checkIconR.x = viewR.x;
+            arrowIconR.x = viewR.x + viewR.width - menuItemGap
+                           - arrowIconR.width;
+        } else {
+            textR.x -= (checkIconR.width + menuItemGap);
+            iconR.x -= (checkIconR.width + menuItemGap);
 
-        checkIconR.y = viewR.y + (labelR.height/2) - (checkIconR.height/2);
-        checkIconR.x += viewR.x;
+            // Position the Accelerator text rect
+            acceleratorR.x = viewR.x + arrowIconR.width + menuItemGap;
 
+            // Position the Check and Arrow Icons
+            checkIconR.x = viewR.x + viewR.width - checkIconR.width;
+            arrowIconR.x = viewR.x + menuItemGap;       
+        }
+        
+        // Align the accelertor text and the check and arrow icons vertically
+        // with the center of the label rect.  
+        acceleratorR.y = labelR.y + (labelR.height/2) - (acceleratorR.height/2);
+        arrowIconR.y = labelR.y + (labelR.height/2) - (arrowIconR.height/2);
+        checkIconR.y = labelR.y + (labelR.height/2) - (checkIconR.height/2);
+        
         /*
           System.out.println("Layout: v=" +viewR+"  c="+checkIconR+" i="+
           iconR+" t="+textR+" acc="+acceleratorR+" a="+arrowIconR);
@@ -397,4 +422,15 @@ public class MotifGraphicsUtils implements SwingConstants
       
     }
 
+    /*
+     * Convenience function for determining ComponentOrientation.  Helps us
+     * avoid having Munge directives throughout the code.
+     */
+    static boolean isLeftToRight( Component c ) {
+        /*if[JDK1.2]
+          return c.getComponentOrientation().isLeftToRight();
+          else[JDK1.2]*/
+        return true;
+        /*end[JDK1.2]*/
+    }
 }

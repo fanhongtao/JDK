@@ -1,7 +1,7 @@
 /*
- * @(#)Image.java	1.26 98/09/21
+ * @(#)Image.java	1.28 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -25,7 +25,7 @@ import java.awt.image.ReplicateScaleFilter;
  * classes that represent graphical images. The image must be 
  * obtained in a platform-specific manner.
  *
- * @version 	1.26, 09/21/98
+ * @version 	1.28, 04/22/99
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -185,6 +185,13 @@ public abstract class Image {
      * a state similar to when it was first created so that if it is
      * again rendered, the image data will have to be recreated or
      * fetched again from its source.
+     * <p>
+     * This method always leaves the image in a state such that it can 
+     * be reconstructed.  This means the method applies only to cached 
+     * or other secondary representations of images such as those that 
+     * have been generated from an <tt>ImageProducer</tt> (read from a 
+     * file, for example). It does nothing for off-screen images that 
+     * have only one copy of their data.
      */
     public abstract void flush();
 }

@@ -1,10 +1,10 @@
 /*
- * @(#)ComponentView.java	1.31 98/08/26
+ * @(#)ComponentView.java	1.35 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -26,7 +26,7 @@ import javax.swing.OverlayLayout;
  * to be embedded into the View hierarchy).
  *
  * @author Timothy Prinzing
- * @version 1.31 08/26/98
+ * @version 1.35 04/22/99
  */
 public class ComponentView extends View  {
 
@@ -264,12 +264,22 @@ public class ComponentView extends View  {
         } else {
             Runnable callSetComponentParent = new Runnable() {
                 public void run() {
-                    setComponentParent();
-		    Container host = getContainer();
-		    if (host != null) {
-			preferenceChanged(null, true, true);
-			host.repaint();
-		    }
+		    Document doc = getDocument();
+		    try {
+			if (doc instanceof AbstractDocument) {
+			    ((AbstractDocument)doc).readLock();
+			}
+			setComponentParent();
+			Container host = getContainer();
+			if (host != null) {
+			    preferenceChanged(null, true, true);
+			    host.repaint();
+			}
+		    } finally {
+			if (doc instanceof AbstractDocument) {
+			    ((AbstractDocument)doc).readUnlock();
+			}
+		    }			
                 }
             };
             SwingUtilities.invokeLater(callSetComponentParent);
@@ -330,7 +340,7 @@ public class ComponentView extends View  {
 	    r.width = 0;
 	    return r;
 	}
-	return null;
+	throw new BadLocationException(pos + " not in range " + p0 + "," + p1, pos);
     }
 
     /**
@@ -372,6 +382,11 @@ public class ComponentView extends View  {
 	Invalidator(Component child) {
 	    setLayout(new OverlayLayout(this));
 	    add(child);
+	    min = child.getMinimumSize();
+	    pref = child.getPreferredSize();
+	    max = child.getMaximumSize();
+	    yalign = child.getAlignmentY();
+	    xalign = child.getAlignmentX();
 	}
 
 	/**
@@ -382,6 +397,11 @@ public class ComponentView extends View  {
 	 */
 	public void invalidate() {
 	    super.invalidate();
+	    min = super.getMinimumSize();
+	    pref = super.getPreferredSize();
+	    max = super.getMaximumSize();
+	    yalign = super.getAlignmentY();
+	    xalign = super.getAlignmentX();
 	    if (getParent() != null) {
 		preferenceChanged(null, true, true);
 	    }
@@ -400,6 +420,32 @@ public class ComponentView extends View  {
 	    Component child = this.getComponent(0);
 	    child.setVisible(b);
 	}
+
+        public Dimension getMinimumSize() {
+	    return min;
+	}
+
+        public Dimension getPreferredSize() {
+	    return pref;
+	}
+
+        public Dimension getMaximumSize() {
+	    return max;
+	}
+
+	public float getAlignmentX() {
+	    return xalign;
+	}
+
+	public float getAlignmentY() {
+	    return yalign;
+	}
+
+	Dimension min;
+	Dimension pref;
+	Dimension max;
+	float yalign;
+	float xalign;
 
     }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)NoSuchAlgorithmException.java	1.17 98/09/21
+ * @(#)NoSuchAlgorithmException.java	1.18 98/12/03
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -18,7 +18,7 @@ package java.security;
  * This exception is thrown when a particular cryptographic algorithm is
  * requested but is not available in the environment.
  * 
- * @version 1.17, 00/05/10
+ * @version 1.18, 98/12/03
  * @author Benjamin Renaud 
  */
 

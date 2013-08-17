@@ -1,10 +1,10 @@
 /*
- * @(#)JApplet.java	1.34 98/08/28
+ * @(#)JApplet.java	1.38 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -81,7 +81,7 @@ import javax.accessibility.*;
  *      attribute: containerDelegate getContentPane
  *    description: Swing's Applet subclass.
  *
- * @version 1.34 08/28/98
+ * @version 1.38 04/22/99
  * @author Arnaud Weber
  */
 public class JApplet extends Applet implements Accessible, RootPaneContainer 
@@ -232,6 +232,21 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
         else {
             super.addImpl(comp, constraints, index);
         }
+    }
+
+    /** 
+     * Removes the specified component from this container.
+     * @param comp the component to be removed
+     * @see #add
+     */
+    public void remove(Component comp) {
+	if (comp == rootPane) {
+	    super.remove(comp);
+	} else {
+	    // Client mistake, but we need to handle it to avoid a
+	    // common object leak in client applications.
+	    getContentPane().remove(comp);
+	}
     }
 
 
@@ -386,9 +401,6 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JApplet.
      */
@@ -603,7 +615,7 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
          *
          * @param f the Font
          * @return the FontMetrics, if supported, the object; otherwise, null
-         * @see getFont
+         * @see #getFont
          */
         public FontMetrics getFontMetrics(Font f) {
             return JApplet.this.getFontMetrics(f);

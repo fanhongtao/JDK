@@ -1,10 +1,10 @@
 /*
- * @(#)LabelView.java	1.8 98/09/04
+ * @(#)LabelView.java	1.14 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -39,9 +39,18 @@ import java.text.*;
  *
  * @author Timothy Prinzing
  * @author Brian Beck
- * @version 1.8 09/04/98
+ * @version 1.14 04/22/99
  */
 public class LabelView extends View /*implements TabableView */{
+
+    /**
+     * Instance of FontRenderContext that is used when a LabelFragment is
+     * created and there is no associated JTextComponent, or the graphics
+     * is null.
+     */
+    private static final FontRenderContext DefaultRenderContext =
+	                    new FontRenderContext
+	                        (new AffineTransform(), false, false);
 
     /**
      * Constructs a new view wrapped on an element.
@@ -106,8 +115,19 @@ public class LabelView extends View /*implements TabableView */{
         // REMIND (bcb) its not clear that this is the right way to get
         // a font render context.
         syncProperties();
-        Graphics2D g2d = (Graphics2D)getContainer().getGraphics();
-        FontRenderContext frc = g2d.getFontRenderContext();
+        FontRenderContext frc;
+	Container container = getContainer();
+	if (container == null) {
+	    frc = DefaultRenderContext;
+	}
+	else {
+	    Graphics2D g2d = (Graphics2D)container.getGraphics();
+	    if (g2d != null) {
+		frc = g2d.getFontRenderContext();
+	    } else {
+		frc = DefaultRenderContext;
+	    }
+	}
 
         fragments = new LabelFragment[ bidiEndIndex - bidiStartIndex + 1 ];
 
@@ -178,6 +198,12 @@ public class LabelView extends View /*implements TabableView */{
 		StyledDocument doc = (StyledDocument) d;
 		font = doc.getFont(attr);
 		fg = doc.getForeground(attr);
+		if (attr.isDefined(StyleConstants.Background)) {
+		    bg = doc.getBackground(attr);
+		}
+		else {
+		    bg = null;
+		}
 		setStrikeThrough(StyleConstants.isStrikeThrough(attr));
 		setSuperscript(StyleConstants.isSuperscript(attr));
 		setSubscript(StyleConstants.isSubscript(attr));
@@ -580,6 +606,7 @@ public class LabelView extends View /*implements TabableView */{
      */
     Font font;
     Color fg;
+    Color bg;
     boolean underline;
     boolean strike;
     boolean superscript;
@@ -674,6 +701,14 @@ public class LabelView extends View /*implements TabableView */{
 	// --- View methods ----------------------------
 
 	/**
+	 * This returns the attributes of the LabelView that created
+	 * the receiver.
+	 */
+	public AttributeSet getAttributes() {
+	    return LabelView.this.getAttributes();
+	}
+
+	/**
 	 * Fetches the starting offset of the portion of the model that this
          * view is responsible for.
          *
@@ -705,13 +740,21 @@ public class LabelView extends View /*implements TabableView */{
 	 */
         public void paint(Graphics g, Shape a) {
             syncProperties();
-            JTextComponent c = (JTextComponent)getContainer();
-	    Highlighter h = c.getHighlighter();
-	    if (h instanceof LayeredHighlighter) {
-		((LayeredHighlighter)h).paintLayeredHighlights
-		    (g, getStartOffset(), getEndOffset(), a, c, this);
+	    if (LabelView.this.bg != null) {
+		Rectangle alloc = (a instanceof Rectangle) ? (Rectangle)a :
+		                  a.getBounds();
+		g.setColor(LabelView.this.bg);
+		g.fillRect(alloc.x, alloc.y, alloc.width, alloc.height);
 	    }
-
+	    Component comp = getContainer();
+	    if (comp instanceof JTextComponent) {
+		JTextComponent c = (JTextComponent) comp;
+		Highlighter h = c.getHighlighter();
+		if (h instanceof LayeredHighlighter) {
+		    ((LayeredHighlighter)h).paintLayeredHighlights
+			(g, getStartOffset(), getEndOffset(), a, c, this);
+		}
+	    }
             if (Utilities.isComposedTextElement(getElement())) {
                 paintComposedText((Graphics2D)g, a.getBounds(), getStartOffset(), getEndOffset()); 
             } else {
@@ -949,6 +992,19 @@ public class LabelView extends View /*implements TabableView */{
             
             float width = x - alloc.x;
             int index = glyphs.getCharIndexAtWidth(width);
+	    if (index >= glyphs.getNumCharacters()) {
+		// This will usually happen when representing and end of
+		// line, or end of document.
+		if (rightToLeft) {
+		    // Could really be either here.
+                    biasReturn[0] = Position.Bias.Forward;
+		    return getStartOffset();
+		}
+		else {
+                    biasReturn[0] = Position.Bias.Backward;
+		    return getEndOffset();
+		}
+	    }
             float charX = glyphs.getCharX( index );
             float advance = glyphs.getCharAdvance( index );
             int offset = getStartOffset();
@@ -1249,8 +1305,15 @@ public class LabelView extends View /*implements TabableView */{
             // REMIND (bcb) its not clear that this is the right way to get
             // a font render context.
             syncProperties();
-            Graphics2D g2d = (Graphics2D)getContainer().getGraphics();
-            FontRenderContext frc = g2d.getFontRenderContext();
+	    FontRenderContext frc;
+	    Container container = getContainer();
+	    if (container == null) {
+		frc = DefaultRenderContext;
+	    }
+	    else {
+		frc = ((Graphics2D)container.getGraphics()).
+		                             getFontRenderContext();
+	    }
         
             int bidiStart = bidiElem.getStartOffset();
             int bidiEnd = bidiElem.getEndOffset();
@@ -1297,7 +1360,7 @@ public class LabelView extends View /*implements TabableView */{
 	    AttributedString as = 
                 (AttributedString)attrSet.getAttribute(StyleConstants.ComposedTextAttribute);
 	    int start = getElement().getStartOffset();
-	    int y = alloc.y + alloc.height - (int)glyphs.getLineMetrics().getDescent();
+	    int y = alloc.y + (int)glyphs.getLineMetrics().getAscent();
 	    int x = alloc.x;
 
 	    /*

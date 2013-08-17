@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsEditorPaneUI.java	1.9 98/08/28
+ * @(#)WindowsEditorPaneUI.java	1.10 98/10/29
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -17,7 +17,7 @@ package com.sun.java.swing.plaf.windows;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
 import javax.swing.*;
-
+import javax.swing.text.Caret;
 
 
 /**
@@ -43,5 +43,16 @@ public class WindowsEditorPaneUI extends BasicEditorPaneUI
         return new WindowsEditorPaneUI();
     }
 
+    /**
+     * Creates the object to use for a caret.  By default an
+     * instance of WindowsCaret is created.  This method
+     * can be redefined to provide something else that implements
+     * the InputPosition interface or a subclass of DefaultCaret.
+     *
+     * @return the caret object
+     */
+    protected Caret createCaret() {
+        return new WindowsTextUI.WindowsCaret();
+    }
 }
 

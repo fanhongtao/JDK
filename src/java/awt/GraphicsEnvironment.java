@@ -1,10 +1,10 @@
 /*
- * @(#)GraphicsEnvironment.java	1.34 98/10/16
+ * @(#)GraphicsEnvironment.java	1.36 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -159,6 +159,9 @@ public abstract class GraphicsEnvironment {
      * <code>Font</code> instance used to render text, but allows the 
      * <code>Font</code> object more flexibility in choosing its own best
      * match among multiple fonts in the same font family.
+     * If <code>l</code> is <code>null</code>, this method returns an 
+     * array containing all font family names available in this
+     * <code>GraphicsEnvironment</code>.
      * @param l a {@link Locale} object that represents a
      * particular geographical, political, or cultural region
      * @return an array of <code>String</code> objects containing names of

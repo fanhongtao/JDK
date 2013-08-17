@@ -1,10 +1,10 @@
 /*
- * @(#)DefaultListSelectionModel.java	1.49 98/08/28
+ * @(#)DefaultListSelectionModel.java	1.52 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -31,7 +31,7 @@ import javax.swing.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.49 08/28/98
+ * @version 1.52 04/22/99
  * @author Philip Milne
  * @author Hans Muller
  * @see ListSelectionModel
@@ -391,9 +391,17 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
         updateLeadAnchorIndices(index0, index1);
 
 	int clearMin = Math.min(index0, index1);
-	int clearMax = Math.max(index0, index1);
+	int clearMax = Math.max(index0, index1); 
 	int setMin = MAX;
 	int setMax = MIN;
+
+        // If the removal would produce to two disjoint selections in a mode 
+	// that only allows one, extend the removal to the end of the selection. 
+	if (getSelectionMode() != MULTIPLE_INTERVAL_SELECTION && 
+	       clearMin > minIndex && clearMax < maxIndex) {
+	    clearMax = maxIndex; 
+        }
+
         changeSelection(clearMin, clearMax, setMin, setMax);
     }
 
@@ -545,14 +553,23 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
      * @see #getLeadSelectionIndex     
      * @see #setAnchorSelectionIndex
      */   
-    public void setLeadSelectionIndex(int leadIndex) {
+    public void setLeadSelectionIndex(int leadIndex) { 
         int anchorIndex = this.anchorIndex;
+
+	if ((anchorIndex == -1) || (leadIndex == -1)) { 
+	    return; 
+	}
+
+	if (this.leadIndex == -1) { 
+	    this.leadIndex = leadIndex; 
+	}
+
         if (getSelectionMode() == SINGLE_SELECTION) {
             anchorIndex = leadIndex;
         }
 
-        int oldMin = Math.min(this.anchorIndex, this.leadIndex);;
-        int oldMax = Math.max(this.anchorIndex, this.leadIndex);;
+        int oldMin = Math.min(this.anchorIndex, this.leadIndex);
+        int oldMax = Math.max(this.anchorIndex, this.leadIndex);
 	int newMin = Math.min(anchorIndex, leadIndex);
 	int newMax = Math.max(anchorIndex, leadIndex);
         if (value.get(this.anchorIndex)) {

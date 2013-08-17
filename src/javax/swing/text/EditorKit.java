@@ -1,10 +1,10 @@
 /*
- * @(#)EditorKit.java	1.10 98/08/26
+ * @(#)EditorKit.java	1.14 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -33,18 +33,37 @@ import javax.swing.JEditorPane;
  * it's relationship with a JTextComponent.
  *
  * @author  Timothy Prinzing
- * @version 1.10 08/26/98
+ * @version 1.14 04/22/99
  */
 public abstract class EditorKit implements Cloneable, Serializable {
+
+    /**
+     * Construct an EditorKit.
+     */
+    public EditorKit() {
+    }
 
     /**
      * Creates a copy of the editor kit.  This
      * allows an implementation to serve as a prototype
      * for others, so that they can be quickly created.
+     * <em>In a future release this method will be implemented
+     * to use Object.clone</em>
      *
      * @return the copy
      */
     public abstract Object clone();
+    /*
+    public Object clone() {
+	Object o;
+	try {
+	    o = super.clone();
+	} catch (CloneNotSupportedException cnse) {
+	    o = null;
+	}
+	return o;
+    }
+    */
 
     /**
      * Called when the kit is being installed into the

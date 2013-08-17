@@ -1,5 +1,5 @@
 /*
- * @(#)Cursor.java	1.21 98/08/26
+ * @(#)Cursor.java	1.22 98/10/29
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -31,7 +31,7 @@ import java.security.AccessController;
  * A class to encapsulate the bitmap representation of the mouse cursor.
  *
  * @see Component#setCursor
- * @version 	1.21, 08/26/98
+ * @version 	1.22, 10/29/98
  * @author 	Amy Fowler
  */
 public class Cursor implements java.io.Serializable {
@@ -127,8 +127,8 @@ public class Cursor implements java.io.Serializable {
     };
 
     /**
-     * The chosen cursor type intially set to
-     * the <code>DEFAULT_CURSOR<code>.
+     * The chosen cursor type initially set to
+     * the <code>DEFAULT_CURSOR</code>.
      *
      * @serial
      * @see getType()

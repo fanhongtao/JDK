@@ -1,5 +1,5 @@
 /*
- * @(#)DebugGraphics.java	1.16 98/08/26
+ * @(#)DebugGraphics.java	1.17 98/10/20
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -36,7 +36,7 @@ import java.text.AttributedCharacterIterator;
  * @see RepaintManager#currentManager
  * @see RepaintManager#setDoubleBufferingEnabled
  *
- * @version 1.16 08/26/98
+ * @version 1.17 10/20/98
  * @author Dave Karlton
  */
 public class DebugGraphics extends Graphics {
@@ -992,9 +992,9 @@ public class DebugGraphics extends Graphics {
         DebugGraphicsInfo info = info();
 
         if (debugLog()) {
-            info().log(toShortString() +
-                      " Drawing image: " + img +
-                      " at: " + new Point(x, y));
+            info.log(toShortString() +
+		     " Drawing image: " + img +
+		     " at: " + new Point(x, y));
         }
 
         if (isDrawingBuffer()) {
@@ -1034,6 +1034,43 @@ public class DebugGraphics extends Graphics {
      */
     public boolean drawImage(Image img, int x, int y, int width, int height,
                              ImageObserver observer) {
+        DebugGraphicsInfo info = info();
+
+        if (debugLog()) {
+            info.log(toShortString() +
+		     " Drawing image: " + img +
+		     " at: " + new Rectangle(x, y, width, height));
+        }
+
+        if (isDrawingBuffer()) {
+            if (debugBuffered()) {
+                Graphics debugGraphics = debugGraphics();
+
+                debugGraphics.drawImage(img, x, y, width, height, observer);
+                debugGraphics.dispose();
+            }
+        } else if (debugFlash()) {
+            int i, count = (info.flashCount * 2) - 1;
+            ImageProducer oldProducer = img.getSource();
+            ImageProducer newProducer
+                = new FilteredImageSource(oldProducer,
+                                new DebugGraphicsFilter(info.flashColor));
+            Image newImage
+                = Toolkit.getDefaultToolkit().createImage(newProducer);
+            DebugGraphicsObserver imageObserver
+                = new DebugGraphicsObserver();
+
+            for (i = 0; i < count; i++) {
+                graphics.drawImage((i % 2) == 0 ? newImage : img, x, y,
+                                   width, height, imageObserver);
+                Toolkit.getDefaultToolkit().sync();
+                while (!imageObserver.allBitsPresent() &&
+                                       !imageObserver.imageHasProblem()) {
+                    sleep(10);
+                }
+                sleep(info.flashTime);
+            }
+        }
         return graphics.drawImage(img, x, y, width, height, observer);
     }
 
@@ -1043,6 +1080,44 @@ public class DebugGraphics extends Graphics {
     public boolean drawImage(Image img, int x, int y,
                              Color bgcolor,
                              ImageObserver observer) {
+        DebugGraphicsInfo info = info();
+
+        if (debugLog()) {
+            info.log(toShortString() +
+		     " Drawing image: " + img +
+		     " at: " + new Point(x, y) + 
+		     ", bgcolor: " + bgcolor);
+        }
+
+        if (isDrawingBuffer()) {
+            if (debugBuffered()) {
+                Graphics debugGraphics = debugGraphics();
+
+                debugGraphics.drawImage(img, x, y, bgcolor, observer);
+                debugGraphics.dispose();
+            }
+        } else if (debugFlash()) {
+            int i, count = (info.flashCount * 2) - 1;
+            ImageProducer oldProducer = img.getSource();
+            ImageProducer newProducer
+                = new FilteredImageSource(oldProducer,
+                                new DebugGraphicsFilter(info.flashColor));
+            Image newImage
+                = Toolkit.getDefaultToolkit().createImage(newProducer);
+            DebugGraphicsObserver imageObserver
+                = new DebugGraphicsObserver();
+
+            for (i = 0; i < count; i++) {
+                graphics.drawImage((i % 2) == 0 ? newImage : img, x, y,
+                                   bgcolor, imageObserver);
+                Toolkit.getDefaultToolkit().sync();
+                while (!imageObserver.allBitsPresent() &&
+                                       !imageObserver.imageHasProblem()) {
+                    sleep(10);
+                }
+                sleep(info.flashTime);
+            }
+        }
         return graphics.drawImage(img, x, y, bgcolor, observer);
     }
 
@@ -1052,6 +1127,45 @@ public class DebugGraphics extends Graphics {
     public boolean drawImage(Image img, int x, int y,int width, int height,
                              Color bgcolor,
                              ImageObserver observer) {
+        DebugGraphicsInfo info = info();
+
+        if (debugLog()) {
+            info.log(toShortString() +
+		     " Drawing image: " + img +
+		     " at: " + new Rectangle(x, y, width, height) + 
+		     ", bgcolor: " + bgcolor);
+        }
+
+        if (isDrawingBuffer()) {
+            if (debugBuffered()) {
+                Graphics debugGraphics = debugGraphics();
+
+                debugGraphics.drawImage(img, x, y, width, height, 
+					bgcolor, observer);
+                debugGraphics.dispose();
+            }
+        } else if (debugFlash()) {
+            int i, count = (info.flashCount * 2) - 1;
+            ImageProducer oldProducer = img.getSource();
+            ImageProducer newProducer
+                = new FilteredImageSource(oldProducer,
+                                new DebugGraphicsFilter(info.flashColor));
+            Image newImage
+                = Toolkit.getDefaultToolkit().createImage(newProducer);
+            DebugGraphicsObserver imageObserver
+                = new DebugGraphicsObserver();
+
+            for (i = 0; i < count; i++) {
+                graphics.drawImage((i % 2) == 0 ? newImage : img, x, y,
+                                   width, height, bgcolor, imageObserver);
+                Toolkit.getDefaultToolkit().sync();
+                while (!imageObserver.allBitsPresent() &&
+                                       !imageObserver.imageHasProblem()) {
+                    sleep(10);
+                }
+                sleep(info.flashTime);
+            }
+        }
         return graphics.drawImage(img, x, y, width, height, bgcolor, observer);
     }
 
@@ -1062,6 +1176,46 @@ public class DebugGraphics extends Graphics {
                              int dx1, int dy1, int dx2, int dy2,
                              int sx1, int sy1, int sx2, int sy2,
                              ImageObserver observer) {
+        DebugGraphicsInfo info = info();
+
+        if (debugLog()) {
+            info.log(toShortString() +
+		     " Drawing image: " + img +
+		     " destination: " + new Rectangle(dx1, dy1, dx2, dy2) + 
+		     " source: " + new Rectangle(sx1, sy1, sx2, sy2));
+        }
+
+        if (isDrawingBuffer()) {
+            if (debugBuffered()) {
+                Graphics debugGraphics = debugGraphics();
+
+                debugGraphics.drawImage(img, dx1, dy1, dx2, dy2, 
+					sx1, sy1, sx2, sy2, observer);
+                debugGraphics.dispose();
+            }
+        } else if (debugFlash()) {
+            int i, count = (info.flashCount * 2) - 1;
+            ImageProducer oldProducer = img.getSource();
+            ImageProducer newProducer
+                = new FilteredImageSource(oldProducer,
+                                new DebugGraphicsFilter(info.flashColor));
+            Image newImage
+                = Toolkit.getDefaultToolkit().createImage(newProducer);
+            DebugGraphicsObserver imageObserver
+                = new DebugGraphicsObserver();
+
+            for (i = 0; i < count; i++) {
+                graphics.drawImage((i % 2) == 0 ? newImage : img, 
+				   dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, 
+                                   imageObserver);
+                Toolkit.getDefaultToolkit().sync();
+                while (!imageObserver.allBitsPresent() &&
+                                       !imageObserver.imageHasProblem()) {
+                    sleep(10);
+                }
+                sleep(info.flashTime);
+            }
+        }
         return graphics.drawImage(img, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2,
                                   observer);
     }
@@ -1074,6 +1228,47 @@ public class DebugGraphics extends Graphics {
                              int sx1, int sy1, int sx2, int sy2,
                              Color bgcolor,
                              ImageObserver observer) {
+        DebugGraphicsInfo info = info();
+
+        if (debugLog()) {
+            info.log(toShortString() +
+		     " Drawing image: " + img +
+		     " destination: " + new Rectangle(dx1, dy1, dx2, dy2) + 
+		     " source: " + new Rectangle(sx1, sy1, sx2, sy2) + 
+		     ", bgcolor: " + bgcolor);
+        }
+
+        if (isDrawingBuffer()) {
+            if (debugBuffered()) {
+                Graphics debugGraphics = debugGraphics();
+
+                debugGraphics.drawImage(img, dx1, dy1, dx2, dy2, 
+					sx1, sy1, sx2, sy2, bgcolor, observer);
+                debugGraphics.dispose();
+            }
+        } else if (debugFlash()) {
+            int i, count = (info.flashCount * 2) - 1;
+            ImageProducer oldProducer = img.getSource();
+            ImageProducer newProducer
+                = new FilteredImageSource(oldProducer,
+                                new DebugGraphicsFilter(info.flashColor));
+            Image newImage
+                = Toolkit.getDefaultToolkit().createImage(newProducer);
+            DebugGraphicsObserver imageObserver
+                = new DebugGraphicsObserver();
+
+            for (i = 0; i < count; i++) {
+                graphics.drawImage((i % 2) == 0 ? newImage : img, 
+				   dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, 
+                                   bgcolor, imageObserver);
+                Toolkit.getDefaultToolkit().sync();
+                while (!imageObserver.allBitsPresent() &&
+                                       !imageObserver.imageHasProblem()) {
+                    sleep(10);
+                }
+                sleep(info.flashTime);
+            }
+        }
         return graphics.drawImage(img, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2,
                                   bgcolor, observer);
     }

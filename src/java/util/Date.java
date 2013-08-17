@@ -1,5 +1,5 @@
 /*
- * @(#)Date.java	1.62 00/04/19
+ * @(#)Date.java	1.62 00/03/08
  *
  * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -106,7 +106,7 @@ import java.lang.ref.SoftReference;
  * @author  James Gosling
  * @author  Arthur van Hoff
  * @author  Alan Liu
- * @version 1.62 04/19/00
+ * @version 1.62 03/08/00
  * @see     java.text.DateFormat
  * @see     java.util.Calendar
  * @see     java.util.TimeZone
@@ -375,7 +375,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      *     the range 19 to 99 are assumed to mean 1919 to 1999, while
      *     years from 0 to 18 are assumed to mean 2000 to 2018.  Note
      *     that this is slightly different from the interpretation of
-     *     years less than 100 that is used in {@link java.text.SimpleDateFormat}.
+     *     years less than 100 that is used in {@link java.text.SimpleDateFomat}.
      * <li>If the number is followed by a colon, it is regarded as an hour, 
      *     unless an hour has already been recognized, in which case it is 
      *     regarded as a minute.

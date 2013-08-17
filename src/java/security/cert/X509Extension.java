@@ -1,5 +1,5 @@
 /*
- * @(#)X509Extension.java	1.12 98/06/29
+ * @(#)X509Extension.java	1.13 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -54,7 +54,7 @@ import java.util.Set;
  * be handled by a <em>Class</em> that understands the extension.
  *
  * @author Hemma Prafullchandra
- * @version 1.12 00/05/10
+ * @version 1.13 98/12/03
  */
 
 public interface X509Extension {

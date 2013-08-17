@@ -1,10 +1,10 @@
 /*
- * @(#)DatagramSocket.java	1.37 98/10/14
+ * @(#)DatagramSocket.java	1.39 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -31,7 +31,7 @@ import java.io.InterruptedIOException;
  * DatagramSocket.
  *
  * @author  Pavani Diwanji
- * @version 1.37, 10/14/98
+ * @version 1.37, 10/30/98
  * @see     java.net.DatagramPacket
  * @since JDK1.0
  */
@@ -312,8 +312,9 @@ class DatagramSocket {
 		    p.setPort(connectedPort);
 		} else if ((!packetAddress.equals(connectedAddress)) ||
 			   p.getPort() != connectedPort) {
-		    throw new SecurityException("connected address and packet address" +
-						" differ");
+		    throw new IllegalArgumentException("connected address " +
+						       "and packet address" +
+						       " differ");
 		}
 	    }
 	    // call the  method to send

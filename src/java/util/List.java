@@ -1,10 +1,10 @@
 /*
- * @(#)List.java	1.24 98/09/30
+ * @(#)List.java	1.26 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -450,12 +450,11 @@ public interface List extends Collection {
     ListIterator listIterator();
 
     /**
-     * 
      * Returns a list iterator of the elements in this list (in proper
      * sequence), starting at the specified position in this list.  The
      * specified index indicates the first element that would be returned by
-     * an initial call to the <tt>nextElement</tt> method.  An initial call to
-     * the <tt>previousElement</tt> method would return the element with the
+     * an initial call to the <tt>next</tt> method.  An initial call to
+     * the <tt>previous</tt> method would return the element with the
      * specified index minus one.
      *
      * @param index index of first element to be returned from the

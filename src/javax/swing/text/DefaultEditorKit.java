@@ -1,15 +1,14 @@
 /*
- * @(#)DefaultEditorKit.java	1.28 98/08/28
+ * @(#)DefaultEditorKit.java	1.41 00/03/08
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
+ * 
  */
 package javax.swing.text;
 
@@ -29,21 +28,10 @@ import javax.swing.SwingConstants;
  * provides a minimal set of actions for a simple editor.
  *
  * @author  Timothy Prinzing
- * @version 1.28 08/28/98
+ * @version 1.41 03/08/00
  */
 public class DefaultEditorKit extends EditorKit {
     
-    /**
-     * Creates a copy of the editor kit.  This
-     * allows an implementation to serve as a prototype
-     * for others, so that they can be quickly created.
-     *
-     * @return the copy
-     */
-    public Object clone() {
-        return new DefaultEditorKit();
-    }
-
     /**
      * Gets the MIME type of the data that this
      * kit represents support for.  The default
@@ -53,6 +41,17 @@ public class DefaultEditorKit extends EditorKit {
      */
     public String getContentType() {
         return "text/plain";
+    }
+
+    /**
+     * Creates a copy of the editor kit.  This
+     * allows an implementation to serve as a prototype
+     * for others, so that they can be quickly created.
+     *
+     * @return the copy
+     */
+    public Object clone() {
+	return new DefaultEditorKit();
     }
 
     /**
@@ -155,25 +154,28 @@ public class DefaultEditorKit extends EditorKit {
         int nch;
 	boolean lastWasCR = false;
 	boolean isCRLF = false;
+	boolean isCR = false;
 	int last;
-	// Read in a block at a time, searching for \r\n and mapping
-	// to a single \n.
+	boolean wasEmpty = (doc.getLength() == 0);
+
+	// Read in a block at a time, mapping \r\n to \n, as well as single
+        // \r's to \n's. If a \r\n is encountered, \r\n will be set as the
+        // newline string for the document, if \r is encountered it will
+        // be set as the newline character, otherwise the newline property
+        // for the document will be removed.
         while ((nch = in.read(buff, 0, buff.length)) != -1) {
 	    last = 0;
 	    for(int counter = 0; counter < nch; counter++) {
 		switch(buff[counter]) {
 		case '\r':
 		    if (lastWasCR) {
+			isCR = true;
 			if (counter == 0) {
-			    doc.insertString(pos, "\r", null);
+			    doc.insertString(pos, "\n", null);
 			    pos++;
 			}
 			else {
-			    doc.insertString(pos, new String(buff, last,
-							     counter - last),
-					     null);
-			    pos += (counter - last);
-			    last = counter;
+			    buff[counter - 1] = '\n';
 			}
 		    }
 		    else {
@@ -196,17 +198,15 @@ public class DefaultEditorKit extends EditorKit {
 		    break;
 		default:
 		    if (lastWasCR) {
+			isCR = true;
 			if (counter == 0) {
-			    doc.insertString(pos, "\r", null);
+			    doc.insertString(pos, "\n", null);
 			    pos++;
 			}
 			else {
-			    doc.insertString(pos, new String(buff, last,
-					     counter - last), null);
-			    pos += (counter - last);
-			    last = counter;
-			    lastWasCR = false;
+			    buff[counter - 1] = '\n';
 			}
+			lastWasCR = false;
 		    }
 		    break;
 		}
@@ -227,13 +227,19 @@ public class DefaultEditorKit extends EditorKit {
 	    }
         }
 	if (lastWasCR) {
-	    doc.insertString(pos, "\r", null);
+	    doc.insertString(pos, "\n", null);
+	    isCR = true;
 	}
-	if (isCRLF) {
-	    doc.putProperty(EndOfLineStringProperty, "\r\n");
-	}
-	else {
-	    doc.putProperty(EndOfLineStringProperty, null);
+	if (wasEmpty) {
+	    if (isCRLF) {
+		doc.putProperty(EndOfLineStringProperty, "\r\n");
+	    }
+	    else if (isCR) {
+		doc.putProperty(EndOfLineStringProperty, "\r");
+	    }
+	    else {
+		doc.putProperty(EndOfLineStringProperty, "\n");
+	    }
 	}
     }
 
@@ -260,12 +266,21 @@ public class DefaultEditorKit extends EditorKit {
         int nleft = len;
         int offs = pos;
 	Object endOfLineProperty = doc.getProperty(EndOfLineStringProperty);
-	if (endOfLineProperty != null &&
-	    (endOfLineProperty instanceof String) &&
-	    !(((String)endOfLineProperty).equals("\n"))) {
+	if (endOfLineProperty == null) {
+	    try {
+		endOfLineProperty = System.getProperty("line.separator");
+	    } catch (SecurityException se) { }
+	}
+	String endOfLine;
+	if (endOfLineProperty instanceof String) {
+	    endOfLine = (String)endOfLineProperty;
+	}
+	else {
+	    endOfLine = null;
+	}
+	if (endOfLineProperty != null && !endOfLine.equals("\n")) {
 	    // There is an end of line string that isn't \n, have to iterate
 	    // through and find all \n's and translate to end of line string.
-	    String endOfLine = (String)endOfLineProperty;
 	    while (nleft > 0) {
 		int n = Math.min(nleft, 4096);
 		doc.getText(offs, n, data);
@@ -415,6 +430,22 @@ public class DefaultEditorKit extends EditorKit {
      * @see #getActions
      */
     public static final String pageDownAction = "page-down";
+
+    /**
+     * Name of the action to page up vertically, and move the
+     * selection.
+     * @see PageUpAction
+     * @see #getActions
+     */
+    /*public*/ static final String selectionPageUpAction = "selection-page-up";
+
+    /**
+     * Name of the action to page down vertically, and move the
+     * selection.
+     * @see PageDownAction
+     * @see #getActions
+     */
+    /*public*/ static final String selectionPageDownAction = "selection-page-down";
 
     /**
      * Name of the Action for moving the caret 
@@ -670,6 +701,13 @@ public class DefaultEditorKit extends EditorKit {
     public static final String selectAllAction = "select-all";
 
     /**
+     * Name of the Action for removing selection
+     * @see UnselectAction
+     * @see #getActions
+     */
+    /*public*/ static final String unselectAction = "unselect";
+
+    /**
      * Name of the action that is executed by default if 
      * a <em>key typed event</em> is received and there
      * is no keymap entry.
@@ -685,7 +723,10 @@ public class DefaultEditorKit extends EditorKit {
         new DeleteNextCharAction(), new ReadOnlyAction(),
         new WritableAction(), new CutAction(), 
         new CopyAction(), new PasteAction(),
-        new PageUpAction(), new PageDownAction(),
+        new PageUpAction(pageUpAction, false), 
+	new PageDownAction(pageDownAction, false),
+        new PageUpAction(selectionPageUpAction, true), 
+	new PageDownAction(selectionPageDownAction, true),
         new InsertBreakAction(), new BeepAction(),
         new NextVisualPositionAction(forwardAction, false,
 				     SwingConstants.EAST),
@@ -703,14 +744,6 @@ public class DefaultEditorKit extends EditorKit {
 				     SwingConstants.NORTH),
         new NextVisualPositionAction(selectionDownAction, true,
 				     SwingConstants.SOUTH),
-        // new ForwardAction(forwardAction, false),
-        // new BackwardAction(backwardAction, false),
-        // new ForwardAction(selectionForwardAction, true),
-        // new BackwardAction(selectionBackwardAction, true),
-        // new UpAction(upAction, false),  
-        // new DownAction(downAction, false), 
-        // new UpAction(selectionUpAction, true),  
-        // new DownAction(selectionDownAction, true), 
         new BeginWordAction(beginWordAction, false),  
         new EndWordAction(endWordAction, false),
         new BeginWordAction(selectionBeginWordAction, true),  
@@ -734,7 +767,7 @@ public class DefaultEditorKit extends EditorKit {
         new DefaultKeyTypedAction(), new InsertTabAction(),
         new SelectWordAction(), new SelectLineAction(),
         new SelectParagraphAction(), new SelectAllAction(),
-        new DumpModelAction()
+        new UnselectAction(), new DumpModelAction()
     };
 
     /**
@@ -782,10 +815,16 @@ public class DefaultEditorKit extends EditorKit {
         public void actionPerformed(ActionEvent e) {
             JTextComponent target = getTextComponent(e);
             if ((target != null) && (e != null)) {
+		if ((! target.isEditable()) || (! target.isEnabled())) {
+		    target.getToolkit().beep();
+		    return;
+		}
                 String content = e.getActionCommand();
                 int mod = e.getModifiers();
                 if ((content != null) && (content.length() > 0) && 
-                    ((mod & ActionEvent.ALT_MASK) == 0)) {
+                    ((mod & ActionEvent.ALT_MASK) == 
+                    (mod & ActionEvent.CTRL_MASK))) 
+                {
                     char c = content.charAt(0);
                     if ((c >= 0x20) && (c != 0x7F)) {
                         target.replaceSelection(content);
@@ -827,6 +866,10 @@ public class DefaultEditorKit extends EditorKit {
         public void actionPerformed(ActionEvent e) {
             JTextComponent target = getTextComponent(e);
             if ((target != null) && (e != null)) {
+		if ((! target.isEditable()) || (! target.isEnabled())) {
+		    target.getToolkit().beep();
+		    return;
+		}
                 String content = e.getActionCommand();
                 if (content != null) {
                     target.replaceSelection(content);
@@ -869,6 +912,10 @@ public class DefaultEditorKit extends EditorKit {
         public void actionPerformed(ActionEvent e) {
             JTextComponent target = getTextComponent(e);
             if (target != null) {
+		if ((! target.isEditable()) || (! target.isEnabled())) {
+		    target.getToolkit().beep();
+		    return;
+		}
                 target.replaceSelection("\n");
             }
         }
@@ -905,6 +952,10 @@ public class DefaultEditorKit extends EditorKit {
         public void actionPerformed(ActionEvent e) {
             JTextComponent target = getTextComponent(e);
             if (target != null) {
+		if ((! target.isEditable()) || (! target.isEnabled())) {
+		    target.getToolkit().beep();
+		    return;
+		}
                 target.replaceSelection("\t");
             }
         }
@@ -1177,22 +1228,26 @@ public class DefaultEditorKit extends EditorKit {
         }
     }
 
-    /*
-     * Pages up vertically.
+    /**
+     * Pages up vertically.  The select version of this action extends
+     * the selection, instead of simply moving the caret.
+     *
      * @see DefaultEditorKit#pageUpAction
+     * @see DefaultEditorKit#selectPageUpAction
      * @see DefaultEditorKit#getActions
      */
     static class PageUpAction extends TextAction {
 
-        /* Create this object with the appropriate identifier. */
-        PageUpAction() {
-            super(pageUpAction);
-        }
+	/** Create this object with the appropriate identifier. */
+	public PageUpAction(String nm, boolean select) {
+	    super(nm);
+	    this.select = select;
+	}
 
-        /** The operation to perform when this action is triggered. */
+	/** The operation to perform when this action is triggered. */
         public void actionPerformed(ActionEvent e) {
-            JTextComponent target = getTextComponent(e);
-            if (target != null) {
+	    JTextComponent target = getTextComponent(e);
+	    if (target != null) {
 		int scrollOffset;
 		int selectedIndex;
 		Rectangle visible = new Rectangle();
@@ -1211,34 +1266,48 @@ public class DefaultEditorKit extends EditorKit {
 			r = target.modelToView(selectedIndex);
 			r.y -= scrollOffset;
 			selectedIndex = target.viewToModel(new Point(r.x,r.y));
+			Document doc = target.getDocument();
+			if ((selectedIndex != 0) && 
+			    (selectedIndex  > (doc.getLength()-1))) {
+			    selectedIndex = doc.getLength()-1;
+			}
 			if(selectedIndex  < 0) {
 			    selectedIndex = 0;
 			}
-			target.setCaretPosition(selectedIndex);
+			if (select)
+			    target.moveCaretPosition(selectedIndex);
+			else
+			    target.setCaretPosition(selectedIndex);
 		    }
 		} catch(BadLocationException bl) {
 		    target.getToolkit().beep();
 		}
-            }
-        }
+	    }
+	}
+
+        private boolean select;
     }
 
-    /*
-     * Pages down vertically.
+    /**
+     * Pages down vertically.  The select version of this action extends
+     * the selection, instead of simply moving the caret.
+     *
      * @see DefaultEditorKit#pageDownAction
+     * @see DefaultEditorKit#selectPageDownAction
      * @see DefaultEditorKit#getActions
      */
     static class PageDownAction extends TextAction {
 
-        /* Create this object with the appropriate identifier. */
-        PageDownAction() {
-            super(pageDownAction);
-        }
+	/* Create this object with the appropriate identifier. */
+	PageDownAction(String nm, boolean select) {
+	    super(nm);
+	    this.select = select;
+	}
 
-        /** The operation to perform when this action is triggered. */
+	/** The operation to perform when this action is triggered. */
         public void actionPerformed(ActionEvent e) {
-            JTextComponent target = getTextComponent(e);
-            if (target != null) {
+	    JTextComponent target = getTextComponent(e);
+	    if (target != null) {
 		int scrollOffset;
 		int selectedIndex;
 		Rectangle visible = new Rectangle();
@@ -1258,15 +1327,24 @@ public class DefaultEditorKit extends EditorKit {
 			r.y += scrollOffset;
 			selectedIndex = target.viewToModel(new Point(r.x,r.y));
 			Document doc = target.getDocument();
-			if(selectedIndex  > (doc.getLength()-1))
+			if ((selectedIndex != 0) && 
+			    (selectedIndex  > (doc.getLength()-1))) {
 			    selectedIndex = doc.getLength()-1;
-			target.setCaretPosition(selectedIndex);
+			}
+			if (selectedIndex  < 0) {
+			    selectedIndex = 0;
+			}
+			if (select)
+			    target.moveCaretPosition(selectedIndex);
+			else
+			    target.setCaretPosition(selectedIndex);
 		    }
 		} catch(BadLocationException bl) {
 		    target.getToolkit().beep();
 		}
-            }
-        }
+	    }
+	}
+        private boolean select;
     }
 
     static class DumpModelAction extends TextAction {
@@ -1286,87 +1364,6 @@ public class DefaultEditorKit extends EditorKit {
         }
     }
 
-    /*
-     * Move the caret logically forward one position.
-     * @see DefaultEditorKit#forwardAction
-     * @see DefaultEditorKit#getActions
-     */
-    static class ForwardAction extends TextAction {
-
-        /** 
-         * Create this action with the appropriate identifier. 
-         * @param nm  the name of the action, Action.NAME.
-         * @param select whether to extend the selection when
-         *  changing the caret position.
-         */
-        ForwardAction(String nm, boolean select) {
-            super(nm);
-            this.select = select;
-        }
-
-        /** The operation to perform when this action is triggered. */
-        public void actionPerformed(ActionEvent e) {
-            JTextComponent target = getTextComponent(e);
-            if (target != null) {
-                Document doc = target.getDocument();
-                int dot = target.getCaretPosition();
-                if (dot < doc.getLength()) {
-                    dot += 1;
-                    if (select) {
-                        target.moveCaretPosition(dot);
-                    } else {
-                        target.setCaretPosition(dot);
-                    }
-                } else {
-                    target.getToolkit().beep();
-                }
-                target.getCaret().setMagicCaretPosition(null);
-            }
-        }
-
-        private boolean select;
-    }
-            
-    /*
-     * Move the caret logically backward one position.
-     * @see DefaultEditorKit#backwardAction
-     * @see DefaultEditorKit#getActions
-     */
-    static class BackwardAction extends TextAction {
-
-        /** 
-         * Create this action with the appropriate identifier. 
-         * @param nm  the name of the action, Action.NAME.
-         * @param select whether to extend the selection when
-         *  changing the caret position.
-         */
-        BackwardAction(String nm, boolean select) {
-            super(nm);
-            this.select = select;
-        }
-
-        /** The operation to perform when this action is triggered. */
-        public void actionPerformed(ActionEvent e) {
-            JTextComponent target = getTextComponent(e);
-            if (target != null) {
-                int dot = target.getCaretPosition();
-                if (dot > 0) {
-                    dot -= 1;
-                    if (select) {
-                        target.moveCaretPosition(dot);
-                    } else {
-                        target.setCaretPosition(dot);
-                    }
-                } else {
-                    target.getToolkit().beep();
-                }
-                target.getCaret().setMagicCaretPosition(null);
-            }
-        }
-
-        private boolean select;
-    }
-            
     /*
      * Action to move the selection by way of the
      * getNextVisualPositionFrom method. Constructor indicates direction
@@ -1442,98 +1439,6 @@ public class DefaultEditorKit extends EditorKit {
 
         private boolean select;
 	private int direction;
-    }
-            
-    /*
-     * Move the caret upward one row visually.
-     * @see DefaultEditorKit#upAction
-     * @see DefaultEditorKit#getActions
-     */
-    static class UpAction extends TextAction {
-
-        /** 
-         * Create this action with the appropriate identifier. 
-         * @param nm  the name of the action, Action.NAME.
-         * @param select whether to extend the selection when
-         *  changing the caret position.
-         */
-        UpAction(String nm, boolean select) {
-            super(nm);
-            this.select = select;
-        }
-
-        /** The operation to perform when this action is triggered. */
-        public void actionPerformed(ActionEvent e) {
-            JTextComponent target = getTextComponent(e);
-            if (target != null) {
-                try {
-                    Caret caret = target.getCaret();
-                    int dot = caret.getDot();
-                    Point p = caret.getMagicCaretPosition();
-                    if (p == null) {
-                        Rectangle r = target.modelToView(dot);
-                        p = new Point(r.x, r.y);
-                        caret.setMagicCaretPosition(p);
-                    }
-                    dot = Utilities.getPositionAbove(target, dot, p.x);
-                    if (select) {
-                        caret.moveDot(dot);
-                    } else {
-                        caret.setDot(dot);
-                    }
-                } catch (BadLocationException ex) {
-                    target.getToolkit().beep();
-                }
-            }
-        }
-
-        private boolean select;
-    }
-
-    /*
-     * Move the caret downward one row visually.
-     * @see DefaultEditorKit#downAction
-     * @see DefaultEditorKit#getActions
-     */
-    static class DownAction extends TextAction {
-
-        /** 
-         * Create this action with the appropriate identifier. 
-         * @param nm  the name of the action, Action.NAME.
-         * @param select whether to extend the selection when
-         *  changing the caret position.
-         */
-        DownAction(String nm, boolean select) {
-            super(nm);
-            this.select = select;
-        }
-
-        /** The operation to perform when this action is triggered. */
-        public void actionPerformed(ActionEvent e) {
-            JTextComponent target = getTextComponent(e);
-            if (target != null) {
-                try {
-                    Caret caret = target.getCaret();
-                    int dot = caret.getDot();
-                    Point p = caret.getMagicCaretPosition();
-                    if (p == null) {
-                        Rectangle r = target.modelToView(dot);
-                        p = new Point(r.x, r.y);
-                        caret.setMagicCaretPosition(p);
-                    }
-                    dot = Utilities.getPositionBelow(target, dot, p.x);
-                    if (select) {
-                        caret.moveDot(dot);
-                    } else {
-                        caret.setDot(dot);
-                    }
-                } catch (BadLocationException ex) {
-                    target.getToolkit().beep();
-                }
-            }
-        }
-
-        private boolean select;
     }
             
     /*
@@ -1727,6 +1632,7 @@ public class DefaultEditorKit extends EditorKit {
                     } else {
                         target.setCaretPosition(begOffs);
                     }
+		    target.getCaret().setMagicCaretPosition(null);
                 } catch (BadLocationException bl) {
                     target.getToolkit().beep();
                 }
@@ -1767,6 +1673,7 @@ public class DefaultEditorKit extends EditorKit {
                     } else {
                         target.setCaretPosition(endOffs);
                     }
+		    target.getCaret().setMagicCaretPosition(null);
                 } catch (BadLocationException bl) {
                     target.getToolkit().beep();
                 }
@@ -2019,6 +1926,30 @@ public class DefaultEditorKit extends EditorKit {
                 Document doc = target.getDocument();
                 target.setCaretPosition(0);
                 target.moveCaretPosition(doc.getLength());
+            }
+        }
+
+    }
+
+    /*
+     * Remove the selection, if any.
+     * @see DefaultEditorKit#unselectAction
+     * @see DefaultEditorKit#getActions
+     */
+    static class UnselectAction extends TextAction {
+
+        /** 
+         * Create this action with the appropriate identifier. 
+         */
+        UnselectAction() {
+            super(unselectAction);
+        }
+
+        /** The operation to perform when this action is triggered. */
+        public void actionPerformed(ActionEvent e) {
+            JTextComponent target = getTextComponent(e);
+            if (target != null) {
+                target.setCaretPosition(target.getCaretPosition());
             }
         }
 

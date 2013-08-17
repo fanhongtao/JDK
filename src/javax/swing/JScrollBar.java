@@ -1,10 +1,10 @@
 /*
- * @(#)JScrollBar.java	1.55 98/08/28
+ * @(#)JScrollBar.java	1.60 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -43,8 +43,8 @@ import java.io.IOException;
  * the displayable contents.
  * <p>
  * Typically, as the position of the knob in the scrollbar changes
- * a corresponding change is made to the position of the JViewPort on
- * the underlying view, changing the contents of the JViewPort.
+ * a corresponding change is made to the position of the JViewport on
+ * the underlying view, changing the contents of the JViewport.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -58,7 +58,7 @@ import java.io.IOException;
  *      attribute: isContainer false
  *    description: A component that helps determine the visible content range of an area.
  *
- * @version 1.55 08/28/98
+ * @version 1.60 04/22/99
  * @author David Kloba
  */
 public class JScrollBar extends JComponent implements Adjustable, Accessible
@@ -414,7 +414,6 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
      * @see BoundedRangeModel#setValue
      * @beaninfo
      *   preferred: true
-     *       bound: true
      * description: The scrollbar's current value.
      */
     public void setValue(int value) {
@@ -532,7 +531,6 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
      * @see BoundedRangeModel#setValueIsAdjusting
      * @beaninfo
      *      expert: true
-     *       bound: true
      * description: True if the scrollbar thumb is being dragged.
      */
     public void setValueIsAdjusting(boolean b) { 
@@ -707,9 +705,6 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JScrollBar.
      */

@@ -1,10 +1,10 @@
 /*
- * @(#)BasicScrollBarUI.java	1.49 98/08/26
+ * @(#)BasicScrollBarUI.java	1.52 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -27,7 +27,7 @@ import javax.swing.plaf.*;
 /**
  * Implementation of ScrollBarUI for the Basic Look and Feel
  *
- * @version 1.49 08/26/98
+ * @version 1.52 04/22/99
  * @author Rich Schiavi
  * @author David Kloba
  * @author Hans Muller
@@ -65,6 +65,8 @@ public class BasicScrollBarUI
     protected ScrollListener scrollListener;
     protected PropertyChangeListener propertyChangeListener; 
     protected Timer scrollTimer;
+
+    private final static int scrollSpeedThrottle = 60; // delay in milli seconds
 
 
     public static ComponentUI createUI(JComponent c)    {
@@ -163,7 +165,7 @@ public class BasicScrollBarUI
 	}
 
 	scrollListener = createScrollListener();
-	scrollTimer = new Timer(100, scrollListener);
+	scrollTimer = new Timer(scrollSpeedThrottle, scrollListener);
 	scrollTimer.setInitialDelay(300);  // default InitialDelay?
     }
 
@@ -869,8 +871,10 @@ public class BasicScrollBarUI
 	boolean handledEvent;
 	
 	public void mousePressed(MouseEvent e)		{
-	    if(!scrollbar.isEnabled())
-		return;
+	    if(!scrollbar.isEnabled()) { return; }
+	    // not an unmodified left mouse button
+	    //if(e.getModifiers() != InputEvent.BUTTON1_MASK) {return; }
+	    if( ! SwingUtilities.isLeftMouseButton(e)) { return; }
 
 	    int direction = (e.getSource() == incrButton) ? 1 : -1;
 		

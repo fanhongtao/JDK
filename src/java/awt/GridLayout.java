@@ -1,7 +1,7 @@
 /*
- * @(#)GridLayout.java	1.23 98/09/21
+ * @(#)GridLayout.java	1.25 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -44,8 +44,20 @@ package java.awt;
  * <p>
  * <img src="doc-files/GridLayout-1.gif" 
  * ALIGN=center HSPACE=10 VSPACE=7>
+ * <p>
+ * When both the number of rows and the number of columns have 
+ * been set to non-zero values, either by a constructor or 
+ * by the <tt>setRows</tt> and <tt>setColumns</tt> methods, the number of 
+ * columns specified is ignored.  Instead, the number of 
+ * columns is determined from the specified number or rows 
+ * and the total number of components in the layout. So, for 
+ * example, if three rows and two columns have been specified 
+ * and nine components are added to the layout, then they will 
+ * be displayed as three rows of three columns.  Specifying 
+ * the number of columns affects the layout only when the 
+ * number of rows is set to zero.
  *
- * @version 1.23, 09/21/98
+ * @version 1.25, 04/22/99
  * @author 
  * @since   JDK1.0
  */
@@ -184,7 +196,12 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
     }
 
     /**
-     * Sets the number of columns in this layout to the specified value.
+     * Sets the number of columns in this layout to the specified value. 
+     * Setting the number of columns has no affect on the layout 
+     * if the number of rows specified by a constructor or by 
+     * the <tt>setRows</tt> method is non-zero. In that case, the number 
+     * of columns displayed in the layout is determined by the total 
+     * number of components and the number of rows specified.
      * @param        cols   the number of columns in this layout.
      * @exception    IllegalArgumentException  if the value of both 
      *               <code>rows</code> and <code>cols</code> is set to zero.

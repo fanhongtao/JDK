@@ -1,10 +1,10 @@
 /*
- * @(#)JEditorPane.java	1.68 98/09/08
+ * @(#)JEditorPane.java	1.76 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -16,7 +16,7 @@ package javax.swing;
 import java.awt.*;
 import java.awt.event.*;
 import java.net.*;
-import java.util.Hashtable;
+import java.util.*;
 import java.io.*;
 import java.util.*;
 
@@ -152,7 +152,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  *
  * @author  Timothy Prinzing
- * @version 1.68 09/08/98
+ * @version 1.76 04/22/99
  */
 public class JEditorPane extends JTextComponent {
 
@@ -303,13 +303,25 @@ public class JEditorPane extends JTextComponent {
 
 	// reset scrollbar
 	scrollRectToVisible(new Rectangle(0,0,1,1));
+	boolean reloaded = false;
 	if ((loaded == null) || (! loaded.sameFile(page))) {
 
 	    // different url, load the new content
 	    InputStream in = getStream(page);
 	    if (kit != null) {
 		Document doc = kit.createDefaultDocument();
-		doc.putProperty(Document.StreamDescriptionProperty, page);
+		if (pageProperties != null) {
+		    // transfer properties discovered in stream to the
+		    // document property collection.
+		    for (Enumeration e = pageProperties.keys(); e.hasMoreElements() ;) {
+			Object key = e.nextElement();
+			doc.putProperty(key, pageProperties.get(key));
+		    }
+		    pageProperties.clear();
+		}
+		if (doc.getProperty(Document.StreamDescriptionProperty) == null) {
+		    doc.putProperty(Document.StreamDescriptionProperty, page);
+		}
 
 		// At this point, one could either load up the model with no
 		// view notifications slowing it down (i.e. best synchronous
@@ -328,11 +340,22 @@ public class JEditorPane extends JTextComponent {
 		}
 		read(in, doc);
 		setDocument(doc);  
+		reloaded = true;
 	    }
 	}
-	String reference = page.getRef();
+	final String reference = page.getRef();
 	if (reference != null) {
-	    scrollToReference(reference);
+	    if (!reloaded) {
+		scrollToReference(reference);
+	    }
+	    else {
+		// Have to scroll after painted.
+		SwingUtilities.invokeLater(new Runnable() {
+		    public void run() {
+			scrollToReference(reference);
+		    }
+		});
+	    }
 	}
         firePropertyChange("page", loaded, page);
     }
@@ -478,9 +501,38 @@ public class JEditorPane extends JTextComponent {
      */
     protected InputStream getStream(URL page) throws IOException {
 	URLConnection conn = page.openConnection();
+	if (conn instanceof HttpURLConnection) {
+	    HttpURLConnection hconn = (HttpURLConnection) conn;
+	    hconn.setFollowRedirects(false);
+	    int response = hconn.getResponseCode();
+	    boolean redirect = (response >= 300 && response <= 399);
+
+	    /*
+	     * In the case of a redirect, we want to actually change the URL
+	     * that was input to the new, redirected URL
+	     */
+	    if (redirect) {
+		String loc = conn.getHeaderField("Location");
+		if (loc.startsWith("http", 0)) {
+		    page = new URL(loc);
+		} else {
+		    page = new URL(page, loc);
+		}
+		return getStream(page);
+	    }
+	}
+	if (pageProperties == null) {
+	    pageProperties = new Hashtable();
+	}
 	String type = conn.getContentType();
 	if (type != null) {
 	    setContentType(type);
+	    pageProperties.put("content-type", type);
+	}
+	pageProperties.put(Document.StreamDescriptionProperty, page);
+	String enc = conn.getContentEncoding();
+	if (enc != null) {
+	    pageProperties.put("content-encoding", enc);
 	}
 	InputStream in = conn.getInputStream();
 	return in;
@@ -692,6 +744,12 @@ public class JEditorPane extends JTextComponent {
      * the new kit is installed, and a default document created for it.
      * A PropertyChange event ("editorKit") is always fired when
      * setEditorKit() is called.
+     * <p>
+     * <em>NOTE: This has the side effect of changing the model,
+     * because the EditorKit is the source of how a particular type
+     * of content is modeled.  This method will cause setDocument
+     * to be called on behalf of the caller to insure integrity
+     * of the internal state.</em>
      * 
      * @param kit the desired editor behavior.
      * @see #getEditorKit
@@ -744,7 +802,7 @@ public class JEditorPane extends JTextComponent {
             }
         }
         if (k == null) {
-            k = new DefaultEditorKit();
+            k = createDefaultEditorKit();
         }
         return k;
     }
@@ -812,7 +870,7 @@ public class JEditorPane extends JTextComponent {
 
     /**
      * Create a handler for the given type from the default registry
-     * of editor kits.  The registry is created if necessary.  It the
+     * of editor kits.  The registry is created if necessary.  If the
      * registered class has not yet been loaded, an attempt
      * is made to dynamically load the prototype of the kit for the
      * given type.  If the type was registered with a ClassLoader,
@@ -821,10 +879,11 @@ public class JEditorPane extends JTextComponent {
      * load the prototype.
      * <p>
      * Once a prototype EditorKit instance is successfully located,
-     * it is cloned and the clone is returned.
+     * it is cloned and the clone is returned.  
      *
      * @param type the content type
-     * @return the editor kit, or null if one cannot be created
+     * @return the editor kit, or null if there is nothing
+     *   registered for the given type.
      */
     public static EditorKit createEditorKitForContentType(String type) {
         EditorKit k = null;
@@ -851,7 +910,6 @@ public class JEditorPane extends JTextComponent {
                 k = (EditorKit) c.newInstance();
                 kitRegistry.put(type, k);
             } catch (Throwable e) {
-                e.printStackTrace();
                 k = null;
             }
         }
@@ -991,9 +1049,29 @@ public class JEditorPane extends JTextComponent {
      * Sets the text of this TextComponent to the specified content,
      * which is expected to be in the format of the content type of
      * this editor.  For example, if the type is set to <code>text/html</code>
-     * the string should be specified in terms of html.  This is implemented
-     * to call <code>JTextComponent.read</code> with a 
-     * <code>StringReader</code>[
+     * the string should be specified in terms of html.  
+     * <p>
+     * This is implemented to remove the contents of the current document,
+     * and replace them by parsing the given string using the current
+     * EditorKit.  This gives the semantics of the superclass by not changing
+     * out the model, while supporting the content type currently set on
+     * this component.  The assumption is that the previous content is relatively
+     * small, and that the previous content doesn't have side effects.
+     * Both of those assumptions can be violated and cause undesirable results.
+     * <ol>
+     * <li>
+     * Leaving the existing model in place means that the old view will be
+     * torn down, and a new view created, where replacing the document would
+     * avoid the tear down of the old view.
+     * <li>
+     * Some formats (such as html) can install things into the document that
+     * can influence future contents.  HTML can have style information embedded
+     * that would influence the next content installed unexpectedly.
+     * </ol>
+     * <p>
+     * An alternative way to load this component with a string would be to
+     * create a StringReader and call the read method.  In this case the model
+     * would be replaced after it was initialized with the contents of the string.
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
@@ -1007,11 +1085,16 @@ public class JEditorPane extends JTextComponent {
      */
     public void setText(String t) {
         try {
+	    Document doc = getDocument();
+	    doc.remove(0, doc.getLength());
 	    Reader r = new StringReader(t);
-	    read(r, null);
+	    EditorKit kit = getEditorKit();
+            kit.read(r, doc, 0);
         } catch (IOException ioe) {
             getToolkit().beep();
-        }
+        } catch (BadLocationException ble) {
+            getToolkit().beep();
+	}
     }
 
     /**
@@ -1100,6 +1183,8 @@ public class JEditorPane extends JTextComponent {
      */
     private EditorKit kit;
 
+    private Hashtable pageProperties;
+
     /**
      * Table of registered type handlers for this editor.
      */
@@ -1138,9 +1223,6 @@ public class JEditorPane extends JTextComponent {
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JEditorPane.
      */
@@ -1546,8 +1628,18 @@ public class JEditorPane extends JTextComponent {
 	}
     }
 
-
     static class PlainEditorKit extends DefaultEditorKit implements ViewFactory {
+
+	/**
+	 * Creates a copy of the editor kit.  This
+	 * allows an implementation to serve as a prototype
+	 * for others, so that they can be quickly created.
+	 *
+	 * @return the copy
+	 */
+        public Object clone() {
+	    return new PlainEditorKit();
+	}
 
 	/**
 	 * Fetches a factory that is suitable for producing 

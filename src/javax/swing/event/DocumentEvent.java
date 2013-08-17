@@ -1,5 +1,5 @@
 /*
- * @(#)DocumentEvent.java	1.15 98/08/26
+ * @(#)DocumentEvent.java	1.16 98/10/22
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -17,10 +17,17 @@ import javax.swing.undo.*;
 import javax.swing.text.*;
 
 /**
- * Interface for document change notifications.
+ * Interface for document change notifications.  This provides
+ * detailed information to Document observers about how the
+ * Document changed.  It provides high level information such
+ * as type of change and where it occured, as well as the more
+ * detailed structural changes (What Elements were inserted and
+ * removed).
  *
  * @author  Timothy Prinzing
- * @version 1.15 08/26/98
+ * @version 1.16 10/22/98
+ * @see javax.swing.text.Document
+ * @see DocumentListener
  */
 public interface DocumentEvent {
 
@@ -58,6 +65,25 @@ public interface DocumentEvent {
      * The change information describes what elements were
      * added and removed and the location.  If there were
      * no changes, null is returned.
+     * <p>
+     * This method is for observers to discover the structural
+     * changes that were made.  This means that only elements
+     * that existed prior to the mutation (and still exist after
+     * the mutatino) need to have ElementChange records.
+     * The changes made available need not be recursive.
+     * <p>
+     * For example, if the an element is removed from it's
+     * parent, this method should report that the parent
+     * changed and provide an ElementChange implementation
+     * that describes the change to the parent.  If the
+     * child element removed had children, these elements
+     * do not need to be reported as removed.
+     * <p>
+     * If an child element is insert into a parent element,
+     * the parent element should report a change.  If the
+     * child element also had elements inserted into it
+     * (grandchildren to the parent) these elements need
+     * not report change.
      *
      * @param elem the element
      * @return the change information, or null if the 
@@ -66,7 +92,7 @@ public interface DocumentEvent {
     public ElementChange getChange(Element elem);
 
     /**
-     * Typesafe enumeration for document event types
+     * Enumeration for document event types
      */
     public static final class EventType {
 
@@ -102,7 +128,7 @@ public interface DocumentEvent {
     }
 
     /**
-     * Describes changes made to an element.
+     * Describes changes made to a specific element.
      */
     public interface ElementChange {
 
@@ -125,10 +151,9 @@ public interface DocumentEvent {
 
 	/**
 	 * Gets the child elements that were removed from the
-	 * given parent element.  The parent element is expected
-	 * to be one of the elements listed in the elementsModified
-	 * method.  The element array returned is sorted in the
-	 * order that the elements used to lie in the document.
+	 * given parent element.  The element array returned is 
+	 * sorted in the order that the elements used to lie in 
+	 * the document, and must be contiguous.
 	 *
 	 * @return the child elements
 	 */
@@ -136,10 +161,9 @@ public interface DocumentEvent {
 
 	/**
 	 * Gets the child elements that were added to the given
-	 * parent element.  The parent element is expected to be
-	 * one of the elements given in the elementsModified method.
-	 * The element array returned is sorted in the order that
-	 * the elements lie in the document.
+	 * parent element.  The element array returned is in the 
+	 * order that the elements lie in the document, and must
+	 * be contiguous.
 	 *
 	 * @return the child elements
 	 */

@@ -1,15 +1,14 @@
 /*
- * @(#)Window.java	1.106 98/10/27
+ * @(#)Window.java	1.115 00/03/08
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
+ * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
+ * 
  */
 package java.awt;
 
@@ -40,7 +39,7 @@ import sun.security.action.GetPropertyAction;
  * Windows are capable of generating the following window events:
  * WindowOpened, WindowClosed.
  *
- * @version 	1.106, 10/27/98
+ * @version 	1.110, 12/15/98
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -62,6 +61,7 @@ public class Window extends Container {
      * @see getWarningString()
      */
     String      warningString;
+	boolean		nativeActive;
 
     static final int OPENED = 0x01;
 
@@ -80,7 +80,7 @@ public class Window extends Container {
      * @since JDK1.2
      * @see getOwnedWindows()
      */
-    transient Vector ownedWindowList;
+    transient Vector ownedWindowList = new Vector();
     private transient WeakReference weakThis;
 
     transient WindowListener windowListener;
@@ -139,6 +139,7 @@ public class Window extends Container {
      */
     Window() {
 	setWarningString();
+	this.cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
 	this.focusMgr = new FocusManager(this);
 	this.visible = false;
 	this.inputContext = InputContext.getInstance();
@@ -233,6 +234,11 @@ public class Window extends Container {
      */
     public void addNotify() {
 	synchronized (getTreeLock()) {
+	    Container parent = this.parent;
+	    if (parent != null && parent.getPeer() == null) {
+	        parent.addNotify();
+	    }
+
 	    if (peer == null)
 		peer = getToolkit().createWindow(this);
 	    super.addNotify();
@@ -272,10 +278,6 @@ public class Window extends Container {
      * @see       java.awt.Component#setVisible
      */
     public void show() {
-    	Container parent = this.parent;
-	if (parent != null && parent.getPeer() == null) {
-	    parent.addNotify();
-	}
 	if (peer == null) {
 	    addNotify();
 	}
@@ -303,11 +305,32 @@ public class Window extends Container {
     }
         
     /**
-     * Releases all of the native screen resources used by this Window and
-     * its subcomponents. That is, the resources for the Window, all of its
-     * contained children, and all of its owned Windows will be destroyed,
-     * and any memory they consume returned to the OS. The Window and all of
-     * its subcomponents will be marked as undisplayable.
+     * Hide this Window, its subcomponents, and all of its owned children. 
+     * The Window and its subcomponents can be made visible again
+     * with a call to <code>show</code>. 
+     * </p>
+     * @see Window#show
+     * @see Window#dispose
+     */
+    public void hide() {
+        synchronized(ownedWindowList) {
+	    for (int i = 0; i < ownedWindowList.size(); i++) {
+	        Window child = (Window) (((WeakReference)
+		    (ownedWindowList.elementAt(i))).get());
+		if (child != null) {
+		    child.hide();
+		}
+	    }
+	}
+	super.hide();
+    }
+
+    /**
+     * Releases all of the native screen resources used by this Window, 
+     * its subcomponents, and all of its owned children. That is, the 
+     * resources for these Components will be destroyed, any memory 
+     * they consume will be returned to the OS, and they will be marked 
+     * as undisplayable.
      * <p>
      * The Window and its subcomponents can be made displayable again
      * by rebuilding the native resources with a subsequent call to
@@ -317,21 +340,18 @@ public class Window extends Container {
      * additional modifcations between those actions).
      * </p>
      * @see Component#isDisplayable
-     * @see Window#getOwnedWindows
      * @see Window#pack
      * @see Window#show
      */
     public void dispose() {
         class DisposeAction implements Runnable {
 	    public void run() {
-	        if (ownedWindowList != null) {
-		    synchronized (ownedWindowList) {
-		        for (int i = 0; i < ownedWindowList.size(); i++) {
-			    Window child = (Window) (((WeakReference)
-			        (ownedWindowList.elementAt(i))).get());
-			    if (child != null) {
-			        child.dispose();
-			    }
+	        synchronized(ownedWindowList) {
+		    for (int i = 0; i < ownedWindowList.size(); i++) {
+		        Window child = (Window) (((WeakReference)
+			    (ownedWindowList.elementAt(i))).get());
+			if (child != null) {
+			    child.dispose();
 			}
 		    }
 		}
@@ -465,6 +485,23 @@ public class Window extends Container {
     }
 
     /**
+     * Set the cursor image to a specified cursor.
+     * @param <code>cursor</code> One of the constants defined
+     *            by the <code>Cursor</code> class. If this parameter is null
+     *            then the cursor for this window will be set to the type
+     *            Cursor.DEFAULT_CURSOR.
+     * @see       java.awt.Component#getCursor
+     * @see       java.awt.Cursor
+     * @since     JDK1.1
+     */
+    public synchronized void setCursor(Cursor cursor) {
+        if (cursor == null) {
+            cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+        }
+        super.setCursor(cursor);
+    }
+
+    /**
      * Returns the owner of this window.
      */
     public Window getOwner() {
@@ -478,36 +515,34 @@ public class Window extends Container {
      */
     public Window[] getOwnedWindows() {
         Window realCopy[];
-        if (ownedWindowList != null) {
-            synchronized(ownedWindowList) {
-	        // Recall that ownedWindowList is actually a Vector of
-	        // WeakReferences and calling get() on one of these references
-	        // may return null. Make two arrays-- one the size of the
-	        // Vector (fullCopy with size fullSize), and one the size of 
-	        // all non-null get()s (realCopy with size realSize).
-                int fullSize = ownedWindowList.size();
-                int realSize = 0;
-                Window fullCopy[] = new Window[fullSize];
 
-                for (int i = 0; i < fullSize; i++) {
-                    fullCopy[realSize] = (Window) (((WeakReference)
-                        (ownedWindowList.elementAt(i))).get());
+	synchronized(ownedWindowList) {
+	    // Recall that ownedWindowList is actually a Vector of
+	    // WeakReferences and calling get() on one of these references
+	    // may return null. Make two arrays-- one the size of the
+	    // Vector (fullCopy with size fullSize), and one the size of 
+	    // all non-null get()s (realCopy with size realSize).
+	    int fullSize = ownedWindowList.size();
+	    int realSize = 0;
+	    Window fullCopy[] = new Window[fullSize];
 
-                    if (fullCopy[realSize] != null) {
-                        realSize++;
-                    }
-                }
+	    for (int i = 0; i < fullSize; i++) {
+	        fullCopy[realSize] = (Window) (((WeakReference)
+		    (ownedWindowList.elementAt(i))).get());
 
-		if (fullSize != realSize) {
-		    realCopy = new Frame[realSize];
-		    System.arraycopy(fullCopy, 0, realCopy, 0, realSize);
-		} else {
-		    realCopy = fullCopy;
+		if (fullCopy[realSize] != null) {
+		    realSize++;
 		}
 	    }
-	} else {
-	    realCopy = new Window[0];
+
+	    if (fullSize != realSize) {
+	        realCopy = new Frame[realSize];
+		System.arraycopy(fullCopy, 0, realCopy, 0, realSize);
+	    } else {
+	        realCopy = fullCopy;
+	    }
 	}
+
         return realCopy;
     }
 
@@ -669,7 +704,7 @@ public class Window extends Container {
      * assigned to them.
      */
     public Component getFocusOwner() {
-        if (active)
+        if (active || nativeActive)
             return focusMgr.getFocusOwner();
         else
             return null;
@@ -760,27 +795,25 @@ public class Window extends Container {
         applyResourceBundle(ResourceBundle.getBundle(rbName));
     }
 
-
-
    /* 
     * Support for tracking all windows owned by this window
     */
     void addOwnedWindow(WeakReference weakWindow) {
         if (weakWindow != null) {
-	    if (ownedWindowList == null) {
-	        ownedWindowList = new Vector();
-	    }
-
-	    // this if statement should really be an assert, but we don't
-	    // have asserts...
-	    if (!ownedWindowList.contains(weakWindow)) {
-	        ownedWindowList.addElement(weakWindow);
+	    synchronized(ownedWindowList) {
+	        // this if statement should really be an assert, but we don't
+	        // have asserts...
+	        if (!ownedWindowList.contains(weakWindow)) {
+		    ownedWindowList.addElement(weakWindow);
+		}
 	    }
 	}
     }
 
     void removeOwnedWindow(WeakReference weakWindow) {
-        if (weakWindow != null && ownedWindowList != null) {
+        if (weakWindow != null) {
+	    // synchronized block not required since removeElement is
+	    // already synchronized
 	    ownedWindowList.removeElement(weakWindow);
 	}
     }
@@ -829,15 +862,13 @@ public class Window extends Container {
       AWTEventMulticaster.save(s, windowListenerK, windowListener);
       s.writeObject(null);
 
-      if (ownedWindowList != null) {
-	  synchronized (ownedWindowList) {
-	      for (int i = 0; i < ownedWindowList.size(); i++) {
-		  Window child = (Window) (((WeakReference)
-		      (ownedWindowList.elementAt(i))).get());
-		  if (child != null) {
-		      s.writeObject(ownedWindowK);
-		      s.writeObject(child);
-		  }
+      synchronized (ownedWindowList) {
+	  for (int i = 0; i < ownedWindowList.size(); i++) {
+	      Window child = (Window) (((WeakReference)
+	          (ownedWindowList.elementAt(i))).get());
+	      if (child != null) {
+		  s.writeObject(ownedWindowK);
+		  s.writeObject(child);
 	      }
 	  }
       }
@@ -857,6 +888,7 @@ public class Window extends Container {
       throws ClassNotFoundException, IOException 
     {
       s.defaultReadObject();
+      ownedWindowList = new Vector();
 
       Object keyOrNull;
       while(null != (keyOrNull = s.readObject())) {

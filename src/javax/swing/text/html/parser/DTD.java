@@ -1,10 +1,10 @@
 /*
- * @(#)DTD.java	1.6 98/08/26
+ * @(#)DTD.java	1.9 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -43,7 +43,7 @@ import java.net.URL;
  * @see DTDParser
  * @see Parser
  * @author Arthur van Hoff
- * @version 1.6 08/26/98
+ * @version 1.9 04/22/99
  */
 public
 class DTD implements DTDConstants {
@@ -62,6 +62,8 @@ class DTD implements DTDConstants {
     public final Element param = getElement("param");
     public final Element p = getElement("p");
     public final Element title = getElement("title");
+    final Element style = getElement("style");
+    final Element link = getElement("link");
 
     public static int FILE_VERSION = 1;
 

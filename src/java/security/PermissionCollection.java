@@ -1,5 +1,5 @@
 /*
- * @(#)PermissionCollection.java	1.22 98/06/29
+ * @(#)PermissionCollection.java	1.23 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -69,7 +69,7 @@ import java.util.*;
  * @see Permission
  * @see Permissions
  *
- * @version 1.22 00/05/10
+ * @version 1.23 98/12/03
  *
  * @author Roland Schemers
  */

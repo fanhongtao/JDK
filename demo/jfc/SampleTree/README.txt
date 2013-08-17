@@ -11,9 +11,9 @@ illustrates a number of features:
 - Subclassing JTreeModel for editing (see SampleTreeModel.java)
 
 
-To run the SampleTree demo on 1.2:
-  java SampleTree
- 
+To run the SampleTree demo on 1.2 <all platforms>:
+  java -jar SampleTree.jar
+
 To run the SampleTree demo on 1.1.x on Solaris:
   setenv SWING_HOME <path to swing release>
   setenv JAVA_HOME <path to jdk1.1.x release>

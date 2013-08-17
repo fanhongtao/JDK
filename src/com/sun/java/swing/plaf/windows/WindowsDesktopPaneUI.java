@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsDesktopPaneUI.java	1.11 98/09/08
+ * @(#)WindowsDesktopPaneUI.java	1.12 98/10/30
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -29,7 +29,7 @@ import java.awt.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version %i% 09/08/98
+ * @version %i% 10/30/98
  * @author David Kloba
  */
 public class WindowsDesktopPaneUI extends BasicDesktopPaneUI
@@ -61,23 +61,17 @@ public class WindowsDesktopPaneUI extends BasicDesktopPaneUI
     protected void installKeyboardActions() {
       super.installKeyboardActions();
         desktop.registerKeyboardAction(
-            new AbstractAction() {
+            new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     switchFrame(true);
-                }
-                public boolean isEnabled() { 
-                    return true; 
                 }
             },
             KeyStroke.getKeyStroke(KeyEvent.VK_F6, InputEvent.CTRL_MASK), 
             JComponent.WHEN_IN_FOCUSED_WINDOW);
         desktop.registerKeyboardAction(
-            new AbstractAction() {
+            new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     switchFrame(false);
-                }
-                public boolean isEnabled() { 
-                    return true; 
                 }
             },
             KeyStroke.getKeyStroke(KeyEvent.VK_F6, 

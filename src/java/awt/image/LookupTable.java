@@ -1,10 +1,10 @@
 /*
- * @(#)LookupTable.java	1.17 98/07/27
+ * @(#)LookupTable.java	1.20 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -46,6 +46,12 @@ public abstract class LookupTable extends Object{
     /**
      * Constructs a new LookupTable from the number of components and an offset
      * into the lookup table.
+     * @param offset the offset to subtract from input values before indexing
+     *        into the data arrays for this <code>LookupTable</code>
+     * @param numComponents the number of data arrays in this
+     *        <code>LookupTable</code>
+     * @throws IllegalArgumentException if <code>offset</code> is less than 0
+     *         or if <code>numComponents</code> is less than 1
      */
     protected LookupTable(int offset, int numComponents) {
         if (offset < 0) {

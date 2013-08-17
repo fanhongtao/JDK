@@ -1,10 +1,10 @@
 /*
- * @(#)DefaultTreeModel.java	1.35 98/08/28
+ * @(#)DefaultTreeModel.java	1.37 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -29,7 +29,7 @@ import javax.swing.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.35 08/28/98
+ * @version 1.37 04/22/99
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -257,6 +257,9 @@ public class DefaultTreeModel implements Serializable, TreeModel {
                     nodesChanged(parent, cIndexs);
                 }
             }
+	    else if (node == getRoot()) {
+		nodesChanged(node, null);
+	    }
         }
     }
 
@@ -308,18 +311,23 @@ public class DefaultTreeModel implements Serializable, TreeModel {
       * childIndicies are to be represented in the tree.
       */
     public void nodesChanged(TreeNode node, int[] childIndices) {
-        if(node != null && childIndices != null) {
-            int            cCount = childIndices.length;
+        if(node != null) {
+	    if (childIndices != null) {
+		int            cCount = childIndices.length;
 
-            if(cCount > 0) {
-                Object[]       cChildren = new Object[cCount];
+		if(cCount > 0) {
+		    Object[]       cChildren = new Object[cCount];
 
-                for(int counter = 0; counter < cCount; counter++)
-                    cChildren[counter] = node.getChildAt
-                        (childIndices[counter]);
-                fireTreeNodesChanged(this, getPathToRoot(node), childIndices, 
-                                     cChildren);
-            }
+		    for(int counter = 0; counter < cCount; counter++)
+			cChildren[counter] = node.getChildAt
+			    (childIndices[counter]);
+		    fireTreeNodesChanged(this, getPathToRoot(node),
+					 childIndices, cChildren);
+		}
+	    }
+	    else if (node == getRoot()) {
+		fireTreeNodesChanged(this, getPathToRoot(node), null, null);
+	    }
         }
     }
 

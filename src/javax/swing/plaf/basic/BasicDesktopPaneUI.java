@@ -1,10 +1,10 @@
 /*
- * @(#)BasicDesktopPaneUI.java	1.21 98/09/08
+ * @(#)BasicDesktopPaneUI.java	1.27 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -29,7 +29,7 @@ import java.util.Vector;
 /**
  * Basic L&F for a desktop.
  *
- * @version 1.21 09/08/98
+ * @version 1.27 04/22/99
  * @author Steve Wilson
  */
 public class BasicDesktopPaneUI extends DesktopPaneUI
@@ -61,8 +61,10 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
     }
 
     public void uninstallUI(JComponent c) {
-        uninstallDefaults();
+	uninstallKeyboardActions();
 	uninstallDesktopManager();
+        uninstallDefaults();
+	desktop = null;
     }
 
     protected void installDefaults() {
@@ -85,7 +87,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
 	if(desktop.getDesktopManager() == desktopManager) {
 	    desktop.setDesktopManager(null);
 	}
-	desktop = null;
+	desktopManager = null;
     }
 
     protected void installKeyboardActions(){
@@ -123,12 +125,12 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
     }
  
     protected void unregisterKeyboardActions(){
-      minimizeKey = maximizeKey = closeKey = navigateKey = navigateKey2 = null;
       desktop.unregisterKeyboardAction(minimizeKey);
       desktop.unregisterKeyboardAction(maximizeKey);
       desktop.unregisterKeyboardAction(closeKey);
       desktop.unregisterKeyboardAction(navigateKey);
       desktop.unregisterKeyboardAction(navigateKey2);      
+      minimizeKey = maximizeKey = closeKey = navigateKey = navigateKey2 = null;
     }
 
     protected void uninstallKeyboardActions(){ 
@@ -181,14 +183,18 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
 
     protected class CloseAction extends AbstractAction {
       public void actionPerformed(ActionEvent e) {
-	JInternalFrame f = desktop.getAllFrames()[0]; // current active frame
-	if (f != null){
-	  if (f.isClosable()){
-	    try {
-	      f.setClosed(true);
-	    } catch(PropertyVetoException e0) { } 
-	  }
-	}
+		  // need to check for no JInternalFrame in the desktop
+		  JInternalFrame[] results = desktop.getAllFrames();
+		  JInternalFrame f = null;
+		  if (results.length > 0)
+			  f = results[0];
+		  if (f != null){
+			  if (f.isClosable()){
+				  try {
+					  f.setClosed(true);
+				  } catch(PropertyVetoException e0) { } 
+			  }
+		  }
       }
       public boolean isEnabled() { 
 	return true;

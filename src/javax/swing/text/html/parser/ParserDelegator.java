@@ -1,10 +1,10 @@
 /*
- * @(#)ParserDelegator.java	1.4 98/08/26
+ * @(#)ParserDelegator.java	1.6 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.DataInputStream;
 import java.io.Reader;
+import java.lang.reflect.Method;
 
 /**
  * Responsible for starting up a new DocumentParser
@@ -26,8 +27,7 @@ import java.io.Reader;
  * reference to the dtd.
  *
  * @author  Sunita Mani
- *
- * @version 1.4, 08/26/98
+ * @version 1.6, 04/22/99
  */
 
 public class ParserDelegator extends HTMLEditorKit.Parser {
@@ -54,7 +54,7 @@ public class ParserDelegator extends HTMLEditorKit.Parser {
 	boolean debug = true;
 	try {
 	    String path = name + ".bdtd";
-	    in = ParserDelegator.class.getResourceAsStream(path);
+	    in = getResourceAsStream(path);
             if (in != null) {
                 dtd.read(new DataInputStream(in));
                 dtd.putDTDHash(name, dtd);
@@ -75,6 +75,37 @@ public class ParserDelegator extends HTMLEditorKit.Parser {
     public void parse(Reader r, HTMLEditorKit.ParserCallback cb, boolean ignoreCharSet) throws IOException {
 	new DocumentParser(dtd).parse(r, cb, ignoreCharSet);
     }
+
+    /**
+     * Fetch a resource relative to the ParserDelegator classfile.
+     * If this is called on 1.2 the loading will occur under the
+     * protection of a doPrivileged call to allow the ParserDelegator
+     * to function when used in an applet.
+     *
+     * @param name the name of the resource, relative to the
+     *  ParserDelegator class.
+     * @returns a stream representing the resource
+     */
+    static InputStream getResourceAsStream(String name) {
+	try {
+	    Class klass;
+	    ClassLoader loader = ParserDelegator.class.getClassLoader();
+	    if (loader != null) {
+		klass = loader.loadClass("javax.swing.text.html.parser.ResourceLoader");
+	    } else {
+		klass = Class.forName("javax.swing.text.html.parser.ResourceLoader");
+	    }
+	    Class[] parameterTypes = { String.class };
+	    Method loadMethod = klass.getMethod("getResourceAsStream", parameterTypes);
+	    String[] args = { name };
+	    return (InputStream) loadMethod.invoke(null, args);
+	} catch (Throwable e) {
+	    // If the class doesn't exist or we have some other 
+	    // problem we just try to call getResourceAsStream directly.
+	    return ParserDelegator.class.getResourceAsStream(name);
+	}
+    }
+
 }
 
 

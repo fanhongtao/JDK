@@ -1,10 +1,10 @@
 /*
- * @(#)MetalUtils.java	1.17 98/08/26
+ * @(#)MetalUtils.java	1.19 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -21,7 +21,7 @@ import java.awt.*;
 /**
  * This is a dumping ground for random stuff we want to use in several places.
  *
- * @version 1.17 08/26/98
+ * @version 1.19 04/22/99
  * @author Steve Wilson
  */
 
@@ -129,6 +129,20 @@ class MetalUtils {
 	g.drawLine( 0, h-2, 0, h-2);
     }
 
+    /*
+     * Convenience function for determining ComponentOrientation.  Helps us
+     * avoid having Munge directives throughout the code.
+     */
+    static boolean isLeftToRight( Component c ) {
+        
+        return c.getComponentOrientation().isLeftToRight();
+        
+
+
+
+
+    }
+    
     static class TableHeaderBorder extends javax.swing.border.AbstractBorder {
         protected Insets editorBorderInsets = new Insets( 2, 2, 2, 0 );
 

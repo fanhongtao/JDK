@@ -1,10 +1,10 @@
 /*
- * @(#)SortedSet.java	1.8 98/09/30
+ * @(#)SortedSet.java	1.10 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -37,8 +37,8 @@ package java.util;
  * the <tt>Comparable</tt> interface or <tt>Comparator</tt> interface for a
  * precise definition of <i>consistent with equals</i>.)  This is so because
  * the <tt>Set</tt> interface is defined in terms of the <tt>equals</tt>
- * operation, but a sorted set performs all key comparisons using its
- * <tt>compareTo</tt> (or <tt>compare</tt>) method, so two keys that are
+ * operation, but a sorted set performs all element comparisons using its
+ * <tt>compareTo</tt> (or <tt>compare</tt>) method, so two elements that are
  * deemed equal by this method are, from the standpoint of the sorted set,
  * equal.  The behavior of a sorted set <i>is</i> well-defined even if its
  * ordering is inconsistent with equals; it just fails to obey the general
@@ -59,7 +59,7 @@ package java.util;
  * <tt>TreeSet</tt> class) complies.
  *
  * @author  Josh Bloch
- * @version 1.8 09/30/98
+ * @version 1.10 04/22/99
  * @see Set
  * @see TreeSet
  * @see SortedMap

@@ -1,10 +1,10 @@
 /*
- * @(#)Serializable.java	1.12 98/06/29
+ * @(#)Serializable.java	1.14 99/04/22
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -50,7 +50,7 @@ package java.io;
  * private void readObject(java.io.ObjectInputStream in)
  *     throws IOException, ClassNotFoundException;
  * </PRE><p>
-
+ *
  * The writeObject method is responsible for writing the state of the
  * object for its particular class so that the corresponding
  * readObject method can restore it.  The default mechanism for saving
@@ -60,7 +60,7 @@ package java.io;
  * State is saved by writing the individual fields to the
  * ObjectOutputStream using the writeObject method or by using the
  * methods for primitive data types supported by DataOutput. <p>
-
+ *
  * The readObject method is responsible for reading from the stream and restoring
  * the classes fields. It may call in.defaultReadObject to invoke
  * the default mechanism for restoring the object's non-static and non-transient
@@ -99,7 +99,7 @@ package java.io;
  * accessibility rules as writeReplace.
  *
  * @author  unascribed
- * @version 1.12, 06/29/98
+ * @version 1.14, 04/22/99
  * @see java.io.ObjectOutputStream
  * @see java.io.ObjectInputStream
  * @see java.io.ObjectOutput
@@ -108,5 +108,4 @@ package java.io;
  * @since   JDK1.1
  */
 public interface Serializable {
-    static final long serialVersionUID = 1196656838076753133L;
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)SecureRandom.java	1.30 98/08/24
+ * @(#)SecureRandom.java	1.31 98/12/03
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -78,7 +78,7 @@ import java.util.Enumeration;
  * @see java.security.SecureRandomSpi
  * @see java.util.Random
  * 
- * @version 1.30, 00/05/10
+ * @version 1.31, 98/12/03
  * @author Benjamin Renaud
  * @author Josh Bloch 
  */

@@ -1,5 +1,5 @@
 /*
- * @(#)CellRendererPane.java	1.27 98/08/28
+ * @(#)CellRendererPane.java	1.28 98/09/01
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -48,7 +48,7 @@ import javax.accessibility.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.27 08/28/98
+ * @version 1.28 09/01/98
  * @author Hans Muller
  */
 public class CellRendererPane extends Container implements Accessible
@@ -375,7 +375,7 @@ public class CellRendererPane extends Container implements Accessible
          *
          * @param f the Font
          * @return the FontMetrics, if supported, the object; otherwise, null
-         * @see getFont
+         * @see #getFont
          */
         public FontMetrics getFontMetrics(Font f) {
 	    return CellRendererPane.this.getFontMetrics(f);

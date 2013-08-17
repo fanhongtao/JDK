@@ -1,5 +1,5 @@
 /*
- * @(#)TableColumn.java	1.33 98/08/28
+ * @(#)TableColumn.java	1.34 98/10/21
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -48,7 +48,7 @@ import java.beans.PropertyChangeListener;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.33 08/28/98
+ * @version 1.34 10/21/98
  * @author Alan Chung
  * @author Philip Milne
  * @see TableColumnModel
@@ -351,13 +351,15 @@ public class TableColumn extends Object implements Serializable {
      * Returns the <B>TableCellRenderer</B> used by the <B>JTable</B> to draw
      * values for this column.  The <I>cellRenderer</I> of the column not
      * only controls the visual look for the column, but is also used to
-     * interpret the value object supplied by the TableModel.  The
-     * default <I>cellRenderer</I> is a <B>JCellRenderer</B>
-     * initialized with a <B>JLabel</B>.
+     * interpret the value object supplied by the TableModel. When the 
+     * <I>cellRenderer</I> is null, the JTable uses a default renderer based on 
+     * class of the cells in that column. The default value for a 
+     * <I>cellRenderer</I> is null.  
      *
      * @return	the <B>TableCellRenderer</B> used by the <B>JTable</B> to
      * 		draw values for this column
      * @see	#setCellRenderer
+     * @see	JTable#setDefaultRenderer
      */
     public TableCellRenderer getCellRenderer()
     {
@@ -366,8 +368,7 @@ public class TableColumn extends Object implements Serializable {
 
     /**
      * Sets the <B>TableCellEditor</B> used by <B>JTable</B> to draw individual
-     * values for this column to <I>anEditor</I>.  A <B>null</B> editor
-     * means the column is not editable.
+     * values for this column to <I>anEditor</I>.  
      *
      * @param	anEditor			the new data cell editor
      * @see	#getCellEditor
@@ -381,12 +382,16 @@ public class TableColumn extends Object implements Serializable {
      * Returns the <B>TableCellEditor</B> used by the <B>JTable</B> to draw
      * values for this column.  The <I>cellEditor</I> of the column not
      * only controls the visual look for the column, but is also used to
-     * interpret the value object supplied by the TableModel.  The
-     * default <I>cellEditor</I> is null.
+     * interpret the value object supplied by the TableModel. When the 
+     * <I>cellEditor</I> is null, the JTable uses a default editor based on 
+     * class of the cells in that column. The default value for a 
+     * <I>cellEditor</I> is null.  
+     * 
      *
      * @return	the <B>TableCellEditor</B> used by the <B>JTable</B> to
      * 		draw values for this column
      * @see	#setCellEditor
+     * @see	JTable#setDefaultEditor
      */
     public TableCellEditor getCellEditor()
     {
@@ -519,7 +524,7 @@ public class TableColumn extends Object implements Serializable {
      * Returns the maximum width for the <B>TableColumn</B>. The
      * <B>TableColumn's</B> width can't be made larger than this
      * either by the user or programmatically.  The default maxWidth
-     * is 2000.
+     * is Integer.MAX_VALUE.
      *
      * @return	the maximum width for the <B>TableColumn</B>.
      * @see	#setMaxWidth

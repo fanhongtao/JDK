@@ -1,10 +1,10 @@
 /*
- * @(#)TextJustifier.java	1.11 98/03/18
+ * @(#)TextJustifier.java	1.14 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -109,12 +109,12 @@ class TextJustifier {
                         if (grow) {
                             gslimit += gi.growLeftLimit;
                             if (gi.growAbsorb) {
-                                absorbweight += weight;
+                                absorbweight += gi.weight;
                             }
                         } else {
                             gslimit += gi.shrinkLeftLimit;
                             if (gi.shrinkAbsorb) {
-                                absorbweight += weight;
+                                absorbweight += gi.weight;
                             }
                         }
                     }
@@ -124,12 +124,12 @@ class TextJustifier {
                         if (grow) {
                             gslimit += gi.growRightLimit;
                             if (gi.growAbsorb) {
-                                absorbweight += weight;
+                                absorbweight += gi.weight;
                             }
                         } else {
                             gslimit += gi.shrinkRightLimit;
                             if (gi.shrinkAbsorb) {
-                                absorbweight += weight;
+                                absorbweight += gi.weight;
                             }
                         }
                     }
@@ -140,11 +140,11 @@ class TextJustifier {
             if (!grow) {
                 gslimit = -gslimit; // negative for negative deltas
             }
-            boolean hitLimit = !lastPass && ((delta < 0) == (delta < gslimit));
+            boolean hitLimit = (weight == 0) || (!lastPass && ((delta < 0) == (delta < gslimit)));
             boolean absorbing = hitLimit && absorbweight > 0;
 
             // predivide delta by weight
-            float weightedDelta = delta / weight;
+            float weightedDelta = delta / weight; // not used if weight == 0
 
             float weightedAbsorb = 0;
             if (hitLimit && absorbweight > 0) {
@@ -153,8 +153,12 @@ class TextJustifier {
 
             if (DEBUG) {
                 System.out.println("pass: " + p +
-                    ", w: " + weight +
+                    ", d: " + delta +
                     ", l: " + gslimit +
+                    ", w: " + weight +
+                    ", aw: " + absorbweight +
+                    ", wd: " + weightedDelta +
+                    ", wa: " + weightedAbsorb +
                     ", hit: " + (hitLimit ? "y" : "n"));
             }
 
@@ -200,7 +204,7 @@ class TextJustifier {
                 }
             }
 
-            if (hitLimit && !absorbing) {
+            if (!lastPass && hitLimit && !absorbing) {
                 delta -= gslimit;
             } else {
                 delta = 0; // stop iteration

@@ -1,5 +1,5 @@
 /*
- * @(#)BasicPermission.java	1.16 98/09/15
+ * @(#)BasicPermission.java	1.18 98/12/11
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -53,7 +53,7 @@ import java.io.IOException;
  * @see java.net.NetPermission
  * @see java.lang.SecurityManager
  *
- * @version 1.16 00/05/10
+ * @version 1.18 98/12/11
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -78,7 +78,7 @@ implements java.io.Serializable
     {
 
 	if (name == null)
-		throw new IllegalArgumentException("name can't be null");
+		throw new NullPointerException("name can't be null");
 
 	if (name.endsWith(".*") || name.equals("*")) {
 	    wildcard = true;
@@ -262,7 +262,7 @@ implements java.io.Serializable
  * @see java.security.Permissions
  * @see java.security.PermissionsImpl
  *
- * @version 1.16 00/05/10
+ * @version 1.18 00/04/06
  *
  * @author Roland Schemers
  */

@@ -1,10 +1,10 @@
 /*
- * @(#)ColorModel.java	1.57 98/10/19
+ * @(#)ColorModel.java	1.59 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -371,6 +371,9 @@ public abstract class ColorModel implements Transparency{
      * @param componentIdx the index of the color/alpha component
      * @return the number of bits for the color/alpha component at the
      *		specified index.
+     * @throws ArrayIndexOutOfBoundsException if <code>componentIdx</code> 
+     *         is greater than the number of components or
+     *         less than zero
      */
     public int getComponentSize(int componentIdx) {
         // REMIND:

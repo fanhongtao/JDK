@@ -1,5 +1,5 @@
 /*
- * @(#)MotifPopupMenuSeparatorUI.java	1.5 98/08/26
+ * @(#)MotifPopupMenuSeparatorUI.java	1.6 98/11/05
  *
  * Copyright 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -26,7 +26,7 @@ import javax.swing.plaf.*;
  * A Motif L&F implementation of PopupMenuSeparatorUI.  This implementation
  * is a "combined" view/controller.
  *
- * @version 1.5 08/26/98
+ * @version 1.6 11/05/98
  * @author Jeff Shapiro
  */
 
@@ -40,8 +40,12 @@ public class MotifPopupMenuSeparatorUI extends MotifSeparatorUI
     public void paint( Graphics g, JComponent c )
     {
         Dimension s = c.getSize();
-        // Until drawGroove exists
-        MotifGraphicsUtils.drawGroove(g, 0, 0, s.width, s.height, shadow, highlight);
+
+	g.setColor( c.getForeground() );
+	g.drawLine( 0, 0, s.width, 0 );
+
+	g.setColor( c.getBackground() );
+	g.drawLine( 0, 1, s.width, 1 );
     }
 
     public Dimension getPreferredSize( JComponent c )

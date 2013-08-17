@@ -1,7 +1,7 @@
 /*
- * @(#)Bidi.java	1.2 98/09/21
+ * @(#)Bidi.java	1.4 99/04/22
  *
- * Copyright 1998-1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -12,7 +12,7 @@
  * you entered into with Sun.
  */
 /*
- * @(#)Bidi.java	1.2 98/09/21
+ * @(#)Bidi.java	1.4 99/04/22
  *
  * (C) Copyright Taligent, Inc. 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1997, 1998 - All Rights Reserved
@@ -96,7 +96,7 @@ final class Bidi {
     if (dirs != null) {
       byte x = (byte)(ltr ? 0 : 1);
       for (int i = newLevels.length; --i >= 0;) {
-	if (newLevels[i] == x || dirs[start + i] != WS) {
+	if ((newLevels[i] % 2) == x || dirs[start + i] != WS) {
 	  break;
 	}
 	newLevels[i] = x;
@@ -153,15 +153,15 @@ final class Bidi {
    * false if it is RTL.
    */
   Bidi(char[] text, byte[] embs, boolean ltr) {
-    byte[] dirs = getDirectionCodeArray(text);
+    byte[] dirs = getDirectionCodeArray(text, embs);
     for (int i = 0; i < embs.length; i++) {
       if ((embs[i] & 0x10) != 0) {
-	embs[i] &= 0x0f;
-	dirs[i] = (byte)(embs[i] & 0x01); // L, R
+        embs[i] &= 0x0f;
+        dirs[i] = (byte)(embs[i] & 0x01); // L, R
       }
     }
 
-    applyBidiRules((byte[])dirs.clone(), embs, ltr); // save the input dirs
+    applyBidiRules(dirs, embs, ltr); // save the input dirs
 
     this.ltr = ltr;
     this.dirs = dirs;
@@ -181,7 +181,7 @@ final class Bidi {
    * false if it is RTL.
    */
   Bidi(byte[] dirs, byte[] levels, boolean ltr) {
-    applyBidiRules((byte[])dirs.clone(), levels, ltr); // save the input dirs
+    applyBidiRules(dirs, levels, ltr); // save the input dirs
     this.ltr = ltr;
     this.dirs = dirs;
     this.levels = levels;
@@ -193,7 +193,7 @@ final class Bidi {
     this.levels = levels;
   }
 
-  /* Public so clients can construct any direction array. */
+  /* so clients can construct any direction array. */
 
   static final byte L  = 0;    /* left to right (strong) */
   static final byte R  = 1;    /* right to left (strong) */
@@ -207,6 +207,8 @@ final class Bidi {
   static final byte WS = 9;    /* whitespace */
   static final byte ON = 10;   /* other neutral */
   static final byte AR = 11;   /* arabic strong rtl character, not in 2.1 spec */
+  static final byte CM = 12;   /* neutral combining mark, not in 2.1 spec */
+  static final byte F  = 13;   /* directional formatting code, not in 2.1 spec */
         
   static final char LRM = 0x200E; /* left to right mark */
   static final char RLM = 0x200F; /* right to left mark */
@@ -227,9 +229,10 @@ final class Bidi {
    * the levels array contains the resolved levels.
    */
   static void applyBidiRules(byte[] dirs, byte[] levels, boolean ltr) {
-    resolveWeakTypes(dirs, levels, ltr);
-    resolveNeutralTypes(dirs, levels, ltr);
-    resolveImplicitLevels(dirs, levels, ltr);
+    byte[] wdirs = (byte[])dirs.clone(); // working dir array, can mutate
+    resolveWeakTypes(wdirs, levels, ltr);
+    resolveNeutralTypes(wdirs, levels, ltr);
+    resolveImplicitLevels(wdirs, dirs, levels, ltr);
   }
 
   /*
@@ -242,103 +245,93 @@ final class Bidi {
    * following character.
    *
    * !!! This does not take embedded levels into account. Should it?
+   * yes it should, lastStrongWasArabic should be unaffected by text within a previous embedding
    */
   private static void resolveWeakTypes(byte[] dirs, byte[] levels, boolean ltr) {
     int i = 0;
-    int limit = dirs.length;
-    byte prev = -1;
-    byte cur = dirs[i];
-    boolean lastStrongWasArabic = cur == AR;
-
-    while (i < limit) {
-      int ii = i + 1;
-      byte next = (ii == limit) ? -1 : dirs[ii];
-      if (next == EN && lastStrongWasArabic) {
-        next = AN;
+    int limit = 0;
+    while (limit < dirs.length) {
+      byte level = levels[limit++];
+      while (limit < dirs.length && levels[limit] == level) {
+        ++limit;
       }
+      
+      byte prev = -1;
+      byte cur = dirs[i];
+      boolean lastStrongWasArabic = cur == AR;
 
-      byte ncur = cur;
-
-      switch (cur) {
-      case L:
-      case R:
-	lastStrongWasArabic = false;
-	break;
-
-      case AR:
-        lastStrongWasArabic = true;
-        break;
-
-      case ES:
-        if (prev == EN && next == EN)
-          ncur = EN;
-        else
-          ncur = ON;
-        break;
-
-      case CS:
-        if (prev == EN && next == EN)
-          ncur = EN;
-        else if (prev == AN && next == AN)
-          ncur = AN;
-        else
-          ncur = ON;
-        break;
-
-      case ET:
-        if (prev == EN || next == EN) {
-          ncur = EN;
-        } else if (next == ET && !lastStrongWasArabic) {
-          // forward scan to handle ET ET EN
-          for (int j = ii + 1; j < dirs.length; ++j) {
-            byte dir = dirs[j];
-            if (dir == ET) {
-              continue;
-            }
-
-            if (dir == EN) {
-              while (ii < j) {
-                dirs[ii++] = EN;
-              }
-              ncur = EN;
-              next = dir;
-            }
-            break;
-          }
-        } else {
-          ncur = ON;
+      while (i < limit) {
+        int ii = i + 1;
+        byte next = (ii == limit) ? -1 : dirs[ii];
+        if (next == EN && lastStrongWasArabic) {
+          next = AN;
         }
-        break;
 
-      default:
-        break;
+        byte ncur = cur;
+
+        switch (cur) {
+        case L:
+        case R:
+          lastStrongWasArabic = false;
+          break;
+
+        case AR:
+          lastStrongWasArabic = true;
+          break;
+
+        case ES:
+          if (prev == EN && next == EN)
+            ncur = EN;
+          else
+            ncur = ON;
+          break;
+
+        case CS:
+          if (prev == EN && next == EN)
+            ncur = EN;
+          else if (prev == AN && next == AN)
+            ncur = AN;
+          else
+            ncur = ON;
+          break;
+
+        case ET:
+          if (prev == EN || next == EN) {
+            ncur = EN;
+          } else if (next == ET && !lastStrongWasArabic) {
+            // forward scan to handle ET ET EN
+            for (int j = ii + 1; j < limit; ++j) {
+              byte dir = dirs[j];
+              if (dir == ET) {
+                continue;
+              }
+
+              byte nval = dir == EN ? EN : ON;
+
+              while (ii < j) {
+                  dirs[ii++] = nval;
+              }
+              ncur = nval;
+              next = dir;
+              break;
+            }
+          } else {
+            ncur = ON;
+          }
+          break;
+
+        default:
+          break;
+        }
+
+        dirs[i] = ncur;
+        i = ii;
+        prev = ncur;
+        cur = next;
       }
-
-      dirs[i] = ncur;
-      i = ii;
-      prev = ncur;
-      cur = next;
     }
   }
 
-  /**
-   * Table indicating which codes represent a neutral
-   */
-  static final boolean neutral[] = {
-    false, // L
-    false, // R
-    false, // EN
-    false, // ES
-    false, // ET
-    false, // AN
-    false, // CS
-    true,  // B
-    true,  // S
-    true,  // WS
-    true,  // ON
-    false, // AR
-  };
-    
   /*
    * According to Mark, this operation should never span a level boundary.
    * The start and end of the level should be treated like sot and eot,
@@ -364,46 +357,59 @@ final class Bidi {
 
       while (i < eot) {
         byte dir = dirs[i];
-	switch (dir) {
-	case L:
-	  last = L; break;
+        switch (dir) {
+        case L:
+          last = L; break;
 
-	case R:
-	case AR:
-	  last = R; break;
+        case R:
+        case AR:
+          last = R; 
+          break;
 
-	case EN:
-	case ES:
-	case ET:
-	case AN:
-	case CS:
-	  break;
+        case EN:
+        case ES:
+        case ET:
+        case AN:
+        case CS:
+          break;
 
-	case B:
-	case S:
-	case WS:
-	case ON:
-	  if (i > nexti) {
-	    nval = tempBaseDir;
-	    nexti = i + 1;
-	  loop:
-	    while (nexti < eot) {
-	      byte ndir = dirs[nexti];
-	      switch (ndir) {
-	      case L:
-		nval = last == L ? L : tempBaseDir;
-		break loop;
-	      case R:
-	      case AR:
-		nval = last == L ? tempBaseDir : R;
-		break loop;
-	      }
-	      ++nexti;
-	    }
-	  }
-	  dirs[i] = nval;
-	}
-	++i;
+        case B:
+        case S:
+          last = tempBaseDir;
+          break;
+
+        case WS:
+        case ON:
+        case CM:
+          if (i > nexti) {
+            nval = tempBaseDir;
+            nexti = i + 1;
+          loop:
+            while (nexti < eot) {
+              byte ndir = dirs[nexti];
+              switch (ndir) {
+              case L:
+                nval = last == L ? L : tempBaseDir;
+                break loop;
+              case R:
+              case AR:
+              case AN:
+                nval = last == L ? tempBaseDir : R;
+                break loop;
+              case EN:
+                nval = last;
+                break loop;
+              case S:
+                nval = tempBaseDir;
+                break loop;
+              }
+
+              ++nexti;
+            }
+          }
+          dirs[i] = nval;
+        }
+        ++i;
       }
     }
   }
@@ -417,23 +423,24 @@ final class Bidi {
    * Runs of whitespace at the end of the paragraph, and before a
    * block or segment separator, are set to the base level.
    */
-  private static void resolveImplicitLevels(byte[] dirs, byte[] levels, boolean ltr) {
+  private static void resolveImplicitLevels(byte[] dirs, byte[] odirs, byte[] levels, boolean ltr) {
     byte baselevel = (byte)(ltr ? 0 : 1);
     int limit = dirs.length;
 
+    byte prevlevel = -1;
     for (int i = 0; i < limit; i++) {
       byte level = levels[i];
       byte nlevel = level;
 
       switch (dirs[i]) {
-      case L: nlevel = (byte)((level + 1) & 0xe); break;
+      case L: nlevel = (byte)((level + 1) & 0x1e); break;
       case AR:
       case R: nlevel = (byte)(level | 0x1); break;
-      case AN: nlevel = (byte)((level + 2) & 0xe); break;
+      case AN: nlevel = (byte)((level & 0xe) + 2); break;
       case EN: if ((level & 0x1) != 0) {
         nlevel += 1;
-      } else if (i == 0 || levels[i-1] != level) {
-        nlevel += 2;
+      } else if (i == 0 || prevlevel != level) {
+        // start of ltr level, leave it as is
       } else {
         byte dir = dirs[i-1];
         if (dir == EN) {
@@ -446,18 +453,20 @@ final class Bidi {
       case B:
       case S: nlevel = baselevel;
         // set preceeding whitespace to baselevel too
-        for (int j = i - 1; j >= 0 && dirs[j] == WS; --j) {
+        for (int j = i - 1; j >= 0 && odirs[j] == WS; --j) {
           levels[j] = baselevel;
         }
         break;
       }
 
-      if (nlevel < NUMLEVELS && nlevel != level) {
+      if (nlevel != level) {
         levels[i] = nlevel;
       }
+
+      prevlevel = level;
     }
 
-    for (int j = limit - 1; j >= 0 && dirs[j] == WS; --j) {
+    for (int j = limit - 1; j >= 0 && odirs[j] == WS; --j) {
       levels[j] = baselevel;
     }
   }
@@ -483,7 +492,7 @@ final class Bidi {
     byte x = (byte)(ltr ? 0 : 1);
     for (int i = lineLimit - lineStart - 1; i >= 0; --i) {
       if (lineLevels[i] == x || dirs[lineStart + i] != WS) {
-	break;
+        break;
       }
       lineLevels[i] = x;
     }
@@ -492,32 +501,23 @@ final class Bidi {
   }
 
   /**
-   * Table indicating which codes represent a strong direction.
-   */
-  static final boolean strongDirection[] = {
-    true, // L
-    true, // R
-    false, // EN
-    false, // ES
-    false, // ET
-    false, // AN
-    false, // CS
-    false, // B
-    false, // S
-    false, // WS
-    false, // ON
-    true, // AR
-  };
-    
-  /**
    * Return true if the default bidi rules indicate a run direction of LTR for the
    * provided range of the char array.
    */
   static boolean defaultIsLTR(char[] chars, int start, int limit) {
     while (start < limit) {
-      byte dir = getDirectionCode(chars[start++]);
-      if (strongDirection[dir]) {
-	return dir == L;
+      char c = chars[start++];
+      byte dir = getDirectionCode(c);
+      switch (dir) {
+      case L: 
+          return true;
+      case AR:
+      case R: 
+          return false;
+      case F:
+          return c == LRO || c == LRE;
+      default:
+          break;
       }
     }
 
@@ -532,34 +532,18 @@ final class Bidi {
   static boolean requiresBidi(char c) {
     if (c < '\u0591') return false;
     if (c > '\u202e') return false; // if contains arabic extended data, presume already ordered
-    if (c > '\u2019') return true; // formatting codes require bidi
     byte dc = getDirectionCode(c);
-    return dc == R || dc == AR;
+    return dc == R || dc == AR || dc == F;
   }
 
   /**
    * Return the bidirectional direction code of the provided character.
-   * Includes AR direction code.
+   * Includes AR, CM, F direction codes.
    */
   static byte getDirectionCode(char c) {
     return dirValues[(dirIndices[c >> 7] << 7) + (c & 0x7f)];
   }
 
-  static final boolean strongDirectionOrB[] = {
-    true, // L
-    true, // R
-    false, // EN
-    false, // ES
-    false, // ET
-    false, // AN
-    false, // CS
-    true, // B
-    false, // S
-    false, // WS
-    false, // ON
-    true, // AR
-  };
-    
   /**
    * Return an array of the bidirectional direction codes for the
    * provided characters.  Includes the AR direction code.  Combining
@@ -567,27 +551,39 @@ final class Bidi {
    * directional character, if present, otherwise they take the
    * direction code ON.
    */
-  static byte[] getDirectionCodeArray(char[] chars) {
+  static byte[] getDirectionCodeArray(char[] chars, byte[] embs) {
     byte sc = ON;
+    byte olevel = -1;
     byte[] dirs = new byte[chars.length];
     for (int i = 0; i < chars.length; i++) {
+      if (embs[i] != olevel) {
+        sc = ON;
+        olevel = embs[i];
+      }
       char c = chars[i];
       byte dc = getDirectionCode(c);
-      if (strongDirectionOrB[dc]) {
-	sc = dc;
-      } else if ((dc == ON) && isCombiningMark(c)) {
-	dc = sc;
+      switch (dc) {
+      case L:
+      case R:
+      case AR:
+          sc = dc;
+          break;
+      case B:
+          sc = ON;
+          break;
+      case CM:
+          dc = sc;
+          break;
+      case F:
+          dc = ON;
+          break;
+      default:
+          break;
       }
       dirs[i] = dc;
     }
 
     return dirs;
-  }
-
-  private static boolean isCombiningMark(char ch) {
-    return ((((1 << Character.NON_SPACING_MARK) |  
-	      (1 << Character.ENCLOSING_MARK) | 
-	      (1 << Character.COMBINING_SPACING_MARK)) >> Character.getType(ch)) & 1) != 0;
   }
 
   /**
@@ -604,66 +600,76 @@ final class Bidi {
     int s = 0; // stack counter
     int skip = 0; // skip counter when codes don't affect the stack
     byte levelStack[] = new byte[NUMLEVELS]; // stack of levels
+    char charStack[] = new char[NUMLEVELS]; // stack of format chars
 
     for (int i = 0; i < chars.length; i++) {
       char c = chars[i];
       switch (c) {
       case LRE:
       case LRO: {
-	if (skip > 0) {
-	  ++skip;
-	} else {
-	  byte newlevel = (byte)((level & 0x0e) + 2);
-	  if (newlevel >= NUMLEVELS) {
-	    ++skip;
-	  } else {
-	    levelStack[s++] = level;
-	    embeddings[i] = level;
+        if (skip > 0) {
+          ++skip;
+        } else {
+          byte newlevel = (byte)((level & 0x0e) + 2);
+          if (newlevel >= NUMLEVELS) {
+            ++skip;
+          } else {
+            charStack[s] = c;
+            levelStack[s++] = level;
+            embeddings[i] = level;
 
-	    if (c == LRO) {
-	      level = (byte)(newlevel + 0x10);
-	    } else {
-	      level = newlevel;
-	    }
+            if (c == LRO) {
+              level = (byte)(newlevel + 0x10);
+            } else {
+              level = newlevel;
+            }
 
-	    continue;
-	  }
-	}
+            continue;
+          }
+        }
       } break;
 
       case RLE:
       case RLO: {
-	if (skip > 0) {
-	  ++skip;
-	} else {
-	  byte newlevel = (byte)(((level & 0xf) + 1) | 0x01);
-	  if (newlevel >= NUMLEVELS) {
-	    ++skip;
-	  } else {
-	    levelStack[s++] = level;
-	    embeddings[i] = level;
+        if (skip > 0) {
+          ++skip;
+        } else {
+          byte newlevel = (byte)(((level & 0xf) + 1) | 0x01);
+          if (newlevel >= NUMLEVELS) {
+            ++skip;
+          } else {
+            charStack[s] = c;
+            levelStack[s++] = level;
+            embeddings[i] = level;
 
-	    if (c == RLO) {
-	      level = (byte)(newlevel + 0x10);
-	    } else {
-	      level = newlevel;
-	    }
+            if (c == RLO) {
+              level = (byte)(newlevel + 0x10);
+            } else {
+              level = newlevel;
+            }
 
-	    continue;
-	  }
-	}
+            continue;
+          }
+        }
       } break;
 
       case PDF:
-	if (skip > 0) {
-	  --skip;
-	} else if (s > 0) {
-	  level = levelStack[--s];
-	}
-	break;
+        if (skip > 0) {
+          --skip;
+        } else if (s > 0) {
+          // lookahead to coalesce level pairs
+          if ((i < chars.length-1) && (chars[i+1] == charStack[s-1])) {
+            embeddings[i] = level;
+            embeddings[i+1] = level;
+            i += 1;
+            continue;
+          }
+          level = levelStack[--s];
+        }
+        break;
 
       default:
-	break;
+        break;
       }
 
       embeddings[i] = level;
@@ -951,150 +957,118 @@ final class Bidi {
   }
 
   // convenience method for compatibility with old tests
-  static Bidi createBidi(char[] text) {
-    return new Bidi(text);
-  }
-
-  /*
-  private static byte[] dirIndices;
-  private static byte[] dirValues;
-  private static final String dataName = "bidi.data";
-  
-  private static byte[] xdirIndices;
-  private static byte[] xdirValues;
-
-  static {
-    try {
-      InputStream is = Bidi.class.getResourceAsStream(dataName);
-      BufferedInputStream bsf = new BufferedInputStream(is);
-      DataInputStream dbsf = new DataInputStream(bsf);
-
-      int indicesCount = dbsf.readInt();
-      xdirIndices = new byte[indicesCount];
-      dbsf.readFully(xdirIndices);
-
-      int valuesCount = dbsf.readInt();
-      xdirValues = new byte[valuesCount];
-      dbsf.readFully(xdirValues);
-
-      dirIndices = RLEUtilities.readRLE(xdirIndices);
-      dirValues = RLEUtilities.readRLE(xdirValues);
+    static Bidi createBidi(char[] text) {
+        return new Bidi(text);
     }
-    catch (Exception e) {
-      e.printStackTrace();
-      System.err.println(e);
+
+    // from Unicode Data 2.1.8
+    // gets reset in static init
+    private static byte[] dirIndices = {
+        14, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, -124, 
+        14, 18, 15, 16, 17, 18, 19, 20, 21, 22, 23, 14, 24, 25, 26, 27, 
+        14, 28, 29, 30, -104, 14, 14, 2, 31, 32, 33, 34, 35, 36, 37, 38, 
+        14, 39, 14, 40, 41, -106, 14, 8, 42, 43, 44, 45, 46, 47, 48, 49, 
+        -76, 14, -2, 2, -91, 2, 1, 50, -104, 14, -41, 2, 1, 51, -60, 2, 
+        12, 52, 14, 53, 54, 55, 55, 56, 57, 58, 59, 60, 61, 
+    };
+
+    // gets reset in static init
+    private static byte[] dirValues = {
+        -119, 10, 5, 8, 7, 8, 7, 7, -114, 10, -125, 7, 4, 8, 9, 10, 
+        10, -125, 4, -123, 10, 5, 4, 6, 4, 6, 3, -118, 2, 1, 6, -122, 
+        10, -102, 0, -122, 10, -102, 0, -91, 10, 2, 9, 10, -124, 4, -124, 10, 
+        1, 0, -123, 10, 6, 4, 4, 2, 2, 10, 0, -125, 10, 2, 2, 0, 
+        -123, 10, -105, 0, 1, 10, -97, 0, 1, 10, -2, 0, -2, 0, 2, 0, 
+        0, -124, 10, -98, 0, -72, 10, -39, 0, -121, 10, -119, 0, 2, 10, 10, 
+        -121, 0, -98, 10, -123, 0, -101, 10, -58, 12, -102, 10, 2, 12, 12, -110, 
+        10, 2, 0, 0, -124, 10, 1, 0, -117, 10, 2, 0, 10, -125, 0, 3, 
+        10, 0, 10, -108, 0, 1, 10, -84, 0, 1, 10, -121, 0, -125, 10, 8, 
+        0, 10, 0, 10, 0, 10, 0, 10, -110, 0, -115, 10, -116, 0, 1, 10, 
+        -62, 0, 1, 10, -116, 0, 1, 10, -91, 0, -124, 12, -119, 10, -75, 0, 
+        8, 10, 10, 0, 0, 10, 10, 0, 0, -125, 10, -100, 0, 2, 10, 10, 
+        -120, 0, 4, 10, 10, 0, 0, -73, 10, -90, 0, 2, 10, 10, -121, 0, 
+        1, 10, -89, 0, 2, 10, 0, -121, 10, -111, 12, 1, 10, -105, 12, 1, 
+        10, -125, 12, 7, 1, 12, 1, 12, 12, 1, 12, -117, 10, -101, 1, -123, 
+        10, -123, 1, -105, 10, 1, 6, -114, 10, 1, 11, -125, 10, 2, 11, 10, 
+        -102, 11, -123, 10, -117, 11, -120, 12, -115, 10, -118, 5, 7, 4, 5, 5, 
+        11, 10, 10, 12, -57, 11, 2, 10, 10, -123, 11, 1, 10, -113, 11, 1, 
+        10, -122, 11, -113, 12, 5, 11, 11, 12, 12, 10, -124, 12, 2, 10, 10, 
+        -118, 2, -2, 10, -119, 10, 4, 12, 12, 0, 10, -75, 0, 3, 10, 10, 
+        12, -124, 0, -120, 12, -124, 0, 4, 12, 10, 10, 0, -124, 12, -125, 10, 
+        -118, 0, 2, 12, 12, -115, 0, -112, 10, 4, 12, 0, 0, 10, -120, 0, 
+        6, 10, 10, 0, 0, 10, 10, -106, 0, 1, 10, -121, 0, 2, 10, 0, 
+        -125, 10, -124, 0, 4, 10, 10, 12, 10, -125, 0, -124, 12, 9, 10, 10, 
+        0, 0, 10, 10, 0, 0, 12, -119, 10, 1, 0, -124, 10, 3, 0, 0, 
+        10, -125, 0, 4, 12, 12, 10, 10, -116, 0, 2, 4, 4, -121, 0, -121, 
+        10, 3, 12, 10, 10, -122, 0, -124, 10, 4, 0, 0, 10, 10, -106, 0, 
+        1, 10, -121, 0, 13, 10, 0, 0, 10, 0, 0, 10, 0, 0, 10, 10, 
+        12, 10, -125, 0, 2, 12, 12, -124, 10, 4, 12, 12, 10, 10, -125, 12, 
+        -117, 10, -124, 0, 2, 10, 0, -121, 10, -118, 0, 2, 12, 12, -125, 0, 
+        -116, 10, 4, 12, 12, 0, 10, -121, 0, 3, 10, 0, 10, -125, 0, 1, 
+        10, -106, 0, 1, 10, -121, 0, 4, 10, 0, 0, 10, -123, 0, 3, 10, 
+        10, 12, -124, 0, -123, 12, 11, 10, 12, 12, 0, 10, 0, 0, 12, 10, 
+        10, 0, -113, 10, 1, 0, -123, 10, -118, 0, -111, 10, 4, 12, 0, 0, 
+        10, -120, 0, 6, 10, 10, 0, 0, 10, 10, -106, 0, 1, 10, -121, 0, 
+        5, 10, 0, 0, 10, 10, -124, 0, 7, 10, 10, 12, 0, 0, 12, 0, 
+        -125, 12, -125, 10, 7, 0, 0, 10, 10, 0, 0, 12, -120, 10, 2, 12, 
+        0, -124, 10, 3, 0, 0, 10, -125, 0, -124, 10, -117, 0, -111, 10, 3, 
+        12, 0, 10, -122, 0, -125, 10, -125, 0, 1, 10, -124, 0, -125, 10, 7, 
+        0, 0, 10, 0, 10, 0, 0, -125, 10, 2, 0, 0, -125, 10, -125, 0, 
+        -125, 10, -120, 0, 1, 10, -125, 0, -124, 10, 5, 0, 0, 12, 0, 0, 
+        -125, 10, -125, 0, 1, 10, -125, 0, 1, 12, -119, 10, 1, 0, -113, 10, 
+        -116, 0, -114, 10, -125, 0, 1, 10, -120, 0, 1, 10, -125, 0, 1, 10, 
+        -105, 0, 1, 10, -118, 0, 1, 10, -123, 0, -124, 10, -125, 12, -124, 0, 
+        1, 10, -125, 12, 1, 10, -124, 12, -121, 10, 2, 12, 12, -119, 10, 2, 
+        0, 0, -124, 10, -118, 0, -110, 10, 3, 0, 0, 10, -120, 0, 1, 10, 
+        -125, 0, 1, 10, -105, 0, 1, 10, -118, 0, 1, 10, -123, 0, -124, 10, 
+        2, 0, 12, -123, 0, 9, 10, 12, 0, 0, 10, 0, 0, 12, 12, -121, 
+        10, 2, 0, 0, -121, 10, 4, 0, 10, 0, 0, -124, 10, -118, 0, -110, 
+        10, 3, 0, 0, 10, -120, 0, 1, 10, -125, 0, 1, 10, -105, 0, 1, 
+        10, -112, 0, -124, 10, -125, 0, -125, 12, 2, 10, 10, -125, 0, 1, 10, 
+        -125, 0, 1, 12, -119, 10, 1, 0, -120, 10, 2, 0, 0, -124, 10, -118, 
+        0, -111, 10, -80, 0, 3, 12, 0, 0, -121, 12, -124, 10, 1, 4, -121, 
+        0, -120, 12, -115, 0, -91, 10, 13, 0, 0, 10, 0, 10, 10, 0, 0, 
+        10, 0, 10, 10, 0, -122, 10, -124, 0, 1, 10, -121, 0, 1, 10, -125, 
+        0, 9, 10, 0, 10, 0, 10, 10, 0, 0, 10, -124, 0, 3, 12, 0, 
+        0, -122, 12, 6, 10, 12, 12, 0, 10, 10, -123, 0, 3, 10, 0, 10, 
+        -122, 12, 2, 10, 10, -118, 0, 4, 10, 10, 0, 0, -94, 10, -104, 0, 
+        2, 12, 12, -101, 0, 5, 12, 0, 12, 0, 12, -124, 10, 2, 12, 12, 
+        -120, 0, 1, 10, -95, 0, -121, 10, -114, 12, 1, 0, -123, 12, 3, 0, 
+        12, 12, -124, 0, -124, 10, -122, 12, 3, 10, 12, 10, -107, 12, -125, 10, 
+        -121, 12, 2, 10, 12, -26, 10, -90, 0, -118, 10, -89, 0, -124, 10, 1, 
+        0, -124, 10, -38, 0, -123, 10, -60, 0, -123, 10, -46, 0, -122, 10, -100, 
+        0, -124, 10, -38, 0, -122, 10, -106, 0, 2, 10, 10, -122, 0, 2, 10, 
+        10, -90, 0, 2, 10, 10, -122, 0, 2, 10, 10, -120, 0, 7, 10, 0, 
+        10, 0, 10, 0, 10, -97, 0, 2, 10, 10, -75, 0, 1, 10, -121, 0, 
+        2, 10, 0, -125, 10, -125, 0, 1, 10, -121, 0, -125, 10, -124, 0, 2, 
+        10, 10, -122, 0, -124, 10, -115, 0, -123, 10, -125, 0, 1, 10, -121, 0, 
+        -125, 10, -121, 9, 1, 6, -124, 9, 4, 10, 10, 0, 1, -104, 10, 8, 
+        7, 7, 13, 13, 10, 13, 13, 10, -123, 4, -69, 10, 1, 2, -125, 10, 
+        -122, 2, 2, 4, 4, -125, 10, 1, 0, -118, 2, 2, 4, 4, -108, 10, 
+        -115, 4, -93, 10, -110, 12, -96, 10, 1, 0, -124, 10, 3, 0, 10, 10, 
+        -118, 0, 4, 10, 0, 10, 10, -122, 0, -122, 10, 6, 0, 10, 0, 10, 
+        0, 10, -120, 0, 1, 10, -122, 0, -89, 10, -93, 0, -2, 10, -111, 10, 
+        2, 4, 4, -2, 10, -92, 10, -59, 0, -27, 10, -68, 2, -50, 0, 1, 
+        2, -107, 10, 1, 9, -123, 10, 2, 0, 0, -103, 10, -119, 0, -122, 12, 
+        -111, 10, -44, 0, -124, 10, 8, 12, 12, 10, 10, 0, 0, 10, 10, -34, 
+        0, -122, 10, -88, 0, -124, 10, -34, 0, 1, 10, -112, 0, -32, 10, -99, 
+        0, -125, 10, -92, 0, -100, 10, -100, 0, -125, 10, -78, 0, -113, 10, -116, 
+        0, -124, 10, -81, 0, 1, 10, -9, 0, -124, 10, -29, 0, 2, 10, 10, 
+        -97, 0, 1, 10, -90, 0, -38, 10, -92, 0, -36, 10, -82, 0, -46, 10, 
+        -121, 0, -116, 10, -123, 0, -122, 10, 1, 12, -118, 1, 1, 4, -115, 1, 
+        1, 10, -123, 1, 9, 10, 1, 10, 1, 1, 10, 1, 1, 10, -20, 1, 
+        -95, 10, -2, 1, -19, 1, -110, 10, -64, 1, 2, 10, 10, -74, 1, -88, 
+        10, -116, 1, -92, 10, -124, 12, -84, 10, 6, 6, 10, 6, 10, 10, 6, 
+        -119, 10, 5, 4, 10, 10, 4, 4, -123, 10, 2, 4, 4, -123, 10, -125, 
+        1, 3, 10, 1, 10, -2, 1, -119, 1, -122, 10, -125, 4, -123, 10, 5, 
+        4, 6, 4, 6, 3, -118, 2, 1, 6, -122, 10, -102, 0, -122, 10, -102, 
+        0, -118, 10, -71, 0, 2, 10, 10, -97, 0, -125, 10, -122, 0, 2, 10, 
+        10, -122, 0, 2, 10, 10, -122, 0, 2, 10, 10, -125, 0, -125, 10, 2, 
+        4, 4, -125, 10, 2, 4, 4, -103, 10, 
+    };
+
+    static {
+        dirIndices = RLEUtilities.readRLE(dirIndices);
+        dirValues = RLEUtilities.readRLE(dirValues);
     }
-  }
-
-  static void main(String[] args) {
-    System.out.print("\n  private static byte[] dirIndices = {");
-    for (int i = 0; i < xdirIndices.length; ++i) {
-      if (i % 16 == 0) {
-	System.out.print("\n    ");
-      }
-      System.out.print(xdirIndices[i] + ", ");
-    }
-    System.out.println("\n  };");
-
-    System.out.print("\n  private static final byte[] dirValues = {");
-    for (int i = 0; i < xdirValues.length; ++i) {
-      if (i % 16 == 0) {
-	System.out.print("\n    ");
-      }
-      System.out.print(xdirValues[i] + ", ");
-    }
-    System.out.println("\n  };");
-  }
-  */
-
-  private static byte[] dirIndices = {
-    14, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, -124, 
-    14, 18, 15, 16, 17, 18, 19, 20, 21, 22, 23, 14, 24, 25, 26, 27, 
-    14, 28, 29, 30, -104, 14, 11, 2, 31, 32, 33, 34, 35, 36, 37, 38, 
-    14, 39, -103, 14, 8, 40, 41, 42, 43, 44, 45, 46, 47, -76, 14, -2, 
-    2, -91, 2, 1, 48, -104, 14, -41, 2, 1, 49, -60, 2, 12, 50, 14, 
-    51, 52, 53, 53, 54, 55, 56, 57, 58, 59, 
-  };
-
-  private static byte[] dirValues = {
-    -119, 10, 1, 8, -106, 10, 3, 9, 10, 10, -125, 4, -123, 10, 5, 4, 
-    6, 4, 6, 3, -118, 2, 1, 6, -122, 10, -102, 0, -122, 10, -102, 0, 
-    -91, 10, 2, 9, 10, -124, 4, -118, 10, 4, 4, 4, 2, 2, -123, 10, 
-    1, 2, -122, 10, -105, 0, 1, 10, -97, 0, 1, 10, -2, 0, -2, 0, 
-    2, 0, 0, -124, 10, -98, 0, -72, 10, -39, 0, -121, 10, -81, 0, 1, 
-    10, -118, 0, -106, 10, -58, 0, -102, 10, 2, 0, 0, -110, 10, 2, 0, 
-    0, -124, 10, 1, 0, -125, 10, 1, 0, -123, 10, -121, 0, 3, 10, 0, 
-    10, -108, 0, 1, 10, -84, 0, 1, 10, -121, 0, -125, 10, 8, 0, 10, 
-    0, 10, 0, 10, 0, 10, -110, 0, -115, 10, -116, 0, 1, 10, -62, 0, 
-    1, 10, -116, 0, 1, 10, -87, 0, -119, 10, -75, 0, 8, 10, 10, 0, 
-    0, 10, 10, 0, 0, -125, 10, -100, 0, 2, 10, 10, -120, 0, 4, 10, 
-    10, 0, 0, -73, 10, -90, 0, 2, 10, 10, -121, 0, 1, 10, -89, 0, 
-    2, 10, 0, -121, 10, -111, 1, 1, 10, -105, 1, 1, 10, -118, 1, -117, 
-    10, -101, 1, -123, 10, -123, 1, -105, 10, 1, 11, -114, 10, 1, 11, -125, 
-    10, 2, 11, 10, -102, 11, -123, 10, -109, 11, -115, 10, -118, 5, 6, 4, 
-    5, 5, 11, 10, 10, -56, 11, 2, 10, 10, -123, 11, 1, 10, -113, 11, 
-    1, 10, -98, 11, 2, 10, 10, -118, 2, -2, 10, -119, 10, -125, 0, 1, 
-    10, -75, 0, 2, 10, 10, -110, 0, 2, 10, 10, -123, 0, -125, 10, -103, 
-    0, -112, 10, -125, 0, 1, 10, -120, 0, 6, 10, 10, 0, 0, 10, 10, 
-    -106, 0, 1, 10, -121, 0, 2, 10, 0, -125, 10, -124, 0, 4, 10, 10, 
-    0, 10, -121, 0, 6, 10, 10, 0, 0, 10, 10, -125, 0, -119, 10, 1, 
-    0, -124, 10, 3, 0, 0, 10, -123, 0, 2, 10, 10, -107, 0, -121, 10, 
-    3, 0, 10, 10, -122, 0, -124, 10, 4, 0, 0, 10, 10, -106, 0, 1, 
-    10, -121, 0, 13, 10, 0, 0, 10, 0, 0, 10, 0, 0, 10, 10, 0, 
-    10, -123, 0, -124, 10, 4, 0, 0, 10, 10, -125, 0, -117, 10, -124, 0, 
-    2, 10, 0, -121, 10, -113, 0, -116, 10, -125, 0, 1, 10, -121, 0, 3, 
-    10, 0, 10, -125, 0, 1, 10, -106, 0, 1, 10, -121, 0, 4, 10, 0, 
-    0, 10, -123, 0, 2, 10, 10, -118, 0, 1, 10, -125, 0, 1, 10, -125, 
-    0, 3, 10, 10, 0, -113, 10, 1, 0, -123, 10, -118, 0, -111, 10, -125, 
-    0, 1, 10, -120, 0, 6, 10, 10, 0, 0, 10, 10, -106, 0, 1, 10, 
-    -121, 0, 5, 10, 0, 0, 10, 10, -124, 0, 2, 10, 10, -120, 0, -125, 
-    10, 4, 0, 0, 10, 10, -125, 0, -120, 10, 2, 0, 0, -124, 10, 3, 
-    0, 0, 10, -125, 0, -124, 10, -117, 0, -111, 10, 3, 0, 0, 10, -122, 
-    0, -125, 10, -125, 0, 1, 10, -124, 0, -125, 10, 7, 0, 0, 10, 0, 
-    10, 0, 0, -125, 10, 2, 0, 0, -125, 10, -125, 0, -125, 10, -120, 0, 
-    1, 10, -125, 0, -124, 10, -123, 0, -125, 10, -125, 0, 1, 10, -124, 0, 
-    -119, 10, 1, 0, -113, 10, -116, 0, -114, 10, -125, 0, 1, 10, -120, 0, 
-    1, 10, -125, 0, 1, 10, -105, 0, 1, 10, -118, 0, 1, 10, -123, 0, 
-    -124, 10, -121, 0, 1, 10, -125, 0, 1, 10, -124, 0, -121, 10, 2, 0, 
-    0, -119, 10, 2, 0, 0, -124, 10, -118, 0, -110, 10, 3, 0, 0, 10, 
-    -120, 0, 1, 10, -125, 0, 1, 10, -105, 0, 1, 10, -118, 0, 1, 10, 
-    -123, 0, -124, 10, -121, 0, 1, 10, -125, 0, 1, 10, -124, 0, -121, 10, 
-    2, 0, 0, -121, 10, 4, 0, 10, 0, 0, -124, 10, -118, 0, -110, 10, 
-    3, 0, 0, 10, -120, 0, 1, 10, -125, 0, 1, 10, -105, 0, 1, 10, 
-    -112, 0, -124, 10, -122, 0, 2, 10, 10, -125, 0, 1, 10, -124, 0, -119, 
-    10, 1, 0, -120, 10, 2, 0, 0, -124, 10, -118, 0, -111, 10, -70, 0, 
-    -124, 10, -99, 0, -91, 10, 13, 0, 0, 10, 0, 10, 10, 0, 0, 10, 
-    0, 10, 10, 0, -122, 10, -124, 0, 1, 10, -121, 0, 1, 10, -125, 0, 
-    9, 10, 0, 10, 0, 10, 10, 0, 0, 10, -115, 0, 1, 10, -125, 0, 
-    2, 10, 10, -123, 0, 3, 10, 0, 10, -122, 0, 2, 10, 10, -118, 0, 
-    4, 10, 10, 0, 0, -94, 10, -56, 0, 1, 10, -95, 0, -121, 10, -101, 
-    0, -124, 10, -122, 0, 3, 10, 0, 10, -107, 0, -125, 10, -121, 0, 2, 
-    10, 0, -26, 10, -90, 0, -118, 10, -89, 0, -124, 10, 1, 0, -124, 10, 
-    -38, 0, -123, 10, -60, 0, -123, 10, -46, 0, -122, 10, -100, 0, -124, 10, 
-    -38, 0, -122, 10, -106, 0, 2, 10, 10, -122, 0, 2, 10, 10, -90, 0, 
-    2, 10, 10, -122, 0, 2, 10, 10, -120, 0, 7, 10, 0, 10, 0, 10, 
-    0, 10, -97, 0, 2, 10, 10, -75, 0, 1, 10, -113, 0, 1, 10, -114, 
-    0, 2, 10, 10, -122, 0, 1, 10, -109, 0, 2, 10, 10, -125, 0, 1, 
-    10, -119, 0, 1, 10, -121, 9, 1, 6, -124, 9, 4, 10, 10, 0, 1, 
-    -104, 10, 2, 7, 7, -122, 10, -123, 4, -69, 10, 1, 2, -125, 10, -122, 
-    2, 2, 4, 4, -124, 10, -118, 2, 2, 4, 4, -108, 10, -115, 4, -93, 
-    10, -110, 0, -2, 10, -93, 0, -2, 10, -111, 10, 2, 4, 4, -2, 10, 
-    -92, 10, -59, 0, -123, 10, 1, 9, -96, 10, -113, 0, -111, 10, -44, 0, 
-    -124, 10, -122, 0, 2, 10, 10, -34, 0, -122, 10, -88, 0, -124, 10, -34, 
-    0, 1, 10, -112, 0, -32, 10, -99, 0, -125, 10, -92, 0, -100, 10, -100, 
-    0, -125, 10, -78, 0, -113, 10, -116, 0, -124, 10, -81, 0, 1, 10, -9, 
-    0, -124, 10, -29, 0, 2, 10, 10, -97, 0, 1, 10, -90, 0, -38, 10, 
-    -92, 0, -36, 10, -82, 0, -46, 10, -121, 0, -116, 10, -123, 0, -122, 10, 
-    -103, 1, 1, 10, -123, 1, 9, 10, 1, 10, 1, 1, 10, 1, 1, 10, 
-    -20, 1, -95, 10, -2, 1, -19, 1, -110, 10, -64, 1, 2, 10, 10, -74, 
-    1, -88, 10, -116, 1, -12, 10, -125, 1, 3, 10, 1, 10, -2, 1, -119, 
-    1, -109, 10, -118, 2, -121, 10, -102, 0, -122, 10, -102, 0, -118, 10, -38, 
-    0, -125, 10, -122, 0, 2, 10, 10, -122, 0, 2, 10, 10, -122, 0, 2, 
-    10, 10, -125, 0, -93, 10, 
-  };
-
-  static {
-    dirIndices = RLEUtilities.readRLE(dirIndices);
-    dirValues = RLEUtilities.readRLE(dirValues);
-  }
 }

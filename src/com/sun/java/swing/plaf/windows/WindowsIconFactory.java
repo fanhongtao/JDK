@@ -1,10 +1,10 @@
 /*
- * @(#)WindowsIconFactory.java	1.9 98/08/28
+ * @(#)WindowsIconFactory.java	1.11 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -33,7 +33,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.7 12/08/97
+ * @version 1.11 04/22/99
  * @author David Kloba
  * @author Georges Saab
  * @author Rich Schiavi
@@ -365,7 +365,7 @@ public class WindowsIconFactory implements Serializable
 	    AbstractButton b = (AbstractButton) c;
 	    ButtonModel model = b.getModel();
 	    if (b.isSelected() == true) {
-		g.fillArc(0,0,getIconWidth()-2, getIconHeight()-2, 0, 360);
+               g.fillArc(0,0,getIconWidth()-2, getIconHeight()-2, 0, 360);
 	    }
 	}
 	public int getIconWidth() { return 12; }
@@ -404,11 +404,19 @@ public class WindowsIconFactory implements Serializable
 
     private static class MenuArrowIcon implements Icon, UIResource, Serializable {
 	public void paintIcon(Component c, Graphics g, int x, int y) {
-	    Polygon p = new Polygon();
-	    p.addPoint(x, y);
-	    p.addPoint(x+getIconWidth(), y+getIconHeight()/2);
-	    p.addPoint(x, y+getIconHeight());
-	    g.fillPolygon(p);
+            g.translate(x,y);
+            if( WindowsUtils.isLeftToRight(c) ) {
+                g.drawLine( 0, 0, 0, 7 );
+                g.drawLine( 1, 1, 1, 6 );
+                g.drawLine( 2, 2, 2, 5 );
+                g.drawLine( 3, 3, 3, 4 );
+            } else {
+                g.drawLine( 4, 0, 4, 7 );
+                g.drawLine( 3, 1, 3, 6 );
+                g.drawLine( 2, 2, 2, 5 );
+                g.drawLine( 1, 3, 1, 4 );
+            }
+            g.translate(-x,-y);
 	}
 	public int getIconWidth() { return 4; }
 	public int getIconHeight() { return 8; }

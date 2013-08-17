@@ -1,10 +1,10 @@
 /*
- * @(#)String.java	1.112 98/09/23
+ * @(#)String.java	1.114 99/04/22
  *
- * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * Copyright 1994-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -69,7 +69,7 @@ import java.lang.ref.SoftReference;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.112, 09/23/98
+ * @version 1.114, 04/22/99
  * @see     java.lang.Object#toString()
  * @see     java.lang.StringBuffer
  * @see     java.lang.StringBuffer#append(boolean)
@@ -832,7 +832,10 @@ class String implements java.io.Serializable, Comparable {
      * @see     java.text.Collator#compare(String, String)
      * @since   JDK1.2
      */
-    public static final Comparator CASE_INSENSITIVE_ORDER = new Comparator() {
+    public static final Comparator CASE_INSENSITIVE_ORDER
+                                         = new CaseInsensitiveComparator();
+    private static class CaseInsensitiveComparator
+                         implements Comparator, java.io.Serializable {
         public int compare(Object o1, Object o2) {
             String s1 = (String) o1;
             String s2 = (String) o2;
@@ -853,7 +856,7 @@ class String implements java.io.Serializable, Comparable {
             }
             return n1 - n2;
         }
-    };
+    }
 
     /**
      * Compares two strings lexicographically, ignoring case considerations.

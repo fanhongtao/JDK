@@ -1,5 +1,5 @@
 /*
- * @(#)MenuItem.java	1.57 98/08/31
+ * @(#)MenuItem.java	1.59 98/12/14
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -53,7 +53,7 @@ import java.io.IOException;
  * does not send any event to the frame until one of its subitems is
  * selected.
  *
- * @version 1.57, 08/31/98
+ * @version 1.59, 12/14/98
  * @author Sami Shaio
  */
 public class MenuItem extends MenuComponent {
@@ -341,7 +341,7 @@ public class MenuItem extends MenuComponent {
             if (e.getID() == KeyEvent.KEY_PRESSED) {
                 Toolkit.getEventQueue().postEvent(
                           new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
-                                          actionCommand));
+                                          getActionCommand()));
             } else {
                 // silently eat key release.
             }
@@ -371,6 +371,7 @@ public class MenuItem extends MenuComponent {
      */
     protected final void enableEvents(long eventsToEnable) {
         eventMask |= eventsToEnable;
+	newEventsOnly = true;
     }
 
     /**

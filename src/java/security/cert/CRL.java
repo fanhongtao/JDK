@@ -1,5 +1,5 @@
 /*
- * @(#)CRL.java	1.4 98/08/13
+ * @(#)CRL.java	1.5 98/12/03
  *
  * Copyright 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -25,7 +25,7 @@ package java.security.cert;
  *
  * @author Hemma Prafullchandra
  *
- * @version 1.4 00/05/10
+ * @version 1.5 98/12/03
  *
  * @see X509CRL
  * @see CertificateFactory

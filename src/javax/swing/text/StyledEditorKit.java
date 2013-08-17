@@ -1,10 +1,10 @@
 /*
- * @(#)StyledEditorKit.java	1.25 98/09/20
+ * @(#)StyledEditorKit.java	1.31 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -16,6 +16,8 @@ package javax.swing.text;
 import java.io.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.event.*;
 import javax.swing.Action;
 import javax.swing.JEditorPane;
@@ -29,7 +31,7 @@ import javax.swing.KeyStroke;
  * provides a minimal set of actions for editing styled text.
  *
  * @author  Timothy Prinzing
- * @version 1.25 09/20/98
+ * @version 1.31 04/22/99
  */
 public class StyledEditorKit extends DefaultEditorKit {
 
@@ -101,6 +103,12 @@ public class StyledEditorKit extends DefaultEditorKit {
      */
     public void install(JEditorPane c) {
 	c.addCaretListener(inputAttributeUpdater);
+	c.addPropertyChangeListener(inputAttributeUpdater);
+	Caret caret = c.getCaret();
+	if (caret != null) {
+	    inputAttributeUpdater.updateInputAttributes
+		                  (caret.getDot(), caret.getMark(), c);
+	}
     }
 
     /**
@@ -112,6 +120,11 @@ public class StyledEditorKit extends DefaultEditorKit {
      */
     public void deinstall(JEditorPane c) {
 	c.removeCaretListener(inputAttributeUpdater);
+	c.removePropertyChangeListener(inputAttributeUpdater);
+
+	// remove references to current document so it can be collected.
+	currentRun = null;
+	currentParagraph = null;
     }
 
    /**
@@ -158,25 +171,44 @@ public class StyledEditorKit extends DefaultEditorKit {
      * into.  This should keep the input attributes updated
      * for use by the styled actions.
      */
-    private CaretListener inputAttributeUpdater = new AttributeTracker();
+    private AttributeTracker inputAttributeUpdater = new AttributeTracker();
 
     /**
      * Tracks caret movement and keeps the input attributes set 
      * to reflect the current set of attribute definitions at the 
      * caret position. 
+     * <p>This implements PropertyChangeListener to update the
+     * input attributes when the Document changes, as if the Document
+     * changes the attributes will almost certainly change.
      */
-    class AttributeTracker implements CaretListener, Serializable {
+    class AttributeTracker implements CaretListener, PropertyChangeListener, Serializable {
 
-	public void caretUpdate(CaretEvent e) {
-	    int dot = e.getDot();
-	    int mark = e.getMark();
-	    if (dot == mark) {
-		// record current character attributes.
-		JTextComponent c = (JTextComponent) e.getSource();
-		StyledDocument doc = (StyledDocument) c.getDocument();
-		Element run = doc.getCharacterElement(Math.max(dot-1, 0));
-		currentParagraph = doc.getParagraphElement(dot);
-		if (run != currentRun) {
+	/**
+	 * Updates the attributes. <code>dot</code> and <code>mark</code>
+	 * mark give the positions of the selection in <code>c</code>.
+	 */
+	void updateInputAttributes(int dot, int mark, JTextComponent c) {
+	    // EditorKit might not have installed the StyledDocument yet.
+	    Document aDoc = c.getDocument();
+	    if (!(aDoc instanceof StyledDocument)) {
+		return ;
+	    }
+	    int start = Math.min(dot, mark);
+	    // record current character attributes.
+	    StyledDocument doc = (StyledDocument)aDoc;
+	    // Get the attributes from the character before the start of
+	    // the selection.
+	    Element run;
+	    currentParagraph = doc.getParagraphElement(start);
+	    if (currentParagraph.getStartOffset() == start) {
+		// Get the attributes from the character at the selection
+		// if in a different paragrah!
+		run = doc.getCharacterElement(start);
+	    }
+	    else {
+		run = doc.getCharacterElement(Math.max(start-1, 0));
+	    }
+	    if (run != currentRun) {
 		    /*
 		     * PENDING(prinz) All attributes that represent a single
 		     * glyph position and can't be inserted into should be 
@@ -185,10 +217,25 @@ public class StyledEditorKit extends DefaultEditorKit {
 		     * When we can add things again this logic needs to be
 		     * improved!!
 		     */ 
-		    currentRun = run;
-		    createInputAttributes(currentRun, getInputAttributes());
-		}
+		currentRun = run;
+		createInputAttributes(currentRun, getInputAttributes());
 	    }
+	}
+
+        public void propertyChange(PropertyChangeEvent evt) {
+	    Object newValue = evt.getNewValue();
+	    Object source = evt.getSource();
+
+	    if ((source instanceof JTextComponent) &&
+		(newValue instanceof Document)) {
+		// New document will have changed selection to 0,0.
+		updateInputAttributes(0, 0, (JTextComponent)source);
+	    }
+	}
+
+	public void caretUpdate(CaretEvent e) {
+	    updateInputAttributes(e.getDot(), e.getMark(),
+				  (JTextComponent)e.getSource());
 	}
     }
 
@@ -357,14 +404,13 @@ public class StyledEditorKit extends DefaultEditorKit {
 	    if (p0 != p1) {
 		StyledDocument doc = getStyledDocument(editor);
 		doc.setCharacterAttributes(p0, p1 - p0, attr, replace);
-	    } else {
-		StyledEditorKit k = getStyledEditorKit(editor);
-		MutableAttributeSet inputAttributes = k.getInputAttributes();
-		if (replace) {
-		    inputAttributes.removeAttributes(inputAttributes);
-		}
-		inputAttributes.addAttributes(attr);
 	    }
+	    StyledEditorKit k = getStyledEditorKit(editor);
+	    MutableAttributeSet inputAttributes = k.getInputAttributes();
+	    if (replace) {
+		inputAttributes.removeAttributes(inputAttributes);
+	    }
+	    inputAttributes.addAttributes(attr);
 	}
 
 	/**
@@ -427,7 +473,6 @@ public class StyledEditorKit extends DefaultEditorKit {
 		    String s = e.getActionCommand();
 		    if (s != null) {
 			family = s;
-			System.out.println("s: " + s);
 		    }
 		}
 		if (family != null) {
@@ -653,8 +698,9 @@ public class StyledEditorKit extends DefaultEditorKit {
 		StyledEditorKit kit = getStyledEditorKit(editor);
 		MutableAttributeSet attr = kit.getInputAttributes();
 		boolean bold = (StyleConstants.isBold(attr)) ? false : true;
-		StyleConstants.setBold(attr, bold);
-		setCharacterAttributes(editor, attr, false);
+		SimpleAttributeSet sas = new SimpleAttributeSet();
+		StyleConstants.setBold(sas, bold);
+		setCharacterAttributes(editor, sas, false);
 	    }
 	}
     }
@@ -689,8 +735,9 @@ public class StyledEditorKit extends DefaultEditorKit {
 		StyledEditorKit kit = getStyledEditorKit(editor);
 		MutableAttributeSet attr = kit.getInputAttributes();
 		boolean italic = (StyleConstants.isItalic(attr)) ? false : true;
-		StyleConstants.setItalic(attr, italic);
-		setCharacterAttributes(editor, attr, false);
+		SimpleAttributeSet sas = new SimpleAttributeSet();
+		StyleConstants.setItalic(sas, italic);
+		setCharacterAttributes(editor, sas, false);
 	    }
 	}
     }
@@ -725,8 +772,9 @@ public class StyledEditorKit extends DefaultEditorKit {
 		StyledEditorKit kit = getStyledEditorKit(editor);
 		MutableAttributeSet attr = kit.getInputAttributes();
 		boolean underline = (StyleConstants.isUnderline(attr)) ? false : true;
-		StyleConstants.setUnderline(attr, underline);
-		setCharacterAttributes(editor, attr, false);
+		SimpleAttributeSet sas = new SimpleAttributeSet();
+		StyleConstants.setUnderline(sas, underline);
+		setCharacterAttributes(editor, sas, false);
 	    }
 	}
     }

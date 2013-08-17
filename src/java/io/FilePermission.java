@@ -1,10 +1,10 @@
 /*
- * @(#)FilePermission.java	1.56 98/09/28
+ * @(#)FilePermission.java	1.59 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -69,7 +69,7 @@ import java.util.StringTokenizer;
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.56 00/05/10
+ * @version 1.59 99/04/22
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -165,7 +165,7 @@ public final class FilePermission extends Permission implements Serializable {
 		throw new IllegalArgumentException("invalid actions mask");
 
 	if (getName() == null) 
-		throw new IllegalArgumentException("name can't be null");
+		throw new NullPointerException("name can't be null");
 
 	this.mask = mask;
 
@@ -636,7 +636,7 @@ public final class FilePermission extends Permission implements Serializable {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.56 00/05/10
+ * @version 1.59 00/04/06
  *
  * @author Marianne Mueller
  * @author Roland Schemers

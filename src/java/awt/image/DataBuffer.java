@@ -1,10 +1,10 @@
 /*
- * @(#)DataBuffer.java	1.13 98/07/27
+ * @(#)DataBuffer.java	1.17 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -91,7 +91,12 @@ public abstract class DataBuffer
     /** Size of the data types indexed by DataType tags defined above. */
     private static final int dataTypeSize[] = {8,16,16,32,32,64};
  
-    /** Returns the size (in bits) of the data type, given a datatype tag. */
+    /** Returns the size (in bits) of the data type, given a datatype tag. 
+      * @param type the value of one of the defined datatype tags
+      * @return the size of the data type
+      * @throws IllegalArgumentException if <code>type</code> is less than 
+      *         zero or greater than {@link #TYPE_DOUBLE}
+      */
     public static int getDataTypeSize(int type) {
         if (type < 0 || type > TYPE_DOUBLE) {
             throw new IllegalArgumentException("Unknown data type "+type);
@@ -102,6 +107,8 @@ public abstract class DataBuffer
     /**
      *  Constructs a DataBuffer containing one bank of the specified
      *  data type and size.
+     *  @param dataType the data type of this <code>DataBuffer</code>
+     *  @param size the size of the banks
      */
     protected DataBuffer(int dataType, int size) {
         this.dataType = dataType;
@@ -114,6 +121,10 @@ public abstract class DataBuffer
     /**
      *  Constructs a DataBuffer containing the specified number of
      *  banks.  Each bank has the specified size and an offset of 0.
+     *  @param dataType the data type of this <code>DataBuffer</code>
+     *  @param size the size of the banks
+     *  @param numBanks the number of banks in this
+     *         <code>DataBuffer</code>
      */
     protected DataBuffer(int dataType, int size, int numBanks) {
         this.dataType = dataType;
@@ -124,8 +135,13 @@ public abstract class DataBuffer
     }
 
     /**
-     *  Constructs a DataBuffer which contains the specified number
+     *  Constructs a DataBuffer that contains the specified number
      *  of banks.  Each bank has the specified datatype, size and offset.
+     *  @param dataType the data type of this <code>DataBuffer</code>
+     *  @param size the size of the banks
+     *  @param numBanks the number of banks in this
+     *         <code>DataBuffer</code>
+     *  @param offset the offset for each bank
      */
     protected DataBuffer(int dataType, int size, int numBanks, int offset) {
         this.dataType = dataType;
@@ -143,6 +159,13 @@ public abstract class DataBuffer
      *  of banks.  Each bank has the specified datatype and size.  The
      *  offset for each bank is specified by its respective entry in
      *  the offsets array.
+     *  @param dataType the data type of this <code>DataBuffer</code>
+     *  @param size the size of the banks
+     *  @param numBanks the number of banks in this
+     *         <code>DataBuffer</code>
+     *  @param offsets an array containing an offset for each bank.
+     *  @throws ArrayIndexOutOfBoundsException if <code>numBanks</code>
+     *          does not equal the length of <code>offsets</code>
      */
     protected DataBuffer(int dataType, int size, int numBanks, int offsets[]) {
         if (numBanks != offsets.length) {

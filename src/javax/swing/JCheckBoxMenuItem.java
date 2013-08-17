@@ -1,5 +1,5 @@
  /*
- * @(#)JCheckBoxMenuItem.java	1.38 98/08/28
+ * @(#)JCheckBoxMenuItem.java	1.40 98/11/02
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -56,7 +56,7 @@ import javax.accessibility.*;
  * @beaninfo
  *   attribute: isContainer false
  *
- * @version 1.38 08/28/98
+ * @version 1.40 11/02/98
  * @author Georges Saab
  * @author David Karlton
  */
@@ -122,54 +122,10 @@ public class JCheckBoxMenuItem extends JMenuItem implements SwingConstants,
      * @param b the selected state of the checkboxmenuitem
      */
     public JCheckBoxMenuItem(String text, Icon icon, boolean b) {
+	super(text, icon);
         setModel(new JToggleButton.ToggleButtonModel());
-        init(text, icon);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setHorizontalTextPosition(RIGHT);
-        setHorizontalAlignment(LEFT);
         setSelected(b);
-        updateUI();
     }
-
-    protected void init(String text, Icon icon) {
-        if(text != null) {
-            setText(text);
-            
-            if(icon != null) {
-                setVerticalTextPosition(BOTTOM);
-            } 
-        }
-        
-        if(icon != null) {
-            setIcon(icon);
-        }
-        
-        // Listen for Focus events
-        addFocusListener(
-            new FocusListener() {
-            public void focusGained(FocusEvent event) {}
-            public void focusLost(FocusEvent event) {
-                // When focus is lost, repaint if 
-                // we focus information is painted
-                if(isFocusPainted()) {
-                    repaint();
-                }
-            }
-        }
-        );
-    }
-        
-    /**
-     * Notification from the UIFactory that the L&F
-     * has changed. 
-     *
-     * @see JComponent#updateUI
-     */
-    public void updateUI() {
-        setUI((MenuItemUI)UIManager.getUI(this));
-    }
-
 
     /**
      * Returns the name of the L&F class
@@ -250,9 +206,6 @@ public class JCheckBoxMenuItem extends JMenuItem implements SwingConstants,
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JCheckBoxMenuItem.
      */

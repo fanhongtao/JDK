@@ -1,10 +1,10 @@
 /*
- * @(#)GeneralPath.java	1.48 98/10/19
+ * @(#)GeneralPath.java	1.50 99/04/22
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -15,6 +15,8 @@
 package java.awt.geom;
 
 import java.awt.Shape;
+import sun.awt.geom.Curve;
+import sun.awt.geom.Crossings;
 
 /**
  * The <code>GeneralPath</code> class represents a geometric path 
@@ -489,7 +491,15 @@ public final class GeneralPath implements Shape, Cloneable {
      * <code>Shape</code>; <code>false</code> otherwise
      */
     public boolean contains(double x, double y) {
-	return new Area(this).contains(x, y);
+	if (numTypes < 2) {
+	    return false;
+	}
+	int cross = Curve.crossingsForPath(getPathIterator(null), x, y);
+	if (windingRule == WIND_NON_ZERO) {
+	    return (cross != 0);
+	} else {
+	    return ((cross & 1) != 0);
+	}
     }
 
     /**
@@ -513,7 +523,9 @@ public final class GeneralPath implements Shape, Cloneable {
      * the specified rectangluar area; <code>false</code> otherwise.
      */
     public boolean contains(double x, double y, double w, double h) {
-	return new Area(this).contains(x, y, w, h);
+	Crossings c = Crossings.findCrossings(getPathIterator(null),
+					      x, y, x+w, y+h);
+	return (c != null && c.covers(y, y+h));
     }
 
     /**
@@ -538,7 +550,9 @@ public final class GeneralPath implements Shape, Cloneable {
      * each other; <code>false</code> otherwise.
      */
     public boolean intersects(double x, double y, double w, double h) {
-	return new Area(this).intersects(x, y, w, h);
+	Crossings c = Crossings.findCrossings(getPathIterator(null),
+					      x, y, x+w, y+h);
+	return (c == null || !c.isEmpty());
     }
 
     /**

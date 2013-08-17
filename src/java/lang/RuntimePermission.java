@@ -1,10 +1,10 @@
 /*
- * @(#)RuntimePermission.java	1.31 98/09/21
+ * @(#)RuntimePermission.java	1.33 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -241,7 +241,7 @@ code to plant viruses or at the very least, fill up your entire disk.</td>
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.31 00/05/10
+ * @version 1.33 99/04/22
  *
  * @author Marianne Mueller
  * @author Roland Schemers

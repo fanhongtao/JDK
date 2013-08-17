@@ -1,5 +1,5 @@
 /*
- * @(#)JCheckBox.java	1.45 98/08/28
+ * @(#)JCheckBox.java	1.46 98/09/01
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -49,7 +49,7 @@ import java.io.IOException;
  * @beaninfo
  *   attribute: isContainer false
  *
- * @version 1.45 08/28/98
+ * @version 1.46 09/01/98
  * @author Jeff Dinkins
  */
 public class JCheckBox extends JToggleButton implements Accessible {
@@ -183,8 +183,6 @@ public class JCheckBox extends JToggleButton implements Accessible {
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
      * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JCheckBox.

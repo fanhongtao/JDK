@@ -1,5 +1,5 @@
 /*
- * @(#)RTFGenerator.java	1.6 98/08/26
+ * @(#)RTFGenerator.java	1.7 98/11/19
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -225,7 +225,7 @@ private Integer findStyleNumber(AttributeSet a, String domain)
 	    Integer aNum = (Integer)styleTable.get(a);
 	    if (aNum != null) {
 		if (domain == null ||
-		    domain.equals(((Style)a).getAttribute(Constants.StyleType)))
+		    domain.equals(a.getAttribute(Constants.StyleType)))
 		    return aNum;
 	    }
 		  
@@ -473,7 +473,7 @@ protected void checkNumericControlWord(MutableAttributeSet currentAttributes,
 	    targ = dflt;
 	else
 	    targ = ((Number)parm).floatValue();
-	writeControlWord(controlWord, (int)Math.round(targ * scale));
+	writeControlWord(controlWord, Math.round(targ * scale));
     }
 }
 
@@ -631,7 +631,7 @@ void updateParagraphAttributes(MutableAttributeSet current,
 		writeControlWord("tleq");
 		break;
 	    }
-	    int twips = (int)Math.round(20f * tab.getPosition());
+	    int twips = Math.round(20f * tab.getPosition());
 	    if (tab.getAlignment() == TabStop.ALIGN_BAR) {
 		writeControlWord("tb", twips);
 	    } else {

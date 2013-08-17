@@ -1,10 +1,10 @@
 /*
- * @(#)ResponseHandler.java	1.4 98/09/08
+ * @(#)ResponseHandler.java	1.7 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -12,6 +12,11 @@
  * you entered into with Sun.
  */
 package org.omg.CORBA.portable;
+
+/**
+This interface is supplied by an ORB to a servant at invocation time and allows
+the servant to later retrieve an OutputStream for returning the invocation results.
+*/
 
 public interface ResponseHandler {
     /**

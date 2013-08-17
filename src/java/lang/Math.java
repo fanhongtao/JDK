@@ -1,10 +1,10 @@
 /*
- * @(#)Math.java	1.34 98/07/23
+ * @(#)Math.java	1.39 99/04/22
  *
- * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * Copyright 1994-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -33,7 +33,7 @@ import java.util.Random;
  * <p>
  * The network library may be found on the World Wide Web at:
  * <blockquote><pre>
- *   http://sunsite.unc.edu/
+ *   <a href="http://metalab.unc.edu/">http://metalab.unc.edu/</a>
  * </pre></blockquote>
  * <p>
  * The Java math library is defined with respect to the version of 
@@ -44,7 +44,7 @@ import java.util.Random;
  * the letter <code>e</code>). 
  *
  * @author  unascribed
- * @version 1.34, 07/23/98
+ * @version 1.39, 04/22/99
  * @since   JDK1.0
  */
 

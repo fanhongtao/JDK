@@ -1,10 +1,10 @@
 /*
- * @(#)BeanContextChild.java	1.9 98/03/18
+ * @(#)BeanContextChild.java	1.11 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -40,13 +40,12 @@ import java.beans.beancontext.BeanContext;
  * instances across a broad variety of scenarios, implementing classes of this
  * interface are required to define as transient, any or all fields, or
  * instance variables, that may contain, or represent, references to the
- * nesting BeanContext instance, Delegates indirectly obtained via the nesting
- * BeanContext's java.util.Aggregate interface, or other resources obtained
+ * nesting BeanContext instance or other resources obtained
  * from the BeanContext via any unspecified mechanisms.
  * </p>
  *
  * @author	Laurence P. G. Cable
- * @version	1.9
+ * @version	1.11
  * @since	JDK1.2
  * 
  * @seealso	java.beans.beancontext.BeanContext

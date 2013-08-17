@@ -1,10 +1,10 @@
 /*
- * @(#)File.java	1.81 98/11/09
+ * @(#)File.java	1.83 99/04/22
  *
- * Copyright 1994-1998 by Sun Microsystems, Inc.,
+ * Copyright 1994-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -996,6 +996,9 @@ public class File implements java.io.Serializable, Comparable {
      *          If a security manager exists and its <code>{@link
      *          java.lang.SecurityManager#checkWrite}</code> method denies
      *          write access to both the old and new pathnames
+     * 
+     * @throws  NullPointerException  
+     *          If parameter <code>dest</code> is <code>null</code>
      */
     public boolean renameTo(File dest) {
 	SecurityManager security = System.getSecurityManager();

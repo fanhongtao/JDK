@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsTextFieldUI.java	1.10 98/08/28
+ * @(#)WindowsTextFieldUI.java	1.12 98/11/06
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -49,7 +49,7 @@ import javax.swing.plaf.UIResource;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.10 08/28/98
+ * @version 1.12 11/06/98
  */
 public class WindowsTextFieldUI extends BasicTextFieldUI
 {
@@ -77,7 +77,13 @@ public class WindowsTextFieldUI extends BasicTextFieldUI
      * DefaultCaret, selects the field when focus enters it, and
      * deselects the field when focus leaves.
      */
-    class WindowsFieldCaret extends DefaultCaret implements UIResource {
+    static class WindowsFieldCaret extends DefaultCaret implements UIResource {
+
+	/** Set to true in focusLost if the FocusEvent is temporary. */
+	transient boolean temporaryLoss;
+	/** Set if the focus is lost temporarily, is used to properly
+	 * restore after a temporary loss. */
+	transient int tempDot, tempMark;
 
 	public WindowsFieldCaret() {
 	    super();
@@ -96,8 +102,16 @@ public class WindowsTextFieldUI extends BasicTextFieldUI
 	    super.focusGained(e);
 	    JTextComponent c = getComponent();
 	    Document doc = c.getDocument();
-	    setDot(0);
-	    moveDot(doc.getLength());
+	    int length = doc.getLength();
+	    if (!temporaryLoss) {
+		setDot(0);
+		moveDot(length);
+	    }
+	    else {
+		setDot(Math.min(tempMark, length));
+		moveDot(Math.min(tempDot, length));
+		temporaryLoss = false;
+	    }
 	}
 
 	/**
@@ -109,6 +123,16 @@ public class WindowsTextFieldUI extends BasicTextFieldUI
 	 * @see FocusListener#focusLost
 	 */
         public void focusLost(FocusEvent e) {
+	    if (e != null) {
+		temporaryLoss = e.isTemporary();
+		if (temporaryLoss) {
+		    tempDot = getDot();
+		    tempMark = getMark();
+		}
+	    }
+	    else {
+		temporaryLoss = false;
+	    }
 	    setDot(getDot());
 	    setVisible(false);
 	}
@@ -129,6 +153,15 @@ public class WindowsTextFieldUI extends BasicTextFieldUI
 	    } else if (x > vis.getValue() + vis.getExtent()) {
 		vis.setValue(x - (3 * quarterSpan));
 	    }
+	}
+
+	/**
+	 * Gets the painter for the Highlighter.
+	 *
+	 * @return the painter
+	 */
+	protected Highlighter.HighlightPainter getSelectionPainter() {
+	    return WindowsTextUI.WindowsPainter;
 	}
     }
 

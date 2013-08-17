@@ -1,10 +1,10 @@
 /*
- * @(#)Graphics.java	1.49 98/07/22
+ * @(#)Graphics.java	1.56 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -32,7 +32,7 @@ import java.text.AttributedCharacterIterator;
  * <ul>
  * <li>The <code>Component</code> object on which to draw.
  * <li>A translation origin for rendering and clipping coordinates.
- * <li>The current clip.
+ * <li>The current clip.  
  * <li>The current color.
  * <li>The current font.
  * <li>The current logical pixel operation function (XOR or Paint).
@@ -42,12 +42,12 @@ import java.text.AttributedCharacterIterator;
  * <p>
  * Coordinates are infinitely thin and lie between the pixels of the
  * output device.
- * Operations which draw the outline of a figure operate by traversing
+ * Operations that draw the outline of a figure operate by traversing
  * an infinitely thin path between pixels with a pixel-sized pen that hangs
  * down and to the right of the anchor point on the path.
- * Operations which fill a figure operate by filling the interior
+ * Operations that fill a figure operate by filling the interior
  * of that infinitely thin path.
- * Operations which render horizontal text render the ascending
+ * Operations that render horizontal text render the ascending
  * portion of character glyphs entirely above the baseline coordinate.
  * <p>
  * The graphics pen hangs down and to the right from the path it traverses. 
@@ -60,18 +60,27 @@ import java.text.AttributedCharacterIterator;
  * the baseline of a line of text, that line is drawn entirely below
  * the text, except for any descenders.
  * </ul><p>
- * All coordinates which appear as arguments to the methods of this
+ * All coordinates that appear as arguments to the methods of this
  * <code>Graphics</code> object are considered relative to the 
  * translation origin of this <code>Graphics</code> object prior to 
  * the invocation of the method.
+ * <p>
  * All rendering operations modify only pixels which lie within the
- * area bounded by both the current clip of the graphics context
- * and the extents of the component used to create the 
- * <code>Graphics</code> object.
+ * area bounded by the current clip, which is specified by a {@link Shape} 
+ * in user space and is controlled by the program using the 
+ * <code>Graphics</code> object.  This <i>user clip</i> 
+ * is transformed into device space and combined with the 
+ * <i>device clip</i>, which is defined by the visibility of windows and
+ * device extents.  The combination of the user clip and device clip 
+ * defines the <i>composite clip</i>, which determines the final clipping
+ * region.  The user clip cannot be modified by the rendering 
+ * system to reflect the resulting composite clip. The user clip can only
+ * be changed through the <code>setClip</code> or <code>clipRect</code> 
+ * methods.
  * All drawing or writing is done in the current color, 
  * using the current paint mode, and in the current font. 
  * 
- * @version 	1.49, 07/22/98
+ * @version 	1.56, 04/22/99
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see     java.awt.Component
@@ -129,7 +138,8 @@ public abstract class Graphics {
      * addition to whatever (translated) clipping rectangle it inherited 
      * from the original graphics context. The origin of the new clipping 
      * rectangle is at (<code>0</code>,&nbsp;<code>0</code>), and its size  
-     * is specified by the <code>width</code> and <code>height</code> arguments.
+     * is specified by the <code>width</code> and <code>height</code>
+     * arguments.
      * </ul>
      * <p>
      * @param      x   the <i>x</i> coordinate.
@@ -249,9 +259,15 @@ public abstract class Graphics {
 
     /**
      * Returns the bounding rectangle of the current clipping area.
+     * This method refers to the user clip, which is independent of the
+     * clipping associated with device bounds and window visibility.  
+     * If no clip has previously been set, or if the clip has been 
+     * cleared using <code>setClip(null)</code>, this method returns
+     * <code>null</code>.
      * The coordinates in the rectangle are relative to the coordinate
      * system origin of this graphics context.
-     * @return      the bounding rectangle of the current clipping area.
+     * @return      the bounding rectangle of the current clipping area,
+     *              or <code>null</code> if no clip is set.
      * @see         java.awt.Graphics#getClip
      * @see         java.awt.Graphics#clipRect
      * @see         java.awt.Graphics#setClip(int, int, int, int)
@@ -263,7 +279,12 @@ public abstract class Graphics {
     /** 
      * Intersects the current clip with the specified rectangle.
      * The resulting clipping area is the intersection of the current
-     * clipping area and the specified rectangle.
+     * clipping area and the specified rectangle.  If there is no 
+     * current clipping area, either because the clip has never been 
+     * set, or the clip has been cleared using <code>setClip(null)</code>, 
+     * the specified rectangle becomes the new clip.
+     * This method sets the user clip, which is independent of the
+     * clipping associated with device bounds and window visibility.  
      * This method can only be used to make the current clip smaller.
      * To set the current clip larger, use any of the setClip methods.
      * Rendering operations have no effect outside of the clipping area.
@@ -278,7 +299,9 @@ public abstract class Graphics {
 
     /**
      * Sets the current clip to the rectangle specified by the given
-     * coordinates.
+     * coordinates.  This method sets the user clip, which is 
+     * independent of the clipping associated with device bounds
+     * and window visibility.  
      * Rendering operations have no effect outside of the clipping area.
      * @param       x the <i>x</i> coordinate of the new clip rectangle.
      * @param       y the <i>y</i> coordinate of the new clip rectangle.
@@ -292,8 +315,14 @@ public abstract class Graphics {
 
     /**
      * Gets the current clipping area.
+     * This method returns the user clip, which is independent of the
+     * clipping associated with device bounds and window visibility.
+     * If no clip has previously been set, or if the clip has been 
+     * cleared using <code>setClip(null)</code>, this method returns 
+     * <code>null</code>.
      * @return      a <code>Shape</code> object representing the 
-     *                      current clipping area.
+     *              current clipping area, or <code>null</code> if
+     *              no clip is set.
      * @see         java.awt.Graphics#getClipBounds
      * @see         java.awt.Graphics#clipRect
      * @see         java.awt.Graphics#setClip(int, int, int, int)
@@ -304,12 +333,15 @@ public abstract class Graphics {
 
     /**
      * Sets the current clipping area to an arbitrary clip shape.
-     * Not all objects which implement the <code>Shape</code> 
+     * Not all objects that implement the <code>Shape</code> 
      * interface can be used to set the clip.  The only 
-     * <code>Shape</code> objects which are guaranteed to be 
-     * supported are <code>Shape</code> objects which are
+     * <code>Shape</code> objects that are guaranteed to be 
+     * supported are <code>Shape</code> objects that are
      * obtained via the <code>getClip</code> method and via 
-     * <code>Rectangle</code> objects.
+     * <code>Rectangle</code> objects.  This method sets the
+     * user clip, which is independent of the clipping associated
+     * with device bounds and window visibility.
+     * @param clip the <code>Shape</code> to use to set the clip
      * @see         java.awt.Graphics#getClip()
      * @see         java.awt.Graphics#clipRect
      * @see         java.awt.Graphics#setClip(int, int, int, int)
@@ -1112,8 +1144,13 @@ public abstract class Graphics {
      * Returns the bounding rectangle of the current clipping area.
      * The coordinates in the rectangle are relative to the coordinate
      * system origin of this graphics context.  This method differs
-     * getClipBounds() in that an existing rectangle is used instead
-     * of allocating a new one.
+     * from {@link getClipBounds() getClipBounds} in that an existing 
+     * rectangle is used instead of allocating a new one.  
+     * This method refers to the user clip, which is independent of the
+     * clipping associated with device bounds and window visibility.
+     *  If no clip has previously been set, or if the clip has been 
+     * cleared using <code>setClip(null)</code>, this method returns the 
+     * specified <code>Rectangle</code>.
      * @param  r    the rectangle where the current clipping area is
      *              copied to.  Any current values in this rectangle are
      *              overwritten.

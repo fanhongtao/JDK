@@ -1,15 +1,14 @@
 /*
- * @(#)System.java	1.95 98/10/17
+ * @(#)System.java	1.100 00/03/08
  *
- * Copyright 1994-1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
+ * 
  */
 
 package java.lang;
@@ -18,6 +17,9 @@ import java.io.*;
 import java.util.Properties;
 import java.util.PropertyPermission;
 import java.util.StringTokenizer;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.AllPermission;
 import sun.net.InetAddressCachePolicy;
 
 /**
@@ -31,11 +33,11 @@ import sun.net.InetAddressCachePolicy;
  * copying a portion of an array. 
  *
  * @author  Arthur van Hoff 
- * @version 1.95, 10/17/98
+ * @version 1.100, 03/08/00
  * @since   JDK1.0
  */
-public final
-class System {
+public final class System {
+
     /* First thing---register the natives */
     private static native void registerNatives();
     static {
@@ -198,18 +200,48 @@ class System {
      *
      * @param      s   the security manager.
      * @exception  SecurityException  if the security manager has already
-     *             been set and its <code>checkPermission</code> method doesn't allow
-     *             it to be replaced.
+     *             been set and its <code>checkPermission</code> method
+     *             doesn't allow it to be replaced.
      * @see SecurityManager#checkPermission
      * @see java.lang.RuntimePermission
      */
-    public static synchronized void setSecurityManager(SecurityManager s) {
+    public static
+    void setSecurityManager(final SecurityManager s) {
+        try {
+            s.checkPackageAccess("java.lang");
+        } catch (Exception e) {
+            // no-op
+        }
+        setSecurityManager0(s);
+    }
+
+    private static synchronized
+    void setSecurityManager0(final SecurityManager s) {
 	if (security != null) {
  	    // ask the currently installed security manager if we 
  	    // can replace it.
  	    security.checkPermission(new RuntimePermission
 				     ("setSecurityManager"));
 	}
+
+	if ((s != null) && (s.getClass().getClassLoader() != null)) {
+	    // New security manager class is not on bootstrap classpath.
+	    // Cause policy to get initialized before we install the new
+	    // security manager, in order to prevent infinite loops when
+	    // trying to initialize the policy (which usually involves
+	    // accessing some security and/or system properties, which in turn
+	    // calls the installed security manager's checkPermission method
+	    // which will loop infinitely if there is a non-system class
+	    // (in this case: the new security manager class) on the stack).
+	    AccessController.doPrivileged(new PrivilegedAction() {
+		public Object run() {
+		    s.getClass().getProtectionDomain().implies
+			(new AllPermission());
+		    return null;
+		}
+	    });
+	}
+
 	security = s;
 	InetAddressCachePolicy.setIfNotSet(InetAddressCachePolicy.FOREVER);
     }

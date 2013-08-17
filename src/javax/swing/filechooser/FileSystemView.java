@@ -1,10 +1,10 @@
 /*
- * @(#)FileSystemView.java	1.9 98/08/26
+ * @(#)FileSystemView.java	1.11 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -14,12 +14,15 @@
 
 package javax.swing.filechooser;
 
+
 import javax.swing.event.*;
 import javax.swing.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Vector;
+
+import java.lang.reflect.*;
 
 /**
  * FileSystemView is JFileChooser's gateway to the
@@ -40,7 +43,7 @@ import java.util.Vector;
  * how Mac/OS2/BeOS/etc file systems can modify FileSystemView
  * to handle their particular type of file system.
  *
- * @version 1.9 08/26/98
+ * @version 1.11 04/22/99
  * @author Jeff Dinkins
  */
 public abstract class FileSystemView {
@@ -99,7 +102,6 @@ public abstract class FileSystemView {
      * this would be the A: through Z: drives.
      */
     public abstract File[] getRoots();
-
 
 
     // Providing default implemenations for the remaining methods
@@ -180,6 +182,12 @@ public abstract class FileSystemView {
  */
 class UnixFileSystemView extends FileSystemView {
 
+    private static final Object[] noArgs = {};
+    private static final Class[] noArgTypes = {};
+
+    private static Method listRootsMethod = null;
+    private static boolean listRootsMethodChecked = false;
+
     public boolean isRoot(File f) {
 	String path = f.getAbsolutePath();
 	if(path.length() == 1 && path.charAt(0) == '/') {
@@ -230,17 +238,41 @@ class UnixFileSystemView extends FileSystemView {
     }
 
     /**
-     * Returns the root partitian on this system. On Unix, this is just "/".
+     * Returns the root partitians on this system.
      */
     public File[] getRoots() {
-	File[] roots = new File[1];
-	roots[0] = new File("/");
-	if(roots[0].exists() && roots[0].isDirectory()) {
-	    return roots;
+        if (!listRootsMethodChecked) {
+            try {
+                listRootsMethod = File.class.getMethod("listRoots", noArgTypes);
+            }
+            catch (NoSuchMethodException e) {
+            }
+            finally {
+                listRootsMethodChecked = true;
+            }
+        }
+	
+        if (listRootsMethod != null) {
+            try {
+                File[] roots = (File[])(listRootsMethod.invoke(null, noArgs));
+		for(int i = 0; i < roots.length; i++) {
+		    roots[i] = new FileSystemRoot(roots[i]);
+		}
+                return roots;
+            }
+            catch(Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+	    // System.out.println("File.listRoots doesn't exist");
+	    File[] roots = new File[1];
+	    roots[0] = new File("/");
+	    if(roots[0].exists() && roots[0].isDirectory()) {
+		return roots;
+	    }
 	}
 	return null;
     }
-
 }
 
 
@@ -248,6 +280,11 @@ class UnixFileSystemView extends FileSystemView {
  * FileSystemView that handles some specific windows concepts.
  */
 class WindowsFileSystemView extends FileSystemView {
+    private static final Object[] noArgs = {};
+    private static final Class[] noArgTypes = {};
+
+    private static Method listRootsMethod = null;
+    private static boolean listRootsMethodChecked = false;
 
     /**
      * Returns true if the given file is a root.
@@ -305,51 +342,62 @@ class WindowsFileSystemView extends FileSystemView {
      * will be the A: through Z: drives.
      */
     public File[] getRoots() {
-	Vector rootsVector = new Vector();
+        if (!listRootsMethodChecked) {
+            try {
+                listRootsMethod = File.class.getMethod("listRoots", noArgTypes);
+            }
+            catch (NoSuchMethodException e) {
+            }
+            finally {
+                listRootsMethodChecked = true;
+            }
+        }
 
-	// Create the A: drive whether it is mounted or not
-	WindowsFloppy floppy = new WindowsFloppy();
-	rootsVector.addElement(floppy);
+        if (listRootsMethod != null) {
+            try {
+                File[] roots = (File[])(listRootsMethod.invoke(null, noArgs));
+		for(int i = 0; i < roots.length; i++) {
+		    roots[i] = new FileSystemRoot(roots[i]);
+		}
+                return roots;
+            }
+            catch(Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+	    Vector rootsVector = new Vector();
 
-	// Run through all possible mount points and check
-	// for their existance.
-	for (char c = 'C'; c <= 'Z'; c++) {
-	    char device[] = {c, ':', '\\'};
-	    String deviceName = new String(device);
-	    File deviceFile = new File(deviceName);
-	    if (deviceFile != null && deviceFile.exists()) {
-		rootsVector.addElement(deviceFile);
+	    // Create the A: drive whether it is mounted or not
+	    FileSystemRoot floppy = new FileSystemRoot("A" + ":" + "\\");
+	    rootsVector.addElement(floppy);
+
+	    // Run through all possible mount points and check
+	    // for their existance.
+	    for (char c = 'C'; c <= 'Z'; c++) {
+	        char device[] = {c, ':', '\\'};
+	        String deviceName = new String(device);
+	        File deviceFile = new FileSystemRoot(deviceName);
+	        if (deviceFile != null && deviceFile.exists()) {
+		    rootsVector.addElement(deviceFile);
+	        }
 	    }
-	}
-	File[] roots = new File[rootsVector.size()];
-	rootsVector.copyInto(roots);
-	return roots;
+	    File[] roots = new File[rootsVector.size()];
+	    rootsVector.copyInto(roots);
+	    return roots;
+        }
+	return null;
     }
-
-    /**
-     * Fake the floppy drive. There is no way to know whether
-     * it is mounted or not, and doing a file.isDirectory or
-     * file.exists() causes Windows to pop up the "Insert Floppy"
-     * dialog. We therefore assume that A: is the floppy drive,
-     * and force it to always return true for isDirectory()
-     */
-    class WindowsFloppy extends File {
-	public WindowsFloppy() {
-	    super("A" + ":" + "\\");
-	}
-
-	public boolean isDirectory() {
-	    return true;
-	};
-    }
-
 }
-
 
 /**
  * Fallthrough FileSystemView in case we can't determine the OS.
  */
 class GenericFileSystemView extends FileSystemView {
+    private static final Object[] noArgs = {};
+    private static final Class[] noArgTypes = {};
+
+    private static Method listRootsMethod = null;
+    private static boolean listRootsMethodChecked = false;
 
     /**
      * Returns true if the given file is a root.
@@ -397,13 +445,50 @@ class GenericFileSystemView extends FileSystemView {
     }
 
     /**
-     * Returns all root partitians on this system. Since we
-     * don't know what OS type this is, return a null file
-     * list.
+     * Returns all root partitians on this system. 
      */
     public File[] getRoots() {
-	File[] roots = new File[0];
-	return roots;
+        if (!listRootsMethodChecked) {
+            try {
+                listRootsMethod = File.class.getMethod("listRoots", noArgTypes);
+            }
+            catch (NoSuchMethodException e) {
+            }
+            finally {
+                listRootsMethodChecked = true;
+            }
+        }
+
+        if (listRootsMethod != null) {
+            try {
+                File[] roots = (File[])(listRootsMethod.invoke(null, noArgs));
+		for(int i = 0; i < roots.length; i++) {
+		    roots[i] = new FileSystemRoot(roots[i]);
+		}
+                return roots;
+            }
+            catch(Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+	    File[] roots = new File[0];
+	    return roots;
+        }
+	return null;
     }
 
+}
+
+class FileSystemRoot extends File {
+    public FileSystemRoot(File f) {
+        super(f,"");
+    }
+  
+    public FileSystemRoot(String s) {
+        super(s);
+    }
+  
+    public boolean isDirectory() {
+        return true;
+    }
 }

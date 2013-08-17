@@ -1,10 +1,10 @@
 /*
- * @(#)FileDialog.java	1.37 98/10/02
+ * @(#)FileDialog.java	1.40 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -29,7 +29,7 @@ import java.io.ObjectInputStream;
  *
  * @see Window#show
  *
- * @version 	1.37, 10/02/98
+ * @version 	1.40, 04/22/99
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -171,6 +171,9 @@ public class FileDialog extends Dialog {
      */
     public void addNotify() {
         synchronized(getTreeLock()) {
+	    if (parent != null && parent.getPeer() == null) {
+		parent.addNotify();
+	    }
 	    if (peer == null)
 	        peer = getToolkit().createFileDialog(this);
 	    super.addNotify();
@@ -244,14 +247,6 @@ public class FileDialog extends Dialog {
 	}
     }
 
-    // NOTE: This method may be called by privileged threads.
-    //       This functionality is implemented in a package-private method 
-    //       to insure that it cannot be overridden by client subclasses. 
-    //       DO NOT INVOKE CLIENT CODE ON THIS THREAD!
-    final void setDirectory_NoClientCode(String dir) {
-        this.dir = (dir != null && dir.equals("")) ? null : dir;
-    }
-
     /**
      * Gets the selected file of this file dialog.
      * @return    the currently selected file of this file dialog window,
@@ -277,14 +272,6 @@ public class FileDialog extends Dialog {
 	if (peer != null) {
 	    peer.setFile(this.file);
 	}
-    }
-
-    // NOTE: This method may be called by privileged threads.
-    //       This functionality is implemented in a package-private method 
-    //       to insure that it cannot be overridden by client subclasses. 
-    //       DO NOT INVOKE CLIENT CODE ON THIS THREAD!
-    final void setFile_NoClientCode(String file) {
-        this.file = (file != null && file.equals("")) ? null : file;
     }
 
     /**

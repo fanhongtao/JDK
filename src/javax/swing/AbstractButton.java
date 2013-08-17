@@ -1,10 +1,10 @@
 /*
- * @(#)AbstractButton.java	1.97 98/08/28
+ * @(#)AbstractButton.java	1.101 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -33,7 +33,7 @@ import javax.accessibility.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.97 08/28/98
+ * @version 1.101 04/22/99
  * @author Jeff Dinkins
  */
 public abstract class AbstractButton extends JComponent implements ItemSelectable, SwingConstants {
@@ -122,7 +122,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     private int        horizontalAlignment     = CENTER;
     
     private int        verticalTextPosition    = CENTER;
-    private int        horizontalTextPosition  = RIGHT;
+    private int        horizontalTextPosition  = TRAILING;
 
     /** 
      * The button's model listeners.
@@ -1220,6 +1220,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
         );
 
         setAlignmentX(LEFT_ALIGNMENT);
+        setAlignmentY(CENTER_ALIGNMENT);
     }
 
 

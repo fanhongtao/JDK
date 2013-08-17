@@ -1,15 +1,14 @@
 /*
- * @(#)BasicComboPopup.java	1.19 98/08/28
+ * @(#)BasicComboPopup.java	1.25 00/03/08
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
- * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
- * All rights reserved.
- *
+ * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
  * it only in accordance with the terms of the license agreement
  * you entered into with Sun.
+ * 
  */
 
 package javax.swing.plaf.basic;
@@ -54,7 +53,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.19 08/28/98
+ * @version 1.21 10/30/98
  * @author Tom Santos
  */
 public class BasicComboPopup extends JPopupMenu implements ComboPopup {
@@ -170,7 +169,7 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
         comboBox.removePropertyChangeListener( propertyChangeListener );
         comboBox.removeItemListener( itemListener );
         uninstallComboBoxModelListeners( comboBox.getModel() );
-	uninstallKeyboardActions();
+        uninstallKeyboardActions();
     }
 
     protected void uninstallComboBoxModelListeners( ComboBoxModel model ) {
@@ -180,7 +179,7 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
     }
 
     protected void uninstallKeyboardActions() {
-        comboBox.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ) );
+        //comboBox.unregisterKeyboardAction( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ) );
     }
 
     //
@@ -196,15 +195,15 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
         comboBox = combo;
 
 
-	Object keyNav = combo.getClientProperty( LIGHTWEIGHT_KEYBOARD_NAVIGATION );
-	if ( keyNav != null ) {
-	    if ( keyNav.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_ON ) ) {
-	        lightNav = true;
-	    }
-	    else if ( keyNav.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_OFF ) ) {
-	        lightNav = false;
-	    }
-	}
+        Object keyNav = combo.getClientProperty( LIGHTWEIGHT_KEYBOARD_NAVIGATION );
+        if ( keyNav != null ) {
+            if ( keyNav.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_ON ) ) {
+                lightNav = true;
+            }
+            else if ( keyNav.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_OFF ) ) {
+                lightNav = false;
+            }
+        }
 
         mouseListener = createMouseListener();
         mouseMotionListener = createMouseMotionListener();
@@ -224,7 +223,7 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
         configureScroller();
         configurePopup();
         installComboBoxListeners();
-	installKeyboardActions();
+        installKeyboardActions();
     }
 
     /**
@@ -385,17 +384,16 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
     }
 
     protected void installKeyboardActions() {
-        AbstractAction action = new AbstractAction() {
+
+        ActionListener action = new ActionListener() {
             public void actionPerformed(ActionEvent e){
-            }
-            public boolean isEnabled(){
-                return isVisible();
             }
         };
 
         comboBox.registerKeyboardAction( action,
-					 KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ),
-					 JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT );
+                                         KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ),
+                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT );
+
     }
 
     //
@@ -501,11 +499,20 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
             if ( e.getKeyCode() == KeyEvent.VK_SPACE ||
                  e.getKeyCode() == KeyEvent.VK_ENTER ) {
 
-	        if ( lightNav && isVisible() ) {
-		    comboBox.setSelectedIndex( list.getSelectedIndex() );
-		}
-
-                togglePopup();
+                if ( isVisible() ) {
+                    if ( lightNav ) {
+                        comboBox.setSelectedIndex( list.getSelectedIndex() );
+                    }
+                    else {
+                        togglePopup();
+                    }
+                }
+                else if ( e.getKeyCode() == KeyEvent.VK_SPACE ) {
+                    // Don't toggle if the popup is invisible and
+                    // the key is an <Enter> (conflicts with default
+                    // button)
+                    togglePopup();
+                }
             }
         }
     }
@@ -552,8 +559,8 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
      * This listener hides the popup when the mouse is released in the list.
      */
     protected class ListMouseHandler extends MouseAdapter {
-       public void mousePressed( MouseEvent e ) {
-       }
+        public void mousePressed( MouseEvent e ) {
+        }
         public void mouseReleased(MouseEvent anEvent) {
             comboBox.setSelectedIndex( list.getSelectedIndex() );
             hide();
@@ -620,15 +627,15 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
                     hide();
                 }
             }
-	    else if ( propertyName.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION ) ) {
-	        Object newValue = e.getNewValue();
-		if ( newValue.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_ON ) ) {
-		    lightNav = true;
-		}
-		else if ( newValue.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_OFF ) ) {
-		    lightNav = false;
-		}
-	    }
+            else if ( propertyName.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION ) ) {
+                Object newValue = e.getNewValue();
+                if ( newValue.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_ON ) ) {
+                    lightNav = true;
+                }
+                else if ( newValue.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_OFF ) ) {
+                    lightNav = false;
+                }
+            }
         }
     }
 
@@ -667,12 +674,9 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
             list.setSelectedIndex( top );
             valueIsAdjusting = false;
 
-            AbstractAction timerAction = new AbstractAction() {
+            ActionListener timerAction = new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     autoScrollUp();
-                }
-                public boolean isEnabled() {
-                    return true;
                 }
             };
 
@@ -689,12 +693,9 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
             list.setSelectedIndex( bottom );
             valueIsAdjusting = false;
 
-            AbstractAction timerAction = new AbstractAction() {
+            ActionListener timerAction = new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     autoScrollDown();
-                }
-                public boolean isEnabled() {
-                    return true;
                 }
             };
 
@@ -796,7 +797,19 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
 
     protected int getPopupHeightForRowCount(int maxRowCount) {
         int currentElementCount = comboBox.getModel().getSize();
+        int rowCount = Math.min( maxRowCount, currentElementCount );
+        int height = 0;
+        ListCellRenderer renderer = list.getCellRenderer();
+        Object value = null;
 
+        for ( int i = 0; i < rowCount; ++i ) {
+            value = list.getModel().getElementAt( i );
+            Component c = renderer.getListCellRendererComponent( list, value, i, false, false );
+            height += c.getPreferredSize().height;
+        }
+
+        return height == 0 ? 100 : height;
+/*
         if ( currentElementCount > 0 ) {
             Rectangle r = list.getCellBounds(0,0);
 
@@ -808,6 +821,7 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
         }
         else
             return 100;
+            */
     }
 
     protected Rectangle computePopupBounds(int px,int py,int pw,int ph) {
@@ -870,13 +884,13 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
         for ( parent = comboBox.getParent() ; parent != null && !(parent instanceof Dialog)
             && !(parent instanceof Window) ; parent = parent.getParent() );
         if ( parent instanceof Dialog )
-            return (Dialog) parent;
+            return(Dialog) parent;
         else
             return null;
     }
 
     private boolean inModalDialog() {
-        return (getDialog() != null);
+        return(getDialog() != null);
     }
 
     /**

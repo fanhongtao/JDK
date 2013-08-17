@@ -1,10 +1,10 @@
 /*
- * @(#)BasicComboBoxEditor.java	1.9 98/05/09
+ * @(#)BasicComboBoxEditor.java	1.14 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -30,7 +30,7 @@ public class BasicComboBoxEditor implements ComboBoxEditor,FocusListener {
 
     public BasicComboBoxEditor() {
         editor = new BorderlessTextField("",9);
-        editor.addFocusListener(this);
+        //editor.addFocusListener(this);
         editor.setBorder(null);
     }
 
@@ -54,12 +54,13 @@ public class BasicComboBoxEditor implements ComboBoxEditor,FocusListener {
         editor.requestFocus();
     }
 
+    // This used to do something but now it doesn't.  It couldn't be
+    // removed because it would be an API change to do so.
     public void focusGained(FocusEvent e) {}
-    public void focusLost(FocusEvent e) {
-        if ( !e.isTemporary() ) {
-            editor.postActionEvent();
-        }
-    }
+    
+    // This used to do something but now it doesn't.  It couldn't be
+    // removed because it would be an API change to do so.
+    public void focusLost(FocusEvent e) {}
 
     public void addActionListener(ActionListener l) {
         editor.addActionListener(l);

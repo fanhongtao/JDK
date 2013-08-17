@@ -1,5 +1,5 @@
 /*
- * @(#)MetalInternalFrameUI.java	1.15 98/08/26
+ * @(#)MetalInternalFrameUI.java	1.16 98/09/17
  *
  * Copyright 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -29,7 +29,7 @@ import javax.swing.plaf.*;
  * Metal implementation of JInternalFrame.  
  * <p>
  *
- * @version 1.15 08/26/98
+ * @version 1.16 09/17/98
  * @author Steve Wilson
  */
 public class MetalInternalFrameUI extends BasicInternalFrameUI {
@@ -68,7 +68,7 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
 
     Container content = frame.getContentPane();
     stripContentBorder(content);    
-    c.setOpaque(false);
+    //c.setOpaque(false);
   }
 
   

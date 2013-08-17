@@ -1,10 +1,10 @@
 /*
- * @(#)GradientPaintContext.java	1.14 98/06/29
+ * @(#)GradientPaintContext.java	1.17 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -14,13 +14,14 @@
 
 package java.awt;
 
-import java.awt.color.ColorSpace;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
 import sun.awt.image.IntegerComponentRaster;
 import java.awt.image.ColorModel;
 import java.awt.image.DirectColorModel;
 import java.awt.geom.Point2D;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 
 class GradientPaintContext implements PaintContext {
     static ColorModel xrgbmodel =
@@ -35,43 +36,76 @@ class GradientPaintContext implements PaintContext {
     Raster saved;
     ColorModel model;
 
-    public GradientPaintContext(Point2D p1, Point2D p2,
-				Color c1, Color c2,
-				boolean cyclic) {
-	double x1, y1, x2, y2;
-	int rgb1, rgb2;
-	x1 = p1.getX();
-	x2 = p2.getX();
-	if (x1 > x2) {
-	    y1 = x1;
-	    x1 = x2;
-	    x2 = y1;
-	    y1 = p2.getY();
-	    y2 = p1.getY();
-	    rgb1 = c2.getRGB();
-	    rgb2 = c1.getRGB();
-	} else {
-	    y1 = p1.getY();
-	    y2 = p2.getY();
-	    rgb1 = c1.getRGB();
-	    rgb2 = c2.getRGB();
+    public GradientPaintContext(Point2D p1, Point2D p2, AffineTransform xform,
+				Color c1, Color c2, boolean cyclic) {
+	// First calculate the distance moved in user space when
+	// we move a single unit along the X & Y axes in device space.
+	Point2D xvec = new Point2D.Double(1, 0);
+	Point2D yvec = new Point2D.Double(0, 1);
+	try {
+	    AffineTransform inverse = xform.createInverse();
+	    inverse.deltaTransform(xvec, xvec);
+	    inverse.deltaTransform(yvec, yvec);
+	} catch (NoninvertibleTransformException e) {
+	    xvec.setLocation(0, 0);
+	    yvec.setLocation(0, 0);
 	}
-	double dx = x2 - x1;
-	double dy = y2 - y1;
-	double lenSq = dx * dx + dy * dy;
-	this.x1 = x1;
-	this.y1 = y1;
-	if (lenSq >= Double.MIN_VALUE) {
-	    dx = dx / lenSq;
-	    dy = dy / lenSq;
+
+	// Now calculate the (square of the) user space distance
+	// between the anchor points. This value equals:
+	//     (UserVec . UserVec)
+	double udx = p2.getX() - p1.getX();
+	double udy = p2.getY() - p1.getY();
+	double ulenSq = udx * udx + udy * udy;
+
+	if (ulenSq <= Double.MIN_VALUE) {
+	    dx = 0;
+	    dy = 0;
+	} else {
+	    // Now calculate the proportional distance moved along the
+	    // vector from p1 to p2 when we move a unit along X & Y in
+	    // device space.
+	    //
+	    // The length of the projection of the Device Axis Vector is
+	    // its dot product with the Unit User Vector:
+	    //     (DevAxisVec . (UserVec / Len(UserVec))
+	    //
+	    // The "proportional" length is that length divided again
+	    // by the length of the User Vector:
+	    //     (DevAxisVec . (UserVec / Len(UserVec))) / Len(UserVec)
+	    // which simplifies to:
+	    //     ((DevAxisVec . UserVec) / Len(UserVec)) / Len(UserVec)
+	    // which simplifies to:
+	    //     (DevAxisVec . UserVec) / LenSquared(UserVec)
+	    dx = (xvec.getX() * udx + xvec.getY() * udy) / ulenSq;
+	    dy = (yvec.getX() * udx + yvec.getY() * udy) / ulenSq;
+
 	    if (cyclic) {
 		dx = dx % 1.0;
 		dy = dy % 1.0;
+	    } else {
+		// We are acyclic
+		if (dx < 0) {
+		    // If we are using the acyclic form below, we need
+		    // dx to be non-negative for simplicity of scanning
+		    // across the scan lines for the transition points.
+		    // To ensure that constraint, we negate the dx/dy
+		    // values and swap the points and colors.
+		    Point2D p = p1; p1 = p2; p2 = p;
+		    Color c = c1; c1 = c2; c2 = c;
+		    dx = -dx;
+		    dy = -dy;
+		}
 	    }
 	}
-	this.dx = dx;
-	this.dy = dy;
+
+	Point2D dp1 = xform.transform(p1, null);
+	this.x1 = dp1.getX();
+	this.y1 = dp1.getY();
+
 	this.cyclic = cyclic;
+	int rgb1 = c1.getRGB();
+	int rgb2 = c2.getRGB();
 	int a1 = (rgb1 >> 24) & 0xff;
 	int r1 = (rgb1 >> 16) & 0xff;
 	int g1 = (rgb1 >>  8) & 0xff;

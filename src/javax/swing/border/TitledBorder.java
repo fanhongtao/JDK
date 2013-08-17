@@ -1,10 +1,10 @@
 /*
- * @(#)TitledBorder.java	1.22 98/08/28
+ * @(#)TitledBorder.java	1.28 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -31,6 +31,20 @@ import javax.swing.UIManager;
  * with the addition of a String title in a
  * specified position and justification.
  * <p>
+ * If the border, font, or color property values are not 
+ * specified in the constuctor or by invoking the appropriate
+ * set methods, the property values will be defined by the current
+ * look and feel, using the following property names in the
+ * Defaults Table:
+ * <ul>
+ * <li>&quot;TitledBorder.border&quot;
+ * <li>&quot;TitledBorder.font&quot;
+ * <li>&quot;TitledBorder.titleColor&quot;
+ * </ul>
+ * @see UIManager#setBorder
+ * @see UIManager#setFont
+ * @see UIManager#setColor
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases.  The current serialization support is appropriate
@@ -38,7 +52,7 @@ import javax.swing.UIManager;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.22 08/28/98 
+ * @version 1.28 04/22/99 
  * @author David Kloba
  */
 public class TitledBorder extends AbstractBorder
@@ -50,9 +64,10 @@ public class TitledBorder extends AbstractBorder
     protected Font   titleFont;
     protected Color  titleColor;
 
+    private Point textLoc = new Point();
+
     /**
      * Use the default vertical orientation for the title text.
-     * (The default value depends on the look and feel.)
      */
     static public final int     DEFAULT_POSITION        = 0;
     /** Position the title above the border's top line. */
@@ -70,7 +85,6 @@ public class TitledBorder extends AbstractBorder
 
     /**
      * Use the default justification for the title text.
-     * (The default value depends on the look and feel.)
      */
     static public final int     DEFAULT_JUSTIFICATION   = 0;
     /** Position title text at the left side of the border line. */
@@ -90,7 +104,7 @@ public class TitledBorder extends AbstractBorder
     static protected final int TEXT_INSET_H = 5;
 
     /**
-     * Creates a TitledBorder instance which uses an etched border.
+     * Creates a TitledBorder instance.
      * 
      * @param title  the title the border should display
      */
@@ -194,8 +208,12 @@ public class TitledBorder extends AbstractBorder
      */
     public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
 
+        Border border = getBorder();
+
         if (getTitle() == null || getTitle().equals("")) {
-            getBorder().paintBorder(c, g, x, y, width, height);
+            if (border != null) {
+                border.paintBorder(c, g, x, y, width, height);
+            }
             return;
         }
 
@@ -211,17 +229,18 @@ public class TitledBorder extends AbstractBorder
         int         fontHeight = fm.getHeight();
         int         descent = fm.getDescent();
         int         ascent = fm.getAscent();
-        Point       textLoc = new Point();
         int         diff;
         int         stringWidth = fm.stringWidth(getTitle());
         Insets      insets;
 
-        if(getBorder() != null)
-            insets = getBorder().getBorderInsets(c);
-        else
+        if (border != null) {
+            insets = border.getBorderInsets(c);
+        } else {
             insets = new Insets(0, 0, 0, 0);
+        }
 
-        switch (getTitlePosition()) {
+        int titlePos = getTitlePosition();
+        switch (titlePos) {
             case ABOVE_TOP:
                 diff = ascent + descent + (Math.max(EDGE_SPACING,
                                 TEXT_SPACING*2) - EDGE_SPACING);
@@ -256,9 +275,6 @@ public class TitledBorder extends AbstractBorder
                 break;
         }
 
-        getBorder().paintBorder(c, g, grooveRect.x, grooveRect.y,
-                                  grooveRect.width, grooveRect.height);
-
         switch (getTitleJustification()) {
             case LEFT:
             case DEFAULT_JUSTIFICATION:
@@ -273,9 +289,64 @@ public class TitledBorder extends AbstractBorder
                         ((grooveRect.width - stringWidth) / 2);
                 break;
         }
-	g.setColor(c.getBackground());
-        g.fillRect(textLoc.x - TEXT_SPACING, textLoc.y - (fontHeight-descent),
-                   stringWidth + (2 * TEXT_SPACING), fontHeight - descent);
+
+        // If title is positioned in middle of border we'll
+        // need to paint the border in sections to leave
+        // space for the component's background to show
+        // through the title.
+        //
+        if (border != null) {
+            if (titlePos == TOP || titlePos == BOTTOM) {
+                Rectangle clipRect = new Rectangle();
+                
+                // save original clip
+                Rectangle saveClip = g.getClipBounds();            
+
+                // paint strip left of text
+                clipRect.setBounds(saveClip);
+                if (computeIntersection(clipRect, x, y, textLoc.x, height)) {
+                    g.setClip(clipRect);
+                    border.paintBorder(c, g, grooveRect.x, grooveRect.y,
+                                  grooveRect.width, grooveRect.height);
+                }
+
+                // paint strip right of text
+                clipRect.setBounds(saveClip);
+                if (computeIntersection(clipRect, textLoc.x+stringWidth, 0,
+                               width-stringWidth-textLoc.x, height)) {
+                    g.setClip(clipRect);
+                    border.paintBorder(c, g, grooveRect.x, grooveRect.y,
+                                  grooveRect.width, grooveRect.height);
+                }
+
+                // paint strip below or above text
+                clipRect.setBounds(saveClip);
+                if (titlePos == TOP) {
+                    if (computeIntersection(clipRect, textLoc.x, grooveRect.y+insets.top, 
+                                        stringWidth, height-grooveRect.y-insets.top)) {
+                        g.setClip(clipRect);
+                        border.paintBorder(c, g, grooveRect.x, grooveRect.y,
+                                  grooveRect.width, grooveRect.height);
+                    }
+                } else { // titlePos == BOTTOM
+                    if (computeIntersection(clipRect, textLoc.x, y, 
+                          stringWidth, height-insets.bottom-
+                                        (height-grooveRect.height-grooveRect.y))) {
+                        g.setClip(clipRect); 
+                        border.paintBorder(c, g, grooveRect.x, grooveRect.y,
+                                  grooveRect.width, grooveRect.height);
+                    }
+                }
+
+                // restore clip
+                g.setClip(saveClip);   
+
+            } else {
+                border.paintBorder(c, g, grooveRect.x, grooveRect.y,
+                                  grooveRect.width, grooveRect.height);
+            }
+        }
+
         g.setColor(getTitleColor());
         g.drawString(getTitle(), textLoc.x, textLoc.y);
 
@@ -304,11 +375,15 @@ public class TitledBorder extends AbstractBorder
         Border border = getBorder();
         if (border != null) {
             if (border instanceof AbstractBorder) {
-                insets = ((AbstractBorder)border).getBorderInsets(c, insets);
+                ((AbstractBorder)border).getBorderInsets(c, insets);
             } else {
                 // Can't reuse border insets because the Border interface
                 // can't be enhanced.
-                insets = border.getBorderInsets(c);
+                Insets i = border.getBorderInsets(c);
+                insets.top = i.top;
+                insets.right = i.right;
+                insets.bottom = i.bottom;
+                insets.left = i.left;
             }
         } else {
             insets.left = insets.top = insets.right = insets.bottom = 0;
@@ -513,5 +588,22 @@ public class TitledBorder extends AbstractBorder
             return font;
         } 
         return new Font("Dialog", Font.PLAIN, 12);
-    }       
+    }  
+
+    private static boolean computeIntersection(Rectangle dest, 
+                                               int rx, int ry, int rw, int rh) {
+	int x1 = Math.max(rx, dest.x);
+	int x2 = Math.min(rx + rw, dest.x + dest.width);
+	int y1 = Math.max(ry, dest.y);
+	int y2 = Math.min(ry + rh, dest.y + dest.height);
+        dest.x = x1;
+        dest.y = y1;
+        dest.width = x2 - x1;
+        dest.height = y2 - y1;
+
+	if (dest.width <= 0 || dest.height <= 0) {
+	    return false;
+	}
+        return true;
+    }  
 }

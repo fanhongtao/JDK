@@ -1,10 +1,10 @@
 /*
- * @(#)MetalBorders.java	1.10 98/08/26
+ * @(#)MetalBorders.java	1.12 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -31,7 +31,7 @@ import java.io.Serializable;
 /**
  * Factory object that can vend Borders appropriate for the metal L & F.
  * @author Steve Wilson
- * @version 1.10 08/26/98
+ * @version 1.12 04/22/99
  */
 
 public class MetalBorders {
@@ -292,8 +292,11 @@ public class MetalBorders {
 	        if ( ((JToolBar) c).getOrientation() == HORIZONTAL )
 		{
 		    bumps.setBumpArea( 10, c.getSize().height - 4 );
-		    bumps.paintIcon( c, g, 2, 2 );
-
+                    if( MetalUtils.isLeftToRight(c) ) {
+                        bumps.paintIcon( c, g, 2, 2 );
+                    } else {
+                        bumps.paintIcon( c, g, c.getBounds().width-12, 2 );
+                    }
 	        }
 		else // vertical
 		{

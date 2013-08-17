@@ -1,10 +1,10 @@
 /*
- * @(#)ComponentSampleModel.java	1.23 98/09/12
+ * @(#)ComponentSampleModel.java	1.25 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -88,6 +88,12 @@ public class ComponentSampleModel extends SampleModel
      * @param scanlineStride The line stride of the region of image
      * data described.
      * @param bandOffsets The offsets of all bands.
+     * @throws IllegalArgumentException if <code>pixelStride</code>
+     *         is less than 0
+     * @throws IllegalArgumentException if <code>scanlineStride</code>
+     *         is less than 0
+     * @throws IllegalArgumentException if <code>numBands</code>
+     *         is less than 1
      */
     public ComponentSampleModel(int dataType,
                                 int w, int h,
@@ -131,6 +137,15 @@ public class ComponentSampleModel extends SampleModel
      * data described. 
      * @param bandIndices The bank indices of all bands. 
      * @param bandOffsets The band offsets of all bands. 
+     * @throws IllegalArgumentException if <code>pixelStride</code>
+     *         is less than 0
+     * @throws IllegalArgumentException if <code>scanlineStride</code>
+     *         is less than 0
+     * @throws IllegalArgumentException if the length of 
+     *         <code>bankIndices</code> does not equal the length of 
+     *         <code>bankOffsets</code>
+     * @throws IllegalArgumentException if any of the bank indices 
+     *         of <code>bandIndices</code> is less than 0
      */
     public ComponentSampleModel(int dataType,
                                 int w, int h,

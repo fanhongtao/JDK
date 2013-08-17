@@ -1,10 +1,10 @@
 /*
- * @(#)SinglePixelPackedSampleModel.java	1.22 98/09/12
+ * @(#)SinglePixelPackedSampleModel.java	1.25 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -101,6 +101,8 @@ public class SinglePixelPackedSampleModel extends SampleModel
      *                  image data described.
      * @param scanlineStride The line stride of the image data.
      * @param bitMasks The bit masks for all bands.
+     * @throws IllegalArgumentException if any mask in 
+     *         <code>bitMask</code> is not contiguous
      */
     public SinglePixelPackedSampleModel(int dataType, int w, int h,
                                    int scanlineStride, int bitMasks[]) {

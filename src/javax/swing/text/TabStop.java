@@ -1,10 +1,10 @@
 /*
- * @(#)TabStop.java	1.11 98/08/28
+ * @(#)TabStop.java	1.13 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -28,7 +28,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.11 08/28/98
+ * @version 1.13 04/22/99
  */
 public class TabStop implements Serializable {
 
@@ -110,7 +110,10 @@ public class TabStop implements Serializable {
      */
     public boolean equals(Object other)
     {
-	if (other.getClass() == this.getClass()) {
+	if (other == this) {
+	    return true;
+	}
+	if (other instanceof TabStop) {
 	    TabStop o = (TabStop)other;
 	    return ( (alignment == o.alignment) &&
 		     (leader == o.leader) &&

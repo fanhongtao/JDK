@@ -1,7 +1,7 @@
 /*
- * @(#)LayoutManager.java	1.17 98/09/21
+ * @(#)LayoutManager.java	1.19 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -18,7 +18,7 @@ package java.awt;
  *
  * @see Container
  *
- * @version	1.17, 09/21/98
+ * @version	1.19, 04/22/99
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  */
@@ -33,7 +33,7 @@ public interface LayoutManager {
 
     /**
      * Removes the specified component from the layout.
-     * @param comp the component ot be removed
+     * @param comp the component to be removed
      */
     void removeLayoutComponent(Component comp);
 

@@ -1,10 +1,10 @@
 /*
- * @(#)Autoscroller.java	1.7 98/08/26
+ * @(#)Autoscroller.java	1.9 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -24,7 +24,7 @@ import java.io.IOException;
 
 
 /**
- * @version 1.7 08/26/98
+ * @version 1.9 04/22/99
  * @author Dave Moore
  */
 
@@ -63,6 +63,11 @@ class Autoscroller extends MouseAdapter implements Serializable
     void stop() {
 	timer.stop();
 	event = null;
+    }
+
+    void dispose() {
+	stop();
+	component.removeMouseListener(this);
     }
 
     public void mouseReleased(MouseEvent e) {

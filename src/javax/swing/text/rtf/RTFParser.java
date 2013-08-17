@@ -1,7 +1,7 @@
 /*
- * @(#)RTFParser.java	1.4 98/09/21
+ * @(#)RTFParser.java	1.6 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -95,7 +95,7 @@ abstract class RTFParser extends AbstractFilter
     state = S_text;
     pendingKeyword = null;
     level = 0;
-    warnings = System.out;
+    //warnings = System.out;
 
     specialsTable = rtfSpecialsTable;
   }
@@ -107,6 +107,12 @@ abstract class RTFParser extends AbstractFilter
   {
     write((char)b);
   }
+
+    protected void warning(String s) {
+	if (warnings != null) {
+	    warnings.println(s);
+	}
+    }
 
   public void write(String s)
     throws IOException
@@ -176,7 +182,7 @@ abstract class RTFParser extends AbstractFilter
 	  char newstring[] = new char[1];
 	  newstring[0] = ch;
 	  if (!handleKeyword(new String(newstring))) {
-	    warnings.println("Unknown keyword: " + newstring + " (" + (byte)ch + ")");
+	    warning("Unknown keyword: " + newstring + " (" + (byte)ch + ")");
 	  }
 	  state = S_text;
 	  pendingKeyword = null;
@@ -200,7 +206,7 @@ abstract class RTFParser extends AbstractFilter
 	  } else {
 	    ok = handleKeyword(pendingKeyword);
 	    if (!ok)
-	      warnings.println("Unknown keyword: " + pendingKeyword);
+	      warning("Unknown keyword: " + pendingKeyword);
 	    pendingKeyword = null;
 	    state = S_text;
 
@@ -232,8 +238,8 @@ abstract class RTFParser extends AbstractFilter
 	  int parameter = Integer.parseInt(currentCharacters.toString());
 	  ok = handleKeyword(pendingKeyword, parameter);
 	  if (!ok)
-	    warnings.println("Unknown keyword: " + pendingKeyword +
-			     " (param " + currentCharacters + ")");
+	    warning("Unknown keyword: " + pendingKeyword +
+		    " (param " + currentCharacters + ")");
 	  pendingKeyword = null;
 	  currentCharacters = new StringBuffer();
 	  state = S_text;
@@ -297,7 +303,7 @@ abstract class RTFParser extends AbstractFilter
     flush();
 
     if (state != S_text || level > 0) {
-      warnings.println("Truncated RTF file.");
+      warning("Truncated RTF file.");
       
       /* TODO: any sane way to handle termination in a non-S_text state? */
       /* probably not */

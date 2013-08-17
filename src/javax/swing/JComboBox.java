@@ -1,10 +1,10 @@
-/** 
- * @(#)JComboBox.java	1.54 98/08/28
+/*
+ * @(#)JComboBox.java	1.61 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -50,12 +50,11 @@ import javax.accessibility.*;
  * @beaninfo
  *   attribute: isContainer false
  *
- * @version 1.54 08/28/98
+ * @version 1.57 10/08/98
  * @author Arnaud Weber
  */
 public class JComboBox extends JComponent 
-    implements ItemSelectable,ListDataListener,ActionListener, Accessible 
-{
+implements ItemSelectable,ListDataListener,ActionListener, Accessible {
     /**
      * @see #getUIClassID
      * @see #readObject
@@ -70,7 +69,9 @@ public class JComboBox extends JComponent
     protected Object selectedItemReminder = null;
     protected KeySelectionManager keySelectionManager = null;
     protected String actionCommand = "comboBoxChanged";
-    protected boolean lightWeightPopupEnabled = true;
+    protected boolean lightWeightPopupEnabled = JPopupMenu.getDefaultLightWeightPopupEnabled();
+    boolean firedActionEventOnContentsChanged = false; // Flag for keeping actionEvents under control
+    boolean firingActionEvent = false;
 
     /**
      * Creates a JComboBox that takes its items from an existing ComboBoxModel.
@@ -80,9 +81,7 @@ public class JComboBox extends JComponent
     public JComboBox(ComboBoxModel aModel) {
         super();
         setModel(aModel);
-        installAncestorListener();
-        setOpaque(true);
-        updateUI();
+        init();
     }
 
     /** 
@@ -91,8 +90,7 @@ public class JComboBox extends JComponent
     public JComboBox(final Object items[]) {
         super();
         setModel(new DefaultComboBoxModel(items));
-        installAncestorListener();
-        updateUI();
+        init();
     }
 
     /**
@@ -101,8 +99,7 @@ public class JComboBox extends JComponent
     public JComboBox(Vector items) {
         super();
         setModel(new DefaultComboBoxModel(items));
-        installAncestorListener();
-        updateUI();
+        init();
     }
 
     /**
@@ -113,15 +110,25 @@ public class JComboBox extends JComponent
     public JComboBox() {
         super();
         setModel(new DefaultComboBoxModel());
+        init();
+    }
+
+    private void init()
+    {
         installAncestorListener();
+        setOpaque(true);
+
+        setAlignmentX(LEFT_ALIGNMENT);
+        setAlignmentY(CENTER_ALIGNMENT);
+
         updateUI();
     }
 
     protected void installAncestorListener() {
         addAncestorListener(new AncestorListener(){
-                            public void ancestorAdded(AncestorEvent event){ hidePopup();}
-                           public void ancestorRemoved(AncestorEvent event){ hidePopup();}
-                           public void ancestorMoved(AncestorEvent event){ hidePopup();}});
+                                public void ancestorAdded(AncestorEvent event){ hidePopup();}
+                                public void ancestorRemoved(AncestorEvent event){ hidePopup();}
+                                public void ancestorMoved(AncestorEvent event){ hidePopup();}});
     }
 
     /**
@@ -166,7 +173,7 @@ public class JComboBox extends JComponent
      * @return the ComboBoxUI object that renders this component
      */
     public ComboBoxUI getUI() {
-        return (ComboBoxUI)ui;
+        return(ComboBoxUI)ui;
     }
 
     /**
@@ -366,7 +373,14 @@ public class JComboBox extends JComponent
      *    description: Sets the selected item in the JComboBox.
      */
     public void setSelectedItem(Object anObject) {
+        firedActionEventOnContentsChanged = false;
         dataModel.setSelectedItem(anObject);
+        if ( !firedActionEventOnContentsChanged ) {
+            fireActionEvent();
+        }
+        else {
+            firedActionEventOnContentsChanged = false;
+        }
     }
 
     /**
@@ -390,15 +404,15 @@ public class JComboBox extends JComponent
     public void setSelectedIndex(int anIndex) {
         int size = dataModel.getSize();
 
-	if ( anIndex == -1 ) {
-	    setSelectedItem( null );
-	}
+        if ( anIndex == -1 ) {
+            setSelectedItem( null );
+        }
         else if ( anIndex < -1 || anIndex >= size ) {
             throw new IllegalArgumentException("setSelectedIndex: " + anIndex + " out of bounds");
-	}
-	else {
-	    setSelectedItem(dataModel.getElementAt(anIndex));
-	}
+        }
+        else {
+            setSelectedItem(dataModel.getElementAt(anIndex));
+        }
     }
 
     /**
@@ -476,7 +490,7 @@ public class JComboBox extends JComponent
      */
     public void removeItemAt(int anIndex) {
         checkMutableComboBoxModel();
-	((MutableComboBoxModel)dataModel).removeElementAt( anIndex );
+        ((MutableComboBoxModel)dataModel).removeElementAt( anIndex );
     }
 
     /** 
@@ -488,22 +502,22 @@ public class JComboBox extends JComponent
     public void removeAllItems() {
         checkMutableComboBoxModel();
         MutableComboBoxModel model = (MutableComboBoxModel)dataModel;
-	int size = model.getSize();
+        int size = model.getSize();
 
-	if ( model instanceof DefaultComboBoxModel ) {
-	    ((DefaultComboBoxModel)model).removeAllElements();
-	}
-	else {
-	    for ( int i = 0; i < size; ++i ) {
-	        Object element = model.getElementAt( 0 );
-		model.removeElement( element );
-	    }
-	}
+        if ( model instanceof DefaultComboBoxModel ) {
+            ((DefaultComboBoxModel)model).removeAllElements();
+        }
+        else {
+            for ( int i = 0; i < size; ++i ) {
+                Object element = model.getElementAt( 0 );
+                model.removeElement( element );
+            }
+        }
     }
 
     void checkMutableComboBoxModel() {
         if ( !(dataModel instanceof MutableComboBoxModel) )
-            throw new InternalError("Cannot use this method with a non-Mutable data model.");
+            throw new RuntimeException("Cannot use this method with a non-Mutable data model.");
     }
 
     /** 
@@ -528,12 +542,12 @@ public class JComboBox extends JComponent
     public void setPopupVisible(boolean v) {
         getUI().setPopupVisible(this, v);
     }
-	
+
     /** 
      * Determine the visibility of the popup
      */
     public boolean isPopupVisible() {
-	return getUI().isPopupVisible(this);
+        return getUI().isPopupVisible(this);
     }
 
     /** Selection **/
@@ -626,17 +640,21 @@ public class JComboBox extends JComponent
      * @see EventListenerList
      */
     protected void fireActionEvent() {
-        ActionEvent e = null;
-        // Guaranteed to return a non-null array
-        Object[] listeners = listenerList.getListenerList();
-        // Process the listeners last to first, notifying
-        // those that are interested in this event
-        for ( int i = listeners.length-2; i>=0; i-=2 ) {
-            if ( listeners[i]==ActionListener.class ) {
-                if ( e == null )
-                    e = new ActionEvent(this,ActionEvent.ACTION_PERFORMED,getActionCommand());
-                ((ActionListener)listeners[i+1]).actionPerformed(e);
+        if ( !firingActionEvent ) {
+            firingActionEvent = true;
+            ActionEvent e = null;
+            // Guaranteed to return a non-null array
+            Object[] listeners = listenerList.getListenerList();
+            // Process the listeners last to first, notifying
+            // those that are interested in this event
+            for ( int i = listeners.length-2; i>=0; i-=2 ) {
+                if ( listeners[i]==ActionListener.class ) {
+                    if ( e == null )
+                        e = new ActionEvent(this,ActionEvent.ACTION_PERFORMED,getActionCommand());
+                    ((ActionListener)listeners[i+1]).actionPerformed(e);
+                }
             }
+            firingActionEvent = false;
         }
     }
 
@@ -658,6 +676,7 @@ public class JComboBox extends JComponent
                                                selectedItemReminder,
                                                ItemEvent.SELECTED));
         fireActionEvent();
+        firedActionEventOnContentsChanged = true;
     }
 
     /** 
@@ -682,8 +701,15 @@ public class JComboBox extends JComponent
      */
     public void actionPerformed(ActionEvent e) {
         Object newItem = getEditor().getItem();
-        getModel().setSelectedItem(newItem);
+        firedActionEventOnContentsChanged = false;
         getUI().setPopupVisible(this, false);
+        getModel().setSelectedItem(newItem);
+        if ( !firedActionEventOnContentsChanged ) {
+            fireActionEvent();
+        }
+        else {
+            firedActionEventOnContentsChanged = false;
+        }
     }
 
     /** This method is public as an implementation side effect. 
@@ -695,14 +721,15 @@ public class JComboBox extends JComponent
         ComboBoxModel mod = getModel();
         Object newSelectedItem = mod.getSelectedItem();
 
-	if ( selectedItemReminder == null ) {
-	    if ( newSelectedItem != null )
-	        selectedItemChanged();
-	}
-	else {
-	    if ( !selectedItemReminder.equals(newSelectedItem) )
-	        selectedItemChanged();
-	}
+        if ( selectedItemReminder == null ) {
+            if ( newSelectedItem != null )
+                selectedItemChanged();
+        }
+        else {
+            if ( !selectedItemReminder.equals(newSelectedItem) ) {
+                selectedItemChanged();
+            }
+        }
 
         if ( !isEditable() && newSelectedItem != null ) {
             int i,c;
@@ -940,9 +967,9 @@ public class JComboBox extends JComponent
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
+        if ((ui != null) && (getUIClassID().equals(uiClassID))) {
+            ui.installUI(this);
+        }
     }
 
 
@@ -952,25 +979,22 @@ public class JComboBox extends JComponent
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JComboBox.
      */
     protected String paramString() {
-	String selectedItemReminderString = (selectedItemReminder != null ?
-					     selectedItemReminder.toString() :
-					     "");
-	String isEditableString = (isEditable ?	"true" : "false");
-	String lightWeightPopupEnabledString = (lightWeightPopupEnabled ?
-						"true" : "false");
+        String selectedItemReminderString = (selectedItemReminder != null ?
+                                             selectedItemReminder.toString() :
+                                             "");
+        String isEditableString = (isEditable ? "true" : "false");
+        String lightWeightPopupEnabledString = (lightWeightPopupEnabled ?
+                                                "true" : "false");
 
-	return super.paramString() +
-	",isEditable=" + isEditableString +
-	",lightWeightPopupEnabled=" + lightWeightPopupEnabledString +
-	",maximumRowCount=" + maximumRowCount +
-	",selectedItemReminder=" + selectedItemReminderString;
+        return super.paramString() +
+        ",isEditable=" + isEditableString +
+        ",lightWeightPopupEnabled=" + lightWeightPopupEnabledString +
+        ",maximumRowCount=" + maximumRowCount +
+        ",selectedItemReminder=" + selectedItemReminderString;
     }
 
 
@@ -1001,7 +1025,7 @@ public class JComboBox extends JComponent
      * long term persistence.
      */
     protected class AccessibleJComboBox extends AccessibleJComponent 
-	implements AccessibleAction {
+    implements AccessibleAction {
 
         /**
          * Get the role of this object.
@@ -1020,7 +1044,7 @@ public class JComboBox extends JComponent
          */
         public AccessibleAction getAccessibleAction() {
             return this;
-	}
+        }
 
         /**
          * Return a description of the specified action of the object.
@@ -1031,11 +1055,12 @@ public class JComboBox extends JComponent
             if (i == 0) {
                 // [[[PENDING:  WDW -- need to provide a localized string]]]
                 return new String("togglePopup");
-            } else {
+            }
+            else {
                 return null;
             }
         }
-    
+
         /**
          * Returns the number of Actions available in this object.
          * If there is more than one, the first one is the "default"
@@ -1057,7 +1082,8 @@ public class JComboBox extends JComponent
             if (i == 0) {
                 setPopupVisible(!isPopupVisible());
                 return true;
-            } else {
+            }
+            else {
                 return false;
             }
         }

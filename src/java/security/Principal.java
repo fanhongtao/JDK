@@ -1,5 +1,5 @@
 /*
- * @(#)Principal.java	1.16 98/06/29
+ * @(#)Principal.java	1.17 98/12/03
  *
  * Copyright 1996-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -21,8 +21,9 @@ package java.security;
  *
  * @see java.security.cert.X509Certificate
  *
- * @version 1.16, 00/05/10
- * @author Li Gong */
+ * @version 1.17, 98/12/03
+ * @author Li Gong
+ */
 public interface Principal {
 
     /**

@@ -1,5 +1,5 @@
 /*
- * @(#)MotifTextUI.java	1.14 98/09/11
+ * @(#)MotifTextUI.java	1.15 98/10/06
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -14,8 +14,7 @@
 package com.sun.java.swing.plaf.motif;
 
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.InputEvent;
+import java.awt.event.*;
 
 import javax.swing.*;
 import javax.swing.text.*;
@@ -33,7 +32,7 @@ import javax.swing.plaf.*;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.14 09/11/98
+ * @version 1.15 10/06/98
  */
 public class MotifTextUI {
 
@@ -58,6 +57,33 @@ public class MotifTextUI {
      * long term persistence.
      */
     public static class MotifCaret extends DefaultCaret implements UIResource {
+
+	/**
+	 * Called when the component containing the caret gains
+	 * focus.  This is implemented to repaint the component 
+	 * so the focus rectangle will be re-rendered, as well
+	 * as providing the superclass behavior.
+	 *
+	 * @param e the focus event
+	 * @see FocusListener#focusGained
+	 */
+        public void focusGained(FocusEvent e) {
+	    super.focusGained(e);
+	    getComponent().repaint();
+	}
+
+	/**
+	 * Called when the component containing the caret loses
+	 * focus.  This is implemented to set the caret to visibility
+	 * to false.
+	 *
+	 * @param e the focus event
+	 * @see FocusListener#focusLost
+	 */
+        public void focusLost(FocusEvent e) {
+	    super.focusLost(e);
+	    getComponent().repaint();
+	}
 
 	/**
 	 * Damages the area surrounding the caret to cause

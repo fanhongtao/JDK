@@ -1,10 +1,10 @@
 /*
- * @(#)GlyphVector.java	1.12 98/10/19
+ * @(#)GlyphVector.java	1.18 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -69,9 +69,8 @@ import java.awt.font.GlyphJustificationInfo;
 *           the <code>GlyphVector</code>.
 *   </ul>
 *   <p>
-*   <code>GlyphVector</code> objects are immutable.  Altering the data
-*   used to create the <code>GlyphVector</code> does not alter the 
-*   state of the <code>GlyphVector</code>.
+*   Altering the data used to create the <code>GlyphVector</code> does not
+*   alter the state of the <code>GlyphVector</code>.
 *   <p>
 *   Methods are provided to create new <code>GlyphVector</code>
 *   objects which are the result of editing operations on the
@@ -101,6 +100,7 @@ import java.awt.font.GlyphJustificationInfo;
 */
 
 public abstract class GlyphVector implements Cloneable {
+
 
     // methods associated with creation-time state
     /**
@@ -134,7 +134,7 @@ public abstract class GlyphVector implements Cloneable {
     /**
     *   Returns the number of glyphs in this <code>GlyphVector</code>.
     *   This information is used to create arrays that are to be
-    *   filled with results of other information retreival
+    *   filled with results of other information retrieval
     *   operations.
     *   @return number of glyphs in this <code>GlyphVector</code>.
     */
@@ -151,6 +151,9 @@ public abstract class GlyphVector implements Cloneable {
     *   glyphcode.
     *   @return the glyphcode of the glyph corresponding the the specified
     *   <code>glyphIndex</code>.
+    *   @throws IndexOutOfBoundsException if <code>glyphIndex</code>
+    *           is less than 0 or greater than or equal to the 
+    *           number of glyphs in this <code>GlyphVector</code>
     */
     public abstract int getGlyphCode(int glyphIndex);
 
@@ -170,6 +173,14 @@ public abstract class GlyphVector implements Cloneable {
     *   @param codeReturn the array that receives the glyphcodes and is
     *		then returned
     *   @return an array of glyphcodes for the specified glyphs.
+    *   @throws IllegalArgumentException if <code>numEntries</code> is 
+    *           less than 0
+    *   @throws IndexOutOfBoundsException if <code>beginGlyphIndex</code> 
+    *           is less than 0
+    *   @throws IndexOutOfBoundsException if the sum of 
+    *           <code>beginGlyphIndex</code> and <code>numEntries</code> is 
+    *           greater than the number of glyphs in this
+    *           <code>GlyphVector</code>
     */
     public abstract int[] getGlyphCodes(int beginGlyphIndex, int numEntries,
                                         int[] codeReturn);
@@ -223,6 +234,9 @@ public abstract class GlyphVector implements Cloneable {
     *   @return a <code>Shape</code> that is the outline of the glyph
     *		at the specified <code>glyphIndex</code> of this
     *		<code>GlyphVector</code>.
+    *   @throws IndexOutOfBoundsException if <code>glyphIndex</code>
+    *           is less than 0 or greater than or equal to the number
+    *           of glyphs in this <code>GlyphVector</code>
     */
     public abstract Shape getGlyphOutline(int glyphIndex);
 
@@ -231,9 +245,16 @@ public abstract class GlyphVector implements Cloneable {
     *   <code>GlyphVector</code>.
     *   This position corresponds to the leading edge of the baseline for
     *   the glyph.
+    *   If <code>glyphIndex</code> equals the number of of glyphs in 
+    *   this <code>GlyphVector</code>, this method gets the position after
+    *   the last glyph and this position is used to define the advance of 
+    *   the entire <code>GlyphVector</code>.
     *   @param glyphIndex the index into this <code>GlyphVector</code>
     *   @return a {@link Point2D} object that is the position of the glyph
     *		at the specified <code>glyphIndex</code>.
+    *   @throws IndexOutOfBoundsException if <code>glyphIndex</code>
+    *           is less than 0 or greater than the number of glyphs
+    *           in this <code>GlyphVector</code>
     */
     public abstract Point2D getGlyphPosition(int glyphIndex);
 
@@ -242,42 +263,65 @@ public abstract class GlyphVector implements Cloneable {
     *   <code>GlyphVector</code>.
     *   This position corresponds to the leading edge of the baseline for
     *   the glyph.
+    *   If <code>glyphIndex</code> equals the number of of glyphs in 
+    *   this <code>GlyphVector</code>, this method sets the position after
+    *   the last glyph and this position is used to define the advance of 
+    *   the entire <code>GlyphVector</code>.
     *   @param glyphIndex the index into this <code>GlyphVector</code>
     *   @param newPos the <code>Point2D</code> at which to position the
     *		glyph at the specified <code>glyphIndex</code>
+    *   @throws IndexOutOfBoundsException if <code>glyphIndex</code>
+    *           is less than 0 or greater than the number of glyphs
+    *           in this <code>GlyphVector</code>
     */
     public abstract void setGlyphPosition(int glyphIndex, Point2D newPos);
 
     /**
     *   Gets the transform of the specified glyph within this
-    *   <code>GlyphVector</code>.
+    *   <code>GlyphVector</code>.  The transform is relative to the
+    *   glyph position.  If no special transform has been applied, 
+    *   <code>null</code> can be returned.  Such a transform would 
+    *   be an identity transform.
     *   @param glyphIndex the index into this <code>GlyphVector</code>
     *   @return an {@link AffineTransform} that is the transform of
     *		the glyph at the specified <code>glyphIndex</code>.
+    *   @throws IndexOutOfBoundsException if <code>glyphIndex</code>
+    *           is less than 0 or greater than or equal to the number 
+    *           of glyphs in this <code>GlyphVector</code>
     */
     public abstract AffineTransform getGlyphTransform(int glyphIndex);
 
     /**
     *   Sets the transform of the specified glyph within this
-    *   <code>GlyphVector</code>.
+    *   <code>GlyphVector</code>.  The transform is relative to the glyph
+    *   position.  A <code>null</code> argument for <code>newTX</code>
+    *   indicates that no special transform is applied for the specified
+    *   glyph.
     *   This method can be used to rotate, mirror, translate and scale the
     *   glyph.  Adding a transform can result in signifant performance changes.
     *   @param glyphIndex the index into this <code>GlyphVector</code>
     *   @param newTx the specified transform that the transform of the
     *		glyph at the specified <code>glyphIndex</code> is set to
+    *   @throws IndexOutOfBoundsException if <code>glyphIndex</code>
+    *           is less than 0 or greater than or equal to the number 
+    *           of glyphs in this <code>GlyphVector</code>
     */
     public abstract void setGlyphTransform(int glyphIndex, AffineTransform newTX);
 
     /**
-    *   Returns and array of glyph positions for the specified glyphs.
+    *   Returns an array of glyph positions for the specified glyphs.
     *   The position of each glyph corresponds to the leading edge of the
     *   baseline for that glyph.  This method is used for convenience and
     *   performance when processing glyph positions.
     *   If no array is passed in, a new array is created.
     *   Even numbered array entries beginning with position zero are the X
-    *   coordinates of the glyph numbered beginGlyphIndex + position/2
+    *   coordinates of the glyph numbered beginGlyphIndex + position/2.  
     *   Odd numbered array entries beginning with position one are the Y
-    *   coordinates of the glyph numbered beginGlyphIndex + (position-1)/2
+    *   coordinates of the glyph numbered beginGlyphIndex + (position-1)/2.
+    *   If <code>beginGlyphIndex</code> equals the number of of glyphs in 
+    *   this <code>GlyphVector</code>, this method gets the position after
+    *   the last glyph and this position is used to define the advance of 
+    *   the entire <code>GlyphVector</code>.
     *   @param beginGlyphIndex the index at which to begin retrieving
     *        glyph positions
     *   @param numEntries the offset from <code>beginGlyphIndex</code> at
@@ -286,6 +330,14 @@ public abstract class GlyphVector implements Cloneable {
     *     and is then returned.
     *   @return an array of glyph positions specified by
     *		<code>beginGlyphIndex</code> and <code>numEntries</code>.
+    *   @throws IllegalArgumentException if <code>numEntries</code> is
+    *           less than 0
+    *   @throws IndexOutOfBoundsException if <code>beginGlyphIndex</code>
+    *           is less than 0
+    *   @throws IndexOutOfBoundsException if the sum of 
+    *           <code>beginGlyphIndex</code> and <code>numEntries</code> 
+    *           is greater than the number of glyphs in this 
+    *           <code>GlyphVector</code> plus one
     */
     public abstract float[] getGlyphPositions(int beginGlyphIndex, int numEntries,
                                               float[] positionReturn);
@@ -304,6 +356,9 @@ public abstract class GlyphVector implements Cloneable {
     *   bounds
     *   @return  a <code>Shape</code> that is the logical bounds of the
     *	glyph at the specified <code>glyphIndex</code>.
+    *   @throws IndexOutOfBoundsException if <code>glyphIndex</code>
+    *           is less than 0 or greater than or equal to the number 
+    *           of glyphs in this <code>GlyphVector</code>
     *   @see #getGlyphVisualBounds
     */
     public abstract Shape getGlyphLogicalBounds(int glyphIndex);
@@ -320,6 +375,9 @@ public abstract class GlyphVector implements Cloneable {
     *   bounds
     *	@return a <code>Shape</code> that is the visual bounds of the
     * 	glyph at the specified <code>glyphIndex</code>.
+    *   @throws IndexOutOfBoundsException if <code>glyphIndex</code>
+    *           is less than 0 or greater than or equal to the number 
+    *           of glyphs in this <code>GlyphVector</code>
     *   @see #getGlyphLogicalBounds
     */
     public abstract Shape getGlyphVisualBounds(int glyphIndex);
@@ -332,6 +390,9 @@ public abstract class GlyphVector implements Cloneable {
     *	@return a {@link GlyphMetrics} object that represents the
     *	metrics of the glyph at the specified <code>glyphIndex</code> 
     *	into this <code>GlyphVector</code>.
+    *   @throws IndexOutOfBoundsException if <code>glyphIndex</code>
+    *           is less than 0 or greater than or equal to the number 
+    *           of glyphs in this <code>GlyphVector</code>
     */
     public abstract GlyphMetrics getGlyphMetrics(int glyphIndex);
 
@@ -345,6 +406,9 @@ public abstract class GlyphVector implements Cloneable {
     *	represents the justification properties of the glyph at the
     *	specified <code>glyphIndex</code> into this
     *	<code>GlyphVector</code>.
+    *   @throws IndexOutOfBoundsException if <code>glyphIndex</code>
+    *           is less than 0 or greater than or equal to the number 
+    *           of glyphs in this <code>GlyphVector</code>
     */
     public abstract GlyphJustificationInfo getGlyphJustificationInfo(int glyphIndex);
     // general utility methods

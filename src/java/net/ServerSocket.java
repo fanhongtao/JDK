@@ -1,10 +1,10 @@
 /*
- * @(#)ServerSocket.java	1.32 98/10/02
+ * @(#)ServerSocket.java	1.34 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -29,7 +29,7 @@ import java.io.FileDescriptor;
  * appropriate to the local firewall. 
  *
  * @author  unascribed
- * @version 1.32, 10/02/98
+ * @version 1.34, 04/22/99
  * @see     java.net.SocketImpl
  * @see     java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
  * @since   JDK1.0
@@ -234,29 +234,23 @@ class ServerSocket {
      * @since   JDK1.1
      */
     protected final void implAccept(Socket s) throws IOException {
-	SocketImpl si = new PlainSocketImpl();
 	try {
-	    si.address = new InetAddress();
-	    si.fd = new FileDescriptor();
-	    impl.accept(si);
+	    s.impl.address = new InetAddress();
+	    s.impl.fd = new FileDescriptor();
+	    impl.accept(s.impl);
 	    
 	    SecurityManager security = System.getSecurityManager();
 	    if (security != null) {
-		security.checkAccept(si.getInetAddress().getHostAddress(),
-				     si.getPort());
+		security.checkAccept(s.impl.getInetAddress().getHostAddress(),
+				     s.impl.getPort());
 	    }
 	} catch (IOException e) {
-	    si.close();
+	    s.impl.close();
 	    throw e;
 	} catch (SecurityException e) {
-	    si.close();
+	    s.impl.close();
 	    throw e;
 	}
-	s.impl.address = si.address;
-	s.impl.fd = si.fd;
-	s.impl.port = si.port;
-	s.impl.localport = si.localport;
-	si.fd = null;
     }
 
     /**

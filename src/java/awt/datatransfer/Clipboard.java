@@ -1,7 +1,7 @@
 /*
- * @(#)Clipboard.java	1.8 98/09/21
+ * @(#)Clipboard.java	1.10 99/04/22
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
  * 
@@ -18,7 +18,7 @@ package java.awt.datatransfer;
  * A class which implements a mechanism to transfer data using 
  * cut/copy/paste operations.
  *
- * @version 	1.8, 09/21/98
+ * @version 	1.10, 04/22/99
  * @author	Amy Fowler
  */
 public class Clipboard {
@@ -62,8 +62,8 @@ public class Clipboard {
     /**
      * Returns a transferable object representing the current contents
      * of the clipboard.  If the clipboard currently has no contents,
-     * it returns null.
-     * @param requestor the object requesting the clip data
+     * it returns null. The parameter Object requestor is not currently used.
+     * @param requestor the object requesting the clip data  (not used)
      * @return the current transferable object on the clipboard
      */
     public synchronized Transferable getContents(Object requestor) {

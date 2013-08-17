@@ -1,10 +1,10 @@
- /*
- * @(#)BeanContextSupport.java	1.27 98/09/29
+/*
+ * @(#)BeanContextSupport.java	1.29 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -60,7 +60,7 @@ import java.util.Map;
  * </p>
  *
  * @author Laurence P. G. Cable
- * @version 1.27
+ * @version 1.29
  * @since JDK1.2
  */
 
@@ -76,9 +76,13 @@ public class      BeanContextSupport extends BeanContextChildSupport
      * </p>
      *
      * @param peer	The peer BeanContext we are supplying an implementation for, if null the this object is its own peer
-     * @param lcle	The current Locale for this BeanContext.
+     * @param lcle	The current Locale for this BeanContext. If 
+     *                  <tt>lcle</tt> is <tt>null</tt>, the default locale 
+     *                  is assigned to the BeanContext instance. 
      * @param dtime	The initial state, true if in design mode, false if runtime.
      * @param visible	The initial visibility.
+     * @see java.util.Locale#getDefault()      
+     * @see java.util.Locale@setDefault(java.util.Locale)  
      * 
      */
 
@@ -96,8 +100,13 @@ public class      BeanContextSupport extends BeanContextChildSupport
      * Create an instance using the specified Locale and design mode.
      *
      * @param peer	The peer BeanContext we are supplying an implementation for, if null the this object is its own peer
-     * @param lcle	The current Locale for this BeanContext.
+     * @param lcle	The current Locale for this BeanContext. If 
+     *                  <tt>lcle</tt> is <tt>null</tt>, the default locale 
+     *                  is assigned to the BeanContext instance. 
      * @param dtime	The initial state, true if in design mode, false if runtime.
+     * @see java.util.Locale#getDefault()      
+     * @see java.util.Locale@setDefault(java.util.Locale)  
+     * 
      */
 
     public BeanContextSupport(BeanContext peer, Locale lcle, boolean dtime) {
@@ -108,7 +117,12 @@ public class      BeanContextSupport extends BeanContextChildSupport
      * Create an instance using the specified locale
      *
      * @param peer	The peer BeanContext we are supplying an implementation for, if null the this object is its own peer
-     * @param lcle	The current Locale for this BeanContext.
+     * @param lcle	The current Locale for this BeanContext. If 
+     *                  <tt>lcle</tt> is <tt>null</tt>, the default locale 
+     *                  is assigned to the BeanContext instance.
+     * @see java.util.Locale#getDefault()      
+     * @see java.util.Locale@setDefault(java.util.Locale)  
+     *  
      */
 
     public BeanContextSupport(BeanContext peer, Locale lcle) {

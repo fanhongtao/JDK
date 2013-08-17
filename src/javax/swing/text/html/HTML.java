@@ -1,10 +1,10 @@
 /*
- * @(#)HTML.java	1.22 98/08/26
+ * @(#)HTML.java	1.26 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -25,7 +25,7 @@ import javax.swing.text.StyleContext;
  * @author  Timothy Prinzing
  * @author  Sunita Mani
  *
- * @version 1.22 08/26/98
+ * @version 1.26 04/22/99
  */
 public class HTML {
 
@@ -327,8 +327,10 @@ public class HTML {
 	public static final Attribute NORESIZE = new Attribute("noresize");
 	public static final Attribute ENDTAG = new Attribute("endtag");
 	public static final Attribute COMMENT = new Attribute("comment");
+	static final Attribute MEDIA = new Attribute("media");
 
 	static final Attribute allAttributes[] = {
+	    FACE,
 	    COMMENT,
 	    SIZE,
 	    COLOR,
@@ -407,16 +409,17 @@ public class HTML {
             MARGINHEIGHT,
             SCROLLING,
             NORESIZE,
+            MEDIA,
 	    ENDTAG
 	};
     }
 
-    // The secret to 70, is that, given that the Hashtable contents
+    // The secret to 71, is that, given that the Hashtable contents
     // never change once the static initialization happens, the initial size 
     // that the hashtable grew to was determined, and then that very size
     // is used.
     //
-    private static final Hashtable tagHashtable = new Hashtable(70);
+    private static final Hashtable tagHashtable = new Hashtable(71);
 
     static {
 

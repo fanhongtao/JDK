@@ -1,10 +1,10 @@
 /*
- * @(#)URLConnection.java	1.54 98/10/02
+ * @(#)URLConnection.java	1.60 99/04/22
  *
- * Copyright 1995-1998 by Sun Microsystems, Inc.,
+ * Copyright 1995-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -125,7 +125,7 @@ import java.security.AccessController;
  * JDK Compatibility</a> page.
  *
  * @author  James Gosling
- * @version 1.54, 10/02/98
+ * @version 1.60, 04/22/99
  * @see     java.net.URL#openConnection()
  * @see     java.net.URLConnection#connect()
  * @see     java.net.URLConnection#getContent()
@@ -240,7 +240,7 @@ public abstract class URLConnection {
      * Some protocols support skipping the fetching of the object unless 
      * the object has been modified more recently than a certain time. 
      * <p>
-     * A nonzero value gives a time as the number of seconds since 
+     * A nonzero value gives a time as the number of milliseconds since 
      * January 1, 1970, GMT. The object is fetched only if it has been 
      * modified more recently than that time. 
      * <p>
@@ -269,17 +269,28 @@ public abstract class URLConnection {
     private static FileNameMap fileNameMap;
 
     /**
+     * @since JDK1.2.2
+     */
+    private static boolean fileNameMapLoaded = false;
+
+    /**
      * Returns the FileNameMap.
      *
      * @returns the FileNameMap
      * @since JDK1.2
      */
-    public static FileNameMap getFileNameMap() {
+    public static synchronized FileNameMap getFileNameMap() {
+	if ((fileNameMap == null) && !fileNameMapLoaded) {
+	    fileNameMap = sun.net.www.MimeTable.loadTable();
+	    fileNameMapLoaded = true;
+	}
+
 	return new FileNameMap() {
-            public String getContentTypeFor(String fileName) {
-                return fileNameMap.getContentTypeFor(fileName);
-            }
-        };
+	    private FileNameMap map = fileNameMap;
+	    public String getContentTypeFor(String fileName) {
+		return map.getContentTypeFor(fileName);
+	    }
+	};
     }
 
     /**
@@ -382,7 +393,7 @@ public abstract class URLConnection {
      * Returns the value of the <code>expires</code> header field. 
      *
      * @return  the expiration date of the resource that this URL references,
-     *          or 0 if not known. The value is the number of seconds since
+     *          or 0 if not known. The value is the number of milliseconds since
      *          January 1, 1970 GMT.
      * @see     java.net.URLConnection#getHeaderField(java.lang.String)
      */
@@ -395,7 +406,7 @@ public abstract class URLConnection {
      *
      * @return  the sending date of the resource that the URL references,
      *          or <code>0</code> if not known. The value returned is the
-     *          number of seconds since January 1, 1970 GMT.
+     *          number of milliseconds since January 1, 1970 GMT.
      * @see     java.net.URLConnection#getHeaderField(java.lang.String)
      */
     public long getDate() {
@@ -404,7 +415,7 @@ public abstract class URLConnection {
 
     /**
      * Returns the value of the <code>last-modified</code> header field. 
-     * The result is the number of seconds since January 1, 1970 GMT.
+     * The result is the number of milliseconds since January 1, 1970 GMT.
      *
      * @return  the date the resource referenced by this
      *          <code>URLConnection</code> was last modified, or 0 if not known.
@@ -448,7 +459,7 @@ public abstract class URLConnection {
 
     /**
      * Returns the value of the named field parsed as date.
-     * The result is the number of seconds since January 1, 1970 GMT
+     * The result is the number of milliseconds since January 1, 1970 GMT
      * represented by the named field. 
      * <p>
      * This form of <code>getHeaderField</code> exists because some 
@@ -915,7 +926,7 @@ public abstract class URLConnection {
     synchronized ContentHandler getContentHandler()
     throws UnknownServiceException
     {
-	String contentType = getContentType();
+	String contentType = stripOffParameters(getContentType());
 	ContentHandler handler = null;
 	if (contentType == null)
 	    throw new UnknownServiceException("no content-type");
@@ -925,6 +936,7 @@ public abstract class URLConnection {
 		return handler;
 	} catch(Exception e) {
 	}
+
 	if (factory != null)
 	    handler = factory.createContentHandler(contentType);
 	if (handler == null) {
@@ -937,6 +949,21 @@ public abstract class URLConnection {
 	    handlers.put(contentType, handler);
 	}
 	return handler;
+    }
+
+    /*
+     * Media types are in the format: type/subtype*(; parameter).
+     * For looking up the content handler, we should ignore those
+     * parameters.
+     */
+    private String stripOffParameters(String contentType)
+    {
+	int index = contentType.indexOf(';');
+
+	if (index > 0)
+	    return contentType.substring(0, index);
+	else
+	    return contentType;
     }
 
     private static final String contentClassPrefix = "sun.net.www.content";
@@ -1034,10 +1061,9 @@ public abstract class URLConnection {
      */
     protected static String guessContentTypeFromName(String fname) {
 	String contentType = null;
-	if (fileNameMap != null) {
-	    contentType = fileNameMap.getContentTypeFor(fname);
-	}
-
+	
+	contentType = getFileNameMap().getContentTypeFor(fname);
+        
 	return contentType;
     }
 
@@ -1090,7 +1116,7 @@ public abstract class URLConnection {
 	    return "audio/basic";  // .au format, big endian
 	if (c1 == 0x64 && c2 == 0x6E && c3 == 0x73 && c4 == 0x2E)
 	    return "audio/basic";  // .au format, little endian
-	if (c1 == '<')
+	if (c1 == '<') {
 	    if (c2 == '!'
 		|| ((c2 == 'h' && (c3 == 't' && c4 == 'm' && c5 == 'l' ||
 				   c3 == 'e' && c4 == 'a' && c5 == 'd')
@@ -1099,6 +1125,22 @@ public abstract class URLConnection {
 				   c3 == 'E' && c4 == 'A' && c5 == 'D')
 		     || c2 == 'B' && c3 == 'O' && c4 == 'D' && c5 == 'Y')))
 		return "text/html";
+	    if (c2 == '?' && c3 == 'x' && c4 == 'm' && c5 == 'l' && c6 == ' ')
+		return "application/xml";
+	}
+
+	// big and little endian UTF-16 encodings, with byte order mark
+	if (c1 == 0xfe && c2 == 0xff) {
+	    if (c3 == 0 && c4 == '<' && c5 == 0 && c6 == '?' &&
+		c7 == 0 && c8 == 'x')
+		return "application/xml";
+	}
+
+	if (c1 == 0xff && c2 == 0xfe) {
+	    if (c3 == '<' && c4 == 0 && c5 == '?' && c6 == 0 &&
+		c7 == 'x' && c8 == 0)
+		return "application/xml";
+	}
 
 	if (c1 == 0xFF && c2 == 0xD8 && c3 == 0xFF && c4 == 0xE0)
 	    return "image/jpeg";

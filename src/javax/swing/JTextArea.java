@@ -1,5 +1,5 @@
 /*
- * @(#)JTextArea.java	1.56 98/09/18
+ * @(#)JTextArea.java	1.58 98/10/13
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -71,7 +71,7 @@ import java.io.IOException;
  * @beaninfo
  *   attribute: isContainer false
  * @author  Timothy Prinzing
- * @version 1.56 09/18/98
+ * @version 1.58 10/13/98
  * @see JTextPane
  * @see JEditorPane
  */
@@ -183,7 +183,7 @@ public class JTextArea extends JTextComponent {
     /**
      * Sets the number of characters to expand tabs to.
      * This will be multiplied by the maximum advance for
-     * variable width fonts.  A PropertyChange event ("TabSize") is fired
+     * variable width fonts.  A PropertyChange event ("tabSize") is fired
      * when the tab size changes.
      *
      * @param size number of characters to expand to
@@ -198,7 +198,7 @@ public class JTextArea extends JTextComponent {
         if (doc != null) {
             int old = getTabSize();
             doc.putProperty(PlainDocument.tabSizeAttribute, new Integer(size));
-            firePropertyChange("TabSize", old, size);
+            firePropertyChange("tabSize", old, size);
         }
     }
 
@@ -224,7 +224,7 @@ public class JTextArea extends JTextComponent {
      * Sets the line-wrapping policy of the text area.  If set
      * to true the lines will be wrapped if they are too long
      * to fit within the allocated width.  If set to false,
-     * the lines will always be unwrapped.  A PropertyChange event ("LineWrap")
+     * the lines will always be unwrapped.  A PropertyChange event ("lineWrap")
      * is fired when the policy is changed.
      *
      * @param wrap indicates if lines should be wrapped.
@@ -237,7 +237,7 @@ public class JTextArea extends JTextComponent {
     public void setLineWrap(boolean wrap) {
         boolean old = this.wrap;
         this.wrap = wrap;
-        firePropertyChange("LineWrap", old, wrap);
+        firePropertyChange("lineWrap", old, wrap);
     }
 
     /**
@@ -270,7 +270,7 @@ public class JTextArea extends JTextComponent {
     public void setWrapStyleWord(boolean word) {
         boolean old = this.word;
         this.word = word;
-        firePropertyChange("WrapStyleWord", old, word);
+        firePropertyChange("wrapStyleWord", old, word);
     }
 
     /**
@@ -282,6 +282,7 @@ public class JTextArea extends JTextComponent {
      *
      * @returns if the wrap style should be word boundries
      *  instead of character boundries.
+     * @see #setWrapStyleWord
      */
     public boolean getWrapStyleWord() {
         return word;
@@ -614,9 +615,6 @@ public class JTextArea extends JTextComponent {
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
-     * <P>
-     * Overriding paramString() to provide information about the
-     * specific new aspects of the JFC components.
      * 
      * @return  a string representation of this JTextArea.
      */

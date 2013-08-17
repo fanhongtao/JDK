@@ -1,10 +1,10 @@
 /*
- * @(#)DragGestureListener.java	1.2 98/06/29
+ * @(#)DragGestureListener.java	1.6 99/04/22
  *
- * Copyright 1998 by Sun Microsystems, Inc.,
+ * Copyright 1998, 1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -19,15 +19,13 @@ package java.awt.dnd;
 import java.util.EventListener;
 
 /**
- * <p>
- * This interface is sourced from a DragGestureRecognizer and is invoked
- * when an object of that (sub)class detects a Drag and Drop initiating
+ * This interface is sourced from a <code>DragGestureRecognizer</code> 
+ * and is invoked
+ * when an object of that (sub)class detects a drag initiating
  * gesture.
- * </p>
  * <p>
  * The implementor of this interface is responsible for starting the drag
- * as a result of receiving such a notification.
- * </p>
+ * as a result of receiving such notification.
  *
  * @see java.awt.dnd.DragGestureRecognizer
  * @see java.awt.dnd.DragGestureEvent
@@ -37,11 +35,13 @@ import java.util.EventListener;
  public interface DragGestureListener extends EventListener {
 
     /**
-     * A DragGestureRecognizer has detected a platform-dependent Drag and
-     * Drop action initiating gesture and is notifying this Listener
+     * A <code>DragGestureRecognizer</code> has detected 
+     * a platform-dependent drag initiating gesture and 
+     * is notifying this listener
      * in order for it to initiate the action for the user.
-     *
-     * @param dge The DragGestureEvent describing the gesture that has just occurred
+     * <P>
+     * @param dge the <code>DragGestureEvent</code> describing 
+     * the gesture that has just occurred
      */
 
      void dragGestureRecognized(DragGestureEvent dge);

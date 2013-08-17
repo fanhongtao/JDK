@@ -1,10 +1,10 @@
 /*
- * @(#)TextLayout.java	1.64 98/10/19
+ * @(#)TextLayout.java	1.69 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -282,11 +282,11 @@ public final class TextLayout implements Cloneable {
 
         /**
          * Chooses one of the specified <code>TextHitInfo</code> instances as 
-	 * a strong caret in the specified <code>TextLayout</code>.
+         * a strong caret in the specified <code>TextLayout</code>.
          * @param hit1 a valid hit in <code>layout</code>
          * @param hit2 a valid hit in <code>layout</code>
          * @param layout the <code>TextLayout</code> in which 
-	 *        <code>hit1</code> and <code>hit2</code> are used
+         *        <code>hit1</code> and <code>hit2</code> are used
          * @return <code>hit1</code> or <code>hit2</code>
          *        (or an equivalent <code>TextHitInfo</code>), indicating the
          *        strong caret.
@@ -492,30 +492,9 @@ public final class TextLayout implements Cloneable {
         // isVerticalLine = TextAttribute.ORIENTATION_VERTICAL.equals(vf);
         isVerticalLine = false;
 
-        /*
-         * if paragraph features define a baseline, use it, otherwise use
-         * the baseline for the first char.
-         */
-//         {dlf} baseline attribute was removed.
-//         Byte baselineLF = (Byte)paragraphAttrs.get(TextAttribute.BASELINE);
-//         if (baselineLF == null) {
-//             baseline = aBaseline;
-//         } else {
-//             baseline = baselineLF.byteValue();
-//         }
-	baseline = aBaseline;
+        baseline = aBaseline;
 
-        /*
-         * if paragraph features define the baselines, use them, otherwise
-         * use the baselines for the first font that can display the initial
-         * text.
-         */
-//         {dlf} baseline offset attribute was removed.
-//         baselineOffsets = (float[])paragraphAttrs.get(TextAttribute.BASELINE_OFFSETS);
-//         if (baselineOffsets == null) {
-//             baselineOffsets = aBaselineOffsets;
-//         }
-	baselineOffsets = lm.getBaselineOffsets();
+        baselineOffsets = lm.getBaselineOffsets();
 
         // normalize to current baseline
         if (baselineOffsets[baseline] != 0) {
@@ -825,13 +804,18 @@ public final class TextLayout implements Cloneable {
             throw new Error("Can't justify again.");
         }
 
-        TextLayout result = (TextLayout)clone();
-        if (justifyRatio > 0) {
-            result.handleJustify(justificationWidth);
+        // default justification range to exclude trailing logical whitespace
+        int limit = characterCount;
+        while (limit > 0 && textLine.isCharWhitespace(limit-1)) {
+            --limit;
         }
-        result.justifyRatio = ALREADY_JUSTIFIED;
 
-        return result;
+        TextLine newLine = textLine.getJustifiedLine(justificationWidth, justifyRatio, 0, limit);
+        if (newLine != null) {
+            return new TextLayout(newLine, baseline, baselineOffsets, ALREADY_JUSTIFIED);
+        }
+
+        return this;
     }
 
     /**
@@ -856,189 +840,9 @@ public final class TextLayout implements Cloneable {
      * @see #getJustifiedLayout(float)
      */
     protected void handleJustify(float justificationWidth) {
-//        if (justifyRatio > 0 && justificationWidth > 0) {
-//            newJustify(justificationWidth);
-//        }
+      // never called
     }
 
-    // !!! this could be in the justifier object, if we decided to have one.
-//    private void newJustify(float justificationWidth) {
-        /*
-         * calculate visual limits of text needing justification
-         * this excludes leading and trailing overhanging punctuation and
-         * trailing whitespace leave limit at last char, we won't add
-         * justification space after it, but do need to count its advance.
-         */
-
-//        TextLayoutComponent[] newglyphs = new TextLayoutComponent[glyphs.length];
-
-//        float leftHang = 0;
-//        float adv = 0;
-//        float justifyDelta = 0;
-//        boolean rejustify = false;
-//        do {
-//            GlyphIterator iter = createGlyphIterator();
-
-//            adv = iter.totalAdvance();
-
-            // System.out.println("advance: " + adv);
-
-//            float ignoredLeftAdvance = 0;
-//            float ignoredRightAdvance = 0;
-
-            /*
-             * ??? if we're a tabbed segment on a line, perhaps we don't hang
-             * punctuation on one or both sides?
-             * ??? Do we really want to hang punctuation?  I guess we do want
-             * to hang whitespace, so we still need some of this code.
-             */
-            // {jbr} not hanging punctuation now
-//            boolean hangLeftPunctuation = false;
-//            boolean hangRightPunctuation = false;
-
-//            iter.firstVisualGlyph();
-//            if (!textLine.isDirectionLTR()) {
-//                while (iter.isValid() && iter.isWhitespace()) {
-//                    ignoredLeftAdvance += iter.distanceToNextGlyph();
-//                    iter.nextVisualGlyph();
-//                }
-//            }
-//            if (hangLeftPunctuation) {
-//                while (iter.isValid() && iter.isHangingPunctuation()) {
-//                    ignoredLeftAdvance += iter.distanceToNextGlyph();
-//                    iter.nextVisualGlyph();
-//                }
-//            }
-
-//            int start;
-
-            // Do we really want to adjust for bearings???
-            // Remind: {jbr} I don't think so.  Bearings are not a design
-            // metric;  they're a physical, bit-bounds metric.
-            // Disabled for now.
-//            if (iter.isValid()) { // visual  for first character in segment
-                //ignoredLeftAdvance += iter.getLSB();
-//                start = iter.visualIndex();
-//            }
-//            else {
-//                start = characterCount;
-//            }
-
-//            leftHang = ignoredLeftAdvance;
-
-//            iter.lastVisualGlyph();
-//            if (textLine.isDirectionLTR()) {
-                // System.out.print("s: " + start + ", l: " + iter.limit + ", (" + iter.visualIndex() + "," + iter.logicalIndex() + ")");
-//                while (iter.isValid() && iter.visualIndex() > start &&
-//                       iter.isWhitespace()) {
-//                    ignoredRightAdvance += iter.distanceToNextGlyph();
-//                    iter.previousVisualGlyph();
-                    // System.out.print(", (" + iter.visualIndex() + "," + iter.logicalIndex() + ")");
-//                }
-                // System.out.println();
-//            }
-//            if (hangRightPunctuation) {
-//                while (iter.isValid() && iter.visualIndex() > start &&
-//                       iter.isHangingPunctuation()) {
-//                    ignoredRightAdvance += iter.distanceToNextGlyph();
-//                    iter.previousVisualGlyph();
-//                }
-//            }
-            // Do we really want to adjust for bearings???
-            // Remind {jbr} No - see above.
-//            if (iter.isValid()) {// visual adjust for last character in segment
-                //ignoredRightAdvance += iter.getRSB();
-//            }
-//            int end = iter.visualIndex();
-
-            /*
-             * get the advance of the text that has to fit the justification
-             * width
-             */
-//            float justifyAdvance =
-//                    adv - ignoredLeftAdvance - ignoredRightAdvance;
-
-            // get the actual justification delta
-//            justifyDelta = (justificationWidth - justifyAdvance) * justifyRatio;
-
-            /*
-             * generate an array of GlyphJustificationInfo records to pass to
-             * the justifier
-             */
-//            int glyphCount = 0;
-//            for (int i = 0; i < glyphs.length; i++) {
-//                glyphCount += glyphs[i].getNumGlyphs();
-//            }
-//            GlyphJustificationInfo[] info =
-//                                new GlyphJustificationInfo[glyphCount];
-
-//            if (start < characterCount) {
-//                iter.setVisualGlyph(start);
-//                while (iter.isValid() && iter.visualIndex() <= end) {
-
-//                    boolean glyphIsLTR = iter.glyphIsLTR();
-//                    GlyphJustificationInfo[] gi = iter.glyphJustificationInfos();
-
-//                    for (int i=0; i < gi.length; i++) {
-//                        int off = glyphIsLTR?  i  :  gi.length - i - 1;
-//                        info[iter.visualIndex() + off] = gi[i];
-//                    }
-
-//                    iter.nextVisualGlyph();
-//                }
-//            }
-
-            // invoke justifier on the records
-            // ignore left of start and right of end
-//            TextJustifier justifier = new TextJustifier(info, start, end + 1);
-
-//            float[] deltas = justifier.justify(justifyDelta);
-
-            /*
-             * ??? How do you position hanging punctuation when you've
-             * justified a line?  Should you not hang it when the line has to
-             * stretch too much?  If you compress the line, should you also
-             * compress the punctuation to match the compression that would
-             * have been applied had it not been hanging?
-             * go through glyphvectors in visual order, applying justification
-             * flags is a hack reference param for java on entry, true if can
-             * substitute glyphset that requires rejustification on return,
-             * true if rejustification is required
-             */
-
-//            boolean canRejustify = rejustify == false;
-//            boolean wantRejustify = false;
-//            boolean[] flags = new boolean[1];
-
-//            int index = 0;
-//            for (int vi = 0; vi < glyphs.length; vi++) {
-//                int i = (glyphsOrder == null) ? vi : glyphsOrder[vi];
-//                int numGlyphs = glyphs[i].getNumGlyphs();
-//                flags[0] = canRejustify;
-                //System.out.println(vi + "/" + i + " dl: " + deltas.length + ", i: " + index + ", gn: " + numGlyphs);
-//                newglyphs[i] = glyphs[i].applyJustification(deltas, index, flags);
-//                if (flags[0]) {
-//                    glyphs[i] = newglyphs[i]; // need to process new codes
-//                }
-
-//                wantRejustify |= flags[0];
-
-//                index += numGlyphs * 2;
-//            }
-
-//            rejustify = wantRejustify && !rejustify; // only make two passes
-//            protoIterator = null; // force iterator to reflect new glyphsets
-//        } while (rejustify);
-
-        // {jbr} No hanging characters anymore.
-        //if (isVerticalLine) {
-        //    dy = leftHang;
-        //} else {
-        //    dx = leftHang;
-        //}
-//        glyphs = newglyphs;
-//        advance = adv + justifyDelta;
-//    }
 
     /**
      * Returns the baseline for this <code>TextLayout</code>.
@@ -1445,8 +1249,23 @@ public final class TextLayout implements Cloneable {
 
     private boolean caretIsValid(int caret) {
 
-        return true;
-        // REMIND jr: false if caret is between combining characters
+        if (caret == characterCount || caret == 0) {
+            return true;
+        }
+
+        int offset = textLine.visualToLogical(caret);
+
+        if (!textLine.isCharLTR(offset)) {
+            offset = textLine.visualToLogical(caret-1);
+            if (textLine.isCharLTR(offset)) {
+                return true;
+            }
+        }
+
+        // At this point, the leading edge of the character
+        // at offset is at the given caret.
+
+        return textLine.caretAtOffsetIsValid(offset);
     }
 
     /**
@@ -1856,48 +1675,25 @@ public final class TextLayout implements Cloneable {
     private final TextHitInfo getStrongHit(TextHitInfo hit1, TextHitInfo hit2) {
 
         // right now we're using the following rule for strong hits:
-        // A hit on a character whose direction matches the line direction
-        // is stronger than one on a character running opposite the
-        // line direction.
+        // A hit on a character with a lower level
+        // is stronger than one on a character with a higher level.
         // If this rule ties, the hit on the leading edge of a character wins.
         // If THIS rule ties, hit1 wins.  Both rules shouldn't tie, unless the
         // infos aren't counterparts of some sort.
 
-        boolean hit1Ltr, hit2Ltr;
+        byte hit1Level = getCharacterLevel(hit1.getCharIndex());
+        byte hit2Level = getCharacterLevel(hit2.getCharIndex());
 
-        if (hit1.getCharIndex() == characterCount || hit1.getCharIndex() == -1) {
-            hit1Ltr = textLine.isDirectionLTR();
-        }
-        else {
-            hit1Ltr = textLine.isCharLTR(hit1.getCharIndex());
-        }
-
-        if (hit1Ltr == textLine.isDirectionLTR() && hit1.isLeadingEdge()) {
-            return hit1;
-        }
-
-        if (hit2.getCharIndex() == characterCount || hit2.getCharIndex() == -1) {
-            hit2Ltr = textLine.isDirectionLTR();
-        }
-        else {
-            hit2Ltr = textLine.isCharLTR(hit2.getCharIndex());
-        }
-
-        if (hit1Ltr == hit2Ltr) {
-            if (!hit2.isLeadingEdge()) {
-                return hit1;
-            }
-            else {
-                return (hit1.isLeadingEdge())? hit1 : hit2;
-            }
-        }
-        else {
-            if (hit1Ltr == textLine.isDirectionLTR()) {
-                return hit1;
-            }
-            else {
+        if (hit1Level == hit2Level) {
+            if (hit2.isLeadingEdge() && !hit1.isLeadingEdge()) {
                 return hit2;
             }
+            else {
+                return hit1;
+            }
+        }
+        else {
+            return (hit1Level < hit2Level)? hit1 : hit2;
         }
     }
 
@@ -2450,9 +2246,9 @@ public final class TextLayout implements Cloneable {
      * regardless of the position of that character in the line.  Only the
      * direction along the baseline is used to make this evaluation.
      * @param x the x offset from the origin of this 
-     *		<code>TextLayout</code>
+     *          <code>TextLayout</code>
      * @param y the y offset from the origin of this
-     * 		<code>TextLayout</code>
+     *          <code>TextLayout</code>
      * @param bounds the bounds of the <code>TextLayout</code>
      * @return a hit describing the character and edge (leading or trailing)
      * under the specified point.
@@ -2589,7 +2385,7 @@ public final class TextLayout implements Cloneable {
      * <code>TextLayout</code>.
      * @param x the x offset from the origin of this <code>TextLayout</code>
      * @param y the y offset from the origin of this
-     *		<code>TextLayout</code>
+     *          <code>TextLayout</code>
      * @return a hit describing the character and edge (leading or trailing)
      * under the specified point.
      */
@@ -2597,473 +2393,6 @@ public final class TextLayout implements Cloneable {
 
         return hitTestChar(x, y, getNaturalBounds());
     }
-
-    /**
-     * Returns a layout that represents a subsection of this layout.  The
-     * number of characters  must be >= 1.  The original layout must not be
-     * justified.  The new layout will apply the bidi 'line reordering' rules
-     * to the text.
-     *
-     * @param firstEndpoint the index of the first character to use
-     * @param limit the index past the last character to use
-     * @return a new layout
-     */
-
-    // note:  eventually this method will be removed from TextLayout and an equivalent method
-    // added to TextMeasurer.  For now, TextMeasurer is implemented using TextLayout, but it
-    // should be the only client of this method.
-/*
-    TextLayout sublayout(int start, int limit) {
-        if (start < 0 || limit < start || characterCount < limit) {
-            throw new IllegalArgumentException("Invalid rantge passed to TextLayout.sublayout()");
-        }
-
-        return new TextLayout(this, start, limit); // new subset
-    }
-*/
-    // === sublayout stuff: ///
-
-    /**
-     * Return a glyphvector computed from the glyph iterator, up to limitIndex.
-     * If we're getting trailing whitespace (whose direction is determined by
-     * the Layout, not by the glyphvector containing the whitespace) then
-     * useOverrideLevel is true, and override level is 0x0 for ltr and 0x1 for
-     * rtl.
-     */
-/*    private static TextLayoutComponent getNextSetAtIter(GlyphIterator sourceIter,
-                                             int limitIndex) {
-
-        int startIndex = sourceIter.logicalIndex();
-        TextLayoutComponent currentSet = sourceIter.currentGlyphSet();
-
-        int startPosInSet = startIndex - sourceIter.logicalStartOfCurrentSet();
-
-        int limitPosInSet = startPosInSet + (limitIndex - startIndex);
-
-        if (limitPosInSet > currentSet.getNumCharacters()) {
-            limitPosInSet = currentSet.getNumCharacters();
-        }
-
-        TextLayoutComponent rval = currentSet.subset(startPosInSet, limitPosInSet);
-
-        int setLimit = startIndex + (limitPosInSet-startPosInSet);
-
-        if (setLimit < sourceIter.limit()) {
-            sourceIter.setLogicalGlyph(setLimit);
-        }
-        else {
-            sourceIter.invalidate();
-        }
-
-        return rval;
-    }
-*/
-
-/*    private static int[] addToIntArray(int[] old, int end) {
-
-        int len = (old == null)? 1 : old.length + 1;
-        int[] newArray = new int[len];
-
-        if (old != null) {
-            System.arraycopy(old, 0, newArray, 0, len-1);
-        }
-
-        newArray[len-1] = end;
-
-        return newArray;
-    }
-*/
-    // for newest "sublayout" constructor:
-/*    private static TextLayoutComponent[] addToSetArray(
-                                        TextLayoutComponent[] setArray,
-                                        TextLayoutComponent set) {
-
-        int len = (setArray == null)? 1 : setArray.length + 1;
-        TextLayoutComponent[] newArray = new TextLayoutComponent[len];
-
-        if (setArray != null) {
-            System.arraycopy(setArray, 0, newArray, 0, len-1);
-        }
-
-        newArray[len-1] = set;
-
-        return newArray;
-    }
-*/
-/*    private TextLayout(TextLayout source, final int start, final int limit) {
-
-        baseline = source.baseline;
-        baselineOffsets = new float[source.baselineOffsets.length];
-        System.arraycopy(source.baselineOffsets, 0, baselineOffsets, 0, baselineOffsets.length);
-        textLine.isDirectionLTR() = source.textLine.isDirectionLTR();
-        isVerticalLine = source.isVerticalLine;
-        justifyRatio = source.justifyRatio;
-
-        characterCount = limit - start;
-
-        dx = dy = 0;
-
-        TextLayoutComponent[] newSets = null;
-        int[] newOrder = null;
-
-        {
-            GlyphIterator sourceIter = source.createGlyphIterator();
-
-            // is there trailing whitespace to float to the end ?
-            sourceIter.setLogicalGlyph(limit-1);
-            while (sourceIter.isValid() && sourceIter.isWhitespace() &&
-                                sourceIter.glyphIsLTR() != textLine.isDirectionLTR()) {
-                sourceIter.previousLogicalGlyph();
-            }
-
-            int whitespaceStart;
-
-            if (sourceIter.isValid()) {
-                whitespaceStart = sourceIter.logicalIndex() + 1;
-            } else {
-                whitespaceStart = start;
-            }
-
-            sourceIter.setLogicalGlyph(start);
-
-            int tempOrder;
-            int minOrder = Integer.MAX_VALUE, maxOrder = Integer.MIN_VALUE;
-
-            while (sourceIter.isValid() &&
-                   sourceIter.logicalIndex() < whitespaceStart) {
-
-                tempOrder = sourceIter.visualIndex();
-                if (tempOrder < minOrder) {
-                    minOrder = tempOrder;
-                }
-                if (tempOrder > maxOrder) {
-                    maxOrder = tempOrder;
-                }
-
-                TextLayoutComponent nextSet =
-                        getNextSetAtIter(sourceIter, whitespaceStart);
-
-                newSets = addToSetArray(newSets, nextSet);
-                newOrder = addToIntArray(newOrder, tempOrder);
-            }
-
-            while (sourceIter.isValid() && sourceIter.logicalIndex() < limit) {
-
-                tempOrder = textLine.isDirectionLTR()? (++maxOrder) : (--minOrder);
-
-                TextLayoutComponent nextSet = getNextSetAtIter(sourceIter, limit);
-                nextSet = nextSet.setDirection(textLine.isDirectionLTR());
-
-                newSets = addToSetArray(newSets, nextSet);
-                newOrder = addToIntArray(newOrder, tempOrder);
-            }
-        }
-
-        newOrder = GlyphSet.getContiguousOrder(newOrder);
-
-        glyphs = newSets;
-        glyphsOrder = GlyphSet.getInverseOrder(newOrder);
-    }
-*/
-   /**
-    * Used for insert/delete char editing.  Clone this TextLayout and replace
-    * oldSet with newSet in clone.
-    */
-/*    private TextLayout cloneAndReplaceSet(TextLayoutComponent oldSet,
-                                          TextLayoutComponent newSet) {
-
-        TextLayout newLayout = (TextLayout) this.clone();
-
-        // deep-copy glyphs array, since it will change:
-        newLayout.glyphs = new TextLayoutComponent[glyphs.length];
-        System.arraycopy(glyphs, 0, newLayout.glyphs, 0, glyphs.length);
-
-        TextLayoutComponent[] newSets = newLayout.glyphs;
-
-        // find oldSet:
-        int i;
-        for (i=0; i<newSets.length; i++)
-            if (newSets[i] == oldSet) {
-                newSets[i] = newSet;
-                break;
-            }
-
-        if (i == newSets.length) {
-            throw new Error("Didn't find oldSet in cloneAndReplaceSet.");
-        }
-
-        newLayout.protoIterator = null;
-        // newLayout.buildCache();
-
-        return newLayout;
-    }
-*/
-    /**
-     * An optimization to facilitate inserting single characters into a
-     * paragraph.
-     * @param newParagraph the complete text for the new 
-     * <code>TextLayout</code>. This represents the text after the insertion
-     * occurred, restricted to the text which goes in the new layout.
-     * @param insertPos the position, relative to the text (not the start of
-     * the layout), at which the single character was inserted
-     * @return a new <code>TextLayout</code> representing 
-     *        <code>newParagraph</code>.
-     */
-//    TextLayout insertChar(AttributedCharacterIterator newParagraph,
-//                          int textInsertPos)
-//    {
-//        ensureCache();
-//
-//        if (newParagraph == null) {
-//            throw new IllegalArgumentException("Null AttributedCharacterIterator passed to TextLayout.insertChar().");
-//        }
-//
-//        int newCharacterCount = characterCount+1;
-//        if (newParagraph.getEndIndex() - newParagraph.getBeginIndex() !=
-//            newCharacterCount) {
-//            throw new IllegalArgumentException("TextLayout.insertChar() only handles inserting a single character.");
-//        }
-//
-//        if (textInsertPos < newParagraph.getBeginIndex() ||
-//            textInsertPos >= newParagraph.getEndIndex()) {
-//            throw new IllegalArgumentException("insertPos is out of range in TextLayout.insertChar().");
-//        }
-//
-//        int insertPos = textInsertPos - newParagraph.getBeginIndex();
-//
-//        TextLayoutComponent changeSet;
-        // the offset in newParagraph where changeSet's text begins
-//        int setStartInText;
-
-        // if insertPos is on a glyphset boundary, we'll try to append to the
-        // previous set instead of inserting into first position in next set
-
-//        if (insertPos == characterCount) {
-//            changeSet = glyphs[glyphs.length-1];
-//            setStartInText = newParagraph.getBeginIndex() +
-//                characterCount - changeSet.getNumCharacters();
-//        } else {
-//            GlyphIterator iter = createGlyphIterator();
-//            iter.setLogicalGlyph(insertPos==0? 0 : insertPos-1);
-
-//            changeSet = iter.currentGlyphSet();
-//            setStartInText = newParagraph.getBeginIndex() +
-//                iter.logicalStartOfCurrentSet();
-//        }
-
-//        {
-//            boolean doItFromScratch = false;
-
-            // check style compatability - if style run at textInsertPos doesn't
-            // start at textInsertPos then styles are compatible
-
-//            newParagraph.setIndex(textInsertPos);
-//            if (textInsertPos == newParagraph.getBeginIndex()) {
-//                if (newParagraph.getRunLimit() <= textInsertPos + 1) {
-//                    doItFromScratch = true;
-//                }
-//            } else {
-//                if (newParagraph.getRunStart() == textInsertPos) {
-//                    doItFromScratch = true;
-//                }
-//            }
-
-//            if (doItFromScratch) {
-//                return new TextLayout(newParagraph);
-//            }
-//        }
-
-//        boolean rerunBidi;
-
-//        if (!textLine.isDirectionLTR() || !changeSet.isCompletelyLTR()) {
-//            rerunBidi = true;
-//        }
-//        else {
-            // check dir class of inserted character
-//            char insertedChar = newParagraph.
-//                setIndex(newParagraph.getBeginIndex() + insertPos);
-
-            // insertedChar must be ltr in this context
-
-//            byte dirClass = IncrementalBidi.getDirectionClass(insertedChar);
-//            rerunBidi = dirClass == IncrementalBidi.R;
-//        }
-
-//        byte[] levels = null;
-//        int[] logicalOrdering = null;
-
-//        if (rerunBidi) {
-//            return new TextLayout(newParagraph);
-            //IncrementalBidi bidi = new BidiInfo(newParagraph, textLine.isDirectionLTR()? 0x0 : 0x1, null, null);
-            //levels = bidi.createLevels();
-            //int[] temp = bidi.createVisualToLogicalOrdering();
-            //logicalOrdering = GlyphSet.getInverseOrder(temp);
-//        }
-
-//        int setLimitInText = setStartInText + changeSet.getNumCharacters() + 1;
-
-//        TextLayoutComponent newSet = changeSet.insertChar(newParagraph,
-//                                               setStartInText, setLimitInText,
-//                                               textInsertPos, logicalOrdering,
-//                                               levels);
-
-//        TextLayout result = cloneAndReplaceSet(changeSet, newSet);
-
-        /*
-         * no need to let font modify previous glyphvector; since we always
-         * append, the only way the first glyph of a set gets changed is if
-         * the set is first in the layout
-         */
-
-//        if (setLimitInText == (textInsertPos-1) &&
-//            setLimitInText < newParagraph.getRunLimit()) {
-            // need to let font have a chance to modify following GlyphSet
-//            GlyphIterator iter = createGlyphIterator();
-//            iter.setLogicalGlyph(setLimitInText-newParagraph.getRunStart()-1);
-
-//            TextLayoutComponent nextSet = iter.currentGlyphSet();
-//            int nextStartInText = newParagraph.getBeginIndex() +
-//                iter.logicalStartOfCurrentSet() + 1;
-
-//            TextLayoutComponent otherSet2 = nextSet.reshape(newParagraph,
-//                                                 nextStartInText,
-//                                                 nextStartInText +
-//                                                 nextSet.getNumCharacters(),
-//                                                 textInsertPos,
-//                                                 logicalOrdering, levels);
-
-//            if (nextSet != otherSet2) {
-//                result = result.cloneAndReplaceSet(nextSet, otherSet2);
-//            }
-//        }
-
-        /*
-         * now we don't always call buildCache on result, so cc isn't updated
-         * after clone
-         */
-//        result.characterCount = newCharacterCount;
-
-//        return result;
-//    }
-
-    /**
-     * An optimization to facilitate deleting single characters from a
-     * paragraph.
-     * @param newParagraph the complete text for the new paragraph.  This
-     * represents the text after the deletion occurred, restricted to the
-     * text which goes in the new <code>TextLayout</code>.
-     * @param textDeletePos the position, relative to the text (not the start
-     * of the <code>TextLayout</code> at which the character was deleted
-     * @return a new <code>TextLayout</code> representing 
-     *         <code>newParagraph</code>.
-     */
-//    TextLayout deleteChar(AttributedCharacterIterator newParagraph,
-//                          int textDeletePos) {
-//        ensureCache();
-
-//        if(newParagraph == null) {
-//            throw new IllegalArgumentException("Null AttributedCharacterIterator passed to TextLayout.deleteChar().");
-//        }
-
-//        int newCharacterCount = characterCount - 1;
-//        if (newParagraph.getEndIndex() - newParagraph.getBeginIndex() !=
-//            newCharacterCount)
-//        {
-//            throw new IllegalArgumentException("TextLayout.deleteChar() only handles deleting a single character.");
-//        }
-
-//        int deletePos = textDeletePos - newParagraph.getBeginIndex();
-
-//        TextLayoutComponent changeSet;
-//        int setStartInText; // the offset in newParagraph where changeSet begins
-
-//        GlyphIterator iter = createGlyphIterator();
-//        iter.setLogicalGlyph(deletePos);
-
-//        changeSet = iter.currentGlyphSet();
-//        setStartInText = newParagraph.getBeginIndex() +
-//            iter.logicalStartOfCurrentSet();
-
-        // if we're deleting and entire glyphset, just redo from scratch:
-//        if (changeSet.getNumCharacters() == 1) {
-//            return new TextLayout(newParagraph);
-//        }
-
-        // now check to see if we need to rerun bidi:
-//        int[] logicalOrdering = null;
-//        byte[] levels = null;
-
-//        if (!textLine.isDirectionLTR() || !changeSet.isCompletelyLTR()) {
-//            return new TextLayout(newParagraph);
-            //BidiInfo bidi = new BidiInfo(newParagraph, textLine.isDirectionLTR()? 0x0 : 0x1, null, null);
-            //levels = bidi.createLevels();
-            //int[] temp = bidi.createVisualToLogicalOrdering();
-            //logicalOrdering = GlyphSet.getInverseOrder(temp);
-//        }
-
-//        int setLimitInText = setStartInText + changeSet.getNumCharacters() - 1;
-
-//        TextLayoutComponent newSet = changeSet.deleteChar(newParagraph,
-//                                               setStartInText, setLimitInText,
-//                                               textDeletePos, logicalOrdering,
-//                                               levels);
-
-//        TextLayout result = cloneAndReplaceSet(changeSet, newSet);
-
-//        if (setStartInText == textDeletePos &&
-//            setStartInText > newParagraph.getBeginIndex())
-//        {
-
-//            GlyphIterator iter2 = createGlyphIterator();
-//            iter2.setLogicalGlyph(setStartInText -
-//                                  newParagraph.getBeginIndex() - 1);
-
-//            TextLayoutComponent previousSet = iter2.currentGlyphSet();
-//            int prevStartInText = newParagraph.getBeginIndex() +
-//                iter2.logicalStartOfCurrentSet();
-
-//            TextLayoutComponent otherSet = previousSet.reshape(newParagraph,
-//                                                    prevStartInText,
-//                                                    setStartInText,
-//                                                    textDeletePos,
-//                                                    logicalOrdering,
-//                                                    levels);
-
-//            if (previousSet != otherSet) {
-//                result = result.cloneAndReplaceSet(previousSet, otherSet);
-//            }
-//        }
-
-//        if (setLimitInText == textDeletePos &&
-//            setLimitInText < newParagraph.getEndIndex()) {
-
-//            GlyphIterator iter2 = createGlyphIterator();
-//            iter2.setLogicalGlyph(setLimitInText -
-//                                  newParagraph.getBeginIndex() + 1);
-
-//            TextLayoutComponent nextSet = iter2.currentGlyphSet();
-//            int nextStartInText = setLimitInText;
-
-//            TextLayoutComponent otherSet2 = nextSet.reshape(newParagraph,
-//                                                 nextStartInText,
-//                                                 nextStartInText +
-//                                                 nextSet.getNumCharacters(),
-//                                                 textDeletePos-1,
-//                                                 logicalOrdering, levels);
-
-//            if (nextSet != otherSet2) {
-//                result = result.cloneAndReplaceSet(nextSet, otherSet2);
-//            }
-//        }
-
-        /*
-         * now we don't always call buildCache on result, so cc isn't
-         * updated after clone
-         */
-//        result.characterCount = newCharacterCount;
-
-//        return result;
-//    }
 
     /**
      * Returns the hash code of this <code>TextLayout</code>.
@@ -3163,24 +2492,6 @@ public final class TextLayout implements Cloneable {
         return start;
     }
 
-//    /*private*/ static float[] getBaselineOffsetsFor(Font font, char c) {
-//        float[] baselines = new float[3];
-        // REMIND -- offsets in an idealized 72 dpi device coordinate space --
-        // in reality, a TextLayout can not be completely independent of the
-        // device context, since the true layout is affected by state
-        // in the graphics context such as rendering hints, and device DPI.
-        // we need to agree on the management of state information which is
-        // used by the rasterizer. (NB: device DPI could be wrapped into
-        // the transform, which leaves rendering hints as required state
-        // to do the job correctly for all NativeFontWrapper calls)
-
-        /* REMIND pc Need to use the transform. */
-        /* REMIND need a 2D context here for hints */
-//        float[] matrix = { font.getSize2D(), 0, 0, font.getSize2D()};
-//        NativeFontWrapper.getBaseLineOffsetsFor(font, c, matrix, baselines);
-//        return baselines;
-//    }
-
     static byte getBaselineFromGraphic(GraphicAttribute graphic) {
 
         byte alignment = (byte) graphic.getAlignment();
@@ -3200,7 +2511,6 @@ public final class TextLayout implements Cloneable {
    * <code>TextLayout</code>.
    * @param tx an optional {@link AffineTransform} to apply to the
    *     outline of this <code>TextLayout</code>.
-   * @param x,&nbsp;y the coordinates of the location of the outline
    * @return a <code>Shape</code> that is the outline of this
    *     <code>TextLayout</code>.
    */
@@ -3209,6 +2519,3 @@ public final class TextLayout implements Cloneable {
         return textLine.getOutline(tx);
     }
 }
-
-
-

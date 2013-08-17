@@ -1,5 +1,5 @@
 /*
- * @(#)DSAPrivateKeySpec.java	1.10 98/09/21
+ * @(#)DSAPrivateKeySpec.java	1.11 98/12/03
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -21,7 +21,7 @@ import java.math.BigInteger;
  *
  * @author Jan Luehe
  *
- * @version 1.10, 00/05/10
+ * @version 1.11 98/12/03
  *
  * @see java.security.Key
  * @see java.security.KeyFactory

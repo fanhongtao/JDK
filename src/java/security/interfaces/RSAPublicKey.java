@@ -1,5 +1,5 @@
 /*
- * @(#)RSAPublicKey.java	1.2 98/06/29
+ * @(#)RSAPublicKey.java	1.3 98/12/03
  *
  * Copyright 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -21,7 +21,7 @@ import java.math.BigInteger;
  *
  * @author Jan Luehe
  *
- * @version 1.2, 00/05/10
+ * @version 1.3 98/12/03
  */
 
 public interface RSAPublicKey extends java.security.PublicKey {

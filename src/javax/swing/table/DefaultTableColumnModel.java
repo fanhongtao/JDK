@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultTableColumnModel.java	1.24 98/08/28
+ * @(#)DefaultTableColumnModel.java	1.26 98/10/21
  *
  * Copyright 1997, 1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -33,7 +33,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.24 08/28/98
+ * @version 1.26 10/21/98
  * @author Alan Chung
  * @author Philip Milne
  * @see JTable
@@ -314,9 +314,14 @@ public class DefaultTableColumnModel implements TableColumnModel,
      *  selectable.
      *
      * @param	newModel	the new selection model
+     * @exception IllegalArgumentException      if <I>newModel</I> is null
      * @see	#getSelectionModel
      */
     public void setSelectionModel(ListSelectionModel newModel) {
+        if (newModel == null) {
+            throw new IllegalArgumentException("Cannot set a null SelectionModel");
+        }
+
 	ListSelectionModel oldModel = selectionModel;
 
 	if (newModel != oldModel) {

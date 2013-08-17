@@ -1,5 +1,5 @@
 /*
- * @(#)Color.java	1.56 98/08/10
+ * @(#)Color.java	1.59 98/12/09
  *
  * Copyright 1995-1998 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
@@ -345,7 +345,7 @@ public class Color implements Paint, java.io.Serializable {
      * @see #getRGB
      */
     public Color(float r, float g, float b) {
-        this( (int) (r * 255), (int) (g * 255), (int) (b * 255));
+        this( (int) (r*255+0.5), (int) (g*255+0.5), (int) (b*255+0.5));
         testColorValueRange(r,g,b,1.0f);
         frgbvalue = new float[3];
         frgbvalue[0] = r;
@@ -371,7 +371,7 @@ public class Color implements Paint, java.io.Serializable {
      * @see #getRGB
      */
     public Color(float r, float g, float b, float a) {
-        this((int)(r*255), (int)(g*255), (int)(b*255), (int)(a*255));
+        this((int)(r*255+0.5), (int)(g*255+0.5), (int)(b*255+0.5), (int)(a*255+0.5));
         frgbvalue = new float[3];
         frgbvalue[0] = r;
         frgbvalue[1] = g;
@@ -464,7 +464,7 @@ public class Color implements Paint, java.io.Serializable {
     /**
      * Returns the RGB value representing the color in the default sRGB
      * ColorModel.
-     * (Bits 24-31 are 0xff, 16-23 are red, 8-15 are green, 0-7 are blue).
+     * (Bits 24-31 are alpha, 16-23 are red, 8-15 are green, 0-7 are blue).
      * @see java.awt.image.ColorModel#getRGBdefault
      * @see #getRed
      * @see #getGreen
@@ -681,43 +681,43 @@ public class Color implements Paint, java.io.Serializable {
     public static int HSBtoRGB(float hue, float saturation, float brightness) {
 	int r = 0, g = 0, b = 0;
     	if (saturation == 0) {
-	    r = g = b = (int) (brightness * 255);
+	    r = g = b = (int) (brightness * 255.0f + 0.5f);
 	} else {
-	    double h = (hue - Math.floor(hue)) * 6.0;
-	    double f = h - java.lang.Math.floor(h);
-	    double p = brightness * (1.0 - saturation);
-	    double q = brightness * (1.0 - saturation * f);
-	    double t = brightness * (1.0 - (saturation * (1.0 - f)));
+	    float h = (hue - (float)Math.floor(hue)) * 6.0f;
+	    float f = h - (float)java.lang.Math.floor(h);
+	    float p = brightness * (1.0f - saturation);
+	    float q = brightness * (1.0f - saturation * f);
+	    float t = brightness * (1.0f - (saturation * (1.0f - f)));
 	    switch ((int) h) {
 	    case 0:
-		r = (int) (brightness * 255);
-		g = (int) (t * 255);
-		b = (int) (p * 255);
+		r = (int) (brightness * 255.0f + 0.5f);
+		g = (int) (t * 255.0f + 0.5f);
+		b = (int) (p * 255.0f + 0.5f);
 		break;
 	    case 1:
-		r = (int) (q * 255);
-		g = (int) (brightness * 255);
-		b = (int) (p * 255);
+		r = (int) (q * 255.0f + 0.5f);
+		g = (int) (brightness * 255.0f + 0.5f);
+		b = (int) (p * 255.0f + 0.5f);
 		break;
 	    case 2:
-		r = (int) (p * 255);
-		g = (int) (brightness * 255);
-		b = (int) (t * 255);
+		r = (int) (p * 255.0f + 0.5f);
+		g = (int) (brightness * 255.0f + 0.5f);
+		b = (int) (t * 255.0f + 0.5f);
 		break;
 	    case 3:
-		r = (int) (p * 255);
-		g = (int) (q * 255);
-		b = (int) (brightness * 255);
+		r = (int) (p * 255.0f + 0.5f);
+		g = (int) (q * 255.0f + 0.5f);
+		b = (int) (brightness * 255.0f + 0.5f);
 		break;
 	    case 4:
-		r = (int) (t * 255);
-		g = (int) (p * 255);
-		b = (int) (brightness * 255);
+		r = (int) (t * 255.0f + 0.5f);
+		g = (int) (p * 255.0f + 0.5f);
+		b = (int) (brightness * 255.0f + 0.5f);
 		break;
 	    case 5:
-		r = (int) (brightness * 255);
-		g = (int) (p * 255);
-		b = (int) (q * 255);
+		r = (int) (brightness * 255.0f + 0.5f);
+		g = (int) (p * 255.0f + 0.5f);
+		b = (int) (q * 255.0f + 0.5f);
 		break;
 	    }
 	}

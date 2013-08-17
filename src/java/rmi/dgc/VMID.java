@@ -1,10 +1,10 @@
 /*
- * @(#)VMID.java	1.12 98/06/29
+ * @(#)VMID.java	1.15 99/04/30
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -17,43 +17,22 @@ package java.rmi.dgc;
 import java.io.*;
 import java.net.*;
 import java.rmi.server.UID;
+import java.security.*;
 
 /**
  * A VMID is a identifier that is unique across all Java virtual
  * machines.  VMIDs are used by the distributed garbage collector
  * to identify client VMs.
  *
- * @version	1.12, 06/29/98
+ * @version	1.15, 04/30/99
  * @author	Ann Wollrath
  * @author	Peter Jones
  */
 public final class VMID implements java.io.Serializable {
 
     /** array of bytes uniquely identifying this host */
-    private static byte[] localAddr;
-    /** true if address for this host actually is unique */
-    private static boolean localAddrUnique;
-    static {
-	try {
-	    InetAddress localInetAddress = InetAddress.getLocalHost();
-	    byte[] raw = localInetAddress.getAddress();
-	    localAddr = raw;
-
-	    if (raw == null ||		// if local host unknown,
-		((raw[0] | raw[1] | raw[2] | raw[3]) == 0) ||
-		((raw[0] == 127) &&	// or if it is localhost (127.0.0.1)
-		 (raw[1] ==   0) &&	// (maybe because of applet)
-		 (raw[2] ==   0) &&	// security manager?)
-		 (raw[3] ==   1)))
-		localAddrUnique = false; // then can't get unique host address
-	    else
-		localAddrUnique = true;
-	} catch (Exception e) {
-	    localAddr = null;
-	    localAddrUnique = false;
-	}
-    }
-
+    private static byte[] localAddr = computeAddressHash();
+    
     /**
      * @serial array of bytes uniquely identifying host created on
      */
@@ -71,14 +50,11 @@ public final class VMID implements java.io.Serializable {
      * Create a new VMID.  Each new VMID returned from this constructor
      * is unique for all Java virtual machines under the following
      * conditions: a) the conditions for uniqueness for objects of
-     * the class <b>java.rmi.server.UID</b> are satisfied, and b) an
+     * the class <code>java.rmi.server.UID</code> are satisfied, and b) an
      * address can be obtained for this host that is unique and constant
      * for the lifetime of this object.  <p>
-     * The static method <b>isUnique</b> can be invoked to determine
-     * if an accurate address can be obtained for this host.
      */
-    public VMID()
-    {
+    public VMID() {
 	addr = localAddr;
 	uid = new UID();
     }
@@ -88,9 +64,8 @@ public final class VMID implements java.io.Serializable {
      * host.  If false, reliable VMID cannot be generated from this host
      * @return true if host address can be determined, false otherwise
      */
-    public static boolean isUnique()
-    {
-	return localAddrUnique;
+    public static boolean isUnique() {
+	return true;
     }
 
     /**
@@ -105,7 +80,7 @@ public final class VMID implements java.io.Serializable {
      * same identifier.
      */
     public boolean equals(Object obj) {
-	if ((obj != null) && (obj instanceof VMID)) {
+	if (obj instanceof VMID) {
 	    VMID vmid = (VMID) obj;
 	    if (!uid.equals(vmid.uid))
 		return false;
@@ -131,12 +106,60 @@ public final class VMID implements java.io.Serializable {
 	StringBuffer result = new StringBuffer();
 	if (addr != null)
 	    for (int i = 0; i < addr.length; ++ i) {
-		if (i > 0)
-		    result.append('.');
-		result.append(Integer.toString(((int) addr[i]) & 0xFF, 10));
+		int x = (int) (addr[i] & 0xFF);
+		result.append((x < 0x10 ? "0" : "") +
+			      Integer.toString(x, 16));
 	    }
 	result.append(':');
 	result.append(uid.toString());
 	return result.toString();
+    }
+    
+    /**
+     * Compute the hash an IP address.  The hash is the first 8 bytes
+     * of the SHA digest of the IP address.
+     */
+    private static byte[] computeAddressHash() {
+
+	/*
+	 * Get the local host's IP address.
+	 */
+	byte[] addr = (byte[]) java.security.AccessController.doPrivileged(
+	    new PrivilegedAction() {
+	    public Object run() {
+		try {
+		    return InetAddress.getLocalHost().getAddress();
+		} catch (Exception e) {
+		}
+		return new byte[] { 0, 0, 0, 0 };
+	    }
+	});
+
+	byte[] addrHash;
+	final int ADDR_HASH_LENGTH = 8;
+	
+	try {
+	    /*
+	     * Calculate message digest of IP address using SHA.
+	     */
+	    MessageDigest md = MessageDigest.getInstance("SHA");
+	    ByteArrayOutputStream sink = new ByteArrayOutputStream(64);
+	    DataOutputStream out = new DataOutputStream(
+		new DigestOutputStream(sink, md));
+	    out.write(addr, 0, addr.length);
+	    out.flush();
+	    
+	    byte digest[] = md.digest();
+	    int hashlength = Math.min(ADDR_HASH_LENGTH, digest.length);
+	    addrHash = new byte[hashlength];
+	    System.arraycopy(digest, 0, addrHash, 0, hashlength);
+
+	} catch (IOException ignore) {
+	    /* can't happen, but be deterministic anyway. */
+	    addrHash = new byte[0];
+	} catch (NoSuchAlgorithmException complain) {
+	    throw new InternalError(complain.toString());
+	}
+	return addrHash;
     }
 }

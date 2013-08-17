@@ -1,10 +1,10 @@
 /*
- * @(#)SampleModel.java	1.19 98/08/14
+ * @(#)SampleModel.java	1.23 99/04/22
  *
- * Copyright 1997, 1998 by Sun Microsystems, Inc.,
+ * Copyright 1997-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -85,6 +85,13 @@ public abstract class SampleModel
      * @param w 	The width (in pixels) of the region of image data.
      * @param h         The height (in pixels) of the region of image data.
      * @param numBands  The number of bands of the image data.
+     * @throws IllegalArgumentException if <code>w</code> or <code>h</code>
+     *         is not greater than 0
+     * @throws IllegalArgumentException if the product of <code>w</code>
+     *         and <code>h</code> is greater than 
+     *         <code>Integer.MAX_VALUE</code>
+     * @throws IllegalArgumentException if <code>dataType</code> is not
+     *         one of the supported data types
      */
     public SampleModel(int dataType, int w, int h, int numBands)
     {
@@ -96,6 +103,14 @@ public abstract class SampleModel
         if (size >= Integer.MAX_VALUE) {
             throw new IllegalArgumentException("Dimensions (width="+w+
                                                " height="+h+") are too large");
+        }
+
+        if (dataType < DataBuffer.TYPE_BYTE ||
+            (dataType > DataBuffer.TYPE_DOUBLE &&
+             dataType != DataBuffer.TYPE_UNDEFINED))
+        {
+            throw new IllegalArgumentException("Unsupported dataType: "+
+                                               dataType);
         }
 	this.dataType = dataType;
 	this.width = w;

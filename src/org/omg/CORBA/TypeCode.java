@@ -1,10 +1,10 @@
 /*
- * @(#)TypeCode.java	1.34 98/10/12
+ * @(#)TypeCode.java	1.39 99/04/22
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -180,6 +180,8 @@ public abstract class TypeCode implements IDLEntity {
   }
 
   /**
+   * Strips out all optional name & member name fields,
+   * but it leaves all alias typecodes intact.
    * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
    *      comments for unimplemented features</a>
    */
@@ -437,30 +439,40 @@ public abstract class TypeCode implements IDLEntity {
   }
 
   /**
-   * Returns the <code>Visibility</code> of the value type member
-   * identified by the index.
+   * Returns the constant that indicates the visibility of the member
+   * at the given index.
+   *
    * This operation can only be invoked on non-boxed value
    * <code>TypeCode</code> objects.
    *
-   * @return 	the <code>Visibility</code>
-   * @exception org.omg.CORBA.TypeCodePackage.BadKind if the method is
-   *            invoked on a non value <code>TypeCode</code>.
-   * @exception org.omg.CORBA.TypeCodePackage.Bounds if the index is
-   *            equal to or greater than the number of members
-   *            constituting the value type.
+   * @param index an <code>int</code> indicating the index into the
+   *               value
+   * @return either <code>PRIVATE_MEMBER.value</code> or
+   *          <code>PUBLIC_MEMBER.value</code>
+   * @exception org.omg.CORBA.TypeCodePackage.BadKind if this method
+   *           is invoked on a non-value type <code>TypeCode</code>
+   *           object
+   * @exception <code>org.omg.CORBA.TypeCodePackage.Bounds</code>
+   *           if the given index is out of bounds 
    */
-    
+
   public short member_visibility(int index) throws BadKind, Bounds {
       throw new org.omg.CORBA.NO_IMPLEMENT();
   }
 
   /**
-   * Returns the modifier that applies to the valuetype represented by
-   * the target <code>TypeCode</code>.
+   * Returns a constant indicating the modifier of the value type
+   * that this <code>TypeCode</code> object describes.  The constant
+   * returned must be one of the following: <code>VM_NONE.value</code>,
+   * <code>VM_ABSTRACT.value</code>, <code>VM_CUSTOM.value</code>,
+   * or <code>VM_TRUNCATABLE.value</code>,
    *
-   * @return	the modifier
-   * @exception	org.omg.CORBA.TypeCodePackage.BadKind if the method is
-   *            invoked on a non-boxed value <code>TypeCode</code>.
+   * @return a constant describing the value type
+   *         that this <code>TypeCode</code> object describes
+   * @exception <code>org.omg.CORBA.TypeCodePackage.BadKind</code>
+   *           if this method
+   *           is invoked on a non-value type <code>TypeCode</code>
+   *           object
    */
     
   public short type_modifier() throws BadKind {
@@ -468,15 +480,15 @@ public abstract class TypeCode implements IDLEntity {
   }
 
   /**
-   * If the value type represented by the target TypeCode has a
-   * concrete base valuetype, the <code>concrete_base_type</code>
-   * operation returns a <code>TypeCode</code> for the concrete base,
-   * otherwise it returns a null.
+   * Returns the <code>TypeCode</code> object that describes the concrete base type
+   * of the value type that this <code>TypeCode</code> object describes.
+   * Returns null if it doesn't have a concrete base type.
    *
-   * @return 	the <code>TypeCode</code> object corresponding to the
-   * 		concrete base.
-   * @exception org.omg.CORBA.TypeCodePackage.BadKind if the method is
-   * 		invoked on a non-boxed value <code>TypeCode</code>.
+   * @return the <code>TypeCode</code> object that describes the
+   * concrete base type of the value type
+   * that this <code>TypeCode</code> object describes
+   * @exception <code>org.omg.CORBA.TypeCodePackage.BadKind</code> if this method
+   *           is invoked on a non-boxed value type <code>TypeCode</code> object
    */
     
   public TypeCode concrete_base_type() throws BadKind {

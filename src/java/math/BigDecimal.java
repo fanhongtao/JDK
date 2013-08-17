@@ -1,10 +1,10 @@
 /*
- * @(#)BigDecimal.java	1.18 98/10/27
+ * @(#)BigDecimal.java	1.20 99/04/22
  *
- * Copyright 1996-1998 by Sun Microsystems, Inc.,
+ * Copyright 1996-1999 by Sun Microsystems, Inc.,
  * 901 San Antonio Road, Palo Alto, California, 94303, U.S.A.
  * All rights reserved.
- *
+ * 
  * This software is the confidential and proprietary information
  * of Sun Microsystems, Inc. ("Confidential Information").  You
  * shall not disclose such Confidential Information and shall use
@@ -57,7 +57,7 @@ package java.math;
  * @see     BigInteger
  * @see	    java.util.SortedMap
  * @see	    java.util.SortedSet
- * @version 1.18, 00/05/10
+ * @version 1.20, 00/04/06
  * @author Josh Bloch
  */
 public class BigDecimal extends Number implements Comparable {
@@ -109,9 +109,8 @@ public class BigDecimal extends Number implements Comparable {
 	    String fracString = val.substring(pointPos+1);
 	    scale = fracString.length();
 	    BigInteger fraction =  new BigInteger(fracString);
-	    if (fraction.signum() < 0)		 /* ".-123" illegal! */
+	    if (val.charAt(pointPos+1) == '-')	 /* ".-123" illegal! */
 		throw new NumberFormatException();
-
 	    if (pointPos==0) {			 /* e.g.  ".123" */
 		intVal = fraction;
 	    } else if (val.charAt(0)=='-' && pointPos==1) {
