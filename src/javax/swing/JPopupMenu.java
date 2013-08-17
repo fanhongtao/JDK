@@ -1,5 +1,5 @@
 /*
- * @(#)JPopupMenu.java	1.149 00/04/06
+ * @(#)JPopupMenu.java	1.150 01/01/21
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -56,7 +56,7 @@ import java.applet.Applet;
  *   attribute: isContainer false
  * description: A small window that pops up and displays a series of choices.
  *
- * @version 1.149 04/06/00
+ * @version 1.149 11/27/00
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -69,6 +69,12 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      */
     private static final String uiClassID = "PopupMenuUI";
 
+    /**
+     * Key used in AppContext to determine if light way popups are the default.
+     */
+    private static final Object defaultLWPopupEnabledKey =
+        new StringBuffer("JPopupMenu.defaultLWPopupEnabledKey");
+
     transient  Component invoker;
     transient  Popup popup;
     transient  Frame frame;
@@ -79,9 +85,10 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
     private    boolean   paintBorder              = true;  
     private    Insets    margin                   = null;
 
-    private static final Object defaultLWPopupEnabledKey = 
-        new StringBuffer("JPopupMenu.defaultLWPopupEnabledKey");
-    private boolean lightWeightPopupEnabled = true;
+    /**
+     * Used to indicate if lightweight popups should be used.
+     */
+    private    boolean   lightWeightPopupEnabled         = true;
 
     /*
      * Model for the selected subcontrol.
@@ -147,7 +154,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
     public JPopupMenu(String label) {
         this.label = label;
 	// PENDING(ges)
-        this.lightWeightPopupEnabled = JPopupMenu.getDefaultLightWeightPopupEnabled();
+	this.lightWeightPopupEnabled = JPopupMenu.getDefaultLightWeightPopupEnabled();
         setSelectionModel(new DefaultSingleSelectionModel());
         addMouseListener(new MouseAdapter() {});
         updateUI();
@@ -170,26 +177,23 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * @param ui the new <code>PopupMenuUI</code> L&F object
      * @see UIDefaults#getUI
      * @beaninfo
-     * description: The popup menu UI delegate
      *       bound: true
-     *      expert: true
      *      hidden: true
+     *    attribute: visualUpdate true
+     *  description: The UI object that implements the Component's LookAndFeel. 
      */
     public void setUI(PopupMenuUI ui) {
         super.setUI(ui);
     }
     
     /**
-     * Notification from the <code>UIFactory</code> that the L&F has changed. 
-     * Called to replace the UI with the latest version from the 
-     * <code>UIFactory</code>.
+     * Resets the UI property to a value from the current look and feel.
      *
      * @see JComponent#updateUI
      */
     public void updateUI() {
         setUI((PopupMenuUI)UIManager.getUI(this));
     }
-
 
     /**
      * Returns the name of the L&F class that renders this component.
@@ -200,6 +204,61 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      */
     public String getUIClassID() {
         return uiClassID;
+    }
+
+
+    /**
+     * Fix for 4213634
+     * Set to true when a KEY_PRESSED event is received and the menu is
+     * selected, and false when a KEY_RELEASED (or focus lost) is received.
+     * If processKeyEvent is invoked with a KEY_TYPED or KEY_RELEASED event,
+     * and this is false, a KeyEvent is NOT processed. This is needed to
+     * avoid activating a menuitem when the menu and menuitem share the
+     * same mnemonic.
+     * 
+     * This hack gets around a timing issue and was originally implemented
+     * in JMenu. This workaround may not be required in future implementations.
+     */
+    private boolean receivedKeyPressed;
+
+    /**
+     * Processes key stroke events such as mnemonics and accelerators.
+     *
+     * @param evt  the key event to be processed
+     */
+    protected void processKeyEvent(KeyEvent evt) {
+	//System.out.println("In JPopupMenu.processKeyEvent evt " + evt);
+        boolean processKeyEvent = false;
+
+        switch (evt.getID()) {
+        case KeyEvent.KEY_PRESSED:
+            processKeyEvent = receivedKeyPressed = true;
+            break;
+        case KeyEvent.KEY_RELEASED:
+            if (receivedKeyPressed) {
+                receivedKeyPressed = false;
+                processKeyEvent = true;
+            }
+            break;
+        default:
+            // KEY_TYPED etc...
+            processKeyEvent = receivedKeyPressed;
+            break;
+        }
+
+        if (processKeyEvent) {
+            MenuSelectionManager.defaultManager().processKeyEvent(evt);
+        }
+
+        if (evt.isConsumed()) {
+            return;
+        }
+	if(evt.getKeyCode() == KeyEvent.VK_TAB
+           || evt.getKeyChar() == '\t') {
+            evt.consume();
+            return;
+        }
+        super.processKeyEvent(evt);
     }
 
 
@@ -370,9 +429,9 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      *      expert: true
      */
     public void setLightWeightPopupEnabled(boolean aFlag) {
-        // PENDING(ges)
-	lightWeightPopupEnabled = aFlag;
-	// popupFactory.setLightWeightPopupEnabled(aFlag);
+	// PENDING(ges) 
+        lightWeightPopupEnabled = aFlag; 
+        // popupFactory.setLightWeightPopupEnabled(aFlag); 
     }
 
     /**
@@ -382,9 +441,9 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * @return true if light weight popups are in use, false otherwise
      */
     public boolean isLightWeightPopupEnabled() {
-        // PENDING(ges)
-	return lightWeightPopupEnabled;
-	// return popupFactory.isLightWeightPopupEnabled();
+	// PENDING(ges) 
+        return lightWeightPopupEnabled; 
+        // return popupFactory.isLightWeightPopupEnabled();
     }
 
     /**
@@ -561,7 +620,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * needed to display its contents.
      */
     public void pack() {
-        if(popup != null)
+	if(popup != null)
             popup.pack();
     }
 
@@ -571,6 +630,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * @param b true to make the popup visible, or false to
      *          hide it
      * @beaninfo
+     *           bound: true
      * description: Makes the popup visible
      */
     public void setVisible(boolean b) {
@@ -605,16 +665,15 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
 
         if(b) {
             firePopupMenuWillBecomeVisible();
-	    popup = popupFactory.getPopup(this, 
-					  invoker,
-					  desiredLocationX,
-					  desiredLocationY);
+	    popup = popupFactory.getPopup(this,
+                                          invoker,
+                                          desiredLocationX,
+                                          desiredLocationY);
 	    popup.show(invoker);
-
 	} else if(popup != null) {
             firePopupMenuWillBecomeInvisible();
             popup.hide();
-            popup.removeComponent(this);
+	    popup.removeComponent(this);
             popup = null;
         }
         if (accessibleContext != null) {
@@ -636,7 +695,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      */
     public boolean isVisible() {
 	if(popup != null)
-	    return popup.isShowing();
+	    return true;
 	else
 	    return false;
     }
@@ -651,7 +710,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * description: The location of the popup menu.
      */
     public void setLocation(int x, int y) {
-        if(popup != null)
+	if(popup != null)
             popup.setLocationOnScreen(x, y);
         else {
             desiredLocationX = x;
@@ -718,7 +777,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
         Frame newFrame = getFrame(invoker);
         if (newFrame != frame) {
             // Use the invoker's frame so that events 
-            // are propogated properly
+            // are propagated properly
             if (newFrame!=null) {
                 this.frame = newFrame;
                 if(popup != null) {
@@ -786,6 +845,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
 
     /**
      * Sets the size of the Popup window using a <code>Dimension</code> object.
+     * This is equivalent to <code>setPreferredSize(d)</code>.
      *
      * @param d   the <code>Dimension</code> specifying the new size 
      * of this component.
@@ -793,13 +853,14 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * description: The size of the popup menu
      */
     public void setPopupSize(Dimension d) {
-        if(popup != null)
-	    popup.setSize(d.width,d.height);
+	if(popup != null)
+            popup.setSize(d.width,d.height);
     }
 
     /**
      * Sets the size of the Popup window to the specified width and
-     * height.
+     * height. This is equivalent to
+     *  <code>setPreferredSize(new Dimension(width, height))</code>.
      *
      * @param <code>width</code> the new width of the Popup in pixels
      * @param <code>height</code> the new height of the Popup in pixels
@@ -807,8 +868,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * description: The size of the popup menu
      */
     public void setPopupSize(int width, int height) {
-        if(popup != null)
-	    popup.setSize(width, height);
+	setPopupSize(new Dimension(width, height));
     }
     
     /**
@@ -931,24 +991,12 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
 				    "true" : "false");
 	String marginString = (margin != null ?
 			      margin.toString() : "");
-        String lastPopupTypeString;
-        /* PENDING(ges)
-	  if (lastPopupType == LIGHT_WEIGHT_POPUP) {
-            lastPopupTypeString = "LIGHT_WEIGHT_POPUP";
-	    } else if (lastPopupType == MEDIUM_WEIGHT_POPUP) {
-            lastPopupTypeString = "MEDIUM_WEIGHT_POPUP";
-	    } else if (lastPopupType == HEAVY_WEIGHT_POPUP) {
-            lastPopupTypeString = "HEAVY_WEIGHT_POPUP";
-	    } else 
-	    */
-	lastPopupTypeString = "";
-	String lightWeightPopupEnabledString = (lightWeightPopupEnabled ?
+	String lightWeightPopupEnabledString = (isLightWeightPopupEnabled() ?
 						"true" : "false");	
 	return super.paramString() +
 	    ",desiredLocationX=" + desiredLocationX +
 	    ",desiredLocationY=" + desiredLocationY +
 	",label=" + labelString +
-	",lastPopupType=" + lastPopupTypeString +
 	",lightWeightPopupEnabled=" + lightWeightPopupEnabledString +
 	",margin=" + marginString +
 	",paintBorder=" + paintBorderString;
@@ -1063,6 +1111,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      */
     public void processKeyEvent(KeyEvent e,MenuElement path[],MenuSelectionManager manager) {
     }
+
 
     /**
      * Messaged when the menubar selection changes to activate or

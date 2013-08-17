@@ -1,7 +1,7 @@
 /*
- * @(#)ResourceManager.java	1.6 00/02/02
+ * @(#)ResourceManager.java	1.7 01/06/18
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -14,11 +14,15 @@ import java.applet.Applet;
 import java.io.InputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.lang.ref.WeakReference;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.Vector;
+import java.util.WeakHashMap;
 
 import javax.naming.*;
 
@@ -27,7 +31,7 @@ import javax.naming.*;
   * 
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.6 00/02/02
+  * @version 1.7 01/06/18
   */
 
 public final class ResourceManager {
@@ -65,28 +69,33 @@ public final class ResourceManager {
     /*
      * A cache of the properties that have been constructed by
      * the ResourceManager.  A Hashtable from a provider resource
-     * file is keyed on an object in the resource file's package.
+     * file is keyed on a class in the resource file's package.
      * One from application resource files is keyed on the thread's
-     * context class loader (or the string "bootstrap" if that is null).
+     * context class loader.
      */
-    private static final Hashtable propertiesCache = new Hashtable(11);
+    private static final WeakHashMap propertiesCache = new WeakHashMap(11);
 
     /*
      * A cache of factory objects (ObjectFactory, StateFactory, ControlFactory).
      *
-     * Key is loader+propValue; value is a Vector of class name/factory objects.
+     * A two-level cache keyed first on context class loader and then
+     * on propValue.  Value is a Vector of class or factory objects,
+     * weakly referenced so as not to prevent GC of the class loader.
      * Used in getFactories().
      */
-    private static final Hashtable factoryCache = new Hashtable(11);
+    private static final WeakHashMap factoryCache = new WeakHashMap(11);
 
     /*
-     * A cache of URL factory objects (ObjectFactory)
+     * A cache of URL factory objects (ObjectFactory).
      *
-     * Key is loader+className+propValue; value is factory itself, or "none" if
-     * a previous search revealed no factory for the key.
-     * Used in getFactory().
+     * A two-level cache keyed first on context class loader and then
+     * on classSuffix+propValue.  Value is the factory itself (weakly
+     * referenced so as not to prevent GC of the class loader) or
+     * NO_FACTORY if a previous search revealed no factory.  Used in
+     * getFactory().
      */
-    private static final Hashtable urlFactoryCache = new Hashtable(11);
+    private static final WeakHashMap urlFactoryCache = new WeakHashMap(11);
+    private static final WeakReference NO_FACTORY = new WeakReference(null);
 
 
     // There should be no instances of this class.
@@ -202,16 +211,19 @@ public final class ResourceManager {
      *<p>
      * This method then loads each class using the current thread's context
      * class loader and keeps them in a vector. Any class that cannot be loaded
-     * is ignored. The resulting vector is then cached in
-     * a hash table, keyed by the context class loader and the property's 
-     * value. The next time threads of the same context class loader call this 
+     * is ignored. The resulting vector is then cached in a two-level
+     * hash table, keyed first by the context class loader and then by
+     * the property's value.
+     * The next time threads of the same context class loader call this 
      * method, they can use the cached vector.
      *<p>
      * After obtaining the vector either from the cache or by creating one from
      * the property value, this method then creates and returns a 
      * FactoryEnumeration using the vector. As the FactoryEnumeration is 
      * traversed, the cached Class object in the vector is instantiated and 
-     * replaced by an instance of the factory object itself.
+     * replaced by an instance of the factory object itself.  Both class
+     * objects and factories are wrapped in weak references so as not to
+     * prevent GC of the class loader.
      *<p>
      * Note that multiple threads can be accessing the same cached vector
      * via FactoryEnumeration, which locks the vector during each next().
@@ -238,14 +250,23 @@ public final class ResourceManager {
 	if (facProp == null)
 	    return null;  // no classes specified; return null
 
-	// Construct key based on context class loader and property val
-	FactoryKey key = new FactoryKey(facProp); 
+	// Cache is based on context class loader and property val
+	ClassLoader loader = helper.getContextClassLoader();
 
+	Map perLoaderCache = null;
 	synchronized (factoryCache) {
-	    Vector v = (Vector)factoryCache.get(key);
+	    perLoaderCache = (Map) factoryCache.get(loader);
+	    if (perLoaderCache == null) {
+		perLoaderCache = new HashMap(11);
+		factoryCache.put(loader, perLoaderCache);
+	    }
+	}
+
+	synchronized (perLoaderCache) {
+	    Vector v = (Vector) perLoaderCache.get(facProp);
 	    if (v != null) {
 		// Cached vector
-		return v.size() == 0 ? null : new FactoryEnumeration(v);
+		return v.size() == 0 ? null : new FactoryEnumeration(v, loader);
 	    } else {
 		// Populate Vector with classes named in facProp; skipping
 		// those that we cannot load
@@ -254,26 +275,27 @@ public final class ResourceManager {
 		while (parser.hasMoreTokens()) {
 		    try {
 			// System.out.println("loading");
-			v.addElement(
-			    helper.loadClass(parser.nextToken(), key.loader));
+			String className = parser.nextToken();
+			Class c = helper.loadClass(className, loader);
+			v.addElement(new NamedWeakReference(c, className));
 		    } catch (Exception e) {
 			// ignore ClassNotFoundException, IllegalArgumentException
 		    }
 		}
 		// System.out.println("adding to cache: " + v);
-		factoryCache.put(key, v);
-		return new FactoryEnumeration(v);
+		perLoaderCache.put(facProp, v);
+		return new FactoryEnumeration(v, loader);
 	    }
 	}
     }
 
     /**
-     * Retreives a factory from a list of packages specified in a
+     * Retrieves a factory from a list of packages specified in a
      * property.
      * 
      * The property is gotten from the environment and the provider
-     * resource file associated with the given context and concantenated.
-     * propValSuffix is added to the end of this list.
+     * resource file associated with the given context and concatenated.
+     * classSuffix is added to the end of this list.
      * See getProperty(). The resulting property value is a list of package 
      * prefixes.
      *<p>
@@ -281,17 +303,19 @@ public final class ResourceManager {
      * each package prefix with classSuffix and attempts to load and 
      * instantiate the class until one succeeds.
      * Any class that cannot be loaded is ignored. 
-     * The resulting object is then cached in a hash table, keyed by the
-     * context class loader and the property's value, and classSuffix.
+     * The resulting object is then cached in a two-level hash table,
+     * keyed first by the context class loader and then by the property's
+     * value and classSuffix.
      * The next time threads of the same context class loader call this 
-     * method, they use the cached factory..
-     * If no factory can be loaded, "none" is recorded in the hashtable
-     * so that next time it'll return null quickly.
+     * method, they use the cached factory.
+     * If no factory can be loaded, NO_FACTORY is recorded in the table
+     * so that next time it'll return quickly.
      *
      * @param propName	The non-null property name
      * @param env	The possibly null environment properties
      * @param ctx	The possibly null context
-     * @param classSuffix The non-null class name (e.g. ".ldap.ldapURLContextFactory).
+     * @param classSuffix The non-null class name
+     *			(e.g. ".ldap.ldapURLContextFactory).
      * @param defaultPkgPrefix The non-null default package prefix.
      *        (e.g., "com.sun.jndi.url").
      * @return An factory object; null if none.
@@ -311,24 +335,41 @@ public final class ResourceManager {
 	else
 	    facProp = defaultPkgPrefix;
 
-	// Construct key based on context class loader, class name, and property val
-	FactoryKey key = new FactoryKey(classSuffix + facProp); 
+	// Cache factory based on context class loader, class name, and
+	// property val
+	ClassLoader loader = helper.getContextClassLoader();
+	String key = classSuffix + " " + facProp;
 
+	Map perLoaderCache = null;
 	synchronized (urlFactoryCache) {
-	    Object factory = urlFactoryCache.get(key);
-	    if (factory != null) {
-		// already in cache, return
-		return factory.equals("none") ? null : factory;
+	    perLoaderCache = (Map) urlFactoryCache.get(loader);
+	    if (perLoaderCache == null) {
+		perLoaderCache = new HashMap(11);
+		urlFactoryCache.put(loader, perLoaderCache);
+	    }
+	}
+
+	synchronized (perLoaderCache) {
+	    Object factory = null;
+
+	    WeakReference factoryRef = (WeakReference) perLoaderCache.get(key);
+	    if (factoryRef == NO_FACTORY) {
+		return null;
+	    } else if (factoryRef != null) {
+		factory = factoryRef.get();
+		if (factory != null) {	// check if weak ref has been cleared
+		    return factory;
+		}
 	    }
 
-	    // Not previously cached; find first factory and cache
+	    // Not cached; find first factory and cache
 	    StringTokenizer parser = new StringTokenizer(facProp, ":");
 	    String className;
 	    while (factory == null && parser.hasMoreTokens()) {
 		className = parser.nextToken() + classSuffix;
 		try {
 		    // System.out.println("loading " + className);
-		    factory = helper.loadClass(className, key.loader).newInstance();
+		    factory = helper.loadClass(className, loader).newInstance();
 		} catch (InstantiationException e) {
 		    NamingException ne = 
 			new NamingException("Cannot instantiate " + className);
@@ -340,15 +381,15 @@ public final class ResourceManager {
 		    ne.setRootCause(e);
 		    throw ne;
 		} catch (Exception e) {
-		    // ignore ClassNotFoundException, IllegalArgumentException, etc
+		    // ignore ClassNotFoundException, IllegalArgumentException,
+		    // etc.
 		}
 	    }
 
-	    if (factory != null) {
-		urlFactoryCache.put(key, factory); // cache
-	    } else {
-		urlFactoryCache.put(key, "none");  // to indicate none will be found
-	    }
+	    // Cache it.
+	    perLoaderCache.put(key, (factory != null)
+					? new WeakReference(factory)
+					: NO_FACTORY);
 	    return factory;
 	}
     }
@@ -404,8 +445,6 @@ public final class ResourceManager {
      * context class loader.  The properties file in <java.home>/lib
      * is also merged in.  The results are cached.
      *
-     * When running under JDK 1.1, the Hashtable returned is always empty.
-     *
      * SECURITY NOTES:
      * 1.  JNDI needs permission to read the application resource files.
      * 2.  Any class will be able to use JNDI to view the contents of
@@ -418,16 +457,10 @@ public final class ResourceManager {
      */
     private static Hashtable getApplicationResources() throws NamingException {
 
-	ClassLoader cl;
-	try {
-	    cl = helper.getContextClassLoader();
-	} catch (SecurityException e) {
-	    return (new Hashtable(1));
-	}
-	Object key = (cl != null) ? (Object)cl : (Object)"bootstrap";
+	ClassLoader cl = helper.getContextClassLoader();
 
 	synchronized (propertiesCache) {
-	    Hashtable result = (Hashtable)propertiesCache.get(key);
+	    Hashtable result = (Hashtable)propertiesCache.get(cl);
 	    if (result != null) {
 		return result;
 	    }
@@ -469,7 +502,7 @@ public final class ResourceManager {
 	    if (result == null) {
 		result = new Hashtable(11);
 	    }
-	    propertiesCache.put(key, result);
+	    propertiesCache.put(cl, result);
 	    return result;
 	}
     }
@@ -508,42 +541,5 @@ public final class ResourceManager {
 	    }
 	}
 	return false;
-    }
-
-    // --------------- factory loading --------------------
-
-    /**
-     * The key used in the factoryCache and urlFactoryCache hash tables.
-     */
-    final static private class FactoryKey {
-	private String propVal;
-	private ClassLoader loader;
-
-	FactoryKey(String propVal) {
-	    try {
-		loader = helper.getContextClassLoader();
-	    } catch (SecurityException e) {
-	    }
-	    this.propVal = propVal;
-	}
-
-	public boolean equals(Object obj) {
-	    if (!(obj instanceof FactoryKey)) {
-		return false;
-	    }
-	    FactoryKey other = (FactoryKey)obj;
-	    return (propVal.equals(other.propVal) && 
-		((loader == other.loader) ||
-		    (loader != null && loader.equals(other.loader))));
-	}
-
-	public int hashCode() {
-	    return propVal.hashCode() + (loader != null? loader.hashCode() : 0);
-	}
-/*
-	public String toString() {
-	    return (propVal + loader);
-	}
-*/
     }
 }

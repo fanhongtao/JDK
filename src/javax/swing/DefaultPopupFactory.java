@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultPopupFactory.java	1.12 01/02/20
+ * @(#)DefaultPopupFactory.java	1.13 01/06/14
  *
  * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -415,6 +415,10 @@ class DefaultPopupFactory implements PopupFactory {
 
     public WindowPopup(Window w) {
         super(w);
+    }
+
+    protected void processKeyEvent(KeyEvent e) {
+        MenuSelectionManager.defaultManager().processKeyEvent(e);
     }
         
     public Component getComponent() {
@@ -916,6 +920,10 @@ class DefaultPopupFactory implements PopupFactory {
             this.setOpaque(true);
         }
 
+	protected void processKeyEvent(KeyEvent e) {
+            MenuSelectionManager.defaultManager().processKeyEvent(e);
+        }
+
         public Component getComponent() {
             return this;
         }
@@ -1055,6 +1063,10 @@ class DefaultPopupFactory implements PopupFactory {
             setLayout(new BorderLayout());
 	    rootPane = new JRootPane();
 	    this.add(rootPane, BorderLayout.CENTER);
+        }
+
+	protected void processKeyEvent(KeyEvent e) {
+            MenuSelectionManager.defaultManager().processKeyEvent(e);
         }
 
         public int getWidth() {

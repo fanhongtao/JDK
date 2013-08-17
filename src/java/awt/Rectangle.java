@@ -1,5 +1,5 @@
 /*
- * @(#)Rectangle.java	1.52 00/02/02
+ * @(#)Rectangle.java	1.53 01/05/29
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -37,7 +37,7 @@ import java.awt.geom.Rectangle2D;
  * <code>intersects</code>, <code>intersection</code>, and 
  * <code>union</code>. 
  *
- * @version 	1.52, 02/02/00
+ * @version 	1.53, 05/29/01
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -521,15 +521,26 @@ public class Rectangle extends Rectangle2D
      *		  this<code>Rectangle</code>.
      */
     public Rectangle intersection(Rectangle r) {
-	int x1 = Math.max(x, r.x);
-	int x2 = Math.min(x + width, r.x + r.width);
-	int y1 = Math.max(y, r.y);
-	int y2 = Math.min(y + height, r.y + r.height);
-        if (((x2 - x1) < 0) || ((y2 - y1) < 0))
-            // Width or height is negative. No intersection.
-            return new Rectangle(0,0,0,0);
-        else
-	    return new Rectangle(x1, y1, x2 - x1, y2 - y1);
+    int tx1 = this.x;
+    int ty1 = this.y;
+    int rx1 = r.x;
+    int ry1 = r.y;
+    long tx2 = tx1; tx2 += this.width;
+    long ty2 = ty1; ty2 += this.height;
+    long rx2 = rx1; rx2 += r.width;
+    long ry2 = ry1; ry2 += r.height;
+    if (tx1 < rx1) tx1 = rx1;
+    if (ty1 < ry1) ty1 = ry1;
+    if (tx2 > rx2) tx2 = rx2;
+    if (ty2 > ry2) ty2 = ry2;
+    tx2 -= tx1;
+    ty2 -= ty1;
+    // tx2,ty2 will never overflow (they will never be
+    // larger than the smallest of the two source w,h)
+    // they might underflow, though...
+    if (tx2 < Integer.MIN_VALUE) tx2 = Integer.MIN_VALUE;
+    if (ty2 < Integer.MIN_VALUE) ty2 = Integer.MIN_VALUE;
+	return new Rectangle(tx1, ty1, (int) tx2, (int) ty2);
     }
 
     /**

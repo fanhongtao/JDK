@@ -1,7 +1,7 @@
 /*
- * @(#)FactoryEnumeration.java	1.3 00/02/02
+ * @(#)FactoryEnumeration.java	1.4 01/06/18
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -18,13 +18,14 @@ import javax.naming.NamingException;
   * 
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.3 00/02/02
+  * @version 1.4 01/06/18
  */
 
 // no need to implement Enumeration since this is only for internal use
 public final class FactoryEnumeration { 
     private Vector vec;
     private int posn = 0;
+    private ClassLoader loader;
 
     /**
      * Records the input vector and uses it directly to satisfy
@@ -34,26 +35,46 @@ public final class FactoryEnumeration {
      * As each element is used, the Class object is replaced by an
      * instance of the Class itself; eventually, the vector contains
      * only a list of factory instances and no more updates are required.
-     * 
-     * @param A non-null vector.
+     *
+     * <p> Both Class objects and factories are wrapped in weak
+     * references so as not to prevent GC of the class loader.  Each
+     * weak reference is tagged with the factory's class name so the
+     * class can be reloaded if the reference is cleared.
+
+     * @param vec	A non-null vector
+     * @param loader	The class loader of the vector's contents
      */
-    FactoryEnumeration(Vector vec) {
+    FactoryEnumeration(Vector vec, ClassLoader loader) {
 	this.vec = vec;
+	this.loader = loader;
     }
  
     public Object next() throws NamingException {
 	synchronized (vec) {
-	    Object answer = vec.elementAt(posn++);
 
-	    if (!(answer instanceof Class)) {
+	    NamedWeakReference ref = (NamedWeakReference)
+		vec.elementAt(posn++);
+	    Object answer = ref.get();
+	    if ((answer != null) && !(answer instanceof Class)) {
 		return answer;
 	    }
 
-	    // Still a Class; need to instantiate
+	    String className = ref.getName();
+
 	    try {
-		answer = ((Class)answer).newInstance();
-		vec.setElementAt(answer, posn-1);  // replace Class object
+		if (answer == null) {	// reload class if weak ref cleared
+		    answer = Class.forName(className, true, loader);
+		}
+		// Instantiate Class to get factory
+		answer = ((Class) answer).newInstance();
+		ref = new NamedWeakReference(answer, className);
+		vec.setElementAt(ref, posn-1);  // replace Class object or null
 		return answer;
+	    } catch (ClassNotFoundException e) {
+		NamingException ne = 
+		    new NamingException("No longer able to load " + className);
+		ne.setRootCause(e);
+		throw ne;
 	    } catch (InstantiationException e) {
 		NamingException ne = 
 		    new NamingException("Cannot instantiate " + answer);
@@ -71,3 +92,4 @@ public final class FactoryEnumeration {
 	return posn < vec.size();
     }
 }
+

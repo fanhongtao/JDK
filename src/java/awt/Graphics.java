@@ -1,5 +1,5 @@
 /*
- * @(#)Graphics.java	1.62 00/04/06
+ * @(#)Graphics.java	1.63 01/05/24
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -76,7 +76,7 @@ import java.text.AttributedCharacterIterator;
  * All drawing or writing is done in the current color, 
  * using the current paint mode, and in the current font. 
  * 
- * @version 	1.62, 04/06/00
+ * @version 	1.63, 05/24/01
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see     java.awt.Component
@@ -1133,8 +1133,14 @@ public abstract class Graphics {
      * @param height the height of the rectangle to test against the clip
      */
     public boolean hitClip(int x, int y, int width, int height) {
-        // FIXME: 1.2 beta3 placeholder, replace for beta4
-        return new Rectangle(x,y,width,height).intersects(getClipBounds());
+        // Note, this implementation is not very efficient.
+        // Subclasses should override this method and calculate
+        // the results more directly.
+        Rectangle clipRect = getClipBounds();
+        if (clipRect == null) {
+            return true;
+        }
+        return clipRect.intersects(x, y, width, height);
     }
 
     /**
@@ -1154,12 +1160,18 @@ public abstract class Graphics {
      * @return      the bounding rectangle of the current clipping area.
      */
     public Rectangle getClipBounds(Rectangle r) {
-        // FIXME: 1.2 beta3 placeholder, replace for beta4
+        // Note, this implementation is not very efficient.
+        // Subclasses should override this method and avoid
+        // the allocation overhead of getClipBounds().
         Rectangle clipRect = getClipBounds();
-        r.x = clipRect.x;
-        r.y = clipRect.y;
-        r.width = clipRect.width;
-        r.height = clipRect.height;
+        if (clipRect != null) {
+            r.x = clipRect.x;
+            r.y = clipRect.y;
+            r.width = clipRect.width;
+            r.height = clipRect.height;
+        } else if (r == null) {
+            throw new NullPointerException("null rectangle parameter");
+        }
         return r;
     }
 }

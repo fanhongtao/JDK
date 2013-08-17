@@ -1,5 +1,5 @@
 /*
- * @(#)Window.java	1.137 01/02/09
+ * @(#)Window.java	1.138 01/06/15
  *
  * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -79,7 +79,7 @@ import sun.awt.DebugHelper;
  * Windows are capable of generating the following window events:
  * WindowOpened, WindowClosed.
  *
- * @version 	1.137, 02/09/01
+ * @version 	1.138, 06/15/01
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -121,6 +121,8 @@ public class Window extends Container implements Accessible {
      */
     transient Vector ownedWindowList = new Vector();
     private transient WeakReference weakThis;
+
+    private transient boolean showWithParent = false;
 
     transient WindowListener windowListener;
     private transient boolean active = false;   // == true when Window receives WINDOW_ACTIVATED event
@@ -392,6 +394,15 @@ public class Window extends Container implements Accessible {
 	    toFront();
 	} else {
 	    super.show();
+            for (int i = 0; i < ownedWindowList.size(); i++) {
+                Window child = (Window) (((WeakReference)
+                    (ownedWindowList.elementAt(i))).get());
+                        if ((child != null) && child.showWithParent) {
+                            child.show();
+                            child.showWithParent = false;
+                        }       // endif
+            }   // endfor
+
 	}
         
         // If first time shown, generate WindowOpened event
@@ -425,9 +436,10 @@ public class Window extends Container implements Accessible {
 	    for (int i = 0; i < ownedWindowList.size(); i++) {
 	        Window child = (Window) (((WeakReference)
 		    (ownedWindowList.elementAt(i))).get());
-		if (child != null) {
-		    child.hide();
-		}
+                if ((child != null) && child.visible) {
+                    child.hide();
+                    child.showWithParent = true;
+                }
 	    }
 	}
 	super.hide();
