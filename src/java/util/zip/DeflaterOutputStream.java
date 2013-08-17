@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ import java.io.IOException;
  * types of compression filters, such as GZIPOutputStream.
  *
  * @see		Deflater
- * @version 	1.30, 03/20/02
+ * @version 	1.32, 04/04/05
  * @author 	David Connelly
  */
 public
@@ -60,7 +60,7 @@ class DeflaterOutputStream extends FilterOutputStream {
 	this(out, def, 512);
     }
 
-	private boolean usesDefaultDeflater = false;
+    private boolean usesDefaultDeflater = false;
 
     /**
      * Creates a new output stream with a defaul compressor and buffer size.
@@ -68,6 +68,7 @@ class DeflaterOutputStream extends FilterOutputStream {
      */
     public DeflaterOutputStream(OutputStream out) {
 	this(out, new Deflater());
+	usesDefaultDeflater = true;
     }
 
     /**
@@ -130,7 +131,7 @@ class DeflaterOutputStream extends FilterOutputStream {
     public void close() throws IOException {
 	finish();
 	if (usesDefaultDeflater)
-		def.end();
+	        def.end();
 	out.close();
     }
 

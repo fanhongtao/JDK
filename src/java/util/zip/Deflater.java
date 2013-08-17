@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ package java.util.zip;
  * package description</a>.
  * 
  * @see		Inflater
- * @version 	1.37, 06/27/03
+ * @version 	1.39, 04/04/05
  * @author 	David Connelly
  */
 public
@@ -329,6 +329,7 @@ class Deflater {
 	if (strm != 0) {
 	    end(strm);
 	    strm = 0;
+	    buf = null;
 	}
     }
 

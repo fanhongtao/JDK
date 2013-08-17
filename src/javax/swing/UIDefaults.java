@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,6 +23,8 @@ import java.security.AccessController;
 import java.security.AccessControlContext;
 import java.security.PrivilegedAction;
 
+import sun.misc.reflect.MethodUtil;
+
 /**
  * A table of defaults for Swing components.  Applications can set/get
  * default values via the <code>UIManager</code>.
@@ -35,7 +37,7 @@ import java.security.PrivilegedAction;
  * long term persistence.
  *
  * @see UIManager
- * @version 1.42 06/27/03
+ * @version 1.44 05/09/05
  * @author Hans Muller
  */
 public class UIDefaults extends Hashtable
@@ -426,7 +428,7 @@ public class UIDefaults extends Hashtable
 		    m = uiClass.getMethod("createUI", new Class[]{acClass});
 		    put(uiClass, m);
 		}
-		uiObject = m.invoke(null, new Object[]{target});
+		uiObject = MethodUtil.invoke(m, null, new Object[]{target});
             }
             catch (NoSuchMethodException e) {
                 getUIError("static createUI() method not found in " + uiClass);
@@ -655,7 +657,7 @@ public class UIDefaults extends Hashtable
 			if (methodName !=null) {
 		    	    Class[] types = getClassArray(args);
 		    	    Method m = c.getMethod(methodName, types);
-		    	    return  m.invoke(c, args);
+		    	    return  MethodUtil.invoke(m, c, args);
 			} else {
 		    	    Class[] types = getClassArray(args);
 		    	    try {

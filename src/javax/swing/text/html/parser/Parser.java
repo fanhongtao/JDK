@@ -1,5 +1,5 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -398,6 +398,13 @@ class Parser implements DTDConstants {
 	} else if (elemName.equals("head")) {
 	    seenHead = true;
 	} else if (elemName.equals("body")) {
+	    if (buf.length == 1) {
+                // Refer to note in definition of buf for details on this.
+                char[] newBuf = new char[256];
+
+                newBuf[0] = buf[0];
+                buf = newBuf;
+            }
 	    seenBody = true;
 	}
     }
@@ -2013,8 +2020,12 @@ class Parser implements DTDConstants {
      * show that there's no point in having a bigger buffer:  Increasing
      * the buffer to 8192 had no measurable impact for a program discarding
      * one character at a time (reading from an http URL to a local machine).
+     * NOTE: If the current encoding is bogus, and we read too much
+     * (past the content-type) we may suffer a MalformedInputException. For
+     * this reason the initial size is 1 and when the body is encountered the
+     * size is adjusted to 256.
      */
-    private char buf[] = new char[256];
+    private char buf[] = new char[1];
     private int pos;
     private int len;
     /*
