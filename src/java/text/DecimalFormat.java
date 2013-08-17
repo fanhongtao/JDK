@@ -1,7 +1,7 @@
 /*
- * @(#)DecimalFormat.java	1.57 00/01/19
+ * @(#)DecimalFormat.java	1.59 01/02/09
  *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -199,16 +199,21 @@ import java.util.Hashtable;
  * formatted using the localized minus sign, <em>not</em> the prefix and suffix
  * from the pattern.  This allows patterns such as "0.###E0 m/s".
  *
- * <li>The minimum number of integer digits is achieved by adjusting the
- * exponent.  Example: 0.00123 formatted with "00.###E0" yields "12.3E-4".  This
- * only happens if there is no maximum number of integer digits.  If there is a
- * maximum, then the minimum number of integer digits is fixed at one.
+ * <li>The minimum and maximum number of integer digits are interpreted
+ * together:
  *
- * <li>The maximum number of integer digits, if present, forces the exponent to
- * be a multiple of that number.  The most common use of this is to generate
+ * <ul>
+ * <li>If the maximum number of integer digits is greater than their minimum number
+ * and greater than 1, it forces the exponent to be a multiple of the maximum
+ * number of integer digits, and the minimum number of integer digits to be
+ * interpreted as 1.  The most common use of this is to generate
  * <em>engineering notation</em>, in which the exponent is a multiple of three,
  * e.g., "##0.#####E0".  Using this pattern, the number 12345 formats to
  * "12.345E3", and 123456 formats to "123.456E3".
+ *
+ * <li>Otherwise, the minimum number of integer digits is achieved by adjusting the
+ * exponent.  Example: 0.00123 formatted with "00.###E0" yields "12.3E-4".
+ * </ul>
  *
  * <li>The number of significant digits in the mantissa is the sum of the
  * <em>minimum integer</em> and <em>maximum fraction</em> digits, and is
@@ -286,7 +291,7 @@ import java.util.Hashtable;
  * @see          java.text.NumberFormat
  * @see          java.text.ChoiceFormat
  * @see          java.text.ParsePosition
- * @version      1.57 01/19/00
+ * @version      1.59 02/09/01
  * @author       Mark Davis
  * @author       Alan Liu
  */
@@ -565,26 +570,30 @@ public class DecimalFormat extends NumberFormat {
             // repeating range.  This is useful for engineering notation, in
             // which the exponent is restricted to a multiple of 3.  For
             // example, 0.01234 with 3 maximum integer digits is "12.34e-3".
-            // If maximum integer digits are defined and are larger than
+            // If maximum integer digits are > 1 and are larger than
             // minimum integer digits, then minimum integer digits are
             // ignored.
             int exponent = digitList.decimalAt;
             int repeat = getMaximumIntegerDigits();
-            if (repeat > 1 &&
-            repeat != getMinimumIntegerDigits())
-            {
+            int minimumIntegerDigits = getMinimumIntegerDigits();
+            if (repeat > 1 && repeat > minimumIntegerDigits) {
                 // A repeating range is defined; adjust to it as follows.
-                // If repeat == 3, we have 5,4,3=>3; 2,1,0=>0; -1,-2,-3=>-3;
-                // -4,-5-,6=>-6, etc.  Also, the exponent we have here is
-                // off by one from what we expect; that is, it is for the format
-                // 0.MMMMMx10^n.  So we subtract another 1 to get it in range.
-                exponent -= (exponent < 0) ? repeat : 1;
-                exponent = (exponent / repeat) * repeat;
+                // If repeat == 3, we have 6,5,4=>3; 3,2,1=>0; 0,-1,-2=>-3;
+                // -3,-4,-5=>-6, etc. This takes into account that the
+                // exponent we have here is off by one from what we expect;
+                // it is for the format 0.MMMMMx10^n.
+                if (exponent >= 1) {
+                    exponent = ((exponent - 1) / repeat) * repeat;
+                } else {
+                    // integer division rounds towards 0
+                    exponent = ((exponent - repeat) / repeat) * repeat;
+                }
+                minimumIntegerDigits = 1;
             }
             else
             {
                 // No repeating range is defined; use minimum integer digits.
-                exponent -= getMinimumIntegerDigits();
+                exponent -= minimumIntegerDigits;
             }
 
             // We now output a minimum number of digits, and more if there
@@ -595,8 +604,11 @@ public class DecimalFormat extends NumberFormat {
                                 + getMinimumFractionDigits();
             // The number of integer digits is handled specially if the number
             // is zero, since then there may be no digits.
-            int integerDigits = digitList.isZero() ? getMinimumIntegerDigits() :
-            digitList.decimalAt - exponent;
+            int integerDigits = digitList.isZero() ? minimumIntegerDigits :
+                    digitList.decimalAt - exponent;
+            if (minimumDigits < integerDigits) {
+                minimumDigits = integerDigits;
+            }
             int totalDigits = digitList.count;
             if (minimumDigits > totalDigits) totalDigits = minimumDigits;
 

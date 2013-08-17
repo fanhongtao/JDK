@@ -1,13 +1,10 @@
 /*
- * @(#)BasicInternalFrameUI.java	1.74 01/01/23
+ * @(#)BasicInternalFrameUI.java	1.75 01/03/13
  *
  * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 
@@ -28,7 +25,7 @@ import java.io.Serializable;
 /**
  * A basic L&F implementation of JInternalFrame.  
  *
- * @version 1.74 01/23/01
+ * @version 1.75 03/13/01
  * @author David Kloba
  * @author Rich Schiavi
  */
@@ -810,11 +807,11 @@ public class BasicInternalFrameUI extends InternalFrameUI
 		if(startingBounds.height + deltaY < min.height)
 		    deltaY = -(startingBounds.height - min.height);
 		else if(startingBounds.height + deltaY > max.height)
-		    deltaY = (startingBounds.height - min.height);
+		    deltaY = max.height - startingBounds.height;
 		if (startingBounds.y - deltaY < 0) {deltaY = startingBounds.y;}
 
-		newX = startingBounds.x;
 		newY = startingBounds.y - deltaY;
+		newX = startingBounds.x;
 		newW = startingBounds.width;
 		newH = startingBounds.height + deltaY;
                 break;
@@ -822,13 +819,13 @@ public class BasicInternalFrameUI extends InternalFrameUI
 		if(startingBounds.height + deltaY < min.height)
 		    deltaY = -(startingBounds.height - min.height);
 		else if(startingBounds.height + deltaY > max.height)
-		    deltaY = (startingBounds.height - min.height);
+		    deltaY = max.height - startingBounds.height;
 		if (startingBounds.y - deltaY < 0) {deltaY = startingBounds.y;}
 
 		if(startingBounds.width - deltaX < min.width)
-		    deltaX = (startingBounds.width - min.width);
+		    deltaX = startingBounds.width - min.width;
 		else if(startingBounds.width - deltaX > max.width)
-		    deltaX = -(startingBounds.width - min.width);
+		    deltaX = -(max.width - startingBounds.width);
 		if (startingBounds.x + startingBounds.width - deltaX > parentBounds.width) {
             deltaX = startingBounds.x + startingBounds.width - parentBounds.width;
                 }
@@ -840,9 +837,9 @@ public class BasicInternalFrameUI extends InternalFrameUI
                 break;
             case EAST:      
 		if(startingBounds.width - deltaX < min.width)
-		    deltaX = (startingBounds.width - min.width);
+		    deltaX = startingBounds.width - min.width;
 		else if(startingBounds.width - deltaX > max.width)
-		    deltaX = -(startingBounds.width - min.width);
+		    deltaX = -(max.width - startingBounds.width);
 		if (startingBounds.x + startingBounds.width - deltaX > parentBounds.width) {
           deltaX = startingBounds.x + startingBounds.width - parentBounds.width;
 	        }
@@ -852,17 +849,17 @@ public class BasicInternalFrameUI extends InternalFrameUI
                 break;
             case SOUTH_EAST:     
 		if(startingBounds.width - deltaX < min.width)
-		    deltaX = (startingBounds.width - min.width);
+		    deltaX = startingBounds.width - min.width;
 		else if(startingBounds.width - deltaX > max.width)
-		    deltaX = -(startingBounds.width - min.width);
+		    deltaX = -(max.width - startingBounds.width);
 		if (startingBounds.x + startingBounds.width - deltaX > parentBounds.width) {
           deltaX = startingBounds.x + startingBounds.width - parentBounds.width;
 	        }
 
 		if(startingBounds.height - deltaY < min.height)
-		    deltaY = (startingBounds.height - min.height);
+		    deltaY = startingBounds.height - min.height;
 		else if(startingBounds.height - deltaY > max.height)
-		    deltaY = -(startingBounds.height - min.height);
+		    deltaY = -(max.height - startingBounds.height);
 		if (startingBounds.y + startingBounds.height - deltaY > parentBounds.height) {
          deltaY = startingBounds.y + startingBounds.height - parentBounds.height ;
                 }
@@ -874,7 +871,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 		if(startingBounds.height - deltaY < min.height)
 		    deltaY = (startingBounds.height - min.height);
 		else if(startingBounds.height - deltaY > max.height)
-		    deltaY = -(startingBounds.height - min.height);
+		    deltaY = -(max.height - startingBounds.height);
 
                 if (startingBounds.y + startingBounds.height - deltaY > parentBounds.height) {
                    deltaY = startingBounds.y + startingBounds.height - parentBounds.height ;
@@ -887,7 +884,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 		if(startingBounds.height - deltaY < min.height)
 		    deltaY = (startingBounds.height - min.height);
 		else if(startingBounds.height - deltaY > max.height)
-		    deltaY = -(startingBounds.height - min.height);
+		    deltaY = -(max.height - startingBounds.height);
                  if (startingBounds.y + startingBounds.height - deltaY > parentBounds.height) {
    		deltaY = startingBounds.y + startingBounds.height - parentBounds.height ;
 		}
@@ -895,7 +892,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 		if(startingBounds.width + deltaX < min.width)
 		    deltaX = -(startingBounds.width - min.width);
 		else if(startingBounds.width + deltaX > max.width)
-		    deltaX = (startingBounds.width - min.width);
+		    deltaX = max.width - startingBounds.width;
 		 if (startingBounds.x - deltaX < 0) {
            	    deltaX = startingBounds.x;
         	 }
@@ -909,7 +906,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 		if(startingBounds.width + deltaX < min.width)
 		    deltaX = -(startingBounds.width - min.width);
 		else if(startingBounds.width + deltaX > max.width)
-		    deltaX = (startingBounds.width - min.width);
+		    deltaX = max.width - startingBounds.width;
                 if (startingBounds.x - deltaX < 0) {
            		deltaX = startingBounds.x;
         	}
@@ -923,7 +920,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 		if(startingBounds.width + deltaX < min.width)
 		    deltaX = -(startingBounds.width - min.width);
 		else if(startingBounds.width + deltaX > max.width)
-		    deltaX = (startingBounds.width - min.width);
+		    deltaX = max.width - startingBounds.width;
 		if (startingBounds.x - deltaX < 0) {
            		deltaX = startingBounds.x;
         	}
@@ -931,7 +928,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 		if(startingBounds.height + deltaY < min.height)
 		    deltaY = -(startingBounds.height - min.height);
 		else if(startingBounds.height + deltaY > max.height)
-		    deltaY = (startingBounds.height - min.height);
+		    deltaY = max.height - startingBounds.height;
                 if (startingBounds.y - deltaY < 0) {deltaY = startingBounds.y;}
 
 		newX = startingBounds.x - deltaX;

@@ -1,5 +1,5 @@
 /*
- * @(#)Security.java	1.100 00/04/06
+ * @(#)Security.java	1.101 00/08/10
  *
  * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -20,7 +20,7 @@ import java.security.InvalidParameterException;
  * methods. One of its primary uses is to manage providers.
  *
  * @author Benjamin Renaud
- * @version 1.100, 04/06/00
+ * @version 1.101, 08/10/00
  */
 
 public final class Security {
@@ -82,8 +82,8 @@ public final class Security {
 	    initializeStatic();
 	} else {
 	    try {
-		FileInputStream fis = new FileInputStream(propFile);
-		InputStream is = new BufferedInputStream(fis);
+		FileInputStream is = new FileInputStream(propFile);
+		// Inputstream has been buffered in Properties class
 		props.load(is);
 		is.close();
 	    } catch (IOException e) {

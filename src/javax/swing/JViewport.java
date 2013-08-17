@@ -1,7 +1,7 @@
 /*
- * @(#)JViewport.java	1.85 00/04/06
+ * @(#)JViewport.java	1.87 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -72,7 +72,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.85 04/06/00
+ * @version 1.87 02/09/01
  * @author Hans Muller
  * @author Philip Milne
  * @see JScrollPane
@@ -1427,7 +1427,7 @@ public class JViewport extends JComponent implements Accessible
 		Rectangle r = view.getBounds().intersection(blitPaint);
 		r.x -= view.getX();
 		r.y -= view.getY();
-		Image off = rm.getOffscreenBuffer(this,getWidth(),getHeight());
+		Image off = rm.getOffscreenBuffer(this, width, height);
 		Graphics og = off.getGraphics();
 		og.translate(-r.x,-r.y);
 		og.setClip(r.x,r.y,r.width,r.height);
@@ -1466,6 +1466,10 @@ public class JViewport extends JComponent implements Accessible
 	r.y -= view.getY();
 	Image off = rm.getOffscreenBuffer(this,r.width,r.height);
 	Graphics og = off.getGraphics();
+        if (view.getWidth() < r.width) {
+            og.setColor(getBackground());
+            og.fillRect(0, 0, r.width, r.height);
+        }
 	og.translate(-r.x,-r.y);
 	og.setClip(r.x,r.y,r.width,r.height);
 	rm.setDoubleBufferingEnabled(false);

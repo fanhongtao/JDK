@@ -1,7 +1,7 @@
 /*
- * @(#)SearchResult.java	1.5 00/02/02
+ * @(#)SearchResult.java	1.7 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -22,7 +22,7 @@ import javax.naming.Binding;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.5 00/02/02
+  * @version 1.7 01/02/09
   *
   * @see DirContext#search
   * @since 1.3
@@ -155,14 +155,14 @@ public class SearchResult extends Binding {
 
 
     /**
-      * Generates the string representation of this binding.
+      * Generates the string representation of this SearchResult.
       * The string representation consists of the string representation
       * of the binding and the string representation of
       * this search result's attributes, separated by ':'.
       * The contents of this string is useful
       * for debugging and is not meant to be interpreted programmatically.
       *
-      * @return The string representation of this binding. Cannot be null.
+      * @return The string representation of this SearchResult. Cannot be null.
       */
     public String toString() {
 	return super.toString() + ":" + getAttributes();

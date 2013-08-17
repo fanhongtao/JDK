@@ -1,5 +1,5 @@
 /*
- * @(#)SyntheticImage.java	1.15 00/02/02
+ * @(#)SyntheticImage.java	1.16 00/07/26
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -37,7 +37,7 @@ import java.awt.image.*;
  *  frame has started.  It is acceptable (expected?) for computeRow(0,r)
  *  to pause until the appropriate time to start the next frame.
  *
- *  @version 1.15 02/02/00
+ *  @version 1.16 07/26/00
  *  @author James Gosling
  */
 abstract class SyntheticImage implements ImageProducer {
@@ -132,7 +132,6 @@ class SyntheticImageGenerator extends Thread {
     }
 
     private final static void doPrivileged(final Runnable doRun) {
-      
         java.security.AccessController.doPrivileged(
             new java.security.PrivilegedAction() {
                 public Object run() {
@@ -141,17 +140,5 @@ class SyntheticImageGenerator extends Thread {
                 }
             }
         );
-        
-
-
-
-
-
-
-
-
-
-
-
     }
 }

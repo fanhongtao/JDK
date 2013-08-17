@@ -1,7 +1,7 @@
 /*
- * @(#)URLStreamHandler.java	1.41 00/02/02
+ * @(#)URLStreamHandler.java	1.43 01/04/21
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -15,7 +15,6 @@ import java.io.InputStream;
 import java.io.File;
 import java.io.OutputStream;
 import java.util.Hashtable;
-import sun.net.www.ParseUtil;
 
 /**
  * The abstract class <code>URLStreamHandler</code> is the common
@@ -31,7 +30,7 @@ import sun.net.www.ParseUtil;
  * automatically loaded.
  *
  * @author  James Gosling
- * @version 1.41, 02/02/00
+ * @version 1.43, 04/21/01
  * @see     java.net.URL#URL(java.lang.String, java.lang.String, int, java.lang.String)
  * @since   JDK1.0
  */

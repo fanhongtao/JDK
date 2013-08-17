@@ -1,7 +1,7 @@
 /*
- * @(#)URLClassLoader.java	1.71 00/04/06
+ * @(#)URLClassLoader.java	1.74 01/04/21
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -50,7 +50,7 @@ import sun.misc.URLClassPath;
  * access the URLs specified when the URLClassLoader was created.
  *
  * @author  David Connelly
- * @version 1.71, 04/06/00
+ * @version 1.74, 04/21/01
  * @since   1.2
  */
 public class URLClassLoader extends SecureClassLoader {

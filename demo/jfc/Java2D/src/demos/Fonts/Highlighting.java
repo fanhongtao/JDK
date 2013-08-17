@@ -1,5 +1,5 @@
 /*
- * @(#)Highlighting.java	1.20 99/09/07
+ * @(#)Highlighting.java	1.21 00/03/15
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -89,17 +89,17 @@ public class Highlighting extends AnimatingSurface {
         FontRenderContext frc = g2.getFontRenderContext();
         for (int i = 0; i < 2; i++) {
             layouts[i]  = new TextLayout(text[i], fonts[i], frc);
-            float rx = (float) (w/2-layouts[i].getBounds().getWidth()/2);
+            float rw = layouts[i].getAdvance();
+            float rh = layouts[i].getAscent() + layouts[i].getDescent();
+            float rx = (float) ((w - rw) /2);
             float ry = (float) ((i == 0) ? h/3 : h * 0.75f);
-            float rw = (float) (layouts[i].getBounds().getWidth());
-            float rh = (float) (layouts[i].getBounds().getHeight());
 
             // draw highlighted shape
             Shape hilite = layouts[i].getLogicalHighlightShape(0, curPos[i]);
             AffineTransform at = AffineTransform.getTranslateInstance(rx, ry);
             hilite = at.createTransformedShape(hilite);
-            float hy = (float) hilite.getBounds().getY();
-            float hh = (float) hilite.getBounds().getHeight();
+            float hy = (float) hilite.getBounds2D().getY();
+            float hh = (float) hilite.getBounds2D().getHeight();
             g2.setColor(colors[i]);
             g2.fill(hilite);
 
@@ -117,7 +117,7 @@ public class Highlighting extends AnimatingSurface {
                 float[] cInfo = layouts[i].getCaretInfo(TextHitInfo.leading(j));
                 String str = String.valueOf((int) cInfo[0]);
                 TextLayout tl = new TextLayout(str,smallF,frc);
-                tl.draw(g2, (float) rx+cInfo[0], hy+hh+tl.getAscent()+1.0f);
+                tl.draw(g2, (float) rx+cInfo[0]-tl.getAdvance()/2, hy+hh+tl.getAscent()+1.0f);
             }
         }
     }

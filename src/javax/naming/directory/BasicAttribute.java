@@ -1,7 +1,7 @@
 /*
- * @(#)BasicAttribute.java	1.7 00/02/02
+ * @(#)BasicAttribute.java	1.9 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -52,13 +52,13 @@ import javax.naming.OperationNotSupportedException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.7 00/02/02
+  * @version 1.9 01/02/09
   * @since 1.3
   */
 public class BasicAttribute implements Attribute {
     /**
      * Holds the attribute's id. It is initialized by the public constructor and 
-     * cannot be null unless methods in Attribute that use attrID
+     * cannot be null unless methods in BasicAttribute that use attrID
      * have been overridden.
      * @serial
      */
@@ -66,7 +66,7 @@ public class BasicAttribute implements Attribute {
 
     /**
      * Holds the attribute's values. Initialized by public constructors.
-     * Cannot be null unless methods in Attribute that use
+     * Cannot be null unless methods in BasicAttribute that use
      * values have been overridden.
      */
     protected transient Vector values;
@@ -191,7 +191,7 @@ public class BasicAttribute implements Attribute {
     /**
       * Generates the string representation of this attribute.
       * The string consists of the attribute's id and its values.
-      * This string is meant for debuggin and not meant to be 
+      * This string is meant for debugging and not meant to be 
       * interpreted programmatically.
       * @return The non-null string representation of this attribute.
       */

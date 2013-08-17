@@ -1,11 +1,11 @@
 /*
- * @(#)SocketPermission.java	1.36 00/07/12
+ * @(#)SocketPermission.java	1.37 00/09/01
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Copyright 2000 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2000 Sun Microsystems, Inc. Tous droits réservés.
+ *
+ * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
- * 
  */
  
 package java.net;
@@ -80,7 +80,7 @@ import java.io.IOException;
  * @see java.security.Permissions
  * @see SocketPermission
  *
- * @version 1.36 00/07/12
+ * @version 1.37 00/09/01
  *
  * @author Marianne Mueller
  * @author Roland Schemers 
@@ -989,7 +989,7 @@ else its the cname?
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.36 07/12/00
+ * @version 1.37 09/01/00
  *
  * @author Roland Schemers
  *

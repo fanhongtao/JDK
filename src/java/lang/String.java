@@ -1,7 +1,7 @@
 /*
- * @(#)String.java	1.127 00/04/06
+ * @(#)String.java	1.130 01/02/09
  *
- * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1994-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -65,7 +65,7 @@ import java.lang.ref.SoftReference;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.121, 10/06/99
+ * @version 1.130, 02/09/01
  * @see     java.lang.Object#toString()
  * @see     java.lang.StringBuffer
  * @see     java.lang.StringBuffer#append(boolean)
@@ -189,10 +189,20 @@ class String implements java.io.Serializable, Comparable {
      *
      * @param   value   a <code>String</code>.
      */
-    public String(String value) {
-	count = value.length();
-	this.value = new char[count];
-	value.getChars(0, count, this.value, 0);
+    public String(String original) {
+ 	this.count = original.count;
+ 	if (original.value.length > this.count) {
+ 	    // The array representing the String is bigger than the new 
+ 	    // String itself.  Perhaps this constructor is being called 
+ 	    // in order to trim the baggage, so make a copy of the array.
+ 	    this.value = new char[this.count];
+ 	    System.arraycopy(original.value, original.offset, 
+ 			     this.value, 0, this.count);
+ 	} else {
+ 	    // The array representing the String is the same
+ 	    // size as the String, so no point in making a copy.
+ 	    this.value = original.value;
+ 	}
     }
 
     /**
@@ -207,8 +217,7 @@ class String implements java.io.Serializable, Comparable {
      */
     public String(char value[]) {
 	this.count = value.length;
-	this.value = new char[count];
-	System.arraycopy(value, 0, this.value, 0, count);
+	this.value = (char[])value.clone();
     }
 
     /**
@@ -470,8 +479,8 @@ class String implements java.io.Serializable, Comparable {
 	}
     }
     
-    // Private constructor which shares value array for speed.
-    private String(int offset, int count, char value[]) {
+    // Package private constructor which shares value array for speed.
+    String(int offset, int count, char value[]) {
 	this.value = value;
 	this.offset = offset;
 	this.count = count;
@@ -793,11 +802,24 @@ class String implements java.io.Serializable, Comparable {
 	int i = offset;
 	int j = anotherString.offset;
 
-	while (n-- != 0) {
-	    char c1 = v1[i++];
-	    char c2 = v2[j++];
-	    if (c1 != c2) {
-		return c1 - c2;
+	if (i == j) {
+	    int k = i;
+	    int lim = n + i;
+	    while (k < lim) {
+		char c1 = v1[k];
+		char c2 = v2[k];
+		if (c1 != c2) {
+		    return c1 - c2;
+		}
+		k++;
+	    }
+	} else {
+	    while (n-- != 0) {
+		char c1 = v1[i++];
+		char c2 = v2[j++];
+		if (c1 != c2) {
+		    return c1 - c2;
+		}
 	    }
 	}
 	return len1 - len2;

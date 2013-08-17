@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractUndoableEdit.java	1.21 00/02/02
+ * @(#)AbstractUndoableEdit.java	1.24 01/02/14
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -10,26 +10,31 @@
 
 package javax.swing.undo;
 
+import javax.swing.UIManager;
 import java.io.Serializable;
 
 /**
  * An abstract implementation of UndoableEdit, implementing simple
  * responses to all boolean methods in that interface. 
  *
- * @version 1.21 02/02/00
+ * @version 1.24 02/14/01
  * @author Ray Ryan
  */
 public class AbstractUndoableEdit implements UndoableEdit, Serializable {
 
     /**
      * String returned by getUndoPresentationName()
+     *
+     * @see javax.swing.UIDefaults
      */
-    protected static final String UndoName = "Undo";	// PENDING(rjrjr): these need 
+    protected static final String UndoName = "Undo";
 
     /**
      * String returned by getRedoPresentationName()
+     *
+     * @see javax.swing.UIDefaults
      */
-    protected static final String RedoName = "Redo";	// to be localizable
+    protected static final String RedoName = "Redo";
 
     /**
      * Defaults to true. Becomes false if this edit is undone, true
@@ -166,9 +171,10 @@ public class AbstractUndoableEdit implements UndoableEdit, Serializable {
     public String getUndoPresentationName() {
 	String name = getPresentationName();
 	if (name != "") {
-	    name = UndoName + " " + name;
+	    name = UIManager.getString("AbstractUndoableEdit.undoText") + " " +
+                name;
 	} else {
-	    name = UndoName;
+	    name = UIManager.getString("AbstractUndoableEdit.undoText");
 	}
 
 	return name;
@@ -185,9 +191,10 @@ public class AbstractUndoableEdit implements UndoableEdit, Serializable {
     public String getRedoPresentationName() {
 	String name = getPresentationName();
 	if (name != "") {
-	    name = RedoName + " " + name;
+	    name = UIManager.getString("AbstractUndoableEdit.redoText") + " " +
+                name;
 	} else {
-	    name = RedoName;
+	    name = UIManager.getString("AbstractUndoableEdit.redoText");
 	}
 
 	return name;

@@ -1,5 +1,5 @@
 /*
- * @(#)JDialog.java	1.52 00/04/06
+ * @(#)JDialog.java	1.53 00/08/05
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -73,7 +73,7 @@ import java.applet.Applet;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window for creating dialog boxes.
  *
- * @version 1.52 04/06/00
+ * @version 1.53 08/05/00
  * @author David Kloba
  * @author James Gosling
  * @author Scott Violet
@@ -165,11 +165,9 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      *
      * @param owner the <code>Dialog</code> from which the dialog is displayed
      */
-
     public JDialog(Dialog owner) {
         this(owner, false);
     }
-  
 
     /**
      * Creates a modal or non-modal dialog without a title and
@@ -180,11 +178,9 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      * @param modal  true for a modal dialog, false for one that allows
      *               other windows to be active at the same time
      */
-
     public JDialog(Dialog owner, boolean modal) {
         this(owner, null, modal);
     }
-  
 
     /**
      * Creates a non-modal dialog with the specified title and
@@ -194,11 +190,9 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      * @param title  the <code>String</code> to display in the dialog's
      *			title bar
      */
-
     public JDialog(Dialog owner, String title) {
         this(owner, title, false);     
     }
-  
 
     /**
      * Creates a modal or non-modal dialog with the specified title 
@@ -210,12 +204,10 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      * @param modal  true for a modal dialog, false for one that allows
      *               other windows to be active at the same time
      */
-
     public JDialog(Dialog owner, String title, boolean modal) {
         super(owner, title, modal);
         dialogInit();
     }
-  
 
 
     /** Called by the constructors to init the <code>JDialog</code> properly. */
@@ -726,16 +718,7 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      * Java Accessibility API appropriate to dialog user-interface 
      * elements.
      */
-
-  // really if JDK1.3...
     protected class AccessibleJDialog extends AccessibleAWTDialog { 
-  
-
-
-
-
-
-
         
         // AccessibleContext methods
         //
@@ -765,15 +748,7 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
          * @see AccessibleState
          */
         public AccessibleStateSet getAccessibleStateSet() {
-
-  // really if JDK1.3...
             AccessibleStateSet states = super.getAccessibleStateSet();
-  
-
-
-
-
-
             if (isResizable()) {
                 states.add(AccessibleState.RESIZABLE);
             }
@@ -785,374 +760,5 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
             }
             return states;
         }
-
-
-  // really if JDK1.3...
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     } // inner class AccessibleJDialog
 }

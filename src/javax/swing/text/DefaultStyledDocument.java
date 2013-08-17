@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultStyledDocument.java	1.111 00/02/02
+ * @(#)DefaultStyledDocument.java	1.113 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -47,7 +47,7 @@ import javax.swing.SwingUtilities;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.111 02/02/00
+ * @version 1.113 02/09/01
  * @see     Document
  * @see     AbstractDocument
  */
@@ -778,7 +778,10 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
      * @param style The Style that has changed.
      */
     protected void styleChanged(Style style) {
-	SwingUtilities.invokeLater(new ChangeUpdateRunnable());
+        // Only propagate change updated if have content
+        if (getLength() != 0) {
+            SwingUtilities.invokeLater(new ChangeUpdateRunnable());
+        }
     }
 
     /**
@@ -2383,7 +2386,6 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
     class StyleContextChangeHandler implements ChangeListener {
         public void stateChanged(ChangeEvent e) {
 	    updateStylesListeningTo();
-	    SwingUtilities.invokeLater(new ChangeUpdateRunnable());
 	}
     }
 

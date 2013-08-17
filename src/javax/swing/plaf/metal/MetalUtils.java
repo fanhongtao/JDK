@@ -1,5 +1,5 @@
 /*
- * @(#)MetalUtils.java	1.23 00/02/02
+ * @(#)MetalUtils.java	1.24 00/07/26
  *
  * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -17,7 +17,7 @@ import java.awt.*;
 /**
  * This is a dumping ground for random stuff we want to use in several places.
  *
- * @version 1.23 02/02/00
+ * @version 1.24 07/26/00
  * @author Steve Wilson
  */
 
@@ -130,13 +130,7 @@ class MetalUtils {
      * avoid having Munge directives throughout the code.
      */
     static boolean isLeftToRight( Component c ) {
-        
         return c.getComponentOrientation().isLeftToRight();
-        
-
-
-
-
     }
     
 }

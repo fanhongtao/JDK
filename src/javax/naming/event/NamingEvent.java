@@ -1,7 +1,7 @@
 /*
- * @(#)NamingEvent.java	1.6 00/02/02
+ * @(#)NamingEvent.java	1.8 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -50,7 +50,7 @@ import javax.naming.Binding;
   * 
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.6 00/02/02
+  * @version 1.8 01/02/09
   *
   * @see NamingListener
   * @see EventContext
@@ -184,7 +184,7 @@ public class NamingEvent extends java.util.EventObject {
      * event source, for example, to look up the object or get its attributes,
      * then it needs to be locked  because implementations of <tt>Context</tt>
      * are not guaranteed to be thread-safe
-     * (and <tt>EventContext</tt> is a subinterface of Context</tt>).
+     * (and <tt>EventContext</tt> is a subinterface of <tt>Context</tt>).
      * See the
      * <a href=package-summary.html#THREADING>package description</a>
      * for more information on threading issues.

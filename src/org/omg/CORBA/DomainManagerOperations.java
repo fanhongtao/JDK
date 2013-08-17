@@ -1,7 +1,7 @@
 /*
- * @(#)DomainManagerOperations.java	1.3 00/02/02
+ * @(#)DomainManagerOperations.java	1.6 01/02/09
  *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1998-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.

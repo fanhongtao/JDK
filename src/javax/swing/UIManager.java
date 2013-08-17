@@ -1,5 +1,5 @@
 /*
- * @(#)UIManager.java	1.83 00/02/02
+ * @(#)UIManager.java	1.84 00/03/06
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -58,7 +58,7 @@ import java.util.Vector;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.83 02/02/00
+ * @version 1.84 03/06/00
  * @author Thomas Ball
  * @author Hans Muller
  */
@@ -746,7 +746,8 @@ public class UIManager implements Serializable
 		public void run() {
 		    try {
 			File file = new File(makeSwingPropertiesFilename());
-			BufferedInputStream ins = new BufferedInputStream(new FileInputStream(file));
+			// InputStream has been buffered in Properties class
+			FileInputStream ins = new FileInputStream(file);
 			props.load(ins);
 			ins.close();
 		    } 

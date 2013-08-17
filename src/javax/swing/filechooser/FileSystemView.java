@@ -1,13 +1,10 @@
 /*
- * @(#)FileSystemView.java	1.14 01/01/23
+ * @(#)FileSystemView.java	1.15 01/02/20
  *
  * Copyright 1998-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 
@@ -19,6 +16,7 @@ import javax.swing.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Vector;
 
 import java.lang.reflect.*;
@@ -42,7 +40,7 @@ import java.lang.reflect.*;
  * how Mac/OS2/BeOS/etc file systems can modify FileSystemView
  * to handle their particular type of file system.
  *
- * @version 1.14 01/23/01
+ * @version 1.15 02/20/01
  * @author Jeff Dinkins
  */
 public abstract class FileSystemView {
@@ -145,15 +143,14 @@ public abstract class FileSystemView {
 	int nameCount = names == null ? 0 : names.length;
 
 	for (int i = 0; i < nameCount; i++) {
-	   f = names[i];
-	   if (f.isFile() || f.isDirectory()) {
-	       if (!useFileHiding || !isHiddenFile(f)) {
-		   files.addElement(f);
-	       }
-	   }
-	}
+	    f = names[i];
 
- 
+	    if (f.isFile() || f.isDirectory()) {
+	      if (!useFileHiding || !isHiddenFile(f)) {
+		files.addElement(f);
+	      }
+	    }
+	}
 
 	return (File[])files.toArray(new File[files.size()]);
     }
@@ -180,6 +177,10 @@ class UnixFileSystemView extends FileSystemView {
 
     private static final Object[] noArgs = {};
     private static final Class[] noArgTypes = {};
+    private static final String newFolderString =
+            UIManager.getString("FileChooser.other.newFolder");
+    private static final String newFolderNextString  =
+            UIManager.getString("FileChooser.other.newFolder.subsequent");
 
     private static Method listRootsMethod = null;
     private static boolean listRootsMethodChecked = false;
@@ -201,10 +202,11 @@ class UnixFileSystemView extends FileSystemView {
 	}
 	File newFolder = null;
 	// Unix - using OpenWindow's default folder name. Can't find one for Motif/CDE.
-	newFolder = createFileObject(containingDir, "NewFolder");
+	newFolder = createFileObject(containingDir, newFolderString);
 	int i = 1;
 	while (newFolder.exists() && (i < 100)) {
-	    newFolder = createFileObject(containingDir, "NewFolder." + i);
+	    newFolder = createFileObject(containingDir, MessageFormat.format(
+                newFolderNextString, new Object[] { new Integer(i) }));
 	    i++;
 	}
 
@@ -278,6 +280,10 @@ class UnixFileSystemView extends FileSystemView {
 class WindowsFileSystemView extends FileSystemView {
     private static final Object[] noArgs = {};
     private static final Class[] noArgTypes = {};
+    private static final String newFolderString =
+            UIManager.getString("FileChooser.win32.newFolder");
+    private static final String newFolderNextString =
+            UIManager.getString("FileChooser.win32.newFolder.subsequent");
 
     private static Method listRootsMethod = null;
     private static boolean listRootsMethodChecked = false;
@@ -308,10 +314,11 @@ class WindowsFileSystemView extends FileSystemView {
 	}
 	File newFolder = null;
 	// Using NT's default folder name
-	newFolder = createFileObject(containingDir, "New Folder");
+	newFolder = createFileObject(containingDir, newFolderString);
 	int i = 2;
 	while (newFolder.exists() && (i < 100)) {
-	    newFolder = createFileObject(containingDir, "New Folder (" + i + ")");
+	    newFolder = createFileObject(containingDir, MessageFormat.format(
+                    newFolderNextString, new Object[] { new Integer(i) }));
 	    i++;
 	}
 
@@ -391,6 +398,8 @@ class WindowsFileSystemView extends FileSystemView {
 class GenericFileSystemView extends FileSystemView {
     private static final Object[] noArgs = {};
     private static final Class[] noArgTypes = {};
+    private static final String newFolderString =
+            UIManager.getString("FileChooser.other.newFolder");
 
     private static Method listRootsMethod = null;
     private static boolean listRootsMethodChecked = false;
@@ -421,7 +430,7 @@ class GenericFileSystemView extends FileSystemView {
 	}
 	File newFolder = null;
 	// Using NT's default folder name
-	newFolder = createFileObject(containingDir, "NewFolder");
+	newFolder = createFileObject(containingDir, newFolderString);
 
 	if(newFolder.exists()) {
 	    throw new IOException("Directory already exists:" + newFolder.getAbsolutePath());

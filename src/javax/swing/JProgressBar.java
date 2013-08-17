@@ -1,7 +1,7 @@
 /*
- * @(#)JProgressBar.java	1.77 00/04/06
+ * @(#)JProgressBar.java	1.79 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -12,6 +12,9 @@ package javax.swing;
 
 import java.awt.Color;
 import java.awt.Graphics;
+
+import java.text.Format;
+import java.text.NumberFormat;
 
 import java.io.Serializable;
 import java.io.ObjectOutputStream;
@@ -48,7 +51,7 @@ import javax.swing.plaf.ProgressBarUI;
  *      attribute: isContainer false
  *    description: A component that displays an integer value.
  *
- * @version 1.77 04/06/00
+ * @version 1.79 02/09/01
  * @author Michael C. Albers
  */
 public class JProgressBar extends JComponent implements SwingConstants, Accessible
@@ -107,6 +110,11 @@ public class JProgressBar extends JComponent implements SwingConstants, Accessib
      */
     protected transient ChangeEvent changeEvent = null;
     protected ChangeListener changeListener = null;
+
+    /**
+     * Format used when displaying percent complete.
+     */
+    private transient Format format;
 
 
    /**
@@ -320,8 +328,10 @@ public class JProgressBar extends JComponent implements SwingConstants, Accessib
 	if (progressString != null) {
 	    return progressString;
 	} else {
-	    int pc = (int)Math.round(100 * getPercentComplete());
-	    return new String(pc + "%");
+            if (format == null) {
+                format = NumberFormat.getPercentInstance();
+            }
+            return format.format(new Double(getPercentComplete()));
 	}
     }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)DataInputStream.java	1.50 00/02/02
+ * @(#)DataInputStream.java	1.51 00/02/28
  *
  * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -54,7 +54,7 @@ package java.io;
  * </ul>
  *
  * @author  Arthur van Hoff
- * @version 1.50, 02/02/00
+ * @version 1.51, 02/28/00
  * @see     java.io.DataOutputStream
  * @since   JDK1.0
  */
@@ -517,10 +517,11 @@ loop:	while (true) {
      */
     public final static String readUTF(DataInput in) throws IOException {
         int utflen = in.readUnsignedShort();
-        StringBuffer str = new StringBuffer(utflen);
+        char str[] = new char[utflen];
         byte bytearr [] = new byte[utflen];
         int c, char2, char3;
 	int count = 0;
+	int strlen = 0;
 
  	in.readFully(bytearr, 0, utflen);
 
@@ -530,7 +531,7 @@ loop:	while (true) {
 	        case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
 		    /* 0xxxxxxx*/
 		    count++;
-                    str.append((char)c);
+		    str[strlen++] = (char)c;
 		    break;
 	        case 12: case 13:
 		    /* 110x xxxx   10xx xxxx*/
@@ -540,7 +541,7 @@ loop:	while (true) {
 		    char2 = (int) bytearr[count-1];
 		    if ((char2 & 0xC0) != 0x80)
 			throw new UTFDataFormatException(); 
-                    str.append((char)(((c & 0x1F) << 6) | (char2 & 0x3F)));
+		    str[strlen++] = (char)(((c & 0x1F) << 6) | (char2 & 0x3F));
 		    break;
 	        case 14:
 		    /* 1110 xxxx  10xx xxxx  10xx xxxx */
@@ -551,9 +552,9 @@ loop:	while (true) {
 		    char3 = (int) bytearr[count-1];
 		    if (((char2 & 0xC0) != 0x80) || ((char3 & 0xC0) != 0x80))
 			throw new UTFDataFormatException();	  
-                    str.append((char)(((c     & 0x0F) << 12) |
-                    	              ((char2 & 0x3F) << 6)  |
-                    	              ((char3 & 0x3F) << 0)));
+		    str[strlen++] = (char)(((c & 0x0F) << 12) |
+					   ((char2 & 0x3F) << 6) |
+					   ((char3 & 0x3F) << 0));
 		    break;
 	        default:
 		    /* 10xx xxxx,  1111 xxxx */
@@ -561,6 +562,6 @@ loop:	while (true) {
 		}
 	}
         // The number of chars produced may be less than utflen
-        return new String(str);
+        return new String(str, 0, strlen);
     }
 }

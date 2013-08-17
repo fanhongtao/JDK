@@ -1,7 +1,7 @@
 /*
- * @(#)BufferedReader.java	1.25 00/02/02
+ * @(#)BufferedReader.java	1.27 01/02/09
  *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -40,7 +40,7 @@ package java.io;
  * @see FileReader
  * @see InputStreamReader
  *
- * @version 	1.25, 00/02/02
+ * @version 	1.27, 01/02/09
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -415,6 +415,24 @@ public class BufferedReader extends Reader {
     public boolean ready() throws IOException {
 	synchronized (lock) {
 	    ensureOpen();
+
+	    /* 
+	     * If newline needs to be skipped and the next char to be read
+	     * is a newline character, then just skip it right away.
+	     */
+	    if (skipLF) {
+		/* Note that in.ready() will return true if and only if the next 
+		 * read on the stream will not block.
+		 */
+		if (nextChar >= nChars && in.ready()) {
+		    fill();
+		}
+		if (nextChar < nChars) {
+		    if (cb[nextChar] == '\n') 
+			nextChar++;
+		    skipLF = false;
+		} 
+	    }
 	    return (nextChar < nChars) || in.ready();
 	}
     }

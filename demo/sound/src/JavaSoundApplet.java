@@ -1,7 +1,7 @@
 /*
- * @(#)JavaSoundApplet.java	1.1	99/11/01
+ * @(#)JavaSoundApplet.java	1.3	01/02/09
  *
- * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1998-2001 by Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -37,7 +37,7 @@ import javax.swing.JApplet;
  * the applet tag to customize demo runs :
  *            <param name="dir" value="audioDirectory">
  *
- * @(#)JavaSoundApplet.java	1.1	99/11/01
+ * @(#)JavaSoundApplet.java	1.3	01/02/09
  * @author Brian Lichtenwalter 
  */
 public class JavaSoundApplet extends JApplet {
@@ -47,7 +47,7 @@ public class JavaSoundApplet extends JApplet {
 
     public void init() {
         applet = this;
-        String media = "../jfc/Java2D/media";
+        String media = "media";
         String param = null;
         if ((param = getParameter("dir")) != null) {
             media = param;

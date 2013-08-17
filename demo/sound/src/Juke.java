@@ -1,7 +1,7 @@
 /*
- * @(#)Juke.java	1.18	99/11/29
+ * @(#)Juke.java	1.20	01/02/09
  *
- * Copyright (c) 1999 Sun Microsystems, Inc. All Rights Reserved.
+ *  Copyright (c) 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -54,7 +54,7 @@ import java.net.URL;
  * A JukeBox for sampled and midi sound files.  Features duration progress, 
  * seek slider, pan and volume controls.
  *
- * @version @(#)Juke.java	1.18 99/11/29
+ * @version @(#)Juke.java	1.20 01/02/09
  * @author Brian Lichtenwalter  
  */
 public class Juke extends JPanel implements Runnable, LineListener, MetaEventListener, ControlContext {
@@ -160,7 +160,7 @@ public class Juke extends JPanel implements Runnable, LineListener, MetaEventLis
 
 
     private void addSound(File file) {
-        String s = file.getName();
+        String s = file.getName().toLowerCase();
         if (s.endsWith(".au") || s.endsWith(".rmf") ||
             s.endsWith(".mid") || s.endsWith(".wav") ||
             s.endsWith(".aif") || s.endsWith(".aiff"))
@@ -997,7 +997,7 @@ public class Juke extends JPanel implements Runnable, LineListener, MetaEventLis
             
 
     public static void main(String args[]) {
-        String media = "../jfc/Java2D/media";
+        String media = "media";
         final Juke juke = new Juke(args.length == 0 ? media : args[0]);
         juke.open();
         JFrame f = new JFrame("Juke Box");

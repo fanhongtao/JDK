@@ -1,7 +1,7 @@
 /*
- * @(#)DirectoryManager.java	1.6 00/02/02
+ * @(#)DirectoryManager.java	1.8 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -26,7 +26,7 @@ import com.sun.naming.internal.FactoryEnumeration;
 
 
 /**
-  * This class contains a methods for supporting <tt>DirContext</tt>
+  * This class contains methods for supporting <tt>DirContext</tt>
   * implementations.
   *<p>
   * This class is an extension of <tt>NamingManager</tt>.  It contains methods
@@ -44,7 +44,7 @@ import com.sun.naming.internal.FactoryEnumeration;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.6 00/02/02
+  * @version 1.8 01/02/09
   *
   * @see DirObjectFactory
   * @see DirStateFactory

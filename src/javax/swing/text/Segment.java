@@ -1,7 +1,7 @@
 /*
- * @(#)Segment.java	1.16 00/02/02
+ * @(#)Segment.java	1.18 01/04/21
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -24,7 +24,7 @@ import java.text.CharacterIterator;
  * copying text into a string.
  *
  * @author  Timothy Prinzing
- * @version 1.16 02/02/00
+ * @version 1.18 04/21/01
  */
 public class Segment implements Cloneable, CharacterIterator {
 
@@ -119,7 +119,7 @@ public class Segment implements Cloneable, CharacterIterator {
      * @see #getIndex
      */
     public char current() {
-	if (count != 0) {
+        if (count != 0 && pos < offset + count) {
 	    return array[pos];
 	}
 	return DONE;

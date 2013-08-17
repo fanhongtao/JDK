@@ -1,7 +1,7 @@
 /*
- * @(#)JarEntry.java	1.15 00/02/02
+ * @(#)JarEntry.java	1.18 01/04/21
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.

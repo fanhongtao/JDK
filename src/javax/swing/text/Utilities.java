@@ -1,5 +1,5 @@
 /*
- * @(#)Utilities.java	1.30 00/02/02
+ * @(#)Utilities.java	1.31 00/07/26
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -15,21 +15,18 @@ import java.awt.Graphics;
 import java.awt.FontMetrics;
 import java.awt.Toolkit;
 import java.text.*;
-
-
 import java.awt.Graphics2D;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
 import java.awt.font.TextAttribute;
 import java.text.AttributedString;
 
-
 /**
  * A collection of methods to deal with various text
  * related activities.
  * 
  * @author  Timothy Prinzing
- * @version 1.30 02/02/00
+ * @version 1.31 07/26/00
  */
 public class Utilities {
 
@@ -608,7 +605,6 @@ public class Utilities {
      */
     static int drawComposedText(AttributeSet attr, Graphics g, int x, int y,
     				int p0, int p1) throws BadLocationException {
-				
         Graphics2D g2d = (Graphics2D)g;
         AttributedString as = (AttributedString)attr.getAttribute(
 	    StyleConstants.ComposedTextAttribute);
@@ -626,34 +622,12 @@ public class Utilities {
 	layout.draw(g2d, x, y);
 
 	return x + (int)layout.getAdvance();
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 
     /**
      * Paints the composed text in a GlyphView
      */
     static void paintComposedText(Graphics g, Rectangle alloc, GlyphView v) {
-
 	if (g instanceof Graphics2D) {
 	    Graphics2D g2d = (Graphics2D) g;
 	    int p0 = v.getStartOffset();
@@ -692,7 +666,6 @@ public class Utilities {
 	    TextLayout layout = new TextLayout(aci, g2d.getFontRenderContext());
 	    layout.draw(g2d, x, y);
 	}
-
     }
 
     /*
@@ -700,45 +673,7 @@ public class Utilities {
      * avoid having Munge directives throughout the code.
      */
     static boolean isLeftToRight( java.awt.Component c ) {
-        
         return c.getComponentOrientation().isLeftToRight();
-        
-
-
-
-
-    }
-
-    /**
-     * Indicates whether or not the package is being used
-     * in a 1.2 environment.
-     */
-    static boolean is1dot2;
-
-    static {
-        is1dot2 = false;
-        try {
-            // Test if method introduced in 1.2 is available.
-            Method m = Toolkit.class.getMethod("getMaximumCursorColors", null);
-            is1dot2 = (m != null);
-        } catch (NoSuchMethodException e) {
-            is1dot2 = false;
-        }
-
-        // Warn if running wrong version of this class for this JDK.
-        
-          if (!is1dot2) {
-              System.err.println("warning: running 1.2 version of Utilities");
-          }
-          
-
-
-
-
-
-
-
-
     }
 
 }

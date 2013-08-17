@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultListCellRenderer.java	1.17 00/02/02
+ * @(#)DefaultListCellRenderer.java	1.18 00/07/26
  *
  * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -47,7 +47,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.17 02/02/00
+ * @version 1.18 07/26/00
  * @author Philip Milne
  * @author Hans Muller
  */
@@ -76,9 +76,7 @@ public class DefaultListCellRenderer extends JLabel
         boolean isSelected,
         boolean cellHasFocus)
     {
-        
         setComponentOrientation(list.getComponentOrientation());
-        
 	if (isSelected) {
 	    setBackground(list.getSelectionBackground());
 	    setForeground(list.getSelectionForeground());

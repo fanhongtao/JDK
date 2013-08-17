@@ -1,5 +1,5 @@
 /*
- * @(#)jvmpi.h	1.22 00/02/02
+ * @(#)jvmpi.h	1.23 00/09/07
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -13,7 +13,16 @@
 
 #include "jni.h"
 
-#define JVMPI_VERSION_1 ((jint)0x10000001)  /* current version */
+#define JVMPI_VERSION_1   ((jint)0x10000001)  /* implied 0 for minor version */
+#define JVMPI_VERSION_1_1 ((jint)0x10000002)
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+  typedef void (*jvmpi_void_function_of_void)(void *);
+#ifdef __cplusplus
+}
+#endif
 
 /****************************************************************
  * Profiler interface data structures.
@@ -67,7 +76,7 @@ typedef struct {
   
     union {
         struct {
-	    char *class_name;         /* class name */
+	    const char *class_name;   /* class name */
 	    char *source_name;        /* name of source file */
 	    jint num_interfaces;      /* number of interfaces implemented */
   	    jint num_methods;         /* number of methods in the class */
@@ -112,7 +121,7 @@ typedef struct {
 
         struct {
 	    jint arena_id;            /* id of arena */
-	    char *arena_name;         /* name of arena */
+	    const char *arena_name;   /* name of arena */
 	} new_arena;
 
         struct {
@@ -201,7 +210,7 @@ typedef struct {
 	} monitor_dump;
 
         struct {
-	    char *name;                 /* name of raw monitor */
+	    const char *name;           /* name of raw monitor */
 	    JVMPI_RawMonitor id;        /* id */
 	} raw_monitor;
 
@@ -305,6 +314,11 @@ typedef struct {
 
     jobjectID (*GetThreadObject)(JNIEnv *env);
     jobjectID (*GetMethodClass)(jmethodID mid);
+
+    /* JNI <-> jobject conversions */
+    jobject   (*jobjectID2jobject)(jobjectID jid);
+    jobjectID (*jobject2jobjectID)(jobject jobj);
+
 } JVMPI_Interface;
 
 /* type of argument passed to RequestEvent for heap dumps */

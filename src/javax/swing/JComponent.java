@@ -1,7 +1,7 @@
 /*
- * @(#)JComponent.java	2.151 00/04/06
+ * @(#)JComponent.java	2.155 01/04/21
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -35,10 +35,7 @@ import javax.swing.event.*;
 import javax.swing.plaf.*;
 import javax.accessibility.*;
 
-
-
 import java.awt.Graphics2D;
-  
 
 /**
  * The base class for all Swing components
@@ -439,7 +436,6 @@ public abstract class JComponent extends Container implements Serializable
 		}
 		boolean checkSiblings = (!isOptimizedDrawingEnabled() &&
 					 checkIfChildObscuredBySibling());
-	        
 		Rectangle clipBounds = null;
                 if (checkSiblings) {
 		    clipBounds = sg.getClipBounds();
@@ -448,7 +444,6 @@ public abstract class JComponent extends Container implements Serializable
 			                           _bounds.height);
 		    }
                 }
-                
 		boolean printing = getFlag(IS_PRINTING);
                 for (; i >= 0 ; i--) {
                     Component comp = getComponent(i);
@@ -464,37 +459,17 @@ public abstract class JComponent extends Container implements Serializable
                             cr = comp.getBounds();
                         }
 
-		      
 			boolean hitClip = 
 			    g.hitClip(cr.x, cr.y, cr.width, cr.height);
-		        
-
-
-
-
-
-
                         if (hitClip) {
 			    if (checkSiblings && i > 0) {
 				int x = cr.x;
 				int y = cr.y;
 				int width = cr.width;
 				int height = cr.height;
-			        
 				SwingUtilities.computeIntersection
 				     (clipBounds.x, clipBounds.y,
 				      clipBounds.width, clipBounds.height, cr);
-		                
-
-
-
-
-
-
-
-
-
-
 				if(rectangleIsObscuredBySibling(i, cr.x, cr.y,
 						      cr.width, cr.height)) {
 				    continue;
@@ -623,7 +598,6 @@ public abstract class JComponent extends Container implements Serializable
         try {
             Image offscr = null;
             RepaintManager repaintManager = RepaintManager.currentManager(this);
-	  
 	    Rectangle clipRect = co.getClipBounds();
             int clipX;
             int clipY;
@@ -640,30 +614,6 @@ public abstract class JComponent extends Container implements Serializable
 		clipW = clipRect.width;
 		clipH = clipRect.height;
             }
-	    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
             if(clipW > getWidth()) {
                 clipW = getWidth();
@@ -728,11 +678,9 @@ public abstract class JComponent extends Container implements Serializable
                 }
             } else {
 		// Will ocassionaly happen in 1.2, especially when printing.
-	        
 		if (clipRect == null) {
 		    co.setClip(clipX, clipY, clipW, clipH);
 		}
-		
 
                 if (!rectangleIsObscured(clipX,clipY,clipW,clipH)) {
 		    if (!printing) {
@@ -1895,23 +1843,6 @@ public abstract class JComponent extends Container implements Serializable
 	    if (!aFlag) {
 	      clearFocusOwners();
 	    }
-
-  // really if JDK1.3...
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         }
     }
 
@@ -1968,9 +1899,6 @@ public abstract class JComponent extends Container implements Serializable
 	super.setForeground(fg);
 	if ((oldFg != null) ? !oldFg.equals(fg) : ((fg != null) && !fg.equals(oldFg))) {
 	    // foreground already bound in AWT1.2
-	    if (!SwingUtilities.is1dot2) {
-		firePropertyChange("foreground", oldFg, fg);
-	    }
 	    repaint();
 	}
     }
@@ -1991,9 +1919,6 @@ public abstract class JComponent extends Container implements Serializable
 	super.setBackground(bg);
 	if ((oldBg != null) ? !oldBg.equals(bg) : ((bg != null) && !bg.equals(oldBg))) {
 	    // background already bound in AWT1.2
-	    if (!SwingUtilities.is1dot2) {
-		firePropertyChange("background", oldBg, bg);
-	    }
 	    repaint();
 	}
     }
@@ -2013,9 +1938,6 @@ public abstract class JComponent extends Container implements Serializable
         Font oldFont = getFont();
         super.setFont(font);
         // font already bound in AWT1.2
-        if (!SwingUtilities.is1dot2) {
-            firePropertyChange("font", oldFont, font);
-        }
         if (font != oldFont) {
             revalidate();
 	    repaint();
@@ -2436,6 +2358,14 @@ public abstract class JComponent extends Container implements Serializable
 	}
 
 	public boolean isEnabled() {
+            if (actionListener == null) {
+                // This keeps the old semantics where
+                // registerKeyboardAction(null) would essentialy remove
+                // the binding. We don't remove the binding from the
+                // InputMap as that would still allow parent InputMaps
+                // bindings to be accessed.
+                return false;
+            }
 	    if (action == null) {
 		return true;
 	    }
@@ -2443,7 +2373,9 @@ public abstract class JComponent extends Container implements Serializable
 	}
 
 	public void actionPerformed(ActionEvent ae) {
-	    actionListener.actionPerformed(ae);
+            if (actionListener != null) {
+                actionListener.actionPerformed(ae);
+            }
 	}
 
 	// We don't allow any values to be added.
@@ -2604,16 +2536,7 @@ public abstract class JComponent extends Container implements Serializable
      * long term persistence.
      */
     public abstract class AccessibleJComponent 
-
-  // really if JDK1.3...
         extends AccessibleAWTContainer
-  
-
-
-
-
-
-
     {
 
 	/**
@@ -2621,10 +2544,7 @@ public abstract class JComponent extends Container implements Serializable
 	 * all sub-classes. 
 	 */
 	protected AccessibleJComponent() {
-
-  // really if JDK1.3...
             super();
-  
         }
 
 	protected ContainerListener accessibleContainerHandler = null;
@@ -2682,13 +2602,10 @@ public abstract class JComponent extends Container implements Serializable
 	 * @param listener  the PropertyChangeListener to be added
 	 */
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
-
-  // really if JDK1.3...
 	    if (accessibleFocusHandler == null) {
 		accessibleFocusHandler = new AccessibleFocusHandler();
 		JComponent.this.addFocusListener(accessibleFocusHandler);
 	    }
-  
 	    if (accessibleContainerHandler == null) {
 		accessibleContainerHandler = new AccessibleContainerHandler();
 		JComponent.this.addContainerListener(accessibleContainerHandler);
@@ -2704,24 +2621,10 @@ public abstract class JComponent extends Container implements Serializable
 	 * @param listener  the PropertyChangeListener to be removed
 	 */
 	public void removePropertyChangeListener(PropertyChangeListener listener) {
-
-  // really if JDK1.3...
 	    if (accessibleFocusHandler != null) {
 		JComponent.this.removeFocusListener(accessibleFocusHandler);
 		accessibleFocusHandler = null;
 	    }
-  
-
-
-
-
-
-
-
-
-
-
-
 	    super.removePropertyChangeListener(listener);
 	}
 
@@ -2860,61 +2763,12 @@ public abstract class JComponent extends Container implements Serializable
          * @see AccessibleState
          */
         public AccessibleStateSet getAccessibleStateSet() {
-
-  // really if JDK1.3...
 	    AccessibleStateSet states = super.getAccessibleStateSet();
 	    if (JComponent.this.isOpaque()) {
 		states.add(AccessibleState.OPAQUE);
 	    }
 	    return states;
-  
-
-
-
-
-
-
-
-
-
         }
-
-
-  // really if JDK1.3...
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         /**
          * Returns the number of accessible children in the object.  If all
@@ -2924,20 +2778,7 @@ public abstract class JComponent extends Container implements Serializable
          * @return the number of accessible children in the object.
          */
         public int getAccessibleChildrenCount() {
-
-  // really if JDK1.3...
             return super.getAccessibleChildrenCount();
-  
-
-
-
-
-
-
-
-
-
-
         }
 
         /**
@@ -2947,362 +2788,8 @@ public abstract class JComponent extends Container implements Serializable
          * @return the nth Accessible child of the object
          */
         public Accessible getAccessibleChild(int i) {
-
-  // really if JDK1.3...
             return super.getAccessibleChild(i);
-  
-
-
-
-
-
-
-
-
-
-
         }
-
-
-  // really if JDK1.3...
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     } // inner class AccessibleJComponent
 
@@ -3996,11 +3483,9 @@ public abstract class JComponent extends Container implements Serializable
      */
     public EventListener[] getListeners(Class listenerType) { 
 	EventListener[] result = listenerList.getListeners(listenerType); 
-	
 	if (result.length == 0) { 
 	    return super.getListeners(listenerType); 
 	}
-	
 	return result; 
     }
 

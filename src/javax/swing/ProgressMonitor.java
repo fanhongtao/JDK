@@ -1,7 +1,7 @@
 /*
- * @(#)ProgressMonitor.java	1.22 00/02/02
+ * @(#)ProgressMonitor.java	1.24 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -50,7 +50,7 @@ import java.awt.event.WindowEvent;
  *
  * @see ProgressMonitorInputStream
  * @author James Gosling
- * @version 1.22 02/02/00
+ * @version 1.24 02/09/01
  */
 public class ProgressMonitor extends Object
 {
@@ -239,7 +239,8 @@ public class ProgressMonitor extends Object
                                                                     noteLabel,
                                                                     myBar});
                         dialog = pane.createDialog(parentComponent,
-                                                   "Progress...");
+                            UIManager.getString(
+                                "ProgressMonitor.progressText"));
                         dialog.show();
                     }
                 }

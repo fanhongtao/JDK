@@ -1,7 +1,7 @@
 /*
- * @(#)Line2D.java	1.21 00/02/02
+ * @(#)Line2D.java	1.25 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -14,15 +14,20 @@ import java.awt.Shape;
 import java.awt.Rectangle;
 
 /**
- * This <code>Line2D</code> represents a line segment in (x,&nbsp;y)
- * coordinate space.  
+ * This <code>Line2D</code> class represents a line segment in (x,&nbsp;y)
+ * coordinate space.  This class, like all of the Java 2D API, uses a
+ * default coordinate system called <i>user space</i> in which the y-axis
+ * values increase downward and x-axis values increase to the right.  For
+ * more information on the user space coordinate system, see the 
+ * <a href="http://java.sun.com/j2se/1.3/docs/guide/2d/spec/j2d-intro.fm2.html#61857">
+ * Coordinate Systems</a> section of the Java 2D Programmer's Guide.
  * <p>
  * This class is only the abstract superclass for all objects that
  * store a 2D line segment.
  * The actual storage representation of the coordinates is left to
  * the subclass.
  *
- * @version 	1.21, 02/02/00
+ * @version 	1.25, 02/09/01
  * @author	Jim Graham
  */
 public abstract class Line2D implements Shape, Cloneable {
@@ -412,16 +417,26 @@ public abstract class Line2D implements Shape, Cloneable {
      * Returns an indicator of where the specified point 
      * (PX,&nbsp;PY) lies with respect to the line segment from 
      * (X1,&nbsp;Y1) to (X2,&nbsp;Y2).
-     * The value is 1 if the line segment must turn counterclockwise
-     * to point at the specified point, -1 if it must turn clockwise,
-     * or 0 if the point lies exactly on the line segment.
-     * If the point is colinear with the line segment, but not between
-     * the endpoints, then the value will be -1 if the point lies
-     * "beyond (X1,&nbsp;Y1)" or 1 if the point lies 
+     * The return value can be either 1, -1, or 0 and indicates
+     * in which direction the specified line must pivot around its
+     * first endpoint, (X1,&nbsp;Y1), in order to point at the
+     * specified point (PX,&nbsp;PY).
+     * <p>A return value of 1 indicates that the line segment must
+     * turn in the direction that takes the positive X axis towards
+     * the negative Y axis.  In the default coordinate system used by
+     * Java 2D, this direction is counterclockwise.  
+     * <p>A return value of -1 indicates that the line segment must
+     * turn in the direction that takes the positive X axis towards
+     * the positive Y axis.  In the default coordinate system, this 
+     * direction is clockwise.
+     * <p>A return value of 0 indicates that the point lies
+     * exactly on the line segment.  Note that an indicator value 
+     * of 0 is rare and not useful for determining colinearity 
+     * because of floating point rounding issues. 
+     * <p>If the point is colinear with the line segment, but 
+     * not between the endpoints, then the value will be -1 if the point
+     * lies "beyond (X1,&nbsp;Y1)" or 1 if the point lies 
      * "beyond (X2,&nbsp;Y2)".
-     * Note that an indicator value of 0 is rare and not useful for
-     * determining colinearity because of floating point rounding
-     * issues. 
      * @param X1,&nbsp;Y1 the coordinates of the beginning of the
      *		specified line segment
      * @param X2,&nbsp;Y2 the coordinates of the end of the specified
@@ -470,20 +485,14 @@ public abstract class Line2D implements Shape, Cloneable {
     /**
      * Returns an indicator of where the specified point 
      * (PX,&nbsp;PY) lies with respect to this line segment.
-     * The value is 1 if the line segment must turn counterclockwise
-     * to point at the specified point, -1 if it must turn clockwise,
-     * or 0 if the point lies exactly on the line segment.
-     * If the point is colinear with the line segment, but not between
-     * the endpoints, then the value is -1 if the point lies
-     * "beyond (x1,&nbsp;y1)" or 1 if the point lies 
-     * "beyond (x2,&nbsp;y2)".
-     * Note that an indicator value of 0 is rare and not useful for
-     * determining colinearity because of floating point rounding
-     * issues. 
+     * See the method comments of 
+     * {@link #relativeCCW(double, double, double, double, double, double)}
+     * to interpret the return value.
      * @param PX,&nbsp;PY the coordinates of the specified point
      *			to be compared with the current line segment
      * @return an integer that indicates the position of the specified
      *			coordinates with respect to the current line segment.
+     * @see #relativeCCW(double, double, double, double, double, double)
      */
     public int relativeCCW(double PX, double PY) {
 	return relativeCCW(getX1(), getY1(), getX2(), getY2(), PX, PY);
@@ -492,21 +501,15 @@ public abstract class Line2D implements Shape, Cloneable {
     /**
      * Returns an indicator of where the specified <code>Point2D</code>
      * lies with respect to this line segment.
-     * The value is 1 if the line segment must turn counterclockwise
-     * to point at the specified point, -1 if it must turn clockwise,
-     * or 0 if the point lies exactly on the line segment.
-     * If the point is colinear with the line segment, but not between
-     * the endpoints, then the value is -1 if the point lies
-     * "beyond (x1,&nbsp;y1)" or 1 if the point lies 
-     * "beyond (x2,&nbsp;y2)".
-     * Note that an indicator value of 0 is rare and not useful for
-     * determining colinearity because of floating point rounding
-     * issues. 
+     * See the method comments of
+     * {@link #relativeCCW(double, double, double, double, double, double)}
+     * to interpret the return value.
      * @param p the specified <code>Point2D</code> to be compared 
      *			with the current line segment
      * @return an integer that indicates the position of the 
      *			<code>Point2D</code> with respect to the current 
      *			line segment.
+     * @see #relativeCCW(double, double, double, double, double, double)
      */
     public int relativeCCW(Point2D p) {
 	return relativeCCW(getX1(), getY1(), getX2(), getY2(),
@@ -568,14 +571,19 @@ public abstract class Line2D implements Shape, Cloneable {
 
     /**
      * Returns the square of the distance from a point to a line segment.
+     * The distance measured is the distance between the specified
+     * point and the closest point between the specified endpoints.  
+     * If the specified point intersects the line segment in between the
+     * endpoints, this method returns 0.0.     
      * @param X1,&nbsp;Y1 the coordinates of the beginning of the 
      *			specified line segment
      * @param X2,&nbsp;Y2 the coordinates of the end of the specified 
      *		line segment
      * @param PX,&nbsp;PY the coordinates of the specified point being
-     *		measured
+     *		measured against the specified line segment
      * @return a double value that is the square of the distance from the
      *			specified point to the specified line segment.
+     * @see #ptLineDistSq(double, double, double, double, double, double)
      */
     public static double ptSegDistSq(double X1, double Y1,
 				     double X2, double Y2,
@@ -625,14 +633,19 @@ public abstract class Line2D implements Shape, Cloneable {
 
     /**
      * Returns the distance from a point to a line segment.
+     * The distance measured is the distance between the specified
+     * point and the closest point between the specified endpoints.  
+     * If the specified point intersects the line segment in between the
+     * endpoints, this method returns 0.0.
      * @param X1,&nbsp;Y1 the coordinates of the beginning of the
      *		specified line segment
      * @param X2,&nbsp;Y2 the coordinates of the end of the specified line
      * 		segment
      * @param PX,&nbsp;PY the coordinates of the specified point being
-     *		measured
+     *		measured against the specified line segment
      * @return a double value that is the distance from the specified point
      *				to the specified line segment.
+     * @see #ptLineDist(double, double, double, double, double, double)
      */
     public static double ptSegDist(double X1, double Y1,
 				   double X2, double Y2,
@@ -642,10 +655,15 @@ public abstract class Line2D implements Shape, Cloneable {
 
     /**
      * Returns the square of the distance from a point to this line segment.
+     * The distance measured is the distance between the specified
+     * point and the closest point between the current line's endpoints.  
+     * If the specified point intersects the line segment in between the
+     * endpoints, this method returns 0.0.
      * @param PX,&nbsp;PY the coordinates of the specified point being
-     * 		measured
-     * @return a double value that is the square of the distance from a
+     * 		measured against this line segment
+     * @return a double value that is the square of the distance from the
      *			specified point to the current line segment.
+     * @see #ptLineDistSq(double, double)
      */
     public double ptSegDistSq(double PX, double PY) {
 	return ptSegDistSq(getX1(), getY1(), getX2(), getY2(), PX, PY);
@@ -654,10 +672,16 @@ public abstract class Line2D implements Shape, Cloneable {
     /**
      * Returns the square of the distance from a <code>Point2D</code> to 
      * this line segment.
-     * @param pt the specified <code>Point2D</code> being measured
-     * @return a double value that is the square of the distance from a
+     * The distance measured is the distance between the specified
+     * point and the closest point between the current line's endpoints.  
+     * If the specified point intersects the line segment in between the
+     * endpoints, this method returns 0.0.
+     * @param pt the specified <code>Point2D</code> being measured against
+     *	         this line segment.
+     * @return a double value that is the square of the distance from the
      *			specified <code>Point2D</code> to the current 
      *			line segment.
+     * @see #ptLineDistSq(Point2D)
      */
     public double ptSegDistSq(Point2D pt) {
 	return ptSegDistSq(getX1(), getY1(), getX2(), getY2(),
@@ -666,10 +690,15 @@ public abstract class Line2D implements Shape, Cloneable {
 
     /**
      * Returns the distance from a point to this line segment.
+     * The distance measured is the distance between the specified
+     * point and the closest point between the current line's endpoints.  
+     * If the specified point intersects the line segment in between the
+     * endpoints, this method returns 0.0.
      * @param PX,&nbsp;PY the coordinates of the specified point
-     *				 being measured
-     * @return a double value that is the distance from a specified 
-     *				point to the current line segment.
+     *			  being measured against this line segment
+     * @return a double value that is the distance from the specified 
+     *			point to the current line segment.
+     * @see #ptLineDist(double, double)
      */
     public double ptSegDist(double PX, double PY) {
 	return ptSegDist(getX1(), getY1(), getX2(), getY2(), PX, PY);
@@ -678,10 +707,16 @@ public abstract class Line2D implements Shape, Cloneable {
     /**
      * Returns the distance from a <code>Point2D</code> to this line
      * segment.
+     * The distance measured is the distance between the specified
+     * point and the closest point between the current line's endpoints.  
+     * If the specified point intersects the line segment in between the
+     * endpoints, this method returns 0.0.
      * @param pt the specified <code>Point2D</code> being measured
-     * @return a double value that is the distance from a specified
+     *		against this line segment
+     * @return a double value that is the distance from the specified
      *				<code>Point2D</code> to the current line
      *				segment.
+     * @see #ptLineDist(Point2D)
      */
     public double ptSegDist(Point2D pt) {
 	return ptSegDist(getX1(), getY1(), getX2(), getY2(),
@@ -690,14 +725,19 @@ public abstract class Line2D implements Shape, Cloneable {
 
     /**
      * Returns the square of the distance from a point to a line.
-     * @param X1,&nbsp;Y1 the coordinates of the beginning of the
-     * 		specified line segment
-     * @param X2,&nbsp;Y2 the coordinates of the end of the specified 
-     *		line segment
+     * The distance measured is the distance between the specified
+     * point and the closest point on the infinitely-extended line
+     * defined by the specified coordinates.  If the specified point 
+     * intersects the line, this method returns 0.0.
+     * @param X1,&nbsp;Y1 the coordinates of one point on the
+     * 		specified line
+     * @param X2,&nbsp;Y2 the coordinates of another point on 
+     *		the specified line
      * @param PX,&nbsp;PY the coordinates of the specified point being
-     * 		measured
-     * @return a double value that is the square of the distance from a
-     *			specified point to a specified line segment.
+     * 		measured against the specified line
+     * @return a double value that is the square of the distance from the
+     *			specified point to the specified line.
+     * @see #ptSegDistSq(double, double, double, double, double, double)
      */
     public static double ptLineDistSq(double X1, double Y1,
 				      double X2, double Y2,
@@ -721,14 +761,19 @@ public abstract class Line2D implements Shape, Cloneable {
 
     /**
      * Returns the distance from a point to a line.
-     * @param X1,&nbsp;Y1 the coordinates of the beginning of the
-     *		specified line segment
-     * @param X2,&nbsp;Y2 the coordinates of the end of the specified 
-     *		line segment
+     * The distance measured is the distance between the specified
+     * point and the closest point on the infinitely-extended line
+     * defined by the specified coordinates.  If the specified point 
+     * intersects the line, this method returns 0.0.
+     * @param X1,&nbsp;Y1 the coordinates of one point on the
+     *		specified line
+     * @param X2,&nbsp;Y2 the coordinates of another point on the
+     *		specified line
      * @param PX,&nbsp;PY the coordinates of the specified point being
-     *		measured
-     * @return a double value that is the distance from a specified
-     *			 point to a specified line segment.
+     *		measured against the specified line
+     * @return a double value that is the distance from the specified
+     *			 point to the specified line.
+     * @see #ptSegDist(double, double, double, double, double, double)
      */
     public static double ptLineDist(double X1, double Y1,
 				    double X2, double Y2,
@@ -738,10 +783,15 @@ public abstract class Line2D implements Shape, Cloneable {
 
     /**
      * Returns the square of the distance from a point to this line.
+     * The distance measured is the distance between the specified
+     * point and the closest point on the infinitely-extended line
+     * defined by this <code>Line2D</code>.  If the specified point 
+     * intersects the line, this method returns 0.0.
      * @param PX,&nbsp;PY the coordinates of the specified point being
-     *		measured
+     *		measured against this line
      * @return a double value that is the square of the distance from a 
-     *			specified point to the current line segment.
+     *			specified point to the current line.
+     * @see #ptSegDistSq(double, double)
      */
     public double ptLineDistSq(double PX, double PY) {
 	return ptLineDistSq(getX1(), getY1(), getX2(), getY2(), PX, PY);
@@ -750,10 +800,16 @@ public abstract class Line2D implements Shape, Cloneable {
     /**
      * Returns the square of the distance from a specified 
      * <code>Point2D</code> to this line.
+     * The distance measured is the distance between the specified
+     * point and the closest point on the infinitely-extended line
+     * defined by this <code>Line2D</code>.  If the specified point 
+     * intersects the line, this method returns 0.0.
      * @param pt the specified <code>Point2D</code> being measured
+     *           against this line
      * @return a double value that is the square of the distance from a
      *			specified <code>Point2D</code> to the current
-     *			line segment.
+     *			line.
+     * @see #ptSegDistSq(Point2D)
      */
     public double ptLineDistSq(Point2D pt) {
 	return ptLineDistSq(getX1(), getY1(), getX2(), getY2(),
@@ -762,10 +818,15 @@ public abstract class Line2D implements Shape, Cloneable {
 
     /**
      * Returns the distance from a point to this line.
+     * The distance measured is the distance between the specified
+     * point and the closest point on the infinitely-extended line
+     * defined by this <code>Line2D</code>.  If the specified point 
+     * intersects the line, this method returns 0.0.
      * @param PX,&nbsp;PY the coordinates of the specified point being
-     *		measured
+     *		measured against this line
      * @return a double value that is the distance from a specified point
-     *			to the current line segment.
+     *			to the current line.
+     * @see #ptSegDist(double, double)
      */
     public double ptLineDist(double PX, double PY) {
 	return ptLineDist(getX1(), getY1(), getX2(), getY2(), PX, PY);
@@ -773,9 +834,14 @@ public abstract class Line2D implements Shape, Cloneable {
 
     /**
      * Returns the distance from a <code>Point2D</code> to this line.
+     * The distance measured is the distance between the specified
+     * point and the closest point on the infinitely-extended line
+     * defined by this <code>Line2D</code>.  If the specified point 
+     * intersects the line, this method returns 0.0.
      * @param pt the specified <code>Point2D</code> being measured
      * @return a double value that is the distance from a specified 
-     *			<code>Point2D</code> to the current line segment.
+     *			<code>Point2D</code> to the current line.
+     * @see #ptSegDist(Point2D)
      */
     public double ptLineDist(Point2D pt) {
 	return ptLineDist(getX1(), getY1(), getX2(), getY2(),

@@ -1,13 +1,10 @@
 /*
- * @(#)BasicMenuUI.java	1.131 01/01/23
+ * @(#)BasicMenuUI.java	1.131 01/02/09
  *
  * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 
@@ -26,7 +23,7 @@ import javax.swing.border.*;
  * A default L&F implementation of MenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.131 01/23/01
+ * @version 1.131 02/09/01
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -245,7 +242,7 @@ public class BasicMenuUI extends BasicMenuItemUI
 		    // of currently selected menus get a chance
 		    // at this KeyEvent
 		    defaultManager.clearSelectedPath();
-		    defaultManager.setSelectedPath(me);
+                    defaultManager.setSelectedPath(me);
 		}
             } else {
                 MenuElement path[] = defaultManager.getSelectedPath();

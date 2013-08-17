@@ -1,5 +1,5 @@
 /*
- * @(#)DebugGraphics.java	1.19 00/02/02
+ * @(#)DebugGraphics.java	1.20 00/07/26
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -13,9 +13,7 @@ package javax.swing;
 import java.awt.*;
 import java.awt.image.*;
 
-
 import java.text.AttributedCharacterIterator;
- 
 
 /**
  * Graphics subclass supporting graphics debugging. Overrides most methods
@@ -32,7 +30,7 @@ import java.text.AttributedCharacterIterator;
  * @see RepaintManager#currentManager
  * @see RepaintManager#setDoubleBufferingEnabled
  *
- * @version 1.19 02/02/00
+ * @version 1.20 07/26/00
  * @author Dave Karlton
  */
 public class DebugGraphics extends Graphics {
@@ -874,7 +872,6 @@ public class DebugGraphics extends Graphics {
     /**
      * Overrides <code>Graphics.drawString</code>.
      */
-    
     public void drawString(AttributedCharacterIterator iterator, int x, int y) {
         DebugGraphicsInfo info = info();
 
@@ -906,7 +903,6 @@ public class DebugGraphics extends Graphics {
         }
         graphics.drawString(iterator, x, y);
     }
-     
 
     /**
      * Overrides <code>Graphics.drawBytes</code>.
@@ -1452,21 +1448,4 @@ public class DebugGraphics extends Graphics {
         return debugGraphicsInfo;
     }
     private static final Class debugGraphicsInfoKey = DebugGraphicsInfo.class;
-
-    static {
-        // Warn if running wrong version of this class for this JDK.
-        
-          if (!SwingUtilities.is1dot2) {
-              System.err.println("warning: running 1.2 version of DebugGraphics");
-          }
-          
-
-
-
-
-
-
-
-
-    }
 }

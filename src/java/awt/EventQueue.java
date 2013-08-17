@@ -1,7 +1,7 @@
 /*
- * @(#)EventQueue.java	1.69 00/07/26
+ * @(#)EventQueue.java	1.71 01/02/09
  *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -24,13 +24,19 @@ import sun.awt.DebugHelper;
 /**
  * EventQueue is a platform-independent class that queues events, both
  * from the underlying peer classes and from trusted application classes.
- * There is only one EventQueue for each AppContext.
+ * <p>
+ * Some browsers partition applets in different code bases into separate
+ * contexts, and establish walls between these contexts. In such a scenario,
+ * there will be one EventQueue per context. Other browsers place all applets
+ * into the same context, implying that there will be only a single, global
+ * EventQueue for all applets. This behavior is implementation-dependent.
+ * Consult your browser's documentation for more information.
  *
  * @author Thomas Ball
  * @author Fred Ecks
  * @author David Mendenhall
  *
- * @version 	1.69, 07/26/00
+ * @version 	1.71, 02/09/01
  * @since 	1.1
  */
 public class EventQueue {

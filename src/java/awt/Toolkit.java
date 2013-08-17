@@ -1,7 +1,7 @@
 /*
- * @(#)Toolkit.java	1.151 00/02/02
+ * @(#)Toolkit.java	1.156 01/02/09
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -56,7 +56,7 @@ import java.beans.PropertyChangeSupport;
  * <code>java.awt.peer</code>. Some methods defined by
  * <code>Toolkit</code> query the native operating system directly.
  *
- * @version 	1.151, 02/02/00
+ * @version 	1.156, 02/09/01
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @author	Fred Ecks
@@ -411,15 +411,29 @@ public abstract class  Toolkit {
 		      sep + "accessibility.properties");
 		    FileInputStream in =
 			new FileInputStream(propsFile);
-		    properties.load(new BufferedInputStream(in));
+
+		    // Inputstream has been buffered in Properties class
+		    properties.load(in);
 		    in.close();
 		} catch (Exception e) {
 		    // File does not exist; no classes will be auto loaded
 		}
+
+		String magPresent = 
+		    System.getProperty("javax.accessibility.screen_magnifier_present");
+		if (magPresent == null) {
+		    magPresent = 
+			properties.getProperty("screen_magnifier_present", 
+					       null);
+		    if (magPresent != null) {
+			System.setProperty("javax.accessibility.screen_magnifier_present",
+					   magPresent);
+		    }
+		}
 		return null;
 	    }
 	});
-
+       
         String atNames = properties.getProperty("assistive_technologies",null);
 	ClassLoader cl = ClassLoader.getSystemClassLoader();
 
@@ -809,23 +823,44 @@ public abstract class  Toolkit {
     public abstract void beep();
 
     /**
-     * Gets an instance of the system clipboard which interfaces
-     * with clipboard facilities provided by the native platform.
+     * Gets the singleton instance of the system Clipboard which interfaces
+     * with clipboard facilities provided by the native platform. This 
+     * clipboard enables data transfer between Java programs and native
+     * applications which use native clipboard facilities.
+     * <p>
+     * In addition to any and all formats specified in the flavormap.properties
+     * file, or other file specified by the <code>AWT.DnD.flavorMapFileURL
+     * </code> Toolkit property, text returned by the system Clipboard's <code>
+     * getTransferData()</code> method is available in the following flavors:
+     * <ul>
+     * <li>DataFlavor.stringFlavor</li>
+     * <li>DataFlavor.plainTextFlavor (<b>deprecated</b>)</li>
+     * </ul>
+     * As with <code>java.awt.datatransfer.StringSelection</code>, if the
+     * requested flavor is <code>DataFlavor.plainTextFlavor</code>, or an
+     * equivalent flavor, a Reader is returned. <b>Note:</b> The behavior of
+     * the system Clipboard's <code>getTransferData()</code> method for <code>
+     * DataFlavor.plainTextFlavor</code>, and equivalent DataFlavors, is
+     * inconsistent with the definition of <code>DataFlavor.plainTextFlavor
+     * </code>. Because of this, support for <code>
+     * DataFlavor.plainTextFlavor</code>, and equivalent flavors, is
+     * <b>deprecated</b>.
+     * <p>
+     * Each actual implementation of this method should first check if there
+     * is a security manager installed. If there is, the method should call
+     * the security manager's <code>checkSystemClipboardAccess</code> method
+     * to ensure it's ok to to access the system clipboard. If the default
+     * implementation of <code>checkSystemClipboardAccess</code> is used (that
+     * is, that method is not overriden), then this results in a call to the
+     * security manager's <code>checkPermission</code> method with an <code>
+     * AWTPermission("accessClipboard")</code> permission.
      * 
-     * <p>This clipboard enables data transfer between Java programs
-     * and native applications which use native clipboard facilities.
-     * 
-     * <p>Each actual implementation of this method should first check if there is a
-     * security manager installed. If there is, the method should call the security
-     * manager's <code>checkSystemClipboardAccess</code> method to ensure 
-     * it's ok to to access the system clipboard.
-     * If  the default implementation of <code>checkSystemClipboardAccess</code> 
-     * is used (that is, that method is not overriden), then this results in
-     * a call to the security manager's <code>checkPermission</code> method
-     * with an <code>AWTPermission("accessClipboard")</code> permission.
-     * 
-     * @return    an instance of the system clipboard.
+     * @return    the system Clipboard
      * @see       java.awt.datatransfer.Clipboard
+     * @see       java.awt.datatransfer.StringSelection
+     * @see       java.awt.datatransfer.DataFlavor.stringFlavor
+     * @see       java.awt.datatransfer.DataFlavor.plainTextFlavor
+     * @see       java.io.Reader
      * @see       java.awt.AWTPermission
      * @since     JDK1.1
      */

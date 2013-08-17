@@ -19,6 +19,8 @@ import java.util.ListResourceBundle;
  *
  * @version     %I% %G% %U%
  * @author      Willie Walker
+ * @deprecated This class is deprecated as of version 1.3 of the 
+ *             Java 2 Platform.
  */
 public class AccessibleResourceBundle extends ListResourceBundle {
 

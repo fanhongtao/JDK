@@ -1,7 +1,7 @@
 /*
- * @(#)Package.java	1.31 00/02/02
+ * @(#)Package.java	1.34 01/04/21
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.

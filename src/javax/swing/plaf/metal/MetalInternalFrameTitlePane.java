@@ -1,7 +1,7 @@
 /*
- * @(#)MetalInternalFrameTitlePane.java	1.37 00/02/02
+ * @(#)MetalInternalFrameTitlePane.java	1.39 01/02/09
  *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1998-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -23,7 +23,7 @@ import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 
 /**
  * Class that manages a JLF title bar
- * @version 1.37 02/02/00
+ * @version 1.39 02/09/01
  * @author Steve Wilson
  * @author Brian Beck
  * @since 1.3
@@ -70,15 +70,21 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
         Boolean paintActive = frame.isSelected() ? Boolean.TRUE:Boolean.FALSE;
         iconButton.putClientProperty("paintActive", paintActive);
         iconButton.setBorder(handyEmptyBorder);
-        iconButton.getAccessibleContext().setAccessibleName("Iconify");
+        iconButton.getAccessibleContext().setAccessibleName(
+            UIManager.getString(
+                "InternalFrameTitlePane.iconifyButtonAccessibleName"));
     
         maxButton.putClientProperty("paintActive", paintActive);
         maxButton.setBorder(handyEmptyBorder);
-        maxButton.getAccessibleContext().setAccessibleName("Maximize");
+        maxButton.getAccessibleContext().setAccessibleName(
+            UIManager.getString(
+                "InternalFrameTitlePane.maximizeButtonAccessibleName"));
         
         closeButton.putClientProperty("paintActive", paintActive);
         closeButton.setBorder(handyEmptyBorder);
-        closeButton.getAccessibleContext().setAccessibleName("Close");
+        closeButton.getAccessibleContext().setAccessibleName(
+            UIManager.getString(
+                "InternalFrameTitlePane.closeButtonAccessibleName"));
 
         // The palette close icon isn't opaque while the regular close icon is.
         // This makes sure palette close buttons have the right background.

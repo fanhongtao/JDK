@@ -1,5 +1,5 @@
 /*
- * @(#)DemoFonts.java	1.3	99/09/10
+ * @(#)DemoFonts.java	1.4	00/06/19
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -31,7 +31,6 @@
 
 import java.awt.Font;
 import java.util.Hashtable;
-import java.net.URL;
 import java.io.File;
 import java.io.InputStream;
 import java.io.FileInputStream;
@@ -63,13 +62,7 @@ public class DemoFonts {
         }
         String fName = "fonts/" + name;
         try {
-            InputStream is = null;
-            if (Java2DemoApplet.applet != null) {
-                URL url = new URL(Java2DemoApplet.applet.getCodeBase(), fName);
-                is = url.openStream();
-            } else {
-                is = new FileInputStream(new File(fName));
-            }
+            InputStream is = ClassLoader.getSystemResourceAsStream(fName);
             font = Font.createFont(Font.TRUETYPE_FONT, is);
         } catch (Exception ex) { 
             ex.printStackTrace(); 

@@ -1,7 +1,7 @@
 /*
- * @(#)DirContext.java	1.6 00/02/02
+ * @(#)DirContext.java	1.8 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -144,7 +144,7 @@ import javax.naming.*;
  * @author Rosanna Lee
  * @author Scott Seligman
  * @author R. Vasudevan
- * @version 1.6 00/02/02
+ * @version 1.8 01/02/09
  *
  * @see javax.naming.Context
  * @since 1.3
@@ -333,7 +333,7 @@ public interface DirContext extends Context {
 	    throws NamingException;
 
     /**
-     * Modifies the attributes associated with a named object using an
+     * Modifies the attributes associated with a named object using
      * an ordered list of modifications.
      * The modifications are performed
      * in the order specified.  Each modification specifies a
@@ -358,7 +358,7 @@ public interface DirContext extends Context {
 	    throws NamingException;
 
     /**
-     * Modifies the attributes associated with a named object using an
+     * Modifies the attributes associated with a named object using
      * an ordered list of modifications.
      * See {@link #modifyAttributes(Name, ModificationItem[])} for details.
      *
@@ -635,7 +635,7 @@ public interface DirContext extends Context {
      * identifier.
      *<p>
      * The precise definition of "equality" used in comparing attribute values
-     * is definied by the underlying directory service.  It might use the
+     * is defined by the underlying directory service.  It might use the
      * <code>Object.equals</code> method, for example, or might use a schema
      * to specify a different equality operation.
      * For matching based on operations other than equality (such as
@@ -753,7 +753,7 @@ public interface DirContext extends Context {
      * <p>
      * <code>attr</code> is the attribute's identifier.
      * <p>
-     * <code>value</code> is the string represention the attribute's value.
+     * <code>value</code> is the string representation the attribute's value.
      * The translation of this string representation into the attribute's value
      * is directory-specific.
      * <p>
@@ -956,7 +956,7 @@ public interface DirContext extends Context {
      *		the default search controls are used (equivalent
      *		to <tt>(new SearchControls())</tt>).
      * @return	an enumeration of <tt>SearchResult</tt>s of the objects
-     *		that satisy the filter; never null
+     *		that satisfy the filter; never null
      *
      * @throws	ArrayIndexOutOfBoundsException if <tt>filterExpr</tt> contains
      *		<code>{i}</code> expressions where <code>i</code> is outside
@@ -1000,7 +1000,7 @@ public interface DirContext extends Context {
      *		the default search controls are used (equivalent
      *		to <tt>(new SearchControls())</tt>).
      * @return	an enumeration of <tt>SearchResult</tt>s of the objects
-     *		that satisy the filter; never null
+     *		that satisfy the filter; never null
      *
      * @throws	ArrayIndexOutOfBoundsException if <tt>filterExpr</tt> contains
      *		<code>{i}</code> expressions where <code>i</code> is outside

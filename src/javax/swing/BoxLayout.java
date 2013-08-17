@@ -1,5 +1,5 @@
 /*
- * @(#)BoxLayout.java	1.25 01/03/02
+ * @(#)BoxLayout.java	1.24 00/02/02
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -81,7 +81,7 @@ import java.io.PrintStream;
  * @see Component#getAlignmentY
  *
  * @author   Timothy Prinzing
- * @version  1.25 03/02/01
+ * @version  1.24 02/02/00
  */
 public class BoxLayout implements LayoutManager2, Serializable {
 
@@ -137,18 +137,13 @@ public class BoxLayout implements LayoutManager2, Serializable {
     /**
      * Indicates that a child has changed its layout related information,
      * and thus any cached calculations should be flushed.
-     * <p>
-     * This method is called by AWT when the invalidate method is called
-     * on the Container.  Since the invalidate method may be called 
-     * asynchronously to the event thread, this method may be called
-     * asynchronously.
      *
      * @param target  the affected container
      *
      * @exception AWTError  if the target isn't the container specified to the
      *                      BoxLayout constructor
      */
-    public synchronized void invalidateLayout(Container target) {
+    public void invalidateLayout(Container target) {
         checkContainer(target);
         xChildren = null;
         yChildren = null;
@@ -195,13 +190,10 @@ public class BoxLayout implements LayoutManager2, Serializable {
      * @see #maximumLayoutSize
      */
     public Dimension preferredLayoutSize(Container target) {
-	Dimension size;
-	synchronized(this) {
-	    checkContainer(target);
-	    checkRequests();
-	    size = new Dimension(xTotal.preferred, yTotal.preferred);
-	}
+        checkContainer(target);
+        checkRequests();
 
+        Dimension size = new Dimension(xTotal.preferred, yTotal.preferred);
         Insets insets = target.getInsets();
         size.width = (int) Math.min((long) size.width + (long) insets.left + (long) insets.right, Integer.MAX_VALUE);
         size.height = (int) Math.min((long) size.height + (long) insets.top + (long) insets.bottom, Integer.MAX_VALUE);
@@ -220,13 +212,10 @@ public class BoxLayout implements LayoutManager2, Serializable {
      * @see #maximumLayoutSize
      */
     public Dimension minimumLayoutSize(Container target) {
-	Dimension size;
-	synchronized(this) {
-	    checkContainer(target);
-	    checkRequests();
-	    size = new Dimension(xTotal.minimum, yTotal.minimum);
-	}
+        checkContainer(target);
+        checkRequests();
 
+        Dimension size = new Dimension(xTotal.minimum, yTotal.minimum);
         Insets insets = target.getInsets();
         size.width = (int) Math.min((long) size.width + (long) insets.left + (long) insets.right, Integer.MAX_VALUE);
         size.height = (int) Math.min((long) size.height + (long) insets.top + (long) insets.bottom, Integer.MAX_VALUE);
@@ -245,13 +234,10 @@ public class BoxLayout implements LayoutManager2, Serializable {
      * @see #minimumLayoutSize
      */
     public Dimension maximumLayoutSize(Container target) {
-	Dimension size;
-	synchronized(this) {
-	    checkContainer(target);
-	    checkRequests();
-	    size = new Dimension(xTotal.maximum, yTotal.maximum);
-	}
+        checkContainer(target);
+        checkRequests();
 
+        Dimension size = new Dimension(xTotal.maximum, yTotal.maximum);
         Insets insets = target.getInsets();
         size.width = (int) Math.min((long) size.width + (long) insets.left + (long) insets.right, Integer.MAX_VALUE);
         size.height = (int) Math.min((long) size.height + (long) insets.top + (long) insets.bottom, Integer.MAX_VALUE);
@@ -269,7 +255,7 @@ public class BoxLayout implements LayoutManager2, Serializable {
      * @exception AWTError  if the target isn't the container specified to the
      *                      BoxLayout constructor
      */
-    public synchronized float getLayoutAlignmentX(Container target) {
+    public float getLayoutAlignmentX(Container target) {
         checkContainer(target);
         checkRequests();
         return xTotal.alignment;
@@ -286,7 +272,7 @@ public class BoxLayout implements LayoutManager2, Serializable {
      * @exception AWTError  if the target isn't the container specified to the
      *                      BoxLayout constructor
      */
-    public synchronized float getLayoutAlignmentY(Container target) {
+    public float getLayoutAlignmentY(Container target) {
         checkContainer(target);
         checkRequests();
         return yTotal.alignment;
@@ -302,38 +288,35 @@ public class BoxLayout implements LayoutManager2, Serializable {
      *                      BoxLayout constructor
      */
     public void layoutContainer(Container target) {
-	checkContainer(target);
-	int nChildren = target.getComponentCount();
-	int[] xOffsets = new int[nChildren];
-	int[] xSpans = new int[nChildren];
-	int[] yOffsets = new int[nChildren];
-	int[] ySpans = new int[nChildren];
-	    
-	Dimension alloc = target.getSize();
-	Insets in = target.getInsets();
-	alloc.width -= in.left + in.right;
-	alloc.height -= in.top + in.bottom;
-
-	// determine the child placements
-	synchronized(this) {
-	    checkRequests();
+        checkContainer(target);
+        checkRequests();
         
-	    if (axis == X_AXIS) {
-		SizeRequirements.calculateTiledPositions(alloc.width, xTotal,
-							 xChildren, xOffsets,
-							 xSpans);
-		SizeRequirements.calculateAlignedPositions(alloc.height, yTotal,
-							   yChildren, yOffsets,
-							   ySpans);
-	    } else {
-		SizeRequirements.calculateAlignedPositions(alloc.width, xTotal,
-							   xChildren, xOffsets,
-							   xSpans);
-		SizeRequirements.calculateTiledPositions(alloc.height, yTotal,
-							 yChildren, yOffsets,
-							 ySpans);
-	    }
-	}
+        int nChildren = target.getComponentCount();
+        int[] xOffsets = new int[nChildren];
+        int[] xSpans = new int[nChildren];
+        int[] yOffsets = new int[nChildren];
+        int[] ySpans = new int[nChildren];
+
+        // determine the child placements
+        Dimension alloc = target.getSize();
+        Insets in = target.getInsets();
+        alloc.width -= in.left + in.right;
+        alloc.height -= in.top + in.bottom;
+        if (axis == X_AXIS) {
+            SizeRequirements.calculateTiledPositions(alloc.width, xTotal,
+                                                     xChildren, xOffsets,
+                                                     xSpans);
+            SizeRequirements.calculateAlignedPositions(alloc.height, yTotal,
+                                                       yChildren, yOffsets,
+                                                       ySpans);
+        } else {
+            SizeRequirements.calculateAlignedPositions(alloc.width, xTotal,
+                                                       xChildren, xOffsets,
+                                                       xSpans);
+            SizeRequirements.calculateTiledPositions(alloc.height, yTotal,
+                                                     yChildren, yOffsets,
+                                                     ySpans);
+        }
 
         // flush changes to the container
         for (int i = 0; i < nChildren; i++) {

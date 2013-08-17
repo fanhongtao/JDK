@@ -1,7 +1,7 @@
 /*
- * @(#)CompositeName.java	1.6 00/02/02
+ * @(#)CompositeName.java	1.8 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -181,7 +181,7 @@ import java.util.Properties;
  *
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.6 00/02/02
+ * @version 1.8 01/02/09
  * @since 1.3
  */
 
@@ -222,7 +222,7 @@ public class CompositeName implements Name {
       * description.
       *
       * @param	n	The non-null string to parse.
-      * @exception InvalidNameException If n is hava invalid composite name syntax.
+      * @exception InvalidNameException If n has invalid composite name syntax.
       */
     public CompositeName(String n) throws InvalidNameException {
 	impl = new NameImpl(compositeSyntax, n);
@@ -456,7 +456,7 @@ public class CompositeName implements Name {
       *
       * @param suffix	The non-null components to add.
       * @return The updated CompositeName, not a new one. Cannot be null.
-      * @exception InvalidNameException If prefix is not a composite name.
+      * @exception InvalidNameException If suffix is not a composite name.
       */
     public Name addAll(Name suffix) throws InvalidNameException {
 	if (suffix instanceof CompositeName) {
@@ -479,7 +479,7 @@ public class CompositeName implements Name {
       * @param posn	The index in this name at which to add the new
       *			components.  Must be in the range [0,size()].
       * @return The updated CompositeName, not a new one. Cannot be null.
-      * @exception InvalidNameException If prefix is not a composite name.
+      * @exception InvalidNameException If n is not a composite name.
       * @exception ArrayIndexOutOfBoundsException
       *		If posn is outside the specified range.
       */

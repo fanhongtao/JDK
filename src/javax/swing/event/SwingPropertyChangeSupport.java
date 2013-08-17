@@ -1,7 +1,7 @@
 /*
- * @(#)SwingPropertyChangeSupport.java	1.12 00/02/02
+ * @(#)SwingPropertyChangeSupport.java	1.17 01/02/09
  *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1998-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -24,7 +24,7 @@ import java.io.IOException;
  * only necessary because all of PropertyChangeSupport's instance
  * data is private, without accessor methods.
  *
- * @version 1.12 02/02/00
+ * @version 1.17 02/09/01
  * @author unattributed
  */
 
@@ -50,9 +50,9 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
     public synchronized void addPropertyChangeListener(
 				PropertyChangeListener listener) {
 	if (listeners == null) {
-	    listeners = new java.util.Vector(3);
+	    listeners = new EventListenerList();
 	}
-	listeners.addElement(listener);
+	listeners.add(PropertyChangeListener.class, listener);
     }
 
     /**
@@ -68,7 +68,7 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
 	if (listeners == null) {
 	    return;
 	}
-	listeners.removeElement(listener);
+	listeners.remove(PropertyChangeListener.class, listener);
     }
 
     /**
@@ -127,37 +127,8 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
      */
     public void firePropertyChange(String propertyName,
                                    Object oldValue, Object newValue) {
-	if (oldValue != null && newValue != null &&
-	    oldValue.equals(newValue)) {
-	    return;
-	}
-
-	SwingPropertyChangeSupport child = null;
-	if (children != null) {
-	    synchronized (this) {
-		if (children != null && propertyName != null) {
-		    child = (SwingPropertyChangeSupport)children.get(propertyName);
-		}
-	    }
-	}
-
-        if (listeners != null || child != null) {
-            // Only create an event if there's an interested receiver.
-            PropertyChangeEvent evt = new PropertyChangeEvent(
-                source, propertyName, oldValue, newValue);
-
-            if (listeners != null) {
-                for (int i = 0; i < listeners.size(); i++) {
-                    PropertyChangeListener target =
-                        (PropertyChangeListener)listeners.elementAt(i);
-                    target.propertyChange(evt);
-                }
-            }
-
-            if (child != null) {
-                child.firePropertyChange(evt);
-            }
-        }
+	firePropertyChange(new PropertyChangeEvent(source, propertyName, 
+						   oldValue, newValue));
     }
 
     /**
@@ -183,14 +154,15 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
 	    }
 	}
 
-	if (listeners != null) {
-	    int size = listeners.size();
-	    for (int i = 0; i < size; i++) {
-	        PropertyChangeListener target =
-                    (PropertyChangeListener)listeners.elementAt(i);
-	        target.propertyChange(evt);
-	    }
-	}
+        if (listeners != null)  {
+            Object[] listenerList = listeners.getListenerList();
+            for (int i = 0; i <= listenerList.length-2; i += 2) {
+                if (listenerList[i] == PropertyChangeListener.class)  {
+                    ((PropertyChangeListener)listenerList[i+1]).propertyChange(evt);
+                }
+            }
+        }
+
 	if (child != null) {
 	    child.firePropertyChange(evt);
 	}
@@ -203,7 +175,7 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
      * @return true if there are ore or more listeners for the given property
      */
     public synchronized boolean hasListeners(String propertyName) {
-	if (listeners != null && !listeners.isEmpty()) {
+	if (listeners != null && listeners.getListenerCount(PropertyChangeListener.class) > 0) {
 	    // there is a generic listener
 	    return true;
 	}
@@ -212,7 +184,7 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
                 (SwingPropertyChangeSupport)children.get(propertyName);
 	    if (child != null) {
 		// The child will always have a listeners Vector.
-		return !child.listeners.isEmpty();
+		return child.hasListeners(propertyName);
 	    }
 	}
 	return false;
@@ -221,20 +193,13 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
 
-	java.util.Vector v = null;
-	synchronized (this) {
-	    if (listeners != null) {
-	        v = (java.util.Vector) listeners.clone();
-            }
-	}
-
-	if (v != null) {
-	    int size = v.size();
-	    for (int i = 0; i < size; i++) {
-	        PropertyChangeListener l = (PropertyChangeListener)v.elementAt(i);
-	        if (l instanceof Serializable) {
-	            s.writeObject(l);
-	        }
+        if (listeners != null)  {
+            Object[] listenerList = listeners.getListenerList();
+            for (int i = 0; i <= listenerList.length-2; i += 2) {
+                if (listenerList[i] == PropertyChangeListener.class && 
+                    (PropertyChangeListener)listenerList[i+1] instanceof Serializable)  {
+                    s.writeObject((PropertyChangeListener)listenerList[i+1]);
+                }
             }
         }
         s.writeObject(null);
@@ -251,7 +216,7 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
     }
 
     // "listeners" lists all the generic listeners.
-    transient private java.util.Vector listeners;
+    transient private EventListenerList listeners;
     // "children" contains SwingPropertyChangeSupports for individual properties
     private java.util.Hashtable children;
     private Object source;

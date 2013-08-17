@@ -1,5 +1,5 @@
 /*
- * @(#)DemoImages.java	1.8 99/06/22
+ * @(#)DemoImages.java	1.9 00/06/19
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -33,7 +33,7 @@ import java.awt.*;
 import java.awt.image.*;
 import java.util.Hashtable;
 import java.net.URL;
-import java.net.MalformedURLException;
+import java.net.URLClassLoader;
 
 
 /**
@@ -70,18 +70,11 @@ public class DemoImages extends Component {
                 return img;
             }
         }
-        String dir = "images/";
-        if (Java2DemoApplet.applet != null) {
-            try {
-                URL url = new URL(Java2DemoApplet.applet.getCodeBase(),dir+name);
-                img = cmp.getToolkit().createImage(url);
-            } catch (MalformedURLException ex) { 
-                ex.printStackTrace(); 
-                return null;
-            }
-        } else {
-            img = cmp.getToolkit().createImage(dir + name);
-        }
+
+	URLClassLoader urlLoader = (URLClassLoader)cmp.getClass().getClassLoader();
+	URL fileLoc = urlLoader.findResource("images/" + name);
+	img = cmp.getToolkit().createImage(fileLoc);
+
         MediaTracker tracker = new MediaTracker(cmp);
         tracker.addImage(img, 0);
         try {

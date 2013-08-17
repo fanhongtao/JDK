@@ -1,7 +1,7 @@
 /*
- * @(#)JFileChooser.java	1.66 00/04/06
+ * @(#)JFileChooser.java	1.68 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -60,7 +60,7 @@ import java.awt.event.*;
  *   attribute: isContainer false
  * description: A component which allows for the interactive selection of a font.
  *
- * @version 1.66 04/06/00
+ * @version 1.68 02/09/01
  * @author Jeff Dinkins
  *
  */
@@ -599,13 +599,7 @@ public class JFileChooser extends JComponent implements Accessible {
         Frame frame = parent instanceof Frame ? (Frame) parent
               : (Frame)SwingUtilities.getAncestorOfClass(Frame.class, parent);
 
-	String title = null;
-
-	if(getDialogTitle() != null) {
-	    title = dialogTitle;
-	} else {
-	    title = getUI().getDialogTitle(this);
-	}
+	String title = getUI().getDialogTitle(this);
 
         dialog = new JDialog(frame, title, true);
         Container contentPane = dialog.getContentPane();

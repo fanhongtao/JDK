@@ -1,7 +1,7 @@
 /*
- * @(#)Any.java	1.32 00/02/02
+ * @(#)Any.java	1.35 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -646,8 +646,9 @@ abstract public class Any implements IDLEntity {
      *              and that describes the <code>java.math.BigDecimal</code> 
      *              object being inserted
      */
-    public void insert_fixed(java.math.BigDecimal value,
-			     org.omg.CORBA.TypeCode type) {
+    public void insert_fixed(java.math.BigDecimal value, org.omg.CORBA.TypeCode type)
+    {
+               
 	throw new org.omg.CORBA.NO_IMPLEMENT();
     }
 

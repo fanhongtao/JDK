@@ -1,11 +1,11 @@
 /*
- * @(#)java.c	1.66 00/07/18
+ * @(#)java.c	1.67 00/08/10
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Copyright 2000 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2000 Sun Microsystems, Inc. Tous droits réservés.
+ *
+ * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
- * 
  */
 
 /*
@@ -70,9 +70,10 @@ static void PrintJavaVersion(JNIEnv *env);
 static void PrintUsage(void);
 static jint PrintXUsage(void);
 
-/* Support for options such as -client, -classic etc. */
+/* Support for options such as -hotspot, -classic etc. */
 #define MAX_KNOWN_VMS 10
 static char *knownVMs[MAX_KNOWN_VMS];
+static int knownVMsCount;
 static jint ReadKnownVMs(const char *jrepath);
 static void FreeKnownVMs();
 
@@ -96,7 +97,7 @@ main(int argc, char **argv)
     jboolean jvmspecified = JNI_FALSE;     /* Assume no option specified. */
     char jrepath[MAXPATHLEN], jvmpath[MAXPATHLEN];
     jlong start, end;
-    int i, knownVMsCount;
+    int i;
 
     if (getenv("_JAVA_LAUNCHER_DEBUG") != 0) {
 	debug = JNI_TRUE;
@@ -145,7 +146,6 @@ main(int argc, char **argv)
 	    return 5;
 	}
     }
-    FreeKnownVMs();
 
     /* If we got here, jvmpath has been correctly initialized. */
     ifn.CreateJavaVM = 0; ifn.GetDefaultJavaVMInitArgs = 0;
@@ -169,7 +169,7 @@ main(int argc, char **argv)
     ++argv;
     --argc;
 
-    /* Skip over a specified -classic/-client/-server option */
+    /* Skip over a specified -classic/-hotspot/-server option */
     if (jvmspecified) {
 	argv++;
 	argc--;
@@ -250,6 +250,8 @@ main(int argc, char **argv)
 	PrintUsage();
 	goto leave;
     }
+
+    FreeKnownVMs();  /* after last possible PrintUsage() */
 
     if (debug) {
 	end   = CounterGet();
@@ -798,6 +800,9 @@ PrintJavaVersion(JNIEnv *env)
 static void
 PrintUsage(void)
 {
+    int i;
+    char jrepath[MAXPATHLEN], jvmpath[MAXPATHLEN];
+
     fprintf(stdout,
 	"Usage: %s [-options] class [args...]\n"
 #ifndef OLDJAVA
@@ -806,7 +811,41 @@ PrintUsage(void)
 	"           (to execute a jar file)\n"
 #endif
 	"\n"
-	"where options include:\n"
+	"where options include:\n",
+#ifndef OLDJAVA
+	progname,
+#endif
+	progname);
+
+    /*
+     * Find out where the JRE is that we will be using.
+     * Loop through the known VMs, printing a line for each existing VM.
+     */
+    if (GetJREPath(jrepath, sizeof(jrepath))) {
+	for (i = 0; i < knownVMsCount; i++) {
+	    const char *jvmtype = knownVMs[i]+1;
+
+	    const char *synonym = ReadJVMLink(jrepath, jvmtype,
+					      knownVMs, knownVMsCount);
+	    if (synonym != NULL) {
+		if (synonym[0] != '\0') {
+		    fprintf(stdout, "    %s\t  is a synonym for "
+			    "the \"%s\" VM  [deprecated]\n",
+			    knownVMs[i], synonym);
+		}
+	    } else {
+		if (GetJVMPath(jrepath, jvmtype, jvmpath, sizeof(jvmpath))) {
+		    fprintf(stdout, "    %s\t  to select the \"%s\" VM\n",
+			    knownVMs[i], knownVMs[i]+1);
+		}
+	    }
+	}
+	fprintf(stdout,
+	    "                  If present, the option to select the VM must be first.\n"
+	    "                  The default VM is %s.\n\n", knownVMs[0]);
+    }
+
+    fprintf(stdout,
 #ifdef OLDJAVA
 	"    -cp -classpath <directories and zip/jar files separated by %c>\n"
 	"                  set search path for classes and resources\n"
@@ -822,11 +861,7 @@ PrintUsage(void)
 	"    -showversion  print product version and continue\n"
 	"    -? -help      print this help message\n"
 	"    -X            print help on non-standard options\n",
-#ifndef OLDJAVA
-	progname,
-#endif
-	progname, PATH_SEPARATOR
-    );
+	PATH_SEPARATOR);
 }
 
 /*

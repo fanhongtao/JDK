@@ -1,5 +1,5 @@
 /*
- * @(#)TextureAnim.java	1.8 99/09/07
+ * @(#)TextureAnim.java	1.9 99/11/15
  *
  * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -88,7 +88,7 @@ public class TextureAnim extends AnimatingControlsSurface {
     protected BufferedImage makeImage(int size, int num) {
         newtexture = true;
         switch (bNum = num) {
-            case 0 : return makeBGRImage(size);
+            case 0 : return makeRGBImage(size);
             case 1 : return makeGIFImage(size);
             case 2 : return makePNGImage(size);
         }
@@ -96,8 +96,8 @@ public class TextureAnim extends AnimatingControlsSurface {
     }
 
 
-    private BufferedImage makeBGRImage(int size) {
-        BufferedImage bi = new BufferedImage(size, size, BufferedImage.TYPE_INT_BGR);
+    private BufferedImage makeRGBImage(int size) {
+        BufferedImage bi = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
         Graphics2D big = bi.createGraphics();
         big.setColor(Color.white);
         big.fillRect(0, 0, size, size);

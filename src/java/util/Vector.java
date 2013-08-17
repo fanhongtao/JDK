@@ -1,13 +1,10 @@
 /*
- * @(#)Vector.java	1.72 01/01/23
+ * @(#)Vector.java	1.71 00/04/18
  *
- * Copyright 1994-2001 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 

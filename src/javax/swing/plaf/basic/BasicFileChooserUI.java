@@ -1,13 +1,10 @@
 /*
- * @(#)BasicFileChooserUI.java	1.24 01/01/23
+ * @(#)BasicFileChooserUI.java	1.26 01/02/09
  *
  * Copyright 1998-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 
@@ -56,6 +53,8 @@ public class BasicFileChooserUI extends FileChooserUI {
     protected String cancelButtonText = null;
     protected String updateButtonText = null;
     protected String helpButtonText = null;
+    private String openDialogTitleText = null;
+    private String saveDialogTitleText = null;
 
     protected String saveButtonToolTipText = null;
     protected String openButtonToolTipText = null;
@@ -219,6 +218,8 @@ public class BasicFileChooserUI extends FileChooserUI {
 
 	saveButtonText   = UIManager.getString("FileChooser.saveButtonText");
 	openButtonText   = UIManager.getString("FileChooser.openButtonText");
+	saveDialogTitleText = UIManager.getString("FileChooser.saveDialogTitleText");
+	openDialogTitleText = UIManager.getString("FileChooser.openDialogTitleText");
 	cancelButtonText = UIManager.getString("FileChooser.cancelButtonText");
 	updateButtonText = UIManager.getString("FileChooser.updateButtonText");
 	helpButtonText   = UIManager.getString("FileChooser.helpButtonText");
@@ -352,11 +353,11 @@ public class BasicFileChooserUI extends FileChooserUI {
 		if(index >= 0) {
 		    File f = (File) list.getModel().getElementAt(index);
 		    try {
-			//strip trailing ".."
+			// Strip trailing ".."
 			f = f.getCanonicalFile();
 		    } catch (IOException ex) {
-			//use f as is
-		    }
+			// That's ok, we'll use f as is
+		    }		
 		    if(getFileChooser().isTraversable(f)) {
 			list.clearSelection();
 			getFileChooser().setCurrentDirectory(f);
@@ -420,7 +421,16 @@ public class BasicFileChooserUI extends FileChooserUI {
      * Returns the title of this dialog
      */
     public String getDialogTitle(JFileChooser fc) {
-	return getApproveButtonText(fc);
+	String dialogTitle = fc.getDialogTitle();
+	if (dialogTitle != null) {
+	    return dialogTitle;
+	} else if (fc.getDialogType() == JFileChooser.OPEN_DIALOG) {
+	    return openDialogTitleText;
+	} else if (fc.getDialogType() == JFileChooser.SAVE_DIALOG) {
+	    return saveDialogTitleText;
+	} else {
+	    return getApproveButtonText(fc);
+	}
     }
 
 

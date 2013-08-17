@@ -1,7 +1,7 @@
 /*
- * @(#)JInternalFrame.java	1.113 00/04/06
+ * @(#)JInternalFrame.java	1.116 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -80,7 +80,7 @@ import java.io.IOException;
  * @see JInternalFrame.JDesktopIcon
  * @see JRootPane
  *
- * @version 1.113 04/06/00
+ * @version 1.116 02/09/01
  * @author David Kloba
  * @author Rich Schiavi
  * @beaninfo
@@ -1021,7 +1021,24 @@ public class JInternalFrame extends JComponent implements
     public void moveToFront() {
         if(getParent() != null && getParent() instanceof JLayeredPane) {
             JLayeredPane l =  (JLayeredPane)getParent();
+            JRootPane root = getRootPane();
+            Component focusOwner = (root != null) ?
+                                       root.getCurrentFocusOwner() : null;
+
+            if (focusOwner != null) {
+                // Temporarily request focus on the JInternalFrame as a
+                // workaround for the focus owner not being nulled out
+                // during Component.removeNotify.
+                requestFocus();
+            }
             l.moveToFront(this);
+            // Moving to front often times results in removing the
+            // JInternalFrame from the containment hierarchy, and adding again.
+            // As such, the focus will often times be reset, and we therefore
+            // need to request focus again here.
+            if (focusOwner != null) {
+                focusOwner.requestFocus();
+            }
         }
     }
 
@@ -1545,18 +1562,15 @@ public class JInternalFrame extends JComponent implements
      * do any Swing-specific pre-serialization configuration.
      */
     void compWriteObjectNotify() {
-	// need to disable rootpane checking for InternalFrame: 4172083
-        if (ui != null) {
-	    boolean old = isRootPaneCheckingEnabled();
-            try {
-		setRootPaneCheckingEnabled(false);
-	        ui.uninstallUI(this);
-            } 
-            finally {
-		setRootPaneCheckingEnabled(old);
-	    }
-	}
+      // need to disable rootpane checking for InternalFrame: 4172083
+      boolean old = isRootPaneCheckingEnabled();
+      try {
+	setRootPaneCheckingEnabled(false);
         super.compWriteObjectNotify();
+      } 
+      finally {
+	setRootPaneCheckingEnabled(old);
+      }
     }
 
 
@@ -1881,6 +1895,18 @@ public class JInternalFrame extends JComponent implements
          */
         public String getUIClassID() {
             return "DesktopIconUI";
+        }
+
+        /** 
+         * See <code>readObject</code> and <code>writeObject</code>
+         * in <code>JComponent</code> for more 
+         * information about serialization in Swing.
+         */
+        private void writeObject(ObjectOutputStream s) throws IOException {
+            s.defaultWriteObject();
+            if ((ui != null) && (getUIClassID().equals("DesktopIconUI"))) {
+                ui.installUI(this);
+            }
         }
 
        /////////////////

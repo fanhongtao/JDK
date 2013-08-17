@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractDocument.java	1.112 00/02/02
+ * @(#)AbstractDocument.java	1.116 01/03/16
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -13,6 +13,7 @@ import java.util.*;
 import java.io.*;
 import java.awt.font.TextAttribute;
 
+import javax.swing.UIManager;
 import javax.swing.undo.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.*;
@@ -74,7 +75,7 @@ import javax.swing.tree.TreeNode;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.112 02/02/00
+ * @version 1.116 03/16/01
  */
 public abstract class AbstractDocument implements Document, Serializable {
 
@@ -458,14 +459,12 @@ public abstract class AbstractDocument implements Document, Serializable {
 		    new DefaultDocumentEvent(offs, len, DocumentEvent.EventType.REMOVE);
 
 		boolean isComposedTextElement = false;
-		if (Utilities.is1dot2) {
-		    // Check whether the position of interest is the composed text
-		    Element elem = getDefaultRootElement();
-		    while (!elem.isLeaf()) {
-			elem = elem.getElement(elem.getElementIndex(offs));
-		    }
-		    isComposedTextElement = Utilities.isComposedTextElement(elem);
+		// Check whether the position of interest is the composed text
+		Element elem = getDefaultRootElement();
+		while (!elem.isLeaf()) {
+		    elem = elem.getElement(elem.getElementIndex(offs));
 		}
+		isComposedTextElement = Utilities.isComposedTextElement(elem);
 
 		removeUpdate(chng);
 		UndoableEdit u = data.remove(offs, len);
@@ -733,6 +732,27 @@ public abstract class AbstractDocument implements Document, Serializable {
     protected void insertUpdate(DefaultDocumentEvent chng, AttributeSet attr) {
         if( getProperty(I18NProperty).equals( Boolean.TRUE ) )
             updateBidi( chng );
+
+        // Check if a multi byte is encountered in the inserted text.
+        if (chng.type == DocumentEvent.EventType.INSERT &&
+                        chng.getLength() > 0 &&
+                        !Boolean.TRUE.equals(getProperty(MultiByteProperty))) {
+            if (segment == null) {
+                segment = new Segment();
+            }
+            try {
+                getText(chng.getOffset(), chng.getLength(), segment);
+                segment.first();
+                do {
+                    if ((int)segment.current() > 255) {
+                        putProperty(MultiByteProperty, Boolean.TRUE);
+                        break;
+                    }
+                } while (segment.next() != Segment.DONE);
+            } catch (BadLocationException ble) {
+                // Should never happen
+            }
+        }
     }
 
     /**
@@ -1221,6 +1241,11 @@ public abstract class AbstractDocument implements Document, Serializable {
      * represent character runs with the same Unicode bidi level.
      */
     private transient BranchElement bidiRoot;
+
+    /**
+     * Segment used to test for multi byte condition.
+     */
+    private transient Segment segment;
     
     private static final String BAD_LOCK_STATE = "document lock failure";
 
@@ -1263,6 +1288,13 @@ public abstract class AbstractDocument implements Document, Serializable {
      * until its long term benefit is decided.
      */
     static final String I18NProperty = "i18n";
+
+    /**
+     * Document property that indicates if a character has been inserted
+     * into the document that is more than one byte long.  GlyphView uses
+     * this to determine if it should use BreakIterator.
+     */
+    static final Object MultiByteProperty = new Object();
 
     /**
      * Document property that indicates asynchronous loading is
@@ -2511,10 +2543,10 @@ public abstract class AbstractDocument implements Document, Serializable {
 	public String getPresentationName() {
 	    DocumentEvent.EventType type = getType();
 	    if(type == DocumentEvent.EventType.INSERT)
-		return "addition";
+		return UIManager.getString("AbstractDocument.additionText");
 	    if(type == DocumentEvent.EventType.REMOVE)
-		return "deletion";
-	    return "style change";
+		return UIManager.getString("AbstractDocument.deletionText");
+	    return UIManager.getString("AbstractDocument.styleChangeText");
 	}
 
 	/**
@@ -2525,7 +2557,8 @@ public abstract class AbstractDocument implements Document, Serializable {
          * @return the description
 	 */
 	public String getUndoPresentationName() {
-	    return "Undo " + getPresentationName();
+	    return UIManager.getString("AbstractDocument.undoText") + " " +
+                getPresentationName();
 	}
 
 	/**
@@ -2536,7 +2569,8 @@ public abstract class AbstractDocument implements Document, Serializable {
          * @return the description
 	 */
 	public String getRedoPresentationName() {
-	    return "Redo " + getPresentationName();
+	    return UIManager.getString("AbstractDocument.redoText") + " " +
+                getPresentationName();
 	}
 
 	// --- DocumentEvent methods --------------------------

@@ -1,7 +1,7 @@
 /*
- * @(#)ResolveResult.java	1.5 00/02/02
+ * @(#)ResolveResult.java	1.7 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -26,7 +26,7 @@ import javax.naming.InvalidNameException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.5 00/02/02
+  * @version 1.7 01/02/09
   * @since 1.3
   */
 public class ResolveResult implements java.io.Serializable {
@@ -46,7 +46,7 @@ public class ResolveResult implements java.io.Serializable {
     protected Name remainingName;
 
     /**
-      * Constructs an instance of ResolvedResult with the
+      * Constructs an instance of ResolveResult with the
       * resolved object and remaining name both initialized to null.
       */
     protected ResolveResult() {

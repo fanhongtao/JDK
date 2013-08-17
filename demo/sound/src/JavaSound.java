@@ -1,7 +1,7 @@
 /*
- * @(#)JavaSound.java	1.14	99/11/03
+ * @(#)JavaSound.java	1.16	01/02/09
  *
- * Copyright (c) 1999 Sun Microsystems, Inc. All Rights Reserved.
+ *  Copyright (c) 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -43,7 +43,7 @@ import javax.sound.midi.*;
 /**
  * The Java Sound Samples : MidiSynth, Juke, CapturePlayback, Groove.
  *
- * @version @(#)JavaSound.java	1.14 99/11/03
+ * @version @(#)JavaSound.java	1.16 01/02/09
  * @author Brian Lichtenwalter  
  */
 public class JavaSound extends JPanel implements ChangeListener, Runnable {
@@ -173,7 +173,7 @@ public class JavaSound extends JPanel implements ChangeListener, Runnable {
             }
         } catch (Exception ex) { ex.printStackTrace(); System.exit(1); }
 
-        String media = "../jfc/Java2D/media";
+        String media = "media";
         if (args.length > 0) {
             File file = new File(args[0]);
             if (file == null && !file.isDirectory()) {

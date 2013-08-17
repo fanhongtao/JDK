@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectInputStream.java	1.105 00/02/02
+ * @(#)ObjectInputStream.java	1.107 01/02/09
  *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -131,7 +131,7 @@ import java.lang.reflect.Field;
  * versioning that occurs.
  *
  * @author  Roger Riggs
- * @version 1.105, 02/02/00
+ * @version 1.107, 02/09/01
  * @see java.io.DataInput
  * @see java.io.ObjectOutputStream
  * @see java.io.Serializable
@@ -1400,11 +1400,12 @@ public class ObjectInputStream extends InputStream
 		    currentClassDesc = classdesc[spClass];
 		    currentClass = classes[spClass];
 
+		    setBlockData(true);  /* any reads are from datablocks */
+
 		    if (classes[spClass] != null) {
 			/* Read the data from the stream described by the
 			 * descriptor and store into the matching class.
 			 */
-			setBlockData(true);  /* any reads are from datablocks */
 			ObjectStreamClass localDesc = 
 			    currentClassDesc.localClassDescriptor();
 			if (!invokeObjectReader(currentObject)) {

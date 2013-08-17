@@ -1,13 +1,10 @@
 /*
- * @(#)Window.java	1.138 01/05/24
+ * @(#)Window.java	1.137 01/02/09
  *
  * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 package java.awt;
@@ -82,7 +79,7 @@ import sun.awt.DebugHelper;
  * Windows are capable of generating the following window events:
  * WindowOpened, WindowClosed.
  *
- * @version 	1.138, 05/24/01
+ * @version 	1.137, 02/09/01
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -124,8 +121,6 @@ public class Window extends Container implements Accessible {
      */
     transient Vector ownedWindowList = new Vector();
     private transient WeakReference weakThis;
-
-    private transient boolean showWithParent = false;
 
     transient WindowListener windowListener;
     private transient boolean active = false;   // == true when Window receives WINDOW_ACTIVATED event
@@ -247,8 +242,8 @@ public class Window extends Container implements Accessible {
      * @see       java.lang.SecurityManager#checkTopLevelWindow
      */
     public Window(Frame owner) {
-        this(owner == null ? (GraphicsConfiguration)null :
-		owner.getGraphicsConfiguration());
+        this(owner == null ? (GraphicsConfiguration)null : 
+            owner.getGraphicsConfiguration());
 	ownedInit(owner);
     }
 
@@ -269,8 +264,8 @@ public class Window extends Container implements Accessible {
      * @since     1.2
      */
     public Window(Window owner) {
-        this(owner == null ? (GraphicsConfiguration)null :
-		owner.getGraphicsConfiguration());
+        this(owner == null ? (GraphicsConfiguration)null : 
+            owner.getGraphicsConfiguration());
 	ownedInit(owner);
     }
 
@@ -397,14 +392,6 @@ public class Window extends Container implements Accessible {
 	    toFront();
 	} else {
 	    super.show();
-            for (int i = 0; i < ownedWindowList.size(); i++) {
-                Window child = (Window) (((WeakReference)
-                    (ownedWindowList.elementAt(i))).get());
-                        if ((child != null) && child.showWithParent) {
-                            child.show();
-                            child.showWithParent = false;
-                        }       // endif
-            }   // endfor
 	}
         
         // If first time shown, generate WindowOpened event
@@ -438,11 +425,9 @@ public class Window extends Container implements Accessible {
 	    for (int i = 0; i < ownedWindowList.size(); i++) {
 	        Window child = (Window) (((WeakReference)
 		    (ownedWindowList.elementAt(i))).get());
-                if ((child != null) && child.visible) {
-                    child.hide();
-                    child.showWithParent = true;
-                }
-
+		if (child != null) {
+		    child.hide();
+		}
 	    }
 	}
 	super.hide();

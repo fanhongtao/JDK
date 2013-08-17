@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultCaret.java	1.90 00/02/02
+ * @(#)DefaultCaret.java	1.92 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -88,7 +88,7 @@ import java.util.EventListener;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.90 02/02/00
+ * @version 1.92 02/09/01
  * @see     Caret
  */
 public class DefaultCaret extends Rectangle implements Caret, FocusListener, MouseListener, MouseMotionListener {
@@ -394,6 +394,10 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
 	    try {
 		TextUI mapper = component.getUI();
 		Rectangle r = mapper.modelToView(component, dot, dotBias);
+                x = r.x - 4;
+                y = r.y;
+                width = 10;
+                height = r.height;
 		g.setColor(component.getCaretColor());
 		g.drawLine(r.x, r.y, r.x, r.y + r.height - 1);
 

@@ -1,7 +1,7 @@
 /*
- * @(#)Reference.java	1.4 00/02/02
+ * @(#)Reference.java	1.6 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -50,7 +50,7 @@ import java.util.Enumeration;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.4 00/02/02
+  * @version 1.6 01/02/09
   *
   * @see RefAddr
   * @see StringRefAddr
@@ -75,7 +75,7 @@ public class Reference implements Cloneable, java.io.Serializable {
      */
     protected String className;
     /**
-     * Contains the adddresses contained in this Reference.
+     * Contains the addresses contained in this Reference.
      * Initialized by constructor.
      * @serial
      */
@@ -99,7 +99,7 @@ public class Reference implements Cloneable, java.io.Serializable {
     /**
       * Constructs a new reference for an object with class name 'className'.
       * Class factory and class factory location are set to null.
-      * The newly created reference constains zero addresses.
+      * The newly created reference contains zero addresses.
       *
       * @param className The non-null class name of the object to which
       * this reference refers.
@@ -245,7 +245,7 @@ public class Reference implements Cloneable, java.io.Serializable {
     }
 
     /**
-      * Retrieves the number of adddresses in this reference.
+      * Retrieves the number of addresses in this reference.
       * 
       * @return The nonnegative number of addresses in this reference.
       */

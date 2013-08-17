@@ -1,7 +1,7 @@
 /*
- * @(#)Polygon.java	1.37 00/02/02
+ * @(#)Polygon.java	1.40 01/02/09
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -25,11 +25,19 @@ import sun.awt.geom.Crossings;
  * polygon, and two successive pairs are the endpoints of a 
  * line that is a side of the polygon. The first and final
  * pairs of (<i>x</i>,&nbsp;<i>y</i>) points are joined by a line segment 
- * that closes the polygon.
+ * that closes the polygon.  This <code>Polygon</code> is defined with
+ * an even-odd winding rule.  See
+ * {@link java.awt.geom.PathIterator#WIND_EVEN_ODD WIND_EVEN_ODD}
+ * for a definition of the even-odd winding rule.
+ * This class's hit-testing methods, which include the 
+ * <code>contains</code>, <code>intersects</code> and <code>inside</code>
+ * methods, use the <i>insideness</i> definition described in the 
+ * {@link Shape} class comments.
  *
  * @version     1.26, 07/24/98
  * @author 	Sami Shaio
  * @author      Herb Jellinek
+ * @see Shape
  * @since       JDK1.0
  */
 public class Polygon implements Shape, java.io.Serializable {
@@ -90,6 +98,11 @@ public class Polygon implements Shape, java.io.Serializable {
      *				<code>Polygon</code>
      * @exception  NegativeArraySizeException if the value of
      *                       <code>npoints</code> is negative.
+     * @exception  IndexOutOfBoundsException if <code>npoints</code> is
+     *             greater than the length of <code>xpoints</code>
+     *             or the length of <code>ypoints</code>.
+     * @exception  NullPointerException if <code>xpoints</code> or
+     *             <code>ypoints</code> is <code>null</code>.
      */
     public Polygon(int xpoints[], int ypoints[], int npoints) {
 	this.npoints = npoints;
@@ -212,6 +225,8 @@ public class Polygon implements Shape, java.io.Serializable {
     }
 
     /**
+     * Returns the bounds of this <code>Polygon</code>.
+     * @return the bounds of this <code>Polygon</code>.
      * @deprecated As of JDK version 1.1,
      * replaced by <code>getBounds()</code>.
      */
@@ -224,26 +239,25 @@ public class Polygon implements Shape, java.io.Serializable {
 
     /**
      * Determines whether the specified {@link Point} is inside this 
-     * <code>Polygon</code>.  Uses an even-odd insideness rule (also known
-     * as an alternating rule).
+     * <code>Polygon</code>.
      * @param p the specified <code>Point</code> to be tested
      * @return <code>true</code> if the <code>Polygon</code> contains the
      * 			<code>Point</code>; <code>false</code> otherwise.
+     * @see #contains(double, double)
      */
     public boolean contains(Point p) {
 	return contains(p.x, p.y);
     }
 
     /**
-     * Determines whether the specified coordinates are contained in this 
+     * Determines whether the specified coordinates are inside this 
      * <code>Polygon</code>.   
      * <p>
-     * (The <code>contains</code> method is based on code by 
-     * Hanpeter van Vliet [hvvliet@inter.nl.net].) 
      * @param x,&nbsp;y  the specified coordinates to be tested
      * @return  <code>true</code> if this <code>Polygon</code> contains
      * 			the specified coordinates, (<i>x</i>,&nbsp;<i>y</i>);  
      * 			<code>false</code> otherwise.
+     * @see #contains(double, double)
      * @since      JDK1.1
      */
     public boolean contains(int x, int y) {
@@ -251,6 +265,13 @@ public class Polygon implements Shape, java.io.Serializable {
     }
 
     /**
+     * Determines whether the specified coordinates are contained in this 
+     * <code>Polygon</code>.
+     * @param x,&nbsp;y  the specified coordinates to be tested
+     * @return  <code>true</code> if this <code>Polygon</code> contains
+     * 		the specified coordinates, (<i>x</i>,&nbsp;<i>y</i>);  
+     * 		<code>false</code> otherwise.
+     * @see #contains(double, double)
      * @deprecated As of JDK version 1.1,
      * replaced by <code>contains(int, int)</code>.
      */
@@ -268,11 +289,13 @@ public class Polygon implements Shape, java.io.Serializable {
 	return new Rectangle2D.Float(r.x, r.y, r.width, r.height);
     }
 
+
     /**
-     * Tests if the specified coordinates are inside the boundary of the 
-     * <code>Shape</code>.
+     * Determines whether the specified coordinates are inside this
+     * <code>Polygon</code>.  For the definition of
+     * <i>insideness</i>, see the class comments of {@link Shape}.
      * @param x,&nbsp;y the specified coordinates
-     * @return <code>true</code> if the <code>Shape</code> contains the
+     * @return <code>true</code> if this <code>Polygon</code> contains the
      * specified coordinates; <code>false</code> otherwise.
      */
     public boolean contains(double x, double y) {
@@ -367,6 +390,7 @@ public class Polygon implements Shape, java.io.Serializable {
      * @return <code>true</code> if this <code>Polygon</code> contains the 
      * 		specified <code>Point2D</code>; <code>false</code>
      *          otherwise.
+     * @see #contains(double, double)
      */
     public boolean contains(Point2D p) {
 	return contains(p.getX(), p.getY());
@@ -434,6 +458,7 @@ public class Polygon implements Shape, java.io.Serializable {
      * @return <code>true</code> if this <code>Polygon</code> entirely
      * 			contains the specified <code>Rectangle2D</code>;
      *			<code>false</code> otherwise.
+     * @see contains(double, double, double, double)
      */
     public boolean contains(Rectangle2D r) {
 	return contains(r.getX(), r.getY(), r.getWidth(), r.getHeight());

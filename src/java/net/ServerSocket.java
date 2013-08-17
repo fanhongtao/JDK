@@ -1,5 +1,5 @@
 /*
- * @(#)ServerSocket.java	1.42 00/08/17
+ * @(#)ServerSocket.java	1.42 00/08/16
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -25,7 +25,7 @@ import java.io.FileDescriptor;
  * appropriate to the local firewall. 
  *
  * @author  unascribed
- * @version 1.42, 08/17/00
+ * @version 1.42, 08/16/00
  * @see     java.net.SocketImpl
  * @see     java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
  * @since   JDK1.0

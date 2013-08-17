@@ -1,7 +1,7 @@
 /*
- * @(#)RefAddr.java	1.4 00/02/02
+ * @(#)RefAddr.java	1.6 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -27,7 +27,7 @@ package javax.naming;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.4 00/02/02
+  * @version 1.6 01/02/09
   * 
   * @see Reference
   * @see LinkRef
@@ -112,7 +112,9 @@ public abstract class RefAddr implements java.io.Serializable {
       * @see java.lang.Object#hashCode
       */
     public int hashCode() {
-	return (addrType.hashCode() + getContent().hashCode());
+	return (getContent() == null)
+		? addrType.hashCode()
+		: addrType.hashCode() + getContent().hashCode();
     }
     
     /**
@@ -124,7 +126,7 @@ public abstract class RefAddr implements java.io.Serializable {
     public String toString(){
 	StringBuffer str = new StringBuffer("Type: " + addrType + "\n");
 
-	str.append("Content: " + getContent().toString() + "\n");
+	str.append("Content: " + getContent() + "\n");
 	return (str.toString());
     }
 

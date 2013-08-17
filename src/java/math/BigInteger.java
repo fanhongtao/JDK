@@ -1,19 +1,17 @@
 /*
- * @(#)BigInteger.java	1.38 01/01/23
+ * @(#)BigInteger.java	1.43 01/02/16
  *
  * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 
 package java.math;
 
 import java.util.Random;
+import java.io.*;
 
 /**
  * Immutable arbitrary-precision integers.  All operations behave as if
@@ -70,7 +68,7 @@ import java.util.Random;
  * interpreted similarly.
  *
  * @see     BigDecimal
- * @version 1.36, 04/21/00
+ * @version 1.43, 02/16/01
  * @author  Josh Bloch
  * @author  Michael McCloskey
  * @since JDK1.1
@@ -107,7 +105,6 @@ public class BigInteger extends Number implements Comparable {
      * @serial
      */
     private byte[] magnitude;
-
 
     // These "redundant fields" are initialized with recognizable nonsense
     // values, and cached the first time they are needed (or never, if they
@@ -277,6 +274,7 @@ public class BigInteger extends Number implements Comparable {
      */
     public BigInteger(String val, int radix) {
 	int cursor = 0, numDigits;
+        int len = val.length();
 
 	if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX)
 	    throw new NumberFormatException("Radix out of range");
@@ -293,34 +291,141 @@ public class BigInteger extends Number implements Comparable {
 	}
 
         // Skip leading zeros and compute number of digits in magnitude
-	while (cursor<val.length() &&
+	while (cursor < len &&
                Character.digit(val.charAt(cursor),radix) == 0)
 	    cursor++;
-	if (cursor==val.length()) {
+	if (cursor == len) {
 	    signum = 0;
 	    mag = ZERO.mag;
 	    return;
 	} else {
-	    numDigits = val.length() - cursor;
+	    numDigits = len - cursor;
 	}
 
-	// Process first (potentially short) digit group, if necessary
-	int firstGroupLen = numDigits % digitsPerLong[radix];
+        // Pre-allocate array of expected size. May be too large but can
+        // never be too small. Typically exact.
+        int numBits = (int)(((numDigits * bitsPerDigit[radix]) >>> 10) + 1);
+        int numWords = (numBits + 31) /32;
+        mag = new int[numWords];
+
+	// Process first (potentially short) digit group
+	int firstGroupLen = numDigits % digitsPerInt[radix];
 	if (firstGroupLen == 0)
-	    firstGroupLen = digitsPerLong[radix];
+	    firstGroupLen = digitsPerInt[radix];
 	String group = val.substring(cursor, cursor += firstGroupLen);
-	BigInteger tmp = valueOf(Long.parseLong(group, radix));
-
+        mag[mag.length - 1] = Integer.parseInt(group, radix);
+        
 	// Process remaining digit groups
+        int superRadix = intRadix[radix];
+        int groupVal = 0;
 	while (cursor < val.length()) {
-	    group = val.substring(cursor, cursor += digitsPerLong[radix]);
-	    long groupVal = Long.parseLong(group, radix);
-	    if (groupVal <0)
-		throw new NumberFormatException("Illegal digit");
-	    tmp = tmp.multiply(longRadix[radix]).add(valueOf(groupVal));
+	    group = val.substring(cursor, cursor += digitsPerInt[radix]);
+	    groupVal = Integer.parseInt(group, radix);
+            destructiveMulAdd(mag, superRadix, groupVal);
+	}
+        // Required for cases where the array was overallocated.
+        mag = trustedStripLeadingZeroInts(mag);
+    }
+
+    // Constructs a new BigInteger using a char array with radix=10
+    BigInteger(char[] val) {
+        int cursor = 0, numDigits;
+        int len = val.length;
+
+	// Check for leading minus sign
+	signum = 1;
+	if (val[0] == '-') {
+	    if (len == 1)
+		throw new NumberFormatException("Zero length BigInteger");
+	    signum = -1;
+	    cursor = 1;
 	}
 
-	mag = tmp.mag;
+        // Skip leading zeros and compute number of digits in magnitude
+	while (cursor < len && Character.digit(val[cursor], 10) == 0)
+	    cursor++;
+	if (cursor == len) {
+	    signum = 0;
+	    mag = ZERO.mag;
+	    return;
+	} else {
+	    numDigits = len - cursor;
+	}
+
+        // Pre-allocate array of expected size
+        int numWords;
+        if (len < 10) {
+            numWords = 1;
+        } else {    
+            int numBits = (int)(((numDigits * bitsPerDigit[10]) >>> 10) + 1);
+            numWords = (numBits + 31) /32;
+        }
+        mag = new int[numWords];
+ 
+	// Process first (potentially short) digit group
+	int firstGroupLen = numDigits % digitsPerInt[10];
+	if (firstGroupLen == 0)
+	    firstGroupLen = digitsPerInt[10];
+        mag[mag.length-1] = parseInt(val, cursor,  cursor += firstGroupLen);
+        
+	// Process remaining digit groups
+	while (cursor < len) {
+	    int groupVal = parseInt(val, cursor, cursor += digitsPerInt[10]);
+            destructiveMulAdd(mag, intRadix[10], groupVal);
+	}
+        mag = trustedStripLeadingZeroInts(mag);
+    }
+
+    // Create an integer with the digits between the two indexes
+    // Assumes start < end. The result may be negative, but it
+    // is to be treated as an unsigned value.
+    private int parseInt(char[] source, int start, int end) {
+        int result = Character.digit(source[start++], 10);
+        if (result == -1)
+            throw new NumberFormatException(new String(source));
+
+        for (int index = start; index<end; index++) {
+            int nextVal = Character.digit(source[index], 10);
+            if (nextVal == -1)
+                throw new NumberFormatException(new String(source));
+            result = 10*result + nextVal;
+        }
+
+        return result;
+    }
+
+    // bitsPerDigit in the given radix times 1024
+    // Rounded up to avoid underallocation.
+    private static long bitsPerDigit[] = { 0, 0,
+        1024, 1624, 2048, 2378, 2648, 2875, 3072, 3247, 3402, 3543, 3672,
+        3790, 3899, 4001, 4096, 4186, 4271, 4350, 4426, 4498, 4567, 4633,
+        4696, 4756, 4814, 4870, 4923, 4975, 5025, 5074, 5120, 5166, 5210,
+                                           5253, 5295};
+
+    // Multiply x array times word y in place, and add word z
+    private static void destructiveMulAdd(int[] x, int y, int z) {
+        // Perform the multiplication word by word
+        long ylong = y & LONG_MASK;
+        long zlong = z & LONG_MASK;
+        int len = x.length;
+
+        long product = 0;
+        long carry = 0;
+        for (int i = len-1; i >= 0; i--) {
+            product = ylong * (x[i] & LONG_MASK) + carry;
+            x[i] = (int)product;
+            carry = product >>> 32;
+        }
+
+        // Perform the addition
+        long sum = (x[len-1] & LONG_MASK) + zlong;
+        x[len-1] = (int)sum;
+        carry = sum >>> 32;
+        for (int i = len-2; i >= 0; i--) {
+            sum = (x[i] & LONG_MASK) + carry;
+            x[i] = (int)sum;
+            carry = sum >>> 32;
+        }
     }
 
     /**
@@ -374,7 +479,11 @@ public class BigInteger extends Number implements Comparable {
 
     /**
      * Constructs a randomly generated positive BigInteger that is probably
-     * prime, with the specified bitLength.
+     * prime, with the specified bitLength.<p>
+     *
+     * It is recommended that the probablePrime method be used in preference
+     * to this constructor unless there is a compelling need to specify a
+     * certainty.
      *
      * @param  bitLength bitLength of the returned BigInteger.
      * @param  certainty a measure of the uncertainty that the caller is
@@ -388,54 +497,89 @@ public class BigInteger extends Number implements Comparable {
      * @see    #bitLength
      */
     public BigInteger(int bitLength, int certainty, Random rnd) {
+        BigInteger prime;
+
 	if (bitLength < 2)
 	    throw new ArithmeticException("bitLength < 2");
-        if (bitLength < 95)
-            initToSmallPrime(bitLength, certainty, rnd);
-        else
-            initToLargePrime(bitLength, certainty, rnd);
+        // The cutoff of 95 was chosen empirically for best performance
+        prime = (bitLength < 95 ? smallPrime(bitLength, certainty, rnd)
+                                : largePrime(bitLength, certainty, rnd));
+	signum = 1;
+	mag = prime.mag;
+    }
+
+    /**
+     * Returns a positive BigInteger that is probably prime, with the
+     * specified bitLength. The probability that a BigInteger returned
+     * by this method is composite does not exceed 2<sup>-100</sup>.
+     *
+     * @param  bitLength bitLength of the returned BigInteger.
+     * @param  rnd source of random bits used to select candidates to be
+     *	       tested for primality.
+     * @throws ArithmeticException <tt>bitLength &lt; 2</tt>.
+     * @see    #bitLength
+     */
+    private static BigInteger probablePrime(int bitLength, Random rnd) {
+	if (bitLength < 2)
+	    throw new ArithmeticException("bitLength < 2");
+
+        // The cutoff of 95 was chosen empirically for best performance
+        return (bitLength < 95 ? smallPrime(bitLength, 100, rnd)
+                               : largePrime(bitLength, 100, rnd));
     }
 
     /**
      * Find a random number of the specified bitLength that is probably prime.
+     * This method is used for smaller primes, its performance degrades on
+     * larger bitlengths.
+     *
+     * This method assumes bitLength > 1.
      */
-    private void initToSmallPrime(int bitLength, int certainty, Random rnd) {
+    private static BigInteger smallPrime(int bitLength, int certainty, Random rnd) {
         int magLen = (bitLength + 31) >>> 5;
-        mag = new int[magLen];
-	signum = 1;
+        int temp[] = new int[magLen];
         int highBit = 1 << ((bitLength+31) & 0x1f);  // High bit of high int
         int highMask = (highBit << 1) - 1;  // Bits to keep in high int
 
         while(true) {
             // Construct a candidate
             for (int i=0; i<magLen; i++)
-                mag[i] = rnd.nextInt();
-            mag[0] = (mag[0] & highMask) | highBit;  // Ensure exact length
+                temp[i] = rnd.nextInt();
+            temp[0] = (temp[0] & highMask) | highBit;  // Ensure exact length
             if (bitLength > 2)
-                mag[magLen-1] |= 1;  // Make odd if bitlen > 2
+                temp[magLen-1] |= 1;  // Make odd if bitlen > 2
+
+            BigInteger p = new BigInteger(temp, 1);
 
             // Do cheap "pre-test" if applicable
             if (bitLength > 6) {
-                long r = remainder(smallPrimeProduct).longValue();
+                long r = p.remainder(SMALL_PRIME_PRODUCT).longValue();
                 if ((r%3==0)  || (r%5==0)  || (r%7==0)  || (r%11==0) || 
                     (r%13==0) || (r%17==0) || (r%19==0) || (r%23==0) || 
                     (r%29==0) || (r%31==0) || (r%37==0) || (r%41==0))
                     continue; // Candidate is composite; try another
             }
+            
+            // All candidates of bitLength 2 and 3 are prime by this point
+            if (bitLength < 4)
+                return p;
 
             // Do expensive test if we survive pre-test (or it's inapplicable)
-            if (isProbablePrime(certainty))
-                return;
+            if (p.primeToCertainty(certainty))
+                return p;
         }
     }
 
-    private static BigInteger smallPrimeProduct
+    private static final BigInteger SMALL_PRIME_PRODUCT
                        = valueOf(3*5*7*11*13*17*19*23*29*31*37*41);
 
     /**
-      * Find a random number of the specified bitLength that is probably prime.
+     * Find a random number of the specified bitLength that is probably prime.
+     * This method is more appropriate for larger bitlengths since it uses
+     * a sieve to eliminate most composites before using a more expensive
+     * test.
      */
-    private void initToLargePrime(int bitLength, int certainty, Random rnd) {
+    private static BigInteger largePrime(int bitLength, int certainty, Random rnd) {
         BigInteger p;
         p = new BigInteger(bitLength, rnd).setBit(bitLength-1);
         p.mag[p.mag.length-1] &= 0xfffffffe;
@@ -453,9 +597,200 @@ public class BigInteger extends Number implements Comparable {
             searchSieve = new BitSieve(p, searchLen);
             candidate = searchSieve.retrieve(p, certainty);
         }
+        return candidate;
+    }
 
-	signum = 1;
-	mag = candidate.mag;
+    /**
+     * Returns <tt>true</tt> if this BigInteger is probably prime,
+     * <tt>false</tt> if it's definitely composite.
+     *
+     * This method assumes bitLength > 2.
+     *
+     * @param  certainty a measure of the uncertainty that the caller is
+     *	       willing to tolerate: if the call returns <tt>true</tt>
+     *	       the probability that this BigInteger is prime exceeds
+     *	       <tt>(1 - 1/2<sup>certainty</sup>)</tt>.  The execution time of
+     * 	       this method is proportional to the value of this parameter.
+     * @return <tt>true</tt> if this BigInteger is probably prime,
+     * 	       <tt>false</tt> if it's definitely composite.
+     */
+    boolean primeToCertainty(int certainty) {
+        int rounds = 0;
+        int n = (certainty+1)/2;
+
+        // The relationship between the certainty and the number of rounds
+        // we perform is given in the draft standard ANSI X9.80, "PRIME
+        // NUMBER GENERATION, PRIMALITY TESTING, AND PRIMALITY CERTIFICATES".
+        int sizeInBits = this.bitLength();
+        if (sizeInBits < 100) {
+            rounds = 50;
+            rounds = n < rounds ? n : rounds;
+            return passesMillerRabin(rounds);
+        }
+
+        if (sizeInBits < 256) {
+            rounds = 27;
+        } else if (sizeInBits < 512) {
+            rounds = 15;
+        } else if (sizeInBits < 768) {
+            rounds = 8;
+        } else if (sizeInBits < 1024) {
+            rounds = 4;
+        } else {
+            rounds = 2;
+        }
+        rounds = n < rounds ? n : rounds;
+
+        return passesMillerRabin(rounds) && passesLucasLehmer();
+    }
+
+    /**
+     * Returns true iff this BigInteger is a Lucas-Lehmer probable prime.
+     *
+     * The following assumptions are made:
+     * This BigInteger is a positive, odd number.
+     */
+    private boolean passesLucasLehmer() {
+        BigInteger thisPlusOne = this.add(ONE);
+
+        // Step 1
+        int d = 5;
+        int sign = 1;
+        while (jacobiSymbol(Math.abs(d), this) != -1) {
+            d += 2;
+            sign = -sign;
+        }
+        d = d * sign;
+        
+        // Step 2
+        BigInteger u = lucasLehmerSequence(d, thisPlusOne, this);
+
+        // Step 3
+        return u.mod(this).equals(ZERO);
+    }
+
+    /**
+     * Computes Jacobi(p,n).
+     * Assumes n is positive, odd.
+     */
+    int jacobiSymbol(int p, BigInteger n) {
+        if (p == 0)
+            return 0;
+
+        // Algorithm and comments adapted from Colin Plumb's C library.
+	int j = 1;
+	int u = n.mag[n.mag.length-1];
+
+	// First, get rid of factors of 2 in p
+	while ((p & 3) == 0)
+            p >>= 2;
+	if ((p & 1) == 0) {
+            p >>= 1;
+            if (((u ^ u>>1) & 2) != 0)
+                j = -j;	// 3 (011) or 5 (101) mod 8
+	}
+	if (p == 1)
+	    return j;
+	// Then, apply quadratic reciprocity
+	if ((p & u & 2) != 0)	// p = u = 3 (mod 4)?
+	    j = -j;
+	// And reduce u mod p
+	u = n.mod(BigInteger.valueOf(p)).intValue();
+
+	// Now compute Jacobi(u,p), u < p
+	while (u != 0) {
+            while ((u & 3) == 0)
+                u >>= 2;
+            if ((u & 1) == 0) {
+                u >>= 1;
+                if (((p ^ p>>1) & 2) != 0)
+                    j = -j;	// 3 (011) or 5 (101) mod 8
+            }
+            if (u == 1)
+                return j;
+            // Now both u and p are odd, so use quadratic reciprocity
+            if (u < p) {
+                int t = u; u = p; p = t;
+                if ((u & p & 2)	!= 0)// u = p = 3 (mod 4)?
+                    j = -j;
+            }
+            // Now u >= p, so it can be reduced
+            u %= p;
+	}
+	return 0;
+    }
+
+    private static BigInteger lucasLehmerSequence(int z, BigInteger k, BigInteger n) {
+        BigInteger d = BigInteger.valueOf(z);
+        BigInteger u = ONE; BigInteger u2;
+        BigInteger v = ONE; BigInteger v2;
+
+        for (int i=k.bitLength()-2; i>=0; i--) {
+            u2 = u.multiply(v).mod(n);
+
+            v2 = v.square().add(d.multiply(u.square())).mod(n);
+            if (v2.testBit(0)) {
+                v2 = n.subtract(v2);
+                v2.signum = - v2.signum;
+            }
+            v2 = v2.shiftRight(1);
+
+            u = u2; v = v2;
+            if (k.testBit(i)) {
+                u2 = u.add(v).mod(n);
+                if (u2.testBit(0)) {
+                    u2 = n.subtract(u2);
+                    u2.signum = - u2.signum;
+                }
+                u2 = u2.shiftRight(1);
+                
+                v2 = v.add(d.multiply(u)).mod(n);
+                if (v2.testBit(0)) {
+                    v2 = n.subtract(v2);
+                    v2.signum = - v2.signum;
+                }
+                v2 = v2.shiftRight(1);
+
+                u = u2; v = v2;
+            }
+        }
+        return u;
+    }
+
+    /**
+     * Returns true iff this BigInteger passes the specified number of
+     * Miller-Rabin tests. This test is taken from the DSA spec (NIST FIPS
+     * 186-2).
+     *
+     * The following assumptions are made:
+     * This BigInteger is a positive, odd number greater than 2.
+     * iterations<=50.
+     */
+    private boolean passesMillerRabin(int iterations) {
+	// Find a and m such that m is odd and this == 1 + 2**a * m
+        BigInteger thisMinusOne = this.subtract(ONE);
+	BigInteger m = thisMinusOne;
+	int a = m.getLowestSetBit();
+	m = m.shiftRight(a);
+
+	// Do the tests
+        Random rnd = new Random();
+	for (int i=0; i<iterations; i++) {
+	    // Generate a uniform random on (1, this)
+	    BigInteger b;
+	    do {
+		b = new BigInteger(this.bitLength(), rnd);
+	    } while (b.compareTo(ONE) <= 0 || b.compareTo(this) >= 0);
+
+	    int j = 0;
+	    BigInteger z = b.modPow(m, this);
+	    while(!((j==0 && z.equals(ONE)) || z.equals(thisMinusOne))) {
+		if (j>0 && z.equals(ONE) || ++j==a)
+		    return false;
+		z = z.modPow(TWO, this);
+	    }
+	}
+	return true;
     }
 
     /**
@@ -1051,7 +1386,7 @@ public class BigInteger extends Number implements Comparable {
     /**
      * Returns a BigInteger whose value is <tt>(this mod m</tt>).  This method
      * differs from <tt>remainder</tt> in that it always returns a
-     * <i>positive</i> BigInteger.
+     * <i>non-negative</i> BigInteger.
      *
      * @param  m the modulus.
      * @return <tt>this mod m</tt>
@@ -1203,7 +1538,7 @@ public class BigInteger extends Number implements Comparable {
      * as well as reducing the multiplies.  (It actually doesn't
      * hurt in the case k = 1, either.)
      */
-        // Special case for exponent of oneb
+        // Special case for exponent of one
         if (y.equals(ONE))
             return this;
 
@@ -2035,9 +2370,6 @@ public class BigInteger extends Number implements Comparable {
      * 	       <tt>false</tt> if it's definitely composite.
      */
     public boolean isProbablePrime(int certainty) {
-	/*
-	 * This test is taken from the DSA spec.
-	 */
 	int n = (certainty+1)/2;
 	if (n <= 0)
 	    return true;
@@ -2047,29 +2379,7 @@ public class BigInteger extends Number implements Comparable {
 	if (!w.testBit(0) || w.equals(ONE))
 	    return false;
 
-	// Find a and m such that m is odd and w == 1 + 2**a * m
-	BigInteger m = w.subtract(ONE);
-	int a = m.getLowestSetBit();
-	m = m.shiftRight(a);
-
-	// Do the tests
-        Random rnd = new Random();
-	for(int i=0; i<n; i++) {
-	    // Generate a uniform random on (1, w)
-	    BigInteger b;
-	    do {
-		b = new BigInteger(w.bitLength(), rnd);
-	    } while (b.compareTo(ONE) <= 0 || b.compareTo(w) >= 0);
-
-	    int j = 0;
-	    BigInteger z = b.modPow(m, w);
-	    while(!((j==0 && z.equals(ONE)) || z.equals(w.subtract(ONE)))) {
-		if (j>0 && z.equals(ONE) || ++j==a)
-		    return false;
-		z = z.modPow(TWO, w);
-	    }
-	}
-	return true;
+        return w.primeToCertainty(certainty);
     }
 
     // Comparison Operations
@@ -2197,8 +2507,6 @@ public class BigInteger extends Number implements Comparable {
 
 	return hashCode * signum;
     }
-
-    // Format Converters
 
     /**
      * Returns the String representation of this BigInteger in the given radix.
@@ -2550,6 +2858,23 @@ public class BigInteger extends Number implements Comparable {
 	valueOf(0x211e44f7d02c1000L), valueOf(0x2ee56725f06e5c71L),
 	valueOf(0x41c21cb8e1000000L)};
 
+    /*
+     * These two arrays are the integer analogue of above.
+     */
+    private static int digitsPerInt[] = {0, 0, 30, 19, 15, 13, 11,
+        11, 10, 9, 9, 8, 8, 8, 8, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5};
+
+    private static int intRadix[] = {0, 0,
+        0x40000000, 0x4546b3db, 0x40000000, 0x48c27395, 0x159fd800,
+        0x75db9c97, 0x40000000, 0x17179149, 0x3b9aca00, 0xcc6db61,
+        0x19a10000, 0x309f1021, 0x57f6c100, 0xa2f1b6f,  0x10000000,
+        0x18754571, 0x247dbc80, 0x3547667b, 0x4c4b4000, 0x6b5a6e1d,
+        0x6c20a40,  0x8d2d931,  0xb640000,  0xe8d4a51,  0x1269ae40,
+        0x17179149, 0x1cb91000, 0x23744899, 0x2b73a840, 0x34e63b41,
+        0x40000000, 0x4cfa3cc1, 0x5c13d840, 0x6d91b519, 0x39aa400
+    };
+
     /**
      * These routines provide access to the two's complement representation
      * of BigIntegers.
@@ -2644,7 +2969,7 @@ public class BigInteger extends Number implements Comparable {
 
         // Set "cached computation" fields to their initial values
         bitCount = bitLength = -1;
-        lowestSetBit = firstNonzeroByteNum = -2;
+        lowestSetBit = firstNonzeroByteNum = firstNonzeroIntNum = -2;
 
         // Calculate mag field from magnitude and discard magnitude
 	mag = stripLeadingZeroBytes(magnitude);
@@ -2662,7 +2987,6 @@ public class BigInteger extends Number implements Comparable {
 
 	return this;
     }
-
 
     /**
      * Returns the mag array as an array of bytes.

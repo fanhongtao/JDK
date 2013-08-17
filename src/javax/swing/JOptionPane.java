@@ -1,7 +1,7 @@
 /*
- * @(#)JOptionPane.java	1.58 00/04/06
+ * @(#)JOptionPane.java	1.61 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -257,7 +257,7 @@ import javax.accessibility.*;
  *      attribute: isContainer true
  *    description: A component which implements standard dialog box controls.
  *
- * @version 1.58 04/06/00
+ * @version 1.61 02/09/01
  * @author James Gosling
  * @author Scott Violet
  */
@@ -535,8 +535,8 @@ public class JOptionPane extends JComponent implements Accessible
      * @return an integer indicating the option selected by the user
      */
     public static int showConfirmDialog(Component parentComponent, Object message) {
-        return showConfirmDialog(parentComponent, message, "Select an Option",
-                                 YES_NO_CANCEL_OPTION);
+        return showConfirmDialog(parentComponent, message,
+            UIManager.getString("OptionPane.titleText"), YES_NO_CANCEL_OPTION);
     }
 
     /**
@@ -714,37 +714,12 @@ public class JOptionPane extends JComponent implements Accessible
 
         final JDialog dialog;
 
-
         Window window = JOptionPane.getWindowForComponent(parentComponent);
         if (window instanceof Frame) {
             dialog = new JDialog((Frame)window, title, true);	
         } else {
             dialog = new JDialog((Dialog)window, title, true);
         }		
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         Container             contentPane = dialog.getContentPane();
 
@@ -771,20 +746,7 @@ public class JOptionPane extends JComponent implements Accessible
                    (event.getPropertyName().equals(VALUE_PROPERTY) ||
                     event.getPropertyName().equals(INPUT_VALUE_PROPERTY))) {
                     dialog.setVisible(false);
-
                     dialog.dispose();
-  
-
-
-
-
-
-
-
-
-
-
-
                 }
             }
         });
@@ -867,7 +829,7 @@ public class JOptionPane extends JComponent implements Accessible
     public static int showInternalConfirmDialog(Component parentComponent,
                                                 Object message) {
         return showInternalConfirmDialog(parentComponent, message,
-                                  "Select an Option", YES_NO_CANCEL_OPTION);
+            UIManager.getString("OptionPane.titleText"), YES_NO_CANCEL_OPTION);
     }
 
     /**
@@ -1225,7 +1187,6 @@ public class JOptionPane extends JComponent implements Accessible
      *		or does not have a valid 
      *         	<code>Frame</code> or <code>Dialog</code> parent
      */
-
     static Window getWindowForComponent(Component parentComponent) {
         if (parentComponent == null)
             return getRootFrame();
@@ -1233,7 +1194,6 @@ public class JOptionPane extends JComponent implements Accessible
             return (Window)parentComponent;
         return JOptionPane.getWindowForComponent(parentComponent.getParent());
     }
- 
 
 
     /**

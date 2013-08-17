@@ -1,7 +1,7 @@
 /*
- * @(#)NamingException.java	1.4 00/02/02
+ * @(#)NamingException.java	1.6 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -33,7 +33,7 @@ package javax.naming;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.4 00/02/02
+  * @version 1.6 01/02/09
   * @since 1.3
   */
 
@@ -78,7 +78,7 @@ public class NamingException extends Exception {
     /**
      * Contains the original exception that caused this NamingException to
      * be thrown. This field is set if there is additional
-     * information that that could be obtained from the original
+     * information that could be obtained from the original
      * exception, or if there original exception could not be
      * mapped to a subclass of NamingException.
      * Can be null. This field is initialized by the constructors.

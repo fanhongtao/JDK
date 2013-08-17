@@ -1,5 +1,5 @@
 /*
- * @(#)Intro.java	1.10 00/08/01
+ * @(#)Intro.java	1.11 00/08/21
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -48,7 +48,7 @@ import java.util.Arrays;
 /**
  * Introduction to the Java2Demo.  
  *
- * @version @(#)Intro.java	1.10 00/08/01
+ * @version @(#)Intro.java	1.11 00/08/21
  * @author Brian Lichtenwalter
  */
 public class Intro extends JPanel {
@@ -273,10 +273,10 @@ public class Intro extends JPanel {
 
         public void paint(Graphics g) {
             Dimension d = getSize();
-            if (d.width <= 0 || d.height <= 0) {
-                  return;
-            }
-	    if (bimg == null || bimg.getWidth() != d.width || bimg.getHeight() != d.height) {
+	    if (d.width <= 0 || d.height <= 0) {
+		return;
+	    }
+            if (bimg == null || bimg.getWidth() != d.width || bimg.getHeight() != d.height) {
                 bimg = (BufferedImage) createImage(d.width, d.height);  
                 // reset future scenes
                 for (int i = index+1; i < director.size(); i++) {

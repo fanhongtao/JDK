@@ -1,5 +1,5 @@
 /*
- * @(#)KeyStroke.java	1.37 00/02/02
+ * @(#)KeyStroke.java	1.38 00/07/26
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -43,7 +43,7 @@ import java.io.Serializable;
  * @see javax.swing.text.Keymap
  * @see #getKeyStroke
  *
- * @version 1.37 02/02/00
+ * @version 1.38 07/26/00
  * @author Arnaud Weber
  */
 public class KeyStroke implements Serializable {
@@ -388,6 +388,9 @@ public class KeyStroke implements Serializable {
      * not in the above format.
      */
     public static KeyStroke getKeyStroke(String s) {
+	if (s == null || s.length() == 0) {
+	    return null;
+	}
 	StringTokenizer st = new StringTokenizer(s);
 	String token;
 	int mask = 0;
@@ -431,7 +434,7 @@ public class KeyStroke implements Serializable {
 
  	    /* otherwise token is the keycode name less the "VK_" prefix */
 
-	    String keycodeName = versionMap("VK_" + token);
+	    String keycodeName = "VK_" + token;
 
 	    int keycode;	    
 	    try {
@@ -447,24 +450,6 @@ public class KeyStroke implements Serializable {
 	return null;
     }
 
-    private static String versionMap(String s) {
-	if (!SwingUtilities.is1dot2) {
-	    if (s.equals("VK_KP_UP")) {
-		s = "VK_UP";
-	    }
-	    if (s.equals("VK_KP_DOWN")) {
-		s = "VK_DOWN";
-	    }
-	    if (s.equals("VK_KP_LEFT")) {
-		s = "VK_LEFT";
-	    }
-	    if (s.equals("VK_KP_RIGHT")) {
-		s = "VK_RIGHT";
-	    }
-	}
-
-	return s;
-    }
 
     /*
      * // see getKeyStroke (String)

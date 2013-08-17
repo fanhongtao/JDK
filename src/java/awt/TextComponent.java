@@ -1,7 +1,7 @@
 /*
- * @(#)TextComponent.java	1.62 00/04/06
+ * @(#)TextComponent.java	1.65 01/04/21
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -37,7 +37,7 @@ import javax.accessibility.*;
  * is the target of editing operations. It is also referred
  * to as the <em>selected text</em>.
  *
- * @version	1.62, 04/06/00
+ * @version	1.65, 04/21/01
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -84,6 +84,11 @@ public class TextComponent extends Component implements Accessible {
      */
     int selectionEnd;
 
+    // A flag used to tell whether the background has been set by 
+    // developer code (as opposed to AWT code).  Used to determine 
+    // the background color of non-editable TextComponents.  
+    boolean backgroundSetByClientCode = false; 
+
     /**
      * true if this TextComponent has access to the System clipboard
      */
@@ -108,23 +113,48 @@ public class TextComponent extends Component implements Accessible {
     TextComponent(String text) {
 	this.text = (text != null) ? text : "";
 	setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-	enableInputMethodsIfNecessary();
 	checkSystemClipboardAccess();
     }
 
     private void enableInputMethodsIfNecessary() {
-	try {
-            Toolkit toolkit = Toolkit.getDefaultToolkit();
-            enableInputMethods(((SunToolkit) toolkit).enableInputMethodsForTextComponent());
-        } catch (Exception e) {
-            // if something bad happens, just don't enable input methods
-	}
+	if (checkForEnableIM) {
+            checkForEnableIM = false;
+	    try {
+                Toolkit toolkit = Toolkit.getDefaultToolkit();
+                enableInputMethods(((SunToolkit) toolkit).enableInputMethodsForTextComponent());
+            } catch (Exception e) {
+                // if something bad happens, just don't enable input methods
+	    }
+        }
+    }
+
+    public void enableInputMethods(boolean enable) {
+        checkForEnableIM = false;
+        super.enableInputMethods(enable);
     }
 
     boolean areInputMethodsEnabled() {
+        // moved from the constructor above to here and addNotify below, 
+        // this call will initialize the toolkit if not already initialized.
+        if (checkForEnableIM) {
+            enableInputMethodsIfNecessary(); 
+        }
+
         // TextComponent handles key events without touching the eventMask or
         // having a key listener, so just check whether the flag is set
         return (eventMask & AWTEvent.INPUT_METHODS_ENABLED_MASK) != 0;
+    }
+
+    /**
+     * Makes this Component displayable by connecting it to a
+     * native screen resource.
+     * This method is called internally by the toolkit and should
+     * not be called directly by programs.
+     * @see       java.awt.TextComponent#removeNotify
+     */  
+    public void addNotify() {
+        super.addNotify();
+        enableInputMethodsIfNecessary();
     }
 
     /**
@@ -200,10 +230,14 @@ public class TextComponent extends Component implements Accessible {
      * If the flag is set to <code>true</code>, this text component 
      * becomes user editable. If the flag is set to <code>false</code>, 
      * the user cannot change the text of this text component. 
+     * By default, non-editable text components have a background color 
+     * of SystemColor.control.  This default can be overridden by 
+     * calling setBackground. 
+     *
      * @param     b   a flag indicating whether this text component 
      *                      is user editable.
      * @see       java.awt.TextComponent#isEditable
-     * @since      JDK1.0
+     * @since     JDK1.0
      */
     public synchronized void setEditable(boolean b) {
         if (editable == b) {
@@ -219,14 +253,19 @@ public class TextComponent extends Component implements Accessible {
 
     /**
      * Gets the background color of this text component.
+     * 
+     * By default, non-editable text components have a background color 
+     * of SystemColor.control.  This default can be overridden by 
+     * calling setBackground. 
+     * 
      * @return This text component's background color.
-     * If this text component does not have a background color,
-     * the background color of its parent is returned.
+     *         If this text component does not have a background color,
+     *         the background color of its parent is returned.
      * @see setBackground
      * @since JDK1.0
      */
     public Color getBackground() {
-        if (!editable) {
+        if (!editable && !backgroundSetByClientCode) {
             return SystemColor.control;
         }
 
@@ -235,6 +274,7 @@ public class TextComponent extends Component implements Accessible {
 
     /**
      * Sets the background color of this text component.
+     * 
      * @param c The color to become this text component's color.
      *        If this parameter is null then this text component
      *        will inherit the background color of its parent.
@@ -242,11 +282,7 @@ public class TextComponent extends Component implements Accessible {
      * @since JDK1.0
      */
     public void setBackground(Color c) {
-        if (!editable) {
-            background = c;
-            return;
-        }
-
+        backgroundSetByClientCode = true;
         super.setBackground(c);
     }
 
@@ -1016,4 +1052,6 @@ public class TextComponent extends Component implements Accessible {
             }
         }
     }  // end of AccessibleAWTTextComponent
+
+    private boolean checkForEnableIM = true;
 }

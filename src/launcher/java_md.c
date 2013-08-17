@@ -69,6 +69,32 @@ GetJVMPath(const char *jrepath, const char *jvmtype,
 }
 
 /*
+ * If the target VM is a symbolic link to another valid VM, return a pointer
+ * to the name of that VM.  If the target VM is a link to something else
+ * (not to be documented?) return an empty string.  Otherwise return NULL.
+ */
+
+const char *
+ReadJVMLink(const char *jrepath, const char *jvmtype,
+	    char* knownVMs[], int knownVMsCount) {
+    char jvmpath[MAXPATHLEN];
+    char link[MAXPATHLEN];
+    int i;
+
+    sprintf(jvmpath, "%s/lib/%s/%s", jrepath, GetArch(), jvmtype);
+    if (debug) printf("Is `%s' a symbolic link ... ", jvmpath);
+    if (readlink(jvmpath, link, sizeof link) == -1)
+	return NULL;				/* Not a link. */
+
+    for (i = 0; i < knownVMsCount; ++i) {
+	if (strcmp(link, knownVMs[i]+1))
+	    return knownVMs[i] + 1;		/* Return the link. */
+    }
+    return "";					/* Don't know, don't document.*/
+}
+
+
+/*
  * Find path to JRE based on .exe's location or registry settings.
  */
 jboolean
@@ -108,7 +134,7 @@ LoadJavaVM(const char *jvmpath, InvocationFunctions *ifn)
 	printf("JVM path is %s\n", jvmpath);
     }
 
-    libjvm = dlopen(jvmpath, RTLD_NOW);
+    libjvm = dlopen(jvmpath, RTLD_NOW + RTLD_GLOBAL);
     if (libjvm == NULL)
 	goto error;
 

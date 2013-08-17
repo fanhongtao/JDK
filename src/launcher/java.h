@@ -1,11 +1,11 @@
 /*
- * @(#)java.h	1.12 00/02/02
+ * @(#)java.h	1.15 00/07/19
  *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Copyright 2000 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2000 Sun Microsystems, Inc. Tous droits réservés.
+ *
+ * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
- * 
  */
 
 #ifndef _JAVA_H_
@@ -34,6 +34,10 @@ typedef struct {
 jboolean
 GetJVMPath(const char *jrepath, const char *jvmtype,
 	   char *jvmpath, jint jvmpathsize);
+
+const char *
+ReadJVMLink(const char *jrepath, const char *jvmtype,
+	    char* knownVMs[], int knownVMsCount);
 
 jboolean
 GetJREPath(char *path, jint pathsize);

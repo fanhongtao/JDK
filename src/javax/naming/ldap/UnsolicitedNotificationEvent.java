@@ -1,7 +1,7 @@
 /*
- * @(#)UnsolicitedNotificationEvent.java	1.4 00/02/02
+ * @(#)UnsolicitedNotificationEvent.java	1.6 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -17,7 +17,7 @@ package javax.naming.ldap;
  * @author Rosanna Lee
  * @author Scott Seligman
  * @author Vincent Ryan
- * @version 1.4 00/02/02
+ * @version 1.6 01/02/09
  *
  * @see UnsolicitedNotification
  * @see UnsolicitedNotificationListener
@@ -49,7 +49,7 @@ public class UnsolicitedNotificationEvent extends java.util.EventObject {
 
     /**
      * Returns the unsolicited notification.
-     * @return The non-null unsolicitied notification that caused this
+     * @return The non-null unsolicited notification that caused this
      * event to be fired.
      */
     public UnsolicitedNotification getNotification() {

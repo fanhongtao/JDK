@@ -1,7 +1,7 @@
 /*
- * @(#)Socket.java	1.53 00/02/02
+ * @(#)Socket.java	1.55 01/02/09
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -29,7 +29,7 @@ import java.security.PrivilegedExceptionAction;
  * firewall.
  *
  * @author  unascribed
- * @version 1.53, 02/02/00
+ * @version 1.55, 02/09/01
  * @see     java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
  * @see     java.net.SocketImpl
  * @since   JDK1.0
@@ -559,7 +559,7 @@ class Socket {
      */
     public synchronized void setReceiveBufferSize(int size)
     throws SocketException{
-	if (size < 0) {
+	if (size <= 0) {
 	    throw new IllegalArgumentException("invalid receive size");
 	}
 	impl.setOption(SocketOptions.SO_RCVBUF, new Integer(size));

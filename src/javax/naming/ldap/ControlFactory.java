@@ -1,7 +1,7 @@
 /*
- * @(#)ControlFactory.java	1.5 00/02/02
+ * @(#)ControlFactory.java	1.8 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -30,7 +30,7 @@ import com.sun.naming.internal.ResourceManager;
   * @author Rosanna Lee
   * @author Scott Seligman
   * @author Vincent Ryan
-  * @version 1.5 00/02/02
+  * @version 1.8 01/02/09
   *
   * @see Control
   * @since 1.3
@@ -74,7 +74,7 @@ public abstract class ControlFactory {
       *
       * @return A possibly null Control.
       * @exception NamingException If <tt>ctl</tt> contains invalid data that prevents it
-      * from being used to create a control. A factory should only thrown 
+      * from being used to create a control. A factory should only throw 
       * an exception if it knows how to produce the control (identified by the OID)
       * but is unable to because of, for example invalid BER data. 
       */
@@ -96,7 +96,7 @@ public abstract class ControlFactory {
       *    return <code>ctl</code>.
       *    If an exception is encountered while creating the control, the
       *    exception is passed up to the caller.
-      *</ol>
+      *</ul>
       * <p>
       * Note that a control factory
       * must be public and must have a public constructor that accepts no arguments.
@@ -115,7 +115,7 @@ public abstract class ControlFactory {
       *		exception, it is propagated up to the caller.
       * If an error was encountered while loading
       *	and instantiating the factory and object classes, the exception
-      * is wrapped inside a <tt>NamingException</tt> is rethrown.
+      * is wrapped inside a <tt>NamingException</tt> and then rethrown.
       */
     public static Control getControlInstance(Control ctl, Context ctx, 
 	Hashtable env) 

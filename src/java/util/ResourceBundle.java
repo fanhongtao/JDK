@@ -1,7 +1,7 @@
 /*
- * @(#)ResourceBundle.java	1.57 00/01/19
+ * @(#)ResourceBundle.java	1.59 01/02/09
  *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -624,8 +624,11 @@ abstract public class ResourceBundle {
                 root = NOTFOUND;
             }
 
-            //search the main branch of the search tree
+            // Search the main branch of the search tree.
+            // We need to keep references to the bundles we find on the main path
+            // so they don't get garbage collected before we get to propagate().
             final Vector names = calculateBundleNames(baseName, locale);
+            Vector bundlesFound = new Vector(MAX_BUNDLES_SEARCHED);
 	    // if we found the root bundle and no other bundle names are needed
 	    // we can stop here. We don't need to search or load anything further.
             boolean foundInMainBranch = (root != NOTFOUND && names.size() == 0);
@@ -635,6 +638,7 @@ abstract public class ResourceBundle {
 	      for (int i = 0; i < names.size(); i++) {
                 bundleName = (String)names.elementAt(i);
                 lookup = findBundle(loader, bundleName, baseName, parent, NOTFOUND);
+                bundlesFound.addElement(lookup);
                 if (lookup != null) {
                     parent = lookup;
                     foundInMainBranch = true;
@@ -662,7 +666,7 @@ abstract public class ResourceBundle {
                 }
             }
             //propagate the inheritance/fallback down through the main branch
-            parent = propagate(loader, names, parent);
+            parent = propagate(loader, names, bundlesFound, parent);
         } catch (Exception e) {
             //We should never get here unless there has been a change
             //to the code that doesn't catch it's own exceptions.
@@ -685,13 +689,14 @@ abstract public class ResourceBundle {
      * propagate bundles from the root down the specified branch of the search tree.
      * @param loader the class loader for the bundles
      * @param names the names of the bundles along search path
+     * @param bundlesFound the bundles corresponding to the names (some may be null)
      * @parent the parent of the first bundle in the path (the root bundle)
      * @return the value of the last bundle along the path
      */
-    private static Object propagate(ClassLoader loader, Vector names, Object parent) {
+    private static Object propagate(ClassLoader loader, Vector names, Vector bundlesFound, Object parent) {
         for (int i = 0; i < names.size(); i++) {
             final String bundleName = (String)names.elementAt(i);
-            final Object lookup = findBundleInCache(loader, bundleName);
+            final Object lookup = bundlesFound.elementAt(i);
             if (lookup == null) {
                 putBundleInCache(loader, bundleName, parent);
             } else {

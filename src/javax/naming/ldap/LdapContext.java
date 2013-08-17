@@ -1,7 +1,7 @@
 /*
- * @(#)LdapContext.java	1.6 00/02/02
+ * @(#)LdapContext.java	1.8 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -94,7 +94,7 @@ import java.util.Hashtable;
  * <li>ldapContext.reconnect(<strong>connCtls</strong>);
  * </tt>
  * </ol>
- * where <tt>referralException</tt> is an instance of
+ * where <tt>refException</tt> is an instance of
  * <tt>LdapReferralException</tt>, and <tt>ldapContext</tt> is an
  * instance of <tt>LdapContext</tt>.
  * Specifying <tt>null</tt> or an empty array for <tt>connCtls</tt>
@@ -155,7 +155,7 @@ import java.util.Hashtable;
  * @author Rosanna Lee
  * @author Scott Seligman
  * @author Vincent Ryan
- * @version 1.6 00/02/02
+ * @version 1.8 01/02/09
  *
  * @see InitialLdapContext
  * @see LdapReferralException#getReferralContext(java.util.Hashtable,javax.naming.ldap.Control[])

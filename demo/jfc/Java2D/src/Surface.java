@@ -1,5 +1,5 @@
 /*
- * @(#)Surface.java	1.40 99/11/05
+ * @(#)Surface.java	1.41 00/06/19
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -65,6 +65,7 @@ public abstract class Surface extends JPanel implements Printable {
     private boolean perfMonitor, outputPerf;
     private int biw, bih;
     private boolean clearOnce;
+    private boolean toBeInitialized = true;
 
 
     public Surface() {
@@ -172,6 +173,10 @@ public abstract class Surface extends JPanel implements Printable {
             bi = createBinaryImage(w, h, 2);
         } else if (imgType == 15) {
             bi = createBinaryImage(w, h, 4);
+        } else if (imgType == 16) {
+            bi = createSGISurface(w, h, 32);
+        } else if (imgType == 17) {
+            bi = createSGISurface(w, h, 16);
         }
         biw = w;
         bih = h;
@@ -189,8 +194,6 @@ public abstract class Surface extends JPanel implements Printable {
 
 
     private BufferedImage createBinaryImage(int w, int h, int pixelBits) {
-
-       int[] pixels = new int[w*h];
        int bytesPerRow = w * pixelBits / 8;
        if (w * pixelBits % 8 != 0) {
            bytesPerRow++;
@@ -219,6 +222,40 @@ public abstract class Surface extends JPanel implements Printable {
        return new BufferedImage(cm, r, false, null);
     }
 
+    private BufferedImage createSGISurface(int w, int h, int pixelBits) {
+       int rMask32 = 0xFF000000;
+       int rMask16 = 0xF800;
+       int gMask32 = 0x00FF0000;
+       int gMask16 = 0x07C0;
+       int bMask32 = 0x0000FF00;
+       int bMask16 = 0x003E;
+
+       DirectColorModel dcm = null;
+       DataBuffer db = null;
+       WritableRaster wr = null;
+       switch (pixelBits) {
+       case 16:
+	   short[] imageDataUShort = new short[w * h];
+	   dcm = new DirectColorModel(16, rMask16, gMask16, bMask16);
+	   db = new DataBufferUShort(imageDataUShort, imageDataUShort.length);
+	   wr = Raster.createPackedRaster(db, w, h, w, 
+					  new int[] {rMask16, gMask16, bMask16},
+					  null);
+	   break;
+       case 32:
+	   int[] imageDataInt = new int[w * h];
+	   dcm = new DirectColorModel(32, rMask32, gMask32, bMask32);
+	   db = new DataBufferInt(imageDataInt, imageDataInt.length);
+	   wr = Raster.createPackedRaster(db, w, h, w, 
+					  new int[] {rMask32, gMask32, bMask32},
+					  null);
+	   break;
+       default:
+	   {new Exception("Invalid # of bit per pixel").printStackTrace();}
+       }
+       
+       return new BufferedImage(dcm, wr, false, null);
+    }
 
     public Graphics2D createGraphics2D(int width, 
                                        int height, 
@@ -288,15 +325,18 @@ public abstract class Surface extends JPanel implements Printable {
 
         Dimension d = getSize();
 
-        if (imageType == 1) {
+        if (imageType == 1)
             bimg = null;
-            startClock();
-        } else if (bimg == null || biw != d.width || bih != d.height) {
-            if (animating != null && (biw != d.width || bih != d.height)) {
-                animating.reset(d.width, d.height);
-            }
+        else if (bimg == null || biw != d.width || bih != d.height) {
             bimg = createBufferedImage(d.width, d.height, imageType-2);
             clearOnce = true;
+            toBeInitialized = true;
+        }
+
+        if (toBeInitialized) {
+            if (animating != null)
+              animating.reset(d.width, d.height);
+            toBeInitialized = false;
             startClock();
         }
 
@@ -350,9 +390,10 @@ public abstract class Surface extends JPanel implements Printable {
     }
 
 
-    private void startClock() {
+    public void startClock() {
         orig = System.currentTimeMillis();
         start = orig;
+	frame = 0;
     }
 
     private static final int REPORTFRAMES = 30;

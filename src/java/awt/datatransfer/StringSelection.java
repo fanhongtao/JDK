@@ -1,7 +1,7 @@
 /*
- * @(#)StringSelection.java	1.10 00/02/02
+ * @(#)StringSelection.java	1.14 01/02/09
  *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -62,12 +62,16 @@ public class StringSelection implements Transferable, ClipboardOwner {
      * Returns whether the requested flavor is supported by this Transferable.
      *
      * @param flavor the requested flavor for the data
-     * @return true if flavor is equal to <code>DataFlavor.stringFlavor</code>
-     *         or <code>DataFlavor.plainTextFlavor</code>, false otherwise.
+     * @return true if <code>flavor</code> is equal to
+     *   <code>DataFlavor.stringFlavor</code> or
+     *   <code>DataFlavor.plainTextFlavor</code>; false if <code>flavor</code>
+     *   is not one of the above flavors
+     * @throws NullPointerException if flavor is <code>null</code>
      */
     public boolean isDataFlavorSupported(DataFlavor flavor) {
+	// JCK Test StringSelection0003: if 'flavor' is null, throw NPE
         for (int i = 0; i < flavors.length; i++) {
-	    if (flavors[i].equals(flavor)) {
+	    if (flavor.equals(flavors[i])) {
 	        return true;
 	    }
 	}
@@ -89,11 +93,16 @@ public class StringSelection implements Transferable, ClipboardOwner {
      * @throws UnsupportedFlavorException if the requested data flavor is
      *         not equivalent to either <code>DataFlavor.stringFlavor</code>
      *         or <code>DataFlavor.plainTextFlavor</code>.
+     * @throws IOException if an IOException occurs while retrieving the data.
+     *         By default, StringSelection never throws this exception, but a
+     *         subclass may.
+     * @throws NullPointerException if flavor is <code>null</code>
      * @see java.io.Reader
      */
     public Object getTransferData(DataFlavor flavor)
         throws UnsupportedFlavorException, IOException
     {
+	// JCK Test StringSelection0007: if 'flavor' is null, throw NPE
 	if (flavor.equals(flavors[STRING])) {
 	    return (Object)data;
 	} else if (flavor.equals(flavors[PLAIN_TEXT])) {

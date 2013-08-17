@@ -1,7 +1,7 @@
 /*
- * @(#)ButtonDemo.java	1.4 99/11/08
+ * @(#)ButtonDemo.java	1.6 01/04/21
  *
- * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1997-2001 by Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -48,7 +48,7 @@ import java.net.*;
 /**
  * JButton, JRadioButton, JToggleButton, JCheckBox Demos
  *
- * @version 1.4 11/08/99
+ * @version 1.6 04/21/01
  * @author Jeff Dinkins
  */
 public class ButtonDemo extends DemoModule implements ChangeListener {
@@ -152,6 +152,7 @@ public class ButtonDemo extends DemoModule implements ChangeListener {
 	button.setBorderPainted(false);
 	button.setContentAreaFilled(false);
 	button.setMargin(new Insets(0,0,0,0));
+        button.getAccessibleContext().setAccessibleName(description);
 	p3.add(button);
 	buttons.add(button);
 	p3.add(Box.createRigidArea(HGAP10));
@@ -166,6 +167,7 @@ public class ButtonDemo extends DemoModule implements ChangeListener {
 	button.setBorderPainted(false);
 	button.setContentAreaFilled(false);
 	button.setMargin(new Insets(0,0,0,0));
+        button.getAccessibleContext().setAccessibleName(description);
 	p3.add(button);
 	buttons.add(button);
 	p3.add(Box.createRigidArea(HGAP10));
@@ -180,6 +182,7 @@ public class ButtonDemo extends DemoModule implements ChangeListener {
 	button.setBorderPainted(false);
 	button.setContentAreaFilled(false);
 	button.setMargin(new Insets(0,0,0,0));
+        button.getAccessibleContext().setAccessibleName(description);
 	p3.add(button);
 	buttons.add(button);
 

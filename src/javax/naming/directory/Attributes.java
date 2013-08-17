@@ -1,7 +1,7 @@
 /*
- * @(#)Attributes.java	1.5 00/02/02
+ * @(#)Attributes.java	1.7 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -42,7 +42,7 @@ import javax.naming.NamingEnumeration;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.5 00/02/02
+  * @version 1.7 01/02/09
   *
   * @see DirContext#getAttributes
   * @see DirContext#modifyAttributes
@@ -146,7 +146,7 @@ public interface Attributes extends Cloneable, java.io.Serializable {
       * 		If the attribute set ignores the character
       *		  	case of its attribute ids, the case of 
       *               	attrID is ignored.
-      * @return The Attribute with the same ID as attr that was previous 
+      * @return The Attribute with the same ID as attrID that was previous 
       * 	in the attribute set;
       * 	null if no such attribute existed.
       */

@@ -1,7 +1,7 @@
 /*
- * @(#)DirObjectFactory.java	1.5 00/02/02
+ * @(#)DirObjectFactory.java	1.7 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -39,7 +39,7 @@ import javax.naming.directory.Attributes;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.5 00/02/02
+  * @version 1.7 01/02/09
   *
   * @see NamingManager#getObjectInstance
   * @see DirectoryManager#getObjectInstance
@@ -72,7 +72,8 @@ public interface DirObjectFactory extends ObjectFactory {
  * should be tried.
  * If this factory cannot create an object using the arguments supplied,
  * it should return null. 
-  *<p>Since <tt>DirObjectFactory</tt> extends <tt>ObjectFactory</tt>, it effectly
+  *<p>Since <tt>DirObjectFactory</tt> extends <tt>ObjectFactory</tt>, it 
+  * effectively
   * has two <tt>getObjectInstance()</tt> methods, where one differs from the other by
   * the attributes argument. Given a factory that implements <tt>DirObjectFactory</tt>,
   * <tt>DirectoryManager.getObjectInstance()</tt> will only

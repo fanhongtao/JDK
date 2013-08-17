@@ -1,7 +1,7 @@
 /*
- * @(#)GraphicsDevice.java	1.19 00/02/02
+ * @(#)GraphicsDevice.java	1.21 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -48,7 +48,7 @@ package java.awt;
  * </pre>                           
  * @see GraphicsEnvironment
  * @see GraphicsConfiguration
- * @version 1.19, 02/02/00
+ * @version 1.21, 02/09/01
  */
 public abstract class GraphicsDevice {
     /**
@@ -90,6 +90,21 @@ public abstract class GraphicsDevice {
     /**
      * Returns the identification string associated with this 
      * <code>GraphicsDevice</code>.
+     * <p>
+     * A particular program might use more than one 
+     * <code>GraphicsDevice</code> in a <code>GraphicsEnvironment</code>.
+     * This method returns a <code>String</code> identifying a
+     * particular <code>GraphicsDevice</code> in the local
+     * <code>GraphicsEnvironment</code>.  Although there is
+     * no public method to set this <code>String</code>, a programmer can
+     * use the <code>String</code> for debugging purposes.  Vendors of 
+     * the Java<sup><font size=-2>TM</font></sup> Runtime Environment can
+     * format the return value of the <code>String</code>.  To determine 
+     * how to interpret the value of the <code>String</code>, contact the
+     * vendor of your Java Runtime.  To find out who the vendor is, from
+     * your program, call the 
+     * {@link System#getProperty(String) getProperty} method of the
+     * System class with "java.vendor".
      * @return a <code>String</code> that is the identification
      * of this <code>GraphicsDevice</code>.
      */

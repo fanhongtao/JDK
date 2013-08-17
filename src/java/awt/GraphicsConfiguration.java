@@ -1,7 +1,7 @@
 /*
- * @(#)GraphicsConfiguration.java	1.26 00/02/02
+ * @(#)GraphicsConfiguration.java	1.28 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -18,11 +18,12 @@ import java.awt.image.ColorModel;
  * The <code>GraphicsConfiguration</code> class describes the
  * characteristics of a graphics destination such as a printer or monitor.
  * There can be many <code>GraphicsConfiguration</code> objects associated
- * with a single graphics device.  For example, on X11 windowing systems,
- * each visual is a different <code>GraphicsConfiguration</code>.  On PCs
- * and Macintoshes, the different screen resolution/color resolution
- * combinations would be different <code>GraphicsConfiguration</code>
- * objects.
+ * with a single graphics device, representing different drawing modes or
+ * capabilities.  The corresponding native structure will vary from platform
+ * to platform.  For example, on X11 windowing systems,
+ * each visual is a different <code>GraphicsConfiguration</code>.  
+ * On win32, <code>GraphicsConfiguration</code>s represent PixelFormats 
+ * available in the current resolution and color depth. 
  * <p>
  * In a virtual device multi-screen environment in which the desktop
  * area could span multiple physical screen devices, the bounds of the 
@@ -78,7 +79,7 @@ import java.awt.image.ColorModel;
  * capabilities and checking if the GraphicsConfiguration
  * implements the interface for that capability.
  *
- * @version 1.26, 02/02/00
+ * @version 1.28, 02/09/01
  */
 
 

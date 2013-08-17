@@ -1,13 +1,10 @@
 /*
- * @(#)BasicLookAndFeel.java	1.161 01/01/23
+ * @(#)BasicLookAndFeel.java	1.159 00/02/02
  *
- * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 
@@ -51,7 +48,7 @@ import javax.swing.text.DefaultEditorKit;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.160 11/27/00
+ * @version 1.159 02/02/00
  * @author unattributed
  */
 public abstract class BasicLookAndFeel extends LookAndFeel implements Serializable
@@ -772,19 +769,6 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "PopupMenu.background", table.get("menu"),
 	    "PopupMenu.foreground", table.get("menuText"),
 	    "PopupMenu.border", raisedBevelBorder,
-	    "PopupMenu.selectedWindowInputMapBindings", new Object[] {
-		  "ESCAPE", "cancel",
-                    "DOWN", "selectNext",
-		 "KP_DOWN", "selectNext",
-		      "UP", "selectPrevious",
-		   "KP_UP", "selectPrevious",
-		    "LEFT", "selectParent",
-		 "KP_LEFT", "selectParent",
-		   "RIGHT", "selectChild",
-		"KP_RIGHT", "selectChild",
-		   "ENTER", "return",
-		   "SPACE", "return"
-	    },
 
 	    // *** OptionPane
 	    "OptionPane.font", dialogPlain12,

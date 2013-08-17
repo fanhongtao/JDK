@@ -1,7 +1,7 @@
 /*
- * @(#)ExtendedRequest.java	1.5 00/02/02
+ * @(#)ExtendedRequest.java	1.7 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -36,8 +36,8 @@ import javax.naming.NamingException;
   *<blockquote><pre>
   * public class GetTimeRequest implements ExtendedRequest {
   *     public GetTimeRequest() {... };
-  *     ExtendedResponse createExtendedResponse(String id, byte[] berValue, 
-  * 					int offset, int length) 
+  *     public ExtendedResponse createExtendedResponse(String id, 
+  * 	    byte[] berValue, int offset, int length) 
   *	    throws NamingException {
   *         return new GetTimeResponse(id, berValue, offset, length);
   *     }
@@ -45,8 +45,8 @@ import javax.naming.NamingException;
   * }
   * public class GetTimeResponse implements ExtendedResponse {
   *     long time;
-  *     GetTimeResponse(String id, byte[] berValue, int offset, int length) 
-  *         throws NamingException {
+  *     public GetTimeResponse(String id, byte[] berValue, int offset, 
+  * 	    int length) throws NamingException {
   *         time =	... // decode berValue to get time
   *     }
   *     public java.util.Date getDate() { return new java.util.Date(time) };
@@ -64,7 +64,7 @@ import javax.naming.NamingException;
   * @author Rosanna Lee
   * @author Scott Seligman
   * @author Vincent Ryan
-  * @version 1.5 00/02/02
+  * @version 1.7 01/02/09
   *
   * @see ExtendedResponse
   * @see LdapContext#extendedOperation

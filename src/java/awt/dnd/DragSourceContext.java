@@ -1,7 +1,7 @@
 /*
- * @(#)DragSourceContext.java	1.39 00/02/02
+ * @(#)DragSourceContext.java	1.42 01/04/30
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -56,7 +56,7 @@ import java.util.TooManyListenersException;
  * <code>DragSourceListener</code> provided by 
  * the initiator of the operation.
  *
- * @version 1.39, 02/02/00
+ * @version 1.42, 04/30/01
  * @since 1.2
  */
 
@@ -93,34 +93,31 @@ public class DragSourceContext implements DragSourceListener {
     protected static final int CHANGED = 3;
 	
     /**
-     * Called from <code>DragSource</code>, this 
-     * constructor creates 
-     * a new <code>DragSourceContext</code> given the 
-     * <code>DragSourceContextPeer</code> for this Drag, 
-     * the <code>DragGestureEvent</code> that triggered the Drag, 
-     * the initial <code>Cursor</code> to use for the Drag, an (optional) 
-     * <code>Image</code> to display while the Drag is taking place, 
-     * the offset of the <code>Image</code> origin from the 
-     * hotspot at the instant of the triggering event, 
-     * the <code>Transferable</code> subject data, and the 
-     * <code>DragSourceListener</code> to use during the Drag and 
-     * Drop operation. This constructor is called 
-     * from <code>DragSource.</code>
-     * <P>
-     * @param dscp	 The <code>DragSourceContextPeer</code> for this drag
-     * @param trigger	 The triggering event
-     * @param dragCursor The initial <code>Cursor</code> 
-     * @param dragImage  The <code>Image</code> to drag (or <code>null</code>)
-     * @param offset	 The offset of the image origin from the hotspot
-     *			 at the instant of the triggering event
-     * @param t		 The <code>Transferable</code>
-     * @param dsl	 The <code>DragSourceListener</code>
-     * <P>
+     * Called from <code>DragSource</code>, this constructor creates a new
+     * <code>DragSourceContext</code> given the
+     * <code>DragSourceContextPeer</code> for this Drag, the
+     * <code>DragGestureEvent</code> that triggered the Drag, the initial
+     * <code>Cursor</code> to use for the Drag, an (optional)
+     * <code>Image</code> to display while the Drag is taking place, the offset
+     * of the <code>Image</code> origin from the hotspot at the instant of the
+     * triggering event, the <code>Transferable</code> subject data, and the 
+     * <code>DragSourceListener</code> to use during the Drag and Drop
+     * operation.
+     *
+     * @param dscp       the <code>DragSourceContextPeer</code> for this drag
+     * @param trigger    the triggering event
+     * @param dragCursor the initial <code>Cursor</code> 
+     * @param dragImage  the <code>Image</code> to drag (or <code>null</code>)
+     * @param offset     the offset of the image origin from the hotspot at the
+     *                   instant of the triggering event
+     * @param t          the <code>Transferable</code>
+     * @param dsl        the <code>DragSourceListener</code>
+     *
      * @throws IllegalArgumentException if trigger instance is incomplete
-     * @throws NullPointerException if dscp, dsl, trigger, or t are null
+     * @throws NullPointerException if dscp, dsl, trigger, or t are null, or
+     *         if dragImage is non-null and offset is null
      */
- 
-    public DragSourceContext(DragSourceContextPeer dscp, DragGestureEvent trigger, Cursor dragCursor, Image dragImage, Point offset, Transferable t, DragSourceListener dsl) {
+     public DragSourceContext(DragSourceContextPeer dscp, DragGestureEvent trigger, Cursor dragCursor, Image dragImage, Point offset, Transferable t, DragSourceListener dsl) {
 	if ((peer = dscp) == null)
 	    throw new NullPointerException("DragSourceContextPeer");
 
@@ -154,6 +151,10 @@ public class DragSourceContext implements DragSourceListener {
 	this.offset  = offset;
 	transferable = t;
 	listener     = dsl;
+
+        if (dragCursor != null) {
+            useCustomCursor = true;
+        }
 
 	updateCurrentCursor(currentDropAction, actions, DEFAULT);
     }
@@ -207,11 +208,8 @@ public class DragSourceContext implements DragSourceListener {
      */
 
     public void setCursor(Cursor c) {
-	if (cursor == null || !cursor.equals(c)) {
-	    cursorDirty = true;
-	    cursor      = c;
-	    if (peer != null) peer.setCursor(cursor);
-	}
+        useCustomCursor = (c != null);
+        setCursorImpl(c);
     }
 
     /**
@@ -373,8 +371,7 @@ public class DragSourceContext implements DragSourceListener {
 	// if the cursor has been previously set then dont do any defaults
 	// processing.
 
-	if (cursorDirty && cursor != null) {
-	    cursorDirty = false;
+	if (useCustomCursor) {
 	    return;
 	}
 
@@ -407,8 +404,14 @@ public class DragSourceContext implements DragSourceListener {
 		}
 	}
 
-	setCursor(c);
-	cursorDirty = false;
+	setCursorImpl(c);
+    }
+
+    private void setCursorImpl(Cursor c) {
+	if (cursor == null || !cursor.equals(c)) {
+	    cursor      = c;
+	    if (peer != null) peer.setCursor(cursor);
+	}
     }
 
     /*
@@ -435,19 +438,5 @@ public class DragSourceContext implements DragSourceListener {
 
     private DragSourceListener    listener;
 
-    private boolean		  cursorDirty = true;
+    private boolean		  useCustomCursor = false;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

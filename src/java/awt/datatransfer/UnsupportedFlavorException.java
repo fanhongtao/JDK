@@ -1,7 +1,7 @@
 /*
- * @(#)UnsupportedFlavorException.java	1.8 00/02/02
+ * @(#)UnsupportedFlavorException.java	1.12 01/02/09
  *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -14,7 +14,7 @@ package java.awt.datatransfer;
  * Signals that the requested data is not supported in this flavor.
  * @see Transferable#getTransferData
  *
- * @version 	1.8, 02/02/00
+ * @version 	1.12, 02/09/01
  * @author	Amy Fowler
  */
 public class UnsupportedFlavorException extends Exception {
@@ -28,8 +28,11 @@ public class UnsupportedFlavorException extends Exception {
     /**
      * Constructs an UnsupportedFlavorException.
      * @param flavor the flavor object which caused the exception
+     * @throws NullPointerException if flavor is <code>null</code>
      */  
     public UnsupportedFlavorException(DataFlavor flavor) {
-        super(flavor.getHumanPresentableName());
+	// JCK Test UnsupportedFlavorException0002: if 'flavor' is null, throw
+	// NPE
+	super(flavor.getHumanPresentableName());
     }
 }

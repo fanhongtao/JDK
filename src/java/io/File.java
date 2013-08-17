@@ -1,7 +1,7 @@
 /*
- * @(#)File.java	1.92 00/02/02
+ * @(#)File.java	1.98 01/03/22
  *
- * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1994-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -19,7 +19,6 @@ import java.util.Random;
 import java.security.AccessController;
 import java.security.AccessControlException;
 import sun.security.action.GetPropertyAction;
-
 
 /**
  * An abstract representation of file and directory pathnames.
@@ -85,7 +84,7 @@ import sun.security.action.GetPropertyAction;
  * created, the abstract pathname represented by a <code>File</code> object
  * will never change.
  *
- * @version 1.92, 02/02/00
+ * @version 1.98, 03/22/01
  * @author  unascribed
  * @since   JDK1.0
  */
@@ -409,10 +408,14 @@ public class File implements java.io.Serializable, Comparable {
     /**
      * Returns the canonical pathname string of this abstract pathname.
      *
-     * <p> The precise definition of canonical form is system-dependent, but
-     * canonical forms are always absolute.  Thus if this abstract pathname is
-     * relative it will be converted to absolute form as if by the <code>{@link
-     * #getAbsoluteFile}</code> method.
+     * <p> A canonical pathname is both absolute and unique.  The precise
+     * definition of canonical form is system-dependent.  This method first
+     * converts this pathname to absolute form if necessary, as if by invoking the
+     * {@link #getAbsolutePath} method, and then maps it to its unique form in a
+     * system-dependent way.  This typically involves removing redundant names
+     * such as <tt>"."</tt> and <tt>".."</tt> from the pathname, resolving
+     * symbolic links (on UNIX platforms), and converting drive letters to a
+     * standard case (on Win32 platforms).
      *
      * <p> Every pathname that denotes an existing file or directory has a
      * unique canonical form.  Every pathname that denotes a nonexistent file
@@ -468,15 +471,15 @@ public class File implements java.io.Serializable, Comparable {
      */
     public URL toURL() throws MalformedURLException {
 	String path = getAbsolutePath();
-	if (File.separatorChar != '/') {
-	    path = path.replace(File.separatorChar, '/');
-	}
-	if (!path.startsWith("/")) {
-	    path = "/" + path;
-	}
-	if (!path.endsWith("/") && isDirectory()) {
-	    path = path + "/";
-	}
+        if (File.separatorChar != '/') {
+            path = path.replace(File.separatorChar, '/');
+        }
+        if (!path.startsWith("/")) {
+            path = "/" + path;
+        }
+        if (!path.endsWith("/") && isDirectory()) {
+            path = path + "/";
+        }
 	return new URL("file", "", path);
     }
 

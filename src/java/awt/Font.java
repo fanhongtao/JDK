@@ -1,7 +1,7 @@
 /*
- * @(#)Font.java	1.140 01/03/02
+ * @(#)Font.java	1.143 01/02/13
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -92,7 +92,7 @@ import java.io.*;
  * with varying sizes, styles, transforms and font features via the
  * <code>deriveFont</code> methods in this class.
  * @see GraphicsEnvironment#getAllFonts
- * @version 	1.140, 03/02/01
+ * @version 	1.143, 02/13/01
  */
 public class Font implements java.io.Serializable
 {
@@ -648,14 +648,41 @@ public class Font implements java.io.Serializable
     }
 
     /**
-     * Returns the <code>Font</code> that the <code>str</code> 
-     * argument describes.  If <code>str</code> is <code>null</code>, 
-     * a new <code>Font</code> is returned with the name "dialog", a  
-     * size of 12 and a PLAIN style.
+     * Returns the <code>Font</code> that the 
+     * <code>str</code> argument describes.  
+     * To ensure that this method returns the desired Font, 
+     * format the <code>str</code> parameter in
+     * one of two ways:
+     * <p>
+     * "fontfamilyname-style-pointsize" or <br>
+     * "fontfamilyname style pointsize"<p>
+     * in which <i>style</i> is one of the three 
+     * case-insensitive strings:
+     * <code>"BOLD"</code>, <code>"BOLDITALIC"</code>, or
+     * <code>"ITALIC"</code>, and pointsize is a decimal
+     * representation of the point size.
+     * For example, if you want a font that is Arial, bold, and
+     * a point size of 18, you would call this method with:
+     * "Arial-BOLD-18".
+     * <p>
+     * The default size is 12 and the default style is PLAIN.
+     * If you don't specify a valid size, the returned 
+     * <code>Font</code> has a size of 12.  If you don't specify 
+     * a valid style, the returned Font has a style of PLAIN.
+     * If you do not provide a valid font family name in 
+     * the <code>str</code> argument, this method still returns 
+     * a valid font with a family name of "dialog".
+     * To determine what font family names are available on
+     * your system, use the
+     * {@link GraphicsEnvironment#getAvailableFontFamilyNames()} method.
+     * If <code>str</code> is <code>null</code>, a new <code>Font</code>
+     * is returned with the family name "dialog", a size of 12 and a 
+     * PLAIN style.
      * @param str the name of the font, or <code>null</code>
      * @return the <code>Font</code> object that <code>str</code>
      *		describes, or a new default <code>Font</code> if 
      *          <code>str</code> is <code>null</code>.
+     * @see #getFamily
      * @since JDK1.1
      */
     public static Font decode(String str) {
@@ -756,8 +783,8 @@ public class Font implements java.io.Serializable
      * list.  As in the <code>getProperty</code> method of 
      * <code>System</code>, the first
      * argument is treated as the name of a system property to be
-     * obtained.  The <code>String</code> value of this property is then
-     * interpreted as a <code>Font</code> object. 
+     * obtained.  The <code>String</code> value of this
+     * property is then interpreted as a <code>Font</code> object. 
      * <p>
      * The property value should be one of the following forms: 
      * <ul>
@@ -766,7 +793,7 @@ public class Font implements java.io.Serializable
      * <li><em>fontname-style</em>
      * <li><em>fontname</em>
      * </ul>
-     * where <i>style</i> is one of the three strings 
+     * where <i>style</i> is one of the three case-insensitive strings 
      * <code>"BOLD"</code>, <code>"BOLDITALIC"</code>, or 
      * <code>"ITALIC"</code>, and point size is a decimal 
      * representation of the point size. 
@@ -776,10 +803,11 @@ public class Font implements java.io.Serializable
      * <p>
      * If the specified property is not found, the <code>font</code> 
      * argument is returned instead. 
-     * @param nm the property name
+     * @param nm the case-insensitive property name
      * @param font a default <code>Font</code> to return if property
      * 		<code>nm</code> is not defined
      * @return    the <code>Font</code> value of the property.
+     * @see #decode(String)
      */
     public static Font getFont(String nm, Font font) {
       String str = null;
@@ -1480,8 +1508,9 @@ public class Font implements java.io.Serializable
 	// need char array constructor on textlayout
 	String str = new String(chars, beginIndex, limit - beginIndex);
 	TextLayout tl = new TextLayout(str, this, frc);
-	return new Rectangle2D.Float(0, -tl.getAscent(), tl.getAdvance(),
-		tl.getDescent() + tl.getAscent() + tl.getLeading());
+	return new 
+	    Rectangle2D.Float(0, -tl.getAscent(), tl.getAdvance(),
+			      tl.getDescent() + tl.getAscent() + tl.getLeading());
       }
     }
 

@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractButton.java	1.131 00/04/06
+ * @(#)AbstractButton.java	1.133 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -43,7 +43,7 @@ import java.util.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.131 04/06/00 
+ * @version 1.133 02/09/01 
  * @author Jeff Dinkins
  */
 public abstract class AbstractButton extends JComponent implements ItemSelectable, SwingConstants {
@@ -1871,8 +1871,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
          */
         public String getAccessibleActionDescription(int i) {
             if (i == 0) {
-                // [[[PENDING:  WDW -- need to provide a localized string]]]
-                return new String("click");
+                return UIManager.getString("AbstractButton.clickText");
             } else {
                 return null;
             }

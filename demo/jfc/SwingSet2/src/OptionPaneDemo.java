@@ -1,7 +1,7 @@
 /*
- * @(#)OptionPaneDemo.java	1.3 99/10/12
+ * @(#)OptionPaneDemo.java	1.5 01/04/21
  *
- * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1997-2001 by Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -48,7 +48,7 @@ import java.net.*;
 /**
  * JOptionPaneDemo
  *
- * @version 1.3 10/12/99
+ * @version 1.5 04/21/01
  * @author Jeff Dinkins
  */
 public class OptionPaneDemo extends DemoModule {
@@ -159,6 +159,7 @@ public class OptionPaneDemo extends DemoModule {
                 message[1] = new JTextField(getString("OptionPaneDemo.componenttextfield"));
 
                 JComboBox cb = new JComboBox();
+                cb.getAccessibleContext().setAccessibleName(getString("OptionPaneDemo.component_cb1"));
                 cb.addItem(getString("OptionPaneDemo.component_cb1"));
                 cb.addItem(getString("OptionPaneDemo.component_cb2"));
                 cb.addItem(getString("OptionPaneDemo.component_cb3"));

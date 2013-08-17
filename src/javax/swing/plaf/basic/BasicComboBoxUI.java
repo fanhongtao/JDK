@@ -1,7 +1,7 @@
 /*
- * @(#)BasicComboBoxUI.java	1.108 00/02/02
+ * @(#)BasicComboBoxUI.java	1.113 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -144,10 +144,6 @@ public class BasicComboBoxUI extends ComboBoxUI {
             configureArrowButton();
         }
 
-        if ( editor != null ) {
-            configureEditor();
-        }
-
         comboBox.setLayout( createLayoutManager() );
 
         comboBox.setRequestFocusEnabled( true );
@@ -245,10 +241,6 @@ public class BasicComboBoxUI extends ComboBoxUI {
                 comboBox.getModel().addListDataListener( listDataListener );
             }
         }
-        if ( comboBox.isEditable() ) {
-            editorFocusListener = new EditorFocusListener();
-            editor.addFocusListener( editorFocusListener );
-        }
     }
 
     /**
@@ -292,9 +284,6 @@ public class BasicComboBoxUI extends ComboBoxUI {
             if ( listDataListener != null ) {
                 comboBox.getModel().removeListDataListener( listDataListener );
             }
-        }
-        if ( editorFocusListener != null ) {
-            comboBox.removeFocusListener( editorFocusListener );
         }
     }
 
@@ -604,12 +593,6 @@ public class BasicComboBoxUI extends ComboBoxUI {
                         comboBox.removeKeyListener( popupKeyListener );
                     }
                     addEditor();
-                    if ( editor != null ) {
-                        configureEditor(); 
-                    }
-
-                    editorFocusListener = new EditorFocusListener();
-                    editor.addFocusListener( editorFocusListener );
                 }
                 else {
                     comboBox.setRequestFocusEnabled( true );
@@ -617,8 +600,6 @@ public class BasicComboBoxUI extends ComboBoxUI {
                         comboBox.addKeyListener( popupKeyListener );
                     }
                     removeEditor();
-                    editor.removeFocusListener( editorFocusListener );
-                    editorFocusListener = null;
                 }
 
                 updateToolTipTextForChildren();
@@ -673,12 +654,14 @@ public class BasicComboBoxUI extends ComboBoxUI {
                 }
             } else if ( propertyName.equals( "background" ) ) {
                 Color color = (Color)e.getNewValue();
-                arrowButton.setBackground(color);
+                if ( arrowButton != null )
+                    arrowButton.setBackground(color);
                 listBox.setBackground(color);
                 
             } else if ( propertyName.equals( "foreground" ) ) {
                 Color color = (Color)e.getNewValue();
-                arrowButton.setForeground(color);
+                if ( arrowButton != null )
+                    arrowButton.setForeground(color);
                 listBox.setForeground(color);
             }
         }     
@@ -788,7 +771,10 @@ public class BasicComboBoxUI extends ComboBoxUI {
     public void addEditor() {
         removeEditor();
         editor = comboBox.getEditor().getEditorComponent();
-        comboBox.add(editor);
+	if ( editor != null ) {
+	    configureEditor();
+	    comboBox.add(editor);
+	}
     }
 
     /**
@@ -817,6 +803,11 @@ public class BasicComboBoxUI extends ComboBoxUI {
             }
         }
 
+        if (editorFocusListener == null)  {
+            editorFocusListener = new EditorFocusListener();
+            editor.addFocusListener( editorFocusListener );
+        }
+
         comboBox.configureEditor(comboBox.getEditor(),comboBox.getSelectedItem());
     }
 
@@ -826,6 +817,11 @@ public class BasicComboBoxUI extends ComboBoxUI {
     protected void unconfigureEditor() {
         if ( popupKeyListener != null ) {
             editor.removeKeyListener( popupKeyListener );
+        }
+
+        if ( editorFocusListener != null )  {
+            editor.removeFocusListener( editorFocusListener );
+            editorFocusListener = null;
         }
     }
 
@@ -1396,6 +1392,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
     class EditorFocusListener extends FocusAdapter {
         public void focusLost( FocusEvent e ) {
             Object item = comboBox.getEditor().getItem();
+
             if ( !e.isTemporary() &&
                  item != null &&
                  !item.equals( comboBox.getSelectedItem() ) ) {

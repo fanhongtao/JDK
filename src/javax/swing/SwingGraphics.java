@@ -1,5 +1,5 @@
 /*
- * @(#)SwingGraphics.java	1.29 00/02/02
+ * @(#)SwingGraphics.java	1.30 00/07/26
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -13,7 +13,7 @@ package javax.swing;
  * A private graphics to access clip bounds without creating a new
  * rectangle
  *
- * @version 1.29 02/02/00
+ * @version 1.30 07/26/00
  * @author Arnaud Weber
  */
 
@@ -27,10 +27,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.image.ImageObserver;
 import java.util.Stack;
-
-
 import java.text.AttributedCharacterIterator;
- 
 
 class SwingGraphics extends Graphics implements GraphicsWrapper {
     Graphics graphics;
@@ -152,25 +149,7 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
             return null;
         }
 
-      
         return g.create();
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 
     /**
@@ -184,35 +163,7 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
      */
     static Graphics createSwingGraphics(Graphics g, int x, int y,
                                         int width, int height) {
-      
-	// Disable SwingGraphics wrapping on 1.2...
         return g.create(x, y, width, height);
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 
     public void translate(int x,int y) {
@@ -456,11 +407,9 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
         graphics.drawString(str,x,y);
     }
 
-    
     public void drawString(AttributedCharacterIterator iterator, int x, int y) {
         graphics.drawString(iterator,x,y);
     }
-     
 
     public void drawChars(char[] data, int offset, int length, int x, int y) {
         graphics.drawChars(data, offset, length, x, y);
@@ -633,22 +582,5 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
 	    }
 	}
         return r;
-    }
-
-    static {
-        // Warn if running wrong version of this class for this JDK.
-        
-          if (!SwingUtilities.is1dot2) {
-              System.err.println("warning: running 1.2 version of SwingGraphics");
-          }
-          
-
-
-
-
-
-
-
-
     }
 }

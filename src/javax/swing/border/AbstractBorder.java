@@ -1,5 +1,5 @@
 /*
- * @(#)AbstractBorder.java	1.25 00/02/02
+ * @(#)AbstractBorder.java	1.26 00/07/26
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -27,7 +27,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.25 02/02/00
+ * @version 1.26 07/26/00
  * @author David Kloba
  */
 public abstract class AbstractBorder implements Border, Serializable
@@ -81,13 +81,7 @@ public abstract class AbstractBorder implements Border, Serializable
      * Helps us avoid having Munge directives throughout the code.
      */
     static boolean isLeftToRight( Component c ) {
-        
         return c.getComponentOrientation().isLeftToRight();
-        
-
-
-
-
     }
     
 }

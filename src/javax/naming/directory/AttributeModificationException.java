@@ -1,7 +1,7 @@
 /*
- * @(#)AttributeModificationException.java	1.5 00/02/02
+ * @(#)AttributeModificationException.java	1.7 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -29,7 +29,7 @@ import javax.naming.NamingException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.5 00/02/02
+  * @version 1.7 01/02/09
   *
   * @see DirContext#modifyAttributes
   * @since 1.3
@@ -56,7 +56,7 @@ public class AttributeModificationException extends NamingException {
      * an explanation. All other fields are set to null.
      *
      * @param	explanation	Possibly null additional detail about this exception. 
-     * If null, this exception has not detail message.
+     * If null, this exception has no detail message.
 
      * @see java.lang.Throwable#getMessage
      */

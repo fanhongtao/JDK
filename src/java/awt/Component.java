@@ -1,5 +1,5 @@
 /*
- * @(#)Component.java	1.264 00/02/02
+ * @(#)Component.java	1.265 00/02/28
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -60,7 +60,7 @@ import sun.awt.im.CompositionArea;
  * lightweight component. A lightweight component is a component that is
  * not associated with a native opaque window.
  *
- * @version 	1.264, 02/02/00
+ * @version 	1.265, 02/28/00
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  */
@@ -2002,8 +2002,6 @@ public abstract class Component implements ImageObserver, MenuContainer,
     public void update(Graphics g) {
         if ((this instanceof java.awt.Canvas) ||
             (this instanceof java.awt.Panel)  ||
-            (this instanceof java.awt.Frame)  ||
-            (this instanceof java.awt.Dialog) ||
             (this instanceof java.awt.Window)) {
 
             g.clearRect(0, 0, width, height);
@@ -4659,6 +4657,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
 	    invalidate();
 	}
     }
+
 
     /**
      * Retrieve the language-sensitive orientation that is to be used to order

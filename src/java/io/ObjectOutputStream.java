@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectOutputStream.java	1.104 00/04/06
+ * @(#)ObjectOutputStream.java	1.108 01/02/09
  *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -127,7 +127,7 @@ import java.security.AccessController;
  *  existing block-data record.
  *
  * @author	Roger Riggs
- * @version     1.104, 04/06/00
+ * @version     1.108, 02/09/01
  * @see java.io.DataOutput
  * @see java.io.ObjectInputStream
  * @see java.io.Serializable
@@ -548,7 +548,7 @@ public class ObjectOutputStream
      */
     private void resetStream() throws IOException {
 	if (handleTable == null) {
-	    handleTable = new HandleTable();
+	    handleTable = new HandleTable(11, (float) 7.0);
 	} else {
 	    handleTable.clear();
 	}
@@ -559,9 +559,9 @@ public class ObjectOutputStream
 	    classDescStack.setSize(0);
 	}
 
-	for (int i = 0; i < nextReplaceOffset; i++)
-	    replaceObjects[i] = null;
-	nextReplaceOffset = 0;
+	if (replaceTable != null) {
+	    replaceTable.clear();
+	}
 
   	setBlockData(true);		/* Re-enable buffering */
       }
@@ -1225,11 +1225,7 @@ public class ObjectOutputStream
      * Return a replacement for 'forObject', if one exists.
      */
     private Object lookupReplace(Object obj) {
-	for (int i = 0; i < nextReplaceOffset; i+= 2) {
-	    if (replaceObjects[i] == obj)
-		return replaceObjects[i+1];
-	}
-	return obj;
+	return (replaceTable != null) ? replaceTable.lookup(obj) : obj;
     }
 
 
@@ -1254,7 +1250,7 @@ public class ObjectOutputStream
 	/* Look to see if this object has already been replaced.
 	 * If so, proceed using the replacement object.
 	 */
-	if (checkForReplace && replaceObjects != null) {
+	if (checkForReplace) {
 	    obj = lookupReplace(obj);
 	}
 
@@ -1275,20 +1271,10 @@ public class ObjectOutputStream
      *
      */
     private void addReplacement(Object orig, Object replacement) {
-	// Extend the array if there isn't room for this new element
-
-	if (replaceObjects == null) {
-	    replaceObjects = new Object[10];
+	if (replaceTable == null) {
+	    replaceTable = new ReplaceTable(11, (float) 7.0);
 	}
-	if (nextReplaceOffset == replaceObjects.length) {
-	    Object[] oldhandles = replaceObjects;
-	    replaceObjects = new Object[2+nextReplaceOffset*2];
-	    System.arraycopy(oldhandles, 0,
-			     replaceObjects, 0,
-			     nextReplaceOffset);
-	}
-	replaceObjects[nextReplaceOffset++] = orig;
-	replaceObjects[nextReplaceOffset++] = replacement;
+	replaceTable.assign(orig, replacement);
     }
 
     /* Write out the code indicating the type what follows.
@@ -2248,11 +2234,10 @@ public class ObjectOutputStream
     /*
      * Flag set to true to allow replaceObject to be called.
      * Set by enableReplaceObject.
-     * The array of replaceObjects and the index of the next insertion.
+     * Identity hash table mapping objects to their replacements.
      */
     boolean enableReplace;
-    private Object[] replaceObjects;
-    private int nextReplaceOffset;
+    private ReplaceTable replaceTable;
     static final private boolean REPLACEABLE = true;
     static final private boolean NOT_REPLACEABLE = false;
 
@@ -2269,34 +2254,27 @@ public class ObjectOutputStream
     private boolean enableSubclassImplementation;
 
     /**
-     * Lightweight hash table mapping Objects to their corresponding wire
+     * Lightweight hash table mapping objects to their corresponding wire
      * handles.
      */
     private static final class HandleTable {
         
-        private static final int START_SIZE_POWER = 2;  // spine size exponent
-        private static final int LOAD_FACTOR = 7;       // avg # elts/bucket
-        private static final int START_CAPACITY = 4;    // starting free spaces
-        
         private int nextWireOffset;         // next free wire handle offset
-        private int wireHashSizePower;      // power of 2 hash table size - 1
         private int wireHashCapacity;       // when to grow hash table next
+	private float loadFactor;           // factor for computing capacity
         private int[] wireHash2Handle;      // hash spine
         private int[] wireNextHandle;       // next hash entry
         private Object[] wireHandle2Object; // handle -> object mapping
 
         /**
-         * Construct empty handle table.
+         * Constructs handle table with given capacity and load factor.
          */
-        public HandleTable() {
-            int scale;
-
-            wireHashSizePower = START_SIZE_POWER;
-            scale = 1 << wireHashSizePower;
-            wireHashCapacity = scale * LOAD_FACTOR;
-            wireHash2Handle = new int[scale - 1];
-            wireNextHandle = new int[START_CAPACITY];
-            wireHandle2Object = new Object[START_CAPACITY];
+        public HandleTable(int initialCapacity, float loadFactor) {
+	    this.loadFactor = loadFactor;
+	    wireHash2Handle = new int[initialCapacity];
+	    wireNextHandle = new int[initialCapacity];
+	    wireHandle2Object = new Object[initialCapacity];
+	    wireHashCapacity = (int) (initialCapacity * loadFactor);
 
             clear();
         }
@@ -2334,15 +2312,12 @@ public class ObjectOutputStream
          * Double the size of the hash table spine.
          */
         private void growSpine() {
-            int scale;
-
-            wireHashSizePower++;
-            scale = 1 << wireHashSizePower;
-            wireHashCapacity = scale * LOAD_FACTOR;
-            wireHash2Handle = new int[scale - 1];
-            Arrays.fill(wireHash2Handle, -1);
-            for (int i = 0; i < nextWireOffset; i++)
-                insert(wireHandle2Object[i], i);
+	    wireHash2Handle = new int[(wireHash2Handle.length << 1) + 1];
+	    wireHashCapacity = (int) (wireHash2Handle.length * loadFactor);
+	    Arrays.fill(wireHash2Handle, -1);
+	    for (int i = 0; i < nextWireOffset; i++) {
+		insert(wireHandle2Object[i], i);
+	    }
         }
 
         /**
@@ -2383,8 +2358,9 @@ public class ObjectOutputStream
          * wire handle offset.
          */
         public void clear() {
-            nextWireOffset = 0;
-            Arrays.fill(wireHash2Handle, -1);
+	    Arrays.fill(wireHash2Handle, -1);
+	    Arrays.fill(wireHandle2Object, 0, nextWireOffset, null);
+	    nextWireOffset = 0;
         }
         
         /**
@@ -2393,6 +2369,68 @@ public class ObjectOutputStream
         public int size() {
             return nextWireOffset;
         }
+    }
+
+    /**
+     * Lightweight identity hash table mapping objects to corresponding
+     * replacement objects.
+     */
+    private static final class ReplaceTable {
+	
+	private HandleTable htab;      // maps object -> index
+	private Object[] reps;         // maps index -> replacement object
+
+	/**
+	 * Creates new replacement table with given capacity and load factor.
+	 */
+	public ReplaceTable(int initialCapacity, float loadFactor) {
+	    htab = new HandleTable(initialCapacity, loadFactor);
+	    reps = new Object[initialCapacity];
+	}
+
+	/**
+	 * Enters mapping from object to replacement object.
+	 */
+	public void assign(Object obj, Object rep) {
+	    int index = htab.assignWireOffset(obj);
+	    while (index >= reps.length) {
+		grow();
+	    }
+	    reps[index] = rep;
+	}
+
+	/**
+	 * Looks up and returns replacement for given object.  If no
+	 * replacement is found, returns the lookup object itself.
+	 */
+	public Object lookup(Object obj) {
+	    int index = htab.findWireOffset(obj);
+	    return (index >= 0) ? reps[index] : obj;
+	}
+
+	/**
+	 * Resets table to its initial (empty) state.
+	 */
+	public void clear() {
+	    Arrays.fill(reps, 0, htab.size(), null);
+	    htab.clear();
+	}
+
+	/**
+	 * Returns the number of mappings currently in table.
+	 */
+	public int size() {
+	    return htab.size();
+	}
+	
+	/**
+	 * Increases table capacity.
+	 */
+	private void grow() {
+	    Object[] newReps = new Object[(reps.length << 1) + 1];
+	    System.arraycopy(reps, 0, newReps, 0, reps.length);
+	    reps = newReps;
+	}
     }
     
     /**

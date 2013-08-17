@@ -1,56 +1,17 @@
-
-Copyright  2001 Sun Microsystems, Inc., 901 San Antonio Road, Palo
-Alto, California 94303, U.S.A. All rights reserved.
-
-Sun Microsystems, Inc. has intellectual property rights relating to
-technology embodied in this product. In particular, and without
-limitation, these intellectual property rights may include one or more
-of the U.S. patents listed at http://www.sun.com/patents and one or
-more additional patents or pending patent applications in the U.S. and
-other countries.
-
-This product is distributed under licenses restricting its use, copying
-distribution, and decompilation. No part of this product may be
-reproduced in any form by any means without prior written authorization
-of Sun and its licensors, if any.
-
-Third-party software, including font technology, is copyrighted and
-licensed from Sun suppliers.
-
-Sun,  Sun Microsystems,  the Sun logo,  Java and  the Java Coffee Cup
-logo are trademarks or registered trademarks of Sun Microsystems, Inc.
-in the U.S. and other countries.
-
-All SPARC trademarks are used under license and are trademarks or
-registered trademarks of SPARC International, Inc. in the U.S. and
-other countries. Products bearing SPARC trademarks are based upon
-architecture developed by Sun Microsystems, Inc.
-
-UNIX is a registered trademark in the U.S. and other countries,
-exclusively licensed through X/Open Company, Ltd.
-
-Federal Acquisitions: Commercial Software - Government Users Subject to
-Standard License Terms and Conditions.
-
-------------------------------------------------------------------------
-
                                    README
 
                       Java(TM) 2 SDK, Standard Edition
-                              Version 1.3.0_05
+                                Version 1.3.1
 
      For a more extensive HTML version of this file, see README.html.
 
 Contents
 
    * Introduction
-   * Installation
-   * Features
-   * Demos
+   * Release Notes
+   * Bug Reports and Feedback
    * Java 2 SDK Documentation
-   * System Requirements
-   * Sun Java Web Pages
-   * Credits
+   * Web Pages
 
 
 Introduction
@@ -66,101 +27,57 @@ Introduction
      from the command line. Except for appletviewer, these tools do not
      provide a graphical user interface.
 
-     The release comes with the Java Plug-in product as part of the 
-     Java 2 Runtime Environment. You can use the Java Plug-in product 
-     to enable browsers to run applets based on the Java 2 Platform. 
-     For more information about the Java Plug-in product, see the 
-     section titled "Java 2 Runtime Environment and Java Plug-in" in 
-     the README.html file.
+
+Installation Instructions
+
+      For installation instructions and system requirements for this 
+      release, see 
+
+      http://java.sun.com/j2se/1.3/install.html 
 
 
-Installation
+Release Notes
 
-     The complete Java 2 SDK is composed of the SDK Software plus the 
-     SDK Documentation, each of which is separately downloadable.
-     Installation instructions are maintained on the web site:
+      See the Release Notes on the Java Software web site for additional 
+      information pertaining to this release. 
+ 
+      http://java.sun.com/j2se/1.3/relnotes.html
 
-     http://java.sun.com/j2se/1.3.0/install-linux.html
+      The on-line release notes will be updated as needed, so you should 
+      check it occasionally for the latest information. 
 
-     Refer to the copyright and license for legal terms of use.
 
+Bug Reports and Feedback
 
-Features
+      The Bug Parade Web Page on the Java Developer Connection(SM) web 
+      site lets you search for and examine existing bug reports, submit 
+      your own bug reports, and tell us which bug fixes matter most to you. 
 
-     Version 1.3.0 of the Java 2 SDK offers significant improvements in 
-     functionality and performance over previous versions. See:
+      http://java.sun.com/jdc/bugParade/
 
-        * Summary of New Features - New features in the original 1.3.0 
-          release of the Java 2 SDK.
-          http://java.sun.com/j2se/1.3.0/docs/relnotes/features.html
+      To directly submit a bug or request a feature, fill out this form: 
 
-        * Guide to Features - Complete list of all features in original 
-          J2SE 1.3.0 release.
-          http://java.sun.com/j2se/1.3.0/docs/index.html#guide
+      http://java.sun.com/cgi-bin/bugreport.cgi 
 
-     This release, J2SE 1.3.0_05, is an update release of J2SE 
-     1.3.0. J2SE 1.3.0_01 contained new Java Plug-in enhancements, 
-     including support for the Netscape Communicator 6 browser. 
-     In addition, J2SE 1.3.0_05 contains fixes for a select list of bugs 
-     See the Release Notes on the Java Software web site for details 
-     about the changes in J2SE 1.3.0_05. 
+      You can also send comments directly to Java Software engineering 
+      team email addresses. 
 
-         http://java.sun.com/j2se/1.3.0/ReleaseNotes.html
-
-     See also the documentation for the new Java Plug-in enhancements
-     in 1.3.0_01.
-
-         http://java.sun.com/j2se/1.3.0/docs/index.html
-
-Demos
-
-     A demo directory is included in this software bundle with a
-     variety of applets, Swing applications, and other examples for 
-     you to try out. The demos come with complete source code.
+      http://java.sun.com/mail/
 
 
 Java 2 SDK Documentation
 
-     This section describes the documentation provided with the 
-     original J2SE 1.3.0 release. That documentation applies to 
-     J2SE 1.3.0_05 as well. For information on the bug fixes in J2SE
-     1.3.0_05, see the online release notes. 
-
-     http://java.sun.com/j2se/1.3.0/ReleaseNotes.html
-
      The on-line Java 2 SDK Documentation contains API specifications,
-     developer guides, tool reference pages, demos, and links to
-     related information. It is located at
+     feature descriptions, developer guides, tool reference pages, demos, 
+     and links to related information. It is located at
 
-     http://java.sun.com/j2se/1.3.0/docs/
+     http://java.sun.com/j2se/1.3/docs/
 
      The Java 2 SDK documentation is also available in a download bundle 
-     which you can install locally with your Java 2 SDK software. See the 
-     download page: 
+     which you can install locally on your machine. See the 
+     Java 2 SDK download page: 
      
-     http://java.sun.com/j2se/1.3.0
-
-
-System Requirements
-
-     This version of the Java 2 SDK is supported on Intel Pentium 
-     platform running the Linux kernel v 2.2.12 and glibc v 2.1.2. A 
-     minimum of 32 megabytes RAM are required. Recommended 48 megabytes 
-     of RAM, 16-bit color mode, KDE and KWM window managers. Sun 
-     Microsystems, Inc. has tested this release using Red Hat Linux 6.1. 
-
-     Check your version of glibc using the following command: 
-
-         ls /lib/libc-*
-
-     The output of this command should show libc-2.1.2.so or higher. 
-
-     Sun does support or recommend running the Java 2 SDK on SMP kernels. 
-
-     You should have about 75 megabytes of free disk space before 
-     attempting to install the Java 2 SDK software. If you also install 
-     the separate documentation download bundle, you need an additional 
-     125 megabytes of free disk space.
+     http://java.sun.com/j2se/1.3/docs.html
 
 
 Sun Java Web Pages
@@ -172,24 +89,17 @@ Sun Java Web Pages
           The Java Software web site, with the latest information on
           Java technology, product information, news, and features.
      http://java.sun.com/j2se/1.3/
-          Java 2 SDK v1.3 Product Page
+          Java 2 SDK Web Site
      http://java.sun.com/docs
           Java Platform Documentation provides access to white papers,
           the Java Tutorial and other documents.
-     http://developer.java.sun.com/
-          The Java Developer Connection web site. (Free registration
+     http://java.sun.com/jdc
+          The Java Developer Connection(SM) web site. (Free registration
           required.) Additional technical information, news, and
           features; user forums; support information, and much more.
      http://java.sun.com/products/
           Java Technology Products & API
 
-
-Credits
-
-     The Java 2 Platform, Standard Edition port to Linux was made 
-     possible by the efforts of several volunteers of the Blackdown 
-     porting team. Sun is grateful to the Blackdown porting team 
-     members and their support of the Java-on-Linux community. 
 
 ------------------------------------------------------------------------
 The Java 2 SDK, Standard Edition, is a product of Sun Microsystems(TM), 

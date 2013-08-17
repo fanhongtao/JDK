@@ -1,5 +1,5 @@
 /*
- * @(#)SystemEventQueueUtilities.java	1.32 00/02/02
+ * @(#)SystemEventQueueUtilities.java	1.34 00/07/26
  *
  * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -67,18 +67,11 @@ class SystemEventQueueUtilities
 
     private static class SystemEventQueue 
     {
-	
-	
-
-
-
-
 
 	// If the AWT system event queue is accessible then return it.
 	// otherwise return null.  
 
 	static EventQueue get() {
-	    
 	    EventQueue retValue;
 	    try {
 	        retValue = Toolkit.getDefaultToolkit().getSystemEventQueue();
@@ -88,22 +81,6 @@ class SystemEventQueueUtilities
                 retValue = null;
             }
             return retValue;
-	    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	}
 
 	// If the AWT system event queue is accessible then return it.
@@ -112,66 +89,8 @@ class SystemEventQueueUtilities
 	// attempting to get at the event queue - see JApplet.
 
 	static EventQueue get(JRootPane rootPane) {
-	    
 	    return get();
-	    
-
-
-
-
-
-
-
 	}
-	
-	
-        
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 
     /**
@@ -884,9 +803,7 @@ class SystemEventQueueUtilities
 	public void drawPolygon(int xPoints[], int yPoints[], int nPoints) {}
 	public void fillPolygon(int xPoints[], int yPoints[], int nPoints) {}
 	public void drawString(String str, int x, int y) {}
-        
         public void drawString(java.text.AttributedCharacterIterator iterator, int x, int y) {}
-         
 	public boolean drawImage(Image i, int x, int y, ImageObserver o) { return false; }
 	public boolean drawImage(Image i, int x, int y, int w, int h, ImageObserver o) { return false; }
 	public boolean drawImage(Image i, int x, int y, Color bgcolor, ImageObserver o) { return false; }
@@ -899,25 +816,5 @@ class SystemEventQueueUtilities
             int dx1, int dy1, int dx2, int dy2,
 	    int sx1, int sy1, int sx2, int sy2, Color c, ImageObserver o)
 	    { return false; }
-    }
-
-
-    /* Print a warning if we're running the wrong version of this class for
-     * this JDK.
-     */
-    static {
-        
-          if (!SwingUtilities.is1dot2) {
-              System.err.println("warning: running 1.2 version of SystemEventQueueUtilities");
-          }
-          
-
-
-
-
-
-
-
-
     }
 }

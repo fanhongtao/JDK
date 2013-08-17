@@ -1,13 +1,10 @@
 /*
- * @(#)Dialog.java	1.69 01/01/23
+ * @(#)Dialog.java	1.69 01/04/21
  *
  * Copyright 1995-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 package java.awt;
@@ -57,7 +54,7 @@ import javax.accessibility.*;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.69, 01/23/01
+ * @version 	1.69, 04/21/01
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0

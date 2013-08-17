@@ -1,7 +1,7 @@
 /*
- * @(#)JTable.java	1.166 00/04/06
+ * @(#)JTable.java	1.168 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -143,7 +143,7 @@ import java.text.DateFormat;
  *   attribute: isContainer false
  * description: A component which displays data in a two dimensional grid.
  *
- * @version 1.166 04/06/00
+ * @version 1.168 02/09/01
  * @author Philip Milne
  */
 /* The first versions of the JTable, contained in Swing-0.1 through 
@@ -1480,14 +1480,6 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * 
      */
     public void changeSelection(int rowIndex, int columnIndex, boolean toggle, boolean extend) {
-        // Autoscrolling support.
-        if (getAutoscrolls()) { 
-	    Rectangle cellRect = getCellRect(rowIndex, columnIndex, false);
-	    if (cellRect != null) {
-		scrollRectToVisible(cellRect);
-	    }
-	}
-
         ListSelectionModel rsm = getSelectionModel();
         ListSelectionModel csm = getColumnModel().getSelectionModel();
 
@@ -1496,6 +1488,17 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 
         // Update row selection model
         changeSelectionModel(rsm, rowIndex, toggle, extend);
+
+        // Scroll after changing the selection as blit scrolling is immediate,
+        // so that if we cause the repaint after the scroll we end up painting
+        // everything!
+        // Autoscrolling support.
+        if (getAutoscrolls()) { 
+	    Rectangle cellRect = getCellRect(rowIndex, columnIndex, false);
+	    if (cellRect != null) {
+		scrollRectToVisible(cellRect);
+	    }
+	}
     }
 
     /**

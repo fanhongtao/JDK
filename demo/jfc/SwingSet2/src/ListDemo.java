@@ -1,7 +1,7 @@
 /*
- * @(#)ListDemo.java	1.6 99/10/21
+ * @(#)ListDemo.java	1.8 01/04/21
  *
- * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1997-2001 by Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -54,7 +54,7 @@ import java.net.*;
  * kept for the list data, rather it is generated
  * on the fly as only those elements are needed.
  *
- * @version 1.6 10/21/99
+ * @version 1.8 04/21/01
  * @author Jeff Dinkins
  */
 public class ListDemo extends DemoModule {
@@ -106,6 +106,10 @@ public class ListDemo extends DemoModule {
 	list.setCellRenderer(new CompanyLogoListCellRenderer());
 	listModel = new GeneratedListModel(this);
 	list.setModel(listModel);
+	String name = getString("ListDemo.prefixes")+
+                      " + "+
+                      getString("ListDemo.suffixes");
+        list.getAccessibleContext().setAccessibleName(name);
 
 	// Set the preferred row count. This affects the preferredSize
 	// of the JList when it's in a scrollpane.

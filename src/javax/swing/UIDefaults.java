@@ -1,7 +1,7 @@
 /*
- * @(#)UIDefaults.java	1.37 00/02/02
+ * @(#)UIDefaults.java	1.39 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -38,7 +38,7 @@ import java.beans.PropertyChangeEvent;
  * long term persistence.
  *
  * @see UIManager
- * @version 1.37 02/02/00
+ * @version 1.39 02/09/01
  * @author Hans Muller
  */
 public class UIDefaults extends Hashtable
@@ -152,7 +152,7 @@ public class UIDefaults extends Hashtable
                     else {
                         super.put(key, value);
                     }
-                    this.notify();
+                    this.notifyAll();
                 }
             }
         }

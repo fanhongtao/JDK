@@ -1,7 +1,7 @@
 /*
- * @(#)GlyphView.java	1.13 00/02/02
+ * @(#)GlyphView.java	1.16 01/04/21
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -10,6 +10,7 @@
 package javax.swing.text;
 
 import java.awt.*;
+import java.text.BreakIterator;
 import javax.swing.event.*;
 
 /**
@@ -37,7 +38,7 @@ import javax.swing.event.*;
  * <p>
  *
  * @author  Timothy Prinzing
- * @version 1.13 02/02/00
+ * @version 1.16 04/21/01
  */
 public class GlyphView extends View implements TabableView, Cloneable {
 
@@ -573,14 +574,10 @@ public class GlyphView extends View implements TabableView, Cloneable {
 		// can't even fit a single character
 		return View.BadBreakWeight;	    
 	    }
-	    Segment s = getText(p0, p1);
-	    for (char ch = s.last(); ch != Segment.DONE; ch = s.previous()) {
-		if (Character.isWhitespace(ch)) {
-		    // found whitespace
-		    return View.ExcellentBreakWeight;
-		}
-	    }
-	    // no whitespace
+            if (getBreakSpot(p0, p1) != -1) {
+                return View.ExcellentBreakWeight;
+            }
+	    // Nothing good to break on.
 	    return View.GoodBreakWeight;
 	}
 	return super.getBreakWeight(axis, pos, len);
@@ -611,18 +608,120 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	if (axis == View.X_AXIS) {
 	    checkPainter();
 	    int p1 = painter.getBoundedPosition(this, p0, pos, len);
-	    Segment s = getText(p0, p1);
-	    for (char ch = s.last(); ch != Segment.DONE; ch = s.previous()) {
-		if (Character.isWhitespace(ch)) {
-		    p1 = p0 + (s.getIndex() - s.getBeginIndex()) + 1;
-		    break;
-		}
-	    }
+            int breakSpot = getBreakSpot(p0, p1);
+
+            if (breakSpot != -1) {
+                p1 = breakSpot;
+            }
+            // else, no break in the region, return a fragment of the
+            // bounded region.
+            if (p0 == getStartOffset() && p1 == getEndOffset()) {
+                return this;
+            }
 	    GlyphView v = (GlyphView) createFragment(p0, p1);
 	    v.x = (int) pos;
 	    return v;
 	}
 	return this;
+    }
+
+    /**
+     * Returns a location to break at in the passed in region, or -1 if
+     * there isn't a good location to break at in the specified region.
+     */
+    private int getBreakSpot(int p0, int p1) {
+        Document doc = getDocument();
+
+        if (doc != null && Boolean.TRUE.equals(doc.getProperty(
+                                   AbstractDocument.MultiByteProperty))) {
+            return getBreakSpotUseBreakIterator(p0, p1);
+        }
+        return getBreakSpotUseWhitespace(p0, p1);
+    }
+
+    /**
+     * Returns the appropriate place to break based on the last whitespace
+     * character encountered.
+     */
+    private int getBreakSpotUseWhitespace(int p0, int p1) {
+        Segment s = getText(p0, p1);
+
+        for (char ch = s.last(); ch != Segment.DONE; ch = s.previous()) {
+            if (Character.isWhitespace(ch)) {
+                // found whitespace
+                return s.getIndex() - s.getBeginIndex() + 1 + p0;
+            }
+        }
+        return -1;
+    }
+     
+    /**
+     * Returns the appropriate place to break based on BreakIterator.
+     */
+    private int getBreakSpotUseBreakIterator(int p0, int p1) {
+        // Certain regions require context for BreakIterator, start from
+        // our parents start offset.
+        Element parent = getElement().getParentElement();
+        int parent0;
+        int parent1;
+        Container c = getContainer();
+        BreakIterator breaker;
+
+        if (parent == null) {
+            parent0 = p0;
+            parent1 = p1;
+        }
+        else {
+            parent0 = parent.getStartOffset();
+            parent1 = parent.getEndOffset();
+        }
+        if (c != null) {
+            try {
+                breaker = BreakIterator.getLineInstance(c.getLocale());
+            } catch (IllegalComponentStateException icse) {
+                breaker = BreakIterator.getLineInstance();
+            }
+        }
+        else {
+            breaker = BreakIterator.getLineInstance();
+        }
+
+        Segment s = getText(parent0, parent1);
+        int breakPoint;
+
+        // Needed to initialize the Segment.
+        s.first();
+        breaker.setText(s);
+
+        if (p1 == parent1) {
+            // This will most likely return the end, the assumption is
+            // that if parent1 == p1, then we are the last portion of
+            // a paragraph
+            breakPoint = breaker.last();
+        }
+        else if (p1 + 1 == parent1) {
+            // assert(s.count > 1)
+            breakPoint = breaker.next(s.offset + s.count - 2);
+            if (breakPoint >= s.count + s.offset) {
+                breakPoint = breaker.preceding(s.offset + s.count - 1);
+            }
+        }
+        else {
+            breakPoint = breaker.preceding(p1 - parent0 + s.offset + 1);
+        }
+
+        if (breakPoint != BreakIterator.DONE) {
+            breakPoint = breakPoint - s.offset + parent0;
+            if (breakPoint > p0) {
+                if (p0 == parent0 && breakPoint == p0) {
+                    return -1;
+                }
+                if (breakPoint <= p1) {
+                    return breakPoint;
+                }
+            }
+        }
+        return -1;
     }
 
     /**

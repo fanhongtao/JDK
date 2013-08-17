@@ -1,5 +1,5 @@
 /*
- * @(#)TTY.java	1.88 00/02/02
+ * @(#)TTY.java	1.90 00/03/06
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -22,7 +22,7 @@ public class TTY implements DebuggerCallback {
     PrintStream console = null;
 
     private static final String progname = "oldjdb";
-    private static final String version = "00/02/02";
+    private static final String version = "00/03/06";
 
     private String lastArgs = null;
     
@@ -55,13 +55,14 @@ public class TTY implements DebuggerCallback {
     }
 
     private void printPrompt() throws Exception {
-        if (currentThread == null) {
-            out.print("> ");
-        } else {
+        try {
             out.print(currentThread.getName() + "[" +
                       (currentThread.getCurrentFrameIndex() + 1)
                       + "] ");
-        }
+        } catch (NullPointerException e) {
+            out.print("> ");
+	}
+
         out.flush();
     }
 
@@ -1607,7 +1608,7 @@ public class TTY implements DebuggerCallback {
 	    if (f.canRead()) {
 		// Process initial commands.
 		DataInputStream inFile = 
-		    new DataInputStream(new FileInputStream(f));
+		    new DataInputStream(new BufferedInputStream(new FileInputStream(f)));
 		String ln;
 		while ((ln = inFile.readLine()) != null) {
 		    StringTokenizer t = new StringTokenizer(ln);

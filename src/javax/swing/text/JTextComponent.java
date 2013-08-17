@@ -1,13 +1,10 @@
 /*
- * @(#)JTextComponent.java	1.155 01/02/26
+ * @(#)JTextComponent.java	1.157 01/02/28
  *
  * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 package javax.swing.text;
@@ -24,7 +21,6 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
 import javax.accessibility.*;
-
 import java.awt.im.InputMethodRequests;
 import java.awt.font.TextHitInfo;
 import java.lang.reflect.Method;
@@ -35,8 +31,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-
 
 /**
  * JTextComponent is the base class for swing text components.  It
@@ -202,7 +196,7 @@ import java.util.Set;
  *     attribute: isContainer false
  * 
  * @author  Timothy Prinzing
- * @version 1.155 02/26/01
+ * @version 1.157 02/28/01
  * @see Document
  * @see DocumentEvent
  * @see DocumentListener
@@ -212,332 +206,6 @@ import java.util.Set;
  * @see TextUI
  * @see View
  * @see ViewFactory
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* */
 public abstract class JTextComponent extends JComponent implements Scrollable, Accessible
@@ -557,7 +225,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	// enable InputMethodEvent for on-the-spot pre-editing
 	enableEvents(AWTEvent.KEY_EVENT_MASK | AWTEvent.INPUT_METHOD_EVENT_MASK);
 	needToSendKeyTypedEvent = !isProcessInputMethodEventOverridden();
-
         caretEvent = new MutableCaretEvent(this);
         addMouseListener(caretEvent);
         addFocusListener(caretEvent);
@@ -2517,7 +2184,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     private static Hashtable keymapTable = null;
     private JTextComponent editor;
     private static JTextComponent focusedComponent;
-    
     //
     // member variables used for on-the-spot input method 
     // editing style support
@@ -2530,7 +2196,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     private ComposedTextCaret composedTextCaret;
     private transient Caret originalCaret;
     private boolean needToSendKeyTypedEvent;
-    
 
     static class DefaultKeymap implements Keymap {
 
@@ -2970,7 +2635,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
         private int mark;
     }
 
-    
     //
     // Process any input method events that the component itself 
     // recognizes. The default on-the-spot handling for input method 
@@ -3359,7 +3023,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	    host.setCaretPosition(newPos.getOffset());
 	}
     }
-    
 }
 
 

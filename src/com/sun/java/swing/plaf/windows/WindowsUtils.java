@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsUtils.java	1.4 00/02/02
+ * @(#)WindowsUtils.java	1.6 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -17,7 +17,7 @@ import java.awt.*;
 /**
  * This is a collection of utility methods needed by the Windows L&F
  *
- * @version 1.4 02/02/00
+ * @version 1.6 02/09/01
  * @author Brian Beck
  */
 
@@ -27,10 +27,6 @@ class WindowsUtils {
      * avoid having Munge directives throughout the code.
      */
     static boolean isLeftToRight( Component c ) {
-        /*if[JDK1.2]
         return c.getComponentOrientation().isLeftToRight();
-        else[JDK1.2]*/
-        return true;
-        /*end[JDK1.2]*/
     }
 }

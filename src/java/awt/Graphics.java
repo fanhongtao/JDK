@@ -1,5 +1,5 @@
 /*
- * @(#)Graphics.java	1.63 01/04/18
+ * @(#)Graphics.java	1.62 00/04/06
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -76,7 +76,7 @@ import java.text.AttributedCharacterIterator;
  * All drawing or writing is done in the current color, 
  * using the current paint mode, and in the current font. 
  * 
- * @version 	1.63, 04/18/01
+ * @version 	1.62, 04/06/00
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see     java.awt.Component
@@ -1133,14 +1133,8 @@ public abstract class Graphics {
      * @param height the height of the rectangle to test against the clip
      */
     public boolean hitClip(int x, int y, int width, int height) {
-        // Note, this implementation is not very efficient.
-        // Subclasses should override this method and calculate
-        // the results more directly.
-        Rectangle clipRect = getClipBounds();
-        if (clipRect == null) {
-            return true;
-        }
-        return clipRect.intersects(x, y, width, height);
+        // FIXME: 1.2 beta3 placeholder, replace for beta4
+        return new Rectangle(x,y,width,height).intersects(getClipBounds());
     }
 
     /**
@@ -1160,18 +1154,12 @@ public abstract class Graphics {
      * @return      the bounding rectangle of the current clipping area.
      */
     public Rectangle getClipBounds(Rectangle r) {
-        // Note, this implementation is not very efficient.
-        // Subclasses should override this method and avoid
-        // the allocation overhead of getClipBounds().
+        // FIXME: 1.2 beta3 placeholder, replace for beta4
         Rectangle clipRect = getClipBounds();
-        if (clipRect != null) {
-            r.x = clipRect.x;
-            r.y = clipRect.y;
-            r.width = clipRect.width;
-            r.height = clipRect.height;
-        } else if (r == null) {
-            throw new NullPointerException("null rectangle parameter");
-        }
+        r.x = clipRect.x;
+        r.y = clipRect.y;
+        r.width = clipRect.width;
+        r.height = clipRect.height;
         return r;
     }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)CannotProceedException.java	1.5 00/02/02
+ * @(#)CannotProceedException.java	1.7 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -34,7 +34,7 @@ import java.util.Hashtable;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.5 00/02/02
+  * @version 1.7 01/02/09
   * @since 1.3
   */
 
@@ -175,7 +175,7 @@ public class CannotProceedException extends NamingException {
 
     /**
      * Sets the "remaining new name" field of this exception.
-     * This is the value returned by <code>getRemainingName()</code>.
+     * This is the value returned by <code>getRemainingNewName()</code>.
      *<p>
      * <tt>newName</tt> is a composite name. If the intent is to set
      * this field using a compound name or string, you must 

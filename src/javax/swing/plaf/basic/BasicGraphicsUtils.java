@@ -1,5 +1,5 @@
 /*
- * @(#)BasicGraphicsUtils.java	1.49 00/02/02
+ * @(#)BasicGraphicsUtils.java	1.50 00/07/26
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -296,12 +296,6 @@ public class BasicGraphicsUtils
      * avoid having Munge directives throughout the code.
      */
     static boolean isLeftToRight( Component c ) {
-        
         return c.getComponentOrientation().isLeftToRight();
-        
-
-
-
-
     }
 }

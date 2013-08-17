@@ -1,8 +1,9 @@
 /*
- * @(#)jvm.h	1.75 99/12/04
+ * @(#)jvm.h	1.81 00/08/30
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ * Copyright 2000 Sun Microsystems, Inc. Tous droits réservés.
+ *
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
  * 
@@ -208,6 +209,13 @@ JVM_IsThreadAlive(JNIEnv *env, jobject thread);
 
 JNIEXPORT void JNICALL
 JVM_SuspendThread(JNIEnv *env, jobject thread);
+
+#ifdef __solaris__
+#define JVM_AvailableThreadStack sysThreadAvailableStackWithSlack
+#else
+    JNIEXPORT jlong JNICALL
+    JVM_AvailableThreadStack(void);
+#endif
 
 JNIEXPORT void JNICALL
 JVM_ResumeThread(JNIEnv *env, jobject thread);

@@ -1,7 +1,7 @@
 /*
- * @(#)Java2Demo.java	1.35 99/11/05
+ * @(#)Java2Demo.java	1.37 01/02/09
  *
- * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1998-2001 by Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -70,7 +70,7 @@ public class Java2Demo extends JPanel implements ItemListener, ActionListener
         {"Fonts", "AttributedStr", "Highlighting", "Outline", "Tree"},
         {"Images", "DukeAnim", "ImageOps", "JPEGFlip", "WarpImage"},
         {"Lines", "Caps", "Dash", "Joins", "LineAnim"},
-        {"Mix", "Balls", "BezierScroller", "JavaMedia", "Stars3D"},
+        {"Mix", "Balls", "BezierScroller", "Stars3D"},
         {"Paint", "GradAnim", "Gradient", "Texture", "TextureAnim"},
         {"Paths", "Append", "CurveQuadTo", "FillStroke", "WindingRule"},
         {"Transforms", "Rotate", "SelectTx", "TransformAnim"}

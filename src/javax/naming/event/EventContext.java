@@ -1,7 +1,7 @@
 /*
- * @(#)EventContext.java	1.6 00/02/02
+ * @(#)EventContext.java	1.9 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -21,7 +21,7 @@ import javax.naming.NamingException;
  *<p>
  *<h4>Target</h4>
  * The name parameter in the <tt>addNamingListener()</tt> methods is referred
- * to as the <em>target</tt>. The target, along with the scope, identify
+ * to as the <em>target</em>. The target, along with the scope, identify
  * the object(s) that the listener is interested in.
  * It is possible to register interest in a target that does not exist, but
  * there might be limitations in the extent to which this can be
@@ -30,7 +30,7 @@ import javax.naming.NamingException;
  * If a service only supports registration for existing
  * targets, an attempt to register for a nonexistent target
  * results in a <tt>NameNotFoundException</tt> being thrown as early as possible,
- * preferrably at the time <tt>addNamingListener()</tt> is called, or if that is
+ * preferably at the time <tt>addNamingListener()</tt> is called, or if that is
  * not possible, the listener will receive the exception through the 
  * <tt>NamingExceptionEvent</tt>.
  *<p>
@@ -115,7 +115,7 @@ import javax.naming.NamingException;
  * 
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.6 00/02/02
+ * @version 1.9 01/02/09
  * @since 1.3
  */
 

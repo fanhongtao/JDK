@@ -1,5 +1,5 @@
 /*
- * @(#)RTFReader.java	1.15 00/02/02
+ * @(#)RTFReader.java	1.16 00/03/06
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -570,7 +570,8 @@ static char[] readCharset(InputStream strm)
 {
     char[] values = new char[256];
     int i;
-    StreamTokenizer in = new StreamTokenizer(new InputStreamReader(strm));
+    StreamTokenizer in = new StreamTokenizer(new BufferedReader(
+								new InputStreamReader(strm)));
 
     in.eolIsSignificant(false);
     in.commentChar('#');

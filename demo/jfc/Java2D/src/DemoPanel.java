@@ -1,5 +1,5 @@
 /*
- * @(#)DemoPanel.java	1.12 99/09/07
+ * @(#)DemoPanel.java	1.13 00/06/19
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -76,6 +76,8 @@ public class DemoPanel extends JPanel {
 
 
     public void start() {
+	if (surface != null)
+	    surface.startClock();
         if (tools != null && surface != null) {
             if (tools.startStopB != null && tools.startStopB.isSelected()) {
                    surface.animating.start();

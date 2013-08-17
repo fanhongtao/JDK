@@ -1,7 +1,7 @@
 /*
- * @(#)DataFlavor.java	1.50 00/08/03
+ * @(#)DataFlavor.java	1.53 01/02/09
  *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -12,7 +12,9 @@ package java.awt.datatransfer;
 
 import java.awt.Toolkit;
 import java.io.*;
+import java.util.*;
 import sun.awt.SunToolkit;
+import sun.awt.DataTransferer;
 
 /**
  * Each instance represents the opaque concept of a data format as would
@@ -22,16 +24,15 @@ import sun.awt.SunToolkit;
  * instantiated.
  * </p>
  *
- * @version     1.50, 08/03/00
+ * @version     1.53, 02/09/01
  * @author      Blake Sullivan
  * @author      Laurence P. G. Cable
  * @author      Jeff Dunn
  */
 public class DataFlavor implements Externalizable, Cloneable {
     
-    static final long serialVersionUID = 8367026044764648243L;
-    
-    static final Class ioInputStreamClass = java.io.InputStream.class;
+    private static final long serialVersionUID = 8367026044764648243L;
+    private static final Class ioInputStreamClass = java.io.InputStream.class;
     
     /**
      * tried to load a class from: the bootstrap loader, the system loader,
@@ -451,7 +452,7 @@ public class DataFlavor implements Externalizable, Cloneable {
 		// Take the platform default
 		selectedFlavor = flavor;
 	    } else {
-		if (encodingIsSupported(charset)) {
+		if (DataTransferer.isEncodingSupported(charset)) {
 		    selectedFlavor = flavor;
 		}
 	    }
@@ -485,50 +486,29 @@ public class DataFlavor implements Externalizable, Cloneable {
      *            I/O error.
      */
     public Reader getReaderForText(Transferable transferable) 
-				throws UnsupportedFlavorException,
-				       IOException {
+	throws UnsupportedFlavorException, IOException
+    {
 	Object transferObject = transferable.getTransferData(this);
 	if (transferObject == null) {
 	    throw new IllegalArgumentException("getTransferData() returned null");
 	}
-	boolean dataIsString = (transferObject instanceof java.lang.String);
-	boolean dataIsStream = (transferObject instanceof java.io.InputStream);
-	boolean dataIsReader = (transferObject instanceof java.io.Reader);
-	if (!(dataIsString || dataIsStream || dataIsReader)) {
-	    throw new IllegalArgumentException(
-				"transfer data is not InputStream or String or Reader");
-	}
 
-	// Get an input stream
-	String encoding = this.getParameter("charset");
-	InputStream stream = null;
-	if (dataIsStream) {
-	    stream = (InputStream)transferObject;
-	} else if (dataIsString) {
+	if (transferObject instanceof Reader) {
+	    return (Reader)transferObject;
+	} else if (transferObject instanceof String) {
+	    return new StringReader((String)transferObject);
+	} else if (transferObject instanceof InputStream) {
+	    InputStream stream = (InputStream)transferObject;
+	    String encoding = DataTransferer.getTextCharset(this);
 	    if (encoding == null) {
-		// default encoding
-		stream = new ByteArrayInputStream(
-				((String)transferObject).getBytes());
+	        return new InputStreamReader(stream);
 	    } else {
-		stream = new ByteArrayInputStream(
-				((String)transferObject).getBytes(encoding));
+	        return new InputStreamReader(stream, encoding);
 	    }
+	} else {
+	    throw new IllegalArgumentException(
+		"transfer data is not InputStream or String or Reader");
 	}
-
-	// Get a reader
-        Reader reader = null;
-        if (dataIsReader) {
-            reader = (Reader)transferObject;
-        } else {
-            if (encoding == null) {
-                // use platform default
-                reader = new InputStreamReader(stream);
-            } else {
-                reader = new InputStreamReader(stream, encoding);
-            } 
-        }
-
-	return reader;
     } // getReaderForText()
     
     /**
@@ -637,8 +617,8 @@ public class DataFlavor implements Externalizable, Cloneable {
 	    }
 
 	    if ("text".equals(getPrimaryType())) {
-		String thisCharset = this.getTextCharset();
-		String thatCharset = that.getTextCharset();
+		String thisCharset = DataTransferer.getTextCharset(this);
+		String thatCharset = DataTransferer.getTextCharset(that);
 		if (thisCharset == null) {
 		    if (thatCharset != null) {
 			return false;
@@ -693,7 +673,7 @@ public class DataFlavor implements Externalizable, Cloneable {
 	    if (primaryType != null) {
 	        mimeTypePortion = primaryType.hashCode();
 		if ("text".equals(primaryType)) { 
-		    String charset = getTextCharset();
+		    String charset = DataTransferer.getTextCharset(this);
 		    if (charset != null) {
 		        charsetPortion = charset.hashCode();
 		    }
@@ -747,8 +727,8 @@ public class DataFlavor implements Externalizable, Cloneable {
 	}
 
 	if (thisPrimaryType.equals("text")) {
-	    String thisCharset = this.getTextCharset();
-	    String thatCharset = that.getTextCharset();
+	    String thisCharset = DataTransferer.getTextCharset(this);
+	    String thatCharset = DataTransferer.getTextCharset(that);
 	    if ((thisCharset == null) || (thatCharset == null) ||
 		(!thisCharset.equals(thatCharset))) {
 		return false;
@@ -759,19 +739,25 @@ public class DataFlavor implements Externalizable, Cloneable {
     } // match()
     
     /**
-     * Is the string representation of the MIME type passed in equivalent
-     * to the MIME type of this DataFlavor? Parameters are not incuded in
-     * the comparison. This may involve adding default
-     * attributes for some MIME types (like adding charset=US-ASCII to
-     * text/plain MIME types that have no charset parameter specified)
-     * When null is passed as a parameter, the result is <code>false</code>.
+     * Returns whether the string representation of the MIME type passed in
+     * is equivalent to the MIME type of this <code>DataFlavor</code>.
+     * Parameters are not incuded in the comparison. The comparison may involve
+     * adding default attributes for some MIME types (such as adding
+     * <code>charset=US-ASCII</code> to text/plain MIME types that have
+     * no <code>charset</code> parameter specified).
      *
-     * @return if the string representation of the MIME type passed is
-     *         equivalent to the MIME type of this DataFlavor.
+     * @param mimeType the string representation of the MIME type
+     * @return true if the string representation of the MIME type passed in is
+     *         equivalent to the MIME type of this <code>DataFlavor</code>;
+     *         false otherwise.
+     * @throws NullPointerException if mimeType is <code>null</code>
      */
-    
     public boolean isMimeTypeEqual(String mimeType) {
-        if (this.mimeType == null || mimeType == null) {
+	// JCK Test DataFlavor0117: if 'mimeType' is null, throw NPE
+	if (mimeType == null) {
+	    throw new NullPointerException("mimeType");
+	}
+	if (this.mimeType == null) {
             return false;
         }
         try {
@@ -942,56 +928,6 @@ public class DataFlavor implements Externalizable, Cloneable {
         return mimeType;        
     }
 
-    /**
-     * returns the charset parameter for flavors with "text" as the
-     * primary type. If the primary type is text, and no charset
-     * is defined, the default charset for the platform is returned.
-     *
-     * If the primary type is not "text", always returns null.
-     */
-    private String getTextCharset() {
-	String charset = null;
-	if ("text".equals(getPrimaryType())) {
-	    charset = getParameter("charset");
-	    if (charset == null) {
-		Toolkit toolkit = Toolkit.getDefaultToolkit();
-		if (toolkit instanceof SunToolkit) {
-		    charset = ((SunToolkit)toolkit).
-					getDefaultCharacterEncoding();
-		}
-	    }
-	}
-	return charset;
-    } // getTextCharset()
-
-    /**
-     * Determines whether the JDK supports a given encoding.
-     */
-    private static boolean encodingIsSupported(String encoding) {
-	//System.out.println("encodingIsSupported("+encoding+")");
-	boolean isSupported = false;
-
-	int i = 0;
-	for (i = 0; (!isSupported) && (i < knownEncodings.length); ++i) {
-	    if (knownEncodings[i].equals(encoding)) {
-		isSupported = true;
-	    }
-	}
-
-	if (!isSupported) {
-	    // keep looking - try to encode something and see if io complains
-	    try {
-		"abc".getBytes(encoding);
-		isSupported = true;
-	    } catch (UnsupportedEncodingException encodingException) {
-	        // let it stay false
-	    }
-	}
-
-	//System.out.println("encodingIsSupported("+encoding+")->"+isSupported);
-	return isSupported;
-    } // encodingIsSupported()
-
     //DEBUG void debugTestMimeEquals(DataFlavor that) {
     //DEBUG     String areThey = "?????";
     //DEBUG     if ((this.mimeType != null) && (that.mimeType != null)) {
@@ -1016,15 +952,6 @@ public class DataFlavor implements Externalizable, Cloneable {
     /* Mime Type of DataFlavor */
 
     MimeType            mimeType;
-
-    /** Encodings that we know are supported go in this list. It's
-      * much faster than actually encoding some text */
-    private static String knownEncodings[] = {
-	    "iso8859-1",
-	    "us-ascii"
-    };
-
-    /** Human-presentable name for this DataFlavor. Localizable. **/
 
     private String      humanPresentableName;  
   

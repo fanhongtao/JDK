@@ -1,5 +1,5 @@
 /*
- * @(#)SwingUtilities.java	1.94 00/02/02
+ * @(#)SwingUtilities.java	1.95 00/07/26
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -26,7 +26,7 @@ import javax.swing.text.View;
 /**
  * A collection of utility methods for Swing.
  *
- * @version 1.94 02/02/00
+ * @version 1.95 07/26/00
  * @author unknown
  */
 public class SwingUtilities implements SwingConstants
@@ -643,14 +643,7 @@ public class SwingUtilities implements SwingConstants
      * @return true if the left mouse button was active
      */
     public static boolean isLeftMouseButton(MouseEvent anEvent) {
-         if (is1dot2) {
              return ((anEvent.getModifiers() & InputEvent.BUTTON1_MASK) != 0);
-         }
-         return ((anEvent.getModifiers() & InputEvent.BUTTON1_MASK) != 0 ||
-                  // Workaround for Solaris not setting BUTTON1_MASK
-                  // Not needed in 1.2 where BUTTON1_MASK is correctly set.
-                  (anEvent.getModifiers() & (InputEvent.BUTTON2_MASK |
-                                             InputEvent.BUTTON3_MASK)) == 0);
     }
 
     /**
@@ -673,37 +666,6 @@ public class SwingUtilities implements SwingConstants
         return ((anEvent.getModifiers() & InputEvent.BUTTON3_MASK) == InputEvent.BUTTON3_MASK);
     }
 
-    /*
-     * Returns whether this is being run on a JDK 1.2 or later VM.
-     * This is a system-wide, rather than AppContext-wide, state.
-     */
-    /*package-private*/ static boolean is1dot2 = true;
-
-    static {
-        try {
-            // Test if method introduced in 1.2 is available.
-            Method m = Class.class.getMethod("getProtectionDomain", null);
-            is1dot2 = (m != null);
-        } catch (NoSuchMethodException e) {
-            is1dot2 = false;
-        }
-
-        // Warn if running wrong version of this class for this JDK.
-        
-          if (!is1dot2) {
-              System.err.println("warning: running 1.2 version of SwingUtilities");
-          }
-          
-
-
-
-
-
-
-
-
-    }
-
     /**
      * Compute the width of the string using a font with the specified
      * "metrics" (sizes).
@@ -713,26 +675,11 @@ public class SwingUtilities implements SwingConstants
      * @return an int containing the string width
      */
     public static int computeStringWidth(FontMetrics fm,String str) {
-        if (is1dot2) {
             // You can't assume that a string's width is the sum of its
             // characters' widths in Java2D -- it may be smaller due to
             // kerning, etc.
             return fm.stringWidth(str);
         }
-
-        int w[] = fm.getWidths();
-        int i,c;
-        int result = 0;
-        char ch;
-        for(i=0,c=str.length() ; i < c ; i++) {
-            ch = str.charAt(i);
-            if(ch > 255)
-                return fm.stringWidth(str);
-            else
-                result += w[(int)ch];
-        }
-        return result;
-    }
 
     /**
      * Compute and return the location of the icons origin, the
@@ -759,13 +706,11 @@ public class SwingUtilities implements SwingConstants
         int     hAlign = horizontalAlignment;
         int     hTextPos = horizontalTextPosition;
 
-        
         if (c != null) {
             if (!(c.getComponentOrientation().isLeftToRight())) {
                 orientationIsLeftToRight = false;
             }
         }
-        
 
         // Translate LEADING/TRAILING values in horizontalAlignment
         // to LEFT/RIGHT values depending on the components orientation
@@ -1143,13 +1088,7 @@ public class SwingUtilities implements SwingConstants
      * @see #invokeAndWait
      */
     public static void invokeLater(Runnable doRun) {
-        
 	EventQueue.invokeLater(doRun);
-        
-
-
-
-
     }
 
 
@@ -1204,33 +1143,8 @@ public class SwingUtilities implements SwingConstants
     public static void invokeAndWait(final Runnable doRun)
         throws InterruptedException, InvocationTargetException
     {
-        
 	EventQueue.invokeAndWait(doRun);
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
-
-
-    private static Class eventDispatchThreadClass = null;
 
     /**
      * Returns true if the current thread is an AWT event dispatching thread.
@@ -1242,38 +1156,7 @@ public class SwingUtilities implements SwingConstants
      */
     public static boolean isEventDispatchThread()
     {
-        
-	  // 1.2 AWT method.
 	  return EventQueue.isDispatchThread();
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     }
 
@@ -1294,28 +1177,7 @@ public class SwingUtilities implements SwingConstants
      * Otherwise, the index of the child in its accessible parent.
      */
     public static int getAccessibleIndexInParent(Component c) {
-
-  // really if JDK1.3...
 	return c.getAccessibleContext().getAccessibleIndexInParent();
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 
     /**
@@ -1325,8 +1187,6 @@ public class SwingUtilities implements SwingConstants
      * @return the Accessible at the specified location, if it exists
      */
     public static Accessible getAccessibleAt(Component c, Point p) {
-
-  // really if JDK1.3...
         if (c instanceof Container) {
 	    return c.getAccessibleContext().getAccessibleComponent().getAccessibleAt(p);
 	} else if (c instanceof Accessible) {
@@ -1358,90 +1218,6 @@ public class SwingUtilities implements SwingConstants
             }
             return (Accessible) c;
         }
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         return null;
     }
 
@@ -1457,63 +1233,7 @@ public class SwingUtilities implements SwingConstants
      * @see AccessibleState
      */
     public static AccessibleStateSet getAccessibleStateSet(Component c) {
-
-  // really if JDK1.3...
 	return c.getAccessibleContext().getAccessibleStateSet();
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 
     /**
@@ -1528,24 +1248,7 @@ public class SwingUtilities implements SwingConstants
      * @return the number of accessible children in the object.
      */
     public static int getAccessibleChildrenCount(Component c) {
-
-  // really if JDK1.3...
 	return c.getAccessibleContext().getAccessibleChildrenCount();
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 
     /**
@@ -1559,28 +1262,7 @@ public class SwingUtilities implements SwingConstants
      * @return the nth Accessible child of the object
      */
     public static Accessible getAccessibleChild(Component c, int i) {
-
-  // really if JDK1.3...
 	return c.getAccessibleContext().getAccessibleChild(i);
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 
     /**
@@ -1821,107 +1503,30 @@ public class SwingUtilities implements SwingConstants
         return sharedOwnerFrame;
     }
 
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     /* Don't make these AppContext accessors public or protected --
      * since AppContext is in sun.awt in 1.2, we shouldn't expose it
      * even indirectly with a public API.
      */
-    static Hashtable appContextTable = new Hashtable(2);
 
     static Object appContextGet(Object key) {
-        
         return sun.awt.AppContext.getAppContext().get(key);
-        
-
-
-
-
     }
 
     static void appContextPut(Object key, Object value) {
-        
         sun.awt.AppContext.getAppContext().put(key, value);
-        
-
-
-
-
     }
 
     static void appContextRemove(Object key) {
-        
         sun.awt.AppContext.getAppContext().remove(key);
-        
-
-
-
-
     }
 
 
     static Class loadSystemClass(String className) throws ClassNotFoundException {
-        
 	return Class.forName(className, true, ClassLoader.getSystemClassLoader());
-        
-
-
-
-	
     }
 
 
     final static void doPrivileged(final Runnable doRun) {
-      
         java.security.AccessController.doPrivileged(
             new java.security.PrivilegedAction() {
                 public Object run() {
@@ -1930,18 +1535,6 @@ public class SwingUtilities implements SwingConstants
                 }
             }
         );
-        
-
-
-
-
-
-
-
-
-
-
-
     }
 
 
@@ -1950,13 +1543,7 @@ public class SwingUtilities implements SwingConstants
      * avoid having Munge directives throughout the code.
      */
     static boolean isLeftToRight( Component c ) {
-        
         return c.getComponentOrientation().isLeftToRight();
-        
-
-
-
-
     }
     private SwingUtilities() {
         throw new Error("SwingUtilities is just a container for static methods");

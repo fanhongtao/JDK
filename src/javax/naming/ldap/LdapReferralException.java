@@ -1,7 +1,7 @@
 /*
- * @(#)LdapReferralException.java	1.6 00/02/02
+ * @(#)LdapReferralException.java	1.8 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -31,7 +31,7 @@ import java.util.Hashtable;
  * @author Rosanna Lee
  * @author Scott Seligman
  * @author Vincent Ryan
- * @version 1.6 00/02/02
+ * @version 1.8 01/02/09
  * @since 1.3
  */
 
@@ -120,7 +120,7 @@ public abstract class LdapReferralException extends ReferralException {
      * description for details.
      *<p>
      * This method should be used instead of the other two overloaded forms
-     * when the caller needs to supply request controls for creating the
+     * when the caller needs to supply request controls for creating
      * the referral context. It might need to do this, for example, when
      * it needs to supply special controls relating to authentication.
      *<p>

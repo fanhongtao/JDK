@@ -1,13 +1,10 @@
 /*
- * @(#)DefaultPopupFactory.java	1.11 01/01/23
+ * @(#)DefaultPopupFactory.java	1.12 01/02/20
  *
  * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
- * This software is the confidential and proprietary information
- * of Sun Microsystems, Inc. ("Confidential Information").  You
- * shall not disclose such Confidential Information and shall use
- * it only in accordance with the terms of the license agreement
- * you entered into with Sun.
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
  * 
  */
 
@@ -254,10 +251,11 @@ class DefaultPopupFactory implements PopupFactory {
         if (popup == null) {
             popup = new WindowPopup(window);
         }
-	/* Fix Forte Menu Bug. awt_TopLevel.c looks for Window name "Popup"
-         * to determine that XmNoverrideRedirect needs to be set.
+        /* Fix Forte Menu Bug. awt_TopLevel.c looks for Window name 
+         * "###overrideRedirect###" to determine that XmNoverrideRedirect 
+         * needs to be set.
         */
-        ((Window)popup).setName("###overrideRedirect###"); /* Fix Forte Menu Bug. */
+        ((Window)popup).setName("###overrideRedirect###"); 
         return popup;
     }
 
@@ -419,10 +417,6 @@ class DefaultPopupFactory implements PopupFactory {
         super(w);
     }
         
-    protected void processKeyEvent(KeyEvent e) {
-        MenuSelectionManager.defaultManager().processKeyEvent(e);
-    }
-
     public Component getComponent() {
       return this;
     }
@@ -531,9 +525,22 @@ class DefaultPopupFactory implements PopupFactory {
        * @see AccessibleState
        */
       public AccessibleStateSet getAccessibleStateSet() {
-        AccessibleStateSet states = SwingUtilities.getAccessibleStateSet(WindowPopup.this);
+        AccessibleStateSet states = new AccessibleStateSet();
         if (getFocusOwner() != null) {
           states.add(AccessibleState.ACTIVE);
+          states.add(AccessibleState.FOCUSED);
+        }
+	if (isFocusTraversable()) {
+          states.add(AccessibleState.FOCUSABLE);
+        }
+	if (isOpaque()) {
+          states.add(AccessibleState.OPAQUE);
+        }
+	if (isShowing()) {
+          states.add(AccessibleState.SHOWING);
+        }
+	if (isVisible()) {
+          states.add(AccessibleState.VISIBLE);
         }
         return states;
       }
@@ -909,10 +916,6 @@ class DefaultPopupFactory implements PopupFactory {
             this.setOpaque(true);
         }
 
-	protected void processKeyEvent(KeyEvent e) {
-            MenuSelectionManager.defaultManager().processKeyEvent(e);
-        }
-
         public Component getComponent() {
             return this;
         }
@@ -1054,10 +1057,6 @@ class DefaultPopupFactory implements PopupFactory {
 	    this.add(rootPane, BorderLayout.CENTER);
         }
 
-	protected void processKeyEvent(KeyEvent e) {
-            MenuSelectionManager.defaultManager().processKeyEvent(e);
-        }
-
         public int getWidth() {
             return getBounds().width;
         }
@@ -1104,6 +1103,7 @@ class DefaultPopupFactory implements PopupFactory {
 	    while(!(parent instanceof Window || parent instanceof Applet) && (parent!=null)) {
 		parent = parent.getParent();
 	    }
+            super.hide();
 	    if (parent instanceof RootPaneContainer) {
 		parent = ((RootPaneContainer)parent).getLayeredPane();
 		Point p = convertScreenLocationToParent(parent,desiredLocationX,desiredLocationY);
@@ -1114,6 +1114,7 @@ class DefaultPopupFactory implements PopupFactory {
 		this.setLocation(p.x,p.y);
 		parent.add(this);
 	    }
+            super.show();
 	}
           
         public void hide() {

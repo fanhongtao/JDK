@@ -1,7 +1,7 @@
 /*
- * @(#)SetOverrideType.java	1.9 00/02/02
+ * @(#)SetOverrideType.java	1.11 01/02/09
  *
- * Copyright 1998-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1998-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -11,11 +11,25 @@
 package org.omg.CORBA;
 
 /**
- * This is the mapping of a CORBA enum tagging
- * SET_OVERRIDE and ADD_OVERRIDE.
+ * The mapping of a CORBA <code>enum</code> tagging
+ * <code>SET_OVERRIDE</code> and <code>ADD_OVERRIDE</code>, which
+ * indicate whether policies should replace the
+ * existing policies of an <code>Object</code> or be added to them.
+ * <P>
+ * The method {@link omg.org.CORBA.Object._set_policy_override} takes
+ * either <code>SetOverrideType.SET_OVERRIDE</code> or
+ * <code>SetOverrideType.ADD_OVERRIDE</code> as its second argument.
+ * The method <code>_set_policy_override</code>
+ * creates a new <code>Object</code> initialized with the
+ * <code>Policy</code> objects supplied as the first argument.  If the
+ * second argument is <code>ADD_OVERRIDE</code>, the new policies
+ * are added to those of the <code>Object</code> instance that is
+ * calling the <code>_set_policy_override</code> method.  If
+ * <code>SET_OVERRIDE</code> is given instead, the existing policies
+ * are replaced with the given ones.
  *
  * @author OMG
- * @version 1.9 02/02/00
+ * @version 1.12 09/20/00
  * @since   JDK1.2
  */
 

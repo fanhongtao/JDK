@@ -1,7 +1,7 @@
 /*
- * @(#)InternalFrameDemo.java	1.4 99/10/19
+ * @(#)InternalFrameDemo.java	1.6 01/04/21
  *
- * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1997-2001 by Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -48,7 +48,7 @@ import java.net.*;
 /**
  * Internal Frames Demo
  *
- * @version 1.4 10/19/99
+ * @version 1.6 04/21/01
  * @author Jeff Dinkins
  */
 public class InternalFrameDemo extends DemoModule {
@@ -148,6 +148,7 @@ public class InternalFrameDemo extends DemoModule {
 	jif.setMaximizable(windowMaximizable.isSelected());
 	jif.setIconifiable(windowIconifiable.isSelected());
 	jif.setResizable(windowResizable.isSelected());
+        jif.getAccessibleContext().setAccessibleName(jif.getTitle());
 
 	jif.setBounds(20*(windowCount%10), 20*(windowCount%10), width, height);
 	jif.setContentPane(new ImageScroller(this, icon, 0, windowCount));
@@ -183,9 +184,13 @@ public class InternalFrameDemo extends DemoModule {
 	// * Create create frame maker buttons *
 	// *************************************
 	JButton b1 = new JButton(smIcon1);
+	b1.getAccessibleContext().setAccessibleName(smIcon1.getDescription());
 	JButton b2 = new JButton(smIcon2);
+	b2.getAccessibleContext().setAccessibleName(smIcon2.getDescription());
 	JButton b3 = new JButton(smIcon3);
+	b3.getAccessibleContext().setAccessibleName(smIcon3.getDescription());
 	JButton b4 = new JButton(smIcon4);
+	b4.getAccessibleContext().setAccessibleName(smIcon4.getDescription());
 
 	// add frame maker actions
 	b1.addActionListener(new ShowFrameAction(this, icon1));

@@ -1,5 +1,5 @@
 /*
- * @(#)TimerQueue.java	1.29 00/02/02
+ * @(#)TimerQueue.java	1.30 00/04/04
  *
  * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -23,7 +23,7 @@ import java.util.*;
  * TimerQueue manages a queue of Timers. The Timers are chained
  * together in a linked list sorted by the order in which they will expire.
  *
- * @version 1.29 02/02/00
+ * @version 1.30 04/04/00
  * @author Dave Moore
  */
 class TimerQueue implements Runnable
@@ -79,6 +79,7 @@ class TimerQueue implements Runnable
             }
             catch (SecurityException e) {
             }
+	    timerThread.setPriority(Thread.NORM_PRIORITY);
             timerThread.start();
             running = true;
         }

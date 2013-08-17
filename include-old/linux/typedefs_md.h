@@ -1,5 +1,5 @@
 /*
- * @(#)typedefs_md.h	1.54 00/03/09
+ * @(#)typedefs_md.h	1.55 00/08/10
  *
  * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -151,7 +151,7 @@ extern void ll2str(int64_t a, char *s, char *limit);
 #define ll2ptr(a) ((void*)(uintptr_t)(a))
 #define ptr2ll(a) ((int64_t)(uintptr_t)(a))
 
-#ifdef ppc
+#if defined(__linux__) && defined(ppc)
 #ifndef HAVE_ALIGNED_DOUBLES
 #define HAVE_ALIGNED_DOUBLES
 #endif

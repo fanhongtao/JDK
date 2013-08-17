@@ -1,7 +1,7 @@
 /*
- * @(#)JarFile.java	1.38 00/02/02
+ * @(#)JarFile.java	1.41 01/04/21
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -25,7 +25,7 @@ import sun.security.util.ManifestEntryVerifier;
  * JAR file and its entries.
  *
  * @author  David Connelly
- * @version 1.38, 02/02/00
+ * @version 1.41, 04/21/01
  * @see	    Manifest
  * @see     java.util.zip.ZipFile
  * @see     java.util.jar.JarEntry
@@ -142,7 +142,7 @@ class JarFile extends ZipFile {
 	    if (manEntry != null) {
 		if (verify) {
 		    byte[] b = getBytes(manEntry);
-		    man = new Manifest(new ByteArrayInputStream(b));
+ 		    man = new Manifest(new ByteArrayInputStream(b));
 		    jv = new JarVerifier(man, b);
 		} else {
 		    man = new Manifest(super.getInputStream(manEntry));

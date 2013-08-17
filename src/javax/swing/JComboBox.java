@@ -1,7 +1,7 @@
 /*
- * @(#)JComboBox.java	1.80 00/04/06
+ * @(#)JComboBox.java	1.82 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -53,7 +53,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A combination of a text field and a drop-down list.
  *
- * @version 1.80 04/06/00
+ * @version 1.82 02/09/01
  * @author Arnaud Weber
  */
 public class JComboBox extends JComponent 
@@ -1327,8 +1327,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
          */
         public String getAccessibleActionDescription(int i) {
             if (i == 0) {
-                // [[[PENDING:  WDW -- need to provide a localized string]]]
-                return new String("togglePopup");
+                return UIManager.getString("ComboBox.togglePopupText");
             }
             else {
                 return null;

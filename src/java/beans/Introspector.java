@@ -1,7 +1,7 @@
 /*
- * @(#)Introspector.java	1.98 00/02/02
+ * @(#)Introspector.java	1.100 01/02/09
  *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -1083,7 +1083,18 @@ public class Introspector {
 	}
 
 	// Now try the bootstrap classloader.
-	Class cls = Class.forName(className);
+	try {
+	    Class cls = Class.forName(className);
+	    return cls.newInstance();
+	} catch (Exception ex) {
+	    // We're not allowed to access the system class loader or
+	    // the class creation failed.
+	    // Drop through.
+	}
+	
+	// Use the classloader from the current Thread.
+	cl = Thread.currentThread().getContextClassLoader();
+	Class cls = cl.loadClass(className);
 	return cls.newInstance();
     }
 

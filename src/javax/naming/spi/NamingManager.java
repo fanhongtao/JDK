@@ -1,7 +1,7 @@
 /*
- * @(#)NamingManager.java	1.11 00/02/02
+ * @(#)NamingManager.java	1.15 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -43,7 +43,7 @@ import com.sun.naming.internal.FactoryEnumeration;
  *
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.11 00/02/02
+ * @version 1.15 01/02/09
  * @since 1.3
  */
 
@@ -56,11 +56,8 @@ public class NamingManager {
 
     NamingManager() {}
 
-    private static boolean debug = true;
-
     // should be protected and package private
-    static VersionHelper helper = VersionHelper.getVersionHelper();
-
+    static final VersionHelper helper = VersionHelper.getVersionHelper();
 
 // --------- object factory stuff
     
@@ -84,9 +81,9 @@ public class NamingManager {
      *<p> 
      * @param builder The factory builder to install. If null, no builder
      *			is installed.
-     * @exception SecurityException Factory builder cannot be installed
+     * @exception SecurityException builder cannot be installed
      *		for security reasons.
-     * @exception NamingException Factory build cannot be installed for
+     * @exception NamingException builder cannot be installed for
      *         a non-security-related reason.
      * @exception IllegalStateException If a factory has already been installed.
      * @see #getObjectInstance
@@ -109,7 +106,7 @@ public class NamingManager {
     /**
      * Used for accessing object factory builder.
      */
-    static ObjectFactoryBuilder getObjectFactoryBuilder() {
+    static synchronized ObjectFactoryBuilder getObjectFactoryBuilder() {
 	return object_factory_builder;
     }
 
@@ -601,7 +598,7 @@ public class NamingManager {
      * Use this method for accessing initctx_factory_builder while
      * inside an unsychronized method.
      */
-    private static InitialContextFactoryBuilder
+    private static synchronized InitialContextFactoryBuilder
     getInitialContextFactoryBuilder() {
 	return initctx_factory_builder;
     }
@@ -680,7 +677,7 @@ public class NamingManager {
      *                no builder is set.
      * @exception SecurityException builder cannot be installed for security
      *			reasons.
-     * @exception NamingException Factory build cannot be installed for
+     * @exception NamingException builder cannot be installed for
      *         a non-security-related reason.
      * @exception IllegalStateException If a builder was previous installed.
      * @see #hasInitialContextFactoryBuilder
@@ -708,7 +705,7 @@ public class NamingManager {
      * @see #setInitialContextFactoryBuilder
      */
     public static boolean hasInitialContextFactoryBuilder() {
-	return (initctx_factory_builder != null);
+	return (getInitialContextFactoryBuilder() != null);
     }
 
 // -----  Continuation Context Stuff
@@ -790,7 +787,6 @@ public class NamingManager {
      * object itself.
      *    If an exception is encountered while retrieving the state, the
      *    exception is passed up to the caller.
-     *</ol>
      * <p>
      * Note that a state factory 
      * (an object that implements the StateFactory

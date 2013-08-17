@@ -1,5 +1,5 @@
 /*
- * @(#)GlobalControls.java	1.21 99/09/07
+ * @(#)GlobalControls.java	1.22 00/06/19
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -47,10 +47,11 @@ public class GlobalControls extends JPanel implements ItemListener, ChangeListen
 
     static String[] screenNames = { 
             "Auto Screen", "On Screen", "Off Screen",
-            "INT_RGB", "INT_ARGB", "INT_ARGB_PRE", "INT_BGR",
+            "INT_xRGB", "INT_ARGB", "INT_ARGB_PRE", "INT_BGR",
             "3BYTE_BGR", "4BYTE_ABGR", "4BYTE_ABGR_PRE", "USHORT_565_RGB",
-            "USHORT_555_RGB", "BYTE_GRAY", "USHORT_GRAY", "BYTE_BINARY",
-            "BYTE_INDEXED", "BYTE_BINARY 2 bit", "BYTE_BINARY 4 bit"};
+            "USHORT_x555_RGB", "BYTE_GRAY", "USHORT_GRAY",
+	    "BYTE_BINARY", "BYTE_INDEXED", "BYTE_BINARY 2 bit", "BYTE_BINARY 4 bit",
+	    "INT_RGBx", "USHORT_555x_RGB"};
     static JComboBox screenCombo;
     public TextureChooser texturechooser;
     public JCheckBox aliasCB, renderCB, toolBarCB;

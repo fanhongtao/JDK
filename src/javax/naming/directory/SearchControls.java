@@ -1,7 +1,7 @@
 /*
- * @(#)SearchControls.java	1.6 00/02/02
+ * @(#)SearchControls.java	1.8 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -12,7 +12,7 @@
 package javax.naming.directory;
 
 /**
-  * This class encapsultes 
+  * This class encapsulates
   * factors that determine scope of search and what gets returned
   * as a result of the search.
   *<p>
@@ -22,7 +22,7 @@ package javax.naming.directory;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.6 00/02/02
+  * @version 1.8 01/02/09
   * @since 1.3
   */
 
@@ -82,7 +82,7 @@ public class SearchControls implements java.io.Serializable {
 
     /**
      * Contains the scope with which to apply the search. One of
-     * <tt>ONELEVE_SCOPE</tt>, <tt>OBJECT_SCOPE</tt>, or 
+     * <tt>ONELEVEL_SCOPE</tt>, <tt>OBJECT_SCOPE</tt>, or 
      * <tt>SUBTREE_SCOPE</tt>.
      * @serial
      */
@@ -123,7 +123,7 @@ public class SearchControls implements java.io.Serializable {
     private String[] attributesToReturn;
 
     /**
-     * Constructs a search contraints using defaults.
+     * Constructs a search constraints using defaults.
      *<p>
      * The defaults are:
      * <ul>
@@ -146,7 +146,7 @@ public class SearchControls implements java.io.Serializable {
     }
 
     /**
-     * Constructs a search contraints using arguments.
+     * Constructs a search constraints using arguments.
      * @param scope	The search scope.  One of:
      *			OBJECT_SCOPE, ONELEVEL_SCOPE, SUBTREE_SCOPE.
      * @param timelim	The number of milliseconds to wait before returning.
@@ -157,7 +157,7 @@ public class SearchControls implements java.io.Serializable {
      * @param retobj	If true, return the object bound to the name of the
      *			entry; if false, do not return object.
      * @param attrs	The identifiers of the attributes to return along with
-     *			the entry.  If null, return all attributes. If emtpy
+     *			the entry.  If null, return all attributes. If empty
      *			return no attributes.
      */
     public SearchControls(int scope, 

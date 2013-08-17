@@ -1,7 +1,7 @@
 /*
- * @(#)Attribute.java	1.7 00/02/02
+ * @(#)Attribute.java	1.9 01/02/09
  *
- * Copyright 1999, 2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -53,7 +53,7 @@ import javax.naming.OperationNotSupportedException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.7 00/02/02
+  * @version 1.9 01/02/09
   *
   * @see BasicAttribute
   * @since 1.3
@@ -62,7 +62,7 @@ public interface Attribute extends Cloneable, java.io.Serializable {
     /**
       * Retrieves an enumeration of the attribute's values.
       * The behaviour of this enumeration is unspecified
-      * if the the attribute's values are added, changed,
+      * if the attribute's values are added, changed,
       * or removed while the enumeration is in progress.
       * If the attribute values are ordered, the enumeration's items
       * will be ordered.
@@ -199,7 +199,7 @@ public interface Attribute extends Cloneable, java.io.Serializable {
       * Retrieves the attribute's schema definition.
       * An attribute's schema definition contains information
       * such as whether the attribute is multivalued or single-valued,
-      * the matching rules to use when comparing the attribiute's values.
+      * the matching rules to use when comparing the attribute's values.
       *
       * The information that you can retrieve from an attribute definition
       * is directory-dependent.

@@ -1,7 +1,7 @@
 /*
- * @(#)JSplitPane.java	1.62 00/04/06
+ * @(#)JSplitPane.java	1.64 01/02/09
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -79,7 +79,7 @@ import java.io.IOException;
  * @see #setDividerLocation
  * @see #resetToPreferredSizes
  *
- * @version 1.62 04/06/00
+ * @version 1.64 02/09/01
  * @author Scott Violet
  */
 public class JSplitPane extends JComponent implements Accessible
@@ -228,8 +228,9 @@ public class JSplitPane extends JComponent implements Accessible
      * layout, using two buttons for the components.
      */
     public JSplitPane() {
-        this(JSplitPane.HORIZONTAL_SPLIT, false, new JButton("left button"),
-             new JButton("right button"));
+        this(JSplitPane.HORIZONTAL_SPLIT, false,
+            new JButton(UIManager.getString("SplitPane.leftButtonText")),
+            new JButton(UIManager.getString("SplitPane.rightButtonText")));
     }
 
 

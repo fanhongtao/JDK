@@ -1,7 +1,7 @@
 /*
- * @(#)Integer.java	1.62 00/02/02
+ * @(#)Integer.java	1.64 01/02/09
  *
- * Copyright 1994-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1994-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -23,7 +23,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.62, 02/02/00
+ * @version 1.64, 02/09/01
  * @since   JDK1.0
  */
 public final class Integer extends Number implements Comparable {
@@ -56,41 +56,6 @@ public final class Integer extends Number implements Comparable {
 	'i' , 'j' , 'k' , 'l' , 'm' , 'n' ,
 	'o' , 'p' , 'q' , 'r' , 's' , 't' ,
 	'u' , 'v' , 'w' , 'x' , 'y' , 'z'
-    };
-
-    /**
-     * Array of chars to lookup the char for the digit in the tenth's
-     * place for a two digit, base ten number.  The char can be got by
-     * using the number as the index.
-     */
-    private final static char[] radixTenTenths = {
-	'0', '0', '0', '0', '0', '0', '0', '0', '0', '0',
-	'1', '1', '1', '1', '1', '1', '1', '1', '1', '1',
-	'2', '2', '2', '2', '2', '2', '2', '2', '2', '2',
-	'3', '3', '3', '3', '3', '3', '3', '3', '3', '3',
-	'4', '4', '4', '4', '4', '4', '4', '4', '4', '4',
-	'5', '5', '5', '5', '5', '5', '5', '5', '5', '5',
-	'6', '6', '6', '6', '6', '6', '6', '6', '6', '6',
-	'7', '7', '7', '7', '7', '7', '7', '7', '7', '7',
-	'8', '8', '8', '8', '8', '8', '8', '8', '8', '8',
-	'9', '9', '9', '9', '9', '9', '9', '9', '9', '9'
-    };
-    /**
-     * Array of chars to lookup the char for the digit in the unit's
-     * place for a two digit, base ten number.  The char can be got by
-     * using the number as the index.
-     */
-    private final static char[] radixTenUnits = {
-	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
     };
 
     /**
@@ -266,6 +231,49 @@ public final class Integer extends Number implements Comparable {
 	return new String(buf, charPos, (32 - charPos));
     }
 
+
+    final static char [] DigitTens = {
+	'0', '0', '0', '0', '0', '0', '0', '0', '0', '0',
+	'1', '1', '1', '1', '1', '1', '1', '1', '1', '1',
+	'2', '2', '2', '2', '2', '2', '2', '2', '2', '2',
+	'3', '3', '3', '3', '3', '3', '3', '3', '3', '3',
+	'4', '4', '4', '4', '4', '4', '4', '4', '4', '4',
+	'5', '5', '5', '5', '5', '5', '5', '5', '5', '5',
+	'6', '6', '6', '6', '6', '6', '6', '6', '6', '6',
+	'7', '7', '7', '7', '7', '7', '7', '7', '7', '7',
+	'8', '8', '8', '8', '8', '8', '8', '8', '8', '8',
+	'9', '9', '9', '9', '9', '9', '9', '9', '9', '9',
+	} ; 
+
+    final static char [] DigitOnes = { 
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+	} ;
+
+	// I use the "invariant division by multiplication" trick to accelerate
+	// Integer.toString.  In particular we want to avoid division by 10.  
+	//
+	// The "trick" has roughly the same performance characterists as the "classic"
+	// Integer.toString code on a non-JIT VM.  The trick avoids .rem and .div calls
+	// but has a longer code path and is thus dominated by dispatch overhead.
+	// In the JIT case the dispatch overhead doesn't exist and the "trick"
+	// is considerably faster than the classic code.
+	//
+	// TODO-FIXME: convert (x * 52429) into the equiv shift-add sequence.
+	//
+	// RE:  Division by Invariant Integers using Multiplication
+	//      T Gralund, P Montgomery
+	//      ACM PLDI 1994
+	//
+
     /**
      * Returns a new String object representing the specified integer. The 
      * argument is converted to signed decimal representation and returned 
@@ -276,51 +284,52 @@ public final class Integer extends Number implements Comparable {
      * @return  a string representation of the argument in base&nbsp;10.
      */
     public static String toString(int i) {
-	/**
-	 * Performance improvements -
-	 *
-	 * 1) Avoid a method call and radix checks by inlining the code for
-	 *    radix = 10 in this method.
-	 * 2) Use char arrays instead of StringBuffer and avoid calls to
-	 *    Character.forDigit.
-	 * 3) Do computations in positive space to avoid negation each time
-	 *    around the loop.
-	 * 4) Unroll loop by half and use a static array of chars to look-
-	 *    up chars for a digit.
-	 * The other option for 4) was to use a switch statement and assign
-	 * the char for the current digit.  That was a little slower than 4)
-	 * with most jits.
-	 * Speed-up = (approximately) 4x on both Solaris and Win32.
-	 */
-	char[] buf = new char[12];
-	boolean negative = (i < 0);
-	int charPos = 12;
+	int q, r, charPos  ; 
+	charPos = 12 ; 
+	char buf [] = new char [charPos] ; 
+	char sign = 0 ; 
 
-	if (i == Integer.MIN_VALUE) {
-	    return "-2147483648";
+  	if (i == Integer.MIN_VALUE) {
+            return "-2147483648";
+        }
+
+	if (i < 0) { 
+		sign = '-' ; 
+		i = -i ; 
 	}
 
-	if (negative) {
-	    i = -i;
+	// Generate two digits per iteration
+	while ( i >= 65536 ) { 
+		q = i / 100 ; 
+		// really: r = i - (q * 100) ; 
+		r = i - ((q << 6) + (q << 5) + (q << 2)) ; 
+		i = q ; 
+		buf [--charPos] = DigitOnes [r] ; 
+		buf [--charPos] = DigitTens [r] ; 
 	}
 
-	do {
-	    int digit = i%100;
-	    buf[--charPos] = radixTenUnits[digit];
-	    buf[--charPos] = radixTenTenths[digit];
-	    i = i / 100;
-	} while(i != 0);
-
-	if (buf[charPos] == '0') {
-	    charPos++;
+	// Fall thru to fast mode for smaller numbers
+	// ASSERT i <= 65536 ... 
+	for (;;) { 
+		q = (i * 52429) >>> (16+3) ; 
+		r = i - ((q << 3) + (q << 1)) ;		// r = i-(q*10) ...
+		buf [--charPos] = digits [r] ; 
+		i = q ; 
+		if (i == 0) break ; 
 	}
-	if (negative) {
-	    buf[--charPos] = '-';
+	if (sign != 0) {
+		buf [--charPos] = sign ; 
 	}
 
-	return new String(buf , charPos , (12 - charPos));
-    }
+	// Use the back-door private constructor -- we abandon the char [].  
+	// This requires that we drop the "private" from the
+	// java.lang.String: String (int Offset,int Count,char[] Value) constructor.
 
+	return new String ( charPos, 12 - charPos, buf ) ; 
+	}
+
+
+    
     /**
      * Parses the string argument as a signed integer in the radix 
      * specified by the second argument. The characters in the string 

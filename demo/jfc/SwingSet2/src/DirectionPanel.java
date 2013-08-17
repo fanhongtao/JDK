@@ -1,7 +1,7 @@
 /*
- * @(#)DirectionPanel.java	1.1 99/11/08
+ * @(#)DirectionPanel.java	1.3 01/04/21
  *
- * Copyright (c) 1997-1999 by Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1997-2001 by Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,
@@ -37,7 +37,7 @@ import java.util.*;
 
 
 /**
- * @version 1.1 11/08/99
+ * @version 1.3 04/21/01
  * @author Jeff Dinkins
  * @author Chester Rose
  * @author Brian Beck
@@ -63,22 +63,31 @@ public class DirectionPanel extends JPanel {
         group = new ButtonGroup();
 	DirectionButton b;
 	b = (DirectionButton) firstThree.add(new DirectionButton(  tl_dot, tldn_dot, "NW", "Sets the orientation to the North-West", l, group, selection.equals("NW")));
+        b.getAccessibleContext().setAccessibleName("North West");
 	b.setEnabled(enable);
 	b = (DirectionButton) firstThree.add(new DirectionButton(  tm_dot, tmdn_dot, "N",  "Sets the orientation to the North", l, group, selection.equals("N")));
+        b.getAccessibleContext().setAccessibleName("North");
 	b.setEnabled(enable);
 	b = (DirectionButton) firstThree.add(new DirectionButton(  tr_dot, trdn_dot, "NE", "Sets the orientation to the North-East", l, group, selection.equals("NE")));
+        b.getAccessibleContext().setAccessibleName("North East");
 	b.setEnabled(enable);
 	b = (DirectionButton) secondThree.add(new DirectionButton( ml_dot, mldn_dot, "W", "Sets the orientation to the West", l, group, selection.equals("W")));
+        b.getAccessibleContext().setAccessibleName("West");
 	b.setEnabled(enable);
 	b = (DirectionButton) secondThree.add(new DirectionButton( c_dot,  cdn_dot,  "C", "Sets the orientation to the Center", l, group, selection.equals("C")));
+        b.getAccessibleContext().setAccessibleName("Center");
 	b.setEnabled(enable);
 	b = (DirectionButton) secondThree.add(new DirectionButton( mr_dot, mrdn_dot, "E", "Sets the orientation to the East", l, group, selection.equals("E")));
+        b.getAccessibleContext().setAccessibleName("East");
 	b.setEnabled(enable);
 	b = (DirectionButton) thirdThree.add(new DirectionButton(  bl_dot, bldn_dot, "SW", "Sets the orientation to the South-West", l, group, selection.equals("SW")));
+        b.getAccessibleContext().setAccessibleName("South West");
 	b.setEnabled(enable);
 	b = (DirectionButton) thirdThree.add(new DirectionButton(  bm_dot, bmdn_dot, "S", "Sets the orientation to the South", l, group, selection.equals("S")));
+        b.getAccessibleContext().setAccessibleName("South");
 	b.setEnabled(enable);
 	b = (DirectionButton) thirdThree.add(new DirectionButton(  br_dot, brdn_dot, "SE", "Sets the orientation to the South-East", l, group, selection.equals("SE")));
+        b.getAccessibleContext().setAccessibleName("South East");
 	b.setEnabled(enable);
 
 	add(firstThree);

@@ -1,5 +1,5 @@
 /*
- * @(#)Arcs.java	1.15 99/09/07
+ * @(#)Arcs.java	1.16 00/08/08
  *
  * Copyright (c) 1998, 1999 by Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -42,7 +42,7 @@ import AnimatingSurface;
  */
 public class Arcs extends AnimatingSurface {
 
-    private static String types[] = {"Arc2D.CHORD","Arc2D.OPEN","Arc2D.PIE"};
+    private static String types[] = {"Arc2D.OPEN","Arc2D.CHORD","Arc2D.PIE"};
     private static final int CLOSE = 0;
     private static final int OPEN = 1;
     private static final int FORWARD = 0;

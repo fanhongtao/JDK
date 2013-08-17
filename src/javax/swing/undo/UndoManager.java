@@ -1,7 +1,7 @@
 /*
- * @(#)UndoManager.java	1.26 00/02/02
+ * @(#)UndoManager.java	1.28 01/04/21
  *
- * Copyright 1997-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright 1997-2001 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * This software is the proprietary information of Sun Microsystems, Inc.  
  * Use is subject to license terms.
@@ -11,6 +11,7 @@
 package javax.swing.undo;
 
 import javax.swing.event.*;
+import javax.swing.UIManager;
 import java.util.*;
 
 /**
@@ -31,7 +32,7 @@ import java.util.*;
  * long term persistence.
  *
  * @author Ray Ryan
- * @version 1.26, 02/02/00
+ * @version 1.28, 04/21/01
  */ 
 public class UndoManager extends CompoundEdit implements UndoableEditListener {
     int indexOfNextAdd;
@@ -392,7 +393,8 @@ public class UndoManager extends CompoundEdit implements UndoableEditListener {
     /**
      * If inProgress, returns getUndoPresentationName of the
      * significant edit that will be undone when undo() is invoked.
-     * If there is none, returns AbstractUndoableEdit.UndoName</p>
+     * If there is none, returns AbstractUndoableEdit.undoText from the 
+     * defaults table.
      * 
      * <p>If not inProgress, acts as a CompoundEdit</p>
      *
@@ -404,7 +406,7 @@ public class UndoManager extends CompoundEdit implements UndoableEditListener {
             if (canUndo()) {
                 return editToBeUndone().getUndoPresentationName();
             } else {
-                return AbstractUndoableEdit.UndoName;
+                return UIManager.getString("AbstractUndoableEdit.undoText");
             }
         } else {
             return super.getUndoPresentationName();
@@ -414,7 +416,8 @@ public class UndoManager extends CompoundEdit implements UndoableEditListener {
     /**
      * If inProgress, returns getRedoPresentationName of the
      * significant edit that will be redone when redo() is invoked.
-     * If there is none, returns AbstractUndoableEdit.RedoName
+     * If there is none, returns AbstractUndoableEdit.redoText from the 
+     * defaults table.
      * 
      * <p>If not inProgress, acts as a CompoundEdit</p>
      *
@@ -426,7 +429,7 @@ public class UndoManager extends CompoundEdit implements UndoableEditListener {
             if (canRedo()) {
                 return editToBeRedone().getRedoPresentationName();
             } else {
-                return AbstractUndoableEdit.RedoName;
+                return UIManager.getString("AbstractUndoableEdit.redoText");
             }
         } else {
             return super.getRedoPresentationName();
