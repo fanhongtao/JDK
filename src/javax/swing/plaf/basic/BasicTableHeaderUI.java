@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicTableHeaderUI.java	1.59 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,11 +18,13 @@ import javax.swing.plaf.*;
 /**
  * BasicTableHeaderUI implementation
  *
- * @version 1.54 02/06/02
+ * @version 1.59 12/03/01
  * @author Alan Chung
  * @author Philip Milne
  */
 public class BasicTableHeaderUI extends TableHeaderUI {
+
+    private static Cursor resizeCursor = Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR); 
 
 //
 // Instance Variables
@@ -40,7 +44,8 @@ public class BasicTableHeaderUI extends TableHeaderUI {
      */
     public class MouseInputHandler implements MouseInputListener {
 
-        private int lastEffectiveMouseX;
+        private int mouseXOffset; 
+	private Cursor otherCursor = resizeCursor; 
 
         public void mouseClicked(MouseEvent e) {}
 
@@ -49,7 +54,7 @@ public class BasicTableHeaderUI extends TableHeaderUI {
 	}
 
         private TableColumn getResizingColumn(Point p) { 
-	    return getResizingColumn(p, header.getColumnModel().getColumnIndexAtX(p.x)); 
+	    return getResizingColumn(p, header.columnAtPoint(p)); 
 	}
 
         private TableColumn getResizingColumn(Point p, int column) { 
@@ -62,7 +67,12 @@ public class BasicTableHeaderUI extends TableHeaderUI {
 		return null; 
 	    }
 	    int midPoint = r.x + r.width/2; 
-	    int columnIndex = (p.x < midPoint) ? column - 1 : column; 
+	    int columnIndex;
+            if( header.getComponentOrientation().isLeftToRight() ) {
+                columnIndex = (p.x < midPoint) ? column - 1 : column; 
+            } else {
+                columnIndex = (p.x < midPoint) ? column : column - 1; 
+            }
 	    if (columnIndex == -1) { 
 		return null; 
 	    }
@@ -75,73 +85,120 @@ public class BasicTableHeaderUI extends TableHeaderUI {
             header.setDraggedDistance(0);
 
             Point p = e.getPoint();
-            lastEffectiveMouseX = p.x;
 
             // First find which header cell was hit
             TableColumnModel columnModel = header.getColumnModel();
-            int index = columnModel.getColumnIndexAtX(p.x);
+            int index = header.columnAtPoint(p);
 
             if (index != -1) {
                 // The last 3 pixels + 3 pixels of next column are for resizing
                 TableColumn resizingColumn = getResizingColumn(p, index); 
                 if (canResize(resizingColumn)) {
-                    header.setResizingColumn(resizingColumn);
+                    header.setResizingColumn(resizingColumn); 
+                    if( header.getComponentOrientation().isLeftToRight() ) {
+                        mouseXOffset = p.x - resizingColumn.getWidth(); 
+                    } else {
+                        mouseXOffset = p.x + resizingColumn.getWidth(); 
+                    }
                 }
                 else if (header.getReorderingAllowed()) {
                     TableColumn hitColumn = columnModel.getColumn(index);
                     header.setDraggedColumn(hitColumn);
-                }
-                else {  // Not allowed to reorder or resize.
+		    mouseXOffset = p.x; 
                 }
             }
         }
 
-	private void setCursor(Cursor c) { 
-	    if (header.getCursor() != c) { 
-		header.setCursor(c); 
-	    }
+	private void swapCursor() { 
+	    Cursor tmp = header.getCursor(); 
+	    header.setCursor(otherCursor); 
+	    otherCursor = tmp; 
 	}
 
         public void mouseMoved(MouseEvent e) { 
-            if (canResize(getResizingColumn(e.getPoint()))) {
-                setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+            if (canResize(getResizingColumn(e.getPoint())) != 
+		(header.getCursor() == resizeCursor)) {
+                swapCursor();
             }
-            else {
-                setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-            }
-        }
+       }
 
         public void mouseDragged(MouseEvent e) {
             int mouseX = e.getX();
-            int deltaX = mouseX - lastEffectiveMouseX;
-
-            if (deltaX == 0) {
-                return;
-            }
 
             TableColumn resizingColumn  = header.getResizingColumn();
             TableColumn draggedColumn  = header.getDraggedColumn();
 
+            boolean headerLeftToRight = header.getComponentOrientation().isLeftToRight();
+
             if (resizingColumn != null) {
-	        int oldWidth = resizingColumn.getWidth();
-                int newWidth = oldWidth + deltaX;
+		int oldWidth = resizingColumn.getWidth();
+		int newWidth;
+		if (headerLeftToRight) {
+                    newWidth = mouseX - mouseXOffset;
+                } else  {
+                    newWidth = mouseXOffset - mouseX;
+		}
                 resizingColumn.setWidth(newWidth);
 
-                int acheivedDeltaX = resizingColumn.getWidth() - oldWidth;
-                lastEffectiveMouseX = lastEffectiveMouseX + acheivedDeltaX;
+		Container container;
+		if ((header.getParent() == null) ||
+		    ((container = header.getParent().getParent()) == null) ||
+		    !(container instanceof JScrollPane)) {
+		    return;
+		}
+
+		if (!container.getComponentOrientation().isLeftToRight() &&
+		    !headerLeftToRight) {
+		    JTable table = header.getTable();
+		    if (table != null) {
+			JViewport viewport = ((JScrollPane)container).getViewport();
+			int viewportWidth = viewport.getWidth();
+			int diff = newWidth - oldWidth;
+			int newHeaderWidth = table.getWidth() + diff;
+
+			/* Resize a table */
+			Dimension tableSize = table.getSize();
+			tableSize.width += diff;
+			table.setSize(tableSize);
+
+			/* If this table is in AUTO_RESIZE_OFF mode and
+			 * has a horizontal scrollbar, we need to update
+			 * a view's position.
+			 */
+			if ((newHeaderWidth >= viewportWidth) &&
+			    (table.getAutoResizeMode() == JTable.AUTO_RESIZE_OFF)) {
+			    Point p = viewport.getViewPosition();
+			    p.x = Math.max(0, Math.min(newHeaderWidth - viewportWidth, p.x + diff));
+			    viewport.setViewPosition(p);
+
+			    /* Update the original X offset value. */
+			    mouseXOffset += diff;
+			}
+		    }
+		}
             }
             else if (draggedColumn != null) {
-                move(e, deltaX);
-                lastEffectiveMouseX = mouseX;
-            }
-            else {
-                // Neither dragging nor resizing ...
-                lastEffectiveMouseX = mouseX;
-            }
+		TableColumnModel cm = header.getColumnModel();
+		int draggedDistance = mouseX - mouseXOffset;
+		int direction = (draggedDistance < 0) ? -1 : 1;
+		int columnIndex = viewIndexForColumn(draggedColumn);
+		int newColumnIndex = columnIndex + (headerLeftToRight ? direction : -direction); 
+		if (0 <= newColumnIndex && newColumnIndex < cm.getColumnCount()) {
+		    int width = cm.getColumn(newColumnIndex).getWidth();
+		    if (Math.abs(draggedDistance) > (width / 2)) {
+			mouseXOffset = mouseXOffset + direction * width; 
+			header.setDraggedDistance(draggedDistance - direction * width);	
+			cm.moveColumn(columnIndex, newColumnIndex); 
+			return; 
+		    }
+		}
+		setDraggedDistance(draggedDistance, columnIndex); 
+	    }
         }
 
         public void mouseReleased(MouseEvent e) { 
 	    setDraggedDistance(0, viewIndexForColumn(header.getDraggedColumn())); 
+
             header.setResizingColumn(null);
             header.setDraggedColumn(null);
         }
@@ -159,42 +216,6 @@ public class BasicTableHeaderUI extends TableHeaderUI {
 		header.getColumnModel().moveColumn(column, column); 
 	    }
 	}
-
-        private void move(MouseEvent e, int delta) {
-            TableColumnModel columnModel = header.getColumnModel();
-            int lastColumn = columnModel.getColumnCount() - 1;
-
-            TableColumn draggedColumn = header.getDraggedColumn();
-            int draggedDistance = header.getDraggedDistance() + delta;
-            int hitColumnIndex = viewIndexForColumn(draggedColumn);
-
-            // Now check if we have moved enough to do a swap
-            if ((draggedDistance < 0) && (hitColumnIndex != 0)) {
-                // Moving left; check prevColumn
-                int width = columnModel.getColumn(hitColumnIndex-1).getWidth();
-                if (-draggedDistance > (width / 2)) {
-                    // Swap me
-                    columnModel.moveColumn(hitColumnIndex, hitColumnIndex-1);
-
-                    draggedDistance = width + draggedDistance;
-                    hitColumnIndex--;
-                }
-            }
-            else if ((draggedDistance > 0) && (hitColumnIndex != lastColumn)) {
-                // Moving right; check nextColumn
-                int width = columnModel.getColumn(hitColumnIndex+1).getWidth();
-                if (draggedDistance > (width / 2)) {
-                    // Swap me
-                    columnModel.moveColumn(hitColumnIndex, hitColumnIndex+1);
-
-                    draggedDistance = -(width - draggedDistance);
-                    hitColumnIndex++;
-                }
-            }
-
-            header.setDraggedColumn(columnModel.getColumn(hitColumnIndex));
-            setDraggedDistance(draggedDistance, hitColumnIndex);
-        }
     }
 
 //
@@ -288,30 +309,56 @@ public class BasicTableHeaderUI extends TableHeaderUI {
 	if (header.getColumnModel().getColumnCount() <= 0) { 
 	    return; 
 	}
+        boolean ltr = header.getComponentOrientation().isLeftToRight();
+
 	Rectangle clip = g.getClipBounds(); 
+        Point left = clip.getLocation();
+        Point right = new Point( clip.x + clip.width - 1, clip.y );
 	TableColumnModel cm = header.getColumnModel(); 
-	int cMin = cm.getColumnIndexAtX(clip.x); 
-        int cMax = cm.getColumnIndexAtX(clip.x + clip.width - 1);
+        int cMin = header.columnAtPoint( ltr ? left : right );
+        int cMax = header.columnAtPoint( ltr ? right : left );
         // This should never happen. 
         if (cMin == -1) {
-	    cMin = 0;
+	    cMin =  0;
         }
         // If the table does not have enough columns to fill the view we'll get -1.
         // Replace this with the index of the last column.
         if (cMax == -1) {
-	    cMax = cm.getColumnCount()-1;
+	    cMax = cm.getColumnCount()-1;  
         }
 
 	TableColumn draggedColumn = header.getDraggedColumn(); 
-	Rectangle cellRect = header.getHeaderRect(cMin); 
-	for(int column = cMin; column <= cMax ; column++) { 
-	    TableColumn aColumn = cm.getColumn(column); 
-	    int columnWidth = aColumn.getWidth(); 
-	    cellRect.width = columnWidth;
+	int columnWidth;
+	int columnMargin = cm.getColumnMargin();
+        Rectangle cellRect = header.getHeaderRect(cMin); 
+	TableColumn aColumn;
+	if (ltr) {
+	    for(int column = cMin; column <= cMax ; column++) { 
+		aColumn = cm.getColumn(column); 
+		columnWidth = aColumn.getWidth();
+		cellRect.width = columnWidth - columnMargin;
+		if (aColumn != draggedColumn) {
+		    paintCell(g, cellRect, column);
+		} 
+		cellRect.x += columnWidth;
+	    }
+	} else {
+	    aColumn = cm.getColumn(cMin);
 	    if (aColumn != draggedColumn) {
-		paintCell(g, cellRect, column);
-	    } 
-	    cellRect.x += columnWidth; 
+		columnWidth = aColumn.getWidth();
+		cellRect.width = columnWidth - columnMargin;
+		cellRect.x += columnMargin;
+		paintCell(g, cellRect, cMin);
+	    }
+	    for(int column = cMin+1; column <= cMax; column++) {
+		aColumn = cm.getColumn(column);
+		columnWidth = aColumn.getWidth();
+		cellRect.width = columnWidth - columnMargin;
+		cellRect.x -= columnWidth;
+		if (aColumn != draggedColumn) {
+		    paintCell(g, cellRect, column);
+		}
+	    }
 	} 
 
         // Paint the dragged column if we are dragging. 
@@ -325,6 +372,12 @@ public class BasicTableHeaderUI extends TableHeaderUI {
                                draggedCellRect.width, draggedCellRect.height);
 
             draggedCellRect.x += header.getDraggedDistance();
+
+	    // Fill the background. 
+	    g.setColor(header.getBackground());
+	    g.fillRect(draggedCellRect.x, draggedCellRect.y,
+		       draggedCellRect.width, draggedCellRect.height);
+ 
             paintCell(g, draggedCellRect, draggedColumnIndex);
         }
 

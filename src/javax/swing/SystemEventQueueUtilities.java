@@ -1,4 +1,6 @@
 /*
+ * @(#)SystemEventQueueUtilities.java	1.36 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -12,6 +14,7 @@ import java.util.*;
 
 import java.lang.reflect.InvocationTargetException;
 
+import sun.awt.AppContext;
 
 /**
  * Swing internal utilities for dealing with the AWT system event
@@ -39,13 +42,13 @@ class SystemEventQueueUtilities
     };
 
     private static Map getRootTable() {
-	Map rt = (Map)sun.awt.AppContext.getAppContext().get(rootTableKey);
+	Map rt = (Map)AppContext.getAppContext().get(rootTableKey);
 	if (rt == null) {
 	    synchronized (rootTableKey) {
-		rt = (Map)sun.awt.AppContext.getAppContext().get(rootTableKey);
+		rt = (Map)AppContext.getAppContext().get(rootTableKey);
 		if (rt == null) {
 		    rt = new WeakHashMap(4);
-		    sun.awt.AppContext.getAppContext().put(rootTableKey, rt);
+		    AppContext.getAppContext().put(rootTableKey, rt);
 		}
 	    }
 	}
@@ -56,13 +59,12 @@ class SystemEventQueueUtilities
     /**
      * SystemEventQueue class.  This private class just exists to 
      * encapsulate the details of getting at the System Event queue 
-     * in the Java 2 platform and JDK1.1.  The rest of the SystemEventQueueUtilities 
+     * in the Java 2 platform.  The rest of the SystemEventQueueUtilities 
      * class just uses SystemEventQueue.get() to access the event queue.
      */
 
     private static class SystemEventQueue 
     {
-
 	// If the AWT system event queue is accessible then return it.
 	// otherwise return null.  
 
@@ -79,10 +81,7 @@ class SystemEventQueueUtilities
 	}
 
 	// If the AWT system event queue is accessible then return it.
-	// otherwise return null.  If the JRootPane has a special
-	// client property set (and yech), we don't bother even 
-	// attempting to get at the event queue - see JApplet.
-
+	// otherwise return null.  
 	static EventQueue get(JRootPane rootPane) {
 	    return get();
 	}
@@ -99,20 +98,19 @@ class SystemEventQueueUtilities
     private static class ComponentWorkRequest implements Runnable
     {
 	boolean isPending;
-	Component component;
-
-	ComponentWorkRequest(Component c) {
-	    /* As of 1.2, the component field is no longer used.  It was 
-	     * used by the RunnableCanvas class to find the JRootPane 
-	     * associated with a ComponentWorkRequest for JDK1.1.x.
-	     */
-	    // component = c;
-	}
-
+ 	Component component;
+  
+ 	ComponentWorkRequest(Component c) {
+ 	    /* As of 1.2, the component field is no longer used.  It was 
+ 	     * used by the RunnableCanvas class to find the JRootPane 
+ 	     * associated with a ComponentWorkRequest for JDK1.1.x.
+ 	     */
+ 	    // component = c;
+  	}
 	public void run() {
 	    RepaintManager rm;
 	    synchronized (this) {
-		rm = RepaintManager.currentManager(component);
+		rm = RepaintManager.currentManager(component /*null*/);
 		isPending = false;
 	    }
 	    rm.validateInvalidComponents();
@@ -379,7 +377,7 @@ class SystemEventQueueUtilities
 		/* If this is a Timer event let it know that it didn't fire.
 		 */
 		if(e.doRun instanceof Timer.DoPostEvent) {
-		    ((Timer.DoPostEvent)e.doRun).getTimer().eventQueued = false;
+		    ((Timer.DoPostEvent)e.doRun).getTimer().cancelEvent();
 		}
 
 		/* We are unable to queue this event on a system event queue.  Make
@@ -646,7 +644,7 @@ class SystemEventQueueUtilities
 			     RunnableEvent event = events[counter];
 			     if(event.doRun instanceof Timer.DoPostEvent) {
 				 ((Timer.DoPostEvent)event.doRun).getTimer().
-				                     eventQueued = false;
+				                     cancelEvent();
 			     }
 			 }
 		     }

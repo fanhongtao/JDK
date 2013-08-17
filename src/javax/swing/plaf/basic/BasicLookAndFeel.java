@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicLookAndFeel.java	1.203 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,15 +10,20 @@ package javax.swing.plaf.basic;
 import java.awt.Font;
 import java.awt.Color;
 import java.awt.SystemColor;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.awt.Insets;
 import java.net.URL;
-import java.io.Serializable;
+import java.io.*;
 import java.awt.Dimension;
+import java.awt.KeyboardFocusManager;
 import java.util.*;
 import java.lang.reflect.*;
+import javax.sound.sampled.*;
 
 import javax.swing.LookAndFeel;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.ImageIcon;
@@ -25,6 +32,8 @@ import javax.swing.UIManager;
 import javax.swing.KeyStroke;
 import javax.swing.JTextField;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.FocusManager;
+import javax.swing.LayoutFocusTraversalPolicy;
 import javax.swing.border.*;
 import javax.swing.plaf.*;
 import javax.swing.text.JTextComponent;
@@ -38,16 +47,27 @@ import javax.swing.text.DefaultEditorKit;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.161 02/06/02
+ * @version 1.203 12/03/01
  * @author unattributed
  */
 public abstract class BasicLookAndFeel extends LookAndFeel implements Serializable
 {
+    /**
+     * Lock used when manipulating clipPlaying.
+     */
+    private Object audioLock = new Object();
+    /**
+     * The Clip that is currently playing (set in AudioAction).
+     */
+    private Clip clipPlaying;
+
 
     public UIDefaults getDefaults() {
 	UIDefaults table = new UIDefaults();
@@ -75,6 +95,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		   "ButtonUI", basicPackageName + "BasicButtonUI",
 		 "CheckBoxUI", basicPackageName + "BasicCheckBoxUI",
              "ColorChooserUI", basicPackageName + "BasicColorChooserUI",
+       "FormattedTextFieldUI", basicPackageName + "BasicFormattedTextFieldUI",
 		  "MenuBarUI", basicPackageName + "BasicMenuBarUI",
 		     "MenuUI", basicPackageName + "BasicMenuUI",
 		 "MenuItemUI", basicPackageName + "BasicMenuItemUI",
@@ -89,6 +110,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		"SplitPaneUI", basicPackageName + "BasicSplitPaneUI",
 		   "SliderUI", basicPackageName + "BasicSliderUI",
 		"SeparatorUI", basicPackageName + "BasicSeparatorUI",
+		  "SpinnerUI", basicPackageName + "BasicSpinnerUI",
 	 "ToolBarSeparatorUI", basicPackageName + "BasicToolBarSeparatorUI",
        "PopupMenuSeparatorUI", basicPackageName + "BasicPopupMenuSeparatorUI",
 	       "TabbedPaneUI", basicPackageName + "BasicTabbedPaneUI",
@@ -106,7 +128,6 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		    "TableUI", basicPackageName + "BasicTableUI",
 	      "TableHeaderUI", basicPackageName + "BasicTableHeaderUI",
 	    "InternalFrameUI", basicPackageName + "BasicInternalFrameUI",
-	   "StandardDialogUI", basicPackageName + "BasicStandardDialogUI",
 	      "DesktopPaneUI", basicPackageName + "BasicDesktopPaneUI",
 	      "DesktopIconUI", basicPackageName + "BasicDesktopIconUI",
 	       "OptionPaneUI", basicPackageName + "BasicOptionPaneUI",
@@ -148,8 +169,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
        "textInactiveText", "#808080", /* Text color when disabled */
 	        "control", "#C0C0C0", /* Default color for controls (buttons, sliders, etc) */
 	    "controlText", "#000000", /* Default color for text in controls */
-       "controlHighlight", "#C0C0C0",
-/*  "controlHighlight", "#E0E0E0",*/ /* Specular highlight (opposite of the shadow) */
+       "controlHighlight", "#C0C0C0", /* Specular highlight (opposite of the shadow) */
      "controlLtHighlight", "#FFFFFF", /* Highlight color for controls */
 	  "controlShadow", "#808080", /* Shadow color for controls */
         "controlDkShadow", "#000000", /* Dark shadow color for controls */
@@ -197,21 +217,26 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    }
 	}
     }
-
-    private void loadResourceBundle(UIDefaults table) {
-        ResourceBundle bundle = ResourceBundle.getBundle("javax.swing.plaf.basic.resources.basic");
-	Enumeration iter = bundle.getKeys();
-	while(iter.hasMoreElements()) {
-	    String key = (String)iter.nextElement();
-	    //System.out.println("key :" +key+ " value: " + bundle.getObject(key));
-	    table.put( key, bundle.getObject(key) );
-	}
+    /**
+     * Initialize the defaults table with the name of the ResourceBundle
+     * used for getting localized defaults.  Also initialize the default
+     * locale used when no locale is passed into UIDefaults.get().  The
+     * default locale should generally not be relied upon. It is here for
+     * compatability with releases prior to 1.4.
+     */
+    private void initResourceBundle(UIDefaults table) {
+        table.setDefaultLocale( Locale.getDefault() );
+        table.addResourceBundle( "com.sun.swing.internal.plaf.basic.resources.basic" );
     }
 
     protected void initComponentDefaults(UIDefaults table)
     {
 
-        loadResourceBundle(table);
+        initResourceBundle(table);
+
+	// *** Shared Integers
+	Integer fiveHundred = new Integer(500);
+
 	// *** Shared Fonts
 	Integer twelve = new Integer(12);
 	Integer fontPlain = new Integer(Font.PLAIN);
@@ -260,10 +285,10 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
         Object loweredBevelBorder = new UIDefaults.ProxyLazyValue(
 			  "javax.swing.plaf.BorderUIResource",
 			  "getLoweredBevelBorderUIResource");
-
-        Object raisedBevelBorder = new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.BorderUIResource",
-			  "getRaisedBevelBorderUIResource");
+	
+	Object popupMenuBorder = new UIDefaults.ProxyLazyValue(
+			  "javax.swing.plaf.basic.BasicBorders",
+			  "getInternalFrameBorder");
 
         Object blackLineBorder = new UIDefaults.ProxyLazyValue(
 			  "javax.swing.plaf.BorderUIResource",
@@ -363,7 +388,6 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		"javax.swing.plaf.basic.BasicIconFactory", 
 		"getRadioButtonIcon");
 
-
 	Object checkBoxMenuItemIcon = 
 	    new UIDefaults.ProxyLazyValue(
 		"javax.swing.plaf.basic.BasicIconFactory", 
@@ -459,29 +483,63 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		 "TAB", DefaultEditorKit.insertTabAction
         });
 
-	Object caretBlinkRate = new Integer(500);
+	Object caretBlinkRate = fiveHundred;
 	Integer four = new Integer(4);
+
+	Object[] allAuditoryCues = new Object[] {
+		"CheckBoxMenuItem.commandSound",
+		"InternalFrame.closeSound",
+		"InternalFrame.maximizeSound",
+		"InternalFrame.minimizeSound",
+		"InternalFrame.restoreDownSound",
+		"InternalFrame.restoreUpSound",
+		"MenuItem.commandSound",
+		"OptionPane.errorSound",
+		"OptionPane.informationSound",
+		"OptionPane.questionSound",
+		"OptionPane.warningSound",
+		"PopupMenu.popupSound",
+		"RadioButtonMenuItem.commandSound"};
+
+	Object[] noAuditoryCues = new Object[] {"mute"};
 
         // *** Component Defaults
 
 	Object[] defaults = {
+	    // *** Auditory Feedback
+	    "AuditoryCues.cueList", allAuditoryCues,
+	    "AuditoryCues.allAuditoryCues", allAuditoryCues,
+	    "AuditoryCues.noAuditoryCues", noAuditoryCues,
+	    // this key defines which of the various cues to render.
+	    // L&Fs that want auditory feedback NEED to override playList.
+	    "AuditoryCues.playList", null,
 
 	    // *** Buttons
 	    "Button.font", dialogPlain12,
 	    "Button.background", table.get("control"),
 	    "Button.foreground", table.get("controlText"),
+	    "Button.shadow", table.getColor("controlShadow"),
+            "Button.darkShadow", table.getColor("controlDkShadow"),
+            "Button.light", table.getColor("controlHighlight"),
+            "Button.highlight", table.getColor("controlLtHighlight"),
 	    "Button.border", buttonBorder,
 	    "Button.margin", new InsetsUIResource(2, 14, 2, 14),
 	    "Button.textIconGap", four,
 	    "Button.textShiftOffset", zero,
 	    "Button.focusInputMap", new UIDefaults.LazyInputMap(new Object[] {
                          "SPACE", "pressed",
-                "released SPACE", "released"
+                "released SPACE", "released",
+                         "ENTER", "pressed",
+                "released ENTER", "released"
               }),
 
 	    "ToggleButton.font", dialogPlain12,
 	    "ToggleButton.background", table.get("control"),
 	    "ToggleButton.foreground", table.get("controlText"),
+	    "ToggleButton.shadow", table.getColor("controlShadow"),
+            "ToggleButton.darkShadow", table.getColor("controlDkShadow"),
+            "ToggleButton.light", table.getColor("controlHighlight"),
+            "ToggleButton.highlight", table.getColor("controlLtHighlight"),
 	    "ToggleButton.border", buttonToggleBorder,
 	    "ToggleButton.margin", new InsetsUIResource(2, 14, 2, 14),
 	    "ToggleButton.textIconGap", four,
@@ -495,6 +553,10 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "RadioButton.font", dialogPlain12,
 	    "RadioButton.background", table.get("control"),
 	    "RadioButton.foreground", table.get("controlText"),
+	    "RadioButton.shadow", table.getColor("controlShadow"),
+            "RadioButton.darkShadow", table.getColor("controlDkShadow"),
+            "RadioButton.light", table.getColor("controlHighlight"),
+            "RadioButton.highlight", table.getColor("controlLtHighlight"),
 	    "RadioButton.border", radioButtonBorder,
 	    "RadioButton.margin", new InsetsUIResource(2, 2, 2, 2),
 	    "RadioButton.textIconGap", four,
@@ -530,14 +592,18 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "ColorChooser.swatchesRecentSwatchSize", new Dimension(10, 10),
             "ColorChooser.swatchesDefaultRecentColor", table.get("control"),
 
-            "ColorChooser.rgbRedMnemonic", new Integer(KeyEvent.VK_R),
-            "ColorChooser.rgbGreenMnemonic", new Integer(KeyEvent.VK_G),
+            "ColorChooser.rgbRedMnemonic", new Integer(KeyEvent.VK_D),
+            "ColorChooser.rgbGreenMnemonic", new Integer(KeyEvent.VK_N),
             "ColorChooser.rgbBlueMnemonic", new Integer(KeyEvent.VK_B),
 
 	    // *** ComboBox
             "ComboBox.font", sansSerifPlain12,
-            "ComboBox.background", white/*table.get("text")*/,
-            "ComboBox.foreground", black/*table.get("TextText")*/,
+            "ComboBox.background", table.get("window"),
+            "ComboBox.foreground", table.get("textText"),
+	    "ComboBox.buttonBackground", table.get("control"),
+	    "ComboBox.buttonShadow", table.get("controlShadow"),
+	    "ComboBox.buttonDarkShadow", table.get("controlDkShadow"),
+	    "ComboBox.buttonHighlight", table.get("controlLtHighlight"),
             "ComboBox.selectionBackground", table.get("textHighlight"),
             "ComboBox.selectionForeground", table.get("textHighlightText"),
             "ComboBox.disabledBackground", table.get("control"),
@@ -548,7 +614,8 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		     "PAGE_UP", "pageUpPassThrough",
 		   "PAGE_DOWN", "pageDownPassThrough",
 		        "HOME", "homePassThrough",
-		         "END", "endPassThrough"
+		         "END", "endPassThrough",
+		       "ENTER", "enterPressed"
 		 }),
  
 	    // *** FileChooser 
@@ -559,6 +626,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "FileChooser.openButtonMnemonic", new Integer(KeyEvent.VK_O),
             "FileChooser.updateButtonMnemonic", new Integer(KeyEvent.VK_U),
             "FileChooser.helpButtonMnemonic", new Integer(KeyEvent.VK_H),
+            "FileChooser.directoryOpenButtonMnemonic", new Integer(KeyEvent.VK_O),
 
 	    "FileChooser.newFolderIcon", newFolderIcon,
             "FileChooser.upFolderIcon", upFolderIcon,
@@ -578,6 +646,11 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
 	    // *** InternalFrame
             "InternalFrame.titleFont", dialogBold12,
+	    "InternalFrame.borderColor", table.get("control"),
+	    "InternalFrame.borderShadow", table.get("controlShadow"),
+	    "InternalFrame.borderDarkShadow", table.getColor("controlDkShadow"),
+	    "InternalFrame.borderHighlight", table.getColor("controlLtHighlight"),
+	    "InternalFrame.borderLight", table.getColor("controlHighlight"),
 	    "InternalFrame.border", internalFrameBorder,
             "InternalFrame.icon", LookAndFeel.makeIcon(getClass(), "icons/JavaCup.gif"),
 
@@ -598,6 +671,12 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    new UIDefaults.ProxyLazyValue(
 			   "javax.swing.plaf.basic.BasicIconFactory",
 			   "createEmptyFrameIcon"),
+	    // InternalFrame Auditory Cue Mappings
+            "InternalFrame.closeSound", null,
+            "InternalFrame.maximizeSound", null,
+            "InternalFrame.minimizeSound", null,
+            "InternalFrame.restoreDownSound", null,
+            "InternalFrame.restoreUpSound", null,
 
 	    "InternalFrame.activeTitleBackground", table.get("activeCaption"),
 	    "InternalFrame.activeTitleForeground", table.get("activeCaptionText"),
@@ -619,19 +698,29 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		 "ctrl F8", "resize",
 		   "RIGHT", "right",
 		"KP_RIGHT", "right",
+             "shift RIGHT", "shrinkRight",
+          "shift KP_RIGHT", "shrinkRight",
 		    "LEFT", "left",
 		 "KP_LEFT", "left",
+              "shift LEFT", "shrinkLeft",
+           "shift KP_LEFT", "shrinkLeft",
 		      "UP", "up",
 		   "KP_UP", "up",
+                "shift UP", "shrinkUp",
+             "shift KP_UP", "shrinkUp",
 		    "DOWN", "down",
 		 "KP_DOWN", "down",
+              "shift DOWN", "shrinkDown",
+           "shift KP_DOWN", "shrinkDown",
 		  "ESCAPE", "escape",
 		 "ctrl F9", "minimize", 
 		"ctrl F10", "maximize",
 		 "ctrl F6", "selectNextFrame",
 		"ctrl TAB", "selectNextFrame",
 	     "ctrl alt F6", "selectNextFrame",
-       "shift ctrl alt F6", "selectPreviousFrame"
+       "shift ctrl alt F6", "selectPreviousFrame",
+                "ctrl F12", "navigateNext",
+          "shift ctrl F12", "navigatePrevious"
 	      }),
 
 	    // *** Label
@@ -653,6 +742,12 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "List.cellRenderer", listCellRendererActiveValue,
 	    "List.focusInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
+                           "ctrl C", "copy",
+                           "ctrl V", "paste",
+                           "ctrl X", "cut",
+                             "COPY", "copy",
+                            "PASTE", "paste",
+                              "CUT", "cut",
 		               "UP", "selectPreviousRow",
 		            "KP_UP", "selectPreviousRow",
 		         "shift UP", "selectPreviousRowExtendSelection",
@@ -661,6 +756,14 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		          "KP_DOWN", "selectNextRow",
 		       "shift DOWN", "selectNextRowExtendSelection",
 		    "shift KP_DOWN", "selectNextRowExtendSelection",
+		             "LEFT", "selectPreviousColumn",
+		          "KP_LEFT", "selectPreviousColumn",
+		       "shift LEFT", "selectPreviousColumnExtendSelection",
+		    "shift KP_LEFT", "selectPreviousColumnExtendSelection",
+		            "RIGHT", "selectNextColumn",
+		         "KP_RIGHT", "selectNextColumn",
+		      "shift RIGHT", "selectNextColumnExtendSelection",
+		   "shift KP_RIGHT", "selectNextColumnExtendSelection",
 		       "ctrl SPACE", "selectNextRowExtendSelection",
 		             "HOME", "selectFirstRow",
 		       "shift HOME", "selectFirstRowExtendSelection",
@@ -674,11 +777,24 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		       "ctrl SLASH", "selectAll",
 		  "ctrl BACK_SLASH", "clearSelection"
 		 }),
+	    "List.focusInputMap.RightToLeft",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		             "LEFT", "selectNextColumn",
+		          "KP_LEFT", "selectNextColumn",
+		       "shift LEFT", "selectNextColumnExtendSelection",
+		    "shift KP_LEFT", "selectNextColumnExtendSelection",
+		            "RIGHT", "selectPreviousColumn",
+		         "KP_RIGHT", "selectPreviousColumn",
+		      "shift RIGHT", "selectPreviousColumnExtendSelection",
+		   "shift KP_RIGHT", "selectPreviousColumnExtendSelection",
+		 }),
 
 	    // *** Menus
 	    "MenuBar.font", dialogPlain12,
 	    "MenuBar.background", table.get("menu"),
 	    "MenuBar.foreground", table.get("menuText"),
+	    "MenuBar.shadow", table.getColor("controlShadow"),
+            "MenuBar.highlight", table.getColor("controlLtHighlight"),
 	    "MenuBar.border", menuBarBorder,
 	    "MenuBar.windowBindings", new Object[] {
 		"F10", "takeFocus" },
@@ -698,6 +814,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "MenuItem.margin", new InsetsUIResource(2, 2, 2, 2),
 	    "MenuItem.checkIcon", menuItemCheckIcon,
 	    "MenuItem.arrowIcon", menuItemArrowIcon,
+	    "MenuItem.commandSound", null,
 
 	    "RadioButtonMenuItem.font", dialogPlain12,
 	    "RadioButtonMenuItem.acceleratorFont", dialogPlain12,
@@ -713,6 +830,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "RadioButtonMenuItem.margin", new InsetsUIResource(2, 2, 2, 2),
 	    "RadioButtonMenuItem.checkIcon", radioButtonMenuItemIcon,
 	    "RadioButtonMenuItem.arrowIcon", menuItemArrowIcon,
+	    "RadioButtonMenuItem.commandSound", null,
 
 	    "CheckBoxMenuItem.font", dialogPlain12,
 	    "CheckBoxMenuItem.acceleratorFont", dialogPlain12,
@@ -728,6 +846,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "CheckBoxMenuItem.margin", new InsetsUIResource(2, 2, 2, 2),
 	    "CheckBoxMenuItem.checkIcon", checkBoxMenuItemIcon,
 	    "CheckBoxMenuItem.arrowIcon", menuItemArrowIcon,
+	    "CheckBoxMenuItem.commandSound", null,
 
 	    "Menu.font", dialogPlain12,
 	    "Menu.acceleratorFont", dialogPlain12,
@@ -743,10 +862,22 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "Menu.margin", new InsetsUIResource(2, 2, 2, 2),
 	    "Menu.checkIcon", menuItemCheckIcon,
 	    "Menu.arrowIcon", menuArrowIcon,
-	    "Menu.consumesTabs", Boolean.TRUE,
+	    "Menu.menuPopupOffsetX", new Integer(0),
+	    "Menu.menuPopupOffsetY", new Integer(0),
+	    "Menu.submenuPopupOffsetX", new Integer(0),
+	    "Menu.submenuPopupOffsetY", new Integer(0),
+ 	    "Menu.shortcutKeys", new int[] {KeyEvent.ALT_MASK},
+
+	    // PopupMenu
+	    "PopupMenu.font", dialogPlain12,
+	    "PopupMenu.background", table.get("menu"),
+	    "PopupMenu.foreground", table.get("menuText"),
+	    "PopupMenu.border", popupMenuBorder,
+	         // Internal Frame Auditory Cue Mappings
+            "PopupMenu.popupSound", null,
 	    // These window InputMap bindings are used when the Menu is
 	    // selected.
-	    "Menu.selectedWindowInputMapBindings", new Object[] {
+	    "PopupMenu.selectedWindowInputMapBindings", new Object[] {
 		  "ESCAPE", "cancel",
                     "DOWN", "selectNext",
 		 "KP_DOWN", "selectNext",
@@ -759,24 +890,12 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		   "ENTER", "return",
 		   "SPACE", "return"
 	    },
-
-	    "PopupMenu.font", dialogPlain12,
-	    "PopupMenu.background", table.get("menu"),
-	    "PopupMenu.foreground", table.get("menuText"),
-	    "PopupMenu.border", raisedBevelBorder,
-	    "PopupMenu.selectedWindowInputMapBindings", new Object[] {
-                  "ESCAPE", "cancel",
-                    "DOWN", "selectNext",
-                 "KP_DOWN", "selectNext",
-                      "UP", "selectPrevious",
-                   "KP_UP", "selectPrevious",
-                    "LEFT", "selectParent",
-                 "KP_LEFT", "selectParent",
-                   "RIGHT", "selectChild",
-                "KP_RIGHT", "selectChild",
-                   "ENTER", "return",
-                   "SPACE", "return"
-            },
+	    "PopupMenu.selectedWindowInputMapBindings.RightToLeft", new Object[] {
+		    "LEFT", "selectChild",
+		 "KP_LEFT", "selectChild",
+		   "RIGHT", "selectParent",
+		"KP_RIGHT", "selectParent",
+	    },
 
 	    // *** OptionPane
 	    "OptionPane.font", dialogPlain12,
@@ -793,7 +912,12 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "OptionPane.questionIcon", LookAndFeel.makeIcon(getClass(), "icons/Question.gif"),
 	    "OptionPane.windowBindings", new Object[] {
 		"ESCAPE", "close" },
-
+	         // OptionPane Auditory Cue Mappings
+            "OptionPane.errorSound", null,
+            "OptionPane.informationSound", null, // Info and Plain
+            "OptionPane.questionSound", null,
+            "OptionPane.warningSound", null,
+	    "OptionPane.buttonClickThreshhold", fiveHundred,
 
 	    // *** Panel
 	    "Panel.font", dialogPlain12,
@@ -809,6 +933,8 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "ProgressBar.border", progressBarBorder,
             "ProgressBar.cellLength", new Integer(1),
             "ProgressBar.cellSpacing", zero,
+            "ProgressBar.repaintInterval", new Integer(50),
+            "ProgressBar.cycleTime", new Integer(3000),
 
            // *** Separator
             "Separator.shadow", table.get("controlShadow"),          // DEPRECATED - DO NOT USE!
@@ -825,30 +951,38 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "ScrollBar.thumb", table.get("control"),
 	    "ScrollBar.thumbHighlight", table.get("controlLtHighlight"),
 	    "ScrollBar.thumbDarkShadow", table.get("controlDkShadow"),
-	    "ScrollBar.thumbLightShadow", table.get("controlShadow"),
+	    "ScrollBar.thumbShadow", table.get("controlShadow"),
 	    "ScrollBar.border", null,
 	    "ScrollBar.minimumThumbSize", minimumThumbSize,
 	    "ScrollBar.maximumThumbSize", maximumThumbSize,
 	    "ScrollBar.focusInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
-		       "RIGHT", "negativeUnitIncrement",
-		    "KP_RIGHT", "negativeUnitIncrement",
+		       "RIGHT", "positiveUnitIncrement",
+		    "KP_RIGHT", "positiveUnitIncrement",
 		        "DOWN", "positiveUnitIncrement",
 		     "KP_DOWN", "positiveUnitIncrement",
 		   "PAGE_DOWN", "positiveBlockIncrement",
-		        "LEFT", "positiveUnitIncrement",
-		     "KP_LEFT", "positiveUnitIncrement",
+		        "LEFT", "negativeUnitIncrement",
+		     "KP_LEFT", "negativeUnitIncrement",
 		          "UP", "negativeUnitIncrement",
 		       "KP_UP", "negativeUnitIncrement",
 		     "PAGE_UP", "negativeBlockIncrement",
 		        "HOME", "minScroll",
 		         "END", "maxScroll"
 		 }),
+	    "ScrollBar.focusInputMap.RightToLeft",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		       "RIGHT", "negativeUnitIncrement",
+		    "KP_RIGHT", "negativeUnitIncrement",
+		        "LEFT", "positiveUnitIncrement",
+		     "KP_LEFT", "positiveUnitIncrement",
+		 }),
+            "ScrollBar.width", new Integer(16),
 
 	    "ScrollPane.font", dialogPlain12,
 	    "ScrollPane.background", table.get("control"),
 	    "ScrollPane.foreground", table.get("controlText"),
-	    "ScrollPane.border", etchedBorder,
+	    "ScrollPane.border", textFieldBorder,
 	    "ScrollPane.viewportBorder", null,
 	    "ScrollPane.ancestorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
@@ -866,6 +1000,11 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		  "ctrl PAGE_DOWN", "scrollRight",
 		       "ctrl HOME", "scrollHome",
 		        "ctrl END", "scrollEnd"
+		 }),
+	    "ScrollPane.ancestorInputMap.RightToLeft",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		    "ctrl PAGE_UP", "scrollRight",
+		  "ctrl PAGE_DOWN", "scrollLeft",
 		 }),
 
 	    "Viewport.font", dialogPlain12,
@@ -895,11 +1034,33 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		        "HOME", "minScroll",
 		         "END", "maxScroll"
 		 }),
+	    "Slider.focusInputMap.RightToLeft",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		       "RIGHT", "negativeUnitIncrement",
+		    "KP_RIGHT", "negativeUnitIncrement",
+		        "LEFT", "positiveUnitIncrement",
+		     "KP_LEFT", "positiveUnitIncrement",
+		 }),
+
+	    // *** Spinner
+	    "Spinner.font", monospacedPlain12,
+	    "Spinner.background", table.get("control"),
+	    "Spinner.foreground", table.get("control"),
+	    "Spinner.border", loweredBevelBorder,
+	    "Spinner.arrowButtonSize", new Dimension(16, 5),
+            "Spinner.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+                               "UP", "increment",
+                            "KP_UP", "increment",
+                             "DOWN", "decrement",
+                          "KP_DOWN", "decrement",
+               }),
 
 	    // *** SplitPane
 	    "SplitPane.background", table.get("control"),
 	    "SplitPane.highlight", table.get("controlLtHighlight"),
 	    "SplitPane.shadow", table.get("controlShadow"),
+	    "SplitPane.darkShadow", table.get("controlDkShadow"),
 	    "SplitPane.border", splitPaneBorder,
 	    "SplitPane.dividerSize", new Integer(7),
 	    "SplitPaneDivider.border", splitPaneDividerBorder,
@@ -918,16 +1079,16 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		        "F8", "startResize",
 		        "F6", "toggleFocus"
 		 }),
-		
 
 	    // *** TabbedPane
             "TabbedPane.font", dialogPlain12,
             "TabbedPane.background", table.get("control"),
             "TabbedPane.foreground", table.get("controlText"),
-            "TabbedPane.lightHighlight", table.get("controlLtHighlight"),
-            "TabbedPane.highlight", table.get("controlHighlight"),
+            "TabbedPane.highlight", table.get("controlLtHighlight"),
+            "TabbedPane.light", table.get("controlHighlight"),
             "TabbedPane.shadow", table.get("controlShadow"),
             "TabbedPane.darkShadow", table.get("controlDkShadow"),
+	    "TabbedPane.selected", null,
             "TabbedPane.focus", table.get("controlText"),
             "TabbedPane.textIconGap", four,
             "TabbedPane.tabInsets", tabbedPaneTabInsets,
@@ -950,6 +1111,8 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		}),
 	    "TabbedPane.ancestorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
+		         "ctrl TAB", "navigateNext",
+		   "ctrl shift TAB", "navigatePrevious",
 		   "ctrl PAGE_DOWN", "navigatePageDown",
 	             "ctrl PAGE_UP", "navigatePageUp",
 	                  "ctrl UP", "requestFocus",
@@ -970,6 +1133,12 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "Table.scrollPaneBorder", loweredBevelBorder,
 	    "Table.ancestorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
+                               "ctrl C", "copy",
+                               "ctrl V", "paste",
+                               "ctrl X", "cut",
+                                 "COPY", "copy",
+                                "PASTE", "paste",
+                                  "CUT", "cut",
 		                "RIGHT", "selectNextColumn",
 		             "KP_RIGHT", "selectNextColumn",
 		                 "LEFT", "selectPreviousColumn",
@@ -1010,6 +1179,21 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		               "ESCAPE", "cancel",
 		                   "F2", "startEditing"
 		 }),
+	    "Table.ancestorInputMap.RightToLeft",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		                "RIGHT", "selectPreviousColumn",
+		             "KP_RIGHT", "selectPreviousColumn",
+		                 "LEFT", "selectNextColumn",
+		              "KP_LEFT", "selectNextColumn",
+		          "shift RIGHT", "selectPreviousColumnExtendSelection",
+		       "shift KP_RIGHT", "selectPreviousColumnExtendSelection",
+		           "shift LEFT", "selectNextColumnExtendSelection",
+		        "shift KP_LEFT", "selectNextColumnExtendSelection",
+		         "ctrl PAGE_UP", "scrollRightChangeSelection",
+		       "ctrl PAGE_DOWN", "scrollLeftChangeSelection",
+		   "ctrl shift PAGE_UP", "scrollRightExtendSelection",
+		 "ctrl shift PAGE_DOWN", "scrollLeftExtendSelection",
+		 }),
 
 	    "TableHeader.font", dialogPlain12,
 	    "TableHeader.foreground", table.get("controlText"), // header text color
@@ -1020,7 +1204,12 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "TextField.font", sansSerifPlain12,
 	    "TextField.background", table.get("window"),
 	    "TextField.foreground", table.get("textText"),
+            "TextField.shadow", table.getColor("controlShadow"),
+            "TextField.darkShadow", table.getColor("controlDkShadow"),
+            "TextField.light", table.getColor("controlHighlight"),
+            "TextField.highlight", table.getColor("controlLtHighlight"),
 	    "TextField.inactiveForeground", table.get("textInactiveText"),
+	    "TextField.inactiveBackground", table.get("control"),
 	    "TextField.selectionBackground", table.get("textHighlight"),
 	    "TextField.selectionForeground", table.get("textHighlightText"),
 	    "TextField.caretForeground", table.get("textText"),
@@ -1029,10 +1218,63 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "TextField.margin", zeroInsets,
 	    "TextField.keyBindings", fieldBindings,
 
+	    "FormattedTextField.font", sansSerifPlain12,
+	    "FormattedTextField.background", table.get("window"),
+	    "FormattedTextField.foreground", table.get("textText"),
+	    "FormattedTextField.inactiveForeground", table.get("textInactiveText"),
+	    "FormattedTextField.inactiveBackground", table.get("control"),
+	    "FormattedTextField.selectionBackground", table.get("textHighlight"),
+	    "FormattedTextField.selectionForeground", table.get("textHighlightText"),
+	    "FormattedTextField.caretForeground", table.get("textText"),
+	    "FormattedTextField.caretBlinkRate", caretBlinkRate,
+	    "FormattedTextField.border", textFieldBorder,
+            "FormattedTextField.margin", zeroInsets,
+	    "FormattedTextField.focusInputMap",
+              new UIDefaults.LazyInputMap(new Object[] {
+                           "ctrl C", DefaultEditorKit.copyAction,
+                           "ctrl V", DefaultEditorKit.pasteAction,
+                           "ctrl X", DefaultEditorKit.cutAction,
+                             "COPY", DefaultEditorKit.copyAction,
+                            "PASTE", DefaultEditorKit.pasteAction,
+                              "CUT", DefaultEditorKit.cutAction,
+                       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
+                    "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
+                      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
+                   "shift KP_RIGHT", DefaultEditorKit.selectionForwardAction,
+                        "ctrl LEFT", DefaultEditorKit.previousWordAction,
+                     "ctrl KP_LEFT", DefaultEditorKit.previousWordAction,
+                       "ctrl RIGHT", DefaultEditorKit.nextWordAction,
+                    "ctrl KP_RIGHT", DefaultEditorKit.nextWordAction,
+                  "ctrl shift LEFT", DefaultEditorKit.selectionPreviousWordAction,
+               "ctrl shift KP_LEFT", DefaultEditorKit.selectionPreviousWordAction,
+                 "ctrl shift RIGHT", DefaultEditorKit.selectionNextWordAction,
+              "ctrl shift KP_RIGHT", DefaultEditorKit.selectionNextWordAction,
+                           "ctrl A", DefaultEditorKit.selectAllAction,
+                             "HOME", DefaultEditorKit.beginLineAction,
+                              "END", DefaultEditorKit.endLineAction,
+                       "shift HOME", DefaultEditorKit.selectionBeginLineAction,
+                        "shift END", DefaultEditorKit.selectionEndLineAction,
+                       "typed \010", DefaultEditorKit.deletePrevCharAction,
+                           "DELETE", DefaultEditorKit.deleteNextCharAction,
+                            "RIGHT", DefaultEditorKit.forwardAction,
+                             "LEFT", DefaultEditorKit.backwardAction,
+                         "KP_RIGHT", DefaultEditorKit.forwardAction,
+                          "KP_LEFT", DefaultEditorKit.backwardAction,
+                            "ENTER", JTextField.notifyAction,
+                  "ctrl BACK_SLASH", "unselect",
+                  "control shift O", "toggle-componentOrientation",
+                           "ESCAPE", "reset-field-edit",
+                               "UP", "increment",
+                            "KP_UP", "increment",
+                             "DOWN", "decrement",
+                          "KP_DOWN", "decrement",
+              }),
+
 	    "PasswordField.font", monospacedPlain12,
 	    "PasswordField.background", table.get("window"),
 	    "PasswordField.foreground", table.get("textText"),
 	    "PasswordField.inactiveForeground", table.get("textInactiveText"),
+	    "PasswordField.inactiveBackground", table.get("control"),
 	    "PasswordField.selectionBackground", table.get("textHighlight"),
 	    "PasswordField.selectionForeground", table.get("textHighlightText"),
 	    "PasswordField.caretForeground", table.get("textText"),
@@ -1056,7 +1298,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "TextPane.font", serifPlain12,
 	    "TextPane.background", white,
 	    "TextPane.foreground", table.get("textText"),
-	    "TextPane.selectionBackground", lightGray,
+	    "TextPane.selectionBackground", table.get("textHighlight"),
 	    "TextPane.selectionForeground", table.get("textHighlightText"),
 	    "TextPane.caretForeground", table.get("textText"),
 	    "TextPane.caretBlinkRate", caretBlinkRate,
@@ -1068,9 +1310,9 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "EditorPane.font", serifPlain12,
 	    "EditorPane.background", white,
 	    "EditorPane.foreground", table.get("textText"),
-	    "EditorPane.selectionBackground", lightGray,
+	    "EditorPane.selectionBackground", table.get("textHighlight"),
 	    "EditorPane.selectionForeground", table.get("textHighlightText"),
-	    "EditorPane.caretForeground", red,
+	    "EditorPane.caretForeground", table.get("textText"),
 	    "EditorPane.caretBlinkRate", caretBlinkRate,
 	    "EditorPane.inactiveForeground", table.get("textInactiveText"),
 	    "EditorPane.border", marginBorder,
@@ -1086,6 +1328,10 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "ToolBar.font", dialogPlain12,
 	    "ToolBar.background", table.get("control"),
 	    "ToolBar.foreground", table.get("controlText"),
+	    "ToolBar.shadow", table.getColor("controlShadow"),
+            "ToolBar.darkShadow", table.getColor("controlDkShadow"),
+            "ToolBar.light", table.getColor("controlHighlight"),
+            "ToolBar.highlight", table.getColor("controlLtHighlight"),
 	    "ToolBar.dockingBackground", table.get("control"),
 	    "ToolBar.dockingForeground", red,
 	    "ToolBar.floatingBackground", table.get("control"),
@@ -1109,6 +1355,8 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "ToolTip.background", table.get("info"),
             "ToolTip.foreground", table.get("infoText"),
             "ToolTip.border", blackLineBorder,
+            // ToolTips also support backgroundInactive, borderInactive,
+            // and foregroundInactive
 
 	    // *** Tree
 	    "Tree.font", dialogPlain12,
@@ -1134,6 +1382,12 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "Tree.drawsFocusBorderAroundIcon", Boolean.FALSE,
 	    "Tree.focusInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
+                                 "ctrl C", "copy",
+                                 "ctrl V", "paste",
+                                 "ctrl X", "cut",
+                                   "COPY", "copy",
+                                  "PASTE", "paste",
+                                    "CUT", "cut",
 		                     "UP", "selectPrevious",
 		                  "KP_UP", "selectPrevious",
 		               "shift UP", "selectPreviousExtendSelection",
@@ -1154,7 +1408,6 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		             "shift HOME", "selectFirstExtendSelection",
 		                    "END", "selectLast",
 		              "shift END", "selectLastExtendSelection",
-		                  "ENTER", "toggle",
 		                     "F2", "startEditing",
 		                 "ctrl A", "selectAll",
 		             "ctrl SLASH", "selectAll",
@@ -1177,6 +1430,13 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		          "ctrl KP_RIGHT", "scrollRight",
 		                  "SPACE", "toggleSelectionPreserveAnchor",
 		 }),
+	    "Tree.focusInputMap.RightToLeft",
+	       new UIDefaults.LazyInputMap(new Object[] {
+		                  "RIGHT", "selectParent",
+		               "KP_RIGHT", "selectParent",
+		                   "LEFT", "selectChild",
+		                "KP_LEFT", "selectChild",
+		 }),
 	    "Tree.ancestorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
 		     "ESCAPE", "cancel"
@@ -1193,6 +1453,278 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	};
 
 	table.putDefaults(defaults);
+    }
+
+    // ********* Auditory Cue support methods and objects *********
+    // also see the "AuditoryCues" section of the defaults table
+
+    /**
+     * Returns an <code>ActionMap</code>.
+     * <P>
+     * This <code>ActionMap</code> contains <code>Actions</code> that 
+     * embody the ability to render an auditory cue. These auditory 
+     * cues map onto user and system activities that may be useful 
+     * for an end user to know about (such as a dialog box appearing).
+     * <P>
+     * At the appropriate time in a <code>JComponent</code> UI's lifecycle, 
+     * the ComponentUI is responsible for getting the appropriate 
+     * <code>Action</code> out of the <code>ActionMap</code> and passing 
+     * it on to <code>playSound</code>.
+     * <P>
+     * The <code>Actions</code> in this <code>ActionMap</code> are 
+     * created by the <code>createAudioAction</code> method.
+     *
+     * @return      an ActionMap containing Actions
+     *              responsible for rendering auditory cues
+     * @see #createAudioAction
+     * @see #playSound(Action)
+     * @since 1.4
+     */
+    protected ActionMap getAudioActionMap() {
+	ActionMap audioActionMap = (ActionMap)UIManager.get(
+					      "AuditoryCues.actionMap");
+	if (audioActionMap == null) {
+	    Object[] acList = (Object[])UIManager.get("AuditoryCues.cueList");
+	    if (acList != null) {
+		audioActionMap = new ActionMapUIResource();
+		for(int counter = acList.length-1; counter >= 0; counter--) {
+		    audioActionMap.put(acList[counter],
+				       createAudioAction(acList[counter]));
+		}
+	    }
+	    UIManager.getLookAndFeelDefaults().put("AuditoryCues.actionMap",
+						   audioActionMap);
+	}
+	return audioActionMap;
+    }
+
+    /**
+     * Returns an <code>Action</code>.
+     * <P>
+     * This Action contains the information and logic to render an
+     * auditory cue. The <code>Object</code> that is passed to this
+     * method contains the information needed to render the auditory 
+     * cue. Normally, this <code>Object</code> is a <code>String</code> 
+     * that points to an audio file relative to the current package.
+     * This <code>Action</code>'s <code>actionPerformed</code> method
+     * is fired by the <code>playSound</code> method.
+     *
+     * @return      an Action which knows how to render the auditory
+     *              cue for one particular system or user activity
+     * @see #playSound(Action)
+     * @since 1.4
+     */
+    protected Action createAudioAction(Object key) {
+	if (key != null) {
+	    String audioKey = (String)key;
+	    String audioValue = (String)UIManager.get(key);
+	    return new AudioAction(audioKey, audioValue);
+	} else {
+	    return null;
+	}
+    }
+
+    /**
+     * Pass the name String to the super constructor. This is used 
+     * later to identify the Action and decide whether to play it or 
+     * not. Store the resource String. I is used to get the audio 
+     * resource. In this case, the resource is an audio file.
+     *
+     * @since 1.4
+     */
+    private class AudioAction extends AbstractAction implements LineListener {
+        // We strive to only play one sound at a time (other platforms
+        // appear to do this). This is done by maintaining the field
+        // clipPlaying. Every time a sound is to be played,
+        // cancelCurrentSound is invoked to cancel any sound that may be
+        // playing.
+	private String audioResource;
+	private byte[] audioBuffer;
+
+	/**
+	 * The String is the name of the Action and
+	 * points to the audio resource.
+	 * The byte[] is a buffer of the audio bits.
+	 */
+	public AudioAction(String name, String resource) {
+	    super(name);
+	    audioResource = resource;
+	}
+
+	public void actionPerformed(ActionEvent e) {
+	    if (audioBuffer == null) {
+		audioBuffer = loadAudioData(audioResource);
+	    }
+	    if (audioBuffer != null) {
+                cancelCurrentSound(null);
+		try {
+		    AudioInputStream soundStream =
+			AudioSystem.getAudioInputStream(
+			    new ByteArrayInputStream(audioBuffer));
+		    DataLine.Info info =
+			new DataLine.Info(Clip.class, soundStream.getFormat());
+		    Clip clip = (Clip) AudioSystem.getLine(info);
+		    clip.open(soundStream);
+                    clip.addLineListener(this);
+
+                    synchronized(audioLock) {
+                        clipPlaying = clip;
+                    }
+
+		    clip.start();
+		} catch (Exception ex) {}
+	    }
+	}
+
+        public void update(LineEvent event) {
+            if (event.getType() == LineEvent.Type.STOP) {
+                cancelCurrentSound((Clip)event.getLine());
+            }
+        }
+
+        /**
+         * If the parameter is null, or equal to the currently
+         * playing sound, then cancel the currently playing sound.
+         */
+        private void cancelCurrentSound(Clip clip) {
+            Clip lastClip = null;
+
+            synchronized(audioLock) {
+                if (clip == null || clip == clipPlaying) {
+                    lastClip = clipPlaying;
+                    clipPlaying = null;
+                }
+            }
+
+            if (lastClip != null) {
+                lastClip.removeLineListener(this);
+                lastClip.close();
+            }
+        }
+    }
+
+    /**
+     * Utility method that helps get permission for loading audio files.
+     * This is an exact copy of
+     * <code>javax.swing.SwingUtilities#doPrivileged(final Runnable)</code>.
+     * The SwingUtilities version is unusable here as it is package private.
+     *
+     * @param doRun     the object that needs special access, in this case,
+     *                  to the file system
+     * @see             javax.swing.SwingUtilities#doPrivileged(final Runnable)
+     * @since 1.4
+     */
+    private final static void doPrivileged(final Runnable doRun) {
+        java.security.AccessController.doPrivileged(
+            new java.security.PrivilegedAction() {
+                public Object run() {
+                  doRun.run();
+                  return null;
+                }
+            }
+        );
+    }
+
+    /**
+     * Utility method that loads audio bits for the specified 
+     * <code>soundFile</code> filename. If this method is unable to
+     * build a viable path name from the <code>baseClass</code> and 
+     * <code>soundFile</code> passed into this method, it will 
+     * return <code>null</code>.
+     *
+     * @param baseClass    used as the root class/location to get the
+     *                     soundFile from
+     * @param soundFile    the name of the audio file to be retrieved 
+     *                     from disk
+     * @return             A byte[] with audio data or null
+     * @since 1.4
+     */
+    private byte[] loadAudioData(final String soundFile){
+	if (soundFile == null) {
+	    return null;
+	}
+	/* Copy resource into a byte array.  This is
+	 * necessary because several browsers consider
+	 * Class.getResource a security risk since it
+	 * can be used to load additional classes.
+	 * Class.getResourceAsStream just returns raw
+	 * bytes, which we can convert to a sound.
+	 */
+	final byte[][] buffer = new byte[1][];
+	doPrivileged(new Runnable() {
+		public void run() {
+		    try {
+			InputStream resource = BasicLookAndFeel.this.
+			    getClass().getResourceAsStream(soundFile);
+			if (resource == null) {
+			    return; 
+			}
+			BufferedInputStream in = 
+			    new BufferedInputStream(resource);
+			ByteArrayOutputStream out = 
+			    new ByteArrayOutputStream(1024);
+			buffer[0] = new byte[1024];
+			int n;
+			while ((n = in.read(buffer[0])) > 0) {
+			    out.write(buffer[0], 0, n);
+			}
+			in.close();
+			out.flush();
+			buffer[0] = out.toByteArray();
+		    } catch (IOException ioe) {
+			System.err.println(ioe.toString());
+			return;
+		    }
+		}
+	    });
+	if (buffer[0] == null) {
+	    System.err.println(getClass().getName() + "/" + 
+			       soundFile + " not found.");
+	    return null;
+	}
+	if (buffer[0].length == 0) {
+	    System.err.println("warning: " + soundFile + 
+			       " is zero-length");
+	    return null;
+	}
+	return buffer[0];
+    }
+
+    /**
+     * Decides whether to fire the <code>Action</code> that is passed into
+     * it and, if needed, fires the <code>Action</code>'s 
+     * <code>actionPerformed</code> method. This has the effect
+     * of rendering the audio appropriate for the situation.
+     * <P>
+     * The set of possible cues to be played are stored in the default 
+     * table value "AuditoryCues.cueList". The cues that will be played
+     * are stored in "AuditoryCues.playList".
+     *
+     * @param audioAction an Action that knows how to render the audio
+     *                    associated with the system or user activity
+     *                    that is occurring
+     * @since 1.4
+     */
+    protected void playSound(Action audioAction) {
+	if (audioAction != null) {
+	    Object[] audioStrings = (Object[])
+		                    UIManager.get("AuditoryCues.playList");
+	    if (audioStrings != null) {
+		// create a HashSet to help us decide to play or not
+		HashSet audioCues = new HashSet();
+		for (int i = 0; i < audioStrings.length; i++) {
+		    audioCues.add(audioStrings[i]);
+		}
+		// get the name of the Action
+		String actionName = (String)audioAction.getValue(Action.NAME);
+		// if the actionName is in the audioCues HashSet, play it.
+		if (audioCues.contains(actionName)) {
+		    audioAction.actionPerformed(new 
+			ActionEvent(this, ActionEvent.ACTION_PERFORMED, 
+				    actionName));
+		}
+	    }
+	}
     }
 
 }

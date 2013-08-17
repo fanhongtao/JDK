@@ -1,4 +1,6 @@
 /*
+ * @(#)ICC_ProfileGray.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -69,6 +71,8 @@ extends ICC_Profile {
     /**
      * Returns a float array of length 3 containing the X, Y, and Z
      * components of the mediaWhitePointTag in the ICC profile.
+     * @return an array containing the components of the
+     * mediaWhitePointTag in the ICC profile.
      */
     public float[] getMediaWhitePoint() {
         return super.getMediaWhitePoint();

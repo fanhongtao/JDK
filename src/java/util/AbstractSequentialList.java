@@ -1,4 +1,6 @@
 /*
+ * @(#)AbstractSequentialList.java	1.25 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -35,7 +37,7 @@ package java.util;
  * specification.
  *
  * @author  Josh Bloch
- * @version 1.22, 02/06/02
+ * @version 1.25, 12/03/01
  * @see Collection
  * @see List
  * @see AbstractList
@@ -57,11 +59,11 @@ public abstract class AbstractSequentialList extends AbstractList {
      * This implementation first gets a list iterator pointing to the indexed
      * element (with <tt>listIterator(index)</tt>).  Then, it gets the element
      * using <tt>ListIterator.next</tt> and returns it.
+     * @param index index of element to return.
      *
-     * @return the element at the specified position in this list.  * @param
-     * 		  index index of element to return.  * @throws
-     * 		  IndexOutOfBoundsException if the specified index is out of
-     * 		  range (<tt>index &lt; 0 || index &gt;= size()</tt>).
+     * @return the element at the specified position in this list.  
+     * @throws IndexOutOfBoundsException if the specified index is out of
+     *         range (<tt>index &lt; 0 || index &gt;= size()</tt>).
      */
     public Object get(int index) {
 	ListIterator e = listIterator(index);
@@ -215,6 +217,7 @@ public abstract class AbstractSequentialList extends AbstractList {
      *		  element prevents it from being added to this list.
      * @throws IndexOutOfBoundsException if the specified index is out of
      *            range (<tt>index &lt; 0 || index &gt; size()</tt>).
+     * @throws NullPointerException if the specified collection is null.
      */
     public boolean addAll(int index, Collection c) {
 	boolean modified = false;
@@ -246,6 +249,8 @@ public abstract class AbstractSequentialList extends AbstractList {
      * Returns a list iterator over the elements in this list (in proper
      * sequence).
      *
+     * @param  index index of first element to be returned from the list 
+     *		iterator (by a call to the <code>next</code> method)
      * @return a list iterator over the elements in this list (in proper
      *      sequence).
      */

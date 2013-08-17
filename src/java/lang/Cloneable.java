@@ -1,4 +1,6 @@
 /*
+ * @(#)Cloneable.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,17 +13,25 @@ package java.lang;
  * is legal for that method to make a 
  * field-for-field copy of instances of that class. 
  * <p>
- * Attempts to clone instances that do not implement the 
- * <code>Cloneable</code> interface result in the exception 
- * <code>CloneNotSupportedException</code> being thrown. 
+ * Invoking Object's clone method on an instance that does not implement the 
+ * <code>Cloneable</code> interface results in the exception 
+ * <code>CloneNotSupportedException</code> being thrown.
  * <p>
- * The interface <tt>Cloneable</tt> declares no methods.
+ * By convention, classes that implement this interface should override 
+ * <tt>Object.clone</tt> (which is protected) with a public method.
+ * See {@link java.lang.Object#clone()} for details on overriding this
+ * method.
+ * <p>
+ * Note that this interface does <i>not</t> contain the <tt>clone</tt> method.
+ * Therefore, it is not possible to clone an object merely by virtue of the
+ * fact that it implements this interface.  Even if the clone method is invoked
+ * reflectively, there is no guarantee that it will succeed.
  *
  * @author  unascribed
- * @version 1.11, 02/06/02
+ * @version 1.13, 12/03/01
  * @see     java.lang.CloneNotSupportedException
+ * @see     java.lang.Object#clone()
  * @since   JDK1.0
  */
 public interface Cloneable { 
-
 }

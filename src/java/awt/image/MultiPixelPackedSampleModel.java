@@ -1,4 +1,6 @@
 /*
+ * @(#)MultiPixelPackedSampleModel.java	1.34 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -328,8 +330,15 @@ public class MultiPixelPackedSampleModel extends SampleModel
      * pixel.
      * @exception ArrayIndexOutOfBoundException if the specified
      *		coordinates are not in bounds.
+     * @see #setSample(int, int, int, int, DataBuffer)
      */
     public int getSample(int x, int y, int b, DataBuffer data) {
+        // 'b' must be 0
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height) ||
+            (b != 0)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         int bitnum = dataBitOffset + x*pixelBitStride;
         int element = data.getElem(y*scanlineStride + bitnum/dataElementSize);
         int shift = dataElementSize - (bitnum & (dataElementSize-1))
@@ -349,9 +358,16 @@ public class MultiPixelPackedSampleModel extends SampleModel
      * @param data the <code>DataBuffer</code> where image data is stored
      * @exception ArrayIndexOutOfBoundsException if the coordinates are 
      * not in bounds.
+     * @see #getSample(int, int, int, DataBuffer)
      */
     public void setSample(int x, int y, int b, int s,
 			  DataBuffer data) {
+        // 'b' must be 0
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height) ||
+            (b != 0)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         int bitnum = dataBitOffset + x * pixelBitStride;
         int index = y * scanlineStride + (bitnum / dataElementSize);
         int shift = dataElementSize - (bitnum & (dataElementSize-1))
@@ -409,8 +425,13 @@ public class MultiPixelPackedSampleModel extends SampleModel
      * @exception ArrayIndexOutOfBoundsException if the coordinates are
      * not in bounds, or if <code>obj</code> is not <code>null</code> or 
      * not large enough to hold the pixel data
+     * @see #setDataElements(int, int, Object, DataBuffer)
      */
     public Object getDataElements(int x, int y, Object obj, DataBuffer data) {
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
 
 	int type = getTransferType();
 	int bitnum = dataBitOffset + x*pixelBitStride;
@@ -484,8 +505,13 @@ public class MultiPixelPackedSampleModel extends SampleModel
      * @return an array containing the specified pixel.
      * @exception ArrayIndexOutOfBoundsException if the coordinates
      *	are not in bounds
+     * @see #setPixel(int, int, int[], DataBuffer)
      */
     public int[] getPixel(int x, int y, int iArray[], DataBuffer data) {
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         int pixels[];
         if (iArray != null) {
            pixels = iArray;
@@ -537,8 +563,13 @@ public class MultiPixelPackedSampleModel extends SampleModel
      * @param x,&nbsp;y the coordinates of the pixel location
      * @param obj a primitive array containing pixel data
      * @param data the <code>DataBuffer</code> containing the image data
+     * @see #getDataElements(int, int, Object, DataBuffer)
      */
     public void setDataElements(int x, int y, Object obj, DataBuffer data) {
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
 
 	int type = getTransferType();
 	int bitnum = dataBitOffset + x * pixelBitStride;
@@ -581,8 +612,13 @@ public class MultiPixelPackedSampleModel extends SampleModel
      * @param x,&nbsp;y the coordinates of the pixel location
      * @param iArray the input pixel in an <code>int</code> array
      * @param data the <code>DataBuffer</code> containing the image data
+     * @see #getPixel(int, int, int[], DataBuffer)
      */
     public void setPixel(int x, int y, int[] iArray, DataBuffer data) {
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         int bitnum = dataBitOffset + x * pixelBitStride;
         int index = y * scanlineStride + (bitnum / dataElementSize);
         int shift = dataElementSize - (bitnum & (dataElementSize-1))
@@ -593,7 +629,46 @@ public class MultiPixelPackedSampleModel extends SampleModel
         data.setElem(index,element);
     }
 
+    public boolean equals(Object o) {
+        if ((o == null) || !(o instanceof MultiPixelPackedSampleModel)) {
+            return false;
+        }
 
+        MultiPixelPackedSampleModel that = (MultiPixelPackedSampleModel)o;
+        return this.width == that.width &&
+            this.height == that.height &&
+            this.numBands == that.numBands &&
+            this.dataType == that.dataType &&
+            this.pixelBitStride == that.pixelBitStride &&
+            this.bitMask == that.bitMask &&
+            this.pixelsPerDataElement == that.pixelsPerDataElement &&
+            this.dataElementSize == that.dataElementSize &&
+            this.dataBitOffset == that.dataBitOffset &&
+            this.scanlineStride == that.scanlineStride;
+    }
+
+    // If we implement equals() we must also implement hashCode
+    public int hashCode() {
+        int hash = 0;
+        hash = width;
+        hash <<= 8;
+        hash ^= height;
+        hash <<= 8;
+        hash ^= numBands;
+        hash <<= 8;
+        hash ^= dataType;
+        hash <<= 8;
+        hash ^= pixelBitStride;
+        hash <<= 8;
+        hash ^= bitMask;
+        hash <<= 8;
+        hash ^= pixelsPerDataElement;
+        hash <<= 8;
+        hash ^= dataElementSize;
+        hash <<= 8;
+        hash ^= dataBitOffset;
+        hash <<= 8;
+        hash ^= scanlineStride;
+        return hash;
+    }
 }
-
-

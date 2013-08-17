@@ -1,120 +1,127 @@
 /*
+ * @(#)FocusManager.java	1.23 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
-import java.util.Hashtable;
-import java.awt.event.KeyEvent;
-import java.awt.Component;
+import java.awt.*;
+
 
 /**
- * Swing Focus Manager
+ * This class has been obsoleted by the 1.4 focus APIs. While client code may
+ * still use this class, developers are strongly encouraged to use
+ * <code>java.awt.KeyboardFocusManager</code> and
+ * <code>java.awt.DefaultKeyboardFocusManager</code> instead. Please see the
+ * Focus Specification for more information.
  *
- * @version 1.12 02/06/02
+ * @see <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
+ *
+ * @version 1.23, 12/03/01
  * @author Arnaud Weber
+ * @author David Mendenhall
  */
-public abstract class FocusManager {
+public abstract class FocusManager extends DefaultKeyboardFocusManager {
 
-    /** This property name is used to get the FocusManager implementation
-     *  that should be used for a given UI
+    /**
+     * This field is obsolete, and its use is discouraged since its
+     * specification is incompatible with the 1.4 focus APIs.
+     * The current FocusManager is no longer a property of the UI.
+     * Client code must query for the current FocusManager using
+     * <code>KeyboardFocusManager.getCurrentKeyboardFocusManager()</code>.
+     * See the Focus Specification for more information.
+     *
+     * @see java.awt.KeyboardFocusManager#getCurrentKeyboardFocusManager
+     * @see <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
      */
     public static final String FOCUS_MANAGER_CLASS_PROPERTY = 
         "FocusManagerClassName";
 
-    private static final Object focusManagerKey = FocusManager.class;
+    private static boolean enabled = true;
 
-    /** Return the FocusManager for the calling thread 
-     *  There is one FocusManager per thread group
+    /**
+     * Returns the current <code>KeyboardFocusManager</code> instance
+     * for the calling thread's context.
+     *
+     * @return this thread's context's <code>KeyboardFocusManager</code>
+     * @see #setCurrentManager
      */
     public static FocusManager getCurrentManager() {
-        FocusManager result = 
-            (FocusManager)SwingUtilities.appContextGet(focusManagerKey);
-        if(result == null) {
-            String className = 
-                UIManager.getString(FOCUS_MANAGER_CLASS_PROPERTY);
-            try {
-                Class c = Class.forName(className);
-                if(c != null) {
-                    result = (FocusManager) c.newInstance();
-                }
-            } catch (ClassNotFoundException e) {
-                System.out.println("Cannot find class " + className + " " + e);
-                result = null;
-            } catch (InstantiationException e) {
-                System.out.println("Cannot instantiate class " + className + " " + e);
-                result = null;
-            } catch (IllegalAccessException e) {
-                System.out.println("Cannot access class " + className + " " + e);
-                result = null;
-            }
-            
-            if(result == null) {
-                result = new DefaultFocusManager();
-            }
-            SwingUtilities.appContextPut(focusManagerKey, result);
-        }
-        return result;
+	KeyboardFocusManager manager =
+	    KeyboardFocusManager.getCurrentKeyboardFocusManager();
+	if (manager instanceof FocusManager) {
+	    return (FocusManager)manager;
+	} else {
+	    return new DelegatingDefaultFocusManager(manager);
+	}
     }
 
-    /** Set the FocusManager that should be used for the calling 
-     *  thread. <b>aFocusManager</b> will be the default focus
-     *  manager for the calling thread's thread group.
+    /**
+     * Sets the current <code>KeyboardFocusManager</code> instance
+     * for the calling thread's context. If <code>null</code> is
+     * specified, then the current <code>KeyboardFocusManager</code>
+     * is replaced with a new instance of
+     * <code>DefaultKeyboardFocusManager</code>.
+     * <p>
+     * If a <code>SecurityManager</code> is installed,
+     * the calling thread must be granted the <code>AWTPermission</code>
+     * "replaceKeyboardFocusManager" in order to replace the
+     * the current <code>KeyboardFocusManager</code>.
+     * If this permission is not granted,
+     * this method will throw a <code>SecurityException</code>,
+     * and the current <code>KeyboardFocusManager</code> will be unchanged.
+     *
+     * @param newManager the new <code>KeyboardFocusManager</code>
+     *     for this thread's context
+     * @see #getCurrentManager
+     * @see java.awt.DefaultKeyboardFocusManager
+     * @throws SecurityException if the calling thread does not have permission
+     *         to replace the current <code>KeyboardFocusManager</code>
      */
-    public static void setCurrentManager(FocusManager aFocusManager) {
-        if (aFocusManager != null) {
-            SwingUtilities.appContextPut(focusManagerKey, aFocusManager);
-        } else {
-            SwingUtilities.appContextRemove(focusManagerKey);
-        }
+    public static void setCurrentManager(FocusManager aFocusManager)
+        throws SecurityException
+    {
+	// Note: This method is not backward-compatible with 1.3 and earlier
+	// releases. It now throws a SecurityException in an applet, whereas
+	// in previous releases, it did not. This issue was discussed at
+	// length, and ultimately approved by Hans.
+        KeyboardFocusManager toSet = 
+            (aFocusManager instanceof DelegatingDefaultFocusManager)
+                ? ((DelegatingDefaultFocusManager)aFocusManager).getDelegate()
+                : aFocusManager;
+        KeyboardFocusManager.setCurrentKeyboardFocusManager(toSet);
     }
 
-    /** Disable Swing's focus manager for the calling thread's thread group.
-     *  Call this method if your application mixes java.awt components and
-     *  swing's components. Your application will then use the awt focus 
-     *  manager.
+    /**
+     * Changes the current <code>KeyboardFocusManager</code>'s default
+     * <code>FocusTraversalPolicy</code> to
+     * <code>DefaultFocusTraversalPolicy</code>.
+     *
+     * @see java.awt.DefaultFocusTraversalPolicy
+     * @see java.awt.KeyboardFocusManager#setDefaultFocusTraversalPolicy
+     * @deprecated as of 1.4, replaced by 
+     * <code>KeyboardFocusManager.setDefaultFocusTraversalPolicy(FocusTraversalPolicy)</code>
      */
     public static void disableSwingFocusManager() {
-        setCurrentManager(new DisabledFocusManager());
+	if (enabled) {
+	    enabled = false;
+	    KeyboardFocusManager.getCurrentKeyboardFocusManager().
+		setDefaultFocusTraversalPolicy(
+                    new DefaultFocusTraversalPolicy());
+	}
     }
 
-    /** Return whether Swing's focus manager is enabled **/
+    /**
+     * Returns whether the application has invoked
+     * <code>disableSwingFocusManager()</code>.
+     *
+     * @see #disableSwingFocusManager
+     * @deprecated As of 1.4, replaced by
+     *   <code>KeyboardFocusManager.getDefaultFocusTraversalPolicy()</code>
+     */
     public static boolean isFocusManagerEnabled() {
-        FocusManager fm = getCurrentManager();
-        return !(fm instanceof DisabledFocusManager);
-    }
-
-    /** This method is called by JComponents when a key event occurs.
-     *  JComponent gives key events to the focus manager
-     *  first, then to key listeners, then to the keyboard UI dispatcher.
-     *  This method should look at the key event and change the focused
-     *  component if the key event matches the receiver's focus manager
-     *  hot keys. For example the default focus manager will change the
-     *  focus if the key event matches TAB or Shift + TAB.
-     *  The focus manager should call consume() on <b>anEvent</b> if 
-     *  <code>anEvent</code> has been processed. 
-     *  <code>focusedComponent</code> is the component that currently has
-     *  the focus.
-     *  Note: FocusManager will receive both KEY_PRESSED and KEY_RELEASED
-     *  key events. If one event is consumed, the other one should be consumed
-     *  too.
-     */
-    public abstract void processKeyEvent(Component focusedComponent,KeyEvent anEvent);
-
-
-    /** Cause the focus manager to set the focus on the next focusable component 
-     *  You can call this method to cause the focus manager to focus the next component
-     **/
-    public abstract void focusNextComponent(Component aComponent);
-
-    /** Cause the focus manager to set the focus on the previous focusable component 
-     *  You can call this methid to cause the focus manager to focus the previous component
-     */
-    public abstract void focusPreviousComponent(Component aComponent);
-
-    static class DisabledFocusManager extends FocusManager {
-        public void processKeyEvent(Component focusedComponent,KeyEvent anEvent) {}
-        public void focusNextComponent(Component c) {}
-        public void focusPreviousComponent(Component c) {}
+	return enabled;
     }
 }
+

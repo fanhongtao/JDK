@@ -1,5 +1,7 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * @(#)MetalSliderUI.java	1.31 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,12 +33,14 @@ import javax.swing.plaf.*;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.30 06/06/06
+ * @version 1.31 12/03/01
  * @author Tom Santos
  */
 public class MetalSliderUI extends BasicSliderUI {
@@ -50,8 +54,6 @@ public class MetalSliderUI extends BasicSliderUI {
     protected static int tickLength;
     protected static Icon horizThumbIcon;
     protected static Icon vertThumbIcon;
-    private static Icon SAFE_HORIZ_THUMB_ICON;
-    private static Icon SAFE_VERT_THUMB_ICON;
 
 
     protected final String SLIDER_FILL = "JSlider.isFilled";
@@ -64,29 +66,11 @@ public class MetalSliderUI extends BasicSliderUI {
         super( null );
     }
 
-    private static Icon getHorizThumbIcon() {
-        if (System.getSecurityManager() != null) {
-           return SAFE_HORIZ_THUMB_ICON;
-        } else {
-           return horizThumbIcon;
-        }
-    }
-
-    private static Icon getVertThumbIcon() {
-        if (System.getSecurityManager() != null) {
-           return SAFE_VERT_THUMB_ICON;
-        } else {
-           return vertThumbIcon;
-        }
-    }
-
     public void installUI( JComponent c ) {
         trackWidth = ((Integer)UIManager.get( "Slider.trackWidth" )).intValue();
         tickLength = ((Integer)UIManager.get( "Slider.majorTickLength" )).intValue();
-        horizThumbIcon = SAFE_HORIZ_THUMB_ICON =
-                UIManager.getIcon( "Slider.horizontalThumbIcon" );
-        vertThumbIcon = SAFE_VERT_THUMB_ICON =
-                UIManager.getIcon( "Slider.verticalThumbIcon" );
+        horizThumbIcon = UIManager.getIcon( "Slider.horizontalThumbIcon" );
+        vertThumbIcon = UIManager.getIcon( "Slider.verticalThumbIcon" );
 
 	super.installUI( c );
 
@@ -128,10 +112,10 @@ public class MetalSliderUI extends BasicSliderUI {
         g.translate( knobBounds.x, knobBounds.y );
 
         if ( slider.getOrientation() == JSlider.HORIZONTAL ) {
-            getHorizThumbIcon().paintIcon( slider, g, 0, 0 );
+            horizThumbIcon.paintIcon( slider, g, 0, 0 );
         }
         else {
-            getVertThumbIcon().paintIcon( slider, g, 0, 0 );
+            vertThumbIcon.paintIcon( slider, g, 0, 0 );
         }
 
         g.translate( -knobBounds.x, -knobBounds.y );
@@ -253,12 +237,12 @@ public class MetalSliderUI extends BasicSliderUI {
         Dimension size = new Dimension();
 
         if ( slider.getOrientation() == JSlider.VERTICAL ) {
-            size.width = getVertThumbIcon().getIconWidth(); 
-            size.height = getVertThumbIcon().getIconHeight(); 
-        }
-        else {
-            size.width = getHorizThumbIcon().getIconWidth(); 
-            size.height = getHorizThumbIcon().getIconHeight(); 	    
+	    size.width = vertThumbIcon.getIconWidth();
+	    size.height = vertThumbIcon.getIconHeight();
+	}
+	else {
+	    size.width = horizThumbIcon.getIconWidth();
+	    size.height = horizThumbIcon.getIconHeight();
 	}
 
 	return size;
@@ -307,7 +291,7 @@ public class MetalSliderUI extends BasicSliderUI {
      * Returns the amount that the thumb goes past the slide bar.
      */
     protected int getThumbOverhang() {
-        return 5;
+        return (int)(getThumbSize().getHeight()-getTrackWidth())/2;
     }
 
     protected void scrollDueToClickInTrack( int dir ) {

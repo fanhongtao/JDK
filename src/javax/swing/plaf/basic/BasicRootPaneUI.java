@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicRootPaneUI.java	1.6 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,13 +17,12 @@ import javax.swing.plaf.*;
  * Basic implementation of RootPaneUI, there is one shared between all
  * JRootPane instances.
  *
- * @version 1.4 02/06/02
+ * @version 1.6 12/03/01
  * @author Scott Violet
  */
 public class BasicRootPaneUI extends RootPaneUI implements
                   PropertyChangeListener {
     private static RootPaneUI rootPaneUI = new BasicRootPaneUI();
-
 
     public static ComponentUI createUI(JComponent c) {
         return rootPaneUI;
@@ -127,7 +128,11 @@ public class BasicRootPaneUI extends RootPaneUI implements
      */
     public void propertyChange(PropertyChangeEvent e) {
 	if(e.getPropertyName().equals("defaultButton")) {
-	    updateDefaultButtonBindings((JRootPane)e.getSource());
+	    JRootPane rootpane = (JRootPane)e.getSource();
+	    updateDefaultButtonBindings(rootpane);
+	    if (rootpane.getClientProperty("temporaryDefaultButton") == null) {
+		rootpane.putClientProperty("initialDefaultButton", e.getNewValue());
+	    }
 	}
     }
 
@@ -147,7 +152,6 @@ public class BasicRootPaneUI extends RootPaneUI implements
                 if (press) {
                     model.setArmed(true);
                     model.setPressed(true);
-                } else {
                     model.setPressed(false);
                 }
             }

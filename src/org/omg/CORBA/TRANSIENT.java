@@ -1,4 +1,6 @@
 /*
+ * @(#)TRANSIENT.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,9 +8,12 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>TRANSIENT</code> exception, which is thrown
- * by the server to signal a transient failure
- * that might not occur again if the request is retried.
+ * Exception  thrown when the ORB attempted to reach an object and failed. 
+ * It is not an indication that an object does not exist. Instead, it simply
+ * means that no further determination of an object's status was possible 
+ * because it could not be reached. This exception is raised if an attempt 
+ * to establish a connection fails, for example, because the server or the 
+ * implementation repository is down.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

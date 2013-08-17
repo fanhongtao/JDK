@@ -1,4 +1,6 @@
 /*
+ * @(#)JTextArea.java	1.83 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,30 +12,36 @@ import javax.swing.text.*;
 import javax.swing.plaf.*;
 import javax.accessibility.*;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.TreeSet;
+
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
 
 /**
- * A TextArea is a multi-line area that displays plain text. 
+ * A <code>JTextArea</code> is a multi-line area that displays plain text. 
  * It is intended to be a lightweight component that provides source 
- * compatibility with the java.awt.TextArea class where it can
+ * compatibility with the <code>java.awt.TextArea</code> class where it can
  * reasonably do so.
  * You can find information and examples of using all the text components in
  * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/text.html">Using Text Components</a>,
  * a section in <em>The Java Tutorial.</em>
  *
  * <p>
- * This component has capabilities not found in 
- * the java.awt.TextArea class.  The superclass should be consulted for 
- * additional capabilities.  Alternative multi-line text classes with
- * more capabilitites are JTextPane and JEditorPane.
+ * This component has capabilities not found in the
+ * <code>java.awt.TextArea</code> class.  The superclass should be
+ * consulted for additional capabilities.
+ * Alternative multi-line text classes with
+ * more capabilities are <code>JTextPane</code> and <code>JEditorPane</code>.
  * <p>
  * The <code>java.awt.TextArea</code> internally handles scrolling.  
  * <code>JTextArea</code> is different in that it doesn't manage scrolling, 
  * but implements the swing <code>Scrollable</code> interface.  This allows it 
- * to be placed inside a <code>JScrollPane</code> if scrolling behavior is desired, 
- * and used directly if scrolling is not desired.
+ * to be placed inside a <code>JScrollPane</code> if scrolling
+ * behavior is desired, and used directly if scrolling is not desired.
  * <p>
  * The <code>java.awt.TextArea</code> has the ability to do line wrapping. 
  * This was controlled by the horizontal scrolling policy.  Since
@@ -43,46 +51,58 @@ import java.io.IOException;
  * not it will wrap lines.  By default, the line wrapping property
  * is set to false (not wrapped).
  * <p>
- * <code>java.awt.TextArea</code> has two properties <em>rows</em>
- * and <em>columns</em> that are used to determine the preferred size.
+ * <code>java.awt.TextArea</code> has two properties <code>rows</code>
+ * and <code>columns</code> that are used to determine the preferred size.
  * <code>JTextArea</code> uses these properties to indicate the
- * preferred size of the viewport when placed inside a JScrollPane to
- * match the functionality provided by <code>java.awt.TextArea</code>.
+ * preferred size of the viewport when placed inside a <code>JScrollPane</code>
+ * to match the functionality provided by <code>java.awt.TextArea</code>.
  * <code>JTextArea</code> has a preferred size of what is needed to
  * display all of the text, so that it functions properly inside of
- * a <code>JScrollPane</code>.  If the value for the rows or columns
- * is equal to zero, the preferred size along that axis is used for
+ * a <code>JScrollPane</code>.  If the value for <code>rows</code>
+ * or <code>columns</code> is equal to zero,
+ * the preferred size along that axis is used for
  * the viewport preferred size along the same axis.
  * <p>
- * The java.awt.TextArea could be monitored for changes by adding
- * a TextListener for TextEvent's.  In the JTextComponent based
+ * The <code>java.awt.TextArea</code> could be monitored for changes by adding
+ * a <code>TextListener</code> for <code>TextEvent</code>s. 
+ * In the <code>JTextComponent</code> based
  * components, changes are broadcasted from the model via a
- * DocumentEvent to DocumentListeners.  The DocumentEvent gives 
+ * <code>DocumentEvent</code> to <code>DocumentListeners</code>. 
+ * The <code>DocumentEvent</code> gives 
  * the location of the change and the kind of change if desired.
  * The code fragment might look something like:
- * <pre><code>
+ * <pre>
  *    DocumentListener myListener = ??;
  *    JTextArea myArea = ??;
  *    myArea.getDocument().addDocumentListener(myListener);
- * </code></pre>
+ * </pre>
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JTextArea">JTextArea</a> key assignments.
+ * <a href="doc-files/Key-Index.html#JTextArea"><code>JTextArea</code> key assignments</a>.
+ * <p>
+ * <dt><b><font size=+1>Newlines</font></b>
+ * <dd>
+ * For a discussion on how newlines are handled, see
+ * <a href="text/DefaultEditorKit.html">DefaultEditorKit</a>.
+ * </dl>
+ *
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @beaninfo
  *   attribute: isContainer false
  * description: A multi-line area that displays plain text.
  * 
  * @author  Timothy Prinzing
- * @version 1.70 02/06/02
+ * @version 1.83 12/03/01
  * @see JTextPane
  * @see JEditorPane
  */
@@ -166,13 +186,13 @@ public class JTextArea extends JTextComponent {
         super();
         this.rows = rows;
         this.columns = columns;
-	wrap = false;
         if (doc == null) {
             doc = createDefaultModel();
         }
         setDocument(doc);
         if (text != null) {
             setText(text);
+            select(0, 0);
         }
 	if (rows < 0) {
 	    throw new IllegalArgumentException("rows: " + rows);
@@ -180,6 +200,10 @@ public class JTextArea extends JTextComponent {
 	if (columns < 0) {
 	    throw new IllegalArgumentException("columns: " + rows);
 	}
+	setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
+			   JComponent.getManagingFocusForwardTraversalKeys());
+	setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
+			   JComponent.getManagingFocusBackwardTraversalKeys());
     }
 
     /**
@@ -248,11 +272,11 @@ public class JTextArea extends JTextComponent {
      * Sets the line-wrapping policy of the text area.  If set
      * to true the lines will be wrapped if they are too long
      * to fit within the allocated width.  If set to false,
-     * the lines will always be unwrapped.  A PropertyChange event ("lineWrap")
-     * is fired when the policy is changed.  By default this property
-     * is false.
+     * the lines will always be unwrapped.  A <code>PropertyChange</code>
+     * event ("lineWrap") is fired when the policy is changed.
+     * By default this property is false.
      *
-     * @param wrap indicates if lines should be wrapped.
+     * @param wrap indicates if lines should be wrapped
      * @see #getLineWrap
      * @beaninfo
      *   preferred: true
@@ -271,14 +295,14 @@ public class JTextArea extends JTextComponent {
      * to fit within the allocated width.  If set to false,
      * the lines will always be unwrapped.
      *
-     * @returns if lines will be wrapped.
+     * @return if lines will be wrapped
      */
     public boolean getLineWrap() {
         return wrap;
     }
 
     /**
-     * Set the style of wrapping used if the text area is wrapping
+     * Sets the style of wrapping used if the text area is wrapping
      * lines.  If set to true the lines will be wrapped at word
      * boundaries (whitespace) if they are too long
      * to fit within the allocated width.  If set to false,
@@ -286,7 +310,7 @@ public class JTextArea extends JTextComponent {
      * By default this property is false.
      *
      * @param word indicates if word boundaries should be used
-     *   for line wrapping.
+     *   for line wrapping
      * @see #getWrapStyleWord
      * @beaninfo
      *   preferred: false
@@ -300,14 +324,14 @@ public class JTextArea extends JTextComponent {
     }
 
     /**
-     * Get the style of wrapping used if the text area is wrapping
+     * Gets the style of wrapping used if the text area is wrapping
      * lines.  If set to true the lines will be wrapped at word
      * boundaries (ie whitespace) if they are too long
      * to fit within the allocated width.  If set to false,
      * the lines will be wrapped at character boundaries.
      *
-     * @returns if the wrap style should be word boundaries
-     *  instead of character boundaries.
+     * @return if the wrap style should be word boundaries
+     *  instead of character boundaries
      * @see #setWrapStyleWord
      */
     public boolean getWrapStyleWord() {
@@ -338,20 +362,11 @@ public class JTextArea extends JTextComponent {
     /**
      * Determines the number of lines contained in the area.
      *
-     * @return the number of lines >= 0
+     * @return the number of lines > 0
      */
     public int getLineCount() {
-	// There is an implicit break being modeled at the end of the
-	// document to deal with boundary conditions at the end.  This
-	// is not desired in the line count, so we detect it and remove
-	// its effect if throwing off the count.
         Element map = getDocument().getDefaultRootElement();
-        int n = map.getElementCount();
-	Element lastLine = map.getElement(n-1);
-	if ((lastLine.getEndOffset() - lastLine.getStartOffset()) > 1) {
-	    return n;
-	}
-	return n - 1;
+        return map.getElementCount();
     }
 
     /**
@@ -365,12 +380,13 @@ public class JTextArea extends JTextComponent {
      * getLineCount).
      */
     public int getLineStartOffset(int line) throws BadLocationException {
-        Element map = getDocument().getDefaultRootElement();
+        int lineCount = getLineCount();
         if (line < 0) {
             throw new BadLocationException("Negative line", -1);
-        } else if (line >= map.getElementCount()) {
+        } else if (line >= lineCount) {
             throw new BadLocationException("No such line", getDocument().getLength()+1);
         } else {
+            Element map = getDocument().getDefaultRootElement();
             Element lineElem = map.getElement(line);
             return lineElem.getStartOffset();
         }
@@ -387,14 +403,17 @@ public class JTextArea extends JTextComponent {
      * getLineCount).
      */
     public int getLineEndOffset(int line) throws BadLocationException {
-        Element map = getDocument().getDefaultRootElement();
+        int lineCount = getLineCount();
         if (line < 0) {
             throw new BadLocationException("Negative line", -1);
-        } else if (line >= map.getElementCount()) {
+        } else if (line >= lineCount) {
             throw new BadLocationException("No such line", getDocument().getLength()+1);
         } else {
+            Element map = getDocument().getDefaultRootElement();
             Element lineElem = map.getElement(line);
-            return lineElem.getEndOffset();
+            int endOffset = lineElem.getEndOffset();
+            // hide the implicit break at the end of the document
+            return ((line == lineCount - 1) ? (endOffset - 1) : endOffset);
         }
     }
 
@@ -480,33 +499,6 @@ public class JTextArea extends JTextComponent {
                 throw new IllegalArgumentException(e.getMessage());
             }
         }
-    }
-
-    /**
-     * Turns off tab traversal once focus gained.
-     *
-     * @return true, to indicate that the focus is being managed
-     */
-    public boolean isManagingFocus() {
-        return true;
-    }
-
-    /**
-     * Make sure that TAB and Shift-TAB events get consumed, so that
-     * awt doesn't attempt focus traversal.
-     *
-     */
-
-    protected void processKeyEvent(KeyEvent e)  {
-        super.processKeyEvent(e);
-        // tab consumption
-	// We are actually consuming any TABs modified in any way, because
-	// we don't want awt to get anything it can use for focus traversal.
-	if (isManagingFocus()) {
-	  if ((e.getKeyCode() == KeyEvent.VK_TAB || e.getKeyChar() == '\t')) {
-	    e.consume();
-	  }
-	}
     }
 
     /**
@@ -695,7 +687,7 @@ public class JTextArea extends JTextComponent {
      * Components that display logical rows or columns should compute
      * the scroll increment that will completely expose one new row
      * or column, depending on the value of orientation.  This is implemented
-     * to use the vaules returned by the <code>getRowHeight</code> and
+     * to use the values returned by the <code>getRowHeight</code> and
      * <code>getColumnWidth</code> methods.
      * <p>
      * Scrolling containers, like JScrollPane, will use this method
@@ -729,9 +721,13 @@ public class JTextArea extends JTextComponent {
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
+        }
     }
 
 /////////////////
@@ -763,10 +759,12 @@ public class JTextArea extends JTextComponent {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJTextArea extends AccessibleJTextComponent {
 

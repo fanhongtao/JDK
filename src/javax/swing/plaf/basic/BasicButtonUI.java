@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicButtonUI.java	1.106 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,7 +22,7 @@ import javax.swing.text.View;
 /**
  * BasicButton implementation
  *
- * @version 1.101 02/06/02
+ * @version 1.106 12/03/01
  * @author Jeff Dinkins
  */
 public class BasicButtonUI extends ButtonUI{
@@ -232,8 +234,7 @@ public class BasicButtonUI extends ButtonUI{
             b.getVerticalAlignment(), b.getHorizontalAlignment(),
             b.getVerticalTextPosition(), b.getHorizontalTextPosition(),
             viewRect, iconRect, textRect, 
-            b.getText() == null ? 0 : defaultTextIconGap
-        );
+	    b.getText() == null ? 0 : b.getIconTextGap());
 
         clearTextShiftOffset();
 
@@ -252,7 +253,7 @@ public class BasicButtonUI extends ButtonUI{
 	    if (v != null) {
 		v.paint(g, textRect);
 	    } else {
-		paintText(g, c,textRect, text);
+		paintText(g, b, textRect, text);
 	    }
         }
 
@@ -307,36 +308,58 @@ public class BasicButtonUI extends ButtonUI{
 
     }
 
+    /**
+     * As of Java 2 platform v 1.4 this method should not be used or overriden.
+     * Use the paintText method which takes the AbstractButton argument.
+     */
     protected void paintText(Graphics g, JComponent c, Rectangle textRect, String text) {
         AbstractButton b = (AbstractButton) c;                       
         ButtonModel model = b.getModel();
         FontMetrics fm = g.getFontMetrics();
+        int mnemonicIndex = b.getDisplayedMnemonicIndex();
 
 	/* Draw the Text */
 	if(model.isEnabled()) {
 	    /*** paint the text normally */
 	    g.setColor(b.getForeground());
-	    BasicGraphicsUtils.drawString(g,text, model.getMnemonic(),
+	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text, mnemonicIndex,
 					  textRect.x + getTextShiftOffset(),
 					  textRect.y + fm.getAscent() + getTextShiftOffset());
 	}
 	else {
 	    /*** paint the text disabled ***/
 	    g.setColor(b.getBackground().brighter());
-	    BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
+	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text, mnemonicIndex,
 					  textRect.x, textRect.y + fm.getAscent());
 	    g.setColor(b.getBackground().darker());
-	    BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
+	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text, mnemonicIndex,
 					  textRect.x - 1, textRect.y + fm.getAscent() - 1);
 	}
     }
-        
+
+    /**
+     * Method which renders the text of the current button.
+     * <p>
+     * @param g Graphics context
+     * @param b Current button to render
+     * @param textRect Bounding rectangle to render the text.
+     * @param text String to render
+     * @since 1.4
+     */
+    protected void paintText(Graphics g, AbstractButton b, Rectangle textRect, String text) {
+	paintText(g, (JComponent)b, textRect, text);
+    }
+
+    // Method signature defined here overriden in subclasses. 
+    // Perhaps this class should be abstract?
     protected void paintFocus(Graphics g, AbstractButton b,
                               Rectangle viewRect, Rectangle textRect, Rectangle iconRect){
     }
   
 
 
+    // Method signature defined here overriden in subclasses. 
+    // Perhaps this class should be abstract?
     protected void paintButtonPressed(Graphics g, AbstractButton b){
     }
 
@@ -366,7 +389,7 @@ public class BasicButtonUI extends ButtonUI{
 
     public Dimension getPreferredSize(JComponent c) {
         AbstractButton b = (AbstractButton)c;
-        return BasicGraphicsUtils.getPreferredButtonSize(b, defaultTextIconGap);
+        return BasicGraphicsUtils.getPreferredButtonSize(b, b.getIconTextGap());
     }
 
     public Dimension getMaximumSize(JComponent c) {

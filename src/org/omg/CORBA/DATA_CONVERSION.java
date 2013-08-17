@@ -1,4 +1,6 @@
 /*
+ * @(#)DATA_CONVERSION.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,11 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>DATA_CONVERSION</code> exception, which is thrown
- * when there is a data conversion error.
+ * This exception is raised if an ORB cannot convert the representation
+ * of data as marshaled into its native representation or vice-versa. 
+ * For example, DATA_CONVERSION can be raised if wide character codeset 
+ * conversion fails, or if an ORB cannot convert floating point values 
+ * between different representations.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

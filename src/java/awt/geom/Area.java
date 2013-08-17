@@ -1,4 +1,6 @@
 /*
+ * @(#)Area.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -316,7 +318,7 @@ public class Area implements Shape, Cloneable {
     /**
      * Tests whether the geometries of the two <code>Area</code> objects
      * are equal.
-     * @param   rhs  the <code>Area</code> to be compared to this
+     * @param   other  the <code>Area</code> to be compared to this
      *		<code>Area</code>
      * @return  <code>true</code> if the two geometries are equal;
      *		<code>false</code> otherwise.
@@ -426,7 +428,7 @@ public class Area implements Shape, Cloneable {
     /**
      * Tests whether or not the interior of this <code>Area</code> object
      * completely contains the specified <code>Rectangle2D</code>.
-     * @param     r  the <code>Rectangle2D</code> to test
+     * @param     p  the <code>Rectangle2D</code> to test
      * @return    <code>true</code> if the <code>Rectangle2D</code> lies 
      *            completely within the interior of the <code>Area</code>;
      *            <code>false</code> otherwise.
@@ -459,7 +461,7 @@ public class Area implements Shape, Cloneable {
     /**
      * Tests whether the interior of this <code>Area</code> object
      * intersects the interior of the specified <code>Rectangle2D</code>.
-     * @param     r  the <code>Rectangle2D</code> to test for intersection
+     * @param     p  the <code>Rectangle2D</code> to test for intersection
      * @return    <code>true</code> if the interior intersects the 
      *			specified <code>Rectangle2D</code>; 
      *			<code>false</code> otherwise.
@@ -471,9 +473,9 @@ public class Area implements Shape, Cloneable {
     /**
      * Creates a {@link PathIterator} for the outline of this 
      * <code>Area</code> object.  This <code>Area</code> object is unchanged.
-     * @param t an optional <code>AffineTransform</code> to be applied to the
-     * coordinates as they are returned in the iteration, or <code>null</code>
-     * if untransformed coordinates are desired
+     * @param at an optional <code>AffineTransform</code> to be applied to
+     * the coordinates as they are returned in the iteration, or
+     * <code>null</code> if untransformed coordinates are desired
      * @return    the <code>PathIterator</code> object that returns the 
      *		geometry of the outline of this <code>Area</code>, one 
      *		segment at a time.
@@ -488,9 +490,10 @@ public class Area implements Shape, Cloneable {
      * represented by the SEG_MOVETO, SEG_LINETO, and SEG_CLOSE point
      * types are returned by the iterator.  This <code>Area</code>
      * object is unchanged.
-     * @param t an optional <code>AffineTransform</code> to be applied to the
-     * coordinates as they are returned in the iteration, or <code>null</code>
-     * if untransformed coordinates are desired
+     * @param at an optional <code>AffineTransform</code> to be 
+     * applied to the coordinates as they are returned in the 
+     * iteration, or <code>null</code> if untransformed coordinates 
+     * are desired
      * @param flatness the maximum amount that the control points
      * for a given curve can vary from colinear before a subdivided
      * curve is replaced by a straight line connecting the endpoints

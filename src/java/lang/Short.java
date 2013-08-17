@@ -1,4 +1,6 @@
 /*
+ * @(#)Short.java	1.31 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,67 +8,112 @@
 package java.lang;
 
 /**
- * The Short class is the standard wrapper for short values.
+ * The <code>Short</code> class wraps a value of primitive type
+ * <code>short</code> in an object.  An object of type
+ * <code>Short</code> contains a single field whose type is
+ * <code>short</code>.
+ *
+ * <p>
+ *
+ * In addition, this class provides several methods for converting a
+ * <code>short</code> to a <code>String</code> and a
+ * <code>String</code> to a <code>short</code>, as well as other
+ * constants and methods useful when dealing with a <code>short</code>.
  *
  * @author  Nakul Saraiya
- * @version 1.23, 02/06/02
+ * @version 1.31, 12/03/01
  * @see     java.lang.Number
  * @since   JDK1.1
  */
-public final
-class Short extends Number implements Comparable {
+public final class Short extends Number implements Comparable {
 
     /**
-     * The minimum value a Short can have.
+     * A constant holding the minimum value a <code>short</code> can
+     * have, -2<sup>15</sup>.
      */
     public static final short   MIN_VALUE = -32768;
 
     /**
-     * The maximum value a Short can have.
+     * A constant holding the maximum value a <code>short</code> can
+     * have, 2<sup>15</sup>-1.
      */
     public static final short   MAX_VALUE = 32767;
 
     /**
-     * The Class object representing the primitive type short.
+     * The <code>Class</code> instance representing the primitive type
+     * <code>short</code>.
      */
     public static final Class	TYPE = Class.getPrimitiveClass("short");
 
     /**
-     * Returns a new String object representing the specified
-     * Short. The radix is assumed to be 10.
+     * Returns a new <code>String</code> object representing the
+     * specified <code>short</code>. The radix is assumed to be 10.
      *
-     * @param s the short to be converted
-     * @return The String that represents the specified short in radix 10.
+     * @param s the <code>short</code> to be converted
+     * @return the string representation of the specified <code>short</code>
+     * @see java.lang.Integer#toString(int)
      */
     public static String toString(short s) {
 	return Integer.toString((int)s, 10);
     }
 
     /**
-     * Assuming the specified String represents a short, returns
-     * that short's value. Throws an exception if the String cannot
-     * be parsed as a short.  The radix is assumed to be 10.
+     * Parses the string argument as a signed decimal
+     * <code>short</code>. The characters in the string must all be
+     * decimal digits, except that the first character may be an ASCII
+     * minus sign <code>'-'</code> (<code>'&#92;u002D'</code>) to
+     * indicate a negative value. The resulting <code>short</code> value is
+     * returned, exactly as if the argument and the radix 10 were
+     * given as arguments to the {@link #parseShort(java.lang.String,
+     * int)} method.
      *
-     * @param s		the String containing the short
-     * @return short    the value represented by the specified string
+     * @param s		a <code>String</code> containing the <code>short</code>
+     *                  representation to be parsed
+     * @return          the <code>short</code> value represented by the 
+     *                  argument in decimal.
      * @exception	NumberFormatException If the string does not
-     *			contain a parsable short.
+     *			contain a parsable <code>short</code>.
      */
     public static short parseShort(String s) throws NumberFormatException {
 	return parseShort(s, 10);
     }
 
     /**
-     * Assuming the specified String represents a short, returns
-     * that short's value. Throws an exception if the String cannot
-     * be parsed as a short.
+     * Parses the string argument as a signed <code>short</code> in
+     * the radix specified by the second argument. The characters in
+     * the string must all be digits, of the specified radix (as
+     * determined by whether {@link java.lang.Character#digit(char,
+     * int)} returns a nonnegative value) except that the first
+     * character may be an ASCII minus sign <code>'-'</code>
+     * (<code>'&#92;u002D'</code>) to indicate a negative value.  The
+     * resulting <code>byte</code> value is returned.
+     * <p>
+     * An exception of type <code>NumberFormatException</code> is
+     * thrown if any of the following situations occurs:
+     * <ul>
+     * <li> The first argument is <code>null</code> or is a string of
+     * length zero.
      *
-     * @param s		the String containing the short
-     * @param radix	the radix to be used
-     * @return          The short value represented by the specified string in
-     *                  the specified radix.
-     * @exception	NumberFormatException If the String does not
-     *			contain a parsable short.
+     * <li> The radix is either smaller than {@link
+     * java.lang.Character#MIN_RADIX} or larger than {@link
+     * java.lang.Character#MAX_RADIX}.
+     *
+     * <li> Any character of the string is not a digit of the specified
+     * radix, except that the first character may be a minus sign
+     * <code>'-'</code> (<code>'&#92;u002D'</code>) provided that the
+     * string is longer than length 1.
+     *
+     * <li> The value represented by the string is not a value of type
+     * <code>short</code>.
+     * </ul>
+     *
+     * @param s		the <code>String</code> containing the 
+     *			<code>short</code> representation to be parsed
+     * @param radix	the radix to be used while parsing <code>s</code>
+     * @return     	the <code>short</code> represented by the string 
+     *             	argument in the specified radix.
+     * @exception	NumberFormatException If the <code>String</code> 
+     *			does not contain a parsable <code>short</code>.
      */
     public static short parseShort(String s, int radix)
 	throws NumberFormatException {
@@ -77,16 +124,28 @@ class Short extends Number implements Comparable {
     }
 
     /**
-     * Assuming the specified String represents a short, returns a
-     * new Short object initialized to that value.  Throws an
-     * exception if the String cannot be parsed as a short.
+     * Returns a <code>Short</code> object holding the value
+     * extracted from the specified <code>String</code> when parsed
+     * with the radix given by the second argument. The first argument
+     * is interpreted as representing a signed <code>short</code> in
+     * the radix specified by the second argument, exactly as if the
+     * argument were given to the {@link #parseShort(java.lang.String,
+     * int)} method. The result is a <code>Short</code> object that
+     * represents the <code>short</code> value specified by the string.
+     * <p> In other words, this method returns a <code>Short</code> object
+     * equal to the value of:
      *
-     * @param s		the String containing the integer
-     * @param radix 	the radix to be used
-     * @return          The Short value represented by the specified string in
-     *                  the specified radix.
-     * @exception	NumberFormatException If the String does not
-     *			contain a parsable short.
+     * <blockquote><code>
+     * new Short(Short.parseShort(s, radix))
+     * </code></blockquote>
+     *
+     * @param s		the string to be parsed
+     * @param radix 	the radix to be used in interpreting <code>s</code>
+     * @return          a <code>Short</code> object holding the value 
+     *			represented by the string argument in the 
+     *			specified radix.
+     * @exception	NumberFormatException If the <code>String</code> does
+     *			not contain a parsable <code>short</code>.
      */
     public static Short valueOf(String s, int radix)
 	throws NumberFormatException {
@@ -94,43 +153,71 @@ class Short extends Number implements Comparable {
     }
 
     /**
-     * Assuming the specified String represents a short, returns a
-     * new Short object initialized to that value.  Throws an
-     * exception if the String cannot be parsed as a short.
+     * Returns a <code>Short</code> object holding the
+     * value given by the specified <code>String</code>. The argument
+     * is interpreted as representing a signed decimal
+     * <code>short</code>, exactly as if the argument were given to
+     * the {@link #parseShort(java.lang.String)} method. The result is
+     * a <code>Short</code> object that represents the
+     * <code>short</code> value specified by the string.  <p> In other
+     * words, this method returns a <code>Byte</code> object equal to
+     * the value of:
      *
-     * @param s		the String containing the integer
-     * @return Short    of the value represented by the specified string in
-     *                  radix 10.
-     * @exception	NumberFormatException If the String does not
-     *			contain a parsable short.
+     * <blockquote><code>
+     * new Short(Short.parseShort(s))
+     * </code></blockquote>
+     *
+     * @param s		the string to be parsed
+     * @return          a <code>Short</code> object holding the value
+     * 			represented by the string argument
+     * @exception	NumberFormatException If the <code>String</code> does
+     *			not contain a parsable <code>short</code>.
      */
     public static Short valueOf(String s) throws NumberFormatException {
 	return valueOf(s, 10);
     }
 
     /**
-     * Decodes a <code>String</code> into a <code>Short</code>.  Accepts
-     * decimal, hexadecimal, and octal numbers, in the following formats:
-     * <pre>
-     *     [-]        decimal constant
-     *     [-] 0x     hex constant
-     *     [-] #      hex constant
-     *     [-] 0      octal constant
-     * </pre>
+     * Decodes a <code>String</code> into a <code>Short</code>.
+     * Accepts decimal, hexadecimal, and octal numbers given by
+     * the following grammar:
      *
-     * The constant following an (optional) negative sign and/or "radix
-     * specifier" is parsed as by the <code>Short.parseShort</code> method
-     * with the specified radix (10, 8 or 16).  This constant must be positive
-     * or a NumberFormatException will result.  The result is made negative if
-     * first character of the specified <code>String</code> is the negative
-     * sign.  No whitespace characters are permitted in the
+     * <blockquote>
+     * <dl>
+     * <dt><i>DecodableString:</i>
+     * <dd><i>Sign<sub>opt</sub> DecimalNumeral</i>
+     * <dd><i>Sign<sub>opt</sub></i> <code>0x</code> <i>HexDigits</i>
+     * <dd><i>Sign<sub>opt</sub></i> <code>0X</code> <i>HexDigits</i>
+     * <dd><i>Sign<sub>opt</sub></i> <code>#</code> <i>HexDigits</i>
+     * <dd><i>Sign<sub>opt</sub></i> <code>0</code> <i>OctalDigits</i>
+     * <p>
+     * <dt><i>Sign:</i>
+     * <dd><code>-</code>
+     * </dl>
+     * </blockquote>
+     *
+     * <i>DecimalNumeral</i>, <i>HexDigits</i>, and <i>OctalDigits</i>
+     * are defined in <a href="http://java.sun.com/docs/books/jls/second_edition/html/lexical.doc.html#48282">&sect;3.10.1</a> 
+     * of the <a href="http://java.sun.com/docs/books/jls/html/">Java 
+     * Language Specification</a>.
+     * <p>
+     * The sequence of characters following an (optional) negative
+     * sign and/or radix specifier (&quot;<code>0x</code>&quot;,
+     * &quot;<code>0X</code>&quot;, &quot;<code>#</code>&quot;, or
+     * leading zero) is parsed as by the <code>Short.parseShort</code>
+     * method with the indicated radix (10, 16, or 8).  This sequence
+     * of characters must represent a positive value or a {@link
+     * NumberFormatException} will be thrown.  The result is negated
+     * if first character of the specified <code>String</code> is the
+     * minus sign.  No whitespace characters are permitted in the
      * <code>String</code>.
      *
      * @param     nm the <code>String</code> to decode.
-     * @return    the <code>Short</code> represented by the specified string.
+     * @return	  a <code>Short</code> object holding the <code>short</code>
+     * 		  value represented by <code>nm</code>
      * @exception NumberFormatException  if the <code>String</code> does not
-     *            contain a parsable short.
-     * @see java.lang.Short#parseShort(String, int)
+     *            contain a parsable <code>short</code>.
+     * @see java.lang.Short#parseShort(java.lang.String, int)
      */
     public static Short decode(String nm) throws NumberFormatException {
         int radix = 10;
@@ -176,94 +263,118 @@ class Short extends Number implements Comparable {
     }
 
     /**
-     * The value of the Short.
+     * The value of the <code>Short</code>.
      *
      * @serial
      */
     private short value;
 
     /**
-     * Constructs a Short object initialized to the specified short value.
+     * Constructs a newly allocated <code>Short</code> object that
+     * represents the specified <code>short</code> value.
      *
-     * @param value	the initial value of the Short
+     * @param value	the value to be represented by the 
+     *			<code>Short</code>.
      */
     public Short(short value) {
 	this.value = value;
     }
 
     /**
-     * Constructs a Short object initialized to the value specified by the
-     * String parameter.  The radix is assumed to be 10.
+     * Constructs a newly allocated <code>Short</code> object that
+     * represents the <code>short</code> value indicated by the
+     * <code>String</code> parameter. The string is converted to a
+     * <code>short</code> value in exactly the manner used by the
+     * <code>parseShort</code> method for radix 10.
      *
-     * @param s		the String to be converted to a Short
-     * @exception	NumberFormatException If the String does not
-     *			contain a parsable short.
+     * @param s		the <code>String</code> to be converted to a 
+     *			<code>Short</code>
+     * @exception	NumberFormatException If the <code>String</code> 
+     *			does not contain a parsable <code>short</code>.
+     * @see        java.lang.Short#parseShort(java.lang.String, int)
      */
     public Short(String s) throws NumberFormatException {
-	this.value = parseShort(s);
+	this.value = parseShort(s, 10);
     }
 
     /**
-     * Returns the value of this Short as a byte.
+     * Returns the value of this <code>Short</code> as a
+     * <code>byte</code>.
      */
     public byte byteValue() {
 	return (byte)value;
     }
 
     /**
-     * Returns the value of this Short as a short.
+     * Returns the value of this <code>Short</code> as a
+     * <code>short</code>.
      */
     public short shortValue() {
 	return value;
     }
 
     /**
-     * Returns the value of this Short as an int.
+     * Returns the value of this <code>Short</code> as an
+     * <code>int</code>.
      */
     public int intValue() {
 	return (int)value;
     }
 
     /**
-     * Returns the value of this Short as a long.
+     * Returns the value of this <code>Short</code> as a
+     * <code>long</code>.
      */
     public long longValue() {
 	return (long)value;
     }
 
     /**
-     * Returns the value of this Short as a float.
+     * Returns the value of this <code>Short</code> as a
+     * <code>float</code>.
      */
     public float floatValue() {
 	return (float)value;
     }
 
     /**
-     * Returns the value of this Short as a double.
+     * Returns the value of this <code>Short</code> as a
+     * <code>double</code>.
      */
     public double doubleValue() {
 	return (double)value;
     }
 
     /**
-     * Returns a String object representing this Short's value.
+     * Returns a <code>String</code> object representing this
+     * <code>Short</code>'s value.  The value is converted to signed
+     * decimal representation and returned as a string, exactly as if
+     * the <code>short</code> value were given as an argument to the
+     * {@link java.lang.Short#toString(short)} method.
+     *
+     * @return  a string representation of the value of this object in
+     *          base&nbsp;10.
      */
     public String toString() {
 	return String.valueOf((int)value);
     }
 
     /**
-     * Returns a hashcode for this Short.
+     * Returns a hash code for this <code>Short</code>.
      */
     public int hashCode() {
 	return (int)value;
     }
 
     /**
-     * Compares this object to the specified object.
+     * Compares this object to the specified object.  The result is
+     * <code>true</code> if and only if the argument is not
+     * <code>null</code> and is a <code>Short</code> object that
+     * contains the same <code>short</code> value as this object.
      *
      * @param obj	the object to compare with
-     * @return 		true if the objects are the same; false otherwise.
+     * @return 		<code>true</code> if the objects are the same;
+     *			<code>false</code> otherwise.
      */
     public boolean equals(Object obj) {
 	if (obj instanceof Short) {
@@ -273,15 +384,16 @@ class Short extends Number implements Comparable {
     }
 
     /**
-     * Compares two Shorts numerically.
+     * Compares two <code>Short</code> objects numerically.
      *
      * @param   anotherShort   the <code>Short</code> to be compared.
-     * @return  the value <code>0</code> if the argument Short is equal to
-     *          this Short; a value less than <code>0</code> if this Short
-     *          is numerically less than the Short argument; and a
-     *          value greater than <code>0</code> if this Short is
-     *          numerically greater than the Short argument
-     *		(signed comparison).
+     * @return	the value <code>0</code> if this <code>Short</code> is
+     * 		equal to the argument <code>Short</code>; a value less than
+     * 		<code>0</code> if this <code>Short</code> is numerically less
+     * 		than the argument <code>Short</code>; and a value greater than
+     * 		 <code>0</code> if this <code>Short</code> is numerically
+     * 		 greater than the argument <code>Short</code> (signed
+     * 		 comparison).
      * @since   1.2
      */
     public int compareTo(Short anotherShort) {
@@ -289,18 +401,20 @@ class Short extends Number implements Comparable {
     }
 
     /**
-     * Compares this Short to another Object.  If the Object is a Short,
-     * this function behaves like <code>compareTo(Short)</code>.  Otherwise,
-     * it throws a <code>ClassCastException</code> (as Shorts are comparable
-     * only to other Shorts).
+     * Compares this <code>Short</code> object to another object.  If
+     * the object is a <code>Short</code>, this function behaves like
+     * <code>compareTo(Short)</code>.  Otherwise, it throws a
+     * <code>ClassCastException</code> (as <code>Short</code> objects
+     * are only comparable to other <code>Short</code> objects).
      *
      * @param   o the <code>Object</code> to be compared.
-     * @return  the value <code>0</code> if the argument is a Short
-     *		numerically equal to this Short; a value less than
-     *		<code>0</code> if the argument is a Short numerically
-     *		greater than this Short; and a value greater than
-     *		<code>0</code> if the argument is a Short numerically
-     *		less than this Short.
+     * @return  the value <code>0</code> if the argument is a 
+     *		<code>Short</code> numerically equal to this 
+     *		<code>Short</code>; a value less than <code>0</code> if 
+     *		the argument is a <code>Short</code> numerically greater 
+     *		than this <code>Short</code>; and a value greater than 
+     *		<code>0</code> if the argument is a <code>Short</code> 
+     *		numerically less than this <code>Short</code>.
      * @exception <code>ClassCastException</code> if the argument is not a
      *		  <code>Short</code>.
      * @see     java.lang.Comparable

@@ -1,4 +1,6 @@
 /*
+ * @(#)DomainCombiner.java	1.5 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,17 +22,21 @@ package java.security;
  * <code>AccessController.checkPermission</code>
  * cause the <code>DomainCombiner.combine</code> to get invoked.
  *
- * <p> The <code>combine</code> method takes two arguments.
- * The ProtectionDomains on the current execution Thread, since the
- * most recent call to <code>AccessController.doPrivileged</code>,
- * get passed to the first argument in an array.
- * If no call to <code>doPrivileged</code> was made, then all the
- * ProtectionDomains from the current execution Thread get passed
- * to the first argument.  The ProtectionDomains inherited
- * from the parent Thread get passed to the second argument,
- * unless a call to doPrivileged(..., <i>context</i>)
- * had occurred.  In that case, the ProtectionDomains from the
- * privileged <i>context</i> are passed to the second argument.
+ * <p> The combine method takes two arguments.  The first argument represents
+ * an array of ProtectionDomains from the current execution Thread,
+ * since the most recent call to <code>AccessController.doPrivileged</code>.
+ * If no call to doPrivileged was made, then the first argument will contain
+ * all the ProtectionDomains from the current execution Thread.
+ * The second argument represents an array of inherited ProtectionDomains,
+ * which may be <code>null</code>.  ProtectionDomains may be inherited
+ * from a parent Thread, or from a privileged context.  If no call to
+ * doPrivileged was made, then the second argument will contain the
+ * ProtectionDomains inherited from the parent Thread.  If one or more calls
+ * to doPrivileged were made, and the most recent call was to
+ * doPrivileged(action, context), then the second argument will contain the
+ * ProtectionDomains from the privileged context.  If the most recent call
+ * was to doPrivileged(action), then there is no privileged context,
+ * and the second argument will be <code>null</code>.
  *
  * <p> The <code>combine</code> method investigates the two input arrays
  * of ProtectionDomains and returns a single array containing the updated
@@ -52,7 +58,7 @@ package java.security;
  * 
  * @see AccessController
  * @see AccessControlContext
- * @version 1.4, 02/06/02
+ * @version 1.5, 12/03/01
  */
 public interface DomainCombiner {
 
@@ -74,13 +80,11 @@ public interface DomainCombiner {
      *		be <code>null</code> if the current execution Thread
      *		has no associated ProtectionDomains.<p>
      *
-     * @param assignedDomains the ProtectionDomains inherited from the
-     *		parent Thread, or the ProtectionDomains from the
-     *		privileged <i>context</i>, if a call to
-     *		AccessController.doPrivileged(..., <i>context</i>)
-     *		had occurred  This parameter may be <code>null</code>
-     *		if there were no ProtectionDomains inherited from the
-     *		parent Thread, or from the privileged <i>context</i>.
+     * @param assignedDomains an array of inherited ProtectionDomains.
+     *		ProtectionDomains may be inherited from a parent Thread,
+     *		or from a privileged <code>AccessControlContext</code>.
+     *		This parameter may be <code>null</code>
+     *		if there are no inherited ProtectionDomains.
      *
      * @return a new array consisting of the updated ProtectionDomains,
      *		or <code>null</code>.

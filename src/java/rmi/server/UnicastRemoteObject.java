@@ -1,4 +1,6 @@
 /*
+ * @(#)UnicastRemoteObject.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,7 +22,7 @@ import java.rmi.*;
  * and toString methods inherited from the Object class, so that they
  * behave appropriately for remote objects.
  *
- * @version 1.27, 02/06/02
+ * @version 1.29, 12/03/01
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   JDK1.1
@@ -49,7 +51,7 @@ public class UnicastRemoteObject extends RemoteServer {
     private static final long serialVersionUID = 4974527148936298033L;
 
     /**
-     * Create and export a new UnicastRemoteObject object using an
+     * Creates and exports a new UnicastRemoteObject object using an
      * anonymous port.
      * @throws RemoteException if failed to export object
      * @since JDK1.1
@@ -60,7 +62,7 @@ public class UnicastRemoteObject extends RemoteServer {
     }
 
     /**
-     * Create and export a new UnicastRemoteObject object using the
+     * Creates and exports a new UnicastRemoteObject object using the
      * particular supplied port.
      * @param port the port number on which the remote object receives calls
      * (if <code>port</code> is zero, an anonymous port is chosen)
@@ -74,7 +76,7 @@ public class UnicastRemoteObject extends RemoteServer {
     }
 
     /**
-     * Create and export a new UnicastRemoteObject object using the
+     * Creates and exports a new UnicastRemoteObject object using the
      * particular supplied port and socket factories.
      * @param port the port number on which the remote object receives calls
      * (if <code>port</code> is zero, an anonymous port is chosen)
@@ -126,7 +128,7 @@ public class UnicastRemoteObject extends RemoteServer {
     }
 
     /*
-     * Export this UnicastRemoteObject using its initialized fields because
+     * Exports this UnicastRemoteObject using its initialized fields because
      * its creation bypassed running its constructors (via deserialization
      * or cloning, for example).
      */
@@ -140,8 +142,8 @@ public class UnicastRemoteObject extends RemoteServer {
     }
 
     /** 
-     * Export the remote object to make it available to receive incoming calls,
-     * using an anonymous port.
+     * Exports the remote object to make it available to receive incoming
+     * calls using an anonymous port.
      * @param obj the remote object to be exported
      * @return remote object stub
      * @exception RemoteException if export fails
@@ -159,8 +161,8 @@ public class UnicastRemoteObject extends RemoteServer {
     };
 
     /** 
-     * Export the remote object to make it available to receive incoming calls,
-     * using the particular supplied port.
+     * Exports the remote object to make it available to receive incoming
+     * calls, using the particular supplied port.
      * @param obj the remote object to be exported
      * @param port the port to export the object on
      * @return remote object stub
@@ -182,8 +184,8 @@ public class UnicastRemoteObject extends RemoteServer {
     };
 
     /**
-     * Export the remote object to make it available to receive incoming calls,
-     * using a transport specified by the given socket factory.
+     * Exports the remote object to make it available to receive incoming
+     * calls, using a transport specified by the given socket factory.
      * @param obj the remote object to be exported
      * @param port the port to export the object on
      * @param csf the client-side socket factory for making calls to the
@@ -206,7 +208,7 @@ public class UnicastRemoteObject extends RemoteServer {
     }
 
     /**
-     * Remove the remote object, obj, from the RMI runtime. If
+     * Removes the remote object, obj, from the RMI runtime. If
      * successful, the object can no longer accept incoming RMI calls.
      * If the force parameter is true, the object is forcibly unexported
      * even if there are pending calls to the remote object or the
@@ -230,7 +232,7 @@ public class UnicastRemoteObject extends RemoteServer {
     }
 
     /*
-     * Create instance of given server ref type with constructor chosen
+     * Creates an instance of given server ref type with constructor chosen
      * by indicated paramters and supplied with given arguements, and
      * export remote object with it.
      */

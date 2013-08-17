@@ -1,4 +1,6 @@
 /*
+ * @(#)HTMLEditorKit.java	1.115 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,7 +16,9 @@ import javax.swing.text.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
+import javax.swing.plaf.TextUI;
 import java.util.*;
+import javax.accessibility.*;
 
 /**
  * The Swing JEditorPane text component supports different kinds
@@ -62,7 +66,7 @@ import java.util.*;
  *   reimplement the getParser method.  The default parser is 
  *   dynamically loaded when first asked for, so the class files
  *   will never be loaded if an alternative parser is used.  The
- *   default parser is in a seperate package called parser below
+ *   default parser is in a separate package called parser below
  *   this package.
  *   <li>
  *   The parser drives the ParserCallback, which is provided by
@@ -135,9 +139,11 @@ import java.util.*;
  * </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.99 02/06/02
+ * @version 1.115 12/03/01
  */
-public class HTMLEditorKit extends StyledEditorKit {
+public class HTMLEditorKit extends StyledEditorKit implements Accessible {
+
+    private JEditorPane theEditor;
    
     /**
      * Constructs an HTMLEditorKit, creates a StyleContext,
@@ -145,17 +151,6 @@ public class HTMLEditorKit extends StyledEditorKit {
      */
     public HTMLEditorKit() {
 
-    }
-
-    /**
-     * Create a copy of the editor kit.  This
-     * allows an implementation to serve as a prototype
-     * for others, so that they can be quickly created.
-     *
-     * @return the copy
-     */
-    public Object clone() {
-	return new HTMLEditorKit();
     }
 
     /**
@@ -309,7 +304,9 @@ public class HTMLEditorKit extends StyledEditorKit {
     public void install(JEditorPane c) {
 	c.addMouseListener(linkHandler);
         c.addMouseMotionListener(linkHandler);
+	c.addCaretListener(nextLinkAction);
 	super.install(c);
+        theEditor = c;
     }
 
     /**
@@ -323,6 +320,7 @@ public class HTMLEditorKit extends StyledEditorKit {
 	c.removeMouseListener(linkHandler);
         c.removeMouseMotionListener(linkHandler);
 	super.deinstall(c);
+        theEditor = null;
     }
 
     /**
@@ -375,21 +373,11 @@ public class HTMLEditorKit extends StyledEditorKit {
      *
      * @param name the name of the resource, relative to the
      *  HTMLEditorKit class
-     * @returns a stream representing the resource
+     * @return a stream representing the resource
      */
     static InputStream getResourceAsStream(String name) {
 	try {
-	    Class klass;
-	    ClassLoader loader = HTMLEditorKit.class.getClassLoader();
-	    if (loader != null) {
-		klass = loader.loadClass("javax.swing.text.html.ResourceLoader");
-	    } else {
-		klass = Class.forName("javax.swing.text.html.ResourceLoader");
-	    }
-	    Class[] parameterTypes = { String.class };
-	    Method loadMethod = klass.getMethod("getResourceAsStream", parameterTypes);
-	    String[] args = { name };
-	    return (InputStream) loadMethod.invoke(null, args);
+            return ResourceLoader.getResourceAsStream(name);
 	} catch (Throwable e) {
 	    // If the class doesn't exist or we have some other 
 	    // problem we just try to call getResourceAsStream directly.
@@ -438,7 +426,7 @@ public class HTMLEditorKit extends StyledEditorKit {
 				 HTML.Tag.CONTENT);
 	    }
 	    else if (tag == HTML.Tag.HR || tag == HTML.Tag.BR) {
-		// Don't copy HR's or BR's either.
+		// Don't copy HRs or BRs either.
 		set.addAttribute(StyleConstants.NameAttribute,
 				 HTML.Tag.CONTENT);
 	    }
@@ -511,6 +499,20 @@ public class HTMLEditorKit extends StyledEditorKit {
     }
 
     /**
+     * Creates a copy of the editor kit.
+     *
+     * @return the copy
+     */
+    public Object clone() {
+	HTMLEditorKit o = (HTMLEditorKit)super.clone();
+        if (o != null) {
+            o.input = null;
+            o.linkHandler = new LinkController();
+        }
+	return o;
+    }
+
+    /**
      * Fetch the parser to use for reading HTML streams.
      * This can be reimplemented to provide a different
      * parser.  The default implementation is loaded dynamically
@@ -527,6 +529,26 @@ public class HTMLEditorKit extends StyledEditorKit {
 	    }
 	}
 	return defaultParser;
+    }
+
+    // ----- Accessibility support -----
+    private AccessibleContext accessibleContext;
+
+    /**
+     * returns the AccessibleContext associated with this editor kit
+     *
+     * @return the AccessibleContext associated with this editor kit
+     * @since 1.4
+     */
+    public AccessibleContext getAccessibleContext() {
+	if (theEditor == null) {
+	    return null;
+	}
+	if (accessibleContext == null) {
+	    AccessibleHTML a = new AccessibleHTML(theEditor);
+	    accessibleContext = a.getAccessibleContext();
+	}
+	return accessibleContext;
     }
 
     // --- variables ------------------------------------------
@@ -553,10 +575,18 @@ public class HTMLEditorKit extends StyledEditorKit {
      */
     public static class LinkController extends MouseAdapter implements MouseMotionListener, Serializable {
         private Element curElem = null;
+        /**
+         * If true, the current element (curElem) represents an image.
+         */
+        private boolean curElemImage = false;
 	private String href = null;
 	/** This is used by viewToModel to avoid allocing a new array each
 	 * time. */
 	private Position.Bias[] bias = new Position.Bias[1];
+        /**
+         * Current offset.
+         */
+        private int curOffset;
 
 	/**
          * Called for a mouse click event.
@@ -595,37 +625,123 @@ public class HTMLEditorKit extends StyledEditorKit {
 		if (bias[0] == Position.Bias.Backward && pos > 0) {
 		    pos--;
 		}
-                if (pos >= 0) {
-                    Document doc = editor.getDocument();
-                    if (doc instanceof HTMLDocument) {
-                        HTMLDocument hdoc = (HTMLDocument) doc;
-                        Element elem = hdoc.getCharacterElement(pos);
-			if (curElem != elem) {
-			    curElem = elem;
-			    AttributeSet a = elem.getAttributes();
-			    AttributeSet anchor = (AttributeSet) a.getAttribute(HTML.Tag.A);
-			    String href = (anchor != null) ? 
-				(String) anchor.getAttribute(HTML.Attribute.HREF) 
-				: null;
-			    
-			    if (href != this.href) {
-				// reference changed, fire event(s)
-				fireEvents(editor, hdoc, href);
-				this.href = href;
-				if (href != null) {
-				    newCursor = kit.getLinkCursor();
-				}
-			    }
-                        }
-			else {
-			    adjustCursor = false;
-			}
+                if (pos >= 0 &&(editor.getDocument() instanceof HTMLDocument)){
+                    HTMLDocument hdoc = (HTMLDocument)editor.getDocument();
+                    Element elem = hdoc.getCharacterElement(pos);
+                    if (!doesElementContainLocation(editor, elem, pos,
+                                                    e.getX(), e.getY())) {
+                        elem = null;
                     }
+                    if (curElem != elem || curElemImage) {
+                        Element lastElem = curElem;
+                        curElem = elem;
+                        String href = null;
+                        curElemImage = false;
+                        if (elem != null) {
+                            AttributeSet a = elem.getAttributes();
+                            AttributeSet anchor = (AttributeSet)a.
+                                                   getAttribute(HTML.Tag.A);
+                            if (anchor == null) {
+                                curElemImage = (a.getAttribute(StyleConstants.
+                                            NameAttribute) == HTML.Tag.IMG);
+                                if (curElemImage) {
+                                    href = getMapHREF(editor, hdoc, elem, a,
+                                                      pos, e.getX(), e.getY());
+                                }
+                            }
+                            else {
+                                href = (String)anchor.getAttribute
+                                    (HTML.Attribute.HREF);
+                            }
+                        }
+
+                        if (href != this.href) {
+                            // reference changed, fire event(s)
+                            fireEvents(editor, hdoc, href, lastElem);
+                            this.href = href;
+                            if (href != null) {
+                                newCursor = kit.getLinkCursor();
+                            }
+                        }
+                        else {
+                            adjustCursor = false;
+                        }
+                    }
+                    else {
+                        adjustCursor = false;
+                    }
+                    curOffset = pos;
                 }
             }
 	    if (adjustCursor && editor.getCursor() != newCursor) {
 		editor.setCursor(newCursor);
 	    }
+        }
+
+        /**
+         * Returns a string anchor if the passed in element has a
+         * USEMAP that contains the passed in location.
+         */
+        private String getMapHREF(JEditorPane html, HTMLDocument hdoc,
+                                  Element elem, AttributeSet attr, int offset,
+                                  int x, int y) {
+            Object useMap = attr.getAttribute(HTML.Attribute.USEMAP);
+            if (useMap != null && (useMap instanceof String)) {
+                Map m = hdoc.getMap((String)useMap);
+                if (m != null && offset < hdoc.getLength()) {
+                    Rectangle bounds;
+                    TextUI ui = html.getUI();
+                    try {
+                        Shape lBounds = ui.modelToView(html, offset,
+                                                   Position.Bias.Forward);
+                        Shape rBounds = ui.modelToView(html, offset + 1,
+                                                   Position.Bias.Backward);
+                        bounds = lBounds.getBounds();
+                        bounds.add((rBounds instanceof Rectangle) ?
+                                    (Rectangle)rBounds : rBounds.getBounds());
+                    } catch (BadLocationException ble) {
+                        bounds = null;
+                    }
+                    if (bounds != null) {
+                        AttributeSet area = m.getArea(x - bounds.x,
+                                                      y - bounds.y,
+                                                      bounds.width,
+                                                      bounds.height);
+                        if (area != null) {
+                            return (String)area.getAttribute(HTML.Attribute.
+                                                             HREF);
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Returns true if the View representing <code>e</code> contains
+         * the location <code>x</code>, <code>y</code>. <code>offset</code>
+         * gives the offset into the Document to check for.
+         */
+        private boolean doesElementContainLocation(JEditorPane editor,
+                                                   Element e, int offset,
+                                                   int x, int y) {
+            if (e != null && offset > 0 && e.getStartOffset() == offset) {
+                try {
+                    TextUI ui = editor.getUI();
+                    Shape s1 = ui.modelToView(editor, offset,
+                                              Position.Bias.Forward);
+                    Rectangle r1 = (s1 instanceof Rectangle) ? (Rectangle)s1 :
+                                    s1.getBounds();
+                    Shape s2 = ui.modelToView(editor, e.getEndOffset(),
+                                              Position.Bias.Backward);
+                    Rectangle r2 = (s2 instanceof Rectangle) ? (Rectangle)s2 :
+                                    s2.getBounds();
+                    r1.add(r2);
+                    return r1.contains(x, y);
+                } catch (BadLocationException ble) {
+                }
+            }
+            return true;
         }
 
 	/**
@@ -657,47 +773,20 @@ public class HTMLEditorKit extends StyledEditorKit {
 		HTMLDocument hdoc = (HTMLDocument) doc;
 		Element e = hdoc.getCharacterElement(pos);
 		AttributeSet a = e.getAttributes();
-		AttributeSet anchor = (AttributeSet) a.getAttribute(HTML.Tag.A);
-		String href = (anchor != null) ? 
-		    (String) anchor.getAttribute(HTML.Attribute.HREF) : null;
+		AttributeSet anchor = (AttributeSet)a.getAttribute(HTML.Tag.A);
 		HyperlinkEvent linkEvent = null;
+                String description;
+
+                if (anchor == null) {
+                    href = getMapHREF(html, hdoc, e, a, pos, x, y);
+                }
+                else {
+                    href = (String)anchor.getAttribute(HTML.Attribute.HREF);
+                }
 
 		if (href != null) {
-		    linkEvent = createHyperlinkEvent(html, hdoc, href,
-						     anchor);
-		}
-		else if (x >= 0 && y >= 0) {
-		    // Check for usemap.
-		    Object useMap = a.getAttribute(HTML.Attribute.USEMAP);
-		    if (useMap != null && (useMap instanceof String)) {
-			Map m = hdoc.getMap((String)useMap);
-			if (m != null) {
-			    Rectangle bounds;
-			    try {
-				bounds = html.modelToView(pos);
-				Rectangle rBounds = html.modelToView(pos + 1);
-				if (bounds != null && rBounds != null) {
-				    bounds.union(rBounds);
-				}
-			    } catch (BadLocationException ble) {
-				bounds = null;
-			    }
-			    if (bounds != null) {
-				AttributeSet area = m.getArea
-				           (x - bounds.x, y - bounds.y,
-					    bounds.width, bounds.height);
-				if (area != null) {
-				    href = (String)area.getAttribute
-					           (HTML.Attribute.HREF);
-				    if (href != null) {
-					linkEvent = createHyperlinkEvent(html,
-						      hdoc, href, anchor);
-
-				    }
-				}
-			    }
-			}
-		    }
+		    linkEvent = createHyperlinkEvent(html, hdoc, href, anchor,
+                                                     e);
 		}
 		if (linkEvent != null) {
 		    html.fireHyperlinkUpdate(linkEvent);
@@ -712,7 +801,8 @@ public class HTMLEditorKit extends StyledEditorKit {
 	 */
 	HyperlinkEvent createHyperlinkEvent(JEditorPane html,
 					    HTMLDocument hdoc, String href,
-					    AttributeSet anchor) {
+					    AttributeSet anchor,
+                                            Element element) {
 	    URL u;
 	    try {
 		URL base = hdoc.getBase();
@@ -736,7 +826,7 @@ public class HTMLEditorKit extends StyledEditorKit {
 
 	    if (!hdoc.isFrameDocument()) {
 		linkEvent = new HyperlinkEvent(html, HyperlinkEvent.EventType.
-					       ACTIVATED, u, href);
+					       ACTIVATED, u, href, element);
 	    } else {
 		String target = (anchor != null) ?
 		    (String)anchor.getAttribute(HTML.Attribute.TARGET) : null;
@@ -744,12 +834,13 @@ public class HTMLEditorKit extends StyledEditorKit {
 		    target = "_self";
 		}
 		linkEvent = new HTMLFrameHyperlinkEvent(html, HyperlinkEvent.
-					EventType.ACTIVATED, u, href, target);
+			     EventType.ACTIVATED, u, href, element, target);
 	    }
 	    return linkEvent;
 	}
 
-	void fireEvents(JEditorPane editor, HTMLDocument doc, String href) {
+	void fireEvents(JEditorPane editor, HTMLDocument doc, String href,
+                        Element lastElem) {
 	    if (this.href != null) {
 		// fire an exited event on the old link
 		URL u;
@@ -759,8 +850,8 @@ public class HTMLEditorKit extends StyledEditorKit {
 		    u = null;
 		}
 		HyperlinkEvent exit = new HyperlinkEvent(editor,
-							 HyperlinkEvent.EventType.EXITED,
-							 u, this.href);
+			         HyperlinkEvent.EventType.EXITED, u, this.href,
+                                 lastElem);
 		editor.fireHyperlinkUpdate(exit);
 	    }
 	    if (href != null) {
@@ -772,8 +863,8 @@ public class HTMLEditorKit extends StyledEditorKit {
 		    u = null;
 		}
 		HyperlinkEvent entered = new HyperlinkEvent(editor,
-							    HyperlinkEvent.EventType.ENTERED,
-							    u, href);
+					    HyperlinkEvent.EventType.ENTERED,
+					    u, href, curElem);
 		editor.fireHyperlinkUpdate(entered);
 	    }
 	}
@@ -986,7 +1077,8 @@ public class HTMLEditorKit extends StyledEditorKit {
 			   (kind == HTML.Tag.DD) || 
 			   (kind == HTML.Tag.DIV) ||
 			   (kind == HTML.Tag.BLOCKQUOTE) || 
-			   (kind == HTML.Tag.PRE)) {
+			   (kind == HTML.Tag.PRE) ||
+                           (kind == HTML.Tag.FORM)) {
 		    // vertical box
 		    return new BlockView(elem, View.Y_AXIS);
 		} else if (kind == HTML.Tag.NOFRAMES) {
@@ -1013,7 +1105,7 @@ public class HTMLEditorKit extends StyledEditorKit {
                      } else if (elem.getAttributes().isDefined(HTML.Attribute.COLS)) {
                          return new FrameSetView(elem, View.X_AXIS);
                      }
-                     throw new Error("Can't build a"  + kind + ", " + elem + ":" +
+                     throw new RuntimeException("Can't build a"  + kind + ", " + elem + ":" +
                                      "no ROWS or COLS defined.");
                 } else if (kind == HTML.Tag.FRAME) {
  		    return new FrameView(elem);
@@ -1038,6 +1130,10 @@ public class HTMLEditorKit extends StyledEditorKit {
 			}
 			protected void loadChildren(ViewFactory f) {
 			}
+                        public Shape modelToView(int pos, Shape a,
+                               Position.Bias b) throws BadLocationException {
+                            return a;
+                        }
 			public int getNextVisualPositionFrom(int pos,
 				     Position.Bias b, Shape a, 
 				     int direction, Position.Bias[] biasRet) {
@@ -1143,7 +1239,15 @@ public class HTMLEditorKit extends StyledEditorKit {
     /** HTML used when inserting pre. */
     private static final String INSERT_PRE_HTML = "<pre></pre>";
 
+    private static NavigateLinkAction nextLinkAction = 
+	new NavigateLinkAction("next-link-action");
 
+    private static NavigateLinkAction previousLinkAction = 
+	new NavigateLinkAction("previous-link-action");
+
+    private static ActivateLinkAction activateLinkAction = 
+	new ActivateLinkAction("activate-link-action");
+	
     private static final Action[] defaultActions = {
 	new InsertHTMLTextAction("InsertTable", INSERT_TABLE_HTML,
 				 HTML.Tag.BODY, HTML.Tag.TABLE),
@@ -1166,9 +1270,7 @@ public class HTMLEditorKit extends StyledEditorKit {
 	new InsertHRAction(),
 	new InsertHTMLTextAction("InsertPre", INSERT_PRE_HTML,
 				 HTML.Tag.BODY, HTML.Tag.PRE),
-	new NavigateLinkAction("next-link-action"), 
-	new NavigateLinkAction("previous-link-action"), 
-	new ActivateLinkAction("activate-link-action")
+	nextLinkAction, previousLinkAction, activateLinkAction
     };
 
 
@@ -1177,7 +1279,7 @@ public class HTMLEditorKit extends StyledEditorKit {
      * be useful in inserting HTML into an existing document.
      * <p>NOTE: None of the convenience methods obtain a lock on the
      * document. If you have another thread modifying the text these
-     * methods may have inconsistant behavior, or return the wrong thing.
+     * methods may have inconsistent behavior, or return the wrong thing.
      */
     public static abstract class HTMLTextAction extends StyledTextAction {
 	public HTMLTextAction(String name) {
@@ -1548,15 +1650,42 @@ public class HTMLEditorKit extends StyledEditorKit {
     }
 
     /*
-     * Action to move the focus on the next or previous hypertext link
+     * Returns the object in an AttributeSet matching a key
      */
-    static class NavigateLinkAction extends TextAction {
+    static private Object getAttrValue(AttributeSet attr, HTML.Attribute key) {
+	Enumeration names = attr.getAttributeNames();
+	while (names.hasMoreElements()) {
+	    Object nextKey = names.nextElement();
+	    Object nextVal = attr.getAttribute(nextKey);
+	    if (nextVal instanceof AttributeSet) {
+		Object value = getAttrValue((AttributeSet)nextVal, key);
+		if (value != null) {
+		    return value;
+		}
+	    } else if (nextKey == key) {
+		return nextVal;
+	    }	
+	}
+	return null;
+    }
 
-	FocusHighlightPainter focusPainter = new FocusHighlightPainter(null);
-	Object selectionTag;
-	boolean focusBack = false;
+    /*
+     * Action to move the focus on the next or previous hypertext link 
+     * or object. TODO: This method relies on support from the 
+     * javax.accessibility package.  The text package should support
+     * keyboard navigation of text elements directly.
+     */
+    static class NavigateLinkAction extends TextAction 
+        implements CaretListener {
 
-        /** 
+	private static int prevHypertextOffset = -1;
+	private static boolean foundLink = false;
+	private FocusHighlightPainter focusPainter =
+	    new FocusHighlightPainter(null);
+	private Object selectionTag;
+	private boolean focusBack = false;
+
+        /*
          * Create this action with the appropriate identifier. 
          */
         public NavigateLinkAction(String actionName) {
@@ -1565,62 +1694,92 @@ public class HTMLEditorKit extends StyledEditorKit {
 		focusBack = true;
 	    }
         }
+	
+	/**
+	 * Called when the caret position is updated.
+	 *
+	 * @param e the caret event
+	 */
+	public void caretUpdate(CaretEvent e) {
+	    if (foundLink) {
+		foundLink = false;
+		// TODO: The AccessibleContext for the editor should register
+		// as a listener for CaretEvents and forward the events to
+		// assistive technologies listening for such events.
+		Object src = e.getSource();
+		if (src instanceof JTextComponent) {
+		    ((JTextComponent)src).getAccessibleContext().firePropertyChange(
+                        AccessibleContext.ACCESSIBLE_HYPERTEXT_OFFSET,
+		        new Integer(prevHypertextOffset),
+		        new Integer(e.getDot()));
+		}
+	    }
+	}
 
-        /** The operation to perform when this action is triggered. */
+        /*
+	 * The operation to perform when this action is triggered. 
+	 */
         public void actionPerformed(ActionEvent e) {
-            JTextComponent component = getTextComponent(e);
-	    if (component.isEditable()) {
+            JTextComponent comp = getTextComponent(e);
+	    if (comp == null || comp.isEditable()) {
 		return;
 	    }
+	    Document doc = comp.getDocument();
+	    if (doc == null) {
+		return;
+	    }
+	    // TODO: Should start successive iterations from the
+	    // current caret position.
+	    ElementIterator ei = new ElementIterator(doc);
 
-	    // highlight the next link after the curent caret position
-            if (component != null) {
-		Document doc = component.getDocument();
-		if (doc != null) {
-		    
-		    HTMLDocument hdoc = (HTMLDocument) doc;
-		    HTMLDocument.Iterator ei = hdoc.getIterator(HTML.Tag.A);
+	    int currentOffset = comp.getCaretPosition();
+	    int prevStartOffset = -1;
+	    int prevEndOffset = -1;
+		
+	    // highlight the next link or object after the current caret position
+	    Element nextElement = null;
+	    while ((nextElement = ei.next()) != null) {
+		String name = nextElement.getName();
+		AttributeSet attr = nextElement.getAttributes();
+		
+		Object href = getAttrValue(attr, HTML.Attribute.HREF);
+		if (!(name.equals(HTML.Tag.OBJECT.toString())) && href == null) {
+		    continue;
+		}
+		
+		int elementOffset = nextElement.getStartOffset();
+		if (focusBack) {
+		    if (elementOffset >= currentOffset &&
+			prevStartOffset >= 0) {
 
-		    int currentOffset = component.getCaretPosition();
-		    int prevStartOffset = 0;
-		    int prevEndOffset = 0;
-		    
-		    while (ei.isValid()) {
-			AttributeSet anchor = ei.getAttributes();
-			if (anchor != null) {
-			    String href = (String)anchor.getAttribute(HTML.Attribute.HREF);
-			    if (href != null) {
-				int startOffset = ei.getStartOffset();
-				if (focusBack) {
-				    if (startOffset >= currentOffset) {
-					component.setCaretPosition(prevStartOffset);
-					moveCaretPosition(component, prevStartOffset, 
-							  prevEndOffset);
-					return;
-				    }
-				} else { // focus forward
-				    if (startOffset > currentOffset) {
-					component.setCaretPosition(startOffset);
-					moveCaretPosition(component, startOffset,
-							  ei.getEndOffset());
-					return;
-				    } 
-				}
-			    }
-			}
-			prevStartOffset = ei.getStartOffset();
-			prevEndOffset = ei.getEndOffset();
-			ei.next();
+			foundLink = true;
+			comp.setCaretPosition(prevStartOffset);
+			moveCaretPosition(comp, prevStartOffset, 
+					  prevEndOffset);
+			prevHypertextOffset = prevStartOffset;
+			return;
 		    }
-                }
-            }
+		} else { // focus forward
+		    if (elementOffset > currentOffset) {
+
+			foundLink = true;
+			comp.setCaretPosition(elementOffset);
+			moveCaretPosition(comp, elementOffset,
+					  nextElement.getEndOffset());
+			prevHypertextOffset = elementOffset;
+			return;
+		    } 
+		}
+		prevStartOffset = nextElement.getStartOffset();
+		prevEndOffset = nextElement.getEndOffset();
+	    }
         }
 	
 	/*
 	 * Moves the caret from mark to dot
 	 */
-	private void moveCaretPosition(JTextComponent component, int mark, int dot) {
-	    Highlighter h = component.getHighlighter();
+	private void moveCaretPosition(JTextComponent comp, int mark, int dot) {
+	    Highlighter h = comp.getHighlighter();
 	    if (h != null) {
 		int p0 = Math.min(dot, mark);
 		int p1 = Math.max(dot, mark);
@@ -1632,7 +1791,6 @@ public class HTMLEditorKit extends StyledEditorKit {
 			selectionTag = h.addHighlight(p0, p1, p);
 		    }
 		} catch (BadLocationException e) {
-		    // XXX 
 		}
 	    }
 	}
@@ -1658,7 +1816,7 @@ public class HTMLEditorKit extends StyledEditorKit {
 	     *        necessarily the region to paint.
 	     * @param c the editor
 	     * @param view View painting for
-	     * @return region drawing occured in
+	     * @return region in which drawing occurred
 	     */
 	    public Shape paintLayer(Graphics g, int offs0, int offs1,
 				    Shape bounds, JTextComponent c, View view) {
@@ -1706,7 +1864,10 @@ public class HTMLEditorKit extends StyledEditorKit {
     }
 
     /*
-     * Action to activate the hypertext link that has focus.
+     * Action to activate the hypertext link that has focus. 
+     * TODO: This method relies on support from the 
+     * javax.accessibility package.  The text package should support
+     * keyboard navigation of text elements directly.
      */
     static class ActivateLinkAction extends TextAction {
 
@@ -1716,55 +1877,149 @@ public class HTMLEditorKit extends StyledEditorKit {
         public ActivateLinkAction(String actionName) {
             super(actionName);
         }
+
+	/*
+	 * activates the hyperlink at offset
+	 */
+	private void activateLink(String href, HTMLDocument doc, 
+				  JEditorPane editor, int offset) {
+	    try {
+		URL page = 
+		    (URL)doc.getProperty(Document.StreamDescriptionProperty);
+		URL url = new URL(page, href);
+		HyperlinkEvent linkEvent = new HyperlinkEvent
+		    (editor, HyperlinkEvent.EventType.
+		     ACTIVATED, url, url.toExternalForm(), 
+		     doc.getCharacterElement(offset));
+		editor.fireHyperlinkUpdate(linkEvent);
+	    } catch (MalformedURLException m) {
+	    }			
+	}
+
+	/*
+	 * Invokes default action on the object in an element
+	 */
+	private void doObjectAction(JEditorPane editor, Element elem) {
+	    View view = getView(editor, elem);
+	    if (view != null && view instanceof ObjectView) {
+		Component comp = ((ObjectView)view).getComponent();
+		if (comp != null && comp instanceof Accessible) {
+		    AccessibleContext ac = ((Accessible)comp).getAccessibleContext();
+		    if (ac != null) {
+			AccessibleAction aa = ac.getAccessibleAction();
+			if (aa != null) {
+			    aa.doAccessibleAction(0);
+			}
+		    }
+		}
+	    }
+	}
 	
-        /** The operation to perform when this action is triggered. */
+	/*
+	 * Returns the root view for a document
+	 */
+	private View getRootView(JEditorPane editor) {
+	    return editor.getUI().getRootView(editor);
+	}
+
+        /*
+	 * Returns a view associated with an element
+         */
+        private View getView(JEditorPane editor, Element elem) {
+            Object lock = lock(editor);
+            try {
+                View rootView = getRootView(editor);
+                int start = elem.getStartOffset();
+                if (rootView != null) {
+                    return getView(rootView, elem, start);
+                }
+                return null;
+            } finally {
+                unlock(lock);
+            }
+        }
+
+	private View getView(View parent, Element elem, int start) {
+            if (parent.getElement() == elem) {
+                return parent;
+            }
+            int index = parent.getViewIndex(start, Position.Bias.Forward);
+	    
+            if (index != -1 && index < parent.getViewCount()) {
+                return getView(parent.getView(index), elem, start);
+            }
+            return null;
+        }
+
+	/*
+	 * If possible acquires a lock on the Document.  If a lock has been
+	 * obtained a key will be retured that should be passed to
+	 * <code>unlock</code>.
+	 */
+	private Object lock(JEditorPane editor) {
+	    Document document = editor.getDocument();
+	    
+	    if (document instanceof AbstractDocument) {
+		((AbstractDocument)document).readLock();
+		return document;
+	    }
+	    return null;
+	}
+	
+	/*
+	 * Releases a lock previously obtained via <code>lock</code>.
+	 */
+	private void unlock(Object key) {
+	    if (key != null) {
+		((AbstractDocument)key).readUnlock();
+	    }
+	}
+
+        /*
+	 * The operation to perform when this action is triggered. 
+	 */
         public void actionPerformed(ActionEvent e) {
 
             JTextComponent c = getTextComponent(e);
-	    if (!(c instanceof JEditorPane)) {
+	    if (c.isEditable() || !(c instanceof JEditorPane)) {
 		return;
 	    }
-	    JEditorPane component = (JEditorPane)c;
-	    if (component.isEditable()) {
-		return;
-	    }
+	    JEditorPane editor = (JEditorPane)c;
 	    
-	    // activate the hypertext link at the current caret position
-            if (component != null) {
-		Document doc = component.getDocument();
-		if (doc != null) {
-		    
-		    HTMLDocument hdoc = (HTMLDocument) doc;
-		    HTMLDocument.Iterator ei = hdoc.getIterator(HTML.Tag.A);
+	    Document d = editor.getDocument();
+	    if (d == null || !(d instanceof HTMLDocument)) {
+		return;
+	    }
+	    HTMLDocument doc = (HTMLDocument)d;
 
-		    int currentOffset = component.getCaretPosition();
-		    String urlString = null;
-		    
-		    while (ei.isValid()) {
-			AttributeSet anchor = ei.getAttributes();
-			if (anchor != null) {
-			    String href = 
-				(String)anchor.getAttribute(HTML.Attribute.HREF);
-			    if (href != null) {
-				if (currentOffset >= ei.getStartOffset() &&
-				    currentOffset <= ei.getEndOffset()) {
-				    urlString = href;
-				    break;
-				}
-			    }
-			}
-			ei.next();
+	    ElementIterator ei = new ElementIterator(doc);
+	    int currentOffset = editor.getCaretPosition();
+
+	    // invoke the next link or object action
+	    String urlString = null;
+	    String objString = null;
+	    Element currentElement = null;
+	    while ((currentElement = ei.next()) != null) {
+		String name = currentElement.getName();
+		AttributeSet attr = currentElement.getAttributes();
+		
+		Object href = getAttrValue(attr, HTML.Attribute.HREF);
+		if (href != null) {
+		    if (currentOffset >= currentElement.getStartOffset() &&
+			currentOffset <= currentElement.getEndOffset()) {
+			
+			activateLink((String)href, doc, editor, currentOffset);
+			return;
 		    }
-		    if (urlString != null) {
-			try {
-			    URL page = 
-				(URL)doc.getProperty(Document.StreamDescriptionProperty);
-			    URL url = new URL(page, urlString);
-			    HyperlinkEvent linkEvent = new HyperlinkEvent(component, 
-                                HyperlinkEvent.EventType.ACTIVATED, url);
-			    component.fireHyperlinkUpdate(linkEvent);
-			} catch (MalformedURLException m) {
-			}			
+		} else if (name.equals(HTML.Tag.OBJECT.toString())) {
+		    Object obj = getAttrValue(attr, HTML.Attribute.CLASSID);
+		    if (obj != null) {
+			if (currentOffset >= currentElement.getStartOffset() &&
+			    currentOffset <= currentElement.getEndOffset()) {
+			    
+			    doObjectAction(editor, currentElement);
+			    return;
+			}
 		    }
 		}
 	    }

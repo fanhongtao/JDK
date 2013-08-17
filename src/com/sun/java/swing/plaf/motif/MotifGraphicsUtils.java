@@ -1,4 +1,6 @@
 /*
+ * @(#)MotifGraphicsUtils.java	1.42 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,7 +22,7 @@ import javax.swing.plaf.basic.*;
 import javax.swing.text.View;
 
 /*
- * @version 1.41 02/06/02
+ * @version 1.42 12/03/01
  * @author Jeff Dinkins
  * @author Dave Kloba
  */
@@ -217,15 +219,18 @@ public class MotifGraphicsUtils implements SwingConstants
 	    if (v != null) {
 		v.paint(g, textRect);
 	    } else {
-		
+		int mnemIndex = b.getDisplayedMnemonicIndex();
+
 		if(!model.isEnabled()) {
 		    // *** paint the text disabled
 		    g.setColor(b.getBackground().brighter());
-		    BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-						  textRect.x, textRect.y + fmAccel.getAscent());
+		    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
+                        mnemIndex,
+                        textRect.x, textRect.y + fmAccel.getAscent());
 		    g.setColor(b.getBackground().darker());
-		    BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-						  textRect.x - 1, textRect.y + fmAccel.getAscent() - 1);
+		    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
+                        mnemIndex,
+                        textRect.x - 1, textRect.y + fmAccel.getAscent() - 1);
 		    
 		} else {
 		    // *** paint the text normally
@@ -234,8 +239,8 @@ public class MotifGraphicsUtils implements SwingConstants
 		    } else {
 			g.setColor(b.getForeground());
 		    }
-		    BasicGraphicsUtils.drawString(g,text, 
-						  model.getMnemonic(),
+		    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text, 
+						  mnemIndex,
 						  textRect.x,
 						  textRect.y + fm.getAscent());
 		}
@@ -251,7 +256,8 @@ public class MotifGraphicsUtils implements SwingConstants
 	    if (parent != null && parent instanceof JComponent) {
 		JComponent p = (JComponent) parent;
 		Integer maxValueInt = (Integer) p.getClientProperty(MotifGraphicsUtils.MAX_ACC_WIDTH);
-		int maxValue = maxValueInt!=null ? maxValueInt.intValue() : 0;
+		int maxValue = maxValueInt != null ?
+                    maxValueInt.intValue() : acceleratorRect.width;
 		
 		//Calculate the offset, with which the accelerator texts will be drawn with.
 		accOffset = maxValue - acceleratorRect.width;
@@ -435,6 +441,6 @@ public class MotifGraphicsUtils implements SwingConstants
      * avoid having Munge directives throughout the code.
      */
     static boolean isLeftToRight( Component c ) {
-        return c.getComponentOrientation().isLeftToRight();
+	return c.getComponentOrientation().isLeftToRight();
     }
 }

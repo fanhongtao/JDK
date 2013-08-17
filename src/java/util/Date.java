@@ -1,4 +1,6 @@
 /*
+ * @(#)Date.java	1.71 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -98,7 +100,7 @@ import java.lang.ref.SoftReference;
  * @author  James Gosling
  * @author  Arthur van Hoff
  * @author  Alan Liu
- * @version 1.70, 02/06/02
+ * @version 1.71, 12/03/01
  * @see     java.text.DateFormat
  * @see     java.util.Calendar
  * @see     java.util.TimeZone
@@ -280,7 +282,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * hour of the day, minute within the hour, and second within the 
      * minute, exactly as for the <tt>Date</tt> constructor with six 
      * arguments, except that the arguments are interpreted relative 
-     * to UTC rather than to the local time zone. The time indecated is 
+     * to UTC rather than to the local time zone. The time indicated is 
      * returned represented as the distance, measured in milliseconds, 
      * of that time from the epoch (00:00:00 GMT on January 1, 1970).
      *
@@ -821,6 +823,10 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      *          represented by this date.
      */
     public long getTime() {
+        return getTimeImpl();
+    }
+
+    private final long getTimeImpl() {
         return (cal == null) ? fastTime : cal.getTimeInMillis();
     }
 
@@ -956,7 +962,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * <li><tt>zzz</tt> is the time zone (and may reflect daylight savings 
      *     time). Standard time zone abbreviations include those 
      *     recognized by the method <tt>parse</tt>. If time zone 
-     *     informationi is not available, then <tt>zzz</tt> is empty - 
+     *     information is not available, then <tt>zzz</tt> is empty - 
      *     that is, it consists of no characters at all.
      * <li><tt>yyyy</tt> is the year, as four decimal digits.
      * </ul>
@@ -1013,7 +1019,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      *     as one or two decimal digits.
      * <li><i>mon</i> is the month (<tt>Jan, Feb, Mar, Apr, May, Jun, Jul, 
      *     Aug, Sep, Oct, Nov, Dec</tt>).
-     * <li><i>yyyy</i> i sthe year, as four decimal digits.
+     * <li><i>yyyy</i> is the year, as four decimal digits.
      * <li><i>hh</i> is the hour of the day (<tt>00</tt> through <tt>23</tt>), 
      *     as two decimal digits.
      * <li><i>mm</i> is the minute within the hour (<tt>00</tt> through 
@@ -1063,7 +1069,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * new Date(96, 5, 1).getTimezoneOffset() returns 240</pre></blockquote>
      * because on May 1, 1996, daylight savings time (Eastern Daylight Time) 
      * is in use, which is offset only four hours from UTC.<p>
-     * This method produces teh same result as if it computed:
+     * This method produces the same result as if it computed:
      * <blockquote><pre>
      * (this.getTime() - UTC(this.getYear(), 
      *                       this.getMonth(), 
@@ -1115,7 +1121,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
     private void writeObject(ObjectOutputStream s)
          throws IOException
     {
-        s.writeLong(getTime());
+        s.writeLong(getTimeImpl());
     }
 
     /**

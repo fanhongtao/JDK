@@ -1,4 +1,6 @@
 /*
+ * @(#)Button.java	1.68 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -57,7 +59,7 @@ import javax.accessibility.*;
  * <code>addActionListener</code> method. The application can
  * make use of the button's action command as a messaging protocol.
  *
- * @version 	1.59 02/06/02
+ * @version 	1.68 12/03/01
  * @author 	Sami Shaio
  * @see         java.awt.event.ActionEvent
  * @see         java.awt.event.ActionListener
@@ -99,7 +101,9 @@ public class Button extends Component implements Accessible {
     static {
         /* ensure that the necessary native libraries are loaded */
 	Toolkit.loadLibraries();
-	initIDs();
+        if (!GraphicsEnvironment.isHeadless()) {
+            initIDs();
+        }
     }
 
     /**
@@ -110,16 +114,23 @@ public class Button extends Component implements Accessible {
 
     /**
      * Constructs a Button with no label.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public Button() {
+    public Button() throws HeadlessException {
 	this("");
     }
 
     /**
      * Constructs a Button with the specified label.
      * @param label A string label for the button.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public Button(String label) {
+    public Button(String label) throws HeadlessException {
+        GraphicsEnvironment.checkHeadless();
 	this.label = label;
     }
 
@@ -216,8 +227,9 @@ public class Button extends Component implements Accessible {
      * If l is null, no exception is thrown and no action is performed.
      *
      * @param         l the action listener
+     * @see           #removeActionListener
+     * @see           #getActionListeners
      * @see           java.awt.event.ActionListener
-     * @see           java.awt.Button#removeActionListener
      * @since         JDK1.1
      */
     public synchronized void addActionListener(ActionListener l) {
@@ -235,8 +247,9 @@ public class Button extends Component implements Accessible {
      * If l is null, no exception is thrown and no action is performed.
      *
      * @param         	l     the action listener
+     * @see           	#addActionListener
+     * @see           	#getActionListeners
      * @see           	java.awt.event.ActionListener
-     * @see           	java.awt.Button#addActionListener
      * @since         	JDK1.1
      */
     public synchronized void removeActionListener(ActionListener l) {
@@ -247,17 +260,53 @@ public class Button extends Component implements Accessible {
     }
 
     /**
-     * Return an array of all the listeners that were added to the Button
-     * with addXXXListener(), where XXX is the name of the <code>listenerType</code>
-     * argument.  For example, to get all of the ActionListener(s) for the
-     * given Button <code>b</code>, one would write:
-     * <pre>
-     * ActionListener[] als = (ActionListener[])(b.getListeners(ActionListener.class))
-     * </pre>
-     * If no such listener list exists, then an empty array is returned.
-     * 
-     * @param    listenerType   Type of listeners requested
-     * @return	 all of the listeners of the specified type supported by this button
+     * Returns an array of all the action listeners
+     * registered on this button.
+     *
+     * @return all of this button's <code>ActionListener</code>s
+     *         or an empty array if no action 
+     *         listeners are currently registered
+     *
+     * @see	        #addActionListener
+     * @see           	#removeActionListener
+     * @see           	java.awt.event.ActionListener
+     * @since 1.4
+     */
+    public synchronized ActionListener[] getActionListeners() {
+        return (ActionListener[]) (getListeners(ActionListener.class));
+    }
+
+    /**
+     * Returns an array of all the objects currently registered
+     * as <code><em>Foo</em>Listener</code>s
+     * upon this <code>Button</code>.
+     * <code><em>Foo</em>Listener</code>s are registered using the
+     * <code>add<em>Foo</em>Listener</code> method.
+     *
+     * <p>
+     * You can specify the <code>listenerType</code> argument
+     * with a class literal, such as
+     * <code><em>Foo</em>Listener.class</code>.
+     * For example, you can query a
+     * <code>Button</code> <code>b</code>
+     * for its action listeners with the following code:
+     *
+     * <pre>ActionListener[] als = (ActionListener[])(b.getListeners(ActionListener.class));</pre>
+     *
+     * If no such listeners exist, this method returns an empty array.
+     *
+     * @param listenerType the type of listeners requested; this parameter
+     *          should specify an interface that descends from
+     *          <code>java.util.EventListener</code>
+     * @return an array of all objects registered as
+     *          <code><em>Foo</em>Listener</code>s on this button,
+     *          or an empty array if no such
+     *          listeners have been added
+     * @exception ClassCastException if <code>listenerType</code>
+     *          doesn't specify a class or interface that implements
+     *          <code>java.util.EventListener</code>
+     *
+     * @see #getActionListeners
      * @since 1.3
      */
     public EventListener[] getListeners(Class listenerType) { 
@@ -287,7 +336,11 @@ public class Button extends Component implements Accessible {
      * an instance of <code>ActionEvent</code>, this method invokes
      * the <code>processActionEvent</code> method. Otherwise,
      * it invokes <code>processEvent</code> on the superclass.
-     * @param        e the event.
+     * <p>Note that if the event parameter is <code>null</code>
+     * the behavior is unspecified and may result in an
+     * exception.
+     *
+     * @param        e the event
      * @see          java.awt.event.ActionEvent
      * @see          java.awt.Button#processActionEvent
      * @since        JDK1.1
@@ -313,7 +366,11 @@ public class Button extends Component implements Accessible {
      * via <code>addActionListener</code>.
      * <li>Action events are enabled via <code>enableEvents</code>.
      * </ul>
-     * @param       e the action event.
+     * <p>Note that if the event parameter is <code>null</code>
+     * the behavior is unspecified and may result in an
+     * exception.
+     *
+     * @param       e the action event
      * @see         java.awt.event.ActionListener
      * @see         java.awt.Button#addActionListener
      * @see         java.awt.Component#enableEvents
@@ -326,9 +383,13 @@ public class Button extends Component implements Accessible {
     }
 
     /**
-     * Returns the parameter string representing the state of this
-     * button. This string is useful for debugging.
-     * @return     the parameter string of this button.
+     * Returns a string representing the state of this <code>Button</code>.
+     * This method is intended to be used only for debugging purposes, and the 
+     * content and format of the returned string may vary between 
+     * implementations. The returned string may be empty but may not be 
+     * <code>null</code>.
+     *
+     * @return     the parameter string of this button
      */
     protected String paramString() {
 	return super.paramString() + ",label=" + label;
@@ -337,27 +398,32 @@ public class Button extends Component implements Accessible {
 
     /* Serialization support.
      */
-	/*
-    * Button Serial Data Version.
-    * @serial
-    */
+
+    /*
+     * Button Serial Data Version.
+     * @serial
+     */
     private int buttonSerializedDataVersion = 1;
 
-	/**
-	* Writes default serializable fields to stream.  Writes
-	* a list of serializable ItemListener(s) as optional data.
-	* The non-serializable ItemListener(s) are detected and 
-	* no attempt is made to serialize them.
-	*
-	* @serialData Null terminated sequence of 0 or more pairs.
-	*			  The pair consists of a String and Object.
-	*			  The String indicates the type of object and
-	* 			  is one of the following :
-	*			  itemListenerK indicating and ItemListener object.
-	* 			
-	* @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-	* @see java.awt.Component.itemListenerK
-	*/
+    /**
+     * Writes default serializable fields to stream.  Writes
+     * a list of serializable <code>ActionListeners</code>
+     * as optional data.  The non-serializable
+     * <code>ActionListeners</code> are detected and 
+     * no attempt is made to serialize them.
+     *
+     * @serialData <code>null</code> terminated sequence of 0 or 
+     *   more pairs: the pair consists of a <code>String</code> 
+     *   and an <code>Object</code>; the <code>String</code> 
+     *   indicates the type of object and is one of the following:
+     *   <code>actionListenerK</code> indicating an
+     *     <code>ActionListener</code> object
+     * 			
+     * @param s the <code>ObjectOutputStream</code> to write
+     * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
+     * @see java.awt.Component.actionListenerK
+     * @see #readObject
+     */
     private void writeObject(ObjectOutputStream s)
       throws IOException
     {
@@ -367,19 +433,26 @@ public class Button extends Component implements Accessible {
       s.writeObject(null);
     }
 
-	/*
-    * Read the ObjectInputStream and if it isnt null
-    * add a listener to receive item events fired
-    * by the button.
-	* Unrecognised keys or values will be Ignored.
-    * @serial
-	* @see removeActionListener()
-    * @see addActionListener()
-    */
-
+    /**
+     * Reads the <code>ObjectInputStream</code> and if
+     * it isn't <code>null</code> adds a listener to
+     * receive action events fired by the button.
+     * Unrecognized keys or values will be ignored.
+     *
+     * @param s the <code>ObjectInputStream</code> to read
+     * @exception HeadlessException if
+     *   <code>GraphicsEnvironment.isHeadless</code> returns
+     *   <code>true</code>
+     * @serial
+     * @see removeActionListener()
+     * @see addActionListener()
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see #writeObject
+     */
     private void readObject(ObjectInputStream s)
-      throws ClassNotFoundException, IOException
+      throws ClassNotFoundException, IOException, HeadlessException
     {
+      GraphicsEnvironment.checkHeadless();
       s.defaultReadObject();
 
       Object keyOrNull;
@@ -400,13 +473,15 @@ public class Button extends Component implements Accessible {
 ////////////////
 
     /**
-     * Gets the AccessibleContext associated with this Button. 
-     * For buttons, the AccessibleContext takes the form of an 
-     * AccessibleAWTButton. 
-     * A new AccessibleAWTButton instance is created if necessary.
+     * Gets the <code>AccessibleContext</code> associated with
+     * this <code>Button</code>. For buttons, the
+     * <code>AccessibleContext</code> takes the form of an 
+     * <code>AccessibleAWTButton</code>. 
+     * A new <code>AccessibleAWTButton</code> instance is
+     * created if necessary.
      *
-     * @return an AccessibleAWTButton that serves as the 
-     *         AccessibleContext of this Button
+     * @return an <code>AccessibleAWTButton</code> that serves as the 
+     *         <code>AccessibleContext</code> of this <code>Button</code>
      * @beaninfo
      *       expert: true
      *  description: The AccessibleContext associated with this Button.

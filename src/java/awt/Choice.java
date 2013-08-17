@@ -1,4 +1,6 @@
 /*
+ * @(#)Choice.java	1.78 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -37,23 +39,24 @@ import javax.accessibility.*;
  * Pushing the mouse button down on the object causes a menu to
  * appear with the current choice highlighted.
  * <p>
- * Some native platforms do not support arbitrary resizing of Choice
- * components and the behavior of setSize()/getSize() is bound by 
+ * Some native platforms do not support arbitrary resizing of 
+ * <code>Choice</code> components and the behavior of 
+ * <code>setSize()/getSize()</code> is bound by 
  * such limitations.
- * Native GUI Choice components' size are often bound by such
+ * Native GUI <code>Choice</code> components' size are often bound by such
  * attributes as font size and length of items contained within 
- * the Choice.
+ * the <code>Choice</code>.
  * <p>
- * @version	1.65 02/06/02
+ * @version	1.78 12/03/01
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
  */
 public class Choice extends Component implements ItemSelectable, Accessible {
     /**
-     * The items for the Choice.
-	 * This can be a null value.
-	 * @serial
+     * The items for the <code>Choice</code>.
+     * This can be a <code>null</code> value.
+     * @serial
      * @see add()
      * @see addItem()
      * @see getItem()
@@ -64,8 +67,8 @@ public class Choice extends Component implements ItemSelectable, Accessible {
     Vector pItems;
 
     /**
-     * The index of the current choice for this Choice.
-	 * @serial
+     * The index of the current choice for this <code>Choice</code>.
+     * @serial
      * @see getSelectedItem
      * @see select()
      */
@@ -87,16 +90,20 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      * By default, the first item added to the choice menu becomes the
      * selected item, until a different selection is made by the user
      * by calling one of the <code>select</code> methods.
-     * @see       java.awt.Choice#select(int)
-     * @see       java.awt.Choice#select(java.lang.String)
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
+     * @see       #select(int)
+     * @see       #select(java.lang.String)
      */
-    public Choice() {
+    public Choice() throws HeadlessException {
+        GraphicsEnvironment.checkHeadless();
 	pItems = new Vector();
     }
 
     /**
-     * Construct a name for this component.  Called by getName() when the
-     * name is null.
+     * Constructs a name for this component.  Called by 
+     * <code>getName</code> when the name is <code>null</code>.
      */
     String constructComponentName() {
         synchronized (getClass()) {
@@ -105,8 +112,9 @@ public class Choice extends Component implements ItemSelectable, Accessible {
     }
 
     /**
-     * Creates the Choice's peer.  This peer allows us to change the look
-     * of the Choice without changing its functionality.
+     * Creates the <code>Choice</code>'s peer.  This peer allows us
+     * to change the look
+     * of the <code>Choice</code> without changing its functionality.
      * @see     java.awt.Toolkit#createChoice(java.awt.Choice)
      * @see     java.awt.Component#getToolkit()
      */
@@ -120,7 +128,8 @@ public class Choice extends Component implements ItemSelectable, Accessible {
 
     /**
      * Returns the number of items in this <code>Choice</code> menu.
-     * @see     java.awt.Choice#getItem
+     * @return the number of items in this <code>Choice</code> menu
+     * @see     #getItem
      * @since   JDK1.1
      */
     public int getItemCount() {
@@ -138,8 +147,8 @@ public class Choice extends Component implements ItemSelectable, Accessible {
     /**
      * Gets the string at the specified index in this
      * <code>Choice</code> menu.
-     * @param      index the index at which to begin.
-     * @see        java.awt.Choice#getItemCount
+     * @param      index the index at which to begin
+     * @see        #getItemCount
      */
     public String getItem(int index) {
 	return getItemImpl(index);
@@ -156,7 +165,8 @@ public class Choice extends Component implements ItemSelectable, Accessible {
     /**
      * Adds an item to this <code>Choice</code> menu.
      * @param      item    the item to be added
-     * @exception  NullPointerException   if the item's value is <code>null</code>.
+     * @exception  NullPointerException   if the item's value is
+     *			<code>null</code>
      * @since      JDK1.1
      */
     public void add(String item) {
@@ -164,9 +174,13 @@ public class Choice extends Component implements ItemSelectable, Accessible {
     }
 
     /**
-     * Adds an item to this Choice.
+     * Obsolete as of Java 2 platform v1.1.  Please use the
+     * <code>add</code> method instead.
+     * <p>
+     * Adds an item to this <code>Choice</code> menu.
      * @param item the item to be added
-     * @exception NullPointerException If the item's value is equal to null.
+     * @exception NullPointerException if the item's value is equal to
+     *		<code>null</code>
      */
     public void addItem(String item) {
         synchronized (this) {
@@ -180,11 +194,13 @@ public class Choice extends Component implements ItemSelectable, Accessible {
     }
 
     /**
-     * Adds an item to this Choice, but does not invalidate the Choice.
+     * Adds an item to this <code>Choice</code>,
+     * but does not invalidate the <code>Choice</code>.
      * Client methods must provide their own synchronization before
      * invoking this method.
      * @param item the item to be added
-     * @exception NullPointerException If the item's value is equal to null.
+     * @exception NullPointerException if the item's value is equal to
+     *		<code>null</code>
      */
     private void addItemNoInvalidate(String item) {
         if (item == null) {
@@ -204,9 +220,21 @@ public class Choice extends Component implements ItemSelectable, Accessible {
 
     /**
      * Inserts the item into this choice at the specified position.
-     * @param item the item to be inserted
+     * Existing items at an index greater than or equal to
+     * <code>index</code> are shifted up by one to accommodate
+     * the new item.  If <code>index</code> is greater than or
+     * equal to the number of items in this choice,
+     * <code>item</code> is added to the end of this choice.
+     * <p>
+     * If the item is the first one being added to the choice,
+     * then the item becomes selected.  Otherwise, if the
+     * selected item was one of the items shifted, the first
+     * item in the choice becomes the selected item.  If the
+     * selected item was no among those shifted, it remains
+     * the selected item.
+     * @param item the non-<code>null</code> item to be inserted
      * @param index the position at which the item should be inserted
-     * @exception IllegalArgumentException if index is less than 0.
+     * @exception IllegalArgumentException if index is less than 0
      */
     public void insert(String item, int index) {
         synchronized (this) {
@@ -243,11 +271,16 @@ public class Choice extends Component implements ItemSelectable, Accessible {
     }
 
     /**
-     * Remove the first occurrence of <code>item</code>
-     * from the <code>Choice</code> menu.
-     * @param      item  the item to remove from this <code>Choice</code> menu.
+     * Removes the first occurrence of <code>item</code>
+     * from the <code>Choice</code> menu.  If the item
+     * being removed is the currently selected item,
+     * then the first item in the choice becomes the
+     * selected item.  Otherwise, the currently selected
+     * item remains selected (and the selected index is
+     * updated accordingly).
+     * @param      item  the item to remove from this <code>Choice</code> menu
      * @exception  IllegalArgumentException  if the item doesn't
-     *                     exist in the choice menu.
+     *                     exist in the choice menu
      * @since      JDK1.1
      */
     public void remove(String item) {
@@ -269,8 +302,14 @@ public class Choice extends Component implements ItemSelectable, Accessible {
 
     /**
      * Removes an item from the choice menu
-     * at the specified position.
-     * @param      position the position of the item.
+     * at the specified position.  If the item
+     * being removed is the currently selected item,
+     * then the first item in the choice becomes the
+     * selected item.  Otherwise, the currently selected
+     * item remains selected (and the selected index is
+     * @param      position the position of the item
+     * @throws IndexOutOfBoundsException if the specified 
+     * 		position is out of bounds
      * @since      JDK1.1
      */
     public void remove(int position) {
@@ -285,10 +324,11 @@ public class Choice extends Component implements ItemSelectable, Accessible {
     }
 
     /**
-     * Removes an item from the Choice at the specified position, but
-     * does not invalidate the Choice. Client methods must provide their
+     * Removes an item from the <code>Choice</code> at the
+     * specified position, but does not invalidate the <code>Choice</code>.
+     * Client methods must provide their
      * own synchronization before invoking this method.
-     * @param      position the position of the item.
+     * @param      position   the position of the item
      */
     private void removeNoInvalidate(int position) {
         pItems.removeElementAt(position);
@@ -309,7 +349,7 @@ public class Choice extends Component implements ItemSelectable, Accessible {
 
     /**
      * Removes all items from the choice menu.
-     * @see       java.awt.Choice#remove
+     * @see       #remove
      * @since     JDK1.1
      */
     public void removeAll() {
@@ -330,8 +370,8 @@ public class Choice extends Component implements ItemSelectable, Accessible {
     /**
      * Gets a representation of the current choice as a string.
      * @return    a string representation of the currently
-     *                     selected item in this choice menu.
-     * @see       java.awt.Choice#getSelectedIndex
+     *                     selected item in this choice menu
+     * @see       #getSelectedIndex
      */
     public synchronized String getSelectedItem() {
 	return (selectedIndex >= 0) ? getItem(selectedIndex) : null;
@@ -339,7 +379,7 @@ public class Choice extends Component implements ItemSelectable, Accessible {
 
     /**
      * Returns an array (length 1) containing the currently selected
-     * item.  If this choice has no items, returns null.
+     * item.  If this choice has no items, returns <code>null</code>.
      * @see ItemSelectable
      */
     public synchronized Object[] getSelectedObjects() {
@@ -362,11 +402,19 @@ public class Choice extends Component implements ItemSelectable, Accessible {
     /**
      * Sets the selected item in this <code>Choice</code> menu to be the
      * item at the specified position.
-     * @param      pos      the positon of the selected item.
+     *
+     * <p>Note that this method should be primarily used to
+     * initially select an item in this component.  
+     * Programmatically calling this method will <i>not</i> trigger
+     * an <code>ItemEvent</code>.  The only way to trigger an
+     * <code>ItemEvent</code> is by user interaction.
+     *
+     * @param      pos      the positon of the selected item
      * @exception  IllegalArgumentException if the specified
-     *                            position is invalid.
-     * @see        java.awt.Choice#getSelectedItem
-     * @see        java.awt.Choice#getSelectedIndex
+     *                            position is greater than the
+     *				  number of items or less than zero
+     * @see        #getSelectedItem
+     * @see        #getSelectedIndex
      */
     public synchronized void select(int pos) {
 	if ((pos >= pItems.size()) || (pos < 0)) {
@@ -386,9 +434,16 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      * to be the item whose name is equal to the specified string.
      * If more than one item matches (is equal to) the specified string,
      * the one with the smallest index is selected.
+     *
+     * <p>Note that this method should be primarily used to
+     * initially select an item in this component.  
+     * Programmatically calling this method will <i>not</i> trigger
+     * an <code>ItemEvent</code>.  The only way to trigger an
+     * <code>ItemEvent</code> is by user interaction.
+     *
      * @param       str     the specified string
-     * @see         java.awt.Choice#getSelectedItem
-     * @see         java.awt.Choice#getSelectedIndex
+     * @see         #getSelectedItem
+     * @see         #getSelectedIndex
      */
     public synchronized void select(String str) {
 	int index = pItems.indexOf(str);
@@ -399,12 +454,16 @@ public class Choice extends Component implements ItemSelectable, Accessible {
 
     /**
      * Adds the specified item listener to receive item events from
-     * this <code>Choice</code> menu.
-     * If l is null, no exception is thrown and no action is performed.
-     * @param         l    the item listener.
+     * this <code>Choice</code> menu.  Item events are sent in response
+     * to user input, but not in response to calls to <code>select</code>.
+     * If l is <code>null</code>, no exception is thrown and no action
+     * is performed.
+     * @param         l    the item listener
+     * @see           #removeItemListener
+     * @see           #getItemListeners
+     * @see           #select
      * @see           java.awt.event.ItemEvent
      * @see           java.awt.event.ItemListener
-     * @see           java.awt.Choice#removeItemListener
      * @since         JDK1.1
      */
     public synchronized void addItemListener(ItemListener l) {
@@ -418,11 +477,13 @@ public class Choice extends Component implements ItemSelectable, Accessible {
     /**
      * Removes the specified item listener so that it no longer receives
      * item events from this <code>Choice</code> menu.
-     * If l is null, no exception is thrown and no action is performed.
-     * @param         l    the item listener.
+     * If l is <code>null</code>, no exception is thrown and no
+     * action is performed.
+     * @param         l    the item listener
+     * @see           #addItemListener
+     * @see           #getItemListeners
      * @see           java.awt.event.ItemEvent
      * @see           java.awt.event.ItemListener
-     * @see           java.awt.Choice#addItemListener
      * @since         JDK1.1
      */
     public synchronized void removeItemListener(ItemListener l) {
@@ -433,17 +494,54 @@ public class Choice extends Component implements ItemSelectable, Accessible {
     }
 
     /**
-     * Return an array of all the listeners that were added to the Choice
-     * with addXXXListener(), where XXX is the name of the <code>listenerType</code>
-     * argument.  For example, to get all of the ItemListener(s) for the
-     * given Choice <code>c</code>, one would write:
-     * <pre>
-     * ItemListener[] ils = (ItemListener[])(c.getListeners(ItemListener.class))
-     * </pre>
-     * If no such listener list exists, then an empty array is returned.
-     * 
-     * @param    listenerType   Type of listeners requested
-     * @return	 all of the listeners of the specified type supported by this choice
+     * Returns an array of all the item listeners
+     * registered on this choice.
+     *
+     * @return all of this choice's <code>ItemListener</code>s
+     *         or an empty array if no item 
+     *         listeners are currently registered
+     *
+     * @see           #addItemListener
+     * @see           #removeItemListener
+     * @see           java.awt.event.ItemEvent
+     * @see           java.awt.event.ItemListener
+     * @since 1.4
+     */
+    public synchronized ItemListener[] getItemListeners() {
+        return (ItemListener[])(getListeners(ItemListener.class));
+    }
+
+    /**
+     * Returns an array of all the objects currently registered
+     * as <code><em>Foo</em>Listener</code>s
+     * upon this <code>Choice</code>.
+     * <code><em>Foo</em>Listener</code>s are registered using the
+     * <code>add<em>Foo</em>Listener</code> method.
+     *
+     * <p>
+     * You can specify the <code>listenerType</code> argument
+     * with a class literal, such as
+     * <code><em>Foo</em>Listener.class</code>.
+     * For example, you can query a
+     * <code>Choice</code> <code>c</code>
+     * for its item listeners with the following code:
+     *
+     * <pre>ItemListener[] ils = (ItemListener[])(c.getListeners(ItemListener.class));</pre>
+     *
+     * If no such listeners exist, this method returns an empty array.
+     *
+     * @param listenerType the type of listeners requested; this parameter
+     *          should specify an interface that descends from
+     *          <code>java.util.EventListener</code>
+     * @return an array of all objects registered as
+     *          <code><em>Foo</em>Listener</code>s on this choice,
+     *          or an empty array if no such
+     *          listeners have been added
+     * @exception ClassCastException if <code>listenerType</code>
+     *          doesn't specify a class or interface that implements
+     *          <code>java.util.EventListener</code>
+     *
+     * @see #getItemListeners
      * @since 1.3
      */
     public EventListener[] getListeners(Class listenerType) { 
@@ -473,9 +571,13 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      * instance of <code>ItemEvent</code>, it invokes the
      * <code>processItemEvent</code> method. Otherwise, it calls its
      * superclass's <code>processEvent</code> method.
-     * @param      e the event.
+     * <p>Note that if the event parameter is <code>null</code>
+     * the behavior is unspecified and may result in an
+     * exception.
+     *
+     * @param      e the event
      * @see        java.awt.event.ItemEvent
-     * @see        java.awt.Choice#processItemEvent
+     * @see        #processItemEvent
      * @since      JDK1.1
      */
     protected void processEvent(AWTEvent e) {
@@ -499,10 +601,14 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      * via <code>addItemListener</code>.
      * <li>Item events are enabled via <code>enableEvents</code>.
      * </ul>
-     * @param       e the item event.
+     * <p>Note that if the event parameter is <code>null</code>
+     * the behavior is unspecified and may result in an
+     * exception.
+     *
+     * @param       e the item event
      * @see         java.awt.event.ItemEvent
      * @see         java.awt.event.ItemListener
-     * @see         java.awt.Choice#addItemListener
+     * @see         #addItemListener
      * @see         java.awt.Component#enableEvents
      * @since       JDK1.1
      */
@@ -513,9 +619,13 @@ public class Choice extends Component implements ItemSelectable, Accessible {
     }
 
     /**
-     * Returns the parameter string representing the state of this
-     * choice menu. This string is useful for debugging.
-     * @return    the parameter string of this <code>Choice</code> menu.
+     * Returns a string representing the state of this <code>Choice</code>
+     * menu. This method is intended to be used only for debugging purposes,
+     * and the content and format of the returned string may vary between
+     * implementations. The returned string may be empty but may not be
+     * <code>null</code>.
+     *
+     * @return    the parameter string of this <code>Choice</code> menu
      */
     protected String paramString() {
 	return super.paramString() + ",current=" + getSelectedItem();
@@ -525,27 +635,31 @@ public class Choice extends Component implements ItemSelectable, Accessible {
     /* Serialization support.
      */
 
-	/*
-    * Choice Serial Data Version.
-    * @serial
-    */
+    /*
+     * Choice Serial Data Version.
+     * @serial
+     */
     private int choiceSerializedDataVersion = 1;
 
-	/**
-    * Writes default serializable fields to stream.  Writes
-    * a list of serializable ItemListener(s) as optional data.
-    * The non-serializable ItemListner(s) are detected and
-    * no attempt is made to serialize them.
-    *
-    * @serialData Null terminated sequence of 0 or more pairs.
-    *             The pair consists of a String and Object.
-    *             The String indicates the type of object and
-    *             is one of the following :
-    *             itemListenerK indicating and ItemListener object.
-    *
-    * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-    * @see java.awt.Component.itemListenerK
-    */
+    /**
+     * Writes default serializable fields to stream.  Writes
+     * a list of serializable <code>ItemListeners</code>
+     * as optional data. The non-serializable
+     * <code>ItemListeners</code> are detected and
+     * no attempt is made to serialize them.
+     *
+     * @param s the <code>ObjectOutputStream</code> to write
+     * @serialData <code>null terminated sequence of 0 
+     *   or more pairs; the pair consists of a <code>String</code> 
+     *   and an <code>Object</code>; the <code>String</code> indicates
+     *   the type of object and is one of the following:
+     *   <code>itemListenerK</code> indicating an 
+     *     <code>ItemListener</code> object
+     *
+     * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
+     * @see java.awt.Component.itemListenerK
+     * @see #readObject
+     */
     private void writeObject(ObjectOutputStream s)
       throws java.io.IOException
     {
@@ -555,18 +669,26 @@ public class Choice extends Component implements ItemSelectable, Accessible {
       s.writeObject(null);
     }
 
-	/*
-    * Read the ObjectInputStream and if it isnt null
-    * add a listener to receive item events fired
-    * by the Choice item.
-    * Unrecognised keys or values will be Ignored.
-    * @serial
-    * @see removeActionListener()
-    * @see addActionListener()
-    */
+    /**
+     * Reads the <code>ObjectInputStream</code> and if it
+     * isn't <code>null</code> adds a listener to receive
+     * item events fired by the <code>Choice</code> item.
+     * Unrecognized keys or values will be ignored.
+     *
+     * @param s the <code>ObjectInputStream</code> to read
+     * @exception HeadlessException if
+     *   <code>GraphicsEnvironment.isHeadless</code> returns
+     *   <code>true</code>
+     * @serial
+     * @see removeActionListener()
+     * @see addActionListener()
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see #writeObject
+     */
     private void readObject(ObjectInputStream s)
-      throws ClassNotFoundException, IOException
+      throws ClassNotFoundException, IOException, HeadlessException
     {
+      GraphicsEnvironment.checkHeadless();
       s.defaultReadObject();
 
       Object keyOrNull;
@@ -588,13 +710,14 @@ public class Choice extends Component implements ItemSelectable, Accessible {
 
 
     /**
-     * Gets the AccessibleContext associated with this Choice. 
-     * For Choice components, the AccessibleContext takes the form of an 
-     * AccessibleAWTChoice. 
-     * A new AccessibleAWTChoice instance is created if necessary.
+     * Gets the <code>AccessibleContext</code> associated with this 
+     * <code>Choice</code>. For <code>Choice</code> components,
+     * the <code>AccessibleContext</code> takes the form of an 
+     * <code>AccessibleAWTChoice</code>. A new <code>AccessibleAWTChoice</code>
+     * instance is created if necessary.
      *
-     * @return an AccessibleAWTChoice that serves as the 
-     *         AccessibleContext of this Choice
+     * @return an <code>AccessibleAWTChoice</code> that serves as the 
+     *         <code>AccessibleContext</code> of this <code>Choice</code>
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {

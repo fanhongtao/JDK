@@ -1,4 +1,6 @@
 /*
+ * @(#)jvmdi.h	1.44 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,7 +18,9 @@
 
 #include "jni.h"
 
-#define JVMDI_VERSION_1 0x20010000
+#define JVMDI_VERSION_1    0x20010000
+#define JVMDI_VERSION_1_1  0x20010001
+#define JVMDI_VERSION_1_2  0x20010002
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,6 +35,11 @@ typedef struct _jframeID *jframeID;
 
   /* specifies program location "pc" - often byte code index */
 typedef jlong jlocation;
+
+  /* The jmethodID for methods that have been replaced */
+  /* via RedefineClasses - used when the implementation */
+  /* does not wish to retain replaced jmethodIDs */
+#define OBSOLETE_METHOD_ID ((jmethodID)(NULL))
 
   /*
    *  Errors
@@ -120,12 +129,37 @@ typedef jint jvmdiError;
 #define JVMDI_ERROR_CIRCULAR_CLASS_DEFINITION     ((jvmdiError)61)
   /* The class bytes fail verification */
 #define JVMDI_ERROR_FAILS_VERIFICATION            ((jvmdiError)62)
-  /* Cannot add new methods to an existing class */
+  /* The new class version adds new methods */
+  /* and can_add_method is false */
 #define JVMDI_ERROR_ADD_METHOD_NOT_IMPLEMENTED    ((jvmdiError)63)
-  /* Cannot change fields of an existing class */
+  /* The new class version changes fields */ 
+  /* and can_unrestrictedly_redefine_classes is false */
 #define JVMDI_ERROR_SCHEMA_CHANGE_NOT_IMPLEMENTED ((jvmdiError)64)
-  /* bci/operand stack/local var combination is not verifiably type safe */
+  /* bci/operand stack/local var combination is not verifiably */
+  /* type safe */
 #define JVMDI_ERROR_INVALID_TYPESTATE             ((jvmdiError)65)
+  /* A direct superclass is different for the new class */
+  /* version, or the set of directly implemented */
+  /* interfaces is different */
+  /* and can_unrestrictedly_redefine_classes is false */
+#define JVMDI_ERROR_HIERARCHY_CHANGE_NOT_IMPLEMENTED ((jvmdiError)66)
+  /* The new class version does not declare a method */
+  /* declared in the old class version */
+  /* and can_unrestrictedly_redefine_classes is false */
+#define JVMDI_ERROR_DELETE_METHOD_NOT_IMPLEMENTED ((jvmdiError)67)
+  /* A class file has a version number not supported */
+  /* by this VM. */
+#define JVMDI_ERROR_UNSUPPORTED_VERSION           ((jvmdiError)68)
+  /* The class name defined in the new class file is */
+  /* different from the name in the old class object */
+#define JVMDI_ERROR_NAMES_DONT_MATCH              ((jvmdiError)69)
+  /* The new class version has different modifiers and */
+  /* can_unrestrictedly_redefine_classes is false */
+#define JVMDI_ERROR_CLASS_MODIFIERS_CHANGE_NOT_IMPLEMENTED   ((jvmdiError)70)
+  /* A method in the new class version has different modifiers */
+  /* than its counterpart in the old class version */
+  /* and can_unrestrictedly_redefine_classes is false */
+#define JVMDI_ERROR_METHOD_MODIFIERS_CHANGE_NOT_IMPLEMENTED  ((jvmdiError)71)
 
   /*
    * Miscellaneous errors
@@ -492,6 +526,8 @@ typedef struct {
                                /* Class File Format) */
 } JVMDI_class_definition;
 
+  /* For backwards compatibility */
+#define can_change_schema can_unrestrictedly_redefine_classes
 
 typedef struct {
     unsigned int can_watch_field_modification      : 1;
@@ -508,7 +544,8 @@ typedef struct {
     unsigned int can_get_class_definition          : 1;
     unsigned int can_redefine_classes              : 1; 
     unsigned int can_add_method                    : 1;
-    unsigned int can_change_schema                 : 1;
+    unsigned int can_unrestrictedly_redefine_classes : 1;
+    unsigned int reserved5                         : 1;
 } JVMDI_capabilities;
 
 typedef struct JVMDI_Interface_1_ {
@@ -719,6 +756,11 @@ typedef struct JVMDI_Interface_1_ {
       (jint *versionPtr);
     jvmdiError (JNICALL *GetCapabilities)
       (JVMDI_capabilities *capabilitiesPtr);
+
+    jvmdiError (JNICALL *GetSourceDebugExtension)
+      (jclass clazz, char **sourceDebugExtension);
+    jvmdiError (JNICALL *IsMethodObsolete)
+      (jclass clazz, jmethodID method, jboolean *isObsoletePtr);
 } JVMDI_Interface_1;
   
 #ifndef NO_JVMDI_MACROS

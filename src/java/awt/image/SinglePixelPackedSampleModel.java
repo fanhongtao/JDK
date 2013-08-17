@@ -1,4 +1,6 @@
 /*
+ * @(#)SinglePixelPackedSampleModel.java	1.40 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,6 +16,8 @@
  ******************************************************************/
 
 package java.awt.image;
+
+import java.util.Arrays;
 
 /**
  *  This class represents pixel data packed such that the N samples which make
@@ -178,12 +182,14 @@ public class SinglePixelPackedSampleModel extends SampleModel
     }
 
     /**
-     * This creates a new SinglePixelPackedSampleModel with the specified
+     * Creates a new SinglePixelPackedSampleModel with the specified
      * width and height.  The new SinglePixelPackedSampleModel will have the
      * same storage data type and bit masks as this
      * SinglePixelPackedSampleModel.  
      * @param w the width of the resulting <code>SampleModel</code>
      * @param h the height of the resulting <code>SampleModel</code>
+     * @return a <code>SinglePixelPackedSampleModel</code> with the
+     *         specified width and height.
      * @throws IllegalArgumentException if <code>w</code> or
      *         <code>h</code> is not greater than 0
      */
@@ -252,6 +258,8 @@ public class SinglePixelPackedSampleModel extends SampleModel
      * <pre>
      *        data.getElem(sppsm.getOffset(x, y));
      * </pre>
+     * @param x,&nbsp;y the coordinates of the specified pixel
+     * @return the offset of the specified pixel.
      */
     public int getOffset(int x, int y) {
 	int offset = y * scanlineStride + x;
@@ -259,17 +267,24 @@ public class SinglePixelPackedSampleModel extends SampleModel
     }
 
     /** Returns the bit offsets into the data array element representing
-     *  a pixel for all bands. */
+     *  a pixel for all bands. 
+     *  @return the bit offsets representing a pixel for all bands.     
+     */
     public int [] getBitOffsets() {
       return (int[])bitOffsets.clone();
     }
 
-    /** Returns the bit masks for all bands. */
+    /** Returns the bit masks for all bands. 
+     *  @return the bit masks for all bands.
+     */
     public int [] getBitMasks() {
       return (int[])bitMasks.clone();
     }
 
-    /** Returns the scanline stride of this SinglePixelPackedSampleModel. */
+    /** Returns the scanline stride of this SinglePixelPackedSampleModel. 
+     *  @return the scanline stride of this 
+     *          <code>SinglePixelPackedSampleModel</code>.
+     */
     public int getScanlineStride() {
       return scanlineStride;
     }
@@ -335,8 +350,15 @@ public class SinglePixelPackedSampleModel extends SampleModel
      * @param obj       If non-null, a primitive array in which to return
      *                  the pixel data.
      * @param data      The DataBuffer containing the image data.
+     * @return the data for the specified pixel.
+     * @see #setDataElements(int, int, Object, DataBuffer)
      */
     public Object getDataElements(int x, int y, Object obj, DataBuffer data) {
+        // Bounds check for 'b' will be performed automatically
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
 
 	int type = getTransferType();
 
@@ -396,8 +418,14 @@ public class SinglePixelPackedSampleModel extends SampleModel
      * @param y 	The Y coordinate of the pixel location.
      * @param iArray    If non-null, returns the samples in this array
      * @param data 	The DataBuffer containing the image data.
+     * @return all samples for the specified pixel.
+     * @see #setPixel(int, int, int[], DataBuffer)
      */
     public int [] getPixel(int x, int y, int iArray[], DataBuffer data) {
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         int pixels[];
 	if (iArray == null) {
 	    pixels = new int [numBands];
@@ -423,9 +451,15 @@ public class SinglePixelPackedSampleModel extends SampleModel
      * @param h 	The height of the pixel rectangle.
      * @param iArray    If non-null, returns the samples in this array.
      * @param data 	The DataBuffer containing the image data.
+     * @return all samples for the specified region of pixels.
+     * @see #setPixels(int, int, int, int, int[], DataBuffer)
      */
     public int[] getPixels(int x, int y, int w, int h,
                            int iArray[], DataBuffer data) {
+        if ((x < 0) || (y < 0) || (x + w > width) || (y + h > height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         int pixels[];
         if (iArray != null) {
            pixels = iArray;
@@ -457,8 +491,16 @@ public class SinglePixelPackedSampleModel extends SampleModel
      * @param y 	The Y coordinate of the pixel location.
      * @param b 	The band to return.
      * @param data 	The DataBuffer containing the image data.
+     * @return the sample in a specified band for the specified
+     *         pixel.
+     * @see #setSample(int, int, int, int, DataBuffer)
      */
     public int getSample(int x, int y, int b, DataBuffer data) {
+        // Bounds check for 'b' will be performed automatically
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
 	int sample = data.getElem(y * scanlineStride + x);
 	return ((sample & bitMasks[b]) >>> bitOffsets[b]);
     }
@@ -475,9 +517,17 @@ public class SinglePixelPackedSampleModel extends SampleModel
      * @param b 	The band to return.
      * @param iArray    If non-null, returns the samples in this array.
      * @param data 	The DataBuffer containing the image data.
+     * @return the samples for the specified band for the specified
+     *         region of pixels.
+     * @see #setSamples(int, int, int, int, int, int[], DataBuffer)
      */
     public int[] getSamples(int x, int y, int w, int h, int b,
 			   int iArray[], DataBuffer data) {
+        // Bounds check for 'b' will be performed automatically
+        if ((x < 0) || (y < 0) || (x + w > width) || (y + h > height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         int samples[];
         if (iArray != null) {
            samples = iArray;
@@ -531,8 +581,13 @@ public class SinglePixelPackedSampleModel extends SampleModel
      * @param y 	The Y coordinate of the pixel location.
      * @param obj       A primitive array containing pixel data.
      * @param data      The DataBuffer containing the image data.
+     * @see #getDataElements(int, int, Object, DataBuffer)
      */
     public void setDataElements(int x, int y, Object obj, DataBuffer data) {
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
 
 	int type = getTransferType();
 
@@ -566,15 +621,22 @@ public class SinglePixelPackedSampleModel extends SampleModel
      * @param y 	The Y coordinate of the pixel location.
      * @param iArray 	The input samples in an int array.
      * @param data 	The DataBuffer containing the image data.
+     * @see #getPixel(int, int, int[], DataBuffer)
      */
     public void setPixel(int x, int y,
 			 int iArray[],
 			 DataBuffer data) {
-        int value = 0;
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
+        int lineOffset = y * scanlineStride + x;
+        int value = data.getElem(lineOffset);
         for (int i=0; i < numBands; i++) {
+            value &= ~bitMasks[i];
             value |= ((iArray[i] << bitOffsets[i]) & bitMasks[i]);
         }
-        data.setElem(y*scanlineStride+x, value);
+        data.setElem(lineOffset, value);
     }
 
     /**
@@ -588,22 +650,28 @@ public class SinglePixelPackedSampleModel extends SampleModel
      * @param h 	The height of the pixel rectangle.
      * @param iArray 	The input samples in an int array.
      * @param data 	The DataBuffer containing the image data.
+     * @see #getPixels(int, int, int, int, int[], DataBuffer)
      */
     public void setPixels(int x, int y, int w, int h,
                           int iArray[], DataBuffer data) {
+        if ((x < 0) || (y < 0) || (x + w > width) || (y + h > height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
 
         int lineOffset = y*scanlineStride + x;
 	int srcOffset = 0;
 
         for (int i = 0; i < h; i++) {
            for (int j = 0; j < w; j++) {
-               int value = 0;
+               int value = data.getElem(lineOffset+j);
                for (int k=0; k < numBands; k++) {
+                   value &= ~bitMasks[k];
                    int srcValue = iArray[srcOffset++];
                    value |= ((srcValue << bitOffsets[k])
                              & bitMasks[k]);
                }
-               data.setElem(lineOffset+j,value);
+               data.setElem(lineOffset+j, value);
            }
            lineOffset += scanlineStride;
         }
@@ -619,9 +687,15 @@ public class SinglePixelPackedSampleModel extends SampleModel
      * @param b 	The band to set.
      * @param s 	The input sample as an int.
      * @param data 	The DataBuffer containing the image data.
+     * @see #getSample(int, int, int, DataBuffer)
      */
     public void setSample(int x, int y, int b, int s,
 			  DataBuffer data) {
+        // Bounds check for 'b' will be performed automatically
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         int value = data.getElem(y*scanlineStride + x);
         value &= ~bitMasks[b];
         value |= (s << bitOffsets[b]) & bitMasks[b];
@@ -640,9 +714,15 @@ public class SinglePixelPackedSampleModel extends SampleModel
      * @param b 	The band to set.
      * @param iArray 	The input samples in an int array.
      * @param data 	The DataBuffer containing the image data.
+     * @see #getSamples(int, int, int, int, int, int[], DataBuffer)
      */
     public void setSamples(int x, int y, int w, int h, int b,
 			  int iArray[], DataBuffer data) {
+        // Bounds check for 'b' will be performed automatically
+        if ((x < 0) || (y < 0) || (x + w > width) || (y + h > height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         int lineOffset = y*scanlineStride + x;
         int srcOffset = 0;
 
@@ -658,10 +738,49 @@ public class SinglePixelPackedSampleModel extends SampleModel
         }
     }
 
+    public boolean equals(Object o) {
+        if ((o == null) || !(o instanceof SinglePixelPackedSampleModel)) {
+            return false;
+        }
+
+        SinglePixelPackedSampleModel that = (SinglePixelPackedSampleModel)o;
+        return this.width == that.width &&
+            this.height == that.height &&
+            this.numBands == that.numBands &&
+            this.dataType == that.dataType &&
+            Arrays.equals(this.bitMasks, that.bitMasks) &&
+            Arrays.equals(this.bitOffsets, that.bitOffsets) &&
+            Arrays.equals(this.bitSizes, that.bitSizes) &&
+            this.maxBitSize == that.maxBitSize &&
+            this.scanlineStride == that.scanlineStride;
+    }
+
+    // If we implement equals() we must also implement hashCode
+    public int hashCode() {
+        int hash = 0;
+        hash = width;
+        hash <<= 8;
+        hash ^= height;
+        hash <<= 8;
+        hash ^= numBands;
+        hash <<= 8;
+        hash ^= dataType;
+        hash <<= 8;
+        for (int i = 0; i < bitMasks.length; i++) {
+            hash ^= bitMasks[i];
+            hash <<= 8;
+        }
+        for (int i = 0; i < bitOffsets.length; i++) {
+            hash ^= bitOffsets[i];
+            hash <<= 8;
+        }
+        for (int i = 0; i < bitSizes.length; i++) {
+            hash ^= bitSizes[i];
+            hash <<= 8;
+        }
+        hash ^= maxBitSize;
+        hash <<= 8;
+        hash ^= scanlineStride;
+        return hash;
+    }
 }
-
-
-
-
-
-

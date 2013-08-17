@@ -1,4 +1,6 @@
 /*
+ * @(#)DebugGraphics.java	1.22 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -7,7 +9,6 @@ package javax.swing;
 
 import java.awt.*;
 import java.awt.image.*;
-
 import java.text.AttributedCharacterIterator;
 
 /**
@@ -25,7 +26,7 @@ import java.text.AttributedCharacterIterator;
  * @see RepaintManager#currentManager
  * @see RepaintManager#setDoubleBufferingEnabled
  *
- * @version 1.21 02/06/02
+ * @version 1.22 12/03/01
  * @author Dave Karlton
  */
 public class DebugGraphics extends Graphics {
@@ -40,7 +41,7 @@ public class DebugGraphics extends Graphics {
     public static final int     LOG_OPTION   = 1 << 0;
     /** Flash graphics operations. */
     public static final int     FLASH_OPTION = 1 << 1;
-    /** Show buffered operations in a seperate Frame. */
+    /** Show buffered operations in a separate <code>Frame</code>. */
     public static final int     BUFFERED_OPTION = 1 << 2;
     /** Don't debug graphics operations. */
     public static final int     NONE_OPTION = -1;
@@ -1443,4 +1444,6 @@ public class DebugGraphics extends Graphics {
         return debugGraphicsInfo;
     }
     private static final Class debugGraphicsInfoKey = DebugGraphicsInfo.class;
+
+
 }

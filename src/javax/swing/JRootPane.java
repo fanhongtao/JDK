@@ -1,4 +1,6 @@
 /*
+ * @(#)JRootPane.java	1.77 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,15 +8,18 @@ package javax.swing;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.*;
 import javax.accessibility.*;
 import javax.swing.plaf.RootPaneUI;
 import java.util.Vector;
 import java.io.Serializable;
+import javax.swing.border.*;
 
 
 /** 
  * A lightweight container used behind the scenes by
- * JFrame, JDialog, JWindow, JApplet, and JInternalFrame.
+ * <code>JFrame</code>, <code>JDialog</code>, <code>JWindow</code>,
+ * <code>JApplet</code>, and <code>JInternalFrame</code>.
  * For task-oriented information on functionality provided by root panes
  * see <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/rootpane.html">How to Use Root Panes</a>,
  * a section in <em>The Java Tutorial</em>.
@@ -25,15 +30,20 @@ import java.io.Serializable;
  * <p align=center><img src="doc-files/JRootPane-1.gif" HEIGHT=484 WIDTH=629></p>
  * The &quot;heavyweight&quot; components (those that delegate to a peer, or native
  * component on the host system) are shown with a darker, heavier box. The four
- * heavyweight JFC/Swing containers (JFrame, JDialog, JWindow, and JApplet) are 
- * shown in relation to the AWT classes they extend. These four components are the
+ * heavyweight JFC/Swing containers (<code>JFrame</code>, <code>JDialog</code>,
+ * <code>JWindow</code>, and <code>JApplet</code>) are 
+ * shown in relation to the AWT classes they extend.
+ * These four components are the
  * only heavyweight containers in the Swing library. The lightweight container, 
- * JInternalPane, is also shown. All 5 of these JFC/Swing containers implement the
- * RootPaneContainer interface, and they all delegate their operations to a 
- * JRootPane (shown with a little "handle" on top).
+ * <code>JRootPane</code>, is also shown.
+ * All five of these JFC/Swing containers implement the
+ * <code>RootPaneContainer</code> interface,
+ * and they all delegate their operations to a 
+ * <code>JRootPane</code> (shown with a little "handle" on top).
  * <blockquote>
- * <b>Note:</b> The JComponent method <code>getRootPane</code> can be used to
- * obtain the JRootPane that contains a given component.  
+ * <b>Note:</b> The <code>JComponent</code> method <code>getRootPane</code>
+ * can be used to obtain the <code>JRootPane</code> that contains
+ * a given component.  
  * </blockquote>
  * <table align="right" border="0">
  * <tr>
@@ -42,82 +52,96 @@ import java.io.Serializable;
  * </td>
  * </tr>
  * </table>
- * The diagram at right shows the structure of a JRootPane.
- * A JRootpane is made up of a glassPane, an optional menuBar, and
- * a contentPane. (The JLayeredPane manages the menuBar and the contentPane.)
- * The glassPane sits over the top of everything, where it is in a position
- * to intercept mouse movements. Since the glassPane (like the contentPane)
+ * The diagram at right shows the structure of a <code>JRootPane</code>.
+ * A <code>JRootpane</code> is made up of a <code>glassPane</code>,
+ * an optional <code>menuBar</code>, and a <code>contentPane</code>.
+ * (The <code>JLayeredPane</code> manages the <code>menuBar</code>
+ * and the <code>contentPane</code>.)
+ * The <code>glassPane</code> sits over the top of everything,
+ * where it is in a position to intercept mouse movements.
+ * Since the <code>glassPane</code> (like the <code>contentPane</code>)
  * can be an arbitrary component, it is also possible to set up the 
- * glassPane for drawing. Lines and images on the glassPane can then range
+ * <code>glassPane</code> for drawing. Lines and images on the
+ * <code>glassPane</code> can then range
  * over the frames underneath without being limited by their boundaries. 
  * <p>
- * Although the menuBar component is optional, the layeredPane, contentPane,
- * and glassPane always exist. Attempting to set them to null generates an
- * exception. 
+ * Although the <code>menuBar</code> component is optional,
+ * the <code>layeredPane</code>, <code>contentPane</code>,
+ * and <code>glassPane</code> always exist.
+ * Attempting to set them to <code>null</code> generates an exception. 
  * <p>
- * The <code>contentPane</code> must be the parent of any children of 
- * the JRootPane. Rather than adding directly to a JRootPane, like this:
- * <PRE>
- *       rootPane.add(child);
- * </PRE>
- * You instead add to the contentPane of the JRootPane, like this:
- * <PRE>
+ * To add components to the <code>JRootPane</code> (other than the
+ * optional menu bar), you add the object to the <code>contentPane</code>
+ * of the <code>JRootPane</code>, like this:
+ * <pre>
  *       rootPane.getContentPane().add(child);
- * </PRE>
- * The same priniciple holds true for setting layout managers, removing 
+ * </pre>
+ * The same principle holds true for setting layout managers, removing 
  * components, listing children, etc. All these methods are invoked on  
- * the <code>contentPane</code> instead of on the JRootPane.
+ * the <code>contentPane</code> instead of on the <code>JRootPane</code>.
  * <blockquote>
  * <b>Note:</b> The default layout manager for the <code>contentPane</code> is
- *  a BorderLayout manager. However, the JRootPane uses a custom LayoutManager.
+ *  a <code>BorderLayout</code> manager. However, the <code>JRootPane</code>
+ *  uses a custom <code>LayoutManager</code>.
  *  So, when you want to change the layout manager for the components you added
- *  to a JRootPane, be sure to use code like this:<PRE>
+ *  to a <code>JRootPane</code>, be sure to use code like this:
+ * <pre>
  *    rootPane.getContentPane().setLayout(new BoxLayout());
- * </PRE></blockquote>
- * If a JMenuBar component is set on the JRootPane, it is positioned 
- * along the upper edge of the frame. The <code>contentPane</code> is
- * adjusted in location and size to fill the remaining area. 
- * (The JMenuBar and the <code>contentPane</code> are added to the 
- * <code>layeredPane</code> component at the JLayeredPane.FRAME_CONTENT_LAYER 
- * layer.) 
+ * </pre></blockquote>
+ * If a <code>JMenuBar</code> component is set on the <code>JRootPane</code>,
+ * it is positioned along the upper edge of the frame.
+ * The <code>contentPane</code> is adjusted in location and size to
+ * fill the remaining area. 
+ * (The <code>JMenuBar</code> and the <code>contentPane</code> are added to the 
+ * <code>layeredPane</code> component at the
+ * <code>JLayeredPane.FRAME_CONTENT_LAYER</code> layer.) 
  * <p>
- * The <code>layeredPane</code> is the parent of all children in the JRootPane.
- * It is an instance of JLayeredPane, which provides the ability to add components 
- * at several layers. This capability is very useful when working with menu popups,
- * dialog boxes, and dragging -- situations in which you need to place a component
- * on top of all other components in the pane.
+ * The <code>layeredPane</code> is the parent of all children in the 
+ * <code>JRootPane</code> -- both as the direct parent of the menu and
+ * the grandparent of all components added to the <code>contentPane</code>.
+ * It is an instance of <code>JLayeredPane</code>,
+ * which provides the ability to add components at several layers.
+ * This capability is very useful when working with menu popups,
+ * dialog boxes, and dragging -- situations in which you need to place 
+ * a component on top of all other components in the pane.
  * <p>
- * The <code>glassPane</code> sits on top of all other components in the JRootPane.
- * That provides a convenient place to draw above all other components, and makes
- * it possible to intercept mouse events, which is useful both for dragging and
- * for drawing. Developers can use <code>setVisible</code> on the glassPane
+ * The <code>glassPane</code> sits on top of all other components in the 
+ * <code>JRootPane</code>.
+ * That provides a convenient place to draw above all other components,
+ * and makes it possible to intercept mouse events,
+ * which is useful both for dragging and for drawing.
+ * Developers can use <code>setVisible</code> on the <code>glassPane</code>
  * to control when the <code>glassPane</code> displays over the other children. 
  * By default the <code>glassPane</code> is not visible. 
  * <p>
- * The custom LayoutManager used by JRootPane ensures that:
+ * The custom <code>LayoutManager</code> used by <code>JRootPane</code>
+ * ensures that:
  * <OL>
- * <LI>The <code>glassPane</code>, if present, fills the entire viewable
- *     area of the JRootPane (bounds - insets).
+ * <LI>The <code>glassPane</code> fills the entire viewable
+ *     area of the <code>JRootPane</code> (bounds - insets).
  * <LI>The <code>layeredPane</code> fills the entire viewable area of the
- *     JRootPane. (bounds - insets)
+ *     <code>JRootPane</code>. (bounds - insets)
  * <LI>The <code>menuBar</code> is positioned at the upper edge of the 
- *     layeredPane().
+ *     <code>layeredPane</code>.
  * <LI>The <code>contentPane</code> fills the entire viewable area, 
- *     minus the MenuBar, if present.
+ *     minus the <code>menuBar</code>, if present.
  * </OL>
- * Any other views in the JRootPane view hierarchy are ignored.
+ * Any other views in the <code>JRootPane</code> view hierarchy are ignored.
  * <p>
- * If you replace the LayoutManager of the JRootPane, you are responsible for 
- * managing all of these views. So ordinarily you will want to be sure that you
+ * If you replace the <code>LayoutManager</code> of the <code>JRootPane</code>,
+ * you are responsible for managing all of these views.
+ * So ordinarily you will want to be sure that you
  * change the layout manager for the <code>contentPane</code> rather than 
- * for the JRootPane itself!
+ * for the <code>JRootPane</code> itself!
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @see JLayeredPane
  * @see JMenuBar
@@ -132,7 +156,7 @@ import java.io.Serializable;
  * @see <a href="http://java.sun.com/products/jfc/swingdoc-archive/mixing.html">
  * Mixing Heavy and Light Components</a>
  *
- * @version 1.67 02/06/02
+ * @version 1.77 12/03/01
  * @author David Kloba
  */
 /// PENDING(klobad) Who should be opaque in this component?
@@ -140,11 +164,90 @@ public class JRootPane extends JComponent implements Accessible {
 
     private static final String uiClassID = "RootPaneUI";
 
-    /** The subcomponent that currently has focus, or null if no subcomponent
-     * currently has focus */
-    private JComponent focusOwner;
+    /**
+     * Constant used for the windowDecorationStyle property. Indicates that
+     * the <code>JRootPane</code> should not provide any sort of
+     * Window decorations.
+     *
+     * @since 1.4
+     */
+    public static final int NONE = 0;
 
-    private JComponent previousFocusOwner;
+    /**
+     * Constant used for the windowDecorationStyle property. Indicates that
+     * the <code>JRootPane</code> should provide decorations appropriate for
+     * a Frame.
+     *
+     * @since 1.4
+     */
+    public static final int FRAME = 1;
+
+    /**
+     * Constant used for the windowDecorationStyle property. Indicates that
+     * the <code>JRootPane</code> should provide decorations appropriate for
+     * a Dialog.
+     *
+     * @since 1.4
+     */
+    public static final int PLAIN_DIALOG = 2;
+
+    /**
+     * Constant used for the windowDecorationStyle property. Indicates that
+     * the <code>JRootPane</code> should provide decorations appropriate for
+     * a Dialog used to display an informational message.
+     *
+     * @since 1.4
+     */
+    public static final int INFORMATION_DIALOG = 3;
+
+    /**
+     * Constant used for the windowDecorationStyle property. Indicates that
+     * the <code>JRootPane</code> should provide decorations appropriate for
+     * a Dialog used to display an error message.
+     *
+     * @since 1.4
+     */
+    public static final int ERROR_DIALOG = 4;
+
+    /**
+     * Constant used for the windowDecorationStyle property. Indicates that
+     * the <code>JRootPane</code> should provide decorations appropriate for
+     * a Dialog used to display a <code>JColorChooser</code>.
+     *
+     * @since 1.4
+     */
+    public static final int COLOR_CHOOSER_DIALOG = 5;
+
+    /**
+     * Constant used for the windowDecorationStyle property. Indicates that
+     * the <code>JRootPane</code> should provide decorations appropriate for
+     * a Dialog used to display a <code>JFileChooser</code>.
+     *
+     * @since 1.4
+     */
+    public static final int FILE_CHOOSER_DIALOG = 6;
+
+    /**
+     * Constant used for the windowDecorationStyle property. Indicates that
+     * the <code>JRootPane</code> should provide decorations appropriate for
+     * a Dialog used to present a question to the user.
+     *
+     * @since 1.4
+     */
+    public static final int QUESTION_DIALOG = 7;
+
+    /**
+     * Constant used for the windowDecorationStyle property. Indicates that
+     * the <code>JRootPane</code> should provide decorations appropriate for
+     * a Dialog used to display a warning message.
+     *
+     * @since 1.4
+     */
+    public static final int WARNING_DIALOG = 8;
+
+    private Component mostRecentFocusOwner;
+
+    private int windowDecorationStyle;
 
     /** The menu bar. */
     protected JMenuBar menuBar;
@@ -162,13 +265,13 @@ public class JRootPane extends JComponent implements Accessible {
     protected Component glassPane;
     /** 
      * The button that gets activated when the pane has the focus and
-     * a UI-specific action like pressing the Enter key occurs.
+     * a UI-specific action like pressing the <b>Enter</b> key occurs.
      */
     protected JButton defaultButton;
     /**
      * As of Java 2 platform v1.3 this unusable field is no longer used.
-     * To override the default button you should replace the Action
-     * in the JRootPane's ActionMap. Please refer to
+     * To override the default button you should replace the <code>Action</code>
+     * in the <code>JRootPane</code>'s <code>ActionMap</code>. Please refer to
      * the key bindings specification for further details.
      *
      * @deprecated As of Java 2 platform v1.3.
@@ -177,8 +280,8 @@ public class JRootPane extends JComponent implements Accessible {
     protected DefaultAction defaultPressAction;   
     /**
      * As of Java 2 platform v1.3 this unusable field is no longer used.
-     * To override the default button you should replace the Action
-     * in the JRootPane's ActionMap. Please refer to
+     * To override the default button you should replace the <code>Action</code>
+     * in the <code>JRootPane</code>'s <code>ActionMap</code>. Please refer to
      * the key bindings specification for further details.
      *
      * @deprecated As of Java 2 platform v1.3.
@@ -187,7 +290,9 @@ public class JRootPane extends JComponent implements Accessible {
     protected DefaultAction defaultReleaseAction;
 
     /** 
-     * Create a JRootPane, setting up its glassPane, LayeredPane, and contentPane.
+     * Creates a <code>JRootPane</code>, setting up its
+     * <code>glassPane</code>, <code>layeredPane</code>,
+     * and <code>contentPane</code>.
      */
     public JRootPane() {
         setGlassPane(createGlassPane());
@@ -199,9 +304,74 @@ public class JRootPane extends JComponent implements Accessible {
     }
 
     /**
+     * Returns a constant identifying the type of Window decorations the
+     * <code>JRootPane</code> is providing.
+     *
+     * @return One of <code>NONE</code>, <code>FRAME</code>,
+     *        <code>PLAIN_DIALOG</code>, <code>INFORMATION_DIALOG</code>,
+     *        <code>ERROR_DIALOG</code>, <code>COLOR_CHOOSER_DIALOG</code>,
+     *        <code>FILE_CHOOSER_DIALOG</code>, <code>QUESTION_DIALOG</code> or
+     *        <code>WARNING_DIALOG</code>.
+     * @see #setWindowDecorationStyle
+     * @since 1.4
+     */
+    public int getWindowDecorationStyle() {
+        return windowDecorationStyle;
+    }
+
+    /**
+     * Sets the type of Window decorations (such as borders, widgets for
+     * closing a Window, title ...) the <code>JRootPane</code> should
+     * provide. The default is to provide no Window decorations
+     * (<code>NONE</code>).
+     * <p>
+     * This is only a hint, and some look and feels may not support
+     * this.  
+     * This is a bound property.
+     *
+     * @param windowDecorationStyle Constant identifying Window decorations
+     *        to provide.
+     * @see JDialog#setDefaultLookAndFeelDecorated
+     * @see JFrame#setDefaultLookAndFeelDecorated
+     * @see LookAndFeel#getSupportsWindowDecorations
+     * @throws IllegalArgumentException if <code>style</code> is
+     *        not one of: <code>NONE</code>, <code>FRAME</code>,
+     *        <code>PLAIN_DIALOG</code>, <code>INFORMATION_DIALOG</code>,
+     *        <code>ERROR_DIALOG</code>, <code>COLOR_CHOOSER_DIALOG</code>,
+     *        <code>FILE_CHOOSER_DIALOG</code>, <code>QUESTION_DIALOG</code>, or
+     *        <code>WARNING_DIALOG</code>.
+     * @since 1.4
+     * @beaninfo
+     *        bound: true
+     *         enum: NONE                   JRootPane.NONE
+     *               FRAME                  JRootPane.FRAME
+     *               PLAIN_DIALOG           JRootPane.PLAIN_DIALOG
+     *               INFORMATION_DIALOG     JRootPane.INFORMATION_DIALOG
+     *               ERROR_DIALOG           JRootPane.ERROR_DIALOG
+     *               COLOR_CHOOSER_DIALOG   JRootPane.COLOR_CHOOSER_DIALOG
+     *               FILE_CHOOSER_DIALOG    JRootPane.FILE_CHOOSER_DIALOG
+     *               QUESTION_DIALOG        JRootPane.QUESTION_DIALOG
+     *               WARNING_DIALOG         JRootPane.WARNING_DIALOG
+     *       expert: true
+     *    attribute: visualUpdate true
+     *  description: Identifies the type of Window decorations to provide
+     */
+    public void setWindowDecorationStyle(int windowDecorationStyle) {
+        if (windowDecorationStyle < 0 ||
+                  windowDecorationStyle > WARNING_DIALOG) {
+            throw new IllegalArgumentException("Invalid decoration style");
+        }
+        int oldWindowDecorationStyle = getWindowDecorationStyle();
+        this.windowDecorationStyle = windowDecorationStyle;
+        firePropertyChange("windowDecorationStyle", 
+                            oldWindowDecorationStyle,
+                            windowDecorationStyle);
+    }
+
+    /**
      * Returns the L&F object that renders this component.
      *
-     * @return LabelUI object
+     * @return <code>LabelUI</code> object
      * @since 1.3
      */
     public RootPaneUI getUI() {
@@ -211,12 +381,15 @@ public class JRootPane extends JComponent implements Accessible {
     /**
      * Sets the L&F object that renders this component.
      *
-     * @since 1.3
-     * @param ui  the LabelUI L&F object
+     * @param ui  the <code>LabelUI</code> L&F object
      * @see UIDefaults#getUI
      * @beaninfo
+     *        bound: true
+     *       hidden: true
      *      expert: true
-     *  description: The L&F object that renders this component.
+     *    attribute: visualUpdate true
+     *  description: The UI object that implements the Component's LookAndFeel. 
+     * @since 1.3
      */
     public void setUI(RootPaneUI ui) {
         super.setUI(ui);
@@ -224,8 +397,7 @@ public class JRootPane extends JComponent implements Accessible {
 
 
     /**
-     * Notification from the UIFactory that the L&F
-     * has changed. 
+     * Resets the UI property to a value from the current look and feel.
      *
      * @see JComponent#updateUI
      */
@@ -235,10 +407,10 @@ public class JRootPane extends JComponent implements Accessible {
 
 
     /**
-     * Returns a string that specifies the name of the l&f class
+     * Returns a string that specifies the name of the L&F class
      * that renders this component.
      *
-     * @return String "RootPaneUI"
+     * @return the string "RootPaneUI"
      *
      * @see JComponent#getUIClassID
      * @see UIDefaults#getUI
@@ -247,8 +419,11 @@ public class JRootPane extends JComponent implements Accessible {
         return uiClassID;
     }
 
-    /** Called by the constructor methods to create the default layeredPane. 
-      * Bt default it creates a new JLayeredPane. 
+    /** 
+      * Called by the constructor methods to create the default 
+      * <code>layeredPane</code>. 
+      * Bt default it creates a new <code>JLayeredPane</code>. 
+      * @return the default <code>layeredPane</code>
       */
     protected JLayeredPane createLayeredPane() {
         JLayeredPane p = new JLayeredPane();
@@ -256,9 +431,12 @@ public class JRootPane extends JComponent implements Accessible {
         return p;
     }
 
-    /** Called by the constructor methods to create the default contentPane. 
-     * By default this method creates a new JComponent add sets a 
-     * BorderLayout as its LayoutManager.
+    /**
+     * Called by the constructor methods to create the default 
+     * <code>contentPane</code>. 
+     * By default this method creates a new <code>JComponent</code> add sets a 
+     * <code>BorderLayout</code> as its <code>LayoutManager</code>.
+     * @return the default <code>contentPane</code>
      */
     protected Container createContentPane() {
         JComponent c = new JPanel();
@@ -278,9 +456,12 @@ public class JRootPane extends JComponent implements Accessible {
         return c;
     }
 
-    /** Called by the constructor methods to create the default glassPane. 
-      * By default this method creates a new JComponent with visibility 
-      * set to false.
+    /**
+      * Called by the constructor methods to create the default 
+      * <code>glassPane</code>. 
+      * By default this method creates a new <code>JComponent</code>
+      * with visibility set to false.
+      * @return the default <code>glassPane</code>
       */
     protected Component createGlassPane() {
         JComponent c = new JPanel();
@@ -290,14 +471,18 @@ public class JRootPane extends JComponent implements Accessible {
         return c;
     }
 
-    /** Called by the constructor methods to create the default layoutManager. */
+    /**
+     * Called by the constructor methods to create the default 
+     * <code>layoutManager</code>.
+     * @return the default <code>layoutManager</code>.
+     */
     protected LayoutManager createRootLayout() {
         return new RootLayout();
     } 
 
     /** 
      * Adds or changes the menu bar used in the layered pane. 
-     * @param menu the JMenuBar to add
+     * @param menu the <code>JMenuBar</code> to add
      */
     public void setJMenuBar(JMenuBar menu) {
         if(menuBar != null && menuBar.getParent() == layeredPane)
@@ -312,6 +497,7 @@ public class JRootPane extends JComponent implements Accessible {
      * Specifies the menu bar value.
      * @deprecated As of Swing version 1.0.3
      *  replaced by <code>setJMenuBar(JMenuBar menu)</code>.
+     * @param menu the <code>JMenuBar</code> to add.
      */
     public void setMenuBar(JMenuBar menu){
         if(menuBar != null && menuBar.getParent() == layeredPane)
@@ -324,7 +510,7 @@ public class JRootPane extends JComponent implements Accessible {
     
     /** 
      * Returns the menu bar from the layered pane. 
-     * @return the JMenuBar used in the pane
+     * @return the <code>JMenuBar</code> used in the pane
      */
     public JMenuBar getJMenuBar() { return menuBar; }
 
@@ -332,6 +518,7 @@ public class JRootPane extends JComponent implements Accessible {
      * Returns the menu bar value.
      * @deprecated As of Swing version 1.0.3
      *  replaced by <code>getJMenubar()</code>.
+     * @return the <code>JMenuBar</code> used in the pane
      */
     public JMenuBar getMenuBar() { return menuBar; }
 
@@ -339,9 +526,9 @@ public class JRootPane extends JComponent implements Accessible {
      * Sets the content pane -- the container that holds the components
      * parented by the root pane.
      *  
-     * @param content the Container to use for component-contents
+     * @param content the <code>Container</code> to use for component-contents
      * @exception java.awt.IllegalComponentStateException (a runtime
-     *            exception) if the content pane parameter is null
+     *            exception) if the content pane parameter is <code>null</code>
      */
     public void setContentPane(Container content) {
         if(content == null)
@@ -357,18 +544,18 @@ public class JRootPane extends JComponent implements Accessible {
      * Returns the content pane -- the container that holds the components
      * parented by the root pane.
      *  
-     * @return the Container that holds the component-contents
+     * @return the <code>Container</code> that holds the component-contents
      */
     public Container getContentPane() { return contentPane; }
 
 // PENDING(klobad) Should this reparent the contentPane and MenuBar?
     /**
-     * Set the layered pane for the root pane. The layered pane
-     * typically holds a content pane and an optional JMenuBar.
+     * Sets the layered pane for the root pane. The layered pane
+     * typically holds a content pane and an optional <code>JMenuBar</code>.
      *
-     * @param layered  the JLayeredPane to use.
+     * @param layered  the <code>JLayeredPane</code> to use
      * @exception java.awt.IllegalComponentStateException (a runtime
-     *            exception) if the layered pane parameter is null
+     *            exception) if the layered pane parameter is <code>null</code>
      */
     public void setLayeredPane(JLayeredPane layered) {
         if(layered == null)
@@ -380,24 +567,27 @@ public class JRootPane extends JComponent implements Accessible {
         this.add(layeredPane, -1);
     }
     /**
-     * Get the layered pane used by the root pane. The layered pane
-     * typically holds a content pane and an optional JMenuBar.
+     * Gets the layered pane used by the root pane. The layered pane
+     * typically holds a content pane and an optional <code>JMenuBar</code>.
      *
-     * @return the JLayeredPane currently in use
+     * @return the <code>JLayeredPane</code> currently in use
      */
     public JLayeredPane getLayeredPane() { return layeredPane; }
 
     /**
-     * Sets a specified Component to be the glass pane for this
+     * Sets a specified <code>Component</code> to be the glass pane for this
      * root pane.  The glass pane should normally be a lightweight,
      * transparent component, because it will be made visible when
      * ever the root pane needs to grab input events.  For example,
-     * only one JInternalFrame is ever active when using a
-     * DefaultDesktop, and any inactive JInternalFrames' glass panes
-     * are made visible so that clicking anywhere within an inactive
-     * JInternalFrame can activate it.
-     * @param glass the Component to use as the glass pane for this
-     *              JRootPane.
+     * only one <code>JInternalFrame</code> is ever active when using a
+     * DefaultDesktop, and any inactive <code>JInternalFrame</code>s'
+     * glass panes are made visible so that clicking anywhere within
+     * an inactive <code>JInternalFrame</code> can activate it.
+     *
+     * @param glass the <code>Component</code> to use as the glass pane 
+     *              for this <code>JRootPane</code>
+     * @exception NullPointerException if the <code>glass</code> parameter is
+     *		<code>null</code>
      */
     public void setGlassPane(Component glass) {
         if (glass == null) {
@@ -419,8 +609,8 @@ public class JRootPane extends JComponent implements Accessible {
     }
 
     /**
-     * Returns the current glass pane for this JRootPane.
-     * @return the current glass pane.
+     * Returns the current glass pane for this <code>JRootPane</code>.
+     * @return the current glass pane
      * @see #setGlassPane
      */
     public Component getGlassPane() { 
@@ -428,26 +618,13 @@ public class JRootPane extends JComponent implements Accessible {
     }
 
     /**
-     * Make JRootPane be the root of a focus cycle.
-     * That means that, by default, tabbing within the root
-     * pane will move between components of the pane,
-     * but not out of the pane.
-
-     * @see JComponent#isFocusCycleRoot
-     * @return true
-     */
-    public boolean isFocusCycleRoot() {
-        return true;
-    }
-
-    /**
-     * If a descendant of this JRootPane calls revalidate, validate
-     * from here on down.
+     * If a descendant of this <code>JRootPane</code> calls
+     * <code>revalidate</code>, validate from here on down.
      *<p>
-     * Deferred requests to relayout a component and it's descendants,
-     * i.e. calls to revalidate(), are pushed upwards to either a JRootPane 
-     * or a JScrollPane because both classes override isValidateRoot() to 
-     * return true.
+     * Deferred requests to layout a component and its descendents again.
+     * For example, calls to <code>revalidate</code>, are pushed upwards to
+     * either a <code>JRootPane</code> or a <code>JScrollPane</code>
+     * because both classes override <code>isValidateRoot</code> to return true.
      * 
      * @see JComponent#isValidateRoot
      * @return true
@@ -457,11 +634,14 @@ public class JRootPane extends JComponent implements Accessible {
     }
 
     /**
-     * The GlassPane and ContentPane have the same bounds, which means
-     * JRootPane does not tiles its children and this should return false.
-     * On the other hand, the GlassPane is normally not visible, and so
-     * this can return true if the GlassPane isn't visible. Therefore, the
-     * return value here depends upon the visiblity of the GlassPane.
+     * The <code>glassPane</code> and <code>contentPane</code>
+     * have the same bounds, which means <code>JRootPane</code>
+     * does not tiles its children and this should return false.
+     * On the other hand, the <code>glassPane</code>
+     * is normally not visible, and so this can return true if the
+     * <code>glassPane</code> isn't visible. Therefore, the
+     * return value here depends upon the visiblity of the
+     * <code>glassPane</code>.
      *
      * @return true if this component's children don't overlap
      */
@@ -470,7 +650,7 @@ public class JRootPane extends JComponent implements Accessible {
     }
 
     /**
-     * Register ourselves with the SystemEventQueueUtils as a new
+     * Register ourselves with the <code>SystemEventQueueUtils</code> as a new
      * root pane. 
      */
     public void addNotify() {
@@ -485,7 +665,7 @@ public class JRootPane extends JComponent implements Accessible {
     // @see SystemEventQueueUtilities#removeRunnableCanvas
 
     /**
-     * Unregister ourselves from SystemEventQueueUtils.
+     * Unregister ourselves from <code>SystemEventQueueUtils</code>.
      * @see #addNotify
      */
     public void removeNotify() {
@@ -495,19 +675,24 @@ public class JRootPane extends JComponent implements Accessible {
 
 
     /**
-     * Sets the current default button for this <code>JRootPane</code>.
+     * Sets the <code>defaultButton</code> property,
+     * which determines the current default button for this <code>JRootPane</code>.
      * The default button is the button which will be activated 
      * when a UI-defined activation event (typically the <b>Enter</b> key) 
-     * occurs in the RootPane regardless of whether or not the button 
+     * occurs in the root pane regardless of whether or not the button 
      * has keyboard focus (unless there is another component within 
-     * the RootPane which consumes the activation event, such as a JTextPane).
+     * the root pane which consumes the activation event,
+     * such as a <code>JTextPane</code>).
      * For default activation to work, the button must be an enabled
-     * descendent of the RootPane when activation occurs.
-     * To remove a default button from this RootPane, set this
+     * descendent of the root pane when activation occurs.
+     * To remove a default button from this root pane, set this
      * property to <code>null</code>.
      *
      * @see JButton#isDefaultButton 
-     * @param default the JButton which is to be the default button
+     * @param default the <code>JButton</code> which is to be the default button
+     *
+     * @beaninfo
+     *  description: The button activated by default in this root pane
      */
     public void setDefaultButton(JButton defaultButton) { 
         JButton oldDefault = this.defaultButton;
@@ -527,8 +712,9 @@ public class JRootPane extends JComponent implements Accessible {
     }
 
     /**
-     * Returns the current default button for this JRootPane.
-     * @return the JButton which is currently the default button
+     * Returns the value of the <code>defaultButton</code> property. 
+     * @return the <code>JButton</code> which is currently the default button
+     * @see #setDefaultButton
      */
     public JButton getDefaultButton() { 
         return defaultButton;
@@ -562,7 +748,14 @@ public class JRootPane extends JComponent implements Accessible {
     }
 
 
-    /** Overridden to enforce the position of the glass component as the zero child. */
+    /**
+     * Overridden to enforce the position of the glass component as
+     * the zero child.
+     *
+     * @param comp the component to be enhanced
+     * @param constraints the constraints to be respected
+     * @param index the index
+     */
     protected void addImpl(Component comp, Object constraints, int index) {
         super.addImpl(comp, constraints, index);
         
@@ -585,10 +778,12 @@ public class JRootPane extends JComponent implements Accessible {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class RootLayout implements LayoutManager2, Serializable
     {
@@ -607,7 +802,7 @@ public class JRootPane extends JComponent implements Accessible {
             } else {
                 rd = parent.getSize();
             }
-            if(menuBar != null) {
+            if(menuBar != null && menuBar.isVisible()) {
                 mbd = menuBar.getPreferredSize();
             } else {
                 mbd = new Dimension(0, 0);
@@ -630,7 +825,7 @@ public class JRootPane extends JComponent implements Accessible {
             } else {
                 rd = parent.getSize();
             }
-            if(menuBar != null) {
+            if(menuBar != null && menuBar.isVisible()) {
                 mbd = menuBar.getMinimumSize();
             } else {
                 mbd = new Dimension(0, 0);
@@ -648,7 +843,7 @@ public class JRootPane extends JComponent implements Accessible {
         public Dimension maximumLayoutSize(Container target) {
             Dimension rd, mbd;
             Insets i = getInsets();
-            if(menuBar != null) {
+            if(menuBar != null && menuBar.isVisible()) {
                 mbd = menuBar.getMaximumSize();
             } else {
                 mbd = new Dimension(0, 0);
@@ -684,8 +879,8 @@ public class JRootPane extends JComponent implements Accessible {
                 glassPane.setBounds(i.left, i.top, w, h);
             }
             // Note: This is laying out the children in the layeredPane,
-            // technically, these are not our chilren.
-            if(menuBar != null) {
+            // technically, these are not our children.
+            if(menuBar != null && menuBar.isVisible()) {
                 Dimension mbd = menuBar.getPreferredSize();
                 menuBar.setBounds(0, 0, w, mbd.height);
                 contentY += mbd.height;
@@ -703,35 +898,22 @@ public class JRootPane extends JComponent implements Accessible {
         public void invalidateLayout(Container target) {}
     }
 
-    /** set the current focus owner. Called with the event argument when
-     * processing FOCUS_GAINED event in a Swing component; called with null
-     * when processing FOCUS_LOST */
-    void setCurrentFocusOwner(JComponent focusOwner) {
-      this.focusOwner = focusOwner;
+    void setMostRecentFocusOwner(Component focusOwner) {
+	mostRecentFocusOwner = focusOwner;
     }
-
-    /** return the current focus owner */
-    JComponent getCurrentFocusOwner() {
-      return focusOwner;
-    }
-
-    void setPreviousFocusOwner(JComponent focusOwner) {
-      this.previousFocusOwner = focusOwner;
-    }
-
-    /** return the current focus owner */
-    JComponent getPreviousFocusOwner() {
-      return previousFocusOwner;
+  
+    Component getMostRecentFocusOwner() {
+	return mostRecentFocusOwner;
     }
 
     /**
-     * Returns a string representation of this JRootPane. This method 
-     * is intended to be used only for debugging purposes, and the 
-     * content and format of the returned string may vary between      
+     * Returns a string representation of this <code>JRootPane</code>.
+     * This method is intended to be used only for debugging purposes,
+     * and the content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
      * 
-     * @return  a string representation of this JRootPane.
+     * @return  a string representation of this <code>JRootPane</code>.
      */
     protected String paramString() {
 	return super.paramString();
@@ -742,13 +924,14 @@ public class JRootPane extends JComponent implements Accessible {
 ////////////////
 
     /**
-     * Gets the AccessibleContext associated with this JRootPane. 
-     * For root panes, the AccessibleContext takes the form of an 
-     * AccessibleJRootPane. 
-     * A new AccessibleJRootPane instance is created if necessary.
+     * Gets the <code>AccessibleContext</code> associated with this
+     * <code>JRootPane</code>. For root panes, the
+     * <code>AccessibleContext</code> takes the form of an 
+     * <code>AccessibleJRootPane</code>. 
+     * A new <code>AccessibleJRootPane</code> instance is created if necessary.
      *
-     * @return an AccessibleJRootPane that serves as the 
-     *         AccessibleContext of this JRootPane
+     * @return an <code>AccessibleJRootPane</code> that serves as the 
+     *         <code>AccessibleContext</code> of this <code>JRootPane</code>
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -764,10 +947,12 @@ public class JRootPane extends JComponent implements Accessible {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJRootPane extends AccessibleJComponent {
         /**

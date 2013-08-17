@@ -1,4 +1,6 @@
 /*
+ * @(#)ConvolveOp.java	1.44 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -70,6 +72,9 @@ public class ConvolveOp implements BufferedImageOp, RasterOp {
     /**
      * Constructs a ConvolveOp given a Kernel, an edge condition, and a
      * RenderingHints object (which may be null).
+     * @param kernel the specified <code>Kernel</code>
+     * @param edgeCondition the specified edge condition
+     * @param hints the specified <code>RenderingHints</code> object
      * @see Kernel
      * @see #EDGE_NO_OP
      * @see #EDGE_ZERO_FILL
@@ -84,6 +89,7 @@ public class ConvolveOp implements BufferedImageOp, RasterOp {
     /**
      * Constructs a ConvolveOp given a Kernel.  The edge condition
      * will be EDGE_ZERO_FILL.
+     * @param kernel the specified <code>Kernel</code>
      * @see Kernel
      * @see #EDGE_ZERO_FILL
      */
@@ -94,6 +100,7 @@ public class ConvolveOp implements BufferedImageOp, RasterOp {
 
     /**
      * Returns the edge condition.
+     * @return the edge condition of this <code>ConvolveOp</code>.
      * @see #EDGE_NO_OP
      * @see #EDGE_ZERO_FILL
      */
@@ -103,6 +110,7 @@ public class ConvolveOp implements BufferedImageOp, RasterOp {
 
     /**
      * Returns the Kernel.
+     * @return the <code>Kernel</code> of this <code>ConvolveOp</code>.
      */
     public final Kernel getKernel() {
         return (Kernel) kernel.clone();
@@ -231,6 +239,8 @@ public class ConvolveOp implements BufferedImageOp, RasterOp {
      * of bands.  If destCM is null, an appropriate ColorModel will be used.
      * @param src       Source image for the filter operation.
      * @param destCM    ColorModel of the destination.  Can be null.
+     * @return a destination <code>BufferedImage</code> with the correct
+     *         size and number of bands.
      */
     public BufferedImage createCompatibleDestImage(BufferedImage src,
                                                    ColorModel destCM) {

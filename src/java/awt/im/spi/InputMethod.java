@@ -1,4 +1,6 @@
 /*
+ * @(#)InputMethod.java	1.25 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -25,7 +27,7 @@ import java.lang.Character.Subset;
  *
  * @since 1.3
  *
- * @version 	1.25, 02/06/02
+ * @version 	1.25, 12/03/01
  * @author JavaSoft International
  */
 

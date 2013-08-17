@@ -1,4 +1,6 @@
 /*
+ * @(#)SignatureSpi.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ import java.io.*;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.15, 02/06/02
+ * @version 1.19, 12/03/01
  *
  * @see Signature
  */
@@ -95,12 +97,12 @@ public abstract class SignatureSpi {
      * Updates the data to be signed or verified, using the 
      * specified array of bytes, starting at the specified offset.
      *
-     * @param data the array of bytes.  
-     * @param off the offset to start from in the array of bytes.  
-     * @param len the number of bytes to use, starting at offset.
+     * @param b the array of bytes  
+     * @param off the offset to start from in the array of bytes 
+     * @param len the number of bytes to use, starting at offset
      *
      * @exception SignatureException if the engine is not initialized 
-     * properly.
+     * properly
      */
     protected abstract void engineUpdate(byte[] b, int off, int len) 
         throws SignatureException;
@@ -186,6 +188,30 @@ public abstract class SignatureSpi {
     protected abstract boolean engineVerify(byte[] sigBytes) 
 	throws SignatureException;
 
+    /** 
+     * Verifies the passed-in signature in the specified array
+     * of bytes, starting at the specified offset.
+     *
+     * <p> Note: Subclasses should overwrite the default implementation.
+     *
+     * 
+     * @param sigBytes the signature bytes to be verified.
+     * @param offset the offset to start from in the array of bytes.
+     * @param length the number of bytes to use, starting at offset.
+     *
+     * @return true if the signature was verified, false if not. 
+     *
+     * @exception SignatureException if the engine is not initialized 
+     * properly, or the passed-in signature is improperly encoded or 
+     * of the wrong type, etc.  
+     */
+    protected boolean engineVerify(byte[] sigBytes, int offset, int length) 
+	throws SignatureException {
+	byte[] sigBytesCopy = new byte[length];
+	System.arraycopy(sigBytes, offset, sigBytesCopy, 0, length);
+	return engineVerify(sigBytesCopy);
+    }
+
     /**
      * Sets the specified algorithm parameter to the specified
      * value. This method supplies a general-purpose mechanism through
@@ -214,25 +240,42 @@ public abstract class SignatureSpi {
 	throws InvalidParameterException;
 
     /**
-     * Initializes this signature engine with the specified parameter set.
-     *
-     * This concrete method has been added to this previously-defined
-     * abstract class. (For backwards compatibility, it cannot be abstract.)
-     * It may be overridden by a provider to set the algorithm parameters
-     * using the specified <code>params</code>. Such an override
-     * is expected to throw an InvalidAlgorithmParameterException if
-     * a parameter is invalid.
-     * If this method is not overridden, it always throws an
-     * UnsupportedOperationException.
+     * <p>This method is overridden by providers to initialize
+     * this signature engine with the specified parameter set.
      *
      * @param params the parameters
      *
-     * @exception InvalidAlgorithmParameterException if the given parameters
+     * @exception UnsupportedOperationException if this method is not
+     * overridden by a provider
+     *
+     * @exception InvalidAlgorithmParameterException if this method is
+     * overridden by a provider and the the given parameters
      * are inappropriate for this signature engine
      */
     protected void engineSetParameter(AlgorithmParameterSpec params)
 	throws InvalidAlgorithmParameterException {
 	    throw new UnsupportedOperationException();
+    }
+
+    /**
+     * <p>This method is overridden by providers to return the
+     * parameters used with this signature engine, or null 
+     * if this signature engine does not use any parameters.
+     *
+     * <p>The returned parameters may be the same that were used to initialize
+     * this signature engine, or may contain a combination of default and 
+     * randomly generated parameter values used by the underlying signature
+     * implementation if this signature engine requires algorithm parameters 
+     * but was not initialized with any.
+     * 
+     * @return the parameters used with this signature engine, or null if this
+     * signature engine does not use any parameters
+     *
+     * @exception UnsupportedOperationException if this method is
+     * not overridden by a provider
+     */
+    protected AlgorithmParameters engineGetParameters() {
+	throw new UnsupportedOperationException();
     }
 
     /**

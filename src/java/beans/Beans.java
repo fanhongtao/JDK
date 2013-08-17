@@ -1,4 +1,6 @@
 /*
+ * @(#)Beans.java	1.57 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -436,7 +438,10 @@ public class Beans {
 
 
     private static boolean designTime;
-    private static boolean guiAvailable = true;
+    private static boolean guiAvailable;
+    static {
+        guiAvailable = !GraphicsEnvironment.isHeadless();
+    }
 }
 
 /**
@@ -580,6 +585,20 @@ class BeansAppletContext implements AppletContext {
 
     public void showStatus(String status) {
 	// We do nothing.
+    }
+
+    public void setStream(String key, InputStream stream)throws IOException{
+	// We do nothing.
+    }
+
+    public InputStream getStream(String key){
+	// We do nothing.
+	return null;
+    }
+
+    public java.util.Iterator getStreamKeys(){
+	// We do nothing.
+	return null;
     }
 }
 

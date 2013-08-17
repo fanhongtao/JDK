@@ -1,4 +1,6 @@
 /*
+ * @(#)JComboBox.java	1.113 02/01/28
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -22,34 +24,40 @@ import javax.swing.border.*;
 import javax.accessibility.*;
 
 /**
- * A component that combines a button or text field and a drop-down list.
- * The user can select a value from 
- * the drop-down list, which appears at the user's request.
- * If you make the combo box editable,
- * then the combo box includes a text field
- * into which the user can type a value.
- * For examples and information on using combo boxes see
- * <a
- href="http://java.sun.com/docs/books/tutorial/uiswing/components/combobox.html">How to Use Combo Boxes</a>, 
- * a section in <em>The Java Tutorial</em>.
+ * A component that combines a button or editable field and a drop-down list.
+ * The user can select a value from the drop-down list, which appears at the 
+ * user's request. If you make the combo box editable, then the combo box
+ * includes an editable field into which the user can type a value.
+ * 
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JComboBox">JComboBox</a> key assignments.
+ * <a href="doc-files/Key-Index.html#JComboBox"><code>JComboBox</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
+ *
+ * <p>
+ * See <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/combobox.html">How to Use Combo Boxes</a>
+ * in <a href="http://java.sun.com/Series/Tutorial/index.html"><em>The Java Tutorial</em></a>
+ * for further information.
+ * <p>
+ * @see ComboBoxModel
+ * @see DefaultComboBoxModel
  *
  * @beaninfo
  *   attribute: isContainer false
  * description: A combination of a text field and a drop-down list.
  *
- * @version 1.83 02/06/02
+ * @version 1.113 01/28/02
  * @author Arnaud Weber
+ * @author Mark Davidson
  */
 public class JComboBox extends JComponent 
 implements ItemSelectable,ListDataListener,ActionListener, Accessible {
@@ -59,17 +67,85 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      */
     private static final String uiClassID = "ComboBoxUI";
 
+    /**
+     * This protected field is implementation specific. Do not access directly
+     * or override. Use the accessor methods instead.
+     *
+     * @see #getModel
+     * @see #setModel
+     */
     protected ComboBoxModel    dataModel;
+    /**
+     * This protected field is implementation specific. Do not access directly
+     * or override. Use the accessor methods instead.
+     *
+     * @see #getRenderer
+     * @see #setRenderer
+     */
     protected ListCellRenderer renderer;
+    /**
+     * This protected field is implementation specific. Do not access directly
+     * or override. Use the accessor methods instead.
+     *
+     * @see #getEditor
+     * @see #setEditor
+     */
     protected ComboBoxEditor       editor;
+    /**
+     * This protected field is implementation specific. Do not access directly
+     * or override. Use the accessor methods instead.
+     *
+     * @see #getMaximumRowCount
+     * @see #setMaximumRowCount
+     */
     protected int maximumRowCount = 8;
+
+    /**
+     * This protected field is implementation specific. Do not access directly
+     * or override. Use the accessor methods instead.
+     *
+     * @see #isEditable
+     * @see #setEditable
+     */
     protected boolean isEditable  = false;
-    protected Object selectedItemReminder = null;
+    /**
+     * This protected field is implementation specific. Do not access directly
+     * or override. Use the accessor methods instead.
+     *
+     * @see #setKeySelectionManager
+     * @see #getKeySelectionManager
+     */
     protected KeySelectionManager keySelectionManager = null;
+    /**
+     * This protected field is implementation specific. Do not access directly
+     * or override. Use the accessor methods instead.
+     *
+     * @see #setActionCommand
+     * @see #getActionCommand
+     */
     protected String actionCommand = "comboBoxChanged";
+    /**
+     * This protected field is implementation specific. Do not access directly
+     * or override. Use the accessor methods instead.
+     *
+     * @see #setLightWeightPopupEnabled
+     * @see #isLightWeightPopupEnabled
+     */
     protected boolean lightWeightPopupEnabled = JPopupMenu.getDefaultLightWeightPopupEnabled();
-    boolean firedActionEventOnContentsChanged = false; // Flag for keeping actionEvents under control
-    boolean firingActionEvent = false;
+
+    /**
+     * This protected field is implementation specific. Do not access directly
+     * or override.
+     */
+    protected Object selectedItemReminder = null;
+
+    private Object prototypeDisplayValue;
+
+    // Flag to ensure that infinite loops do not occur with ActionEvents.
+    private boolean firingActionEvent = false;
+
+    // Flag to ensure the we don't get multiple ActionEvents on item selection.
+    private boolean selectingItem = false;
 
     /**
      * Creates a <code>JComboBox</code> that takes it's items from an
@@ -130,8 +206,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
         init();
     }
 
-    private void init()
-    {
+    private void init() {
         installAncestorListener();
         setOpaque(true);
         updateUI();
@@ -154,15 +229,17 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      * @see UIDefaults#getUI
      *
      * @beaninfo
-     *       expert: true
-     *  description: The ComboBoxUI implementation that defines the combo box look and feel.
+     *        bound: true
+     *       hidden: true
+     *    attribute: visualUpdate true
+     *  description: The UI object that implements the Component's LookAndFeel. 
      */
     public void setUI(ComboBoxUI ui) {
         super.setUI(ui);
     }
 
     /**
-     * Notification from the <code>UIFactory</code> that the L&F has changed. 
+     * Resets the UI property to a value from the current look and feel.
      *
      * @see JComponent#updateUI
      */
@@ -205,12 +282,16 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      */
     public void setModel(ComboBoxModel aModel) {
         ComboBoxModel oldModel = dataModel;
-        if ( dataModel != null )
-            dataModel.removeListDataListener(this);
+	if (oldModel != null) {
+	    oldModel.removeListDataListener(this);
+	}
         dataModel = aModel;
+	dataModel.addListDataListener(this);
+	
+	// set the current selected item.
+	selectedItemReminder = dataModel.getSelectedItem();
+
         firePropertyChange( "model", oldModel, dataModel);
-        dataModel.addListDataListener(this);
-        invalidate();
     }
 
     /**
@@ -228,24 +309,48 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      */
 
     /**
-     * When displaying the popup, <code>JComboBox</code> choose to use
-     * a light weight popup if it fits.
-     * This method allows you to disable this feature. You have to do disable
-     * it if your application mixes light weight and heavy weights components.
+     * Sets the <code>lightWeightPopupEnabled</code> property, which
+     * provides a hint as to whether or not a lightweight
+     * <code>Component</code> should be used to contain the
+     * <code>JComboBox</code>, versus a heavyweight 
+     * <code>Component</code> such as a <code>Panel</code>
+     * or a <code>Window</code>.  The decision of lightweight
+     * versus heavyweight is ultimately up to the 
+     * <code>JComboBox</code>.  Lightweight windows are more
+     * efficient than heavyweight windows, but lightweight
+     * and heavyweight components do not mix well in a GUI.
+     * If your application mixes lightweight and heavyweight 
+     * components, you should disable lightweight popups.
+     * The default value for the <code>lightWeightPopupEnabled</code>
+     * property is <code>true</code>, unless otherwise specified
+     * by the look and feel.  Some look and feels always use
+     * heavyweight popups, no matter what the value of this property.
+     * <p>
+     * See the article <a href="http://java.sun.com/products/jfc/tsc/articles/mixing/index.html">Mixing Heavy and Light Components</a> 
+     * on <a href="http://java.sun.com/products/jfc/tsc">
+     * <em>The Swing Connection</em></a>
+     * This method fires a property changed event.
+     *
+     * @param aFlag if <code>true</code>, lightweight popups are desired
      *
      * @beaninfo
+     *        bound: true
      *       expert: true
-     *  description: When set, disables using light weight popups.
+     *  description: Set to <code>false</code> to require heavyweight popups.
      */
     public void setLightWeightPopupEnabled(boolean aFlag) {
+	boolean oldFlag = lightWeightPopupEnabled;
         lightWeightPopupEnabled = aFlag;
+	firePropertyChange("lightWeightPopupEnabled", oldFlag, lightWeightPopupEnabled);
     }
 
     /**
-     * Returns true if lightweight (all-Java) popups are in use,
-     * or false if heavyweight (native peer) popups are being used.
+     * Gets the value of the <code>lightWeightPopupEnabled</code>
+     * property.
      *
-     * @return true if lightweight popups are in use
+     * @return the value of the <code>lightWeightPopupEnabled</code>
+     *    property
+     * @see #setLightWeightPopupEnabled
      */
     public boolean isLightWeightPopupEnabled() { 
         return lightWeightPopupEnabled;
@@ -269,11 +374,9 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      *  description: If true, the user can type a new value in the combo box.
      */
     public void setEditable(boolean aFlag) {
-        boolean didChange = aFlag != isEditable;
+        boolean oldFlag = isEditable;
         isEditable = aFlag;
-        if ( didChange ) {
-            firePropertyChange( "editable", !isEditable, isEditable );
-        }
+        firePropertyChange( "editable", oldFlag, isEditable );
     }
 
     /**
@@ -316,13 +419,12 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
     }
 
     /**
-     * Sets the renderer that paints the item selected from the list in
+     * Sets the renderer that paints the list items and the item selected from the list in
      * the JComboBox field. The renderer is used if the JComboBox is not
      * editable. If it is editable, the editor is used to render and edit
      * the selected item.
      * <p>
-     * The default renderer displays a string, obtained
-     * by calling the selected object's <code>toString</code> method.
+     * The default renderer displays a string or an icon.
      * Other renderers can handle graphic images and composite items.
      * <p>
      * To display the selected item,
@@ -372,8 +474,9 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
     public void setEditor(ComboBoxEditor anEditor) {
         ComboBoxEditor oldEditor = editor;
 
-        if ( editor != null )
+        if ( editor != null ) {
             editor.removeActionListener(this);
+	}
         editor = anEditor;
         if ( editor != null ) {
             editor.addActionListener(this);
@@ -391,35 +494,82 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
         return editor;
     }
 
-    /*
-     * Selection
-     */
+    // 
+    // Selection
+    // 
+
     /** 
-     * Sets the selected item in the <code>JComboBox</code> by
-     * specifying the object in the list.
-     * If <code>anObject</code> is in the list, the list displays with 
-     * <code>anObject</code> selected. 
+     * Sets the selected item in the combo box display area to the object in 
+     * the argument.
+     * If <code>anObject</code> is in the list, the display area shows 
+     * <code>anObject</code> selected.
+     * <p>
+     * If <code>anObject</code> is <i>not</i> in the list and the combo box is
+     * uneditable, it will not change the current selection. For editable 
+     * combo boxes, the selection will change to <code>anObject</code>.
+     * <p>
+     * If this constitutes a change in the selected item, 
+     * <code>ItemListener</code>s added to the combo box will be notified with
+     * one or two <code>ItemEvent</code>s.
+     * If there is a current selected item, an <code>ItemEvent</code> will be
+     * fired and the state change will be <code>ItemEvent.DESELECTED</code>. 
+     * If <code>anObject</code> is in the list and is not currently selected
+     * then an <code>ItemEvent</code> will be fired and the state change will 
+     * be <code>ItemEvent.SELECTED</code>.
+     * <p>
+     * <code>ActionListener</code>s added to the combo box will be notified
+     * with an <code>ActionEvent</code> when this method is called.
      *
-     * @param anObject  the list object to select
+     * @param anObject  the list object to select; use <code>null</code> to
+                        clear the selection
      * @beaninfo
      *    preferred:   true
      *    description: Sets the selected item in the JComboBox.
      */
     public void setSelectedItem(Object anObject) {
-        firedActionEventOnContentsChanged = false;
-        dataModel.setSelectedItem(anObject);
-        if ( !firedActionEventOnContentsChanged ) {
-            fireActionEvent();
-        }
-        else {
-            firedActionEventOnContentsChanged = false;
-        }
+	Object oldSelection = selectedItemReminder;
+	if (oldSelection == null || !oldSelection.equals(anObject)) {
+
+	    if (anObject != null && !isEditable()) {
+		// For non editable combo boxes, an invalid selection
+		// will be rejected.
+		boolean found = false;
+		for (int i = 0; i < dataModel.getSize(); i++) {
+		    if (anObject.equals(dataModel.getElementAt(i))) {
+			found = true;
+			break;
+		    }
+		}
+		if (!found) {
+		    return;
+		}
+	    }
+	    
+	    // Must toggle the state of this flag since this method
+	    // call may result in ListDataEvents being fired.
+	    selectingItem = true;
+	    dataModel.setSelectedItem(anObject);
+	    selectingItem = false;
+
+	    if (selectedItemReminder != dataModel.getSelectedItem()) {
+		// in case a users implementation of ComboBoxModel
+		// doesn't fire a ListDataEvent when the selection
+		// changes.
+		selectedItemChanged();
+	    }
+	}
+	fireActionEvent();
     }
 
     /**
-     * Returns the currently selected item.
-     *
-     * @return  the currently selected list object from the data model
+     * Returns the current selected item.
+     * <p>
+     * If the combo box is editable, then this value may not have been added
+     * to the combo box with <code>addItem</code>, <code>insertItemAt</code> 
+     * or the data constructors.
+     * 
+     * @return the current selected Object
+     * @see #setSelectedItem
      */
     public Object getSelectedItem() {
         return dataModel.getSelectedItem();
@@ -429,8 +579,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      * Selects the item at index <code>anIndex</code>.
      *
      * @param anIndex an integer specifying the list item to select,
-     *			where 0 specifies
-     *                	the first item in the list
+     *			where 0 specifies the first item in the list and -1 indicates no selection
      * @exception IllegalArgumentException if <code>anIndex</code> < -1 or
      *			<code>anIndex</code> is greater than or equal to size
      * @beaninfo
@@ -442,11 +591,9 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 
         if ( anIndex == -1 ) {
             setSelectedItem( null );
-        }
-        else if ( anIndex < -1 || anIndex >= size ) {
+        } else if ( anIndex < -1 || anIndex >= size ) {
             throw new IllegalArgumentException("setSelectedIndex: " + anIndex + " out of bounds");
-        }
-        else {
+        } else {
             setSelectedItem(dataModel.getElementAt(anIndex));
         }
     }
@@ -471,18 +618,55 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 
         for ( i=0,c=dataModel.getSize();i<c;i++ ) {
             obj = dataModel.getElementAt(i);
-            if ( obj.equals(sObject) )
+            if ( obj != null && obj.equals(sObject) )
                 return i;
         }
         return -1;
     }
 
+    /**
+     * Returns the "prototypical display" value - an Object used
+     * for the calculation of the display height and width.
+     *
+     * @return the value of the <code>prototypeDisplayValue</code> property
+     * @see #setPrototypeDisplayValue
+     * @since 1.4
+     */
+    public Object getPrototypeDisplayValue() {
+        return prototypeDisplayValue;
+    }
+
+    /**
+     * Sets the prototype display value used to calculate the size of the display 
+     * for the UI portion. 
+     * <p>
+     * If a prototype display value is specified, the preferred size of
+     * the combo box is calculated by configuring the renderer with the
+     * prototype display value and obtaining its preferred size. Specifying
+     * the preferred display value is often useful when the combo box will be
+     * displaying large amounts of data. If no prototype display value has
+     * been specified, the renderer must be configured for each value from
+     * the model and its preferred size obtained, which can be
+     * relatively expensive.
+     * 
+     * @param prototypeDisplayValue 
+     * @see #getPrototypeDisplayValue
+     * @since 1.4
+     * @beaninfo
+     *       bound: true
+     *   attribute: visualUpdate true
+     * description: The display prototype value, used to compute display width and height.
+     */
+    public void setPrototypeDisplayValue(Object prototypeDisplayValue) {
+        Object oldValue = this.prototypeDisplayValue;
+        this.prototypeDisplayValue = prototypeDisplayValue;
+        firePropertyChange("prototypeDisplayValue", oldValue, prototypeDisplayValue);
+    }
+
     /** 
      * Adds an item to the item list.
-     * This method works only if the <code>JComboBox</code> uses the
-     * default data model. <code>JComboBox</code>
-     * uses the default data model when created with the 
-     * empty constructor and no other model has been set.
+     * This method works only if the <code>JComboBox</code> uses a
+     * mutable data model.
      * <p>
      * <strong>Warning:</strong>
      * Focus and keyboard navigation problems may arise if you add duplicate 
@@ -499,6 +683,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      * </pre>
      *
      * @param anObject the Object to add to the list
+     * @see MutableComboBoxModel
      */
     public void addItem(Object anObject) {
         checkMutableComboBoxModel();
@@ -507,14 +692,13 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 
     /** 
      * Inserts an item into the item list at a given index. 
-     * This method works only if the <code>JComboBox</code> uses the
-     * default data model. <code>JComboBox</code>
-     * uses the default data model when created with the 
-     * empty constructor and no other model has been set.
+     * This method works only if the <code>JComboBox</code> uses a
+     * mutable data model.
      *
      * @param anObject the <code>Object</code> to add to the list
      * @param index    an integer specifying the position at which
      *			to add the item
+     * @see MutableComboBoxModel
      */
     public void insertItemAt(Object anObject, int index) {
         checkMutableComboBoxModel();
@@ -523,12 +707,11 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 
     /** 
      * Removes an item from the item list.
-     * This method works only if the <code>JComboBox</code> uses the
-     * default data model. <code>JComboBox</code>
-     * uses the default data model when created with the empty constructor
-     * and no other model has been set.
+     * This method works only if the <code>JComboBox</code> uses a
+     * mutable data model.
      *
      * @param anObject  the object to remove from the item list
+     * @see MutableComboBoxModel
      */
     public void removeItem(Object anObject) {
         checkMutableComboBoxModel();
@@ -537,14 +720,13 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 
     /**  
      * Removes the item at <code>anIndex</code>
-     * This method works only if the <code>JComboBox</code> uses the
-     * default data model. <code>JComboBox</code>
-     * uses the default data model when created with the 
-     * empty constructor and no other model has been set.
+     * This method works only if the <code>JComboBox</code> uses a
+     * mutable data model.
      *
-     * @param anIndex  an int specifying the idex of the item to remove,
+     * @param anIndex  an int specifying the index of the item to remove,
      *			where 0
      *                 	indicates the first item in the list
+     * @see MutableComboBoxModel
      */
     public void removeItemAt(int anIndex) {
         checkMutableComboBoxModel();
@@ -568,6 +750,9 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
                 model.removeElement( element );
             }
         }
+	if (isEditable()) {
+	    editor.setItem(null);
+	}
     }
 
     /** 
@@ -606,6 +791,8 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 
     /** 
      * Determines the visibility of the popup.
+     *
+     * @return true if the popup is visible, otherwise returns false
      */
     public boolean isPopupVisible() {
         return getUI().isPopupVisible(this);
@@ -615,10 +802,12 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 
     /** 
      * Adds an <code>ItemListener</code>.
-     * <code>aListener</code> will receive an event when
+     * <p>
+     * <code>aListener</code> will receive one or two <code>ItemEvent</code>s when
      * the selected item changes.
      *
-     * @param aListener  the <code>ItemListener</code> that is to be notified
+     * @param aListener the <code>ItemListener</code> that is to be notified
+     * @see #setSelectedItem
      */
     public void addItemListener(ItemListener aListener) {
         listenerList.add(ItemListener.class,aListener);
@@ -632,12 +821,27 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
         listenerList.remove(ItemListener.class,aListener);
     }
 
+    /**
+     * Returns an array of all the <code>ItemListener</code>s added
+     * to this JComboBox with addItemListener().
+     *
+     * @return all of the <code>ItemListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public ItemListener[] getItemListeners() {
+        return (ItemListener[])listenerList.getListeners(ItemListener.class);
+    }
+
     /** 
-     * Adds an <code>ActionListener</code>. The listener will
-     * receive an action event
-     * the user finishes making a selection.
+     * Adds an <code>ActionListener</code>. 
+     * <p>
+     * The <code>ActionListener</code> will receive an <code>ActionEvent</code>
+     * when a selection has been made. If the combo box is editable, then
+     * an <code>ActionEvent</code> will be fired when editing has stopped.
      *
      * @param l  the <code>ActionListener</code> that is to be notified
+     * @see #setSelectedItem
      */
     public void addActionListener(ActionListener l) {
         listenerList.add(ActionListener.class,l);
@@ -655,8 +859,124 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 	}
     }
 
+    /**
+     * Returns an array of all the <code>ActionListener</code>s added
+     * to this JComboBox with addActionListener().
+     *
+     * @return all of the <code>ActionListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public ActionListener[] getActionListeners() {
+        return (ActionListener[])listenerList.getListeners(
+                ActionListener.class);
+    }
+
+    /**
+     * Adds a <code>PopupMenu</code> listener which will listen to notification
+     * messages from the popup portion of the combo box. 
+     * <p>
+     * For all standard look and feels shipped with Java 2, the popup list  
+     * portion of combo box is implemented as a <code>JPopupMenu</code>.
+     * A custom look and feel may not implement it this way and will 
+     * therefore not receive the notification.
+     *
+     * @param l  the <code>PopupMenuListener</code> to add
+     * @since 1.4
+     */
+    public void addPopupMenuListener(PopupMenuListener l) {
+        listenerList.add(PopupMenuListener.class,l);
+    }
+
+    /**
+     * Removes a <code>PopupMenuListener</code>.
+     *
+     * @param l  the <code>PopupMenuListener</code> to remove
+     * @see #addPopupMenuListener
+     * @since 1.4
+     */
+    public void removePopupMenuListener(PopupMenuListener l) {
+        listenerList.remove(PopupMenuListener.class,l);
+    }
+
+    /**
+     * Returns an array of all the <code>PopupMenuListener</code>s added
+     * to this JComboBox with addPopupMenuListener().
+     *
+     * @return all of the <code>PopupMenuListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public PopupMenuListener[] getPopupMenuListeners() {
+        return (PopupMenuListener[])listenerList.getListeners(
+                PopupMenuListener.class);
+    }
+
+    /**
+     * Notifies <code>PopupMenuListener</code>s that the popup portion of the
+     * combo box will become visible.
+     * <p>
+     * This method is public but should not be called by anything other than 
+     * the UI delegate.
+     * @see #addPopupMenuListener
+     * @since 1.4
+     */
+    public void firePopupMenuWillBecomeVisible() {
+        Object[] listeners = listenerList.getListenerList();
+        PopupMenuEvent e=null;
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==PopupMenuListener.class) {
+                if (e == null)
+                    e = new PopupMenuEvent(this);
+                ((PopupMenuListener)listeners[i+1]).popupMenuWillBecomeVisible(e);
+            }
+        }    
+    }
+    
+    /**
+     * Notifies <code>PopupMenuListener</code>s that the popup portion of the
+     * combo box has become invisible.
+     * <p>
+     * This method is public but should not be called by anything other than 
+     * the UI delegate.
+     * @see #addPopupMenuListener
+     * @since 1.4
+     */
+    public void firePopupMenuWillBecomeInvisible() {
+        Object[] listeners = listenerList.getListenerList();
+        PopupMenuEvent e=null;
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==PopupMenuListener.class) {
+                if (e == null)
+                    e = new PopupMenuEvent(this);
+                ((PopupMenuListener)listeners[i+1]).popupMenuWillBecomeInvisible(e);
+            }
+        }            
+    }
+    
+    /**
+     * Notifies <code>PopupMenuListener</code>s that the popup portion of the 
+     * combo box has been canceled.
+     * <p>
+     * This method is public but should not be called by anything other than 
+     * the UI delegate.
+     * @see #addPopupMenuListener
+     * @since 1.4
+     */
+    public void firePopupMenuCanceled() {
+        Object[] listeners = listenerList.getListenerList();
+        PopupMenuEvent e=null;
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==PopupMenuListener.class) {
+                if (e == null)
+                    e = new PopupMenuEvent(this);
+                ((PopupMenuListener)listeners[i+1]).popupMenuCanceled(e);
+            }
+        }
+    }
+
     /** 
-     * Sets the action commnand that should be included in the event
+     * Sets the action command that should be included in the event
      * sent to action listeners.
      *
      * @param aCommand  a string containing the "command" that is sent
@@ -686,7 +1006,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      * Sets the <code>Action</code> for the <code>ActionEvent</code> source.
      * The new <code>Action</code> replaces any previously set
      * <code>Action</code> but does not affect <code>ActionListeners</code>
-     * independantly added with <code>addActionListener</code>. 
+     * independently added with <code>addActionListener</code>. 
      * If the <code>Action</code> is already a registered
      * <code>ActionListener</code> for the <code>ActionEvent</code> source,
      * it is not re-registered.
@@ -846,48 +1166,59 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
     /**
      * Notifies all listeners that have registered interest for
      * notification on this event type.
-     * @param e  the event of interest
      *  
      * @see EventListenerList
      */
     protected void fireActionEvent() {
-        if ( !firingActionEvent ) {
-            firingActionEvent = true;
-            ActionEvent e = null;
-            // Guaranteed to return a non-null array
-            Object[] listeners = listenerList.getListenerList();
-            // Process the listeners last to first, notifying
-            // those that are interested in this event
-            for ( int i = listeners.length-2; i>=0; i-=2 ) {
-                if ( listeners[i]==ActionListener.class ) {
-                    if ( e == null )
-                        e = new ActionEvent(this,ActionEvent.ACTION_PERFORMED,getActionCommand());
-                    ((ActionListener)listeners[i+1]).actionPerformed(e);
-                }
+	if (!firingActionEvent) {
+	    // Set flag to ensure that an infinite loop is not created
+	    firingActionEvent = true;
+	    ActionEvent e = null;
+	    // Guaranteed to return a non-null array
+	    Object[] listeners = listenerList.getListenerList();
+            long mostRecentEventTime = EventQueue.getMostRecentEventTime();
+            int modifiers = 0;
+            AWTEvent currentEvent = EventQueue.getCurrentEvent();
+            if (currentEvent instanceof InputEvent) {
+                modifiers = ((InputEvent)currentEvent).getModifiers();
+            } else if (currentEvent instanceof ActionEvent) {
+                modifiers = ((ActionEvent)currentEvent).getModifiers();
             }
-            firingActionEvent = false;
-        }
+	    // Process the listeners last to first, notifying
+	    // those that are interested in this event
+	    for ( int i = listeners.length-2; i>=0; i-=2 ) {
+		if ( listeners[i]==ActionListener.class ) {
+		    // Lazily create the event:
+		    if ( e == null )
+			e = new ActionEvent(this,ActionEvent.ACTION_PERFORMED,
+                                            getActionCommand(),
+                                            mostRecentEventTime, modifiers);
+		    ((ActionListener)listeners[i+1]).actionPerformed(e);
+		}
+	    }
+	    firingActionEvent = false;
+	}
     }
 
     /**
-     * This method is called when the selected item changes.
-     * Its default implementation notifies the item listeners.
+     * This protected method is implementation specific. Do not access directly
+     * or override. 
      */
     protected void selectedItemChanged() {
-        if ( selectedItemReminder != null ) {
-            fireItemStateChanged(new ItemEvent(this,ItemEvent.ITEM_STATE_CHANGED,
-                                               selectedItemReminder,
-                                               ItemEvent.DESELECTED));
-        }
+	if (selectedItemReminder != null ) {
+	    fireItemStateChanged(new ItemEvent(this,ItemEvent.ITEM_STATE_CHANGED,
+					       selectedItemReminder,
+					       ItemEvent.DESELECTED));
+	}
+	
+	// set the new selected item.
+	selectedItemReminder = dataModel.getSelectedItem();
 
-        selectedItemReminder = getModel().getSelectedItem();
-
-        if ( selectedItemReminder != null )
-            fireItemStateChanged(new ItemEvent(this,ItemEvent.ITEM_STATE_CHANGED,
-                                               selectedItemReminder,
-                                               ItemEvent.SELECTED));
-        fireActionEvent();
-        firedActionEventOnContentsChanged = true;
+	if (selectedItemReminder != null ) {
+	    fireItemStateChanged(new ItemEvent(this,ItemEvent.ITEM_STATE_CHANGED,
+					       selectedItemReminder,
+					       ItemEvent.SELECTED));
+	}
     }
 
     /** 
@@ -895,7 +1226,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      * This method is implemented for compatibility with
      * <code>ItemSelectable</code>.
      *
-     * @returns an array of <code>Objects</code> containing one
+     * @return an array of <code>Objects</code> containing one
      *		element -- the selected item
      */
     public Object[] getSelectedObjects() {
@@ -915,62 +1246,45 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      */
     public void actionPerformed(ActionEvent e) {
         Object newItem = getEditor().getItem();
-        firedActionEventOnContentsChanged = false;
-        getUI().setPopupVisible(this, false);
+        setPopupVisible(false);
         getModel().setSelectedItem(newItem);
-        if ( !firedActionEventOnContentsChanged ) {
-            fireActionEvent();
-        }
-        else {
-            firedActionEventOnContentsChanged = false;
-        }
+	String oldCommand = getActionCommand();
+	setActionCommand("comboBoxEdited");
+	fireActionEvent();
+	setActionCommand(oldCommand);
     }
 
     /**
      * This method is public as an implementation side effect. 
      * do not call or override. 
-     *
-     * @see javax.swing.event.ListDataListener
      */
     public void contentsChanged(ListDataEvent e) {
-        ComboBoxModel mod = getModel();
-        Object newSelectedItem = mod.getSelectedItem();
-
-        if ( selectedItemReminder == null ) {
-            if ( newSelectedItem != null )
-                selectedItemChanged();
-        }
-        else {
-            if ( !selectedItemReminder.equals(newSelectedItem) ) {
-                selectedItemChanged();
-            }
-        }
-
-        if ( !isEditable() && newSelectedItem != null ) {
-            int i,c;
-            boolean shouldResetSelectedItem = true;
-            Object o;
-            Object selectedItem = mod.getSelectedItem();
-
-            for ( i=0,c=mod.getSize();i<c;i++ ) {
-                o = mod.getElementAt(i);
-                if ( o.equals(selectedItem) ) {
-                    shouldResetSelectedItem = false;
-                    break;
-                }
-            }
-
-            if ( shouldResetSelectedItem ) {
-                if ( mod.getSize() > 0 )
-                    setSelectedIndex(0);
-                else
-                    setSelectedItem(null);
-            }
-        }
+	Object oldSelection = selectedItemReminder;
+	Object newSelection = dataModel.getSelectedItem();
+	if (oldSelection == null || !oldSelection.equals(newSelection)) {
+	    selectedItemChanged();
+	    if (!selectingItem) {
+		fireActionEvent();
+	    }
+	}
     }
 
     /**
-     * Selects the list item that correponds to the specified keyboard
+     * This method is public as an implementation side effect. 
+     * do not call or override. 
+     */
+    public void intervalAdded(ListDataEvent e) {
+    }
+
+    /**
+     * This method is public as an implementation side effect. 
+     * do not call or override. 
+     */
+    public void intervalRemoved(ListDataEvent e) {
+    }
+
+    /**
+     * Selects the list item that corresponds to the specified keyboard
      * character and returns true, if there is an item corresponding
      * to that character.  Otherwise, returns false.
      *
@@ -990,26 +1304,6 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
         }
         else
             return false;
-    }
-
-    /**
-     * Invoked items have been added to the internal data model.
-     * The "interval" includes the first and last values added. 
-     *
-     * @see javax.swing.event.ListDataListener
-     */
-    public void intervalAdded(ListDataEvent e) {
-        contentsChanged(e);
-    }
-
-    /**
-     * Invoked when values have been removed from the data model. 
-     * The "interval" includes the first and last values removed. 
-     *
-     * @see javax.swing.event.ListDataListener
-     */
-    public void intervalRemoved(ListDataEvent e) {
-        contentsChanged(e);
     }
 
     /**
@@ -1037,7 +1331,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      *                 	combo box field and allows it to be edited
      * @param anItem   the object to display and edit in the field
      */
-    public void configureEditor(ComboBoxEditor anEditor,Object anItem) {
+    public void configureEditor(ComboBoxEditor anEditor, Object anItem) {
         anEditor.setItem(anItem);
     }
 
@@ -1053,18 +1347,6 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
             hidePopup();
         }
         super.processKeyEvent(e);
-    }
-
-    /**
-     * Returns true if the component can receive the focus. In this case,
-     * the component returns false if it is editable, so that the
-     * <code>Editor</code> object receives the focus,
-     * instead of the component.
-     *
-     * @return true if the component can receive the focus, else false
-     */
-    public boolean isFocusTraversable() {
-        return getUI().isFocusTraversable(this);
     }
 
     /**
@@ -1170,15 +1452,19 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
             aKey = pattern.charAt(0);
 
             for ( i = ++currentSelection, c = aModel.getSize() ; i < c ; i++ ) {
-                v = aModel.getElementAt(i).toString().toLowerCase();
-                if ( v.length() > 0 && v.charAt(0) == aKey )
-                    return i;
+		if (aModel.getElementAt(i) != null) {
+		    v = aModel.getElementAt(i).toString().toLowerCase();
+		    if ( v.length() > 0 && v.charAt(0) == aKey )
+			return i;
+		}
             }
 
             for ( i = 0 ; i < currentSelection ; i ++ ) {
-                v = aModel.getElementAt(i).toString().toLowerCase();
-                if ( v.length() > 0 && v.charAt(0) == aKey )
-                    return i;
+		if (aModel.getElementAt(i) != null) {
+		    v = aModel.getElementAt(i).toString().toLowerCase();
+		    if ( v.length() > 0 && v.charAt(0) == aKey )
+			return i;
+		}
             }
             return -1;
         }
@@ -1192,8 +1478,12 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-        if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-            ui.installUI(this);
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
         }
     }
 
@@ -1250,10 +1540,12 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJComboBox extends AccessibleJComponent 
     implements AccessibleAction, AccessibleSelection {
@@ -1396,25 +1688,25 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 	 * @see #getAccessibleSelectionCount
 	 */
 	public Accessible getAccessibleSelection(int i) {
-	    // Get the popup
-	    Accessible a = 
-		JComboBox.this.getUI().getAccessibleChild(JComboBox.this, 0);
-	    if (a != null && 
-		a instanceof javax.swing.plaf.basic.ComboPopup) {
+            // Get the popup
+            Accessible a =
+                JComboBox.this.getUI().getAccessibleChild(JComboBox.this, 0);
+            if (a != null &&
+                a instanceof javax.swing.plaf.basic.ComboPopup) {
 
-		// get the popup list
-		JList list = ((javax.swing.plaf.basic.ComboPopup)a).getList();
-		
-		// return the i-th selection in the popup list
-		AccessibleContext ac = list.getAccessibleContext();
-		if (ac != null) {
-		    AccessibleSelection as = ac.getAccessibleSelection();
-		    if (as != null) {
-			return as.getAccessibleSelection(i);
-		    }
-		}
-	    }
-	    return null;
+                // get the popup list
+                JList list = ((javax.swing.plaf.basic.ComboPopup)a).getList();
+
+                // return the i-th selection in the popup list
+                AccessibleContext ac = list.getAccessibleContext();
+                if (ac != null) {
+                    AccessibleSelection as = ac.getAccessibleSelection();
+                    if (as != null) {
+                        return as.getAccessibleSelection(i);
+                    }
+                }
+            }
+            return null;
 	}
 	
 	/**
@@ -1483,6 +1775,384 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 //                return getAccessibleChild(0); // the list
 //            }
 //        }
+	private EditorAccessibleContext editorAccessibleContext = null;
+
+	private class AccessibleEditor implements Accessible {
+	    public AccessibleContext getAccessibleContext() {
+		if (editorAccessibleContext == null) {
+		    Component c = JComboBox.this.getEditor().getEditorComponent();
+		    if (c instanceof Accessible) {
+			editorAccessibleContext = 
+			    new EditorAccessibleContext((Accessible)c);
+		    }
+		}
+		return editorAccessibleContext;
+	    }
+	}
+
+	/*
+	 * Wrapper class for the AccessibleContext implemented by the
+	 * combo box editor.  Delegates all method calls except
+	 * getAccessibleIndexInParent to the editor.  The 
+	 * getAccessibleIndexInParent method returns the selected 
+	 * index in the combo box.
+	 */
+	private class EditorAccessibleContext extends AccessibleContext {
+
+	    private AccessibleContext ac;
+
+	    private EditorAccessibleContext() {
+	    }
+
+	    /*
+	     * @param a the AccessibleContext implemented by the
+	     * combo box editor
+	     */
+	    EditorAccessibleContext(Accessible a) {
+		this.ac = a.getAccessibleContext();
+	    }
+
+	    /**
+	     * Gets the accessibleName property of this object.  The accessibleName
+	     * property of an object is a localized String that designates the purpose
+	     * of the object.  For example, the accessibleName property of a label
+	     * or button might be the text of the label or button itself.  In the
+	     * case of an object that doesn't display its name, the accessibleName
+	     * should still be set.  For example, in the case of a text field used
+	     * to enter the name of a city, the accessibleName for the en_US locale
+	     * could be 'city.'
+	     *
+	     * @return the localized name of the object; null if this 
+	     * object does not have a name
+	     *
+	     * @see #setAccessibleName
+	     */
+	    public String getAccessibleName() {
+		return ac.getAccessibleName();
+	    }
+	
+	    /**
+	     * Sets the localized accessible name of this object.  Changing the
+	     * name will cause a PropertyChangeEvent to be fired for the
+	     * ACCESSIBLE_NAME_PROPERTY property.
+	     *
+	     * @param s the new localized name of the object.
+	     *
+	     * @see #getAccessibleName
+	     * @see #addPropertyChangeListener
+	     *
+	     * @beaninfo
+	     *    preferred:   true
+	     *    description: Sets the accessible name for the component.
+	     */
+	    public void setAccessibleName(String s) {
+		ac.setAccessibleName(s);
+	    }
+	    
+	    /**
+	     * Gets the accessibleDescription property of this object.  The
+	     * accessibleDescription property of this object is a short localized
+	     * phrase describing the purpose of the object.  For example, in the 
+	     * case of a 'Cancel' button, the accessibleDescription could be
+	     * 'Ignore changes and close dialog box.'
+	     *
+	     * @return the localized description of the object; null if 
+	     * this object does not have a description
+	     *
+	     * @see #setAccessibleDescription
+	     */
+	    public String getAccessibleDescription() {
+		return ac.getAccessibleDescription();
+	    }
+	    
+	    /**
+	     * Sets the accessible description of this object.  Changing the
+	     * name will cause a PropertyChangeEvent to be fired for the
+	     * ACCESSIBLE_DESCRIPTION_PROPERTY property.
+	     *
+	     * @param s the new localized description of the object
+	     *
+	     * @see #setAccessibleName
+	     * @see #addPropertyChangeListener
+	     *
+	     * @beaninfo
+	     *    preferred:   true
+	     *    description: Sets the accessible description for the component.
+	     */
+	    public void setAccessibleDescription(String s) {
+		ac.setAccessibleDescription(s);
+	    }
+	    
+	    /**
+	     * Gets the role of this object.  The role of the object is the generic
+	     * purpose or use of the class of this object.  For example, the role
+	     * of a push button is AccessibleRole.PUSH_BUTTON.  The roles in 
+	     * AccessibleRole are provided so component developers can pick from
+	     * a set of predefined roles.  This enables assistive technologies to
+	     * provide a consistent interface to various tweaked subclasses of 
+	     * components (e.g., use AccessibleRole.PUSH_BUTTON for all components
+	     * that act like a push button) as well as distinguish between sublasses
+	     * that behave differently (e.g., AccessibleRole.CHECK_BOX for check boxes
+	     * and AccessibleRole.RADIO_BUTTON for radio buttons).
+	     * <p>Note that the AccessibleRole class is also extensible, so 
+	     * custom component developers can define their own AccessibleRole's
+	     * if the set of predefined roles is inadequate.
+	     *
+	     * @return an instance of AccessibleRole describing the role of the object
+	     * @see AccessibleRole
+	     */
+	    public AccessibleRole getAccessibleRole() {
+		return ac.getAccessibleRole();
+	    }
+	    
+	    /**
+	     * Gets the state set of this object.  The AccessibleStateSet of an object
+	     * is composed of a set of unique AccessibleStates.  A change in the 
+	     * AccessibleStateSet of an object will cause a PropertyChangeEvent to 
+	     * be fired for the ACCESSIBLE_STATE_PROPERTY property.
+	     *
+	     * @return an instance of AccessibleStateSet containing the 
+	     * current state set of the object
+	     * @see AccessibleStateSet
+	     * @see AccessibleState
+	     * @see #addPropertyChangeListener
+	     */
+	    public AccessibleStateSet getAccessibleStateSet() {
+		return ac.getAccessibleStateSet();
+	    }
+	    
+	    /**
+	     * Gets the Accessible parent of this object.
+	     *
+	     * @return the Accessible parent of this object; null if this
+	     * object does not have an Accessible parent
+	     */
+	    public Accessible getAccessibleParent() {
+		return ac.getAccessibleParent();
+	    }
+	    
+	    /**
+	     * Sets the Accessible parent of this object.  This is meant to be used
+	     * only in the situations where the actual component's parent should 
+	     * not be treated as the component's accessible parent and is a method 
+	     * that should only be called by the parent of the accessible child. 
+	     *
+	     * @param a - Accessible to be set as the parent	
+	     */
+	    public void setAccessibleParent(Accessible a) {
+		ac.setAccessibleParent(a);
+	    }
+	    
+	    /**
+	     * Gets the 0-based index of this object in its accessible parent.
+	     *
+	     * @return the 0-based index of this object in its parent; -1 if this 
+	     * object does not have an accessible parent.
+	     *
+	     * @see #getAccessibleParent 
+	     * @see #getAccessibleChildrenCount
+	     * @see #getAccessibleChild
+	     */
+	    public int getAccessibleIndexInParent() {
+		return JComboBox.this.getSelectedIndex();
+	    }
+	    
+	    /**
+	     * Returns the number of accessible children of the object.
+	     *
+	     * @return the number of accessible children of the object.
+	     */
+	    public int getAccessibleChildrenCount() {
+		return ac.getAccessibleChildrenCount();
+	    }
+	    
+	    /**
+	     * Returns the specified Accessible child of the object.  The Accessible
+	     * children of an Accessible object are zero-based, so the first child 
+	     * of an Accessible child is at index 0, the second child is at index 1,
+	     * and so on.
+	     *
+	     * @param i zero-based index of child
+	     * @return the Accessible child of the object
+	     * @see #getAccessibleChildrenCount
+	     */
+	    public Accessible getAccessibleChild(int i) {
+		return ac.getAccessibleChild(i);
+	    }
+	    
+	    /** 
+	     * Gets the locale of the component. If the component does not have a 
+	     * locale, then the locale of its parent is returned.  
+	     *
+	     * @return this component's locale.  If this component does not have 
+	     * a locale, the locale of its parent is returned.
+	     *
+	     * @exception IllegalComponentStateException 
+	     * If the Component does not have its own locale and has not yet been 
+	     * added to a containment hierarchy such that the locale can be
+	     * determined from the containing parent. 
+	     */
+	    public Locale getLocale() throws IllegalComponentStateException {
+		return ac.getLocale();
+	    }
+	    
+	    /**
+	     * Adds a PropertyChangeListener to the listener list.
+	     * The listener is registered for all Accessible properties and will
+	     * be called when those properties change.
+	     *
+	     * @see #ACCESSIBLE_NAME_PROPERTY
+	     * @see #ACCESSIBLE_DESCRIPTION_PROPERTY
+	     * @see #ACCESSIBLE_STATE_PROPERTY
+	     * @see #ACCESSIBLE_VALUE_PROPERTY
+	     * @see #ACCESSIBLE_SELECTION_PROPERTY
+	     * @see #ACCESSIBLE_TEXT_PROPERTY
+	     * @see #ACCESSIBLE_VISIBLE_DATA_PROPERTY
+	     *
+	     * @param listener  The PropertyChangeListener to be added
+	     */
+	    public void addPropertyChangeListener(PropertyChangeListener listener) {
+		ac.addPropertyChangeListener(listener);
+	    }
+	    
+	    /**
+	     * Removes a PropertyChangeListener from the listener list.
+	     * This removes a PropertyChangeListener that was registered
+	     * for all properties.
+	     *
+	     * @param listener  The PropertyChangeListener to be removed
+	     */
+	    public void removePropertyChangeListener(PropertyChangeListener listener) {
+		ac.removePropertyChangeListener(listener);
+	    }
+	    
+	    /**
+	     * Gets the AccessibleAction associated with this object that supports
+	     * one or more actions. 
+	     *
+	     * @return AccessibleAction if supported by object; else return null
+	     * @see AccessibleAction
+	     */
+	    public AccessibleAction getAccessibleAction() {
+		return ac.getAccessibleAction();
+	    }
+	    
+	    /**
+	     * Gets the AccessibleComponent associated with this object that has a 
+	     * graphical representation.
+	     *
+	     * @return AccessibleComponent if supported by object; else return null
+	     * @see AccessibleComponent
+	     */
+	    public AccessibleComponent getAccessibleComponent() {
+		return ac.getAccessibleComponent();
+	    }
+	    
+	    /**
+	     * Gets the AccessibleSelection associated with this object which allows its
+	     * Accessible children to be selected.  
+	     * 
+	     * @return AccessibleSelection if supported by object; else return null
+	     * @see AccessibleSelection
+	     */
+	    public AccessibleSelection getAccessibleSelection() {
+		return ac.getAccessibleSelection();
+	    }
+	    
+	    /**
+	     * Gets the AccessibleText associated with this object presenting 
+	     * text on the display.
+	     *
+	     * @return AccessibleText if supported by object; else return null
+	     * @see AccessibleText
+	     */
+	    public AccessibleText getAccessibleText() {
+		return ac.getAccessibleText();
+	    }
+	    
+	    /**
+	     * Gets the AccessibleEditableText associated with this object 
+	     * presenting editable text on the display.
+	     *
+	     * @return AccessibleEditableText if supported by object; else return null
+	     * @see AccessibleEditableText
+	     */
+	    public AccessibleEditableText getAccessibleEditableText() {
+		return ac.getAccessibleEditableText();
+	    }
+	    
+	    /**
+	     * Gets the AccessibleValue associated with this object that supports a 
+	     * Numerical value. 
+	     * 
+	     * @return AccessibleValue if supported by object; else return null 
+	     * @see AccessibleValue
+	     */
+	    public AccessibleValue getAccessibleValue() {
+		return ac.getAccessibleValue();
+	    }
+	    
+	    /**
+	     * Gets the AccessibleIcons associated with an object that has
+	     * one or more associated icons
+	     * 
+	     * @return an array of AccessibleIcon if supported by object; 
+	     * otherwise return null 
+	     * @see AccessibleIcon
+	     */
+	    public AccessibleIcon [] getAccessibleIcon() {
+		return ac.getAccessibleIcon();
+	    }
+	    
+	    /**
+	     * Gets the AccessibleRelationSet associated with an object
+	     * 
+	     * @return an AccessibleRelationSet if supported by object;
+	     * otherwise return null
+	     * @see AccessibleRelationSet
+	     */
+	    public AccessibleRelationSet getAccessibleRelationSet() {
+		return ac.getAccessibleRelationSet();
+	    }
+	    
+	    /**
+	     * Gets the AccessibleTable associated with an object
+	     * 
+	     * @return an AccessibleTable if supported by object;
+	     * otherwise return null
+	     * @see AccessibleTable
+	     */
+	    public AccessibleTable getAccessibleTable() {
+		return ac.getAccessibleTable();
+	    }
+	    
+	    /**
+	     * Support for reporting bound property changes.  If oldValue and 
+	     * newValue are not equal and the PropertyChangeEvent listener list 
+	     * is not empty, then fire a PropertyChange event to each listener.
+	     * In general, this is for use by the Accessible objects themselves
+	     * and should not be called by an application program.
+	     * @param propertyName  The programmatic name of the property that
+	     * was changed.
+	     * @param oldValue  The old value of the property.
+	     * @param newValue  The new value of the property.
+	     * @see java.beans.PropertyChangeSupport
+	     * @see #addPropertyChangeListener
+	     * @see #removePropertyChangeListener
+	     * @see #ACCESSIBLE_NAME_PROPERTY
+	     * @see #ACCESSIBLE_DESCRIPTION_PROPERTY
+	     * @see #ACCESSIBLE_STATE_PROPERTY
+	     * @see #ACCESSIBLE_VALUE_PROPERTY
+	     * @see #ACCESSIBLE_SELECTION_PROPERTY
+	     * @see #ACCESSIBLE_TEXT_PROPERTY
+	     * @see #ACCESSIBLE_VISIBLE_DATA_PROPERTY
+	     */
+	    public void firePropertyChange(String propertyName, 
+					   Object oldValue, 
+					   Object newValue) {
+		ac.firePropertyChange(propertyName, oldValue, newValue);
+	    }
+	}
 
     } // innerclass AccessibleJComboBox
 }

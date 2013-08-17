@@ -1,11 +1,11 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * @(#)FeatureDescriptor.java	1.27 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.beans;
-
-import java.lang.ref.*;
 
 /**
  * The FeatureDescriptor class is the common baseclass for PropertyDescriptor,
@@ -20,7 +20,6 @@ import java.lang.ref.*;
 
 public class FeatureDescriptor {
 
-    private Reference classRef;
 
     /**
      * Constructs a <code>FeatureDescriptor</code>.
@@ -207,6 +206,7 @@ public class FeatureDescriptor {
     FeatureDescriptor(FeatureDescriptor x, FeatureDescriptor y) {
 	expert = x.expert | y.expert;
 	hidden = x.hidden | y.hidden;
+	preferred = x.preferred | y.preferred;
 	name = y.name;
 	shortDescription = x.shortDescription;
 	if (y.shortDescription != null) {
@@ -215,10 +215,6 @@ public class FeatureDescriptor {
 	displayName = x.displayName;
 	if (y.displayName != null) {
 	    displayName = y.displayName;
-	}
-	classRef = x.classRef;
-	if (y.classRef != null) {
-	    classRef = y.classRef;
 	}
 	addTable(x.table);
 	addTable(y.table);
@@ -231,11 +227,10 @@ public class FeatureDescriptor {
     FeatureDescriptor(FeatureDescriptor old) {
 	expert = old.expert;
 	hidden = old.hidden;
+	preferred = old.preferred;
 	name = old.name;
 	shortDescription = old.shortDescription;
 	displayName = old.displayName;
-	classRef = old.classRef;
-
 	addTable(old.table);
     }
 
@@ -249,58 +244,6 @@ public class FeatureDescriptor {
 	    Object value = t.get(key);
 	    setValue(key, value);
 	}
-    }
-
-    // Package private methods for recreating the weak/soft referent
-    
-    void setClass0(Class cls) {
-        classRef = createReference(cls);
-    }
-    
-    Class getClass0() {
-        return (Class)getObject(classRef);
-    }
-    
-    /**
-     * Create a Reference wrapper for the object.
-     *
-     * @param obj object that will be wrapped
-     * @param soft true if a SoftReference should be created; otherwise Soft
-     * @return a Reference or null if obj is null.
-     */
-    static Reference createReference(Object obj, boolean soft) {
-        Reference ref = null;
-        if (obj != null) {
-            if (soft) {
-                ref = new SoftReference(obj);
-            } else {
-                ref = new WeakReference(obj);
-            }
-        }
-        return ref;
-    }
-    
-    // Convenience method which creates a WeakReference.
-    static Reference createReference(Object obj) {
-        return createReference(obj, false);
-    }
-
-   /**
-     * Returns an object from a Reference wrapper.
-     *
-     * @return the Object in a wrapper or null.
-     */
-    static Object getObject(Reference ref) {
-        return (ref == null) ? null : (Object)ref.get();
-    }
-
-    static String capitalize(String s) {
-	if (s == null || s.length() == 0) {
-	    return s;
-	}
-	char chars[] = s.toCharArray();
-	chars[0] = Character.toUpperCase(chars[0]);
-	return new String(chars);
     }
 
     private boolean expert;

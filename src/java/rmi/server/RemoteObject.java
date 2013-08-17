@@ -1,4 +1,6 @@
 /*
+ * @(#)RemoteObject.java	1.25 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,13 +17,15 @@ import java.rmi.NoSuchObjectException;
  * <code>RemoteObject</code> provides the remote semantics of Object by
  * implementing methods for hashCode, equals, and toString.
  *
- * @version 1.23, 02/06/02
- * @author  Ann Wollrath
- * @since   JDK1.1
+ * @author	Ann Wollrath
+ * @author	Laird Dornin
+ * @author	Peter Jones
+ * @version	1.25, 01/12/03
+ * @since	JDK1.1
  */
 public abstract class RemoteObject implements Remote, java.io.Serializable {
 
-    /** the object's remote reference. */
+    /** the object's remote reference */
     transient protected RemoteRef ref;
     
     /** indicate compatibility with JDK 1.1.x version of class */
@@ -29,7 +33,6 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
 
     /**
      * Creates a remote object.
-     * @since JDK1.1
      */
     protected RemoteObject() {
 	ref = null;
@@ -39,7 +42,6 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
      * Creates a remote object, initialized with the specified remote
      * reference.
      * @param newref remote reference
-     * @since JDK1.1
      */
     protected RemoteObject(RemoteRef newref) {
 	ref = newref;
@@ -78,7 +80,6 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
      * (in order to support remote objects as keys in hash tables).
      *
      * @see		java.util.Hashtable
-     * @since JDK1.1
      */
     public int hashCode() {
 	return (ref == null) ? super.hashCode() : ref.remoteHashCode();
@@ -96,7 +97,6 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
      * @param	obj	the Object to compare with
      * @return	true if these Objects are equal; false otherwise.
      * @see		java.util.Hashtable
-     * @since JDK1.1
      */
     public boolean equals(Object obj) {
 	if (obj instanceof RemoteObject) {
@@ -120,7 +120,6 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
 
     /**
      * Returns a String that represents the value of this remote object.
-     * @since JDK1.1
      */
     public String toString() {
 	String classname = this.getClass().getName();
@@ -128,18 +127,203 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
 	    classname + "[" +ref.remoteToString() + "]";
     }
 
-
     /**
-     * writeObject for object serialization.  Writes out the class
-     * name of the remote reference contained in this class and
-     * delegates to the reference to write out its representation.
+     * <code>writeObject</code> for custom serialization.
+     *
+     * <p>This method writes this object's serialized form for this class
+     * as follows:
+     *
+     * <p>The {@link RemoteRef#getRefClass(java.io.ObjectOutput) getRefClass}
+     * method is invoked on this object's <code>ref</code> field
+     * to obtain its external ref type name.
+     * If the value returned by <code>getRefClass</code> was
+     * a non-<code>null</code> string of length greater than zero,
+     * the <code>writeUTF</code> method is invoked on <code>out</code>
+     * with the value returned by <code>getRefClass</code>, and then
+     * the <code>writeExternal</code> method is invoked on
+     * this object's <code>ref</code> field passing <code>out</code>
+     * as the argument; otherwise,
+     * the <code>writeUTF</code> method is invoked on <code>out</code>
+     * with a zero-length string (<code>""</code>), and then
+     * the <code>writeObject</code> method is invoked on <code>out</code>
+     * passing this object's <code>ref</code> field as the argument.
      * 
-     * @serialData Writes out the unqualified class name of the remote
-     * reference field, <code>ref</code>, in <code>UTF-8</code> and
-     * delegates to the <code>ref</code> field to write out its
-     * representation.  Different information will be written to
-     * <code>out</code> depending upon the <code>ref</code> field's
-     * type.  Default serialization is not used. 
+     * @serialData
+     *
+     * The serialized data for this class comprises a string (written with
+     * <code>ObjectOutput.writeUTF</code>) that is either the external
+     * ref type name of the contained <code>RemoteRef</code> instance
+     * (the <code>ref</code> field) or a zero-length string, followed by
+     * either the external form of the <code>ref</code> field as written by
+     * its <code>writeExternal</code> method if the string was of non-zero
+     * length, or the serialized form of the <code>ref</code> field as
+     * written by passing it to the serialization stream's
+     * <code>writeObject</code> if the string was of zero length.
+     *
+     * <p>If this object is an instance of
+     * <code>java.rmi.server.RemoteStub</code> that was returned from any of
+     * the <code>UnicastRemoteObject.exportObject</code> methods
+     * and custom socket factories are not used,
+     * the external ref type name is <code>"UnicastRef"</code>.
+     *
+     * If this object is an instance of
+     * <code>RemoteStub</code> that was returned from any of
+     * the <code>UnicastRemoteObject.exportObject</code> methods
+     * and custom socket factories are used,
+     * the external ref type name is <code>"UnicastRef2"</code>.
+     *
+     * If this object is an instance of
+     * <code>RemoteStub</code> that was returned from any of
+     * the <code>java.rmi.activation.Activatable.exportObject</code> methods,
+     * the external ref type name is <code>"ActivatableRef"</code>.
+     *
+     * If this object is an instance of
+     * <code>RemoteStub</code> that was returned from
+     * the <code>RemoteObject.toStub</code> method (and the argument passed
+     * to <code>toStub</code> was not itself a <code>RemoteStub</code>),
+     * the external ref type name is a function of how the remote object
+     * passed to <code>toStub</code> was exported, as described above.
+     *
+     * If this object is an instance of
+     * <code>RemoteStub</code> that was originally
+     * created via deserialization,
+     * the external ref type name is the same as that which was read
+     * when this object was deserialized.
+     *
+     * <p>If this object is an instance of
+     * <code>java.rmi.server.UnicastRemoteObject</code> that does not
+     * use custom socket factories,
+     * the external ref type name is <code>"UnicastServerRef"</code>.
+     *
+     * If this object is an instance of
+     * <code>UnicastRemoteObject</code> that does
+     * use custom socket factories,
+     * the external ref type name is <code>"UnicastServerRef2"</code>.
+     *
+     * <p>If this object is an instance of
+     * <code>java.rmi.activation.Activatable</code>,
+     * the external ref type name is <code>"ActivatableServerRef"</code>.
+     *
+     * <p>Following is the data that must be written by the
+     * <code>writeExternal</code> method and read by the
+     * <code>readExternal</code> method of <code>RemoteRef</code>
+     * implementation classes that correspond to the each of the
+     * defined external ref type names:
+     *
+     * <p>For <code>"UnicastRef"</code>:
+     *
+     * <ul>
+     *
+     * <li>the hostname of the referenced remote object,
+     * written by {@link java.io.ObjectOutput#writeUTF(String)}
+     *
+     * <li>the port of the referenced remote object,
+     * written by {@link java.io.ObjectOutput#writeInt(int)}
+     *
+     * <li>the data written as a result of calling
+     * {link java.rmi.server.ObjID#write(java.io.ObjectOutput)}
+     * on the <code>ObjID</code> instance contained in the reference
+     *
+     * <li>the boolean value <code>false</code>,
+     * written by {@link java.io.ObjectOutput#writeBoolean(boolean)}
+     *
+     * </ul>
+     *
+     * <p>For <code>"UnicastRef2"</code> with a
+     * <code>null</code> client socket factory:
+     *
+     * <ul>
+     *
+     * <li>the byte value <code>0x00</code>
+     * (indicating <code>null</code> client socket factory),
+     * written by {@link java.io.ObjectOutput#writeByte(int)}
+     *
+     * <li>the hostname of the referenced remote object,
+     * written by {@link java.io.ObjectOutput#writeUTF(String)}
+     *
+     * <li>the port of the referenced remote object,
+     * written by {@link java.io.ObjectOutput#writeInt(int)}
+     *
+     * <li>the data written as a result of calling
+     * {link java.rmi.server.ObjID#write(java.io.ObjectOutput)}
+     * on the <code>ObjID</code> instance contained in the reference
+     *
+     * <li>the boolean value <code>false</code>,
+     * written by {@link java.io.ObjectOutput#writeBoolean(boolean)}
+     *
+     * </ul>
+     * 
+     * <p>For <code>"UnicastRef2"</code> with a
+     * non-<code>null</code> client socket factory:
+     *
+     * <ul>
+     *
+     * <li>the byte value <code>0x01</code>
+     * (indicating non-<code>null</code> client socket factory),
+     * written by {@link java.io.ObjectOutput#writeByte(int)}
+     *
+     * <li>the hostname of the referenced remote object,
+     * written by {@link java.io.ObjectOutput#writeUTF(String)}
+     *
+     * <li>the port of the referenced remote object,
+     * written by {@link java.io.ObjectOutput#writeInt(int)}
+     *
+     * <li>a client socket factory (object of type
+     * <code>java.rmi.server.RMIClientSocketFactory</code>),
+     * written by passing it to an invocation of
+     * <code>writeObject</code> on the stream instance
+     *
+     * <li>the data written as a result of calling
+     * {link java.rmi.server.ObjID#write(java.io.ObjectOutput)}
+     * on the <code>ObjID</code> instance contained in the reference
+     *
+     * <li>the boolean value <code>false</code>,
+     * written by {@link java.io.ObjectOutput#writeBoolean(boolean)}
+     *
+     * </ul>
+     *
+     * <p>For <code>"ActivatableRef"</code> with a
+     * <code>null</code> nested remote reference:
+     *
+     * <ul>
+     *
+     * <li>an instance of
+     * <code>java.rmi.activation.ActivationID</code>,
+     * written by passing it to an invocation of
+     * <code>writeObject</code> on the stream instance
+     *
+     * <li>a zero-length string (<code>""</code>),
+     * written by {@link java.io.ObjectOutput#writeUTF(String)}
+     *
+     * </ul>
+     *
+     * <p>For <code>"ActivatableRef"</code> with a
+     * non-<code>null</code> nested remote reference:
+     *
+     * <ul>
+     *
+     * <li>an instance of
+     * <code>java.rmi.activation.ActivationID</code>,
+     * written by passing it to an invocation of
+     * <code>writeObject</code> on the stream instance
+     *
+     * <li>the external ref type name of the nested remote reference,
+     * which must be <code>"UnicastRef2"</code>,
+     * written by {@link java.io.ObjectOutput#writeUTF(String)}
+     *
+     * <li>the external form of the nested remote reference,
+     * written by invoking its <code>writeExternal</code> method
+     * with the stream instance
+     * (see the description of the external form for
+     * <code>"UnicastRef2"</code> above)
+     *
+     * </ul>
+     *
+     * <p>For <code>"UnicastServerRef"</code>,
+     * <code>"UnicastServerRef2"</code>, and
+     * <code>"ActivatableServerRef"</code>, no data is written by the
+     * <code>writeExternal</code> method or read by the
+     * <code>readExternal</code> method.
      */
     private void writeObject(java.io.ObjectOutputStream out)
 	throws java.io.IOException, java.lang.ClassNotFoundException
@@ -167,13 +351,41 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
     }
 
     /**
-     * readObject for object serialization. Reads in the unqualified
-     * class name of the remote reference field, <code>ref</code>, in
-     * <code>UTF-8</code> and delegates to the <code>ref</code> field
-     * to read in its representation. The <code>ref</code> field is
-     * read via a direct call to
-     * <code>ref.readExternal(ObjectInputStream in)</code>. Default
-     * serialization is not used.  
+     * <code>readObject</code> for custom serialization.
+     *
+     * <p>This method reads this object's serialized form for this class
+     * as follows:
+     *
+     * <p>The <code>readUTF</code> method is invoked on <code>in</code>
+     * to read the external ref type name for the <code>RemoteRef</code>
+     * instance to be filled in to this object's <code>ref</code> field.
+     * If the string returned by <code>readUTF</code> has length zero,
+     * the <code>readObject</code> method is invoked on <code>in</code>,
+     * and than the value returned by <code>readObject</code> is cast to
+     * <code>RemoteRef</code> and this object's <code>ref</code> field is
+     * set to that value.
+     * Otherwise, this object's <code>ref</code> field is set to a
+     * <code>RemoteRef</code> instance that is created of an
+     * implementation-specific class corresponding to the external ref
+     * type name returned by <code>readUTF</code>, and then
+     * the <code>readExternal</code> method is invoked on
+     * this object's <code>ref</code> field.
+     *
+     * <p>If the external ref type name is
+     * <code>"UnicastRef"</code>, <code>"UnicastServerRef"</code>,
+     * <code>"UnicastRef2"</code>, <code>"UnicastServerRef2"</code>,
+     * <code>"ActivatableRef"</code>, or
+     * <code>"ActivatableServerRef"</code>, a corresponding
+     * implementation-specific class must be found, and its
+     * <code>readExternal</code> method must read the serial data
+     * for that external ref type name as specified to be written
+     * in the <b>serialData</b> documentation for this class.
+     * If the external ref type name is any other string (of non-zero
+     * length), a <code>ClassNotFoundException</code> will be thrown,
+     * unless the implementation provides an implementation-specific
+     * class corresponding to that external ref type name, in which
+     * case this object's <code>ref</code> field will be set to an
+     * instance of that implementation-specific class.
      */
     private void readObject(java.io.ObjectInputStream in) 
 	throws java.io.IOException, java.lang.ClassNotFoundException

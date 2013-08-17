@@ -1,4 +1,6 @@
 /*
+ * @(#)Package.java	1.35 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -27,12 +29,15 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import sun.net.www.ParseUtil;
+
 /**
  * <code>Package</code> objects contain version information
  * about the implementation and specification of a Java package.
  * This versioning information is retrieved and made available
- * by the classloader that loaded the class(es). Typically, it is
- * stored in the manifest that is distributed with the classes.<p>
+ * by the <code>ClassLoader</code> instance that loaded the class(es).
+ * Typically, it is stored in the manifest that is distributed with
+ * the classes.<p>
  *
  * The set of classes that make up the package may implement a
  * particular specification and if
@@ -56,10 +61,10 @@ import java.util.Iterator;
  * implementation version strings have no specified syntax and should
  * only be compared for equality with desired version identifers.
  *
- * Within each classloader all classes from the same java package have
- * the same Package object.  The static methods allow a package 
- * to be found by name or the set of all packages known
- * to the current class loader to be found.<p>
+ * Within each <code>ClassLoader</code> instance all classes from the same
+ * java package have the same Package object.  The static methods allow a package 
+ * to be found by name or the set of all packages known to the current class 
+ * loader to be found.<p>
  *
  * @see ClassLoader#definePackage
  */
@@ -218,17 +223,16 @@ public class Package {
     }
 
     /**
-     * Find a package by name in the callers classloader.
-     * The callers classloader is used to find the package instance
-     * corresponding to the named class. If the callers classloader
-     * is null then the set of packages loaded by the system
-     * classloader is searched to find the named package. <p>
+     * Find a package by name in the callers <code>ClassLoader</code> instance.
+     * The callers <code>ClassLoader</code> instance is used to find the package
+     * instance corresponding to the named class. If the callers
+     * <code>ClassLoader</code> instance is null then the set of packages loaded
+     * by the system <code>ClassLoader</code> instance is searched to find the
+     * named package. <p>
      *
-     * Packages have attributes for versions and specifications only
-     * if the class loader created the package
-     * instance with the appropriate attributes. Typically, those
-     * attributes are defined in the manifests that accompany
-     * the classes.
+     * Packages have attributes for versions and specifications only if the class
+     * loader created the package instance with the appropriate attributes. Typically,
+     * those attributes are defined in the manifests that accompany the classes.
      *
      * @param name a package name, for example, java.lang.
      * @return the package of the requested name. It may be null if no package
@@ -244,15 +248,16 @@ public class Package {
     }
 
     /**
-     * Get all the packages currently known for the caller's class loader.
-     * Those packages correspond to classes loaded via or accessible
-     * by name to that class loader.  If the caller's class loader is
-     * the bootstrap classloader, which may be represented by 
-     * <code>null</code> in some implementations, only packages corresponding 
-     * to classes loaded by the bootstrap class loader will be returned.
+     * Get all the packages currently known for the caller's <code>ClassLoader</code>
+     * instance.  Those packages correspond to classes loaded via or accessible by
+     * name to that <code>ClassLoader</code> instance.  If the caller's
+     * <code>ClassLoader</code> instance is the bootstrap <code>ClassLoader</code>
+     * instance, which may be represented by <code>null</code> in some implementations,
+     * only packages corresponding to classes loaded by the bootstrap
+     * <code>ClassLoader</code> instance will be returned.
      *
-     * @return a new array of packages known to the callers classloader.
-     * An zero length array is returned if none are known.
+     * @return a new array of packages known to the callers <code>ClassLoader</code> 
+     * instance.  An zero length array is returned if none are known.
      */
     public static Package[] getPackages() {
 	ClassLoader l = ClassLoader.getCallerClassLoader();
@@ -297,8 +302,8 @@ public class Package {
     }
 
     /**
-     * Return the hashcode computed from the package name.
-     * @return the hodecode computed from the package name.
+     * Return the hash code computed from the package name.
+     * @return the hode code computed from the package name.
      */
     public int hashCode(){
     	return pkgName.hashCode();
@@ -445,7 +450,7 @@ public class Package {
 		    // URL not found, so create one
 		    File file = new File(fn);
 		    try {
-			url = file.toURL();
+			url = ParseUtil.fileToEncodedURL(file);
 		    } catch (MalformedURLException e) {
 		    }
 		    if (url != null) {

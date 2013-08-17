@@ -1,4 +1,6 @@
 /*
+ * @(#)Toolkit.java	1.181 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,6 +13,7 @@ import java.util.ResourceBundle;
 import java.util.StringTokenizer;
 import java.awt.event.*;
 import java.awt.peer.*;
+import java.awt.*;
 import java.awt.im.InputMethodHighlight;
 import java.awt.image.ImageObserver;
 import java.awt.image.ImageProducer;
@@ -34,9 +37,15 @@ import java.util.EventListener;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.WeakHashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+
+import sun.awt.DebugHelper;
+import sun.awt.HeadlessToolkit;
+import sun.awt.NullComponentPeer;
 
 /**
  * This class is the abstract superclass of all actual
@@ -51,7 +60,7 @@ import java.beans.PropertyChangeSupport;
  * <code>java.awt.peer</code>. Some methods defined by
  * <code>Toolkit</code> query the native operating system directly.
  *
- * @version 	1.158, 03/20/02
+ * @version 	1.181, 12/03/01
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @author	Fred Ecks
@@ -64,101 +73,141 @@ public abstract class  Toolkit {
      * the specified peer interface.
      * @param     target the button to be implemented.
      * @return    this toolkit's implementation of <code>Button</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.Button
      * @see       java.awt.peer.ButtonPeer
      */
-    protected abstract ButtonPeer 	createButton(Button target);
+    protected abstract ButtonPeer createButton(Button target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>TextField</code> using
      * the specified peer interface.
      * @param     target the text field to be implemented.
      * @return    this toolkit's implementation of <code>TextField</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.TextField
      * @see       java.awt.peer.TextFieldPeer
      */
-    protected abstract TextFieldPeer 	createTextField(TextField target);
+    protected abstract TextFieldPeer createTextField(TextField target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>Label</code> using
      * the specified peer interface.
      * @param     target the label to be implemented.
      * @return    this toolkit's implementation of <code>Label</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.Label
      * @see       java.awt.peer.LabelPeer
      */
-    protected abstract LabelPeer 	createLabel(Label target);
+    protected abstract LabelPeer createLabel(Label target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>List</code> using
      * the specified peer interface.
      * @param     target the list to be implemented.
      * @return    this toolkit's implementation of <code>List</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.List
      * @see       java.awt.peer.ListPeer
      */
-    protected abstract ListPeer 	createList(List target);
+    protected abstract ListPeer createList(java.awt.List target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>Checkbox</code> using
      * the specified peer interface.
      * @param     target the check box to be implemented.
      * @return    this toolkit's implementation of <code>Checkbox</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.Checkbox
      * @see       java.awt.peer.CheckboxPeer
      */
-    protected abstract CheckboxPeer 	createCheckbox(Checkbox target);
+    protected abstract CheckboxPeer createCheckbox(Checkbox target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>Scrollbar</code> using
      * the specified peer interface.
      * @param     target the scroll bar to be implemented.
      * @return    this toolkit's implementation of <code>Scrollbar</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.Scrollbar
      * @see       java.awt.peer.ScrollbarPeer
      */
-    protected abstract ScrollbarPeer 	createScrollbar(Scrollbar target);
+    protected abstract ScrollbarPeer createScrollbar(Scrollbar target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>ScrollPane</code> using
      * the specified peer interface.
      * @param     target the scroll pane to be implemented.
      * @return    this toolkit's implementation of <code>ScrollPane</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.ScrollPane
      * @see       java.awt.peer.ScrollPanePeer
      * @since     JDK1.1
      */
-    protected abstract ScrollPanePeer     createScrollPane(ScrollPane target);
+    protected abstract ScrollPanePeer createScrollPane(ScrollPane target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>TextArea</code> using
      * the specified peer interface.
      * @param     target the text area to be implemented.
      * @return    this toolkit's implementation of <code>TextArea</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.TextArea
      * @see       java.awt.peer.TextAreaPeer
      */
-    protected abstract TextAreaPeer  	createTextArea(TextArea target);
+    protected abstract TextAreaPeer createTextArea(TextArea target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>Choice</code> using
      * the specified peer interface.
      * @param     target the choice to be implemented.
      * @return    this toolkit's implementation of <code>Choice</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.Choice
      * @see       java.awt.peer.ChoicePeer
      */
-    protected abstract ChoicePeer	createChoice(Choice target);
+    protected abstract ChoicePeer createChoice(Choice target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>Frame</code> using
      * the specified peer interface.
      * @param     target the frame to be implemented.
      * @return    this toolkit's implementation of <code>Frame</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.Frame
      * @see       java.awt.peer.FramePeer
      */
-    protected abstract FramePeer  	createFrame(Frame target);
+    protected abstract FramePeer createFrame(Frame target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>Canvas</code> using
@@ -185,83 +234,115 @@ public abstract class  Toolkit {
      * the specified peer interface.
      * @param     target the window to be implemented.
      * @return    this toolkit's implementation of <code>Window</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.Window
      * @see       java.awt.peer.WindowPeer
      */
-    protected abstract WindowPeer  	createWindow(Window target);
+    protected abstract WindowPeer createWindow(Window target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>Dialog</code> using
      * the specified peer interface.
      * @param     target the dialog to be implemented.
      * @return    this toolkit's implementation of <code>Dialog</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.Dialog
      * @see       java.awt.peer.DialogPeer
      */
-    protected abstract DialogPeer  	createDialog(Dialog target);
+    protected abstract DialogPeer createDialog(Dialog target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>MenuBar</code> using
      * the specified peer interface.
      * @param     target the menu bar to be implemented.
      * @return    this toolkit's implementation of <code>MenuBar</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.MenuBar
      * @see       java.awt.peer.MenuBarPeer
      */
-    protected abstract MenuBarPeer  	createMenuBar(MenuBar target);
+    protected abstract MenuBarPeer createMenuBar(MenuBar target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>Menu</code> using
      * the specified peer interface.
      * @param     target the menu to be implemented.
      * @return    this toolkit's implementation of <code>Menu</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.Menu
      * @see       java.awt.peer.MenuPeer
      */
-    protected abstract MenuPeer  	createMenu(Menu target);
+    protected abstract MenuPeer createMenu(Menu target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>PopupMenu</code> using
      * the specified peer interface.
      * @param     target the popup menu to be implemented.
      * @return    this toolkit's implementation of <code>PopupMenu</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.PopupMenu
      * @see       java.awt.peer.PopupMenuPeer
      * @since     JDK1.1
      */
-    protected abstract PopupMenuPeer	createPopupMenu(PopupMenu target);
+    protected abstract PopupMenuPeer createPopupMenu(PopupMenu target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>MenuItem</code> using
      * the specified peer interface.
      * @param     target the menu item to be implemented.
      * @return    this toolkit's implementation of <code>MenuItem</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.MenuItem
      * @see       java.awt.peer.MenuItemPeer
      */
-    protected abstract MenuItemPeer  	createMenuItem(MenuItem target);
+    protected abstract MenuItemPeer createMenuItem(MenuItem target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>FileDialog</code> using
      * the specified peer interface.
      * @param     target the file dialog to be implemented.
      * @return    this toolkit's implementation of <code>FileDialog</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.FileDialog
      * @see       java.awt.peer.FileDialogPeer
      */
-    protected abstract FileDialogPeer	createFileDialog(FileDialog target);
+    protected abstract FileDialogPeer createFileDialog(FileDialog target)
+        throws HeadlessException;
 
     /**
      * Creates this toolkit's implementation of <code>CheckboxMenuItem</code> using
      * the specified peer interface.
      * @param     target the checkbox menu item to be implemented.
      * @return    this toolkit's implementation of <code>CheckboxMenuItem</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.CheckboxMenuItem
      * @see       java.awt.peer.CheckboxMenuItemPeer
      */
-    protected abstract CheckboxMenuItemPeer	createCheckboxMenuItem(CheckboxMenuItem target);
+    protected abstract CheckboxMenuItemPeer createCheckboxMenuItem(
+        CheckboxMenuItem target) throws HeadlessException;
 
-    private static java.awt.LightweightPeer lightweightMarker;
+    private static LightweightPeer lightweightMarker;
 
     /**
      * Creates a peer for a component or container.  This peer is windowless
@@ -270,18 +351,20 @@ public abstract class  Toolkit {
      *
      * @param target The Component to be created.
      */
-    protected java.awt.peer.LightweightPeer createComponent(Component target) {
+    protected LightweightPeer createComponent(Component target) {
         if (lightweightMarker == null) {
-            lightweightMarker = new java.awt.LightweightPeer(target);
+            lightweightMarker = new NullComponentPeer();
         }
-	return lightweightMarker;
+        return lightweightMarker;
     }
 
     /**
      * Creates this toolkit's implementation of <code>Font</code> using
      * the specified peer interface.
-     * @param     target the font to be implemented.
-     * @return    this toolkit's implementation of <code>Font</code>.
+     * @param     name the font to be implemented
+     * @param     style the style of the font, such as <code>PLAIN</code>,
+     *            <code>BOLD</code>, <code>ITALIC</code>, or a combination
+     * @return    this toolkit's implementation of <code>Font</code>
      * @see       java.awt.Font
      * @see       java.awt.peer.FontPeer
      * @see       java.awt.GraphicsEnvironment#getAllFonts
@@ -297,23 +380,142 @@ public abstract class  Toolkit {
      * with the current system color values.
      *
      * @param     an integer array.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @since     JDK1.1
      */
-    protected void loadSystemColors(int[] systemColors) {
+    protected void loadSystemColors(int[] systemColors)
+        throws HeadlessException {
     }
 
     /**
-     * Gets the size of the screen.
-     * @return    the size of this toolkit's screen, in pixels.
+     * Controls whether the layout of Containers is validated dynamically
+     * during resizing, or statically, after resizing is complete.
+     * Note that this feature is not supported on all platforms, and
+     * conversely, that this feature cannot be turned off on some platforms.
+     * On platforms where dynamic layout during resize is not supported
+     * (or is always supported), setting this property has no effect.
+     * Note that this feature can be set or unset as a property of the
+     * operating system or window manager on some platforms.  On such
+     * platforms, the dynamic resize property must be set at the operating
+     * system or window manager level before this method can take effect.
+     * This method does not change the underlying operating system or
+     * window manager support or settings.  The OS/WM support can be
+     * queried using getDesktopProperty("awt.dynamicLayoutSupported").
+     *
+     * @param     dynamic  If true, Containers should re-layout their
+     *            components as the Container is being resized.  If false,
+     *            the layout will be validated after resizing is finished.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     *            returns true
+     * @see       #isDynamicLayoutSet()
+     * @see       #isDynamicLayoutActive()
+     * @see       #getDesktopProperty(String propertyName)
+     * @see       java.awt.GraphicsEnvironment#isHeadless
+     * @since     1.4
      */
-    public abstract Dimension getScreenSize();
+    public void setDynamicLayout(boolean dynamic)
+        throws HeadlessException {
+    }
+
+    /**
+     * Returns whether the layout of Containers is validated dynamically
+     * during resizing, or statically, after resizing is complete.
+     * Note: this method returns the value that was set programmatically;
+     * it does not reflect support at the level of the operating system
+     * or window manager for dynamic layout on resizing, or the current
+     * operating system or window manager settings.  The OS/WM support can
+     * be queried using getDesktopProperty("awt.dynamicLayoutSupported").
+     *
+     * @return    true if validation of Containers is done dynamically,
+     *            false if validation is done after resizing is finished.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     *            returns true
+     * @see       #setDynamicLayout(boolean dynamic)
+     * @see       #isDynamicLayoutActive()
+     * @see       #getDesktopProperty(String propertyName)
+     * @see       java.awt.GraphicsEnvironment#isHeadless
+     * @since     1.4
+     */
+    protected boolean isDynamicLayoutSet()
+        throws HeadlessException {
+        if (this != Toolkit.getDefaultToolkit()) {
+            return Toolkit.getDefaultToolkit().isDynamicLayoutSet();
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Returns whether dynamic layout of Containers on resize is
+     * currently active (both set programmatically, and supported
+     * by the underlying operating system and/or window manager).
+     * The OS/WM support can be queried using 
+     * getDesktopProperty("awt.dynamicLayoutSupported").
+     *
+     * @return    true if dynamic layout of Containers on resize is
+     *            currently active, false otherwise.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     *            returns true
+     * @see       #setDynamicLayout(boolean dynamic)
+     * @see       #isDynamicLayoutSet()
+     * @see       #getDesktopProperty(String propertyName)
+     * @see       java.awt.GraphicsEnvironment#isHeadless
+     * @since     1.4
+     */
+    public boolean isDynamicLayoutActive()
+        throws HeadlessException {
+        if (this != Toolkit.getDefaultToolkit()) {
+            return Toolkit.getDefaultToolkit().isDynamicLayoutActive();
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Gets the size of the screen.  On systems with multiple displays, the
+     * primary display is used.  Multi-screen aware display dimensions are
+     * available from <code>GraphicsConfiguration</code> and
+     * <code>GraphicsDevice</code>.
+     * @return    the size of this toolkit's screen, in pixels.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsConfiguration#getBounds
+     * @see       java.awt.GraphicsEnvironment#getDisplayMode
+     * @see       java.awt.GraphicsEnvironment#isHeadless
+     */
+    public abstract Dimension getScreenSize()
+        throws HeadlessException;
 
     /**
      * Returns the screen resolution in dots-per-inch.
      * @return    this toolkit's screen resolution, in dots-per-inch.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      */
-    public abstract int getScreenResolution();
+    public abstract int getScreenResolution()
+        throws HeadlessException;
 
+    /**
+     * Gets the insets of the screen.
+     * @param     a <code>GraphicsConfiguration</code>
+     * @return    the insets of this toolkit's screen, in pixels.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
+     * @since     1.4
+     */
+    public Insets getScreenInsets(GraphicsConfiguration gc)
+        throws HeadlessException {
+        if (this != Toolkit.getDefaultToolkit()) {
+            return Toolkit.getDefaultToolkit().getScreenInsets(gc);
+        } else {
+            return new Insets(0, 0, 0, 0);
+        }
+    }
+    
     /**
      * Determines the color model of this toolkit's screen.
      * <p>
@@ -326,10 +528,14 @@ public abstract class  Toolkit {
      * <code>getColorModel</code> method
      * of the <code>Component</code> class.
      * @return    the color model of this toolkit's screen.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.image.ColorModel
      * @see       java.awt.Component#getColorModel
      */
-    public abstract ColorModel getColorModel();
+    public abstract ColorModel getColorModel()
+        throws HeadlessException;
 
     /**
      * Returns the names of the available fonts in this toolkit.<p>
@@ -351,9 +557,10 @@ public abstract class  Toolkit {
 
     /**
      * Gets the screen device metrics for rendering of the font.
-     * @param     font   a font.
-     * @return    the screen metrics of the specified font in this toolkit.
-     * @deprecated  This returns integer metrics for the default screen.
+     * @param     font   a font
+     * @return    the screen metrics of the specified font in this toolkit
+     * @deprecated  As of JDK version 1.2, replaced by the <code>Font</code>
+     *		method <code>getLineMetrics</code>.
      * @see java.awt.font.LineMetrics
      * @see java.awt.Font#getLineMetrics
      * @see java.awt.GraphicsEnvironment#getScreenDevices
@@ -407,19 +614,17 @@ public abstract class  Toolkit {
 		    FileInputStream in =
 			new FileInputStream(propsFile);
 
-		    // Inputstream has been buffered in Properties class
+                    // Inputstream has been buffered in Properties class
 		    properties.load(in);
 		    in.close();
 		} catch (Exception e) {
 		    // File does not exist; no classes will be auto loaded
 		}
-
 		String magPresent = 
 		    System.getProperty("javax.accessibility.screen_magnifier_present");
 		if (magPresent == null) {
 		    magPresent = 
-			properties.getProperty("screen_magnifier_present", 
-					       null);
+			properties.getProperty("screen_magnifier_present", null);
 		    if (magPresent != null) {
 			System.setProperty("javax.accessibility.screen_magnifier_present",
 					   magPresent);
@@ -428,7 +633,7 @@ public abstract class  Toolkit {
 		return null;
 	    }
 	});
-       
+
         String atNames = properties.getProperty("assistive_technologies",null);
 	ClassLoader cl = ClassLoader.getSystemClassLoader();
 
@@ -517,6 +722,9 @@ public abstract class  Toolkit {
 	                    }
                             if (cls != null) {
 				toolkit = (Toolkit)cls.newInstance();
+                                if (GraphicsEnvironment.isHeadless()) {
+                                    toolkit = new HeadlessToolkit(toolkit);
+                                }
 			    }
 		        } catch (InstantiationException e) {
 			    throw new AWTError("Could not instantiate Toolkit: " +
@@ -544,7 +752,7 @@ public abstract class  Toolkit {
      * with the same filename to the same returned Image.
      * Since the mechanism required to facilitate this sharing of
      * Image objects may continue to hold onto images that are no
-     * longer of use for an indefinate period of time, developers
+     * longer of use for an indefinite period of time, developers
      * are encouraged to implement their own caching of images by
      * using the createImage variant wherever available.
      * @param     filename   the name of a file containing pixel data
@@ -563,7 +771,7 @@ public abstract class  Toolkit {
      * with the same URL to the same returned Image.
      * Since the mechanism required to facilitate this sharing of
      * Image objects may continue to hold onto images that are no
-     * longer of use for an indefinate period of time, developers
+     * longer of use for an indefinite period of time, developers
      * are encouraged to implement their own caching of images by
      * using the createImage variant wherever available.
      * @param     url   the URL to use in fetching the pixel data.
@@ -743,9 +951,12 @@ public abstract class  Toolkit {
      *
      * @return	a <code>PrintJob</code> object, or <code>null</code> if the
      *		user cancelled the print job.
-     * @throws	NullPointerException if frame is null
+     * @throws	NullPointerException if frame is null.  This exception is
+     *          always thrown when GraphicsEnvironment.isHeadless() returns
+     *          true.
      * @throws	SecurityException if this thread is not allowed to initiate a
      *		print job request
+     * @see     java.awt.GraphicsEnvironment#isHeadless
      * @see	java.awt.PrintJob
      * @see	java.lang.RuntimePermission
      * @since	JDK1.1
@@ -788,11 +999,13 @@ public abstract class  Toolkit {
      *		is null or jobAttributes.getDialog() returns
      *		JobAttributes.DialogType.NATIVE.
      * @throws	IllegalArgumentException if pageAttributes specifies differing
-     *		cross feed and feed resolutions
+     *		cross feed and feed resolutions.  This exception is always
+     *          thrown when GraphicsEnvironment.isHeadless() returns true.
      * @throws	SecurityException if this thread is not allowed to initiate a
      *		print job request, or if jobAttributes specifies print to file,
      *		and this thread is not allowed to access the file system
      * @see	java.awt.PrintJob
+     * @see     java.awt.GraphicsEnvironment#isHeadless
      * @see	java.lang.RuntimePermission
      * @see	java.awt.JobAttributes
      * @see	java.awt.PageAttributes
@@ -802,6 +1015,11 @@ public abstract class  Toolkit {
 				JobAttributes jobAttributes,
 				PageAttributes pageAttributes) {
         // Override to add printing support with new job/page control classes
+
+        if (GraphicsEnvironment.isHeadless()) {
+            throw new IllegalArgumentException();
+        }
+
 	if (this != Toolkit.getDefaultToolkit()) {
 	    return Toolkit.getDefaultToolkit().getPrintJob(frame, jobtitle,
 							   jobAttributes,
@@ -851,6 +1069,9 @@ public abstract class  Toolkit {
      * AWTPermission("accessClipboard")</code> permission.
      * 
      * @return    the system Clipboard
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.datatransfer.Clipboard
      * @see       java.awt.datatransfer.StringSelection
      * @see       java.awt.datatransfer.DataFlavor.stringFlavor
@@ -859,7 +1080,68 @@ public abstract class  Toolkit {
      * @see       java.awt.AWTPermission
      * @since     JDK1.1
      */
-    public abstract Clipboard getSystemClipboard();
+    public abstract Clipboard getSystemClipboard()
+        throws HeadlessException;
+
+    /**
+     * Gets the singleton instance of the system selection as a
+     * <code>Clipboard</code> object. This allows an application to read and
+     * modify the current, system-wide selection.
+     * <p>
+     * An application is responsible for updating the system selection whenever
+     * the user selects text, using either the mouse or the keyboard.
+     * Typically, this is implemented by installing a
+     * <code>FocusListener</code> on all <code>Component</code>s which support
+     * text selection, and, between <code>FOCUS_GAINED</code> and
+     * <code>FOCUS_LOST</code> events delivered to that <code>Component</code>,
+     * updating the system selection <code>Clipboard</code> when the selection
+     * changes inside the <code>Component</code>. Properly updating the system
+     * selection ensures that a Java application will interact correctly with
+     * native applications and other Java applications running simultaneously
+     * on the system. Note that <code>java.awt.TextComponent</code> and
+     * <code>javax.swing.text.JTextComponent</code> already adhere to this
+     * policy. When using these classes, and their subclasses, developers need
+     * not write any additional code.
+     * <p>
+     * Some platforms do not support a system selection <code>Clipboard</code>.
+     * On those platforms, this method will return <code>null</code>. In such a
+     * case, an application is absolved from its responsibility to update the
+     * system selection <code>Clipboard</code> as described above.
+     * <p>
+     * Each actual implementation of this method should first check if there
+     * is a <code>SecurityManager</code> installed. If there is, the method
+     * should call the <code>SecurityManager</code>'s
+     * <code>checkSystemClipboardAccess</code> method to ensure that client
+     * code has access the system selection. If the default implementation of
+     * <code>checkSystemClipboardAccess</code> is used (that is, if the method
+     * is not overridden), then this results in a call to the
+     * <code>SecurityManager</code>'s <code>checkPermission</code> method with
+     * an <code>AWTPermission("accessClipboard")</code> permission.
+     * 
+     * @return the system selection as a <code>Clipboard</code>, or
+     *         <code>null</code> if the native platform does not support a
+     *         system selection <code>Clipboard</code>
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     *            returns true
+     *
+     * @see java.awt.datatransfer.Clipboard
+     * @see java.awt.event.FocusListener
+     * @see java.awt.event.FocusEvent#FOCUS_GAINED
+     * @see java.awt.event.FocusEvent#FOCUS_LOST
+     * @see TextComponent
+     * @see javax.swing.text.JTextComponent
+     * @see AWTPermission
+     * @see GraphicsEnvironment#isHeadless
+     * @since 1.4
+     */
+    public Clipboard getSystemSelection() throws HeadlessException {
+        if (this != Toolkit.getDefaultToolkit()) {
+            return Toolkit.getDefaultToolkit().getSystemSelection();
+        } else {
+            GraphicsEnvironment.checkHeadless();
+            return null;
+        }
+    }
 
     /**
      * Determines which modifier key is the appropriate accelerator
@@ -874,11 +1156,14 @@ public abstract class  Toolkit {
      * <b>Control</b> key isn't the correct key for accelerators.
      * @return    the modifier mask on the <code>Event</code> class
      *                 that is used for menu shortcuts on this toolkit.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @see       java.awt.MenuBar
      * @see       java.awt.MenuShortcut
      * @since     JDK1.1
      */
-    public int getMenuShortcutKeyMask() {
+    public int getMenuShortcutKeyMask() throws HeadlessException {
         return Event.CTRL_MASK;
     }
 
@@ -896,9 +1181,13 @@ public abstract class  Toolkit {
      * @exception java.lang.UnsupportedOperationException if the host system doesn't
      * allow getting the state of this key programmatically, or if the keyboard
      * doesn't have this key
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @since 1.3
      */
-    public boolean getLockingKeyState(int keyCode) {
+    public boolean getLockingKeyState(int keyCode)
+        throws UnsupportedOperationException {
         if (! (keyCode == KeyEvent.VK_CAPS_LOCK || keyCode == KeyEvent.VK_NUM_LOCK ||
                keyCode == KeyEvent.VK_SCROLL_LOCK || keyCode == KeyEvent.VK_KANA_LOCK)) {
             throw new IllegalArgumentException("invalid key for Toolkit.getLockingKeyState");
@@ -923,9 +1212,13 @@ public abstract class  Toolkit {
      * @exception java.lang.UnsupportedOperationException if the host system doesn't
      * allow setting the state of this key programmatically, or if the keyboard
      * doesn't have this key
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @since 1.3
      */
-    public void setLockingKeyState(int keyCode, boolean on) {
+    public void setLockingKeyState(int keyCode, boolean on)
+        throws UnsupportedOperationException {
         if (! (keyCode == KeyEvent.VK_CAPS_LOCK || keyCode == KeyEvent.VK_NUM_LOCK ||
                keyCode == KeyEvent.VK_SCROLL_LOCK || keyCode == KeyEvent.VK_KANA_LOCK)) {
             throw new IllegalArgumentException("invalid key for Toolkit.setLockingKeyState");
@@ -952,10 +1245,13 @@ public abstract class  Toolkit {
      * @param     name a localized description of the cursor, for Java Accessibility use.
      * @exception IndexOutOfBoundsException if the hotSpot values are outside
      * the bounds of the cursor.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @since     1.2
      */
     public Cursor createCustomCursor(Image cursor, Point hotSpot, String name)
-        throws IndexOutOfBoundsException
+        throws IndexOutOfBoundsException, HeadlessException
     {
         // Override to implement custom cursor support.
         if (this != Toolkit.getDefaultToolkit()) {
@@ -985,9 +1281,13 @@ public abstract class  Toolkit {
      * to use.
      * @return    the closest matching supported cursor size, or a dimension of 0,0 if
      * the Toolkit implementation doesn't support custom cursors.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @since     1.2
      */
-    public Dimension getBestCursorSize(int preferredWidth, int preferredHeight) {
+    public Dimension getBestCursorSize(int preferredWidth,
+        int preferredHeight) throws HeadlessException {
         // Override to implement custom cursor support.
         if (this != Toolkit.getDefaultToolkit()) {
 	    return Toolkit.getDefaultToolkit().
@@ -1009,9 +1309,12 @@ public abstract class  Toolkit {
      *
      * @return    the maximum number of colors, or zero if custom cursors are not
      * supported by this Toolkit implementation.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @since     1.2
      */
-    public int getMaximumCursorColors() {
+    public int getMaximumCursorColors() throws HeadlessException {
         // Override to implement custom cursor support.
         if (this != Toolkit.getDefaultToolkit()) {
 	    return Toolkit.getDefaultToolkit().getMaximumCursorColors();
@@ -1019,10 +1322,39 @@ public abstract class  Toolkit {
 	    return 0;
 	}
     }
+    
+    /**
+     * Returns whether Toolkit supports this state for
+     * <code>Frame</code>s.  This method tells whether the <em>UI
+     * concept</em> of, say, maximization or iconification is
+     * supported.  It will always return false for "compound" states
+     * like <code>Frame.ICONIFIED|Frame.MAXIMIZED_VERT</code>.
+     * In other words, the rule of thumb is that only queries with a
+     * single frame state constant as an argument are meaningful.
+     *
+     * @param state one of named frame state constants.
+     * @return <code>true</code> is this frame state is supported by
+     *     this Toolkit implementation, <code>false</code> otherwise.
+     * @exception HeadlessException
+     *     if <code>GraphicsEnvironment.isHeadless()</code>
+     *     returns <code>true</code>.
+     * @see	java.awt.Frame#setExtendedState
+     * @since	1.4
+     */
+    public boolean isFrameStateSupported(int state) 
+	throws HeadlessException
+    {
+        if (this != Toolkit.getDefaultToolkit()) {
+	    return Toolkit.getDefaultToolkit().
+		isFrameStateSupported(state);
+	} else {
+	    return (state == Frame.NORMAL); // others are not guaranteed
+	}
+    }
 
     /**
      * Support for I18N: any visible strings should be stored in
-     * java.awt.resources.awt.properties.  The ResourceBundle is stored
+     * sun.awt.resources.awt.properties.  The ResourceBundle is stored
      * here, so that only one copy is maintained.
      */
     private static ResourceBundle resources;
@@ -1074,7 +1406,7 @@ public abstract class  Toolkit {
 	    public Object run() {
 		try {
 		    resources =
-			ResourceBundle.getBundle("java.awt.resources.awt");
+			ResourceBundle.getBundle("sun.awt.resources.awt");
 		} catch (MissingResourceException e) {
 		    // No resource file; defaults will be used.
 		}
@@ -1084,7 +1416,9 @@ public abstract class  Toolkit {
 
 	// ensure that the proper libraries are loaded
         loadLibraries();
-	initIDs();
+        if (!GraphicsEnvironment.isHeadless()) {
+            initIDs();
+        }
     }
 
     /**
@@ -1146,14 +1480,17 @@ public abstract class  Toolkit {
     }
 
     /**
-     * create the peer for a DragSourceContext
+     * Creates the peer for a DragSourceContext.
+     * Always throws InvalidDndOperationException if
+     * GraphicsEnvironment.isHeadless() returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
     public abstract DragSourceContextPeer createDragSourceContextPeer(DragGestureEvent dge) throws InvalidDnDOperationException;
 
     /**
-     * create a concrete, platform dependent, subclass of the abstract
-     * DragGestureRecognizer class requested, and associate it with the
-     * DragSource, Component and DragGestureListener specified
+     * Creates a concrete, platform dependent, subclass of the abstract
+     * DragGestureRecognizer class requested, and associates it with the
+     * DragSource, Component and DragGestureListener specified. 
      *
      * subclasses should override this to provide their own implementation
      *
@@ -1163,27 +1500,44 @@ public abstract class  Toolkit {
      * @param srcActions	      The actions permitted for the gesture
      * @param dgl		      The DragGestureListener
      *
-     * @Return the new object or null
+     * @Return the new object or null.  Always returns null if
+     * GraphicsEnvironment.isHeadless() returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
     public DragGestureRecognizer createDragGestureRecognizer(Class abstractRecognizerClass, DragSource ds, Component c, int srcActions, DragGestureListener dgl) {
 	return null;
     }
 
     /**
-     * obtain a value for the specified desktop property.
+     * Obtains a value for the specified desktop property.
      *
      * A desktop property is a uniquely named value for a resource that
-     * is Toolkit global in nature. Usually it also is an abstract representation
-     * for an underlying platform dependent desktop setting.
+     * is Toolkit global in nature. Usually it also is an abstract 
+     * representation for an underlying platform dependent desktop setting. 
      */
-
     public final synchronized Object getDesktopProperty(String propertyName) {
+        // This is a workaround for headless toolkits.  It would be
+        // better to override this method but it is declared final.
+        // "this instanceof" syntax defeats polymorphism.
+        // --mm, 03/03/00
+        if (this instanceof HeadlessToolkit) {
+            return ((HeadlessToolkit)this).getUnderlyingToolkit()
+                .getDesktopProperty(propertyName);
+        }
 
 	if (desktopProperties.isEmpty()) {
 	    initializeDesktopProperties();
 	}
 
-	Object value = desktopProperties.get(propertyName);
+        Object value;
+
+        // This property should never be cached
+        if (propertyName.equals("awt.dynamicLayoutSupported")) {
+            value = lazilyLoadDesktopProperty(propertyName);
+            return value;
+        }
+
+	value = desktopProperties.get(propertyName);
 
 	if (value == null) {
 	    value = lazilyLoadDesktopProperty(propertyName);
@@ -1197,10 +1551,19 @@ public abstract class  Toolkit {
     }
 
     /**
-     * set the named desktop property to the specified value and fire a
-     * property change event to notify any listeners that the value has changed
+     * Sets the named desktop property to the specified value and fires a
+     * property change event to notify any listeners that the value has changed. 
      */
     protected final void setDesktopProperty(String name, Object newValue) {
+        // This is a workaround for headless toolkits.  It would be
+        // better to override this method but it is declared final.
+        // "this instanceof" syntax defeats polymorphism.
+        // --mm, 03/03/00
+        if (this instanceof HeadlessToolkit) {
+            ((HeadlessToolkit)this).getUnderlyingToolkit()
+                .setDesktopProperty(name, newValue);
+            return;
+        }
         Object oldValue;
 
         synchronized (this) {
@@ -1214,7 +1577,6 @@ public abstract class  Toolkit {
     /**
      * an opportunity to lazily evaluate desktop property values.
      */
-
     protected Object lazilyLoadDesktopProperty(String name) {
 	return null;
     }
@@ -1222,17 +1584,17 @@ public abstract class  Toolkit {
     /**
      * initializeDesktopProperties
      */
-
     protected void initializeDesktopProperties() {
     }
 
     /**
-     * add the specified property change listener for the named desktop 
-     * property
+     * Adds the specified property change listener for the named desktop 
+     * property.  
      * If pcl is null, no exception is thrown and no action is performed.
      *
      * @param 	name The name of the property to listen for
      * @param	pcl The property change listener
+     * @since	1.2
      */
     public synchronized void addPropertyChangeListener(String name, PropertyChangeListener pcl) {
 	if (pcl == null) {
@@ -1242,10 +1604,13 @@ public abstract class  Toolkit {
     }
 
     /**
-     * remove the specified property change listener for the named 
-     * desktop property
+     * Removes the specified property change listener for the named 
+     * desktop property. 
      * If pcl is null, no exception is thrown and no action is performed.
      *
+     * @param 	name The name of the property to remove
+     * @param	pcl The property change listener
+     * @since	1.2
      */
     public synchronized void removePropertyChangeListener(String name, PropertyChangeListener pcl) {
 	if (pcl == null) {
@@ -1254,13 +1619,63 @@ public abstract class  Toolkit {
 	desktopPropsSupport.removePropertyChangeListener(name, pcl);
     }
 
+    /**
+     * Returns an array of all the property change listeners
+     * registered on this toolkit.
+     *
+     * @return all of this toolkit's <code>PropertyChangeListener</code>s
+     *         or an empty array if no property change 
+     *         listeners are currently registered
+     *
+     * @since 1.4
+     */
+    public PropertyChangeListener[] getPropertyChangeListeners() {
+        return desktopPropsSupport.getPropertyChangeListeners();
+    }
+
+    /**
+     * Returns an array of all the <code>PropertyChangeListener</code>s
+     * associated with the named property.
+     *
+     * @param  propertyName the named property
+     * @return all of the <code>PropertyChangeListener</code>s associated with
+     *         the named property or an empty array if no such listeners have
+     *         been added
+     * @since 1.4
+     */
+    public synchronized PropertyChangeListener[] getPropertyChangeListeners(String propertyName) {
+        return desktopPropsSupport.getPropertyChangeListeners(propertyName);
+    }
+
     protected final Map		          desktopProperties   = new HashMap();
     protected final PropertyChangeSupport desktopPropsSupport = new PropertyChangeSupport(this);
 
+    private static final DebugHelper dbg = DebugHelper.create(Toolkit.class);
+    private static final int LONG_BITS = 64;
+    private int[] calls = new int[LONG_BITS];
     private AWTEventListener eventListener = null;
     private WeakHashMap listener2SelectiveListener = new WeakHashMap();
 
     private AWTPermission listenToAllAWTEventsPermission = null;
+
+    /*
+     * Extracts a "pure" AWTEventListener from a AWTEventListenerProxy,
+     * if the listener is proxied.
+     */
+    static private AWTEventListener deProxyAWTEventListener(AWTEventListener l) 
+    {
+        AWTEventListener localL = l;
+
+        if (localL == null) {
+            return null;
+        }
+        // if user passed in a AWTEventListenerProxy object, extract
+        // the listener
+        if (l instanceof AWTEventListenerProxy) {
+            localL = (AWTEventListener)((AWTEventListenerProxy)l).getListener();
+        }
+        return localL;
+    }
 
     /**
      * Adds an AWTEventListener to receive all AWTEvents dispatched
@@ -1287,15 +1702,19 @@ public abstract class  Toolkit {
      * @throws SecurityException
      *        if a security manager exists and its 
      *        <code>checkPermission</code> method doesn't allow the operation.
-     * @see      java.awt.event.AWTEventListener
-     * @see      java.awt.Toolkit#addAWTEventListener
-     * @see      java.awt.AWTEvent
+     * @see      #removeAWTEventListener
+     * @see      #getAWTEventListeners
      * @see      SecurityManager#checkPermission
+     * @see      java.awt.AWTEvent
      * @see      java.awt.AWTPermission
+     * @see      java.awt.event.AWTEventListener
+     * @see      java.awt.event.AWTEventListenerProxy
      * @since    1.2
      */
     public void addAWTEventListener(AWTEventListener listener, long eventMask) {
-        if (listener == null) {
+        AWTEventListener localL = deProxyAWTEventListener(listener); 
+
+        if (localL == null) {
             return;
         }
         SecurityManager security = System.getSecurityManager();
@@ -1308,18 +1727,29 @@ public abstract class  Toolkit {
         }
         synchronized (this) {
             SelectiveAWTEventListener selectiveListener =
-                (SelectiveAWTEventListener)listener2SelectiveListener
-                .get(listener);
+            (SelectiveAWTEventListener)listener2SelectiveListener.get(localL);
+
             if (selectiveListener == null) {
                 // Create a new selectiveListener.
-                selectiveListener =
-                    new SelectiveAWTEventListener(listener, eventMask);
-                listener2SelectiveListener.put(listener, selectiveListener);
+                selectiveListener = new SelectiveAWTEventListener(localL,
+                                                                 eventMask); 
+                listener2SelectiveListener.put(localL, selectiveListener);
                 eventListener = ToolkitEventMulticaster.add(eventListener,
                                                             selectiveListener);
             }
             // OR the eventMask into the selectiveListener's event mask.
             selectiveListener.orEventMasks(eventMask);
+            long mask = eventMask;
+            for (int i=0; i<LONG_BITS; i++) {
+                // If no bits are set, break out of loop.
+                if (mask == 0) {
+                    break;
+                }
+                if ((mask & 1L) != 0) {  // Always test bit 0.
+                    calls[i]++;
+                }
+                mask >>>= 1;  // Right shift, fill with zeros on left.
+            }
         }
     }
 
@@ -1342,34 +1772,176 @@ public abstract class  Toolkit {
      * @throws SecurityException
      *        if a security manager exists and its 
      *        <code>checkPermission</code> method doesn't allow the operation.
-     * @see      java.awt.event.AWTEventListener
-     * @see      java.awt.Toolkit#addAWTEventListener
-     * @see      java.awt.AWTEvent
+     * @see      #addAWTEventListener
+     * @see      #getAWTEventListeners
      * @see      SecurityManager#checkPermission
+     * @see      java.awt.AWTEvent
      * @see      java.awt.AWTPermission
+     * @see      java.awt.event.AWTEventListener
+     * @see      java.awt.event.AWTEventListenerProxy
      * @since    1.2
      */
     public void removeAWTEventListener(AWTEventListener listener) {
-	if (listener == null) {
-	    return;
-	}
+        AWTEventListener localL = deProxyAWTEventListener(listener);
+
+        if (listener == null) {
+            return;
+        }
         SecurityManager security = System.getSecurityManager();
         if (security != null) {
-	  if (listenToAllAWTEventsPermission == null) {
-	    listenToAllAWTEventsPermission =
-			new AWTPermission("listenToAllAWTEvents");
-	  }
-	  security.checkPermission(listenToAllAWTEventsPermission);
+            if (listenToAllAWTEventsPermission == null) {
+                listenToAllAWTEventsPermission =
+                 new AWTPermission("listenToAllAWTEvents");
+            }
+            security.checkPermission(listenToAllAWTEventsPermission);
         }
-	synchronized (this) {
-	    SelectiveAWTEventListener selectiveListener =
-		(SelectiveAWTEventListener)listener2SelectiveListener
-		.get(listener);
-	    if (selectiveListener != null)
-		listener2SelectiveListener.remove(listener);
-	    eventListener = ToolkitEventMulticaster.remove(eventListener,
-		(selectiveListener == null) ? listener : selectiveListener);
-	}
+
+        synchronized (this) {
+            SelectiveAWTEventListener selectiveListener =
+            (SelectiveAWTEventListener)listener2SelectiveListener.get(localL);
+
+            if (selectiveListener != null) {
+                listener2SelectiveListener.remove(localL);
+                int[] listenerCalls = selectiveListener.getCalls();
+                for (int i=0; i<LONG_BITS; i++) {
+                    calls[i] -= listenerCalls[i];
+                    if (dbg.on) {
+                        dbg.assertion(calls[i] >= 0);
+                    }
+                }
+            }
+            eventListener = ToolkitEventMulticaster.remove(eventListener,
+            (selectiveListener == null) ? localL : selectiveListener);
+        }
+    }
+
+    static boolean enabledOnToolkit(long eventMask) {
+        // Wonderfully disgusting hack for Solaris 9
+        //
+        // Solaris 9 makes unreasonable assumptions about the point at which
+        // the AWT is initialized. The fix for 4460376 broke one such
+        // assumption, preventing the Solaris 9 install from working in a
+        // headless environment. We (AWT) suggested that Solaris 9 use Headless
+        // AWT to avoid these sorts of problems, but they cannot because they
+        // use AWT peered Components (e.g., Checkbox) as models. (!)
+        Toolkit defaultToolkit;
+        synchronized (Toolkit.class) {
+            defaultToolkit = toolkit;
+        }
+        return (defaultToolkit != null)
+            ? (defaultToolkit.countAWTEventListeners(eventMask) > 0)
+            : false;
+    }
+
+    synchronized int countAWTEventListeners(long eventMask) {
+        if (dbg.on) {
+            dbg.assertion(eventMask != 0);
+        }
+
+        int ci = 0;
+        for (; eventMask != 0; eventMask >>>= 1, ci++) {
+        }
+        ci--;
+        return calls[ci];
+    }
+    /**
+     * Returns an array of all the <code>AWTEventListener</code>s 
+     * registered on this toolkit.  Listeners can be returned 
+     * within <code>AWTEventListenerProxy</code> objects, which also contain 
+     * the event mask for the given listener.
+     * Note that listener objects
+     * added multiple times appear only once in the returned array.
+     *
+     * @return all of the <code>AWTEventListener</code>s or an empty
+     *         array if no listeners are currently registered 
+     * @throws SecurityException
+     *        if a security manager exists and its 
+     *        <code>checkPermission</code> method doesn't allow the operation.
+     * @see      #addAWTEventListener
+     * @see      #removeAWTEventListener
+     * @see      SecurityManager#checkPermission
+     * @see      java.awt.AWTEvent
+     * @see      java.awt.AWTPermission
+     * @see      java.awt.event.AWTEventListener
+     * @see      java.awt.event.AWTEventListenerProxy
+     * @since 1.4
+     */
+    public AWTEventListener[] getAWTEventListeners() {
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+	        if (listenToAllAWTEventsPermission == null) {
+                listenToAllAWTEventsPermission =
+			      new AWTPermission("listenToAllAWTEvents");
+            }
+	        security.checkPermission(listenToAllAWTEventsPermission);
+        }
+        synchronized (this) {
+            EventListener[] la = ToolkitEventMulticaster.getListeners(eventListener,AWTEventListener.class); 
+
+            AWTEventListener[] ret = new AWTEventListener[la.length];
+            for (int i = 0; i < la.length; i++) { 
+                SelectiveAWTEventListener sael = (SelectiveAWTEventListener)la[i]; 
+                AWTEventListener tempL = sael.getListener(); 
+                //assert tempL is not an AWTEventListenerProxy - we should 
+                // have weeded them all out 
+                // don't want to wrap a proxy inside a proxy 
+                ret[i] = new AWTEventListenerProxy(sael.getEventMask(), tempL); 
+            } 
+            return ret; 
+        }
+    }
+
+    /**
+     * Returns an array of all the <code>AWTEventListener</code>s 
+     * registered on this toolkit which listen to all of the event
+     * types indicates in the <code>eventMask</code> argument.
+     * Listeners can be returned
+     * within <code>AWTEventListenerProxy</code> objects, which also contain
+     * the event mask for the given listener.
+     * Note that listener objects
+     * added multiple times appear only once in the returned array.
+     *
+     * @param  the bitmask of event types to listen for
+     * @return all of the <code>AWTEventListener</code>s registered
+     *         on this toolkit for the specified
+     *         event types, or an empty array if no such listeners
+     *         are currently registered
+     * @throws SecurityException
+     *        if a security manager exists and its 
+     *        <code>checkPermission</code> method doesn't allow the operation.
+     * @see      #addAWTEventListener
+     * @see      #removeAWTEventListener
+     * @see      SecurityManager#checkPermission
+     * @see      java.awt.AWTEvent
+     * @see      java.awt.AWTPermission
+     * @see      java.awt.event.AWTEventListener
+     * @see      java.awt.event.AWTEventListenerProxy
+     * @since 1.4
+     */
+    public AWTEventListener[] getAWTEventListeners(long eventMask) {
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+	        if (listenToAllAWTEventsPermission == null) {
+                listenToAllAWTEventsPermission =
+			      new AWTPermission("listenToAllAWTEvents");
+            }
+	        security.checkPermission(listenToAllAWTEventsPermission);
+        }
+        synchronized (this) {
+            EventListener[] la = ToolkitEventMulticaster.getListeners(eventListener,AWTEventListener.class);
+
+            java.util.List list = new ArrayList(la.length);
+
+            for (int i = 0; i < la.length; i++) {
+                SelectiveAWTEventListener sael = (SelectiveAWTEventListener)la[i];
+                if ((sael.getEventMask() & eventMask) == eventMask) {
+                    //AWTEventListener tempL = sael.getListener();
+                    list.add(new AWTEventListenerProxy(sael.getEventMask(),
+                                                       sael.getListener()));
+                }
+            }
+            return (AWTEventListener[])list.toArray(new AWTEventListener[0]);
+        }
     }
 
     /*
@@ -1379,10 +1951,19 @@ public abstract class  Toolkit {
      * @param theEvent the event which will be dispatched.
      */
     void notifyAWTEventListeners(AWTEvent theEvent) {
-//Fix for 4338463
-        AWTEventListener eventListener = this.eventListener;
+        // This is a workaround for headless toolkits.  It would be
+        // better to override this method but it is declared package private.
+        // "this instanceof" syntax defeats polymorphism.
+        // --mm, 03/03/00
+        if (this instanceof HeadlessToolkit) {
+            ((HeadlessToolkit)this).getUnderlyingToolkit()
+                .notifyAWTEventListeners(theEvent);
+            return;
+        }
+
+	AWTEventListener eventListener = this.eventListener;
         if (eventListener != null) {
-		    eventListener.eventDispatched(theEvent);
+	    eventListener.eventDispatched(theEvent);
         }
     }
 
@@ -1431,15 +2012,18 @@ public abstract class  Toolkit {
     private class SelectiveAWTEventListener implements AWTEventListener {
 	AWTEventListener listener;
 	private long eventMask;
-        static final int LONG_BITS = 64;
         // This array contains the number of times to call the eventlistener
         // for each event type.
-        int[] calls = new int[LONG_BITS];
+        int[] calls = new int[Toolkit.LONG_BITS];
+
+        public AWTEventListener getListener() {return listener;}
+        public long getEventMask() {return eventMask;}
+        public int[] getCalls() {return calls;}
 
         public void orEventMasks(long mask) {
             eventMask |= mask;
             // For each event bit set in mask, increment its call count.
-            for (int i=0; i<LONG_BITS; i++) {
+            for (int i=0; i<Toolkit.LONG_BITS; i++) {
                 // If no bits are set, break out of loop.
                 if (mask == 0) {
                     break;
@@ -1470,12 +2054,15 @@ public abstract class  Toolkit {
 	     || ((eventBit = eventMask & AWTEvent.KEY_EVENT_MASK) != 0 &&
 		 event.id >= KeyEvent.KEY_FIRST &&
 		 event.id <= KeyEvent.KEY_LAST)
-	     || ((eventBit = eventMask & AWTEvent.MOUSE_MOTION_EVENT_MASK) != 0 &&
+	     || ((eventBit = eventMask & AWTEvent.MOUSE_WHEEL_EVENT_MASK) != 0 &&
+	         event.id == MouseEvent.MOUSE_WHEEL)
+             || ((eventBit = eventMask & AWTEvent.MOUSE_MOTION_EVENT_MASK) != 0 &&
 	         (event.id == MouseEvent.MOUSE_MOVED ||
 	          event.id == MouseEvent.MOUSE_DRAGGED))
 	     || ((eventBit = eventMask & AWTEvent.MOUSE_EVENT_MASK) != 0 &&
 	         event.id != MouseEvent.MOUSE_MOVED &&
 	         event.id != MouseEvent.MOUSE_DRAGGED &&
+	         event.id != MouseEvent.MOUSE_WHEEL &&
 		 event.id >= MouseEvent.MOUSE_FIRST &&
 		 event.id <= MouseEvent.MOUSE_LAST)
 	     || ((eventBit = eventMask & AWTEvent.WINDOW_EVENT_MASK) != 0 &&
@@ -1504,11 +2091,23 @@ public abstract class  Toolkit {
 		 event.id <= InvocationEvent.INVOCATION_LAST)
 	     || ((eventBit = eventMask & AWTEvent.HIERARCHY_EVENT_MASK) != 0 &&
 		 event.id == HierarchyEvent.HIERARCHY_CHANGED)
-	     || ((eventBit = eventMask & AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK) != 0 &&
-		 (event.id == HierarchyEvent.ANCESTOR_MOVED ||
-		  event.id == HierarchyEvent.ANCESTOR_RESIZED))) {
+             || ((eventBit = eventMask & AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK) != 0 &&
+                 (event.id == HierarchyEvent.ANCESTOR_MOVED ||
+                  event.id == HierarchyEvent.ANCESTOR_RESIZED))
+             || ((eventBit = eventMask & AWTEvent.WINDOW_STATE_EVENT_MASK) != 0 &&
+                 event.id == WindowEvent.WINDOW_STATE_CHANGED)
+             || ((eventBit = eventMask & AWTEvent.WINDOW_FOCUS_EVENT_MASK) != 0 &&
+                 (event.id == WindowEvent.WINDOW_GAINED_FOCUS ||
+                  event.id == WindowEvent.WINDOW_LOST_FOCUS))) {  
                 // Get the index of the call count for this event type.
-                int ci = (int) (Math.log(eventBit)/Math.log(2));
+                // Instead of using Math.log(...) we will calculate it with
+                // bit shifts. That's what previous implementation looked like:
+                //
+                // int ci = (int) (Math.log(eventBit)/Math.log(2));
+                int ci = 0;
+                for (long eMask = eventBit; eMask != 0; eMask >>>= 1, ci++) {
+                }
+                ci--;
                 // Call the listener as many times as it was added for this
                 // event type.
                 for (int i=0; i<calls[ci]; i++) {
@@ -1524,154 +2123,13 @@ public abstract class  Toolkit {
      * The style field of the input method highlight is ignored. The map
      * returned is unmodifiable.
      * @param highlight input method highlight
-     * @return style attribute map, or null
+     * @return style attribute map, or <code>null</code>
+     * @exception HeadlessException if
+     *     <code>GraphicsEnvironment.isHeadless</code> returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
      * @since 1.3
      */
-    public abstract Map mapInputMethodHighlight(InputMethodHighlight highlight);
+    public abstract Map mapInputMethodHighlight(
+        InputMethodHighlight highlight) throws HeadlessException;
 }
 
-
-
-/**
- * Implements the LightweightPeer interface for use in lightweight components
- * that have no native window associated with them.  This gets created by
- * default in Component so that Component and Container can be directly
- * extended to create useful components written entirely in java.  These
- * components must be hosted somewhere higher up in the component tree by a
- * native container (such as a Frame).
- *
- * This implementation provides no useful semantics and serves only as a
- * marker.  One could provide alternative implementations in java that do
- * something useful for some of the other peer interfaces to minimize the
- * native code.
- *
- * @author Timothy Prinzing
- */
-class LightweightPeer implements java.awt.peer.LightweightPeer {
-
-    public LightweightPeer(Component target) {
-    }
-
-    public boolean isFocusTraversable() {
-	return false;
-    }
-
-    public void setVisible(boolean b) {
-    }
-
-    public void show() {
-    }
-
-    public void hide() {
-    }
-
-    public void setEnabled(boolean b) {
-    }
-
-    public void enable() {
-    }
-
-    public void disable() {
-    }
-
-    public void paint(Graphics g) {
-    }
-
-    public void repaint(long tm, int x, int y, int width, int height) {
-    }
-
-    public void print(Graphics g) {
-    }
-
-    public void setBounds(int x, int y, int width, int height) {
-    }
-
-    public void reshape(int x, int y, int width, int height) {
-    }
-
-    public void coalescePaintEvent(PaintEvent e) {
-    }
-
-    public boolean handleEvent(Event e) {
-	return false;
-    }
-
-    public void handleEvent(java.awt.AWTEvent arg0) {
-    }
-
-    public Dimension getPreferredSize() {
-	return new Dimension(1,1);
-    }
-
-    public Dimension getMinimumSize() {
-	return new Dimension(1,1);
-    }
-
-    public java.awt.Toolkit getToolkit() {
-	return null;
-    }
-
-    public ColorModel getColorModel() {
-	return null;
-    }
-
-    public Graphics getGraphics() {
-	return null;
-    }
-    
-    public GraphicsConfiguration getGraphicsConfiguration() {
-    return null;
-    }
-    
-    public FontMetrics	getFontMetrics(Font font) {
-	return null;
-    }
-
-    public void dispose() {
-	// no native code
-    }
-
-    public void setForeground(Color c) {
-    }
-
-    public void setBackground(Color c) {
-    }
-
-    public void setFont(Font f) {
-    }
-
-    public void setCursor(Cursor cursor) {
-    }
-
-    public void requestFocus() {
-    }
-
-    public Image createImage(ImageProducer producer) {
-	return null;
-    }
-
-    public Image createImage(int width, int height) {
-	return null;
-    }
-
-    public boolean prepareImage(Image img, int w, int h, ImageObserver o) {
-	return false;
-    }
-
-    public int	checkImage(Image img, int w, int h, ImageObserver o) {
-	return 0;
-    }
-
-    public Dimension preferredSize() {
-	return getPreferredSize();
-    }
-
-    public Dimension minimumSize() {
-	return getMinimumSize();
-    }
-
-    public Point getLocationOnScreen() {
-	return null;
-    }
-
-}

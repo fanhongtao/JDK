@@ -1,4 +1,6 @@
 /*
+ * @(#)GapContent.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -35,7 +37,7 @@ import javax.swing.SwingUtilities;
  * mark, and decreases the cost of keeping the mark updated.
  *
  * @author  Timothy Prinzing
- * @version 1.16 02/06/02
+ * @version 1.21 12/03/01
  */
 public class GapContent extends GapVector implements AbstractDocument.Content, Serializable {
 
@@ -103,7 +105,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
      * @see AbstractDocument.Content#insertString
      */
     public UndoableEdit insertString(int where, String str) throws BadLocationException {
-	if (where >= length()) {
+	if (where >= length() || where < 0) {
 	    throw new BadLocationException("Invalid insert", length());
 	}
 	char[] chars = str.toCharArray();
@@ -178,10 +180,18 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 	    chars.array = array;
 	    chars.offset = g1 + where - g0;
 	} else {
-	    // spans the gap, must copy
+	    // spans the gap
+	    int before = g0 - where;
+	    if (chars.isPartialReturn()) {
+		// partial return allowed, return amount before the gap
+		chars.array = array;
+		chars.offset = where;
+		chars.count = before;
+		return;
+	    }
+	    // partial return not allowed, must copy
 	    chars.array = new char[len];
 	    chars.offset = 0;
-	    int before = g0 - where;
 	    System.arraycopy(array, where, chars.array, 0, before);
 	    System.arraycopy(array, g1, chars.array, before, len - before);
 	}
@@ -210,7 +220,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
     }
 
     /**
-     * Holds the data for a mark... seperately from
+     * Holds the data for a mark... separately from
      * the real mark so that the real mark (Position
      * that the caller of createPosition holds) can be 
      * collected if there are no more references to
@@ -626,7 +636,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 	    }
 	}
 
-	static MarkData[] oneMark = new MarkData[1];
+	MarkData[] oneMark = new MarkData[1];
 
     }
 
@@ -694,6 +704,9 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
     /**
      * Resets the location for all the UndoPosRef instances
      * in <code>positions</code>.
+     * <p>
+     * This is meant for internal usage, and is generally not of interest
+     * to subclasses.
      *
      * @param positions the UndoPosRef instances to reset
      */

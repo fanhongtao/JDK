@@ -1,4 +1,6 @@
 /*
+ * @(#)RescaleOp.java	1.41 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -76,6 +78,10 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
      * and offsets.  The length of the scaleFactor and offset arrays
      * must meet the restrictions stated in the class comments above.
      * The RenderingHints argument may be null.
+     * @param scaleFactors the specified scale factors
+     * @param offsets the specified offsets
+     * @param hints the specified <code>RenderingHints</code>, or
+     *        <code>null</code>
      */
     public RescaleOp (float[] scaleFactors, float[] offsets,
                       RenderingHints hints) {
@@ -97,6 +103,10 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
      * all bands in a source Raster and to all color (but not alpha)
      * components in a BufferedImage.
      * The RenderingHints argument may be null.
+     * @param scaleFactor the specified scale factor
+     * @param offset the specified offset
+     * @param hints the specified <code>RenderingHints</code>, or
+     *        <code>null</code>
      */
     public RescaleOp (float scaleFactor, float offset, RenderingHints hints) {
         length = 1;
@@ -111,6 +121,9 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
      * Returns the scale factors in the given array. The array is also
      * returned for convenience.  If scaleFactors is null, a new array
      * will be allocated.
+     * @param scaleFactors the array to contain the scale factors of 
+     *        this <code>RescaleOp</code>
+     * @return the scale factors of this <code>RescaleOp</code>.
      */
     final public float[] getScaleFactors (float scaleFactors[]) {
         if (scaleFactors == null) {
@@ -126,6 +139,9 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
      * Returns the offsets in the given array. The array is also returned
      * for convenience.  If offsets is null, a new array
      * will be allocated.
+     * @param offsets the array to contain the offsets of 
+     *        this <code>RescaleOp</code>
+     * @return the offsets of this <code>RescaleOp</code>.
      */
     final public float[] getOffsets(float offsets[]) {
         if (offsets == null) {
@@ -140,6 +156,8 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
     /**
      * Returns the number of scaling factors and offsets used in this
      * RescaleOp.
+     * @return the number of scaling factors and offsets of this 
+     *         <code>RescaleOp</code>.
      */
     final public int getNumFactors() {
         return length;
@@ -278,6 +296,15 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
      * scaling factors/offsets in this object does not meet the
      * restrictions stated in the class comments above, or if the
      * source image has an IndexColorModel.
+     * @param src the <code>BufferedImage</code> to be filtered
+     * @param dst the destination for the filtering operation 
+     *            or <code>null</code>
+     * @return the filtered <code>BufferedImage</code>.
+     * @throws IllegalArgumentException if the <code>ColorModel</code>
+     *         of <code>src</code> is an <code>IndexColorModel</code>,  
+     *         or if the number of scaling factors and offsets in this
+     *         <code>RescaleOp</code> do not meet the requirements 
+     *         stated in the class comments.
      */
     public final BufferedImage filter (BufferedImage src, BufferedImage dst) {
         ColorModel srcCM = src.getColorModel();
@@ -406,6 +433,15 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
      * Note that the number of scaling factors/offsets in this object must
      * meet the restrictions stated in the class comments above.
      * Otherwise, an IllegalArgumentException is thrown.
+     * @param src the <code>Raster</code> to be filtered
+     * @param dst the destination for the filtering operation 
+     *            or <code>null</code>
+     * @return the filtered <code>WritableRaster</code>.
+     * @throws IllegalArgumentException if <code>src</code> and
+     *         <code>dst</code> do not have the same number of bands,  
+     *         or if the number of scaling factors and offsets in this
+     *         <code>RescaleOp</code> do not meet the requirements 
+     *         stated in the class comments.
      */
     public final WritableRaster filter (Raster src, WritableRaster dst)  {
         int numBands = src.getNumBands();
@@ -540,6 +576,8 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
      * Returns the bounding box of the rescaled destination Raster.  Since
      * this is not a geometric operation, the bounding box does not
      * change.
+     * @param src the rescaled destination <code>Raster</code>
+     * @return the bounds of the specified <code>Raster</code>.
      */
     public final Rectangle2D getBounds2D (Raster src) {
 	return src.getBounds();
@@ -551,6 +589,7 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
      * @param src       Source image for the filter operation.
      * @param destCM    ColorModel of the destination.  If null, the
      *                  ColorModel of the source will be used.
+     * @return the zeroed-destination image.
      */
     public BufferedImage createCompatibleDestImage (BufferedImage src,
                                                     ColorModel destCM) {
@@ -574,8 +613,10 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
     }
     
     /**
-     * Creates a zeroed destination Raster with the correct size and number 
-     * of bands, given this source.
+     * Creates a zeroed-destination <code>Raster</code> with the correct 
+     * size and number of bands, given this source.
+     * @param src       the source <code>Raster</code>
+     * @return the zeroed-destination <code>Raster</code>.
      */
     public WritableRaster createCompatibleDestRaster (Raster src) {
         return src.createCompatibleWritableRaster(src.getWidth(), src.getHeight());
@@ -586,6 +627,9 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
      * point in the source.  If dstPt is non-null, it will
      * be used to hold the return value.  Since this is not a geometric
      * operation, the srcPt will equal the dstPt.
+     * @param srcPt a point in the source image
+     * @param dstPt the destination point or <code>null</code>
+     * @return the location of the destination point.
      */
     public final Point2D getPoint2D (Point2D srcPt, Point2D dstPt) {
         if (dstPt == null) {
@@ -597,6 +641,7 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
     
     /**
      * Returns the rendering hints for this op.
+     * @return the rendering hints of this <code>RescaleOp</code>.
      */
     public final RenderingHints getRenderingHints() {
         return hints;

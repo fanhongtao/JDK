@@ -1,4 +1,6 @@
 /*
+ * @(#)Reader.java	1.23 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -24,7 +26,7 @@ package java.io;
  * @see StringReader
  * @see Writer
  *
- * @version 	1.22, 02/02/06
+ * @version 	1.23, 01/12/03
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -88,7 +90,8 @@ public abstract class Reader {
      *
      * @param       cbuf  Destination buffer
      *
-     * @return      The number of bytes read, or -1 if the end of the stream
+     * @return      The number of characters read, or -1 
+     *              if the end of the stream
      *              has been reached
      *
      * @exception   IOException  If an I/O error occurs

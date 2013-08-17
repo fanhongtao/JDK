@@ -1,47 +1,61 @@
 /*
+ * @(#)AbstractUndoableEdit.java	1.26 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.undo;
 
-import javax.swing.UIManager;
 import java.io.Serializable;
+import javax.swing.UIManager;
 
 /**
- * An abstract implementation of UndoableEdit, implementing simple
- * responses to all boolean methods in that interface. 
+ * An abstract implementation of <code>UndoableEdit</code>,
+ * implementing simple responses to all boolean methods in
+ * that interface. 
  *
- * @version 1.25 02/06/02
+ * @version 1.26 12/03/01
  * @author Ray Ryan
  */
 public class AbstractUndoableEdit implements UndoableEdit, Serializable {
 
     /**
-     * String returned by getUndoPresentationName()
+     * String returned by <code>getUndoPresentationName</code>;
+     * as of Java 2 platform v1.3.1 this field is no longer used. This value
+     * is now localized and comes from the defaults table with key
+     * <code>AbstractUndoableEdit.undoText</code>.
      *
      * @see javax.swing.UIDefaults
      */
     protected static final String UndoName = "Undo";
 
     /**
-     * String returned by getRedoPresentationName()
+     * String returned by <code>getRedoPresentationName</code>;
+     * as of Java 2 platform v1.3.1 this field is no longer used. This value
+     * is now localized and comes from the defaults table with key
+     * <code>AbstractUndoableEdit.redoText</code>.
      *
      * @see javax.swing.UIDefaults
      */
     protected static final String RedoName = "Redo";
 
     /**
-     * Defaults to true. Becomes false if this edit is undone, true
+     * Defaults to true; becomes false if this edit is undone, true
      * again if it is redone.  
      */
     boolean hasBeenDone;
 
     /**
-     * True if this edit has not received die().
+     * True if this edit has not received <code>die</code>; defaults
+     * to <code>true</code>.
      */
     boolean alive;
 
+    /**
+     * Creates an <code>AbstractUndoableEdit</code> which defaults
+     * <code.hasBeenDone</code> and <code>alive</code> to <code>true</code>.
+     */
     public AbstractUndoableEdit() {
 	super();
 
@@ -50,24 +64,28 @@ public class AbstractUndoableEdit implements UndoableEdit, Serializable {
     }
 
     /**
-     * Sets alive to false. Note that this is a one way operation:
-     * dead edits cannot be resurrected.  Sending undo() or redo() to
+     * Sets <code>alive</code> to false. Note that this
+     * is a one way operation; dead edits cannot be resurrected.
+     * Sending <code>undo</code> or <code>redo</code> to
      * a dead edit results in an exception being thrown.
      *
-     * Typically an edit is killed when it is consolidated by another
-     * edit's addEdit() or replaceEdit() method, or when it is
-     * dequeued from an UndoManager
+     * <p>Typically an edit is killed when it is consolidated by 
+     * another edit's <code>addEdit</code> or <code>replaceEdit</code>
+     * method, or when it is dequeued from an <code>UndoManager</code>.
      */
     public void die() {
 	alive = false;
     }
 
     /**
-     * Throws CannotUndoException if canUndo() returns false. Sets
-     * hasBeenDone to false. Subclasses should override to undo the
+     * Throws <code>CannotUndoException</code> if <code>canUndo</code>
+     * returns <code>false</code>. Sets <code>hasBeenDone</code>
+     * to <code>false</code>. Subclasses should override to undo the
      * operation represented by this edit. Override should begin with
      * a call to super.
      *
+     * @exception CannotUndoException if <code>canUndo</code>
+     *    returns <code>false</code>
      * @see	#canUndo
      */
     public void undo() throws CannotUndoException {
@@ -78,7 +96,11 @@ public class AbstractUndoableEdit implements UndoableEdit, Serializable {
     }
 
     /**
-     * Returns true if this edit is alive and hasBeenDone is true.
+     * Returns true if this edit is <code>alive</code>
+     * and <code>hasBeenDone</code> is <code>true</code>.
+     *
+     * @return true if this edit is <code>alive</code>
+     *    and <code>hasBeenDone</code> is <code>true</code>
      *
      * @see     #die
      * @see	#undo
@@ -89,11 +111,13 @@ public class AbstractUndoableEdit implements UndoableEdit, Serializable {
     }
 
     /**
-     * Throws CannotRedoException if canRedo() returns false. Sets
-     * hasBeenDone to true. Subclasses should override to redo the
-     * operation represented by this edit. Override should begin with
-     * a call to super.
+     * Throws <code>CannotRedoException</code> if <code>canRedo</code>
+     * returns false. Sets <code>hasBeenDone</code> to <code>true</code>.
+     * Subclasses should override to redo the operation represented by
+     * this edit. Override should begin with a call to super.
      *
+     * @exception CannotRedoException if <code>canRedo</code>
+     *     returns <code>false</code>
      * @see	#canRedo
      */
     public void redo() throws CannotRedoException {
@@ -104,8 +128,11 @@ public class AbstractUndoableEdit implements UndoableEdit, Serializable {
     }
 
     /**
-     * Returns true if this edit is alive and hasBeenDone is false.
+     * Returns <code>true</code> if this edit is <code>alive</code>
+     * and <code>hasBeenDone</code> is <code>false</code>.
      *
+     * @return <code>true</code> if this edit is <code>alive</code>
+     *   and <code>hasBeenDone</code> is <code>false</code>
      * @see     #die
      * @see	#undo
      * @see	#redo
@@ -117,6 +144,9 @@ public class AbstractUndoableEdit implements UndoableEdit, Serializable {
     /**
      * This default implementation returns false. 
      *
+     * @param anEdit the edit to be added
+     * @return false
+     *
      * @see UndoableEdit#addEdit
      */
     public boolean addEdit(UndoableEdit anEdit) {
@@ -125,6 +155,9 @@ public class AbstractUndoableEdit implements UndoableEdit, Serializable {
 
     /**
      * This default implementation returns false. 
+     *
+     * @param anEdit the edit to replace
+     * @return false
      *
      * @see UndoableEdit#replaceEdit
      */
@@ -135,6 +168,7 @@ public class AbstractUndoableEdit implements UndoableEdit, Serializable {
     /**
      * This default implementation returns true. 
      *
+     * @return true
      * @see UndoableEdit#isSignificant
      */
     public boolean isSignificant() {
@@ -143,10 +177,13 @@ public class AbstractUndoableEdit implements UndoableEdit, Serializable {
 
     /**
      * This default implementation returns "". Used by
-     * getUndoPresentationName() and getRedoPresentationName() to
-     * construct the strings they return. Subclasses shoul override to
+     * <code>getUndoPresentationName</code> and 
+     * <code>getRedoPresentationName</code> to
+     * construct the strings they return. Subclasses should override to
      * return an appropriate description of the operation this edit
      * represents.
+     *
+     * @return the empty string ""
      *
      * @see	#getUndoPresentationName
      * @see	#getRedoPresentationName
@@ -156,18 +193,25 @@ public class AbstractUndoableEdit implements UndoableEdit, Serializable {
     }
 
     /**
-     * If getPresentationName() returns "", returns
-     * AbstractUndoableEdit.UndoName. Otherwise returns
-     * AbstractUndoableEdit.UndoName followed by a space and
-     * getPresentationName()
+     * Retreives the value from the defaults table with key
+     * <code>AbstractUndoableEdit.undoText</code> and returns
+     * that value followed by a space, followed by
+     * <code>getPresentationName</code>.
+     * If <code>getPresentationName</code> returns "",
+     * then the defaults value is returned alone.
      *
+     * @return the value from the defaults table with key
+     *    <code>AbstractUndoableEdit.undoText</code>, followed
+     *    by a space, followed by <code>getPresentationName</code>
+     *    unless <code>getPresentationName</code> is "" in which
+     *    case, the defaults value is returned alone.
      * @see #getPresentationName
      */
     public String getUndoPresentationName() {
 	String name = getPresentationName();
 	if (name != "") {
-	    name = UIManager.getString("AbstractUndoableEdit.undoText") + " " +
-                name;
+	    name = UIManager.getString("AbstractUndoableEdit.undoText") +
+                " " + name;
 	} else {
 	    name = UIManager.getString("AbstractUndoableEdit.undoText");
 	}
@@ -176,18 +220,25 @@ public class AbstractUndoableEdit implements UndoableEdit, Serializable {
     }
 
     /**
-     * If getPresentationName() returns "", returns
-     * AbstractUndoableEdit.RedoName. Otherwise returns
-     * AbstractUndoableEdit.RedoName followed by a space and
-     * getPresentationName()
+     * Retreives the value from the defaults table with key
+     * <code>AbstractUndoableEdit.redoText</code> and returns
+     * that value followed by a space, followed by
+     * <code>getPresentationName</code>.
+     * If <code>getPresentationName</code> returns "",
+     * then the defaults value is returned alone.
      *
+     * @return the value from the defaults table with key
+     *    <code>AbstractUndoableEdit.redoText</code>, followed
+     *    by a space, followed by <code>getPresentationName</code>
+     *    unless <code>getPresentationName</code> is "" in which
+     *    case, the defaults value is returned alone.
      * @see #getPresentationName
      */
     public String getRedoPresentationName() {
 	String name = getPresentationName();
 	if (name != "") {
-	    name = UIManager.getString("AbstractUndoableEdit.redoText") + " " +
-                name;
+	    name = UIManager.getString("AbstractUndoableEdit.redoText") +
+                " " + name;
 	} else {
 	    name = UIManager.getString("AbstractUndoableEdit.redoText");
 	}

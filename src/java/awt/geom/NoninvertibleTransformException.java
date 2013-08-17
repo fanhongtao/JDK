@@ -1,4 +1,6 @@
 /*
+ * @(#)NoninvertibleTransformException.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,7 +12,7 @@ package java.awt.geom;
  * an exception that is thrown if an operation is performed requiring
  * the inverse of an {@link AffineTransform} object but the 
  * <code>AffineTransform</code> is in a non-invertible state.
- * @version 	1.16, 02/06/02
+ * @version 	1.16, 12/03/01
  */
 
 public class NoninvertibleTransformException extends java.lang.Exception {

@@ -1,4 +1,6 @@
 /*
+ * @(#)ObjectOutput.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,7 @@ package java.io;
  * extends that interface to include objects, arrays, and Strings.
  *
  * @author  unascribed
- * @version 1.14, 02/06/02
+ * @version 1.14, 12/03/01
  * @see java.io.InputStream
  * @see java.io.ObjectOutputStream
  * @see java.io.ObjectInputStream

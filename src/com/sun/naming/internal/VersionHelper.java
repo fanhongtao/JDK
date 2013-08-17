@@ -1,4 +1,6 @@
 /*
+ * @(#)VersionHelper.java	1.7 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,12 +18,15 @@ import java.util.Vector;
 import javax.naming.NamingEnumeration;
 
 /**
- * VersionHelper is used by JNDI to accomodate differences between
- * JDK 1.1.x and the Java 2 platform.
+ * VersionHelper was used by JNDI to accommodate differences between
+ * JDK 1.1.x and the Java 2 platform. Since this is no longer necessary
+ * due to JNDI's presence in the Java 2 Platform v1.3 and higher, this
+ * class currently serves as a set of utilities for performing
+ * system-level things, such as class-loading and reading system properties.
  * 
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.6 02/02/06
+ * @version 1.7 01/12/03
  */
 
 public abstract class VersionHelper {
@@ -49,25 +54,7 @@ public abstract class VersionHelper {
     VersionHelper() {} // Disallow anyone from creating one of these.
 
     static {
-	try {
-	    Class.forName("java.net.URLClassLoader"); // 1.2 test
-	    Class.forName("java.security.PrivilegedAction"); // 1.2 test
-	    helper = (VersionHelper)
-		Class.forName(
-		    "com.sun.naming.internal.VersionHelper12").newInstance();
-	} catch (Exception e) {
-	}
-
-	// Use 1.1 helper if 1.2 test fails, or if we cannot create 1.2 helper
-	if (helper == null) {
-	    try {
-		helper = (VersionHelper)
-		    Class.forName(
-		      "com.sun.naming.internal.VersionHelper11").newInstance();
-	    } catch (Exception e) {
-		// should never happen
-	    }
-	}
+	helper = new VersionHelper12();
     }
 
     public static VersionHelper getVersionHelper() {

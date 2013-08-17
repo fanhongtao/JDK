@@ -1,4 +1,6 @@
 /*
+ * @(#)ORB.java	1.124 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -88,8 +90,11 @@ import java.security.PrivilegedAction;
  *
  *     <LI>check in the System properties 
  *
+ *     <LI>check in the orb.properties file located in the user.home 
+ *         directory (if any)
+ *
  *     <LI>check in the orb.properties file located in the java.home/lib 
- *         directory
+ *         directory (if any)
  *
  *     <LI>fall back on a hardcoded default behavior (use the Java&nbsp;IDL
  *         implementation)
@@ -157,7 +162,7 @@ abstract public class ORB {
     // properties or applet parameters. Change these values to
     // vendor-specific class names.
     //
-    private static final String defaultORB = "com.sun.corba.se.internal.iiop.ORB";
+    private static final String defaultORB = "com.sun.corba.se.internal.Interceptors.PIORB";
     private static final String defaultORBSingleton = "com.sun.corba.se.internal.corba.ORBSingleton";
 
     //
@@ -186,37 +191,56 @@ abstract public class ORB {
 	return propValue;
     }
 
-    // Get property from <java-home>/lib/orb.properties file
+    // Get property from orb.properties in either <user.home> or <java-home>/lib
+    // directories.
     private static String getPropertyFromFile(final String name) {
 	// This will not throw a SecurityException because this
 	// class was loaded from rt.jar using the bootstrap classloader.
 
         String propValue = (String) AccessController.doPrivileged(
 	    new PrivilegedAction() {
-		public java.lang.Object run() {
-	            Properties props = new Properties();
-	            try {
-	                // Check if orb.properties exists
-	                String javaHome = System.getProperty("java.home");
-	                File propFile = new File(javaHome + File.separator
-				     + "lib" + File.separator
-				     + "orb.properties");
-	                if ( !propFile.exists() )
-		            return null;
+		private Properties getFileProperties( String fileName ) {
+		    try {
+			File propFile = new File( fileName ) ;
+			if (!propFile.exists())
+			    return null ;
 
-	                // Load properties from orb.properties
-	                FileInputStream fis = new FileInputStream(propFile);
+			Properties props = new Properties() ;
+			FileInputStream fis = new FileInputStream(propFile);
 			try {
-			    props.load(fis);
+			    props.load( fis );
 			} finally {
-			    fis.close();
+			    fis.close() ;
 			}
-	            } catch ( Exception ex ) {
-	                return null;
-	            }
 
-	            return props.getProperty( name ) ;
-                }
+			return props ;
+		    } catch (Exception exc) {
+			return null ;
+		    }
+		}
+
+		public java.lang.Object run() {
+		    String userHome = System.getProperty("user.home");
+		    String fileName = userHome + File.separator + 
+			"orb.properties" ;
+		    Properties props = getFileProperties( fileName ) ;
+
+		    if (props != null) {
+			String value = props.getProperty( name ) ;
+			if (value != null) 
+			    return value ;
+		    }
+			
+		    String javaHome = System.getProperty("java.home");
+		    fileName = javaHome + File.separator
+			+ "lib" + File.separator + "orb.properties";
+		    props = getFileProperties( fileName ) ;
+
+		    if (props == null) 
+			return null ;
+		    else
+			return props.getProperty( name ) ;
+		}	
 	    }
 	);
 
@@ -256,30 +280,33 @@ abstract public class ORB {
             if (className == null)
                 className = defaultORBSingleton;
 
-	    ClassLoader cl = Thread.currentThread().getContextClassLoader();
-
-	    if (cl == null)
-	        cl = ClassLoader.getSystemClassLoader();
-            singleton = create_impl(className, cl);
+            singleton = create_impl(className);
         }
 	return singleton;
     }
 
-    private static ORB create_impl(String className, ClassLoader cl) {
+    private static ORB create_impl(String className) {
+        
         try {
             return (ORB) Class.forName(className).newInstance();
 	} catch (ClassNotFoundException ex) {
 	    // Eat the exception and try again below...
         } catch (Exception ex) {
 	    throw new INITIALIZE(
-				 "can't instantiate default ORB implementation " + className);
+                "can't instantiate default ORB implementation " + className);
         }
+        
+
+        
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        if (cl == null)
+            cl = ClassLoader.getSystemClassLoader();
 
         try {
             return (ORB) Class.forName(className, true, cl).newInstance();
         } catch (Exception ex) {
 	    throw new INITIALIZE(
-		"can't instantiate default ORB implementation " + className);
+                "can't instantiate default ORB implementation " + className);
         }
     }
 
@@ -315,12 +342,7 @@ abstract public class ORB {
         if (className == null)
             className = defaultORB;
 
-	ClassLoader cl = Thread.currentThread().getContextClassLoader();
-
-	if (cl == null)
-	    cl = ClassLoader.getSystemClassLoader();
-
-	orb = create_impl(className, cl);
+	orb = create_impl(className);
 	orb.set_parameters(args, props);
 	return orb;
     }
@@ -337,7 +359,6 @@ abstract public class ORB {
     public static ORB init(Applet app, Properties props) {
         String className;
 	ORB orb;
-	ClassLoader cl = null;
 
         className = app.getParameter(ORBClassKey);
 	if (className == null && props != null)
@@ -349,15 +370,7 @@ abstract public class ORB {
         if (className == null)
             className = defaultORB;
 
-	if (app != null)
-	    cl = app.getClass().getClassLoader();
-	else
-	    cl = Thread.currentThread().getContextClassLoader();
-
-	if (cl == null)
-	    cl = ClassLoader.getSystemClassLoader();
-
-        orb = create_impl(className, cl);
+        orb = create_impl(className);
         orb.set_parameters(app, props);
 	return orb;
     }
@@ -404,18 +417,29 @@ abstract public class ORB {
      * <P>
      * Deprecated by the OMG in favor of the Portable Object Adapter APIs.
      *
-     * @param obj the servant object reference
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
+     * @param obj The servant object reference
      */
     public void connect(org.omg.CORBA.Object obj) {
 	throw new NO_IMPLEMENT();
     }
 
     /**
-     * Destroys the ORB instance and frees all the resources under an ORB instance.
-     * The method is not implemented, The API is provided to conform with the OMG
-     * spec.
+     * Destroys the ORB so that its resources can be reclaimed.
+     * Any operation invoked on a destroyed ORB reference will throw the
+     * <code>OBJECT_NOT_EXIST</code> exception.
+     * Once an ORB has been destroyed, another call to <code>init</code>
+     * with the same ORBid will return a reference to a newly constructed ORB.<p>
+     * If <code>destroy</code> is called on an ORB that has not been shut down,
+     * it will start the shut down process and block until the ORB has shut down
+     * before it destroys the ORB.<br>
+     * If an application calls <code>destroy</code> in a thread that is currently servicing
+     * an invocation, the <code>BAD_INV_ORDER</code> system exception will be thrown
+     * with the OMG minor code 3, since blocking would result in a deadlock.<p>
+     * For maximum portability and to avoid resource leaks, an application should
+     * always call <code>shutdown</code> and <code>destroy</code>
+     * on all ORB instances before exiting.
+     *
+     * @throws org.omg.CORBA.BAD_INV_ORDER if the current thread is servicing an invocation
      */
     public void destroy( ) {
 	throw new NO_IMPLEMENT();
@@ -438,8 +462,6 @@ abstract public class ORB {
      * Deprecated by the OMG in favor of the Portable Object Adapter APIs.
      *
      * @param obj The servant object to be disconnected from the ORB
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
      */
     public void disconnect(org.omg.CORBA.Object obj) {
 	throw new NO_IMPLEMENT();
@@ -811,7 +833,7 @@ abstract public class ORB {
      * The <code>TypeCode</code> object is initialized with the given bound and
      * element type.
      *
-     * @param bound	the bound for the <code>sequence</code>
+     * @param bound	the bound for the <code>sequence</code>, 0 if unbounded
      * @param element_type
      *			the <code>TypeCode</code> object describing the elements
      *          contained in the <code>sequence</code>
@@ -824,21 +846,23 @@ abstract public class ORB {
      * Creates a <code>TypeCode</code> object representing a
      * a recursive IDL <code>sequence</code>.
      * <P>
-     * For the IDL <code>struct</code> Foo in following code fragment,
+     * For the IDL <code>struct</code> Node in following code fragment,
      * the offset parameter for creating its sequence would be 1:
      * <PRE>
-     *    Struct Foo {
+     *    Struct Node {
      *        long value;
-     *        Sequence &lt;Foo&gt; Chain;
+     *        Sequence &lt;Node&gt; subnodes;
      *    };
      * </PRE>
      *
-     * @param bound	the bound for the sequence
+     * @param bound	the bound for the sequence, 0 if unbounded
      * @param offset	the index to the enclosing <code>TypeCode</code> object
      *                  that describes the elements of this sequence
      * @return		a newly-created <code>TypeCode</code> object describing
      *                   a recursive sequence
-     * @deprecated
+     * @deprecated Use a combination of create_recursive_tc and create_sequence_tc instead
+     * @see #create_recursive_tc(String) create_recursive_tc
+     * @see #create_sequence_tc(int, TypeCode) create_sequence_tc
      */
     abstract public TypeCode create_recursive_sequence_tc(int bound, int offset);
 
@@ -861,8 +885,6 @@ abstract public class ORB {
      * @param id        the logical id for the native type.
      * @param name      the name of the native type.
      * @return          the requested TypeCode.
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
      */
     public org.omg.CORBA.TypeCode create_native_tc(String id,
                                                    String name)
@@ -876,8 +898,6 @@ abstract public class ORB {
      * @param id        the logical id for the abstract interface type.
      * @param name      the name of the abstract interface type.
      * @return          the requested TypeCode.
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
      */
     public org.omg.CORBA.TypeCode create_abstract_interface_tc(
 							       String id,
@@ -894,8 +914,6 @@ abstract public class ORB {
      *                  and must be from 1 to 31 inclusive.
      * @param scale     specifies the position of the decimal point.
      * @return          the requested TypeCode.
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
      */
     public org.omg.CORBA.TypeCode create_fixed_tc(short digits, short scale)
     {
@@ -916,13 +934,11 @@ abstract public class ORB {
      * @param id                 the logical id for the value type.
      * @param name               the name of the value type.
      * @param type_modifier      one of the value type modifier constants:
-	 *                      VM_NONE, VM_CUSTOM, VM_ABSTRACT or VM_TRUNCATABLE
+     *                           VM_NONE, VM_CUSTOM, VM_ABSTRACT or VM_TRUNCATABLE
      * @param concrete_base      a <code>TypeCode</code> object
      *                           describing the concrete valuetype base
-	 * @param members            an array containing the members of the value type
+     * @param members            an array containing the members of the value type
      * @return                   the requested TypeCode
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
      */
     public org.omg.CORBA.TypeCode create_value_tc(String id,
 						  String name,
@@ -941,34 +957,39 @@ abstract public class ORB {
      * recursive TypeCode has been properly embedded in the enclosing TypeCode which
      * corresponds to the specified repository id, it will function as a normal TypeCode.
      * Invoking operations on the recursive TypeCode before it has been embedded in the
-     * enclosing TypeCode will result in undefined behavior.
+     * enclosing TypeCode will result in a <code>BAD_TYPECODE</code> exception.
      * <P>
-     * For example, the following
-     * IDL type declarations contain recursion:
+     * For example, the following IDL type declaration contains recursion:
      * <PRE>
-     *    Struct Foo {
-     *        long value;
-     *        Sequence &lt;Foo&gt; Chain;
-     *    };
-     *    Struct Bar {
-     *        public Bar member;
+     *    Struct Node {
+     *        Sequence&lt;Node&gt; subnodes;
      *    };
      * </PRE>
      * <P>
-     * To create a TypeCode for struct Bar, you would invoke the TypeCode creation
+     * To create a TypeCode for struct Node, you would invoke the TypeCode creation
      * operations as shown below:
      * <PRE>
-     * String barID = "IDL:Bar:1.0";
-     * TypeCode recursiveTC = orb.create_recursive_tc(barID);
-     * StructMember[] members = { new StructMember("member", recursiveTC, null) };
-     * TypeCode structBarTC = orb.create_struct_tc(barID, "Bar", members);
+     * String nodeID = "IDL:Node:1.0";
+     * TypeCode recursiveSeqTC = orb.create_sequence_tc(0, orb.create_recursive_tc(nodeID));
+     * StructMember[] members = { new StructMember("subnodes", recursiveSeqTC, null) };
+     * TypeCode structNodeTC = orb.create_struct_tc(nodeID, "Node", members);
      * </PRE>
+     * <P>
+     * Also note that the following is an illegal IDL type declaration:
+     * <PRE>
+     *    Struct Node {
+     *        Node next;
+     *    };
+     * </PRE>
+     * <P>
+     * Recursive types can only appear within sequences which can be empty.
+     * That way marshaling problems, when transmitting the struct in an Any, are avoided.
+     * <P>
      * @param id                 the logical id of the referenced type
      * @return                   the requested TypeCode
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
      */
     public org.omg.CORBA.TypeCode create_recursive_tc(String id) {
+        // implemented in subclass
         throw new org.omg.CORBA.NO_IMPLEMENT();
     }   
 
@@ -977,15 +998,14 @@ abstract public class ORB {
      *
      * @param id                 the logical id for the value type
      * @param name               the name of the value type
-	 * @param boxed_type         the TypeCode for the type
+     * @param boxed_type         the TypeCode for the type
      * @return                   the requested TypeCode
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
      */
     public org.omg.CORBA.TypeCode create_value_box_tc(String id,
 						      String name,
 						      TypeCode boxed_type)
     {
+        // implemented in subclass
         throw new org.omg.CORBA.NO_IMPLEMENT();
     }
 
@@ -1012,9 +1032,7 @@ abstract public class ORB {
      *      comments for unimplemented features</a>
      *
      * @return		a newly-created <code>Current</code> object
-     * @deprecated      use resolve_initial_references.
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
+     * @deprecated      use <code>resolve_initial_references</code>.
      */
     public org.omg.CORBA.Current get_current()
     {
@@ -1022,12 +1040,11 @@ abstract public class ORB {
     }
 
     /**
-     * This operation returns when the ORB has shutdown. If called by
-     * the main thread, it enables the ORB to perform work using the
-     * main thread. Otherwise it simply waits until the ORB has shutdown.
+     * This operation blocks the current thread until the ORB has
+     * completed the shutdown process, initiated when some thread calls
+     * <code>shutdown</code>. It may be used by multiple threads which
+     * get all notified when the ORB shuts down.
      *
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
      */
     public void run()
     {
@@ -1036,20 +1053,32 @@ abstract public class ORB {
 
     /**
      * Instructs the ORB to shut down, which causes all
-     * object adapters to shut down. If the <code>wait_for_completion</code>
-     * parameter
+     * object adapters to shut down, in preparation for destruction.<br>
+     * If the <code>wait_for_completion</code> parameter
      * is true, this operation blocks until all ORB processing (including
      * processing of currently executing requests, object deactivation,
      * and other object adapter operations) has completed.
+     * If an application does this in a thread that is currently servicing
+     * an invocation, the <code>BAD_INV_ORDER</code> system exception
+     * will be thrown with the OMG minor code 3,
+     * since blocking would result in a deadlock.<br>
+     * If the <code>wait_for_completion</code> parameter is <code>FALSE</code>,
+     * then shutdown may not have completed upon return.<p>
+     * While the ORB is in the process of shutting down, the ORB operates as normal,
+     * servicing incoming and outgoing requests until all requests have been completed.
+     * Once an ORB has shutdown, only object reference management operations
+     * may be invoked on the ORB or any object reference obtained from it.
+     * An application may also invoke the <code>destroy</code> operation on the ORB itself.
+     * Invoking any other operation will throw the <code>BAD_INV_ORDER</code>
+     * system exception with the OMG minor code 4.<p>
      * The <code>ORB.run</code> method will return after
      * <code>shutdown</code> has been called.
      *
-	 * @param wait_for_completion <code>true</code> to indicate that the
-	 *                            ORB should complete processing before
-	 *                            shutting down; <code>false</code> to indicate
-	 *                            that the ORB should shut down immediately
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
+     * @param wait_for_completion <code>true</code> if the call
+     *        should block until the shutdown is complete;
+     *        <code>false</code> if it should return immediately
+     * @throws org.omg.CORBA.BAD_INV_ORDER if the current thread is servicing
+     *         an invocation
      */
     public void shutdown(boolean wait_for_completion)
     {
@@ -1060,14 +1089,12 @@ abstract public class ORB {
      * Returns <code>true</code> if the ORB needs the main thread to
      * perform some work, and <code>false</code> if the ORB does not
      * need the main thread.
-	 *
-	 * @return <code>true</code> if there is work pending, meaning that the ORB
-	 *         needs the main thread to perform some work; <code>false</code>
-	 *         if there is no work pending and thus the ORB does not need the
-	 *         main thread
      *
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
+     * @return <code>true</code> if there is work pending, meaning that the ORB
+     *         needs the main thread to perform some work; <code>false</code>
+     *         if there is no work pending and thus the ORB does not need the
+     *         main thread
+     *
      */
     public boolean work_pending()
     {
@@ -1082,8 +1109,6 @@ abstract public class ORB {
      * conjunction to implement a simple polling loop that multiplexes
      * the main thread among the ORB and other activities.
      *
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
      */
     public void perform_work()
     {
@@ -1091,7 +1116,26 @@ abstract public class ORB {
     }
 
     /** 
-	 * See package comments regarding unimplemented features.
+     * Used to obtain information about CORBA facilities and services 
+     * that are supported by this ORB. The service type for which 
+     * information is being requested is passed in as the in 
+     * parameter <tt>service_type</tt>, the values defined by
+     * constants in the CORBA module. If service information is 
+     * available for that type, that is returned in the out parameter
+     * <tt>service_info</tt>, and the operation returns the
+     * value <tt>true</tt>. If no information for the requested 
+     * services type is available, the operation returns <tt>false</tt>
+     *  (i.e., the service is not supported by this ORB).
+     * <P>
+     * @param service_type a <code>short</code> indicating the
+     *        service type for which information is being requested
+     * @param service_info a <code>ServiceInformationHolder</code> object
+     *        that will hold the <code>ServiceInformation</code> object
+     *        produced by this method
+     * @return <code>true</code> if service information is available
+     *        for the <tt>service_type</tt>; 
+     *         <tt>false</tt> if no information for the
+     *         requested services type is available 
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
      */
@@ -1104,9 +1148,17 @@ abstract public class ORB {
     // orbos 98-01-18: Objects By Value -- begin
 
     /** 
-	 * See package comments regarding unimplemented features.
+     * Creates a new <code>DynAny</code> object from the given
+     * <code>Any</code> object.
+     * <P>
+     * @param value the <code>Any</code> object from which to create a new
+     *        <code>DynAny</code> object
+     * @return the new <code>DynAny</code> object created from the given
+     *         <code>Any</code> object
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
+     * @see <a href="../DynamicAny/package-summary.html"><code>DynamicAny</code> package
+     *      replaces these API</a> 
      */
     public org.omg.CORBA.DynAny create_dyn_any(org.omg.CORBA.Any value)
     {
@@ -1114,9 +1166,19 @@ abstract public class ORB {
     }
 
     /** 
-	 * See package comments regarding unimplemented features.
+     * Creates a basic <code>DynAny</code> object from the given 
+     * <code>TypeCode</code> object.
+     * <P>
+     * @param type the <code>TypeCode</code> object from which to create a new
+     *        <code>DynAny</code> object
+     * @return the new <code>DynAny</code> object created from the given
+     *         <code>TypeCode</code> object
+     * @throws org.omg.CORBA.ORBPackage.InconsistentTypeCode if the given
+     *         <code>TypeCode</code> object is not consistent with the operation.
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
+     * @see <a href="../DynamicAny/package-summary.html"><code>DynamicAny</code> package
+     *      replaces these API</a> 
      */
     public org.omg.CORBA.DynAny create_basic_dyn_any(org.omg.CORBA.TypeCode type) throws org.omg.CORBA.ORBPackage.InconsistentTypeCode
     {
@@ -1124,9 +1186,19 @@ abstract public class ORB {
     }
 
     /** 
-	 * See package comments regarding unimplemented features.
+     * Creates a new <code>DynStruct</code> object from the given
+     * <code>TypeCode</code> object.
+     * <P>
+     * @param type the <code>TypeCode</code> object from which to create a new
+     *        <code>DynStruct</code> object
+     * @return the new <code>DynStruct</code> object created from the given
+     *         <code>TypeCode</code> object
+     * @throws org.omg.CORBA.ORBPackage.InconsistentTypeCode if the given
+     *         <code>TypeCode</code> object is not consistent with the operation.
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
+     * @see <a href="../DynamicAny/package-summary.html"><code>DynamicAny</code> package
+     *      replaces these API</a>
      */
     public org.omg.CORBA.DynStruct create_dyn_struct(org.omg.CORBA.TypeCode type) throws org.omg.CORBA.ORBPackage.InconsistentTypeCode
     {
@@ -1134,9 +1206,19 @@ abstract public class ORB {
     }
 
     /** 
-	 * See package comments regarding unimplemented features.
+     * Creates a new <code>DynSequence</code> object from the given
+     * <code>TypeCode</code> object.
+     * <P>
+     * @param type the <code>TypeCode</code> object from which to create a new
+     *        <code>DynSequence</code> object
+     * @return the new <code>DynSequence</code> object created from the given
+     *         <code>TypeCode</code> object
+     * @throws org.omg.CORBA.ORBPackage.InconsistentTypeCode if the given
+     *         <code>TypeCode</code> object is not consistent with the operation.
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
+     * @see <a href="../DynamicAny/package-summary.html"><code>DynamicAny</code> package
+     *      replaces these API</a>
      */
     public org.omg.CORBA.DynSequence create_dyn_sequence(org.omg.CORBA.TypeCode type) throws org.omg.CORBA.ORBPackage.InconsistentTypeCode
     {
@@ -1145,9 +1227,19 @@ abstract public class ORB {
 
 
     /** 
-	 * See package comments regarding unimplemented features.
+     * Creates a new <code>DynArray</code> object from the given
+     * <code>TypeCode</code> object.
+     * <P>
+     * @param type the <code>TypeCode</code> object from which to create a new
+     *        <code>DynArray</code> object
+     * @return the new <code>DynArray</code> object created from the given
+     *         <code>TypeCode</code> object
+     * @throws org.omg.CORBA.ORBPackage.InconsistentTypeCode if the given
+     *         <code>TypeCode</code> object is not consistent with the operation.
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
+     * @see <a href="../DynamicAny/package-summary.html"><code>DynamicAny</code> package
+     *      replaces these API</a>     
      */
     public org.omg.CORBA.DynArray create_dyn_array(org.omg.CORBA.TypeCode type) throws org.omg.CORBA.ORBPackage.InconsistentTypeCode
     {
@@ -1155,9 +1247,19 @@ abstract public class ORB {
     }
 
     /** 
-	 * See package comments regarding unimplemented features.
+     * Creates a new <code>DynUnion</code> object from the given
+     * <code>TypeCode</code> object.
+     * <P>
+     * @param type the <code>TypeCode</code> object from which to create a new
+     *        <code>DynUnion</code> object
+     * @return the new <code>DynUnion</code> object created from the given
+     *         <code>TypeCode</code> object
+     * @throws org.omg.CORBA.ORBPackage.InconsistentTypeCode if the given
+     *         <code>TypeCode</code> object is not consistent with the operation.
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
+     * @see <a href="../DynamicAny/package-summary.html"><code>DynamicAny</code> package
+     *      replaces these API</a> 
      */
     public org.omg.CORBA.DynUnion create_dyn_union(org.omg.CORBA.TypeCode type) throws org.omg.CORBA.ORBPackage.InconsistentTypeCode
     {
@@ -1165,9 +1267,19 @@ abstract public class ORB {
     }
 
     /** 
-	 * See package comments regarding unimplemented features.
+     * Creates a new <code>DynEnum</code> object from the given
+     * <code>TypeCode</code> object.
+     * <P>
+     * @param type the <code>TypeCode</code> object from which to create a new
+     *        <code>DynEnum</code> object
+     * @return the new <code>DynEnum</code> object created from the given
+     *         <code>TypeCode</code> object
+     * @throws org.omg.CORBA.ORBPackage.InconsistentTypeCode if the given
+     *         <code>TypeCode</code> object is not consistent with the operation.
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
+     * @see <a href="../DynamicAny/package-summary.html"><code>DynamicAny</code> package
+     *      replaces these API</a> 
      */
     public org.omg.CORBA.DynEnum create_dyn_enum(org.omg.CORBA.TypeCode type) throws org.omg.CORBA.ORBPackage.InconsistentTypeCode
     {
@@ -1175,15 +1287,28 @@ abstract public class ORB {
     }
 
     /** 
-	 * See package comments regarding unimplemented features.
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
-     */
+    * Can be invoked to create new instances of policy objects 
+    * of a specific type with specified initial state. If 
+    * <tt>create_policy</tt> fails to instantiate a new Policy 
+    * object due to its inability to interpret the requested type
+    * and content of the policy, it raises the <tt>PolicyError</tt>
+    * exception with the appropriate reason.
+    * @param type the <tt>PolicyType</tt> of the policy object to 
+    *        be created
+    * @param val the value that will be used to set the initial
+    *        state of the <tt>Policy</tt> object that is created
+    * @return Reference to a newly created <tt>Policy</tt> object 
+    *        of type specified by the <tt>type</tt> parameter and 
+    *        initialized to a state specified by the <tt>val</tt>
+    *        parameter
+    * @throws <tt>org.omg.CORBA.PolicyError</tt> when the requested
+    *        policy is not supported or a requested initial state 
+    *        for the policy is not supported.
+    */
     public org.omg.CORBA.Policy create_policy(int type, org.omg.CORBA.Any val)
         throws org.omg.CORBA.PolicyError
     {
+	// Currently not implemented until PIORB.
         throw new org.omg.CORBA.NO_IMPLEMENT();
     }
-
 }
-

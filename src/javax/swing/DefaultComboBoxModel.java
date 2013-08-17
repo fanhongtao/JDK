@@ -1,4 +1,6 @@
 /*
+ * @(#)DefaultComboBoxModel.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -24,7 +26,7 @@ import javax.accessibility.*;
 /**
  * The default model for combo boxes.
  *
- * @version 1.12 02/06/02
+ * @version 1.15 12/03/01
  * @author Arnaud Weber
  * @author Tom Santos
  */
@@ -74,11 +76,16 @@ public class DefaultComboBoxModel extends AbstractListModel implements MutableCo
     }
 
     // implements javax.swing.ComboBoxModel
+    /**
+     * Set the value of the selected item. The selected item may be null.
+     * <p>
+     * @param anObject The combo box value or null for no selection.
+     */
     public void setSelectedItem(Object anObject) {
-        if ( (selectedObject != null && !selectedObject.equals( anObject )) ||
-             selectedObject == null && anObject != null ) {
-            selectedObject = anObject;
-            fireContentsChanged(this, -1, -1);
+        if ((selectedObject != null && !selectedObject.equals( anObject )) ||
+	    selectedObject == null && anObject != null) {
+	    selectedObject = anObject;
+	    fireContentsChanged(this, -1, -1);
         }
     }
 

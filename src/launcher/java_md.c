@@ -1,4 +1,6 @@
 /*
+ * @(#)java_md.c	1.25 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,10 +21,14 @@
 #define JAVA_DLL "libjava.so"
 #endif
 
+#ifdef _LP64
+#define ARCH "sparcv9"
+#endif
+
 #ifndef ARCH
 #include <sys/systeminfo.h>
 #endif
-static const char *
+const char *
 GetArch()
 {
     static char *arch = NULL;
@@ -41,9 +47,7 @@ GetArch()
 }
 
 /*
- * On Solaris VM choosing is done by .java_wrapper.  The .exe is also
- * linked against libjvm.so, so we don't have to load any library, it
- * has already been loaded.
+ * On Solaris VM choosing is done by the launcher (java.c).
  */
 jboolean
 GetJVMPath(const char *jrepath, const char *jvmtype,
@@ -51,7 +55,11 @@ GetJVMPath(const char *jrepath, const char *jvmtype,
 {
     struct stat s;
     
-    sprintf(jvmpath, "%s/lib/%s/%s/" JVM_DLL, jrepath, GetArch(), jvmtype);
+    if (strchr(jvmtype, '/')) {
+	sprintf(jvmpath, "%s/" JVM_DLL, jvmtype);
+    } else {
+	sprintf(jvmpath, "%s/lib/%s/%s/" JVM_DLL, jrepath, GetArch(), jvmtype);
+    }
     if (debug) printf("Does `%s' exist ... ", jvmpath);
 
     if (stat(jvmpath, &s) == 0) {
@@ -62,32 +70,6 @@ GetJVMPath(const char *jrepath, const char *jvmtype,
 	return JNI_FALSE;
     }
 }
-
-/*
- * If the target VM is a symbolic link to another valid VM, return a pointer
- * to the name of that VM.  If the target VM is a link to something else
- * (not to be documented?) return an empty string.  Otherwise return NULL.
- */
-
-const char *
-ReadJVMLink(const char *jrepath, const char *jvmtype,
-	    char* knownVMs[], int knownVMsCount) {
-    char jvmpath[MAXPATHLEN];
-    char link[MAXPATHLEN];
-    int i;
-
-    sprintf(jvmpath, "%s/lib/%s/%s", jrepath, GetArch(), jvmtype);
-    if (debug) printf("Is `%s' a symbolic link ... ", jvmpath);
-    if (readlink(jvmpath, link, sizeof link) == -1)
-	return NULL;				/* Not a link. */
-
-    for (i = 0; i < knownVMsCount; ++i) {
-	if (strcmp(link, knownVMs[i]+1))
-	    return knownVMs[i] + 1;		/* Return the link. */
-    }
-    return "";					/* Don't know, don't document.*/
-}
-
 
 /*
  * Find path to JRE based on .exe's location or registry settings.
@@ -112,6 +94,7 @@ GetJREPath(char *path, jint pathsize)
 	}
     }
 
+    fprintf(stderr, "Error: could not find " JAVA_DLL "\n");
     return JNI_FALSE;
 
  found:
@@ -172,17 +155,16 @@ GetXUsagePath(char *buf, jint bufsize)
 }
 
 /*
- * If app is "/foo/bin/sparc/green_threads/javac", then put "/foo" into buf.
+ * If app is "/foo/bin/javac", or "/foo/bin/sparcv9/javac" then put "/foo" into buf.
  */
 jboolean
 GetApplicationHome(char *buf, jint bufsize)
 {
-#ifdef USE_APPHOME
-    char *apphome = getenv("APPHOME");
-    if (apphome) {
-	strncpy(buf, apphome, bufsize-1);
+#ifdef __linux__
+    char *execname = GetExecname();
+    if (execname) {
+	strncpy(buf, execname, bufsize-1);
 	buf[bufsize-1] = '\0';
-	return JNI_TRUE;
     } else {
 	return JNI_FALSE;
     }
@@ -190,24 +172,29 @@ GetApplicationHome(char *buf, jint bufsize)
     Dl_info dlinfo;
 
     dladdr((void *)GetApplicationHome, &dlinfo);
-    strncpy(buf, dlinfo.dli_fname, bufsize - 1);
-    buf[bufsize-1] = '\0';
-    
-    *(strrchr(buf, '/')) = '\0';  /* executable file      */
-    *(strrchr(buf, '/')) = '\0';  /* green|native_threads */
-    *(strrchr(buf, '/')) = '\0';  /* sparc|i386           */
-    *(strrchr(buf, '/')) = '\0';  /* bin                  */
-
-    {
-	char real[PATH_MAX];
-	if (realpath(buf, real) == NULL) {
-	    fprintf(stderr, "Error: realpath(`%s') failed.\n", buf);
-	    return JNI_FALSE;
-	}
-	strcpy(buf, real);
+    if (realpath(dlinfo.dli_fname, buf) == NULL) {
+	fprintf(stderr, "Error: realpath(`%s') failed.\n", buf);
+	return JNI_FALSE;
     }
-    
-    return JNI_TRUE;
 #endif
+
+    if (strrchr(buf, '/') == 0) {
+	buf[0] = '\0';
+	return JNI_FALSE;
+    }
+    *(strrchr(buf, '/')) = '\0';	/* executable file      */
+    if (strlen(buf) < 4 || strrchr(buf, '/') == 0) {
+	buf[0] = '\0';
+	return JNI_FALSE;
+    }
+    if (strcmp("/bin", buf + strlen(buf) - 4) != 0) 
+	*(strrchr(buf, '/')) = '\0';	/* sparcv9              */
+    if (strlen(buf) < 4 || strcmp("/bin", buf + strlen(buf) - 4) != 0) {
+	buf[0] = '\0';
+	return JNI_FALSE;
+    }
+    *(strrchr(buf, '/')) = '\0';	/* bin                  */
+
+    return JNI_TRUE;
 }
 

@@ -1,4 +1,6 @@
 /*
+ * @(#)NVList.java	1.25 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -115,15 +117,14 @@ public abstract class NVList {
      * Creates a new <code>NamedValue</code> object initialized with the
      * given name, value, and flag,
      * and adds it to the end of this <code>NVList</code> object.
-     * The flag can be any one of the argument passing modes:
-     * <code>ARG_IN.value</code>, <code>ARG_OUT.value</code>, or
-     * <code>ARG_INOUT.value</code>.
      *
      * @param item_name	the name for the new <code>NamedValue</code> object
-     * @param value		an <code>Any</code> object containing the  value
+     * @param val	  an <code>Any</code> object containing the  value
      *                    for the new <code>NamedValue</code> object
-     * @param flags		one of the argument mode flags
-     * @return			the newly-created <code>NamedValue</code> object
+     * @param flags	  one of the following argument passing modes:
+     *                    <code>ARG_IN.value</code>, <code>ARG_OUT.value</code>, or
+     *                    <code>ARG_INOUT.value</code>
+     * @return		  the newly created <code>NamedValue</code> object
      */
 
     public abstract NamedValue add_value(String item_name, Any val, int flags);

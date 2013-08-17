@@ -1,4 +1,6 @@
 /*
+ * @(#)BufferedOutputStream.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,7 +17,7 @@ package java.io;
  * buffer output stream is explicitly flushed. 
  *
  * @author  Arthur van Hoff
- * @version 1.28, 02/06/02
+ * @version 1.29, 12/03/01
  * @since   JDK1.0
  */
 public 
@@ -51,7 +53,7 @@ class BufferedOutputStream extends FilterOutputStream {
      *
      * @param   out    the underlying output stream.
      * @param   size   the buffer size.
-     * @exception IllegalArgumentException if size <= 0.
+     * @exception IllegalArgumentException if size &lt;= 0.
      */
     public BufferedOutputStream(OutputStream out, int size) {
 	super(out);

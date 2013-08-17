@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicTextUI.java	1.75 01/12/12
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,34 +10,39 @@ import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.*;
+import java.awt.datatransfer.*;
+import java.awt.dnd.*;
 import java.beans.*;
 import java.io.*;
+import java.net.*;
 import javax.swing.*;
 import javax.swing.plaf.*;
 import javax.swing.text.*;
 import javax.swing.event.*;
 import javax.swing.border.Border;
+import javax.swing.plaf.UIResource;
 
 /**
  * <p>
  * Basis of a text components look-and-feel.  This provides the
  * basic editor view and controller services that may be useful
- * when creating a look-and-feel for an extension of JTextComponent.
+ * when creating a look-and-feel for an extension of
+ * <code>JTextComponent</code>.
  * <p>
- * Most state is held in the associated JTextComponent as bound
- * properties, and the UI installs default values for the 
+ * Most state is held in the associated <code>JTextComponent</code>
+ * as bound properties, and the UI installs default values for the 
  * various properties.  This default will install something for
  * all of the properties.  Typically, a LAF implementation will
  * do more however.  At a minimum, a LAF would generally install
  * key bindings.
  * <p>
  * This class also provides some concurrency support if the 
- * Document associated with the JTextComponent is a subclass of
- * AbstractDocument.  Access to the View (or View hierarchy) is
+ * <code>Document</code> associated with the JTextComponent is a subclass of
+ * <code>AbstractDocument</code>.  Access to the View (or View hierarchy) is
  * serialized between any thread mutating the model and the Swing
  * event thread (which is expected to render, do model/view coordinate
  * translation, etc).  <em>Any access to the root view should first
- * aquire a read-lock on the AbstractDocument and release that lock
+ * acquire a read-lock on the AbstractDocument and release that lock
  * in a finally block.</em>
  * <p>
  * An important method to define is the {@link #getPropertyPrefix} method
@@ -62,20 +69,22 @@ import javax.swing.border.Border;
  * <li>
  * A less common way to create more complex types is to have
  * the UI implementation create a.
- * seperate object for the factory.  To do this, the 
+ * separate object for the factory.  To do this, the 
  * {@link #createViewFactory} method should be reimplemented to 
  * return some factory.
  * </ol>
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.45 02/06/02
+ * @version 1.75 12/12/01
  */
 public abstract class BasicTextUI extends TextUI implements ViewFactory {
 
@@ -196,6 +205,10 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
      */
     protected void installDefaults() 
     {
+
+	editor.addMouseListener(defaultDragRecognizer);
+	editor.addMouseMotionListener(defaultDragRecognizer);
+	
         String prefix = getPropertyPrefix();
         Font f = editor.getFont();
         if ((f == null) || (f instanceof UIResource)) {
@@ -259,10 +272,25 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
             editor.setHighlighter(createHighlighter());
         }
 
+	TransferHandler th = editor.getTransferHandler();
+	if (th == null || th instanceof UIResource) {
+	    editor.setTransferHandler(getTransferHandler());
+	}
+	DropTarget dropTarget = editor.getDropTarget();
+	if (dropTarget instanceof UIResource) {
+            if (defaultDropTargetListener == null) {
+                defaultDropTargetListener = new TextDropTargetListener();
+            }
+	    try {
+		dropTarget.addDropTargetListener(defaultDropTargetListener);
+	    } catch (TooManyListenersException tmle) {
+		// should not happen... swing drop target is multicast
+	    }
+	}
     }
 
     /**
-     * Sets the component properties that haven't been explicitly overriden to 
+     * Sets the component properties that haven't been explicitly overridden to 
      * null.  A property is considered overridden if its current value
      * is not a UIResource.
      * 
@@ -271,6 +299,9 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
      */
     protected void uninstallDefaults() 
     {
+	editor.removeMouseListener(defaultDragRecognizer);
+	editor.removeMouseMotionListener(defaultDragRecognizer);
+
         if (editor.getCaretColor() instanceof UIResource) {
             editor.setCaretColor(null);
         }
@@ -303,6 +334,9 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
             editor.setHighlighter(null);
         }
 
+	if (editor.getTransferHandler() instanceof UIResource) {
+	    editor.setTransferHandler(null);
+	}
     }
 
     /**
@@ -379,8 +413,15 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
     }
 
     /**
-     * Fetch an action map to use.  This map is shared across
-     * TextUI implementations of a given type.
+     * Returns the <code>TransferHandler</code> that will be installed if
+     * their isn't one installed on the <code>JTextComponent</code>.
+     */
+    TransferHandler getTransferHandler() {
+        return defaultTransferHandler;
+    }
+
+    /**
+     * Fetch an action map to use.
      */
     ActionMap getActionMap() {
 	String mapName = getPropertyPrefix() + ".actionMap";
@@ -389,7 +430,7 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	if (map == null) {
 	    map = createActionMap();
 	    if (map != null) {
-		UIManager.put(mapName, map);
+		UIManager.getLookAndFeelDefaults().put(mapName, map);
 	    }
 	}
         ActionMap componentMap = new ActionMapUIResource();
@@ -414,6 +455,12 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	    map.put(a.getValue(Action.NAME), a);
 	    //System.out.println("  " + a.getValue(Action.NAME));
 	}
+        map.put(TransferHandler.getCutAction().getValue(Action.NAME),
+                TransferHandler.getCutAction());
+        map.put(TransferHandler.getCopyAction().getValue(Action.NAME),
+                TransferHandler.getCopyAction());
+        map.put(TransferHandler.getPasteAction().getValue(Action.NAME),
+                TransferHandler.getPasteAction());
 	return map;
     }
 
@@ -682,6 +729,11 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	    if ((d.width > (i.left + i.right)) && (d.height > (i.top + i.bottom))) {
 		rootView.setSize(d.width - i.left - i.right, d.height - i.top - i.bottom);
 	    }
+            else if (d.width == 0 && d.height == 0) {
+                // Probably haven't been layed out yet, force some sort of
+                // initial sizing.
+                rootView.setSize(Integer.MAX_VALUE, Integer.MAX_VALUE);
+            }
 	    d.width = (int) Math.min((long) rootView.getPreferredSpan(View.X_AXIS) +
 				     (long) i.left + (long) i.right, Integer.MAX_VALUE);
 	    d.height = (int) Math.min((long) rootView.getPreferredSpan(View.Y_AXIS) +
@@ -992,6 +1044,35 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
     }
 
 
+    /**
+     * Returns the string to be used as the tooltip at the passed in location.
+     * This forwards the method onto the root View.
+     *
+     * @see javax.swing.text.JTextComponent#getToolTipText
+     * @see javax.swing.text.View#getToolTipText
+     * @since 1.4
+     */
+    public String getToolTipText(JTextComponent t, Point pt) {
+        if (!painted) {
+            return null;
+        }
+        Document doc = editor.getDocument();
+        String tt = null;
+        Rectangle alloc = getVisibleEditorRect();
+
+        if (doc instanceof AbstractDocument) {
+            ((AbstractDocument)doc).readLock();
+        }
+        try {
+            tt = rootView.getToolTipText(pt.x, pt.y, alloc);
+        } finally {
+            if (doc instanceof AbstractDocument) {
+                ((AbstractDocument)doc).readUnlock();
+            }
+        }
+        return tt;
+    }
+
     // --- ViewFactory methods ------------------------------
 
     /**
@@ -1036,7 +1117,9 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
     transient boolean painted;
     transient RootView rootView = new RootView();
     transient UpdateHandler updateHandler = new UpdateHandler();
-
+    private static final TransferHandler defaultTransferHandler = new TextTransferHandler();
+    private static DropTargetListener defaultDropTargetListener = null;
+    private static final TextDragGestureRecognizer defaultDragRecognizer = new TextDragGestureRecognizer();
     private static final Position.Bias[] discardBias = new Position.Bias[1];
 
     /**
@@ -1161,7 +1244,7 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
             if (view != null) {
                 Rectangle alloc = (allocation instanceof Rectangle) ?
 		          (Rectangle)allocation : allocation.getBounds();
-                view.setSize(alloc.width, alloc.height);
+		setSize(alloc.width, alloc.height);
                 view.paint(g, allocation);
             }
         }
@@ -1203,7 +1286,7 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	 * child.
 	 *
 	 * @param pos the position >= 0
-	 * @returns  index of the view representing the given position, or 
+	 * @return  index of the view representing the given position, or 
 	 *   -1 if no view represents that position
 	 * @since 1.3
 	 */
@@ -1492,7 +1575,7 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
      * accelerator changes, a new keystroke is registered to request
      * focus.
      */
-    class UpdateHandler implements PropertyChangeListener, DocumentListener, LayoutManager2, Runnable, UIResource {
+    class UpdateHandler implements PropertyChangeListener, DocumentListener, LayoutManager2, UIResource {
 
         // --- PropertyChangeListener methods -----------------------
 
@@ -1503,6 +1586,7 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
         public final void propertyChange(PropertyChangeEvent evt) {
             Object oldValue = evt.getOldValue();
             Object newValue = evt.getNewValue();
+	    String propertyName = evt.getPropertyName();
             if ((oldValue instanceof Document) || (newValue instanceof Document)) {
                 if (oldValue != null) {
                     ((Document)oldValue).removeDocumentListener(this);
@@ -1512,18 +1596,27 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
                 }
                 modelChanged();
             }
-	    if (JTextComponent.FOCUS_ACCELERATOR_KEY.equals
-		(evt.getPropertyName())) {
+	    if (JTextComponent.FOCUS_ACCELERATOR_KEY.equals(propertyName)) {
 		updateFocusAcceleratorBinding(true);
-            } else if ("componentOrientation".equals(evt.getPropertyName())) {
-                ComponentOrientation o=(ComponentOrientation)evt.getNewValue();
-                Boolean runDir = o.isLeftToRight() 
-                                 ? TextAttribute.RUN_DIRECTION_LTR
-                                 : TextAttribute.RUN_DIRECTION_RTL;
-                Document doc = editor.getDocument();
-                doc.putProperty( TextAttribute.RUN_DIRECTION, runDir );
+            } else if ("componentOrientation".equals(propertyName)) {
+                // Changes in ComponentOrientation require the views to be
+                // rebuilt.
                 modelChanged();
-            }
+            } else if ("font".equals(propertyName)) {
+                modelChanged();
+            } else if ("transferHandler".equals(propertyName)) {
+		DropTarget dropTarget = editor.getDropTarget();
+		if (dropTarget instanceof UIResource) {
+                    if (defaultDropTargetListener == null) {
+                        defaultDropTargetListener = new TextDropTargetListener();
+                    }
+		    try {
+			dropTarget.addDropTargetListener(defaultDropTargetListener);
+		    } catch (TooManyListenersException tmle) {
+			// should not happen... swing drop target is multicast
+		    }
+		}
+	    }
             BasicTextUI.this.propertyChange(evt);
         }
 
@@ -1568,18 +1661,6 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
          * @see DocumentListener#removeUpdate
          */
         public final void removeUpdate(DocumentEvent e) {
-	    if ((constraints != null) && (! constraints.isEmpty())) {
-		// There may be components to remove.  This method may
-		// be called by a thread other than the event dispatching
-		// thread.  We really want to do this before any repaints
-		// get scheduled so the order here is important.
-		if (SwingUtilities.isEventDispatchThread()) {
-		    run();
-		} else {
-		    SwingUtilities.invokeLater(this);
-		}
-	    }
-
             Rectangle alloc = (painted) ? getVisibleEditorRect() : null;
             rootView.removeUpdate(e, alloc, rootView.getViewFactory());
 	}
@@ -1598,35 +1679,6 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
             Rectangle alloc = (painted) ? getVisibleEditorRect() : null;
             rootView.changedUpdate(e, alloc, rootView.getViewFactory());
         }
-
-	// --- Runnable methods --------------------------------------
-
-	/**
-	 * Weed out components that have an association with a View
-	 * that have been removed.
-	 */
-        public void run() {
-	    Vector toRemove = null;
-	    Enumeration components = constraints.keys();
-	    while (components.hasMoreElements()) {
-		Component comp = (Component) components.nextElement();
-		View v = (View) constraints.get(comp);
-		if (v.getStartOffset() == v.getEndOffset()) {
-		    // this view has been removed, its coordinates
-		    // have collapsed down to the removal location.
-		    if (toRemove == null) {
-			toRemove = new Vector();
-		    }
-		    toRemove.addElement(comp);
-		}
-	    }
-	    if (toRemove != null) {
-		int n = toRemove.size();
-		for (int i = 0; i < n; i++) {
-		    editor.remove((Component) toRemove.elementAt(i));
-		}
-	    }
-	}
 
 	// --- LayoutManager2 methods --------------------------------
 
@@ -1812,5 +1864,501 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
             return editor.isEditable();
         }
     }
+
+    /**
+     * Drag gesture recognizer for text components.
+     */
+    static class TextDragGestureRecognizer extends BasicDragGestureRecognizer {
+
+	/**
+	 * Determines if the following are true:
+	 * <ul>
+	 * <li>the press event is located over a selection
+	 * <li>the dragEnabled property is true
+	 * <li>A TranferHandler is installed
+	 * </ul>
+	 * <p>
+	 * This is implemented to check for a TransferHandler.
+	 * Subclasses should perform the remaining conditions.
+	 */
+        protected boolean isDragPossible(MouseEvent e) {
+	    if (super.isDragPossible(e)) {
+		JTextComponent c = (JTextComponent) this.getComponent(e);
+		if (c.getDragEnabled()) {
+		    Caret caret = c.getCaret();
+		    int dot = caret.getDot();
+		    int mark = caret.getMark();
+		    if (dot != mark) {
+			Point p = new Point(e.getX(), e.getY());
+			int pos = c.viewToModel(p);
+			
+			int p0 = Math.min(dot, mark);
+			int p1 = Math.max(dot, mark);
+			if ((pos >= p0) && (pos < p1)) {
+			    return true;
+			}
+		    }
+		}
+		
+	    }
+	    return false;
+	}
+    }
+
+    /**
+     * A DropTargetListener to extend the default Swing handling of drop operations
+     * by moving the caret to the nearest location to the mouse pointer.
+     */
+    static class TextDropTargetListener extends BasicDropTargetListener {
+
+	/**
+	 * called to save the state of a component in case it needs to
+	 * be restored because a drop is not performed.
+	 */
+        protected void saveComponentState(JComponent comp) {
+	    JTextComponent c = (JTextComponent) comp;
+	    Caret caret = c.getCaret();
+	    dot = caret.getDot();
+	    mark = caret.getMark();
+	    visible = caret.isVisible();
+	    caret.setVisible(true);
+	}
+
+	/**
+	 * called to restore the state of a component 
+	 * because a drop was not performed.
+	 */
+        protected void restoreComponentState(JComponent comp) {
+	    JTextComponent c = (JTextComponent) comp;
+	    Caret caret = c.getCaret();
+	    caret.setDot(mark);
+	    caret.moveDot(dot);
+	    caret.setVisible(visible);
+	}
+
+        /**
+         * called to restore the state of a component
+         * because a drop was performed.
+         */
+        protected void restoreComponentStateForDrop(JComponent comp) {
+            JTextComponent c = (JTextComponent) comp;
+            Caret caret = c.getCaret();
+            caret.setVisible(visible);
+        }
+
+	/**
+	 * called to set the insertion location to match the current
+	 * mouse pointer coordinates.
+	 */
+        protected void updateInsertionLocation(JComponent comp, Point p) {
+	    JTextComponent c = (JTextComponent) comp;
+	    c.setCaretPosition(c.viewToModel(p));
+	}
+
+	int dot;
+	int mark;
+	boolean visible;
+    }
+
+    static class TextTransferHandler extends TransferHandler implements UIResource {
+
+        /**
+         * Try to find a flavor that can be used to import a Transferable.  
+         * The set of usable flavors are tried in the following order:
+         * <ol>
+         *     <li>First, an attempt is made to find a flavor matching the content type
+         *         of the EditorKit for the component.
+         *     <li>Second, an attempt to find a text/plain flavor is made.
+         *     <li>Third, an attempt to find a flavor representing a String reference
+         *         in the same VM is made.
+         *     <li>Lastly, DataFlavor.stringFlavor is searched for.
+         * </ol>
+         */
+	protected DataFlavor getImportFlavor(DataFlavor[] flavors, JTextComponent c) {
+            DataFlavor plainFlavor = null;
+            DataFlavor refFlavor = null;
+            DataFlavor stringFlavor = null;
+            
+            if (c instanceof JEditorPane) {
+                for (int i = 0; i < flavors.length; i++) {
+                    String mime = flavors[i].getMimeType();
+                    if (mime.startsWith(((JEditorPane)c).getEditorKit().getContentType())) {
+                        return flavors[i];
+                    } else if (plainFlavor == null && mime.startsWith("text/plain")) {
+                        plainFlavor = flavors[i];
+                    } else if (refFlavor == null && mime.startsWith("application/x-java-jvm-local-objectref")
+                                                 && flavors[i].getRepresentationClass() == java.lang.String.class) {
+                        refFlavor = flavors[i];
+                    } else if (stringFlavor == null && flavors[i].equals(DataFlavor.stringFlavor)) {
+                        stringFlavor = flavors[i];
+                    }
+                }
+                if (plainFlavor != null) {
+                    return plainFlavor;
+                } else if (refFlavor != null) {
+                    return refFlavor;
+                } else if (stringFlavor != null) {
+                    return stringFlavor;
+                }
+                return null;
+            }
+            
+            
+            for (int i = 0; i < flavors.length; i++) {
+                String mime = flavors[i].getMimeType();
+                if (mime.startsWith("text/plain")) {
+                    return flavors[i];
+                } else if (refFlavor == null && mime.startsWith("application/x-java-jvm-local-objectref")
+                                             && flavors[i].getRepresentationClass() == java.lang.String.class) {
+                    refFlavor = flavors[i];
+                } else if (stringFlavor == null && flavors[i].equals(DataFlavor.stringFlavor)) {
+                    stringFlavor = flavors[i];
+                }
+            }
+            if (refFlavor != null) {
+                return refFlavor;
+            } else if (stringFlavor != null) {
+                return stringFlavor;
+            }
+            return null;
+	}
+
+	/**
+	 * Import the given stream data into the text component.
+	 */
+        protected void handleReaderImport(Reader in, JTextComponent c, boolean useRead)
+                                               throws BadLocationException, IOException {
+            if (useRead) {
+                int startPosition = c.getSelectionStart();
+                int endPosition = c.getSelectionEnd();
+                int length = endPosition - startPosition;
+                EditorKit kit = c.getUI().getEditorKit(c);
+                Document doc = c.getDocument();
+                if (length > 0) {
+                    doc.remove(startPosition, length);
+                }
+                kit.read(in, doc, startPosition);
+            } else {
+                char[] buff = new char[1024];
+                int nch;
+                boolean lastWasCR = false;
+                int last;
+                StringBuffer sbuff = null;
+                
+                // Read in a block at a time, mapping \r\n to \n, as well as single
+                // \r to \n.
+                while ((nch = in.read(buff, 0, buff.length)) != -1) {
+                    if (sbuff == null) {
+                        sbuff = new StringBuffer(nch);
+                    }
+                    last = 0;
+                    for(int counter = 0; counter < nch; counter++) {
+                        switch(buff[counter]) {
+                        case '\r':
+                            if (lastWasCR) {
+                                if (counter == 0) {
+                                    sbuff.append('\n');
+                                } else {
+                                    buff[counter - 1] = '\n';
+                                }
+                            } else {
+                                lastWasCR = true;
+                            }
+                            break;
+                        case '\n':
+                            if (lastWasCR) {
+                                if (counter > (last + 1)) {
+                                    sbuff.append(buff, last, counter - last - 1);
+                                }
+                                // else nothing to do, can skip \r, next write will
+                                // write \n
+                                lastWasCR = false;
+                                last = counter;
+                            }
+                            break;
+                        default:
+                            if (lastWasCR) {
+                                if (counter == 0) {
+                                    sbuff.append('\n');
+                                } else {
+                                    buff[counter - 1] = '\n';
+                                }
+                                lastWasCR = false;
+                            }
+                            break;
+                        }
+                    }
+                    if (last < nch) {
+                        if (lastWasCR) {
+                            if (last < (nch - 1)) {
+                                sbuff.append(buff, last, nch - last - 1);
+                            }
+                        } else {
+                            sbuff.append(buff, last, nch - last);
+                        }
+                    }
+                }
+                if (lastWasCR) {
+                    sbuff.append('\n');
+                }
+                c.replaceSelection(sbuff != null ? sbuff.toString() : "");
+            }
+	}
+
+	// --- TransferHandler methods ------------------------------------
+
+	/**
+	 * This is the type of transfer actions supported by the source.  Some models are 
+	 * not mutable, so a transfer operation of COPY only should
+	 * be advertised in that case.
+	 * 
+	 * @param c  The component holding the data to be transfered.  This
+	 *  argument is provided to enable sharing of TransferHandlers by
+	 *  multiple components.
+	 * @return  This is implemented to return NONE if the component is a JPasswordField
+	 *  since exporting data via user gestures is not allowed.  If the text component is
+	 *  editable, COPY_OR_MOVE is returned, otherwise just COPY is allowed.
+	 */
+        public int getSourceActions(JComponent c) {
+	    int actions = NONE;
+	    if (! (c instanceof JPasswordField)) {
+		if (((JTextComponent)c).isEditable()) {
+		    actions = COPY_OR_MOVE;
+		} else {
+		    actions = COPY;
+		}
+	    }
+	    return actions;
+	}
+
+	/**
+	 * Create a Transferable to use as the source for a data transfer.
+	 *
+	 * @param comp  The component holding the data to be transfered.  This
+	 *  argument is provided to enable sharing of TransferHandlers by
+	 *  multiple components.
+	 * @return  The representation of the data to be transfered. 
+	 *  
+	 */
+        protected Transferable createTransferable(JComponent comp) {
+            JTextComponent c = (JTextComponent)comp;
+            int p0 = c.getSelectionStart();
+            int p1 = c.getSelectionEnd();
+            return (p0 != p1) ? (new TextTransferable(c, p0, p1)) : null;
+	}
+
+	/**
+	 * This method is called after data has been exported.  This method should remove 
+	 * the data that was transfered if the action was MOVE.
+	 *
+	 * @param source The component that was the source of the data.
+	 * @param data   The data that was transferred or possibly null
+         *               if the action is <code>NONE</code>.
+	 * @param action The actual action that was performed.  
+	 */
+        protected void exportDone(JComponent source, Transferable data, int action) {
+	    if (action == MOVE) {
+		TextTransferable t = (TextTransferable)data;
+		t.removeText();
+	    }
+	}
+
+	/**
+	 * This method causes a transfer to a component from a clipboard or a 
+	 * DND drop operation.  The Transferable represents the data to be
+	 * imported into the component.  
+	 *
+	 * @param comp  The component to receive the transfer.  This
+	 *  argument is provided to enable sharing of TransferHandlers by
+	 *  multiple components.
+	 * @param t     The data to import
+	 * @return  true if the data was inserted into the component, false otherwise.
+	 */
+        public boolean importData(JComponent comp, Transferable t) {
+            JTextComponent c = (JTextComponent)comp;
+	    boolean imported = false;
+	    DataFlavor importFlavor = getImportFlavor(t.getTransferDataFlavors(), c);
+	    if (importFlavor != null) {
+		try {
+                    boolean useRead = false;
+                    if (comp instanceof JEditorPane) {
+                        if (importFlavor.getMimeType().startsWith(((JEditorPane)comp).getContentType())) {
+                            useRead = true;
+                        }
+                    }
+                    Reader r = importFlavor.getReaderForText(t);
+                    handleReaderImport(r, c, useRead);
+                    imported = true;
+		} catch (UnsupportedFlavorException ufe) {
+		} catch (BadLocationException ble) {
+		} catch (IOException ioe) {
+		}
+	    }
+	    return imported;
+	}
+
+	/**
+	 * This method indicates if a component would accept an import of the given
+	 * set of data flavors prior to actually attempting to import it. 
+	 *
+	 * @param comp  The component to receive the transfer.  This
+	 *  argument is provided to enable sharing of TransferHandlers by
+	 *  multiple components.
+	 * @param flavors  The data formats available
+	 * @return  true if the data can be inserted into the component, false otherwise.
+	 */
+        public boolean canImport(JComponent comp, DataFlavor[] flavors) {
+            JTextComponent c = (JTextComponent)comp;
+            if (!(c.isEditable() && c.isEnabled())) {
+                return false;
+            }
+            return (getImportFlavor(flavors, c) != null);
+	}
+
+        /**
+	 * A possible implementation of the Transferable interface
+	 * for text components.  For a JEditorPane with a rich set
+	 * of EditorKit implementations, conversions could be made
+	 * giving a wider set of formats.  This is implemented to
+	 * offer up only the active content type and text/plain
+	 * (if that is not the active format) since that can be
+	 * extracted from other formats.
+	 */
+	static class TextTransferable extends BasicTransferable {
+
+	    TextTransferable(JTextComponent c, int start, int end) {
+		this.c = c;
+		Document doc = c.getDocument();
+		try {
+		    p0 = doc.createPosition(start);
+		    p1 = doc.createPosition(end);
+                    if (c instanceof JEditorPane) {
+                        StringWriter sw = new StringWriter(p1.getOffset() - p0.getOffset());
+                        ((JEditorPane)c).getEditorKit().write(sw, doc, p0.getOffset(), p1.getOffset() - p0.getOffset());
+                        if (getMimeType().startsWith("text/plain")) {
+                            text = sw.toString();
+                        } else {
+                            richText = sw.toString();
+                            text = c.getSelectedText();
+                        }
+                    } else {
+                        text = c.getSelectedText();
+                    }
+		} catch (BadLocationException ble) {
+		    p0 = null;
+		    p1 = null;
+		    text = null;
+                    richText = null;
+		} catch (IOException ioe) {
+                    p0 = null;
+                    p1 = null;
+                    text = null;
+                    richText = null;
+                }
+	    }
+
+	    void removeText() {
+		if ((p0 != null) && (p1 != null) && (p0.getOffset() != p1.getOffset())) {
+		    try {
+			Document doc = c.getDocument();
+			doc.remove(p0.getOffset(), p1.getOffset() - p0.getOffset());
+		    } catch (BadLocationException e) {
+		    }
+		}
+	    }
+
+	    /**
+	     * Get the MIME type of the text component.
+	     */
+	    String getMimeType() {
+		if (c instanceof JEditorPane) {
+		    EditorKit kit = ((JEditorPane)c).getEditorKit();
+		    return kit.getContentType();
+		}
+		return "text/plain";
+	    }
+
+	    // ---- EditorKit other than plain or HTML text -----------------------
+
+	    /** 
+	     * If the EditorKit is not for text/plain or text/html, that format
+	     * is supported through the "richer flavors" part of BasicTransferable.
+	     */
+            protected DataFlavor[] getRicherFlavors() {
+                String bestType = getMimeType();
+                if (!(bestType.startsWith("text/plain") || bestType.startsWith("text/html")))  {
+		    try {
+			DataFlavor[] flavors = new DataFlavor[3];
+			flavors[0] = new DataFlavor(bestType + ";class=java.lang.String");
+			flavors[1] = new DataFlavor(bestType + ";class=java.io.Reader");
+			flavors[2] = new DataFlavor(bestType + ";class=java.io.InputStream;charset=unicode");
+			return flavors;
+		    } catch (ClassNotFoundException cle) {
+			// fall through to unsupported (should not happen)
+		    }
+		}
+		return null;
+	    }
+
+	    /**
+	     * The only richer format supported is the file list flavor
+	     */
+            protected Object getRicherData(DataFlavor flavor) throws UnsupportedFlavorException {
+                String data = (richText != null) ? richText : "";
+		if (String.class.equals(flavor.getRepresentationClass())) {
+		    return data;
+		} else if (Reader.class.equals(flavor.getRepresentationClass())) {
+		    return new StringReader(data);
+		} else if (InputStream.class.equals(flavor.getRepresentationClass())) {
+		    return new StringBufferInputStream(data);
+		}
+                throw new UnsupportedFlavorException(flavor);
+	    }
+
+	    // --- HTML ---------------------------------------------------------
+
+	    /**
+	     * Should the HTML flavors be offered?  If so, the method
+	     * getHTMLData should be implemented to provide something reasonable.
+	     */
+            protected boolean isHTMLSupported() {
+		return getMimeType().startsWith("text/html");
+	    }
+
+	    /**
+	     * Fetch the data in a text/html format
+	     */
+            protected String getHTMLData() {
+                return richText;
+	    }
+
+	    // --- Plain ----------------------------------------------------------
+
+	    /**
+	     * Should the plain text flavors be offered?  If so, the method
+	     * getPlainData should be implemented to provide something reasonable.
+	     */
+            protected boolean isPlainSupported() {
+                return true;
+	    }
+
+	    /**
+	     * Fetch the data in a text/plain format.
+	     */
+            protected String getPlainData() {
+		return text;
+	    }
+
+	    // --- fields -----------------------------------------------
+
+	    JTextComponent c;
+	    Position p0;
+	    Position p1;
+	    String text;
+            String richText;
+	}
+
+    }
+
 }
 

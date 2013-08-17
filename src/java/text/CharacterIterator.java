@@ -1,4 +1,6 @@
 /*
+ * @(#)CharacterIterator.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -87,9 +89,8 @@ public interface CharacterIterator extends Cloneable
 
     /**
      * Constant that is returned when the iterator has reached either the end
-     * or the beginning of the text.  The unicode 2.0 standard states that
-     * '\\uFFFF' is an invalid unicode value and should not occur in any valid
-     * unicode string.
+     * or the beginning of the text. The value is '\\uFFFF', the "not a
+     * character" value which should not occur in any valid Unicode string.
      */
     public static final char DONE = '\uFFFF';
 

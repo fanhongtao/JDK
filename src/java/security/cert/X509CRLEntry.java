@@ -1,4 +1,6 @@
 /*
+ * @(#)X509CRLEntry.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -40,7 +42,7 @@ import java.util.Set;
  * @see X509Extension
  *
  * @author Hemma Prafullchandra
- * @version 1.13 02/02/06
+ * @version 1.13 01/12/03
  */
 
 public abstract class X509CRLEntry implements X509Extension {

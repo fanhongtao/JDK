@@ -1,4 +1,6 @@
 /*
+ * @(#)Document.java	1.37 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,10 +10,10 @@ import javax.swing.event.*;
 
 /**
  * <p>
- * The Document is a container for text that serves as the model 
- * for swing text components.  The goal for this interface is to
- * scale from very simple needs (plain text textfield) to
- * complex needs (HTML or XML documents for example).
+ * The <code>Document</code> is a container for text that serves
+ * as the model for swing text components.  The goal for this
+ * interface is to scale from very simple needs (a plain text textfield)
+ * to complex needs (an HTML or XML document, for example).
  *
  * <p><b><font size=+1>Content</font></b>
  * <p>
@@ -37,7 +39,7 @@ import javax.swing.event.*;
  * <p>The following methods give access to the character data
  * that makes up the content.
  * <ul>
- * <li><a href="#getLength">getLength</a>
+ * <li><a href="#getLength()">getLength()</a>
  * <li><a href="#getText(int, int)">getText(int, int)</a>
  * <li><a href="#getText(int, int, javax.swing.text.Segment)">getText(int, int, Segment)</a>
  * </ul>
@@ -57,8 +59,8 @@ import javax.swing.event.*;
  * <a href="AttributeSet.html">AttributeSet</a> interface.
  * <p>The following methods give access to the document structure.
  * <ul>
- * <li><a href="#getDefaultRootElement">getDefaultRootElement</a>
- * <li><a href="#getRootElements">getRootElements</a>
+ * <li><a href="#getDefaultRootElement()">getDefaultRootElement</a>
+ * <li><a href="#getRootElements()">getRootElements</a>
  * </ul>
  *
  * <p><b><font size=+1>Mutations</font></b>
@@ -71,33 +73,34 @@ import javax.swing.event.*;
  * <p>The following methods are related to mutation of the 
  * document content:
  * <ul>
- * <li><a href="#insertString">insertString</a>
- * <li><a href="#remove">remove</a>
- * <li><a href="#createPosition">createPosition</a>
+ * <li><a href="#insertString(int, java.lang.String, javax.swing.text.AttributeSet)">insertString(int, String, AttributeSet)</a>
+ * <li><a href="#remove(int, int)">remove(int, int)</a>
+ * <li><a href="#createPosition(int)">createPosition(int)</a>
  * </ul>
  *
  * <p><b><font size=+1>Notification</font></b>
  * <p>
- * Mutations to the Document must be communicated to interested
- * observers.  The notification of change follows the event model
+ * Mutations to the <code>Document</code> must be communicated to
+ * interested observers.  The notification of change follows the event model
  * guidelines that are specified for JavaBeans.  In the JavaBeans
  * event model, once an event notification is dispatched, all listeners 
  * must be notified before any further mutations occur to the source 
  * of the event.  Further, order of delivery is not guaranteed.
  * <p>
- * Notification is provided as two seperate events, 
+ * Notification is provided as two separate events, 
  * <a href="../event/DocumentEvent.html">DocumentEvent<a>, and
  * <a href="../event/UndoableEditEvent.html">UndoableEditEvent</a>.
- * If a mutation is made to a Document through its api, 
- * a DocumentEvent will be sent to all of the registered 
- * DocumentListeners.  If the Document implementation supports 
- * undo/redo capabilities, an UndoableEditEvent will be sent
- * to all of the registered UndoableEditListeners.
- * If an undoable edit is undone, a DocumentEvent should be
+ * If a mutation is made to a <code>Document</code> through its api, 
+ * a <code>DocumentEvent</code> will be sent to all of the registered 
+ * <code>DocumentListeners</code>.  If the <code>Document</code>
+ * implementation supports undo/redo capabilities, an
+ * <code>UndoableEditEvent</code> will be sent
+ * to all of the registered <code>UndoableEditListener</code>s.
+ * If an undoable edit is undone, a <code>DocumentEvent</code> should be
  * fired from the Document to indicate it has changed again.
- * In this case however, there should be no UndoableEditEvent
+ * In this case however, there should be no <code>UndoableEditEvent</code>
  * generated since that edit is actually the source of the change
- * rather than a mutation to the Document made through it's 
+ * rather than a mutation to the <code>Document</code> made through it's 
  * api.
  * <p align=center><img src="doc-files/Document-notification.gif">
  * <p>
@@ -122,27 +125,33 @@ import javax.swing.event.*;
  * <p>
  * The methods related to observing mutations to the document are:
  * <ul>
- * <li><a href="#addDocumentListener">addDocumentListener</a>
- * <li><a href="#removeDocumentListener">removeDocumentListener</a>
- * <li><a href="#addUndoableEditListener">addUndoableEditListener</a>
- * <li><a href="#removeUndoableEditListener">removeUndoableEditListener</a>
+ * <li><a href="#addDocumentListener(javax.swing.event.DocumentListener)">addDocumentListener(DocumentListener)</a>
+ * <li><a href="#removeDocumentListener(javax.swing.event.DocumentListener)">removeDocumentListener(DocumentListener)</a>
+ * <li><a href="#addUndoableEditListener(javax.swing.event.UndoableEditListener)">addUndoableEditListener(UndoableEditListener)</a>
+ * <li><a href="#removeUndoableEditListener(javax.swing.event.UndoableEditListener)">removeUndoableEditListener(UndoableEditListener)</a>
  * </ul>
  *
  * <p><b><font size=+1>Properties</font></b>
  * <p>
  * Document implementations will generally have some set of properties
  * associated with them at runtime.  Two well known properties are the
- * <a href="#StreamDescriptionProperty">StreamDescriptionProperty</a>
- * which can be used to describe where the Document came from, and
- * <a href="#TitleProperty">TitleProperty</a> which can be used to
- * name the Document.  The methods related to the properties are:
+ * <a href="#StreamDescriptionProperty">StreamDescriptionProperty</a>,
+ * which can be used to describe where the <code>Document</code> came from,
+ * and the <a href="#TitleProperty">TitleProperty</a>, which can be used to
+ * name the <code>Document</code>.  The methods related to the properties are:
  * <ul>
- * <li><a href="#getProperty">getProperty</a>
- * <li><a href="#putProperty">putProperty</a>
+ * <li><a href="#getProperty(java.lang.Object)">getProperty(Object)</a>
+ * <li><a href="#putProperty(java.lang.Object, java.lang.Object)">putProperty(Object, Object)</a>
  * </ul>
  *
+ * <p>For more information on the <code>Document</code> class, see
+ * <a href="http://java.sun.com/products/jfc/tsc">The Swing Connection</a>
+ * and most particularly the article,
+ * <a href="http://java.sun.com/products/jfc/tsc/articles/text/element_interface">
+ * The Element Interface</a>.
+ *
  * @author  Timothy Prinzing
- * @version 1.33 02/06/02
+ * @version 1.37 12/03/01
  *
  * @see javax.swing.event.DocumentEvent
  * @see javax.swing.event.DocumentListener
@@ -199,19 +208,24 @@ public interface Document {
     public void removeUndoableEditListener(UndoableEditListener listener);
 
     /**
-     * Gets properties associated with the document.  Allows one to
-     * store things like the document title, author, etc.
+     * Gets the properties associated with the document.
      *
-     * @param key a non-null property
+     * @param key a non-<code>null</code> property key
      * @return the properties
+     * @see #putProperty(Object, Object)
      */
     public Object getProperty(Object key);
 
     /**
-     * Puts a new property on the list.
+     * Associates a property with the document.  Two standard 
+     * property keys provided are: <a href="#StreamDescriptionProperty">
+     * <code>StreamDescriptionProperty</code></a> and
+     * <a href="#TitleProperty"><code>TitleProperty</code></a>.
+     * Other properties, such as author, may also be defined.
      *
-     * @param key the non-null property key
+     * @param key the non-<code>null</code> property key
      * @param value the property value
+     * @see #getProperty(Object)
      */
     public void putProperty(Object key, Object value);
 
@@ -229,7 +243,7 @@ public interface Document {
      * mutation has occurred. This means that by the time a 
      * notification of removal is dispatched, the document
      * has already been updated and any marks created by
-     * createPosition have already changed.
+     * <code>createPosition</code> have already changed.
      * For a removal, the end of the removal range is collapsed 
      * down to the start of the range, and any marks in the removal 
      * range are collapsed down to the start of the range.
@@ -245,7 +259,7 @@ public interface Document {
      * If the Document supports undo/redo, an UndoableEditEvent will
      * also be generated.  
      *
-     * @param offs  the offset from the begining >= 0
+     * @param offs  the offset from the beginning >= 0
      * @param len   the number of characters to remove >= 0
      * @exception BadLocationException  some portion of the removal range
      *   was not a valid part of the document.  The location in the exception
@@ -309,6 +323,30 @@ public interface Document {
     /**
      * Fetches the text contained within the given portion 
      * of the document.
+     * <p>
+     * If the partialReturn property on the txt parameter is false, the
+     * data returned in the Segment will be the entire length requested and
+     * may or may not be a copy depending upon how the data was stored.
+     * If the partialReturn property is true, only the amount of text that
+     * can be returned without creating a copy is returned.  Using partial
+     * returns will give better performance for situations where large 
+     * parts of the document are being scanned.  The following is an example
+     * of using the partial return to access the entire document:
+     * <p>
+     * <pre><code>
+     *
+     * &nbsp; int nleft = doc.getDocumentLength();
+     * &nbsp; Segment text = new Segment();
+     * &nbsp; int offs = 0;
+     * &nbsp; text.setPartialReturn(true);   
+     * &nbsp; while (nleft > 0) {
+     * &nbsp;     doc.getText(offs, nleft, text);
+     * &nbsp;     // do someting with text
+     * &nbsp;     nleft -= text.count;
+     * &nbsp;     offs += text.count;
+     * &nbsp; }
+     *
+     * </code></pre>
      *
      * @param offset  the offset into the document representing the desired 
      *   start of the text >= 0

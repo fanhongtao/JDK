@@ -1,4 +1,6 @@
 /*
+ * @(#)CubicCurve2D.java	1.27 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,7 +20,7 @@ import java.util.Arrays;
  * The actual storage representation of the coordinates is left to
  * the subclass.
  *
- * @version 	1.26, 02/06/02
+ * @version 	1.27, 12/03/01
  * @author	Jim Graham
  */
 public abstract class CubicCurve2D implements Shape, Cloneable {
@@ -668,11 +670,11 @@ public abstract class CubicCurve2D implements Shape, Cloneable {
      * to the specified <code>Point2D</code> coordinates.
      * @param p1 the first specified <code>Point2D</code> used to set the
      *		start point of this curve
-     * @param p2 the second specified <code>Point2D</code> used to set the
+     * @param cp1 the second specified <code>Point2D</code> used to set the
      *		first control point of this curve
-     * @param p3 the third specified <code>Point2D</code> used to set the
+     * @param cp2 the third specified <code>Point2D</code> used to set the
      *		second control point of this curve
-     * @param p4 the fourth specified <code>Point2D</code> used to set the
+     * @param p2 the fourth specified <code>Point2D</code> used to set the
      *		end point of this curve
      */
     public void setCurve(Point2D p1, Point2D cp1, Point2D cp2, Point2D p2) {
@@ -979,6 +981,10 @@ public abstract class CubicCurve2D implements Shape, Cloneable {
      * A return value of -1 is used to distinguish a constant equation,
      * which may be always 0 or never 0, from an equation which has no
      * zeroes.
+     * @param eqn the specified array of coefficients to use to solve
+     *        the cubic equation
+     * @param res the array that contains the non-complex roots 
+     *        resulting from the solution of the cubic equation
      * @return the number of roots, or -1 if the equation is a constant
      */
     public static int solveCubic(double eqn[], double res[]) {

@@ -1,4 +1,6 @@
 /*
+ * @(#)WindowListener.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ import java.util.EventListener;
  * <code>WindowEvent</code> is passed to it.
  *
  * @author Carl Quinn
- * @version 1.17, 02/06/02
+ * @version 1.18, 12/03/01
  *
  * @see WindowAdapter
  * @see WindowEvent
@@ -66,16 +68,22 @@ public interface WindowListener extends EventListener {
     public void windowDeiconified(WindowEvent e);
 
     /**
-     * Invoked when the window is set to be the user's
-     * active window, which means the window (or one of its
-     * subcomponents) will receive keyboard events.
+     * Invoked when the Window is set to be the active Window. Only a Frame or
+     * a Dialog can be the active Window. The native windowing system may
+     * denote the active Window or its children with special decorations, such
+     * as a highlighted title bar. The active Window is always either the
+     * focused Window, or the first Frame or Dialog that is an owner of the
+     * focused Window.
      */
     public void windowActivated(WindowEvent e);
 
     /**
-     * Invoked when a window is no longer the user's active
-     * window, which means that keyboard events will no longer
-     * be delivered to the window or its subcomponents.
+     * Invoked when a Window is no longer the active Window. Only a Frame or a
+     * Dialog can be the active Window. The native windowing system may denote
+     * the active Window or its children with special decorations, such as a
+     * highlighted title bar. The active Window is always either the focused
+     * Window, or the first Frame or Dialog that is an owner of the focused
+     * Window.
      */
     public void windowDeactivated(WindowEvent e);
 }

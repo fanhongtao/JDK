@@ -1,4 +1,6 @@
 /*
+ * @(#)Permissions.java	1.49 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,12 +16,13 @@ import java.util.ArrayList;
 /**  
  * This class represents a heterogeneous collection of Permissions. That is,
  * it contains different types of Permission objects, organized into
- * PermissionCollections. For example, if any <code>java.io.FilePermission</code>
- * objects are added to an instance of this class, they are all stored in a single
+ * PermissionCollections. For example, if any
+ * <code>java.io.FilePermission</code> objects are added to an instance of
+ * this class, they are all stored in a single
  * PermissionCollection. It is the PermissionCollection returned by a call to
  * the <code>newPermissionCollection</code> method in the FilePermission class.
- * Similarly, any <code>java.lang.RuntimePermission</code> objects are stored in 
- * the PermissionCollection returned by a call to the 
+ * Similarly, any <code>java.lang.RuntimePermission</code> objects are
+ * stored in the PermissionCollection returned by a call to the 
  * <code>newPermissionCollection</code> method in the
  * RuntimePermission class. Thus, this class represents a collection of
  * PermissionCollections.
@@ -32,12 +35,16 @@ import java.util.ArrayList;
  * <code>newPermissionCollection</code> returns null, then a default 
  * PermissionCollection that uses a hashtable will be created and used. Each 
  * hashtable entry stores a Permission object as both the key and the value.
+ *
+ * <p> Enumerations returned via the <code>elements</code> method are
+ * not <em>fail-fast</em>.  Modifications to a collection should not be
+ * performed while enumerating over that collection.
  * 
  * @see Permission
  * @see PermissionCollection
  * @see AllPermission
  * 
- * @version 1.47, 02/02/06
+ * @version 1.49, 01/12/03
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -64,9 +71,9 @@ implements Serializable
 
     /**
      * Adds a permission object to the PermissionCollection for the class the
-     * permission belongs to. For example, if <i>permission</i> is a FilePermission,
-     * it is added to the FilePermissionCollection stored in this
-     * Permissions object. 
+     * permission belongs to. For example, if <i>permission</i> is a
+     * FilePermission, it is added to the FilePermissionCollection stored
+     * in this Permissions object. 
      * 
      * This method creates
      * a new PermissionCollection object (and adds the permission to it)
@@ -92,20 +99,23 @@ implements Serializable
     }
 
     /**
-     * Checks to see if this object's PermissionCollection for permissions of the
-     * specified permission's type implies the permissions 
-     * expressed in the <i>permission</i> object. Returns true if the combination
-     * of permissions in the appropriate PermissionCollection (e.g., a
-     * FilePermissionCollection for a FilePermission) together imply the
-     * specified permission.
+     * Checks to see if this object's PermissionCollection for permissions of
+     * the specified permission's type implies the permissions 
+     * expressed in the <i>permission</i> object. Returns true if the
+     * combination of permissions in the appropriate PermissionCollection
+     * (e.g., a FilePermissionCollection for a FilePermission) together
+     * imply the specified permission.
      * 
-     * <p>For example, suppose there is a FilePermissionCollection in this Permissions
-     * object, and it contains one FilePermission that specifies "read" access for
-     * all files in all subdirectories of the "/tmp" directory, and another
-     * FilePermission that specifies "write" access for all files in the
-     * "/tmp/scratch/foo" directory. Then if the <code>implies</code> method
+     * <p>For example, suppose there is a FilePermissionCollection in this
+     * Permissions object, and it contains one FilePermission that specifies
+     * "read" access for  all files in all subdirectories of the "/tmp"
+     * directory, and another FilePermission that specifies "write" access
+     * for all files in the "/tmp/scratch/foo" directory.
+     * Then if the <code>implies</code> method
      * is called with a permission specifying both "read" and "write" access
-     * to files in the "/tmp/scratch/foo" directory, <code>true</code> is returned.
+     * to files in the "/tmp/scratch/foo" directory, <code>true</code> is
+     * returned.
+     *
      * <p>Additionally, if this PermissionCollection contains the
      * AllPermission, this method will always return true.
      * <p>
@@ -144,7 +154,8 @@ implements Serializable
      *
      * @param p the prototype Permission object.
      *
-     * @return an enumeration of all the Permissions with the same type as <i>p</i>.
+     * @return an enumeration of all the Permissions with the
+     * same type as <i>p</i>.
      */
 
     // XXX this could be public. Question is, do we want to make it public?
@@ -158,16 +169,18 @@ implements Serializable
     /** 
      * Gets the PermissionCollection in this Permissions object for
      * permissions whose type is the same as that of <i>p</i>.
-     * For example, if <i>p</i> is a FilePermission, the FilePermissionCollection
+     * For example, if <i>p</i> is a FilePermission,
+     * the FilePermissionCollection
      * stored in this Permissions object will be returned. 
      * 
      * This method creates a new PermissionCollection object for the specified 
      * type of permission objects if one does not yet exist. 
      * To do so, it first calls the <code>newPermissionCollection</code> method
      * on <i>p</i>.  Subclasses of class Permission 
-     * override that method if they need to store their permissions in a particular
-     * PermissionCollection object in order to provide the correct semantics
-     * when the <code>PermissionCollection.implies</code> method is called.
+     * override that method if they need to store their permissions in a
+     * particular PermissionCollection object in order to provide the
+     * correct semantics when the <code>PermissionCollection.implies</code>
+     * method is called.
      * If the call returns a PermissionCollection, that collection is stored
      * in this Permissions object. If the call returns null, then
      * this method instantiates and stores a default PermissionCollection 
@@ -176,34 +189,28 @@ implements Serializable
 
     private PermissionCollection getPermissionCollection(Permission p) {
 	Class c = p.getClass();
-	PermissionCollection pc = (PermissionCollection) perms.get(c);
-	if (pc == null) {
-	    synchronized (perms) {
-		// check again, in case someone else created one
-		// between the time we checked and the time we
-		// got the lock. We do this here to avoid 
-		// making this whole method synchronized, because
-		// it is called by every public method.
-		pc = (PermissionCollection) perms.get(c);
+	PermissionCollection pc = null;
 
-		//check for unresolved permissions
+	synchronized (perms) {
+	    pc = (PermissionCollection) perms.get(c);
+
+	    //check for unresolved permissions
+	    if (pc == null) {
+
+		pc = getUnresolvedPermissions(p);
+
+		// if still null, create a new collection
 		if (pc == null) {
 
-		    pc = getUnresolvedPermissions(p);
+		    pc = p.newPermissionCollection();
 
-		    // if still null, create a new collection
-		    if (pc == null) {
-
-			pc = p.newPermissionCollection();
-
-			// still no PermissionCollection? 
-			// We'll give them a PermissionsHash.
-			if (pc == null)
-			    pc = new PermissionsHash();
-		    }
+		    // still no PermissionCollection? 
+		    // We'll give them a PermissionsHash.
+		    if (pc == null)
+			pc = new PermissionsHash();
 		}
-		perms.put(c, pc);
 	    }
+	    perms.put(c, pc);
 	}
 	return pc;
     }
@@ -318,7 +325,7 @@ final class PermissionsEnumerator implements Enumeration {
 
     private Enumeration getNextEnumWithMore() {
 	while (perms.hasMoreElements()) {
-	    PermissionCollection pc = (PermissionCollection) perms.nextElement();
+	    PermissionCollection pc = (PermissionCollection)perms.nextElement();
 	    Enumeration next = (Enumeration) pc.elements();
 	    if (next.hasMoreElements())
 		return next;
@@ -333,7 +340,7 @@ final class PermissionsEnumerator implements Enumeration {
  * @see Permission
  * @see Permissions
  *
- * @version 1.47, 02/06/02
+ * @version 1.49, 12/03/01
  *
  * @author Roland Schemers
  *

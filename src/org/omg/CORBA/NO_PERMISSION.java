@@ -1,4 +1,6 @@
 /*
+ * @(#)NO_PERMISSION.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,8 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>NO_PERMISSION</code> exception, which is thrown
- * if the client does not have permission to perform the request.
+ * Exception  thrown when an invocation failed because the caller 
+ * has insufficient privileges.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

@@ -1,4 +1,6 @@
 /*
+ * @(#)Checkbox.java	1.72 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -48,7 +50,7 @@ import javax.accessibility.*;
  * forces any other check box in the same group that is on
  * into the "off" state.
  *
- * @version	1.60 02/06/02
+ * @version	1.72 12/03/01
  * @author 	Sami Shaio
  * @see         java.awt.GridLayout
  * @see         java.awt.CheckboxGroup
@@ -59,7 +61,9 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
     static {
         /* ensure that the necessary native libraries are loaded */
 	Toolkit.loadLibraries();
-        initIDs();
+        if (!GraphicsEnvironment.isHeadless()) {
+            initIDs();
+        }
     }
 
     /**
@@ -67,16 +71,16 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
 	 * This field can be null. If a label is not specified it 
 	 * defaults to null or "".
 	 * @serial
-     * @see getLabel()
-     * @see setLabel()
+     * @see #getLabel()
+     * @see #setLabel()
      */
     String label;
 
     /**
-     * The state of the Checkbox.
-	 * @serial
-     * @see getState()
-     * @see setState()
+     * The state of the <code>Checkbox</code>.
+     * @serial
+     * @see #getState()
+     * @see #setState()
      */
     boolean state;
 
@@ -116,8 +120,11 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * Creates a check box with no label. The state of this
      * check box is set to "off," and it is not part of any
      * check box group.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public Checkbox() {
+    public Checkbox() throws HeadlessException {
         this("", false, null);
     }
 
@@ -125,10 +132,15 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * Creates a check box with the specified label.  The state
      * of this check box is set to "off," and it is not part of
      * any check box group.
+     *
      * @param     label   a string label for this check box,
      *                        or <code>null</code> for no label.
+     * @exception HeadlessException if
+     *      <code>GraphicsEnvironment.isHeadless</code>
+     *      returns <code>true</code>
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public Checkbox(String label) {
+    public Checkbox(String label) throws HeadlessException {
 	this(label, false, null);
     }
 
@@ -136,26 +148,37 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * Creates a check box with the specified label
      * and sets the specified state.
      * This check box is not part of any check box group.
+     *
      * @param     label   a string label for this check box,
-     *                        or <code>null</code> for no label.
-     * @param     state    the initial state of this check box.
+     *                        or <code>null</code> for no label
+     * @param     state    the initial state of this check box
+     * @exception HeadlessException if
+     *     <code>GraphicsEnvironment.isHeadless</code>
+     *     returns <code>true</code>
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public Checkbox(String label, boolean state) {
+    public Checkbox(String label, boolean state) throws HeadlessException {
         this(label, state, null);
     }
 
     /**
-     * Creates a check box with the specified label, in the specified
-     * check box group, and set to the specified state.
-
+     * Constructs a Checkbox with the specified label, set to the
+     * specified state, and in the specified check box group.
+     * 
      * @param     label   a string label for this check box,
      *                        or <code>null</code> for no label.
      * @param     state   the initial state of this check box.
      * @param     group   a check box group for this check box,
      *                           or <code>null</code> for no group.
+     * @exception HeadlessException if
+     *     <code>GraphicsEnvironment.isHeadless</code>
+     *     returns <code>true</code>
+     * @see java.awt.GraphicsEnvironment#isHeadless
      * @since     JDK1.1
      */
-    public Checkbox(String label, boolean state, CheckboxGroup group) {
+    public Checkbox(String label, boolean state, CheckboxGroup group)
+        throws HeadlessException {
+        GraphicsEnvironment.checkHeadless();
 	this.label = label;
 	this.state = state;
 	this.group = group;
@@ -165,23 +188,30 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
     }
 
     /**
-     * Constructs a Checkbox with the specified label, set to the
-     * specified state, and in the specified check box group.
+     * Creates a check box with the specified label, in the specified
+     * check box group, and set to the specified state.
      *
      * @param     label   a string label for this check box,
      *                        or <code>null</code> for no label.
      * @param     group   a check box group for this check box,
      *                           or <code>null</code> for no group.
      * @param     state   the initial state of this check box.
+     * @exception HeadlessException if
+     *    <code>GraphicsEnvironment.isHeadless</code>
+     *    returns <code>true</code>
+     * @see java.awt.GraphicsEnvironment#isHeadless
      * @since     JDK1.1
      */
-    public Checkbox(String label, CheckboxGroup group, boolean state) {
+    public Checkbox(String label, CheckboxGroup group, boolean state)
+        throws HeadlessException {
     	this(label, state, group);
     }
 
     /**
-     * Construct a name for this component.  Called by getName() when the
-     * name is null.
+     * Constructs a name for this component.  Called by
+     * <code>getName</code> when the name is <code>null</code>.
+     *
+     * @return a name for this component
      */
     String constructComponentName() {
         synchronized (getClass()) {
@@ -192,6 +222,7 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
     /**
      * Creates the peer of the Checkbox. The peer allows you to change the
      * look of the Checkbox without changing its functionality.
+     *
      * @see     java.awt.Toolkit#createCheckbox(java.awt.Checkbox)
      * @see     java.awt.Component#getToolkit()
      */
@@ -205,9 +236,10 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
 
     /**
      * Gets the label of this check box.
+     *
      * @return   the label of this check box, or <code>null</code>
      *                  if this check box has no label.
-     * @see      java.awt.Checkbox#setLabel
+     * @see      #setLabel
      */
     public String getLabel() {
 	return label;
@@ -215,9 +247,10 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
 
     /**
      * Sets this check box's label to be the string argument.
+     *
      * @param    label   a string to set as the new label, or
      *                        <code>null</code> for no label.
-     * @see      java.awt.Checkbox#getLabel
+     * @see      #getLabel
      */
     public void setLabel(String label) {
         boolean testvalid = false;
@@ -244,8 +277,9 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * Determines whether this check box is in the "on" or "off" state.
      * The boolean value <code>true</code> indicates the "on" state,
      * and <code>false</code> indicates the "off" state.
-     * @return    the state of this check box, as a boolean value.
-     * @see       java.awt.Checkbox#setState
+     *
+     * @return    the state of this check box, as a boolean value
+     * @see       #setState
      */
     public boolean getState() {
 	return state;
@@ -255,8 +289,15 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * Sets the state of this check box to the specified state.
      * The boolean value <code>true</code> indicates the "on" state,
      * and <code>false</code> indicates the "off" state.
-     * @param     state   the boolean state of the check box.
-     * @see       java.awt.Checkbox#getState
+     *
+     * <p>Note that this method should be primarily used to
+     * initialize the state of the checkbox.  Programmatically
+     * setting the state of the checkbox will <i>not</i> trigger
+     * an <code>ItemEvent</code>.  The only way to trigger an
+     * <code>ItemEvent</code> is by user interaction.
+     *
+     * @param     state   the boolean state of the check box
+     * @see       #getState
      */
     public void setState(boolean state) {
 	/* Cannot hold check box lock when calling group.setSelectedCheckbox. */
@@ -289,7 +330,7 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * Determines this check box's group.
      * @return     this check box's group, or <code>null</code>
      *               if the check box is not part of a check box group.
-     * @see        java.awt.Checkbox#setCheckboxGroup
+     * @see        #setCheckboxGroup
      */
     public CheckboxGroup getCheckboxGroup() {
 	return group;
@@ -301,7 +342,7 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * it is first taken out of that group.
      * @param     g   the new check box group, or <code>null</code>
      *                to remove this check box from any check box group.
-     * @see       java.awt.Checkbox#getCheckboxGroup
+     * @see       #getCheckboxGroup
      */
     public void setCheckboxGroup(CheckboxGroup g) {
     	CheckboxGroup group = this.group;
@@ -322,13 +363,16 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
 
     /**
      * Adds the specified item listener to receive item events from
-     * this check box.
+     * this check box.  Item events are sent to listeners in response
+     * to user input, but not in response to calls to setState().
      * If l is null, no exception is thrown and no action is performed.
      *
      * @param         l    the item listener
+     * @see           #removeItemListener
+     * @see           #getItemListeners
+     * @see           #setState
      * @see           java.awt.event.ItemEvent
      * @see           java.awt.event.ItemListener
-     * @see           java.awt.Checkbox#removeItemListener
      * @since         JDK1.1
      */
     public synchronized void addItemListener(ItemListener l) {
@@ -345,9 +389,10 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * If l is null, no exception is thrown and no action is performed.
      *
      * @param         l    the item listener
+     * @see           #addItemListener
+     * @see           #getItemListeners
      * @see           java.awt.event.ItemEvent
      * @see           java.awt.event.ItemListener
-     * @see           java.awt.Checkbox#addItemListener
      * @since         JDK1.1
      */
     public synchronized void removeItemListener(ItemListener l) {
@@ -358,17 +403,54 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
     }
 
     /**
-     * Return an array of all the listeners that were added to the Checkbox
-     * with addXXXListener(), where XXX is the name of the <code>listenerType</code>
-     * argument.  For example, to get all of the ItemListener(s) for the
-     * given Checkbox <code>c</code>, one would write:
-     * <pre>
-     * ItemListener[] ils = (ItemListener[])(c.getListeners(ItemListener.class))
-     * </pre>
-     * If no such listener list exists, then an empty array is returned.
-     * 
-     * @param    listenerType   Type of listeners requested
-     * @return	 all of the listeners of the specified type supported by this checkbox
+     * Returns an array of all the item listeners
+     * registered on this checkbox.
+     *
+     * @return all of this checkbox's <code>ItemListener</code>s
+     *         or an empty array if no item 
+     *         listeners are currently registered
+     *
+     * @see           #addItemListener
+     * @see           #removeItemListener
+     * @see           java.awt.event.ItemEvent
+     * @see           java.awt.event.ItemListener
+     * @since 1.4
+     */
+    public synchronized ItemListener[] getItemListeners() {
+        return (ItemListener[]) (getListeners(ItemListener.class));
+    }
+
+    /**
+     * Returns an array of all the objects currently registered
+     * as <code><em>Foo</em>Listener</code>s
+     * upon this <code>Checkbox</code>.
+     * <code><em>Foo</em>Listener</code>s are registered using the
+     * <code>add<em>Foo</em>Listener</code> method.
+     *
+     * <p>
+     * You can specify the <code>listenerType</code> argument
+     * with a class literal, such as
+     * <code><em>Foo</em>Listener.class</code>.
+     * For example, you can query a
+     * <code>Checkbox</code> <code>c</code>
+     * for its item listeners with the following code:
+     *
+     * <pre>ItemListener[] ils = (ItemListener[])(c.getListeners(ItemListener.class));</pre>
+     *
+     * If no such listeners exist, this method returns an empty array.
+     *
+     * @param listenerType the type of listeners requested; this parameter
+     *          should specify an interface that descends from
+     *          <code>java.util.EventListener</code>
+     * @return an array of all objects registered as
+     *          <code><em>Foo</em>Listener</code>s on this checkbox,
+     *          or an empty array if no such
+     *          listeners have been added
+     * @exception ClassCastException if <code>listenerType</code>
+     *          doesn't specify a class or interface that implements
+     *          <code>java.util.EventListener</code>
+     *
+     * @see #getItemListeners
      * @since 1.3
      */
     public EventListener[] getListeners(Class listenerType) { 
@@ -398,9 +480,13 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * If the event is an instance of <code>ItemEvent</code>,
      * this method invokes the <code>processItemEvent</code> method.
      * Otherwise, it calls its superclass's <code>processEvent</code> method.
-     * @param         e the event.
+     * <p>Note that if the event parameter is <code>null</code>
+     * the behavior is unspecified and may result in an
+     * exception.
+     *
+     * @param         e the event
      * @see           java.awt.event.ItemEvent
-     * @see           java.awt.Checkbox#processItemEvent
+     * @see           #processItemEvent
      * @since         JDK1.1
      */
     protected void processEvent(AWTEvent e) {
@@ -424,10 +510,14 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * via <code>addItemListener</code>.
      * <li>Item events are enabled via <code>enableEvents</code>.
      * </ul>
-     * @param       e the item event.
+     * <p>Note that if the event parameter is <code>null</code>
+     * the behavior is unspecified and may result in an
+     * exception.
+     *
+     * @param       e the item event
      * @see         java.awt.event.ItemEvent
      * @see         java.awt.event.ItemListener
-     * @see         java.awt.Checkbox#addItemListener
+     * @see         #addItemListener
      * @see         java.awt.Component#enableEvents
      * @since       JDK1.1
      */
@@ -438,9 +528,13 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
     }
 
     /**
-     * Returns the parameter string representing the state of
-     * this check box. This string is useful for debugging.
-     * @return    the parameter string of this check box.
+     * Returns a string representing the state of this <code>Checkbox</code>.
+     * This method is intended to be used only for debugging purposes, and the 
+     * content and format of the returned string may vary between 
+     * implementations. The returned string may be empty but may not be 
+     * <code>null</code>.
+     *
+     * @return    the parameter string of this check box
      */
     protected String paramString() {
 	String str = super.paramString();
@@ -455,27 +549,31 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
     /* Serialization support.
      */
 	
-	/*
-    * Serialized data version
-    * @serial
-    */
+    /*
+     * Serialized data version
+     * @serial
+     */
     private int checkboxSerializedDataVersion = 1;
 
     /**
-    * Writes default serializable fields to stream.  Writes
-    * a list of serializable ItemListener(s) as optional data.
-    * The non-serializable ItemListner(s) are detected and
-    * no attempt is made to serialize them.
-    *
-    * @serialData Null terminated sequence of 0 or more pairs.
-    *             The pair consists of a String and Object.
-    *             The String indicates the type of object and
-    *             is one of the following :
-    *             itemListenerK indicating and ItemListener object.
-    *
-    * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-    * @see java.awt.Component.itemListenerK
-    */
+     * Writes default serializable fields to stream.  Writes
+     * a list of serializable <code>ItemListeners</code>
+     * as optional data.  The non-serializable
+     * <code>ItemListeners</code> are detected and
+     * no attempt is made to serialize them.
+     *
+     * @param s the <code>ObjectOutputStream</code> to write
+     * @serialData <code>null</code> terminated sequence of 0 
+     *   or more pairs; the pair consists of a <code>String</code>
+     *   and an <code>Object</code>; the <code>String</code> indicates
+     *   the type of object and is one of the following:
+     *   <code>itemListenerK</code> indicating an
+     *     <code>ItemListener</code> object
+     *
+     * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
+     * @see java.awt.Component.itemListenerK
+     * @see #readObject
+     */
     private void writeObject(ObjectOutputStream s)
       throws java.io.IOException
     {
@@ -485,18 +583,26 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
       s.writeObject(null);
     }
 
-	/*
-    * Read the ObjectInputStream and if it isnt null
-    * add a listener to receive item events fired
-    * by the Checkbox.
-    * Unrecognised keys or values will be Ignored.
-    * @serial
-    * @see removeActionListener()
-    * @see addActionListener()
-    */
+    /**
+     * Reads the <code>ObjectInputStream</code> and if it
+     * isn't <code>null</code> adds a listener to receive
+     * item events fired by the <code>Checkbox</code>.
+     * Unrecognized keys or values will be ignored.
+     *
+     * @param s the <code>ObjectInputStream</code> to read
+     * @exception HeadlessException if
+     *   <code>GraphicsEnvironment.isHeadless</code> returns
+     *   <code>true</code>
+     * @serial
+     * @see removeActionListener()
+     * @see addActionListener()
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see #writeObject
+     */
     private void readObject(ObjectInputStream s)
-      throws ClassNotFoundException, IOException
+      throws ClassNotFoundException, IOException, HeadlessException
     {
+      GraphicsEnvironment.checkHeadless();
       s.defaultReadObject();
 
       Object keyOrNull;

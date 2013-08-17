@@ -1,4 +1,6 @@
 /*
+ * @(#)CharArrayWriter.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,7 @@ package java.io;
  * can be retrieved using toCharArray() and toString().
  *
  * @author	Herb Jellinek
- * @version 	1.16, 02/06/02
+ * @version 	1.16, 12/03/01
  * @since       JDK1.1
  */
 public

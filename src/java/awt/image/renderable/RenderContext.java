@@ -1,4 +1,6 @@
 /*
+ * @(#)RenderContext.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -108,6 +110,7 @@ public class RenderContext implements Cloneable {
      * Gets the rendering hints of this <code>RenderContext</code>.
      * @return a <code>RenderingHints</code> object that represents
      * the rendering hints of this <code>RenderContext</code>.
+     * @see #setRenderingHints(RenderingHints)
      */
     public RenderingHints getRenderingHints() {
         return hints;
@@ -117,6 +120,7 @@ public class RenderContext implements Cloneable {
      * Sets the rendering hints of this <code>RenderContext</code>.
      * @param hints a <code>RenderingHints</code> object that represents
      * the rendering hints to assign to this <code>RenderContext</code>.
+     * @see #getRenderingHints
      */
     public void setRenderingHints(RenderingHints hints) {
         this.hints = hints;
@@ -127,6 +131,7 @@ public class RenderContext implements Cloneable {
      * in the RenderContext to a given transform.
      *
      * @param newTransform the new AffineTransform.
+     * @see #getTransform
      */
     public void setTransform(AffineTransform newTransform) {
         usr2dev = (AffineTransform)newTransform.clone();
@@ -202,6 +207,7 @@ public class RenderContext implements Cloneable {
      * Gets the current user-to-device AffineTransform.
      *
      * @return a reference to the current AffineTransform.
+     * @see #setTransform(AffineTransform)
      */
     public AffineTransform getTransform() {
         return (AffineTransform)usr2dev.clone();
@@ -211,6 +217,7 @@ public class RenderContext implements Cloneable {
      * Sets the current area of interest.  The old area is discarded.
      *
      * @param newAoi The new area of interest.
+     * @see #getAreaOfInterest
      */
     public void setAreaOfInterest(Shape newAoi) {
         aoi = newAoi;
@@ -222,6 +229,7 @@ public class RenderContext implements Cloneable {
      * 
      * @return a reference to the area of interest of the RenderContext, 
      *         or null if none is specified.
+     * @see #setAreaOfInterest(Shape)
      */
     public Shape getAreaOfInterest() {
         return aoi;

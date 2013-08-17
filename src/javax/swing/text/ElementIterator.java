@@ -1,4 +1,6 @@
 /*
+ * @(#)ElementIterator.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -45,7 +47,7 @@ import java.util.Enumeration;
  *    }
  *
  * @author Sunita Mani
- * @version 1.10 02/06/02
+ * @version 1.11 12/03/01
  *
  */
 
@@ -177,8 +179,8 @@ public class ElementIterator implements Cloneable {
     /**
      * Fetches the current Element.
      *
-     * @returns element on top of the stack or
-     *          null if the root element is null.
+     * @return element on top of the stack or
+     *          <code>null</code> if the root element is <code>null</code>
      */
     public Element current() {
 
@@ -209,7 +211,7 @@ public class ElementIterator implements Cloneable {
      * used to locate the next element is
      * a depth-first search.
      *
-     * @returns the next element or null
+     * @return the next element or <code>null</code>
      *          at the end of the list.
      */
     public Element next() {
@@ -269,7 +271,7 @@ public class ElementIterator implements Cloneable {
      * element is the last element, or the current element
      * is null, then null is returned.
      *
-     * @returns previous Element if available.
+     * @return previous <code>Element</code> if available
      *
      */
     public Element previous() {

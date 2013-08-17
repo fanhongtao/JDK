@@ -1,4 +1,6 @@
 /*
+ * @(#)Transferable.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,7 @@ import java.io.IOException;
  * Defines the interface for classes that can be used to provide data
  * for a transfer operation.
  *
- * @version 	1.9, 02/06/02
+ * @version 	1.10, 12/03/01
  * @author	Amy Fowler  
  */
 
@@ -29,7 +31,7 @@ public interface Transferable {
      * Returns whether or not the specified data flavor is supported for
      * this object.
      * @param flavor the requested flavor for the data
-     * @return boolean indicating wjether or not the data flavor is supported
+     * @return boolean indicating whether or not the data flavor is supported
      */
     public boolean isDataFlavorSupported(DataFlavor flavor);
 

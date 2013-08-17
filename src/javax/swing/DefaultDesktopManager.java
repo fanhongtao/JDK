@@ -1,4 +1,6 @@
 /*
+ * @(#)DefaultDesktopManager.java	1.45 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,13 +16,15 @@ import java.awt.event.ComponentListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
-/** This is an implementaion of the DesktopManager. It currently implements a
-  * the basic behaviors for managing JInternalFrames in an arbitrary parent.
-  * JInternalFrames that are not children of a JDesktop will use this component
+/** This is an implementation of the <code>DesktopManager</code>.
+  * It currently implements the basic behaviors for managing
+  * <code>JInternalFrame</code>s in an arbitrary parent.
+  * <code>JInternalFrame</code>s that are not children of a
+  * <code>JDesktop</code> will use this component
   * to handle their desktop-like actions.
   * @see JDesktopPane
   * @see JInternalFrame
-  * @version 1.42 02/06/02
+  * @version 1.45 12/03/01
   * @author David Kloba
   * @author Steve Wilson
   */
@@ -50,7 +54,11 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
         }
     }
 
-    /** Removes the frame, and if necessary the desktopIcon, from its parent. */
+    /**
+     * Removes the frame, and, if necessary, the
+     * <code>desktopIcon</code>, from its parent.
+     * @param f the <code>JInternalFrame</code> to be removed
+     */
     public void closeFrame(JInternalFrame f) {
         boolean findNext = f.isSelected();
 	Container c = f.getParent();
@@ -68,7 +76,10 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 	if (findNext) activateNextFrame(c);
     }
 
-    /** Resizes the frame to fill its parents bounds. */
+    /**
+     * Resizes the frame to fill its parents bounds.
+     * @param the frame to be resized
+     */
     public void maximizeFrame(JInternalFrame f) {
 
         Rectangle p;
@@ -88,9 +99,11 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
         removeIconFor(f);
     }
 
-    /** Restores the frame back to its size and position prior to a maximizeFrame()
-      * call.
-      */
+    /**
+     * Restores the frame back to its size and position prior
+     * to a <code>maximizeFrame</code> call.
+     * @param f the <code>JInternalFrame</code> to be restored
+     */
     public void minimizeFrame(JInternalFrame f) {
         if((f.getNormalBounds()) != null) {
             Rectangle r = f.getNormalBounds();
@@ -101,7 +114,11 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
         removeIconFor(f);
     }
 
-    /** Removes the frame from its parent and adds its desktopIcon to the parent. */
+    /**
+     * Removes the frame from its parent and adds its
+     * <code>desktopIcon</code> to the parent.
+     * @param f the <code>JInternalFrame</code> to be iconified
+     */
     public void iconifyFrame(JInternalFrame f) {
         JInternalFrame.JDesktopIcon desktopIcon;
         Container c;
@@ -156,7 +173,11 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
       
     }
 
-    /** Removes the desktopIcon from its parent and adds its frame to the parent. */
+    /**
+     * Removes the desktopIcon from its parent and adds its frame
+     * to the parent.
+     * @param f the <code>JInternalFrame</code> to be de-iconified
+     */
     public void deiconifyFrame(JInternalFrame f) {
         JInternalFrame.JDesktopIcon desktopIcon;
 
@@ -164,13 +185,23 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
         if(desktopIcon.getParent() != null) {
             desktopIcon.getParent().add(f);
             removeIconFor(f);
-            try { f.setSelected(true); } catch (PropertyVetoException e2) { }
+            // Fix for bug id #4418262.
+            if (f.isSelected()) {
+                f.moveToFront();
+            } else {
+                try {
+                    f.setSelected(true);
+                } catch (PropertyVetoException e2) {
+                }
+            }
         }
     }
 
     /** This will activate <b>f</b> moving it to the front. It will
-      * set the current active frame (if any) IS_SELECTED_PROPERTY to false.
+      * set the current active frame's (if any)
+      * <code>IS_SELECTED_PROPERTY</code> to <code>false</code>.
       * There can be only one active frame across all Layers.
+      * @param f the <code>JInternalFrame</code> to be activated
       */
     public void activateFrame(JInternalFrame f) {
         Container p = f.getParent();
@@ -254,7 +285,7 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
       * Moves the visible location of the frame being dragged
       * to the location specified.  The means by which this occurs can vary depending 
       * on the dragging algorithm being used.  The actual logical location of the frame
-      * might not change until endDraggingFrame is called.
+      * might not change until <code>endDraggingFrame</code> is called.
       */
     public void dragFrame(JComponent f, int newX, int newY) {
 
@@ -299,7 +330,14 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
         setupDragMode(f);
     }
 
-    /** Calls setBoundsForFrame() with the new values. */
+    /**
+     * Calls <code>setBoundsForFrame</code> with the new values.
+     * @param f the component to be resized
+     * @param newX the new x-coordinate
+     * @param newY the new y-coordinate
+     * @param newWidth the new width
+     * @param newHeight the new height
+     */
     public void resizeFrame(JComponent f, int newX, int newY, int newWidth, int newHeight) {
 
         if ( dragMode == DEFAULT_DRAG_MODE || dragMode == FASTER_DRAG_MODE ) {
@@ -331,7 +369,7 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
     }
 
 
-    /** This moves the JComponent and repaints the damaged areas. */
+    /** This moves the <code>JComponent</code> and repaints the damaged areas. */
     public void setBoundsForFrame(JComponent f, int newX, int newY, int newWidth, int newHeight) {
         boolean didResize = (f.getWidth() != newWidth || f.getHeight() != newHeight);
         f.setBounds(newX, newY, newWidth, newHeight);
@@ -340,7 +378,7 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
         } 
     }
 
-    /** Convience method to remove the desktopIcon of <b>f</b> is necessary. */
+    /** Convenience method to remove the desktopIcon of <b>f</b> is necessary. */
     protected void removeIconFor(JInternalFrame f) {
         JInternalFrame.JDesktopIcon di = f.getDesktopIcon();
         Container c = di.getParent();
@@ -446,24 +484,44 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
       return(availableRectangle);
     }
 
-    /** Stores the bounds of the component just before a maximize call. */
+    /**
+     * Stores the bounds of the component just before a maximize call.
+     * @param f the component about to be resized
+     * @param r the normal bounds to be saved away
+     */
     protected void setPreviousBounds(JInternalFrame f, Rectangle r)     {
 	f.setNormalBounds(r);
     }
 
+    /**
+     * Gets the normal bounds of the component prior to the component
+     * being maximized.
+     * @param f the <code>JInternalFrame</code> of interest
+     * @return the normal bounds of the component
+     */
     protected Rectangle getPreviousBounds(JInternalFrame f)     {
         return f.getNormalBounds();
     }
 
-    /** Sets that the component has been iconized and the bounds of the
-      * desktopIcon are valid.
-      */
+    /**
+     * Sets that the component has been iconized and the bounds of the
+     * <code>desktopIcon</code> are valid.
+     */
     protected void setWasIcon(JInternalFrame f, Boolean value)  {
 	if (value != null) {
 	    f.putClientProperty(HAS_BEEN_ICONIFIED_PROPERTY, value);
 	}
     }
 
+    /**
+     * Returns <code>true</code> if the component has been iconized
+     * and the bounds of the <code>desktopIcon</code> are valid,
+     * otherwise returns <code>false</code>.
+     *
+     * @param f the <code>JInternalFrame</code> of interest
+     * @return <code>true</code> if the component has been iconized;
+     *    otherwise returns <code>false</code>
+     */
     protected boolean wasIcon(JInternalFrame f) {
         return (f.getClientProperty(HAS_BEEN_ICONIFIED_PROPERTY) == Boolean.TRUE);
     }

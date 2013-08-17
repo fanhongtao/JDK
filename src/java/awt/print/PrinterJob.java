@@ -1,4 +1,6 @@
 /*
+ * @(#)PrinterJob.java	1.31 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,7 +8,14 @@
 package java.awt.print;
 
 import java.awt.AWTError;
+import java.awt.HeadlessException;
 import java.util.Enumeration;
+
+import javax.print.DocFlavor;
+import javax.print.PrintService;
+import javax.print.PrintServiceLookup;
+import javax.print.StreamPrintServiceFactory;
+import javax.print.attribute.PrintRequestAttributeSet;
 
 import sun.security.action.GetPropertyAction;
 
@@ -18,11 +27,19 @@ import sun.security.action.GetPropertyAction;
  */
 public abstract class PrinterJob {
 
-
  /* Public Class Methods */
 
     /**
-     * Creates and returns a <code>PrinterJob</code>.
+     * Creates and returns a <code>PrinterJob</code> which is initially
+     * associated with the default printer.
+     * If no printers are available on the system, a PrinterJob will still
+     * be returned from this method, but <code>getPrintService()</code> 
+     * will return <code>null</code>, and calling 
+     * {@link print() print} with this <code>PrinterJob</code> might 
+     * generate an exception.  Applications that need to determine if
+     * there are suitable printers before creating a <code>PrinterJob</code> 
+     * should ensure that the array returned from 
+     * {@link lookupPrintServices() lookupPrintServices} is not empty.
      * @return a new <code>PrinterJob</code>.
      */
     public static PrinterJob getPrinterJob() {
@@ -46,16 +63,107 @@ public abstract class PrinterJob {
 	    }
 	});
     }
+    
+    /**
+     * A convenience method which looks up 2D print services.
+     * Services returned from this method may be installed on
+     * <code>PrinterJob</code>s which support print services.
+     * Calling this method is equivalent to calling
+     * {@link javax.print.PrintServiceLookup#lookupPrintServices(
+     * DocFlavor, AttributeSet) 
+     * <code>PrintServiceLookup.lookupPrintServices()</code>}
+     * and specifying a Pageable DocFlavor.
+     * @return a possibly empty array of 2D print services.
+     * @since     1.4
+     */
+    public static PrintService[] lookupPrintServices() {
+	return PrintServiceLookup.
+	    lookupPrintServices(DocFlavor.SERVICE_FORMATTED.PAGEABLE, null);
+    }
 
+   
+    /**
+     * A convenience method which locates fatories for stream print
+     * services which can image 2D graphics.
+     * Sample usage :
+     * <pre>
+     * FileOutputStream outstream;
+     * StreamPrintService psPrinter;
+     * String psMimeType = "application/postscript";
+     *
+     * StreamPrintServiceFactory[] factories =
+     *     PrinterJob.lookupStreamPrintServices(psMimeType);
+     * if (factories.length > 0) {
+     *     try {
+     *         outstream = new File("out.ps");
+     *         psPrinter =  factories[0].getPrintService(fos);
+     *         // psPrinter can now be set as the service on a PrinterJob 
+     *     } catch (FileNotFoundException e) {
+     *     }
+     * }            
+     * </pre>
+     * Services returned from this method may be installed on
+     * <code>PrinterJob</code> instances which support print services.
+     * Calling this method is equivalent to calling
+     * {@link javax.print.StreamPrintServiceFactory#lookupStreamPrintServiceFactories(DocFlavor, String)
+     * <code>StreamPrintServiceFactory.lookupStreamPrintServiceFactories()
+     * </code>} and specifying a Pageable DocFlavor.
+     * 
+     * @param mimeType the required output format, or null to mean any format.
+     * @return a possibly empty array of 2D stream print service factories.
+     * @since     1.4
+     */
+    public static StreamPrintServiceFactory[]
+	lookupStreamPrintServices(String mimeType) {
+	return StreamPrintServiceFactory.lookupStreamPrintServiceFactories(
+				       DocFlavor.SERVICE_FORMATTED.PAGEABLE,
+				       mimeType);
+    }
+				  
+    
  /* Public Methods */
 
     /**
      * A <code>PrinterJob</code> object should be created using the
      * static {@link #getPrinterJob() <code>getPrinterJob</code>} method.
      */
-     public PrinterJob() {
-     }
+    public PrinterJob() {
+    }
 
+    /**
+     * Returns the service (printer) for this printer job.
+     * Implementations of this class which do not support print services
+     * may return null;
+     * @return the service for this printer job.
+     * @see #setPrintService(PrintService)
+     * @since     1.4
+     */
+    public PrintService getPrintService() {
+	return null;
+    }
+
+    /**
+     * Associate this PrinterJob with a new PrintService.
+     * This method is overridden by subclasses which support
+     * specifying a Print Service.
+     *
+     * Throws <code>PrinterException</code> if the specified service
+     * cannot support the <code>Pageable</code> and
+     * <code>Printable</code> interfaces necessary to support 2D printing.
+     * @param service a print service that supports 2D printing
+     * @exception PrinterException if the specified service does not support
+     * 2D printing, or this PrinterJob class does not support
+     * setting a 2D print service, or the specified service is
+     * otherwise not a valid print service.
+     * @see #getPrintService
+     * @since     1.4
+     */
+    public void setPrintService(PrintService service)
+	throws PrinterException {
+	    throw new PrinterException(
+			 "Setting a service is not supported on this class");
+    }
+     
     /**
      * Calls <code>painter</code> to render the pages.  The pages in the
      * document to be printed by this 
@@ -98,10 +206,78 @@ public abstract class PrinterJob {
     /**
      * Presents a dialog to the user for changing the properties of
      * the print job.
+     * This method will display a native dialog if a native print
+     * service is selected, and user choice of printers will be restricted
+     * to these native print services.
+     * To present the cross platform print dialog for all services,
+     * including native ones instead use
+     * <code>printDialog(PrintRequestAttributeSet)</code>.
+     * <p>
+     * PrinterJob implementations which can use PrintService's will update
+     * the PrintService for this PrinterJob to reflect the new service
+     * selected by the user.
      * @return <code>true</code> if the user does not cancel the dialog;
      * <code>false</code> otherwise.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public abstract boolean printDialog();
+    public abstract boolean printDialog() throws HeadlessException;
+
+    /**
+     * A convenience method which displays a cross-platform print dialog
+     * for all services which are capable of printing 2D graphics using the
+     * <code>Pageable</code> interface. The selected printer when the
+     * dialog is initially displayed will reflect the print service currently
+     * attached to this print job.
+     * If the user changes the print service, the PrinterJob will be
+     * updated to reflect this, unless the user cancels the dialog.
+     * As well as allowing the user to select the destination printer,
+     * the user can also select values of various print request attributes.
+     * <p>
+     * The attributes parameter on input will reflect the applications
+     * required initial selections in the user dialog. Attributes not
+     * specified display using the default for the service. On return it
+     * will reflect the user's choices. Selections may be updated by
+     * the implementation to be consistent with the supported values
+     * for the currently selected print service.
+     * <p>
+     * As the user scrolls to a new print service selection, the values
+     * copied are based on the settings for the previous service, together
+     * with any user changes. The values are not based on the original
+     * settings supplied by the client.
+     * <p>
+     * With the exception of selected printer, the PrinterJob state is
+     * not updated to reflect the user's changes.
+     * For the selections to affect a printer job, the attributes must
+     * be specified in the call to the
+     * <code>print(PrintRequestAttributeSet)</code> method. If using
+     * the Pageable interface, clients which intend to use media selected
+     * by the user must create a PageFormat derived from the user's
+     * selections.
+     * If the user cancels the dialog, the attributes will not reflect
+     * any changes made by the user.
+     * @param attributes on input is application supplied attributes,
+     * on output the contents are updated to reflect user choices.
+     * This parameter may not be null.
+     * @return <code>true</code> if the user does not cancel the dialog;
+     * <code>false</code> otherwise.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @exception NullPointerException if <code>attributes</code> parameter
+     * is null.
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @since     1.4
+     * 
+     */
+    public boolean printDialog(PrintRequestAttributeSet attributes)
+	throws HeadlessException {
+
+	if (attributes == null) {
+	    throw new NullPointerException("attributes");
+	}
+	return printDialog();
+    }
 
     /**
      * Displays a dialog that allows modification of a
@@ -120,9 +296,51 @@ public abstract class PrinterJob {
      *            is cancelled; a new <code>PageFormat</code> object
      *		  containing the format indicated by the user if the
      *		  dialog is acknowledged.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      * @since     1.2
      */
-    public abstract PageFormat pageDialog(PageFormat page);
+    public abstract PageFormat pageDialog(PageFormat page)
+        throws HeadlessException;
+
+    /**
+     * A convenience method which displays a cross-platform page setup dialog.
+     * The choices available will reflect the print service currently
+     * set on this PrinterJob.
+     * <p>
+     * The attributes parameter on input will reflect the client's
+     * required initial selections in the user dialog. Attributes which are
+     * not specified display using the default for the service. On return it
+     * will reflect the user's choices. Selections may be updated by
+     * the implementation to be consistent with the supported values
+     * for the currently selected print service.
+     * <p>
+     * The return value will be a PageFormat equivalent to the
+     * selections in the PrintRequestAttributeSet.
+     * If the user cancels the dialog, the attributes will not reflect
+     * any changes made by the user, and the return value will be null.
+     * @param attributes on input is application supplied attributes,
+     * on output the contents are updated to reflect user choices.
+     * This parameter may not be null.
+     * @return a page format if the user does not cancel the dialog;
+     * <code>null</code> otherwise.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @exception NullPointerException if <code>attributes</code> parameter
+     * is null.
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @since     1.4
+     * 
+     */
+    public PageFormat pageDialog(PrintRequestAttributeSet attributes)
+        throws HeadlessException {
+
+	if (attributes == null) {
+	    throw new NullPointerException("attributes");
+	}
+	return pageDialog(defaultPage());
+    }
 
     /**
      * Clones the <code>PageFormat</code> argument and alters the
@@ -169,15 +387,57 @@ public abstract class PrinterJob {
      */
     public abstract void print() throws PrinterException;
 
+   /**
+     * Prints a set of pages using the settings in the attribute
+     * set. The default implementation ignores the attribute set.
+     * <p>
+     * Note that some attributes may be set directly on the PrinterJob
+     * by equivalent method calls, (for example), copies:
+     * <code>setcopies(int)</code>, job name: <code>setJobName(String)</code>
+     * and specifying media size and orientation though the
+     * <code>PageFormat</code> object.
+     * <p>
+     * If a supported attribute-value is specified in this attribute set,
+     * it will take precedence over the API settings for this print()
+     * operation only.
+     * The following behaviour is specified for PageFormat:
+     * If a client uses the Printable interface, then the
+     * <code>attributes</code> parameter to this method is examined
+     * for attributes which specify media (by size), orientation, and
+     * imageable area, and those are used to construct a new PageFormat
+     * which is passed to the Printable object's print() method.
+     * For clients of the Pageable interface, the PageFormat will always
+     * be as supplied by that interface, on a per page basis.
+     * <p>
+     * These behaviours allow an application to directly pass the
+     * user settings returned from
+     * <code>printDialog(PrintRequestAttributeSet attributes</code> to
+     * this print() method.
+     * <p>
+     * 
+     * @param attributes a set of attributes for the job
+     * @exception PrinterException an error in the print system
+     *            caused the job to be aborted.
+     * @see Book
+     * @see Pageable
+     * @see Printable
+     */
+    public void print(PrintRequestAttributeSet attributes)
+	throws PrinterException {
+	print();
+    }
+
     /**
      * Sets the number of copies to be printed.
      * @param copies the number of copies to be printed
+     * @see #getCopies
      */
     public abstract void setCopies(int copies);
 
     /**
      * Gets the number of copies to be printed.
      * @return the number of copies to be printed.
+     * @see #setCopies
      */
     public abstract int getCopies();
 
@@ -191,12 +451,14 @@ public abstract class PrinterJob {
      * Sets the name of the document to be printed.
      * The document name can not be <code>null</code>.
      * @param jobName the name of the document to be printed
+     * @see #getJobName
      */
     public abstract void setJobName(String jobName);
 
     /**
      * Gets the name of the document to be printed.
      * @return the name of the document to be printed.
+     * @see #setJobName
      */
     public abstract String getJobName();
 

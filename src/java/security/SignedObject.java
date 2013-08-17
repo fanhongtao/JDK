@@ -1,5 +1,7 @@
 /*
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * @(#)SignedObject.java	1.38 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -93,7 +95,7 @@ import java.io.*;
  *
  * @see Signature
  *
- * @version 	1.39, 04/18/05
+ * @version 	1.38, 12/03/01
  * @author Li Gong
  */
 
@@ -201,8 +203,8 @@ public final class SignedObject implements Serializable {
 			  Signature verificationEngine)
 	 throws InvalidKeyException, SignatureException {
 	     verificationEngine.initVerify(verificationKey);
-	     verificationEngine.update((byte[])this.content.clone());
-	     return verificationEngine.verify((byte[])this.signature.clone());
+	     verificationEngine.update(this.content);
+	     return verificationEngine.verify(this.signature);
     }
 
     /*
@@ -219,8 +221,8 @@ public final class SignedObject implements Serializable {
 	throws InvalidKeyException, SignatureException {
 	    // initialize the signing engine
 	    signingEngine.initSign(signingKey);
-	    signingEngine.update((byte[])this.content.clone());
-	    this.signature = (byte[])signingEngine.sign().clone();
+	    signingEngine.update(this.content);
+	    this.signature = signingEngine.sign();
 	    this.thealgorithm = signingEngine.getAlgorithm();
     }
 

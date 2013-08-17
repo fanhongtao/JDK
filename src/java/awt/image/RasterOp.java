@@ -1,4 +1,6 @@
 /*
+ * @(#)RasterOp.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -37,6 +39,10 @@ public interface RasterOp {
      * new Raster will be created.  The IllegalArgumentException may be thrown
      * if the source and/or destination Raster is incompatible with the types
      * of Rasters allowed by the class implementing this filter.
+     * @param src the source <code>Raster</code>
+     * @param dest the destination <code>WritableRaster</code>
+     * @return a <code>WritableRaster</code> that represents the result of
+     *         the filtering operation.
      */
     public WritableRaster filter(Raster src, WritableRaster dest);
 
@@ -45,6 +51,10 @@ public interface RasterOp {
      * The IllegalArgumentException may be thrown if the source Raster
      * is incompatible with the types of Rasters allowed
      * by the class implementing this filter.
+     * @param src the source <code>Raster</code>
+     * @return a <code>Rectangle2D</code> that is the bounding box of 
+     *         the <code>Raster</code> resulting from the filtering
+     *         operation.
      */
     public Rectangle2D getBounds2D(Raster src);
 
@@ -54,6 +64,9 @@ public interface RasterOp {
      * The IllegalArgumentException may be thrown if the source Raster
      * is incompatible with the types of Rasters allowed
      * by the class implementing this filter.
+     * @param src the source <code>Raster</code>
+     * @return a <code>WritableRaster</code> that is compatible with 
+     *         <code>src</code>
      */
     public WritableRaster createCompatibleDestRaster(Raster src);
 
@@ -61,12 +74,17 @@ public interface RasterOp {
      * Returns the location of the destination point given a
      * point in the source Raster.  If dstPt is non-null, it
      * will be used to hold the return value.
+     * @param srcPt the source <code>Point2D</code>
+     * @param dstPt the destination <code>Point2D</code>
+     * @return the location of the destination point.
      */
     public Point2D getPoint2D(Point2D srcPt, Point2D dstPt);
 
     /**
      * Returns the rendering hints for this RasterOp.  Returns
      * null if no hints have been set.
+     * @return the <code>RenderingHints</code> object of this
+     *         <code>RasterOp</code>.
      */
     public RenderingHints getRenderingHints();
 }

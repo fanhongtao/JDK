@@ -1,4 +1,6 @@
 /*
+ * @(#)GraphicAttribute.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -71,6 +73,8 @@ public abstract class GraphicAttribute {
     /**
      * Constructs a <code>GraphicAttribute</code>.
      * Subclasses use this to define the alignment of the graphic.
+     * @param alignment an int representing one of the 
+     * <code>GraphicAttribute</code> alignment fields
      */
     protected GraphicAttribute(int alignment) {
         if (alignment < BOTTOM_ALIGNMENT || alignment > HANGING_BASELINE) {

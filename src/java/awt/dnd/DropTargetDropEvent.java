@@ -1,4 +1,6 @@
 /*
+ * @(#)DropTargetDropEvent.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,20 +12,49 @@ import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 
-import java.awt.dnd.DropTargetEvent;
-
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * The <code>DropTargetDropEvent</code> is delivered 
  * via the <code>DropTargetListener</code> drop() method. 
+ * <p>
+ * The <code>DropTargetDropEvent</code> reports the <i>source drop actions</i>
+ * and the <i>user drop action</i> that reflect the current state of the
+ * drag-and-drop operation. 
+ * <p>
+ * <i>Source drop actions</i> is a bitwise mask of <code>DnDConstants</code>
+ * that represents the set of drop actions supported by the drag source for 
+ * this drag-and-drop operation.
+ * <p>
+ * <i>User drop action</i> depends on the drop actions supported by the drag
+ * source and the drop action selected by the user. The user can select a drop
+ * action by pressing modifier keys during the drag operation: 
+ * <pre> 
+ *   Ctrl + Shift -> ACTION_LINK
+ *   Ctrl         -> ACTION_COPY
+ *   Shift        -> ACTION_MOVE
+ * </pre> 
+ * If the user selects a drop action, the <i>user drop action</i> is one of 
+ * <code>DnDConstants</code> that represents the selected drop action if this
+ * drop action is supported by the drag source or
+ * <code>DnDConstants.ACTION_NONE</code> if this drop action is not supported 
+ * by the drag source.
+ * <p>
+ * If the user doesn't select a drop action, the set of
+ * <code>DnDConstants</code> that represents the set of drop actions supported
+ * by the drag source is searched for <code>DnDConstants.ACTION_MOVE</code>,
+ * then for <code>DnDConstants.ACTION_COPY</code>, then for
+ * <code>DnDConstants.ACTION_LINK</code> and the <i>user drop action</i> is the
+ * first constant found. If no constant is found the <i>user drop action</i>
+ * is <code>DnDConstants.ACTION_NONE</code>.
  * 
- * @version 	1.22, 02/06/02
+ * @version 	1.24, 12/03/01
  * @since 1.2
  */
 
 public class DropTargetDropEvent extends DropTargetEvent {
+
+    private static final long serialVersionUID = -1721911170440459322L;
 
     /**
      * Construct a <code>DropTargetDropEvent</code> given
@@ -41,16 +72,16 @@ public class DropTargetDropEvent extends DropTargetEvent {
      * @param dtc        The <code>DropTargetContext</code> for this operation
      * @param cursorLocn The location of the "Drag" Cursor's 
      * hotspot in <code>Component</code> coordinates
-     * @param dropAction The currently selected user drop action: COPY, MOVE, or LINK
-     * constants found in DnDConstants.
-     * @param srcActions The current set of actions supported by the source: some
-     * combination of COPY, MOVE, or LINK as exposed by the <code>DragSource</code>.
-     * <P>
+     * @param dropAction the user drop action.
+     * @param srcActions the source drop actions.
+     * 
      * @throws <code>NullPointerException</code> 
      * if cursorLocn is <code>null</code>
-     * @throws <code>IllegalArgumentException</code> 
-     * if the dropAction or srcActions are illegal values,
-     * or if dtc is <code>null</code>.
+     * @throws <code>IllegalArgumentException</code> if dropAction is not one of
+     *         <code>DnDConstants</code>.
+     * @throws <code>IllegalArgumentException</code> if srcActions is not
+     *         a bitwise mask of <code>DnDConstants</code>.
+     * @throws <code>IllegalArgumentException</code> if dtc is <code>null</code>.
      */
 
     public DropTargetDropEvent(DropTargetContext dtc, Point cursorLocn, int dropAction, int srcActions)  {
@@ -84,11 +115,17 @@ public class DropTargetDropEvent extends DropTargetEvent {
      * @param dtc        The DropTargetContext for this operation
      * @param cursorLocn The location of the "Drag" Cursor's 
      * hotspot in Component's coordinates
-     * @param dropAction The currently selected user drop action: COPY, MOVE, or LINK
-     * constants found in DnDConstants.
-     * @param srcActions The current set of actions supported by the source: some
-     * combination of COPY, MOVE, or LINK as exposed by the <code>DragSource</code>.
+     * @param dropAction the user drop action.
+     * @param srcActions the source drop actions.
      * @param isLocalTx  True if the source is in the same JVM as the target
+     *
+     * @throws <code>NullPointerException</code> if cursorLocn is
+     *         <code>null</code> 
+     * @throws <code>IllegalArgumentException</code> if dropAction is not one of
+     *         <code>DnDConstants</code>.
+     * @throws <code>IllegalArgumentException</code> if srcActions is not
+     *         a bitwise mask of <code>DnDConstants</code>.
+     * @throws <code>IllegalArgumentException</code> if dtc is <code>null</code>.
      */
 
     public DropTargetDropEvent(DropTargetContext dtc, Point cursorLocn, int dropAction, int srcActions, boolean isLocal)  {
@@ -146,22 +183,17 @@ public class DropTargetDropEvent extends DropTargetEvent {
     }
 
     /**
-     * This method returns an <code>int</code> representing the 
-     * action(s) supported by the source.
-     * <P>
-     * @return source actions
+     * This method returns the source drop actions.
+     * 
+     * @return the source drop actions.
      */
-
     public int getSourceActions() { return actions; }
 
     /**
-     * This method returns an <code>int</code>
-     * representing the action(s) supported
-     * by the source at the time of the drop.
-     * <P>
-     * @return source actions
+     * This method returns the user drop action.
+     * 
+     * @return the user drop actions.
      */
-
     public int getDropAction() { return dropAction; }
 
     /**
@@ -221,15 +253,31 @@ public class DropTargetDropEvent extends DropTargetEvent {
 
     static final private Point  zero     = new Point(0,0);
 
+    /**
+     * The location of the drag cursor's hotspot in Component coordinates.
+     *
+     * @serial
+     */
     private Point		location   = zero;
+
+    /**
+     * The source drop actions.
+     *
+     * @serial
+     */
     private int			actions    = DnDConstants.ACTION_NONE;
+
+    /**
+     * The user drop action.
+     *
+     * @serial
+     */
     private int			dropAction = DnDConstants.ACTION_NONE;
 
+    /**
+     * <code>true</code> if the source is in the same JVM as the target.
+     *
+     * @serial
+     */
     private boolean	        isLocalTx = false;
 }
-
-
-
-
-
-

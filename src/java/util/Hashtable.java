@@ -1,4 +1,6 @@
 /*
+ * @(#)Hashtable.java	1.90 01/12/13
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -60,9 +62,9 @@ import java.io.*;
  *     }
  * </pre></blockquote>
  * <p>
- * As of the Java 2 platform v1.2, this class has been retrofitted to implement Map,
- * so that it becomes a part of Java's collection framework.  Unlike
- * the new collection implementations, Hashtable is synchronized.<p>
+ * As of the Java 2 platform v1.2, this class has been retrofitted to
+ * implement Map, so that it becomes a part of Java's collection framework.
+ * Unlike the new collection implementations, Hashtable is synchronized.<p>
  *
  * The Iterators returned by the iterator and listIterator methods
  * of the Collections returned by all of Hashtable's "collection view methods"
@@ -75,9 +77,17 @@ import java.io.*;
  * The Enumerations returned by Hashtable's keys and values methods are
  * <em>not</em> fail-fast.
  *
+ * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
+ * as it is, generally speaking, impossible to make any hard guarantees in the
+ * presence of unsynchronized concurrent modification.  Fail-fast iterators
+ * throw <tt>ConcurrentModificationException</tt> on a best-effort basis. 
+ * Therefore, it would be wrong to write a program that depended on this
+ * exception for its correctness: <i>the fail-fast behavior of iterators
+ * should be used only to detect bugs.</i>
+ *
  * @author  Arthur van Hoff
  * @author  Josh Bloch
- * @version 1.85, 02/06/02
+ * @version 1.90, 12/13/01
  * @see     Object#equals(java.lang.Object)
  * @see     Object#hashCode()
  * @see     Hashtable#rehash()
@@ -162,8 +172,8 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
     }
 
     /**
-     * Constructs a new, empty hashtable with a default capacity and load
-     * factor, which is <tt>0.75</tt>. 
+     * Constructs a new, empty hashtable with a default initial capacity (11)
+     * and load factor, which is <tt>0.75</tt>. 
      */
     public Hashtable() {
 	this(11, 0.75f);
@@ -171,11 +181,12 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 
     /**
      * Constructs a new hashtable with the same mappings as the given 
-     * Map.  The hashtable is created with a capacity of twice the number
-     * of entries in the given Map or 11 (whichever is greater), and a
-     * default load factor, which is <tt>0.75</tt>.
+     * Map.  The hashtable is created with an initial capacity sufficient to
+     * hold the mappings in the given Map and a default load factor, which is
+     * <tt>0.75</tt>.
      *
      * @param t the map whose mappings are to be placed in this map.
+     * @throws NullPointerException if the specified map is null.
      * @since   1.2
      */
     public Hashtable(Map t) {
@@ -188,7 +199,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      *
      * @return  the number of keys in this hashtable.
      */
-    public int size() {
+    public synchronized int size() {
 	return count;
     }
 
@@ -198,7 +209,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @return  <code>true</code> if this hashtable maps no keys to values;
      *          <code>false</code> otherwise.
      */
-    public boolean isEmpty() {
+    public synchronized boolean isEmpty() {
 	return count == 0;
     }
 
@@ -438,6 +449,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * of the keys currently in the specified Map. 
      *
      * @param t Mappings to be stored in this map.
+     * @throws NullPointerException if the specified map is null.
      * @since 1.2
      */
     public synchronized void putAll(Map t) {
@@ -504,7 +516,11 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	buf.append("{");
 	for (int i = 0; i <= max; i++) {
 	    Map.Entry e = (Map.Entry) (it.next());
-	    buf.append(e.getKey() + "=" + e.getValue());
+            Object key = e.getKey();
+            Object value = e.getValue();
+            buf.append((key   == this ? "(this Map)" : key) + "=" + 
+                       (value == this ? "(this Map)" : value));
+
 	    if (i < max)
 		buf.append(", ");
 	}
@@ -528,12 +544,17 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	    return new Enumerator(type, true);
 	}
     }
-							 
+
     // Views
 
-    private transient Set keySet = null;
-    private transient Set entrySet = null;
-    private transient Collection values = null;
+    /**
+     * Each of these fields are initialized to contain an instance of the
+     * appropriate view the first time this view is requested.  The views are
+     * stateless, so there's no reason to create more than one of each.
+     */
+    private transient volatile Set keySet = null;
+    private transient volatile Set entrySet = null;
+    private transient volatile Collection values = null;
 
     /**
      * Returns a Set view of the keys contained in this Hashtable.  The Set
@@ -680,6 +701,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * Compares the specified Object with this Map for equality,
      * as per the definition in the Map interface.
      *
+     * @param  o object to be compared for equality with this Hashtable
      * @return true if the specified Object is equal to this Map.
      * @see Map#equals(Object)
      * @since 1.2
@@ -694,19 +716,26 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	if (t.size() != size())
 	    return false;
 
-	Iterator i = entrySet().iterator();
-	while (i.hasNext()) {
-	    Map.Entry e = (Map.Entry) i.next();
-	    Object key = e.getKey();
-	    Object value = e.getValue();
-	    if (value == null) {
-		if (!(t.get(key)==null && t.containsKey(key)))
-		    return false;
-	    } else {
-		if (!value.equals(t.get(key)))
-		    return false;
-	    }
-	}
+        try {
+            Iterator i = entrySet().iterator();
+            while (i.hasNext()) {
+                Map.Entry e = (Map.Entry) i.next();
+                Object key = e.getKey();
+                Object value = e.getValue();
+                if (value == null) {
+                    if (!(t.get(key)==null && t.containsKey(key)))
+                        return false;
+                } else {
+                    if (!value.equals(t.get(key)))
+                        return false;
+                }
+            }
+        } catch(ClassCastException unused)   {
+            return false;
+        } catch(NullPointerException unused) {
+            return false;
+        }
+
 	return true;
     }
 
@@ -718,17 +747,27 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @since 1.2
      */
     public synchronized int hashCode() {
-        // This allows hashCode to be calculated for recursive Hashtables.
-        // It does NOT solve the general problem, but allows some popular
-        // 1.1-era Applets to run in a post-collections universe.
-        if (loadFactor < 0)
-            return 0;
-        loadFactor = -loadFactor; // Indicate that hashCode calc in progress
-	int h = 0;
-	Iterator i = entrySet().iterator();
-	while (i.hasNext())
-	    h += i.next().hashCode();
-	loadFactor = -loadFactor; // HashCode calculation no longer in progress
+        /*
+         * This code detects the recursion caused by computing the hash code
+         * of a self-referential hash table and prevents the stack overflow
+         * that would otherwise result.  This allows certain 1.1-era
+         * applets with self-referential hash tables to work.  This code
+         * abuses the loadFactor field to do double-duty as a hashCode
+         * in progress flag, so as not to worsen the space performance.
+         * A negative load factor indicates that hash code computation is
+         * in progress.
+         */
+        int h = 0;
+        if (count == 0 || loadFactor < 0)
+            return h;  // Returns zero
+
+        loadFactor = -loadFactor;  // Mark hashCode computation in progress
+        Entry tab[] = table;
+        for (int i = 0; i < tab.length; i++)
+            for (Entry e = tab[i]; e != null; e = e.next)
+                h += e.key.hashCode() ^ e.value.hashCode();
+        loadFactor = -loadFactor;  // Mark hashCode computation complete
+
 	return h;
     }
 

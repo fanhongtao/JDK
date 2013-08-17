@@ -1,4 +1,6 @@
 /*
+ * @(#)NO_RESOURCES.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,9 +8,9 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>NO_RESOURCES</code> exception, which is thrown
- * when either the client or the server does not have sufficient resources
- * to perform the request.
+ * Exception thrown when the ORB has encountered some general resource 
+ * limitation. For example, the run time may have reached the maximum 
+ * permissible number of open connections.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

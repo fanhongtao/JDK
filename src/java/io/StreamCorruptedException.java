@@ -1,4 +1,6 @@
 /*
+ * @(#)StreamCorruptedException.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,7 +12,7 @@ package java.io;
  * violates internal consistency checks.
  *
  * @author  unascribed
- * @version 1.12, 02/06/02
+ * @version 1.12, 12/03/01
  * @since   JDK1.1
  */
 public class StreamCorruptedException extends ObjectStreamException {

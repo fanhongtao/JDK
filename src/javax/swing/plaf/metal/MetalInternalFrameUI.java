@@ -1,4 +1,6 @@
 /*
+ * @(#)MetalInternalFrameUI.java	1.27 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,15 +23,15 @@ import javax.swing.plaf.*;
  * Metal implementation of JInternalFrame.  
  * <p>
  *
- * @version 1.21 02/06/02
+ * @version 1.27 12/03/01
  * @author Steve Wilson
  */
 public class MetalInternalFrameUI extends BasicInternalFrameUI {
 
   private MetalInternalFrameTitlePane titlePane;
 
-  private PropertyChangeListener paletteListener;
-  private PropertyChangeListener contentPaneListener;
+  private static final PropertyChangeListener metalPropertyChangeListener =
+        new MetalPropertyChangeHandler();
 
   private static final Border handyEmptyBorder = new EmptyBorder(0,0,0,0);
   
@@ -49,13 +51,6 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
   }
 
   public void installUI(JComponent c) { 
-    frame = (JInternalFrame)c;
-
-    paletteListener = new PaletteListener();
-    contentPaneListener = new ContentPaneListener();
-    c.addPropertyChangeListener(paletteListener);
-    c.addPropertyChangeListener(contentPaneListener);
-
     super.installUI(c);
 
     Object paletteProp = c.getClientProperty( IS_PALETTE );
@@ -67,13 +62,9 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
     stripContentBorder(content);    
     //c.setOpaque(false);
   }
-
   
   public void uninstallUI(JComponent c) {                  
       frame = (JInternalFrame)c;
-
-      c.removePropertyChangeListener(paletteListener);
-      c.removePropertyChangeListener(contentPaneListener);
 
       Container cont = ((JInternalFrame)(c)).getContentPane();
       if (cont instanceof JComponent) {
@@ -85,11 +76,28 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
       super.uninstallUI(c);
   } 
 
+    protected void installListeners() {
+        super.installListeners();
+        frame.addPropertyChangeListener(metalPropertyChangeListener);
+    }
+
+    protected void uninstallListeners() {
+        frame.removePropertyChangeListener(metalPropertyChangeListener);
+        super.uninstallListeners();
+    }
+
   protected void installKeyboardActions(){
+      super.installKeyboardActions();
   }
 
   protected void uninstallKeyboardActions(){
+      super.uninstallKeyboardActions();
   }
+
+    protected void uninstallComponents() {
+        titlePane = null;
+        super.uninstallComponents();
+    }
 
   private void stripContentBorder(Object c) {
         if ( c instanceof JComponent ) {
@@ -138,41 +146,41 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
 
   }
 
-  class PaletteListener implements PropertyChangeListener
+  private static class MetalPropertyChangeHandler implements
+        PropertyChangeListener
   {
       public void propertyChange(PropertyChangeEvent e)
       {
 	  String name = e.getPropertyName();
+          JInternalFrame jif = (JInternalFrame)e.getSource();
+
+          if (!(jif.getUI() instanceof MetalInternalFrameUI)) {
+              return;
+          }
+
+          MetalInternalFrameUI ui = (MetalInternalFrameUI)jif.getUI();
 
 	  if ( name.equals( FRAME_TYPE ) )
 	  {
 	      if ( e.getNewValue() instanceof String )
 	      {
-		  setFrameType( (String) e.getNewValue() );
+		  ui.setFrameType( (String) e.getNewValue() );
 	      }
 	  }
 	  else if ( name.equals( IS_PALETTE ) )
 	  {
 	      if ( e.getNewValue() != null )
 	      {
-	          setPalette( ((Boolean)e.getNewValue()).booleanValue() );
+	          ui.setPalette( ((Boolean)e.getNewValue()).booleanValue() );
 	      }
 	      else
 	      {
-		  setPalette( false );
+		  ui.setPalette( false );
 	      }
-	  }
+	  } else if ( name.equals( JInternalFrame.CONTENT_PANE_PROPERTY ) ) {
+              ui.stripContentBorder(e.getNewValue());
+          }
       }
-  } // end class PaletteListener
-
-  class ContentPaneListener implements PropertyChangeListener {
-    public void propertyChange(PropertyChangeEvent e) {
-	String name = e.getPropertyName();
-	if ( name.equals( JInternalFrame.CONTENT_PANE_PROPERTY ) ) {
-	    stripContentBorder(e.getNewValue());
-        }
-    }
-  } // end class ContentPaneListener
-
+  } // end class MetalPropertyChangeHandler
 }
 

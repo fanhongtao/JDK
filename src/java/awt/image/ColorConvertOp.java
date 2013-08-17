@@ -1,4 +1,6 @@
 /*
+ * @(#)ColorConvertOp.java	1.36 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -53,6 +55,7 @@ public class ColorConvertOp implements BufferedImageOp, RasterOp {
     ICC_Profile      thisSrcProfile, thisDestProfile;
     RenderingHints   hints;
     boolean          gotProfiles;
+    float[]          srcMinVals, srcMaxVals, dstMinVals, dstMaxVals;
 
     /* the class initializer */
     static {
@@ -92,9 +95,13 @@ public class ColorConvertOp implements BufferedImageOp, RasterOp {
      *        intermediate <code>ColorSpace</code> 
      * @param hints the <code>RenderingHints</code> object used to control
      *        the color conversion, or <code>null</code>
+     * @throws NullPointerException if cspace is null
      */
     public ColorConvertOp (ColorSpace cspace, RenderingHints hints)
     {
+        if (cspace == null) {
+            throw new NullPointerException("ColorSpace cannot be null");
+        }
         if (cspace instanceof ICC_ColorSpace) {
             profileList = new ICC_Profile [1];    /* 1 profile in the list */
 
@@ -123,18 +130,23 @@ public class ColorConvertOp implements BufferedImageOp, RasterOp {
      * @param dstCspace the destination <code>ColorSpace</code>
      * @param hints the <code>RenderingHints</code> object used to control
      *        the color conversion, or <code>null</code>
+     * @throws NullPointerException if either srcCspace or dstCspace is null
      */
     public ColorConvertOp(ColorSpace srcCspace, ColorSpace dstCspace,
                            RenderingHints hints)
     {
+        if ((srcCspace == null) || (dstCspace == null)) {
+            throw new NullPointerException("ColorSpaces cannot be null");
+        }
         if ((srcCspace instanceof ICC_ColorSpace) &&
             (dstCspace instanceof ICC_ColorSpace)) {
             profileList = new ICC_Profile [2];    /* 2 profiles in the list */
 
             profileList [0] = ((ICC_ColorSpace) srcCspace).getProfile();
             profileList [1] = ((ICC_ColorSpace) dstCspace).getProfile();
-        }
-        else {
+
+            getMinMaxValsFromColorSpaces(srcCspace, dstCspace);
+        } else {
             /* non-ICC case: 2 ColorSpaces in list */
             CSList = new ColorSpace[2];
             CSList[0] = srcCspace;
@@ -169,9 +181,13 @@ public class ColorConvertOp implements BufferedImageOp, RasterOp {
      *        the color conversion, or <code>null</code>
      * @exception IllegalArgumentException when the profile sequence does not
      *             specify a well-defined color conversion
+     * @exception NullPointerException if profiles is null
      */
     public ColorConvertOp (ICC_Profile[] profiles, RenderingHints hints)
     {
+        if (profiles == null) {
+            throw new NullPointerException("Profiles cannot be null");
+        }
         gotProfiles = true;
         profileList = new ICC_Profile[profiles.length];
         for (int i1 = 0; i1 < profiles.length; i1++) {
@@ -263,10 +279,7 @@ public class ColorConvertOp implements BufferedImageOp, RasterOp {
                                             ColorSpace srcColorSpace,
                                             BufferedImage dest,
                                             ColorSpace destColorSpace) {
-    ICC_Profile[]    theProfiles;
     int              nProfiles = profileList.length;
-    int              i1, nTransforms, whichTrans, renderState;
-    ICC_Transform[]  theTransforms;
     ICC_Profile      srcProfile = null, destProfile = null;
 
         srcProfile = ((ICC_ColorSpace) srcColorSpace).getProfile();
@@ -277,7 +290,6 @@ public class ColorConvertOp implements BufferedImageOp, RasterOp {
                 throw new IllegalArgumentException(
                     "Destination ColorSpace is undefined");
             }
-            nTransforms = nProfiles + 1;
             destProfile = profileList [nProfiles - 1];
             dest = createCompatibleDestImage(src, null);
         }
@@ -287,81 +299,107 @@ public class ColorConvertOp implements BufferedImageOp, RasterOp {
                 throw new IllegalArgumentException(
                     "Width or height of BufferedImages do not match");
             }
-            nTransforms = nProfiles +2;
             destProfile = ((ICC_ColorSpace) destColorSpace).getProfile();
         }
 
         /* make a new transform if needed */
         if ((thisTransform == null) || (thisSrcProfile != srcProfile) ||
             (thisDestProfile != destProfile) ) {
-
-            /* make the profile list */
-            theProfiles = new ICC_Profile[nTransforms]; /* the list of profiles
-                                                           for this Op */
-
-            theProfiles [0] = srcProfile;  /* insert source as first profile */
-
-            for (i1 = 1; i1 < nTransforms - 1; i1++) {
-                                       /* insert profiles defined in this Op */
-                theProfiles [i1] = profileList [i1 -1];
-            }
-
-            theProfiles [nTransforms - 1] = destProfile; /* insert dest as last
-                                                            profile */
-
-            /* make the transform list */
-            theTransforms = new ICC_Transform [nTransforms];
-
-            /* initialize transform get loop */
-            if (theProfiles[0].getProfileClass() == ICC_Profile.CLASS_OUTPUT) {
-                                            /* if first profile is a printer
-                                               render as colorimetric */
-                renderState = ICC_Profile.icRelativeColorimetric;
-            }
-            else {
-                renderState = ICC_Profile.icPerceptual; /* render any other
-                                                           class perceptually */
-            }
-
-            whichTrans = ICC_Transform.In;
-
-            /* get the transforms from each profile */
-            for (i1 = 0; i1 < nTransforms; i1++) {
-                if (i1 == nTransforms -1) {         /* last profile? */
-                    whichTrans = ICC_Transform.Out; /* get output transform */
-                }
-                else {	/* check for abstract profile */
-                    if ((whichTrans == ICC_Transform.Simulation) &&
-                        (theProfiles[i1].getProfileClass () ==
-                         ICC_Profile.CLASS_ABSTRACT)) {
-                	renderState = ICC_Profile.icPerceptual;
-                        whichTrans = ICC_Transform.In;
-                    }
-                }
-
-                theTransforms[i1] = new ICC_Transform (theProfiles[i1],
-                                                       renderState, whichTrans);
-
-                /* get this profile's rendering intent to select transform
-                   from next profile */
-                renderState = getRenderingIntent(theProfiles[i1]);
-
-                /* "middle" profiles use simulation transform */
-                whichTrans = ICC_Transform.Simulation;
-            }
-
-            /* make the net transform */
-            thisTransform = new ICC_Transform (theTransforms);
-
-            /* update corresponding source and dest profiles */
-            thisSrcProfile = srcProfile;
-            thisDestProfile = destProfile;
+            updateBITransform(srcProfile, destProfile);
         }
 
         /* color convert the image */
         thisTransform.colorConvert(src, dest);
 
         return dest;
+    }
+
+    private void updateBITransform(ICC_Profile srcProfile,
+                                   ICC_Profile destProfile) {
+        ICC_Profile[]    theProfiles;
+        int              i1, nProfiles, nTransforms, whichTrans, renderState;
+        ICC_Transform[]  theTransforms;
+        boolean          useSrc = false, useDest = false;
+
+        nProfiles = profileList.length;
+        nTransforms = nProfiles;
+        if ((nProfiles == 0) || (srcProfile != profileList[0])) {
+            nTransforms += 1;
+            useSrc = true;
+        }
+        if ((nProfiles == 0) || (destProfile != profileList[nProfiles - 1]) ||
+            (nTransforms < 2)) {
+            nTransforms += 1;
+            useDest = true;
+        }
+
+        /* make the profile list */
+        theProfiles = new ICC_Profile[nTransforms]; /* the list of profiles
+                                                       for this Op */
+
+        int idx = 0;
+        if (useSrc) {
+            /* insert source as first profile */
+            theProfiles[idx++] = srcProfile;
+        }
+
+        for (i1 = 0; i1 < nProfiles; i1++) {
+                                   /* insert profiles defined in this Op */
+            theProfiles[idx++] = profileList [i1];
+        }
+
+        if (useDest) {
+            /* insert dest as last profile */
+            theProfiles[idx] = destProfile;
+        }
+
+        /* make the transform list */
+        theTransforms = new ICC_Transform [nTransforms];
+
+        /* initialize transform get loop */
+        if (theProfiles[0].getProfileClass() == ICC_Profile.CLASS_OUTPUT) {
+                                        /* if first profile is a printer
+                                           render as colorimetric */
+            renderState = ICC_Profile.icRelativeColorimetric;
+        }
+        else {
+            renderState = ICC_Profile.icPerceptual; /* render any other
+                                                       class perceptually */
+        }
+
+        whichTrans = ICC_Transform.In;
+
+        /* get the transforms from each profile */
+        for (i1 = 0; i1 < nTransforms; i1++) {
+            if (i1 == nTransforms -1) {         /* last profile? */
+                whichTrans = ICC_Transform.Out; /* get output transform */
+            }
+            else {	/* check for abstract profile */
+                if ((whichTrans == ICC_Transform.Simulation) &&
+                    (theProfiles[i1].getProfileClass () ==
+                     ICC_Profile.CLASS_ABSTRACT)) {
+            	renderState = ICC_Profile.icPerceptual;
+                    whichTrans = ICC_Transform.In;
+                }
+            }
+
+            theTransforms[i1] = new ICC_Transform (theProfiles[i1],
+                                                   renderState, whichTrans);
+
+            /* get this profile's rendering intent to select transform
+               from next profile */
+            renderState = getRenderingIntent(theProfiles[i1]);
+
+            /* "middle" profiles use simulation transform */
+            whichTrans = ICC_Transform.Simulation;
+        }
+
+        /* make the net transform */
+        thisTransform = new ICC_Transform (theTransforms);
+
+        /* update corresponding source and dest profiles */
+        thisSrcProfile = srcProfile;
+        thisDestProfile = destProfile;
     }
 
     /**
@@ -467,8 +505,25 @@ public class ColorConvertOp implements BufferedImageOp, RasterOp {
             thisRasterTransform = new ICC_Transform (theTransforms);
         }
 
-        /* color convert the raster */
-        thisRasterTransform.colorConvert(src, dest);
+        int srcTransferType = src.getTransferType();
+        int dstTransferType = dest.getTransferType();
+        if ((srcTransferType == DataBuffer.TYPE_FLOAT) ||
+            (srcTransferType == DataBuffer.TYPE_DOUBLE) ||
+            (dstTransferType == DataBuffer.TYPE_FLOAT) ||
+            (dstTransferType == DataBuffer.TYPE_DOUBLE)) {
+            if (srcMinVals == null) {
+                getMinMaxValsFromProfiles(profileList[0],
+                                          profileList[nProfiles-1]);
+            }
+            /* color convert the raster */
+            thisRasterTransform.colorConvert(src, dest,
+                                             srcMinVals, srcMaxVals,
+                                             dstMinVals, dstMaxVals);
+        } else {
+            /* color convert the raster */
+            thisRasterTransform.colorConvert(src, dest);
+        }
+
 
         return dest;
     }
@@ -506,6 +561,8 @@ public class ColorConvertOp implements BufferedImageOp, RasterOp {
      * @param src       Source image for the filter operation.
      * @param destCM    ColorModel of the destination.  If null, an
      *                  appropriate ColorModel will be used.
+     * @return a <code>BufferedImage</code> with the correct size and
+     * number of bands from the specified <code>src</code>.
      * @throws IllegalArgumentException if <code>destCM</code> is 
      *         <code>null</code> and this <code>ColorConvertOp</code> was 
      *         created without any <code>ICC_Profile</code> or 
@@ -645,322 +702,200 @@ public class ColorConvertOp implements BufferedImageOp, RasterOp {
 
     private final BufferedImage nonICCBIFilter(BufferedImage src,
                                                ColorSpace srcColorSpace,
-                                               BufferedImage dest,
-                                               ColorSpace destColorSpace) {
+                                               BufferedImage dst,
+                                               ColorSpace dstColorSpace) {
 
         int w = src.getWidth();
         int h = src.getHeight();
-        ColorModel srcCM = src.getColorModel();
-        boolean srcalpha = srcCM.hasAlpha();
-        boolean srcpremult = false;
-        ColorModel srcCMnp = null;
-        BufferedImage nsrc = src;
-        ColorSpace ciespace = ColorSpace.getInstance(ColorSpace.CS_CIEXYZ);
-        if (srcalpha && srcCM.isAlphaPremultiplied()) {
-            /* UNPREMULT */
-            srcpremult = true;
-            srcCMnp = srcCM.coerceData(src.getRaster(), false);
-            nsrc = new BufferedImage(srcCMnp, src.getRaster(), false, null);
-        }
-        if (dest == null) {
-            dest = createCompatibleDestImage(src, null);
-            destColorSpace = dest.getColorModel().getColorSpace();
+        ICC_ColorSpace ciespace =
+            (ICC_ColorSpace) ColorSpace.getInstance(ColorSpace.CS_CIEXYZ);
+        if (dst == null) {
+            dst = createCompatibleDestImage(src, null);
+            dstColorSpace = dst.getColorModel().getColorSpace();
         } else {
-            if ((h != dest.getHeight()) || (w != dest.getWidth())) {
+            if ((h != dst.getHeight()) || (w != dst.getWidth())) {
                 throw new IllegalArgumentException(
                     "Width or height of BufferedImages do not match");
             }
         }
-        ColorModel destCM = dest.getColorModel();
-        boolean destalpha = destCM.hasAlpha();
-        boolean destpremult = false;
-        ColorModel destCMnp = null;
-        BufferedImage ndest = dest;
-        if (destalpha && destCM.isAlphaPremultiplied()) {
-            destpremult = true;
-            if (src != dest) {
-                /* REMIND - GROSS HACK to get a non-premultiplied dest CM */
-                destCMnp = destCM.coerceData(dest.getRaster(), false);
-            } else {
-                destCMnp = srcCMnp;
-            }
-            ndest = new BufferedImage(destCMnp, dest.getRaster(), false, null);
-        }
+        Raster srcRas = src.getRaster();
+        WritableRaster dstRas = dst.getRaster();
+        ColorModel srcCM = src.getColorModel();
+        ColorModel dstCM = dst.getColorModel();
+        int srcNumComp = srcCM.getNumColorComponents();
+        int dstNumComp = dstCM.getNumColorComponents();
+        boolean dstHasAlpha = dstCM.hasAlpha();
+        boolean needSrcAlpha = srcCM.hasAlpha() && dstHasAlpha;
+        ColorSpace[] list;
         if ((CSList == null) && (profileList.length != 0)) {
-            /* possible non-ICC src, some profiles, possible non-ICC dest */
-            BufferedImage stmp, dtmp;
+            /* possible non-ICC src, some profiles, possible non-ICC dst */
+            boolean nonICCSrc, nonICCDst;
+            ICC_Profile srcProfile, dstProfile;
             if (!(srcColorSpace instanceof ICC_ColorSpace)) {
-                /* convert from non-ICC space to CIEXYZ space */
-                stmp = createCompatibleDestImage(nsrc, null, ciespace);
-                convertBItoCIEXYZ(nsrc, stmp);
+                nonICCSrc = true;
+                srcProfile = ciespace.getProfile();
             } else {
-                stmp = nsrc;
+                nonICCSrc = false;
+                srcProfile = ((ICC_ColorSpace) srcColorSpace).getProfile();
             }
-            if (!(destColorSpace instanceof ICC_ColorSpace)) {
-                if (stmp != nsrc) {
-                    dtmp = stmp;
-                } else {
-                    dtmp = createCompatibleDestImage(nsrc, null, ciespace);
-                }
-                dtmp = ICCBIFilter(stmp,
-                                   stmp.getColorModel().getColorSpace(),
-                                   dtmp,
-                                   ciespace);
-                convertBIfromCIEXYZ(dtmp, ndest);
+            if (!(dstColorSpace instanceof ICC_ColorSpace)) {
+                nonICCDst = true;
+                dstProfile = ciespace.getProfile();
             } else {
-                ICCBIFilter(stmp, stmp.getColorModel().getColorSpace(),
-                            ndest, destColorSpace);
+                nonICCDst = false;
+                dstProfile = ((ICC_ColorSpace) dstColorSpace).getProfile();
+            }
+            /* make a new transform if needed */
+            if ((thisTransform == null) || (thisSrcProfile != srcProfile) ||
+                (thisDestProfile != dstProfile) ) {
+                updateBITransform(srcProfile, dstProfile);
+            }
+            // process per scanline
+            float maxNum = 65535.0f; // use 16-bit precision in CMM
+            ColorSpace cs;
+            int iccSrcNumComp;
+            if (nonICCSrc) {
+                cs = ciespace;
+                iccSrcNumComp = 3;
+            } else {
+                cs = srcColorSpace;
+                iccSrcNumComp = srcNumComp;
+            }
+            float[] srcMinVal = new float[iccSrcNumComp];
+            float[] srcInvDiffMinMax = new float[iccSrcNumComp];
+            for (int i = 0; i < srcNumComp; i++) {
+                srcMinVal[i] = cs.getMinValue(i);
+                srcInvDiffMinMax[i] = maxNum / (cs.getMaxValue(i) - srcMinVal[i]);
+            }
+            int iccDstNumComp;
+            if (nonICCDst) {
+                cs = ciespace;
+                iccDstNumComp = 3;
+            } else {
+                cs = dstColorSpace;
+                iccDstNumComp = dstNumComp;
+            }
+            float[] dstMinVal = new float[iccDstNumComp];
+            float[] dstDiffMinMax = new float[iccDstNumComp];
+            for (int i = 0; i < dstNumComp; i++) {
+                dstMinVal[i] = cs.getMinValue(i);
+                dstDiffMinMax[i] = (cs.getMaxValue(i) - dstMinVal[i]) / maxNum;
+            }
+            float[] dstColor;
+            if (dstHasAlpha) {
+                int size = ((dstNumComp + 1) > 3) ? (dstNumComp + 1) : 3;
+                dstColor = new float[size];
+            } else {
+                int size = (dstNumComp  > 3) ? dstNumComp : 3;
+                dstColor = new float[size];
+            }
+            short[] srcLine = new short[w * iccSrcNumComp];
+            short[] dstLine = new short[w * iccDstNumComp];
+            Object pixel;
+            float[] color;
+            float[] alpha = null;
+            if (needSrcAlpha) {
+                alpha = new float[w];
+            }
+            int idx;
+            // process each scanline
+            for (int y = 0; y < h; y++) {
+                // convert src scanline
+                pixel = null;
+                color = null;
+                idx = 0;
+                for (int x = 0; x < w; x++) {
+                    pixel = srcRas.getDataElements(x, y, pixel);
+                    color = srcCM.getNormalizedComponents(pixel, color, 0);
+                    if (needSrcAlpha) {
+                        alpha[x] = color[srcNumComp];
+                    }
+                    if (nonICCSrc) {
+                        color = srcColorSpace.toCIEXYZ(color);
+                    }
+                    for (int i = 0; i < iccSrcNumComp; i++) {
+                        srcLine[idx++] = (short)
+                            ((color[i] - srcMinVal[i]) * srcInvDiffMinMax[i] +
+                             0.5f);
+                    }
+                }
+                // color convert srcLine to dstLine
+                thisTransform.colorConvert(srcLine, dstLine);
+                // convert dst scanline
+                pixel = null;
+                idx = 0;
+                for (int x = 0; x < w; x++) {
+                    for (int i = 0; i < iccDstNumComp; i++) {
+                        dstColor[i] = ((float) (dstLine[idx++] & 0xffff)) *
+                                      dstDiffMinMax[i] + dstMinVal[i];
+                    }
+                    if (nonICCDst) {
+                        color = srcColorSpace.fromCIEXYZ(dstColor);
+                        for (int i = 0; i < dstNumComp; i++) {
+                            dstColor[i] = color[i];
+                        }
+                    }
+                    if (needSrcAlpha) {
+                        dstColor[dstNumComp] = alpha[x];
+                    } else if (dstHasAlpha) {
+                        dstColor[dstNumComp] = 1.0f;
+                    }
+                    pixel = dstCM.getDataElements(dstColor, 0, pixel);
+                    dstRas.setDataElements(x, y, pixel);
+                }
             }
         } else {
-            /* possible non-ICC src, possible CSList, possible non-ICC dest */
-            BufferedImage stmp, dtmp;
-            ColorSpace[] list;
-            int i;
+            /* possible non-ICC src, possible CSList, possible non-ICC dst */
+            // process per pixel
+            int numCS;
             if (CSList == null) {
-                list = new ColorSpace[2];
-                list[0] = srcColorSpace;
-                list[1] = destColorSpace;
+                numCS = 0;
+            } else {
+                numCS = CSList.length;
             }
-            else {
-                list = new ColorSpace[CSList.length + 2];
-                list[0] = srcColorSpace;
-                for (i = 0; i < CSList.length; i++) {
-                    list[i + 1] = CSList[i];
-                }
-                list[list.length - 1] = destColorSpace;
+            float[] dstColor;
+            if (dstHasAlpha) {
+                dstColor = new float[dstNumComp + 1];
+            } else {
+                dstColor = new float[dstNumComp];
             }
-            stmp = nsrc;
-            for (i = 1; i < list.length; i++) {
-                dtmp = createCompatibleDestImage(stmp, null, list[i]);
-                convertBItoBI(stmp, dtmp);
-                stmp = dtmp;
-            }
-        }
-
-        if (srcalpha && srcpremult) {
-            /* REPREMULT */
-            srcCMnp.coerceData(src.getRaster(), true);
-        }
-        if (destalpha) {
-            fixDestAlpha(src, dest, srcalpha, destpremult, destCMnp);
-        }
-
-        return dest;
-    }
-
-    private void fixDestAlpha(BufferedImage src,
-                              BufferedImage dest,
-                              boolean srcHasAlpha,
-                              boolean destPremult,
-                              ColorModel destCMnp) {
-        if (srcHasAlpha && (src != dest)) {
-            /* COPY SRC ALPHA TO DEST */
-            /* src and dest should be same size */
-            Raster srcraster = src.getRaster();
-            WritableRaster destraster = dest.getRaster();
-            int salphaband = srcraster.getNumBands() - 1;
-            int dalphaband = destraster.getNumBands() - 1;
-            int xs, ys;
-            int xd = destraster.getMinX();
-            int yd = destraster.getMinY();
-            int xstart = srcraster.getMinX();
-            int ystart = srcraster.getMinY();
-            int xlimit = xstart + srcraster.getWidth();
-            int ylimit = ystart + srcraster.getHeight();
-            int alpha;
-            int sbits =
-                src.getColorModel().getComponentSize(salphaband);
-            int dbits =
-                dest.getColorModel().getComponentSize(dalphaband);
-            int lshift = dbits - sbits;
-            int rshift = -lshift;
-
-            for (ys = ystart; ys < ylimit; ys++,yd++) {
-                if (lshift > 0) {
-                    for (xs = xstart; xs < xlimit; xs++,xd++) {
-                        alpha = srcraster.getSample(xs, ys, salphaband);
-                        alpha <<= lshift;
-                        destraster.setSample(xd, yd, dalphaband, alpha);
+            Object spixel = null;
+            Object dpixel = null;
+            float[] color = null;
+            float[] tmpColor;
+            // process each pixel
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    spixel = srcRas.getDataElements(x, y, spixel);
+                    color = srcCM.getNormalizedComponents(spixel, color, 0);
+                    tmpColor = srcColorSpace.toCIEXYZ(color);
+                    for (int i = 0; i < numCS; i++) {
+                        tmpColor = CSList[i].fromCIEXYZ(tmpColor);
+                        tmpColor = CSList[i].toCIEXYZ(tmpColor);
                     }
-                } else if (lshift == 0) {
-                    for (xs = xstart; xs < xlimit; xs++,xd++) {
-                        alpha = srcraster.getSample(xs, ys, salphaband);
-                        destraster.setSample(xd, yd, dalphaband, alpha);
+                    tmpColor = dstColorSpace.fromCIEXYZ(tmpColor);
+                    for (int i = 0; i < dstNumComp; i++) {
+                        dstColor[i] = tmpColor[i];
                     }
-                } else {
-                    for (xs = xstart; xs < xlimit; xs++,xd++) {
-                        alpha = srcraster.getSample(xs, ys, salphaband);
-                        alpha >>>= rshift;
-                        destraster.setSample(xd, yd, dalphaband, alpha);
+                    if (needSrcAlpha) {
+                        dstColor[dstNumComp] = color[srcNumComp];
+                    } else if (dstHasAlpha) {
+                        dstColor[dstNumComp] = 1.0f;
                     }
-                }
-            }
-
-            if (destPremult) {
-                destCMnp.coerceData(destraster, true);
-            }
-        } else if (!srcHasAlpha) {
-            /* FILL DST ALPHA with 1.0 */
-            WritableRaster destraster = dest.getRaster();
-            int alphaband = destraster.getNumBands() - 1;
-            int x, y;
-            int xstart = destraster.getMinX();
-            int ystart = destraster.getMinY();
-            int xlimit = xstart + destraster.getWidth();
-            int ylimit = ystart + destraster.getHeight();
-            int alpha =
-             (1 << dest.getColorModel().getComponentSize(alphaband))
-                 - 1;
-
-            for (y = ystart; y < ylimit; y++) {
-                for (x = xstart; x < xlimit; x++) {
-                    destraster.setSample(x, y, alphaband, alpha);
+                    dpixel = dstCM.getDataElements(dstColor, 0, dpixel);
+                    dstRas.setDataElements(x, y, dpixel);
+                    
                 }
             }
         }
+
+        return dst;
     }
 
-    private void convertBItoCIEXYZ(BufferedImage srcbi, BufferedImage destbi) {
-        WritableRaster src = srcbi.getRaster();
-        WritableRaster dest = destbi.getRaster();
-        int srcBands = srcbi.getColorModel().getNumColorComponents();
-        int destBands = destbi.getColorModel().getNumColorComponents();
-        int[] srcpixel = null;
-        int[] destpixel = new int[destBands];
-        float[] srcNorm = new float[srcBands];
-        float[] cieColor = null;
-        int[] srcbits = srcbi.getColorModel().getComponentSize();
-        int[] destbits = destbi.getColorModel().getComponentSize();
-        float[] srcNormFactor = new float[srcBands];
-        float[] destNormFactor = new float[destBands];
-        ColorSpace srcCS = srcbi.getColorModel().getColorSpace();
-        int h = src.getHeight();
-        int w = src.getWidth();
-        int sx, sy, dx, dy;
-
-        for (int k = 0; k < srcBands; k++) {
-            srcNormFactor[k] = (float) ((1 << srcbits[k]) - 1);
-        }
-        for (int k = 0; k < destBands; k++) {
-            destNormFactor[k] = (float) ((1 << destbits[k]) - 1);
-        }
-        sy = src.getMinY();
-        dy = dest.getMinY();
-        for (int i = 0; i < h; i++, sy++, dy++) {
-            sx = src.getMinX();
-            dx = dest.getMinX();
-            for (int j = 0; j < w; j++, sx++, dx++) {
-                srcpixel = src.getPixel(sx, sy, srcpixel);
-                /* normalize the src pixel */
-                for (int k = 0; k < srcBands; k++) {
-                    srcNorm[k] = ((float) srcpixel[k]) / srcNormFactor[k];
-                }
-                cieColor = srcCS.toCIEXYZ(srcNorm);
-                /* denormalize the dest pixel */
-                for (int k = 0; k < destBands; k++) {
-                    destpixel[k] = (int) (cieColor[k] * destNormFactor[k]);
-                }
-                dest.setPixel(dx, dy, destpixel);
-            }
-        }
-    }
-
-    private void convertBIfromCIEXYZ(BufferedImage srcbi,
-                                     BufferedImage destbi) {
-        WritableRaster src = srcbi.getRaster();
-        WritableRaster dest = destbi.getRaster();
-        int srcBands = srcbi.getColorModel().getNumColorComponents();
-        int destBands = destbi.getColorModel().getNumColorComponents();
-        int[] srcpixel = null;
-        int[] destpixel = new int[destBands];
-        float[] cieColor = new float[srcBands];
-        float[] destNorm = null;
-        int[] srcbits = srcbi.getColorModel().getComponentSize();
-        int[] destbits = destbi.getColorModel().getComponentSize();
-        float[] srcNormFactor = new float[srcBands];
-        float[] destNormFactor = new float[destBands];
-        ColorSpace destCS = destbi.getColorModel().getColorSpace();
-        int h = src.getHeight();
-        int w = src.getWidth();
-        int sx, sy, dx, dy;
-
-        for (int k = 0; k < srcBands; k++) {
-            srcNormFactor[k] = (float) ((1 << srcbits[k]) - 1);
-        }
-        for (int k = 0; k < destBands; k++) {
-            destNormFactor[k] = (float) ((1 << destbits[k]) - 1);
-        }
-        sy = src.getMinY();
-        dy = dest.getMinY();
-        for (int i = 0; i < h; i++, sy++, dy++) {
-            sx = src.getMinX();
-            dx = dest.getMinX();
-            for (int j = 0; j < w; j++, sx++, dx++) {
-                srcpixel = src.getPixel(sx, sy, srcpixel);
-                /* normalize the src pixel */
-                for (int k = 0; k < srcBands; k++) {
-                    cieColor[k] = ((float) srcpixel[k]) / srcNormFactor[k];
-                }
-                destNorm = destCS.fromCIEXYZ(cieColor);
-                /* denormalize the dest pixel */
-                for (int k = 0; k < destBands; k++) {
-                    destpixel[k] = (int) (destNorm[k] * destNormFactor[k]);
-                }
-                dest.setPixel(dx, dy, destpixel);
-            }
-        }
-    }
-
-    private void convertBItoBI(BufferedImage srcbi, BufferedImage destbi) {
-        WritableRaster src = srcbi.getRaster();
-        WritableRaster dest = destbi.getRaster();
-        int srcBands = srcbi.getColorModel().getNumColorComponents();
-        int destBands = destbi.getColorModel().getNumColorComponents();
-        int[] srcpixel = null;
-        int[] destpixel = new int[destBands];
-        float[] srcNorm = new float[srcBands];
-        float[] destNorm = null;
-        float[] cieColor = null;
-        int[] srcbits = srcbi.getColorModel().getComponentSize();
-        int[] destbits = destbi.getColorModel().getComponentSize();
-        float[] srcNormFactor = new float[srcBands];
-        float[] destNormFactor = new float[destBands];
-        ColorSpace srcCS = srcbi.getColorModel().getColorSpace();
-        ColorSpace destCS = destbi.getColorModel().getColorSpace();
-        int h = src.getHeight();
-        int w = src.getWidth();
-        int sx, sy, dx, dy;
-
-        for (int k = 0; k < srcBands; k++) {
-            srcNormFactor[k] = (float) ((1 << srcbits[k]) - 1);
-        }
-        for (int k = 0; k < destBands; k++) {
-            destNormFactor[k] = (float) ((1 << destbits[k]) - 1);
-        }
-        sy = src.getMinY();
-        dy = dest.getMinY();
-        for (int i = 0; i < h; i++, sy++, dy++) {
-            sx = src.getMinX();
-            dx = dest.getMinX();
-            for (int j = 0; j < w; j++, sx++, dx++) {
-                srcpixel = src.getPixel(sx, sy, srcpixel);
-                /* normalize the src pixel */
-                for (int k = 0; k < srcBands; k++) {
-                    srcNorm[k] = ((float) srcpixel[k]) / srcNormFactor[k];
-                }
-                cieColor = srcCS.toCIEXYZ(srcNorm);
-                destNorm = destCS.fromCIEXYZ(cieColor);
-                /* denormalize the dest pixel */
-                for (int k = 0; k < destBands; k++) {
-                    destpixel[k] = (int) (destNorm[k] * destNormFactor[k]);
-                }
-                dest.setPixel(dx, dy, destpixel);
-            }
-        }
-    }
-
+    /* color convert a Raster - handles byte, ushort, int, short, float,
+       or double transferTypes */
     private final WritableRaster nonICCRasterFilter(Raster src,
-                                                    WritableRaster dest)  {
+                                                    WritableRaster dst)  {
 
         if (CSList.length != 2) {
             throw new IllegalArgumentException(
@@ -971,64 +906,157 @@ public class ColorConvertOp implements BufferedImageOp, RasterOp {
                 "Numbers of source Raster bands and source color space " +
                 "components do not match");
         }
-        if (dest == null) {
-            dest = createCompatibleDestRaster(src);
+        if (dst == null) {
+            dst = createCompatibleDestRaster(src);
         } else {
-            if (src.getHeight() != dest.getHeight() ||
-                src.getWidth() != dest.getWidth()) {
+            if (src.getHeight() != dst.getHeight() ||
+                src.getWidth() != dst.getWidth()) {
                 throw new IllegalArgumentException(
                     "Width or height of Rasters do not match");
             }
-            if (dest.getNumBands() != CSList[1].getNumComponents()) {
+            if (dst.getNumBands() != CSList[1].getNumComponents()) {
                 throw new IllegalArgumentException(
                     "Numbers of destination Raster bands and destination " +
                     "color space components do not match");
             }
         }
 
-        int srcBands = src.getNumBands();
-        int destBands = dest.getNumBands();
-        int[] srcpixel = null;
-        int[] destpixel = new int[destBands];
-        float[] srcNorm = new float[srcBands];
-        float[] destNorm = null;
-        float[] cieColor = null;
-        int[] srcbits = src.getSampleModel().getSampleSize();
-        int[] destbits = dest.getSampleModel().getSampleSize();
-        float[] srcNormFactor = new float[srcBands];
-        float[] destNormFactor = new float[destBands];
-        int h = src.getHeight();
-        int w = src.getWidth();
-        int sx, sy, dx, dy;
+        if (srcMinVals == null) {
+            getMinMaxValsFromColorSpaces(CSList[0], CSList[1]);
+        }
 
-        for (int k = 0; k < srcBands; k++) {
-            srcNormFactor[k] = (float) ((1 << srcbits[k]) - 1);
+        SampleModel srcSM = src.getSampleModel();
+        SampleModel dstSM = dst.getSampleModel();
+        boolean srcIsFloat, dstIsFloat;
+        int srcTransferType = src.getTransferType();
+        int dstTransferType = dst.getTransferType();
+        if ((srcTransferType == DataBuffer.TYPE_FLOAT) ||
+            (srcTransferType == DataBuffer.TYPE_DOUBLE)) {
+            srcIsFloat = true;
+        } else {
+            srcIsFloat = false;
         }
-        for (int k = 0; k < destBands; k++) {
-            destNormFactor[k] = (float) ((1 << destbits[k]) - 1);
+        if ((dstTransferType == DataBuffer.TYPE_FLOAT) ||
+            (dstTransferType == DataBuffer.TYPE_DOUBLE)) {
+            dstIsFloat = true;
+        } else {
+            dstIsFloat = false;
         }
-        sy = src.getMinY();
-        dy = dest.getMinY();
-        for (int i = 0; i < h; i++, sy++, dy++) {
-            sx = src.getMinX();
-            dx = dest.getMinX();
-            for (int j = 0; j < w; j++, sx++, dx++) {
-                srcpixel = src.getPixel(sx, sy, srcpixel);
-                /* normalize the src pixel */
-                for (int k = 0; k < srcBands; k++) {
-                    srcNorm[k] = ((float) srcpixel[k]) / srcNormFactor[k];
+        int w = src.getWidth();
+        int h = src.getHeight();
+        int srcNumBands = src.getNumBands();
+        int dstNumBands = dst.getNumBands();
+        float[] srcScaleFactor = null;
+        float[] dstScaleFactor = null;
+        if (!srcIsFloat) {
+            srcScaleFactor = new float[srcNumBands];
+            for (int i = 0; i < srcNumBands; i++) {
+                if (srcTransferType == DataBuffer.TYPE_SHORT) {
+                    srcScaleFactor[i] = (srcMaxVals[i] - srcMinVals[i]) /
+                                        32767.0f;
+                } else {
+                    srcScaleFactor[i] = (srcMaxVals[i] - srcMinVals[i]) /
+                        ((float) ((1 << srcSM.getSampleSize(i)) - 1));
                 }
-                cieColor = CSList[0].toCIEXYZ(srcNorm);
-                destNorm = CSList[1].fromCIEXYZ(cieColor);
-                /* denormalize the dest pixel */
-                for (int k = 0; k < destBands; k++) {
-                    destpixel[k] = (int) (destNorm[k] * destNormFactor[k]);
-                }
-                dest.setPixel(dx, dy, destpixel);
             }
         }
+        if (!dstIsFloat) {
+            dstScaleFactor = new float[dstNumBands];
+            for (int i = 0; i < dstNumBands; i++) {
+                if (dstTransferType == DataBuffer.TYPE_SHORT) {
+                    dstScaleFactor[i] = 32767.0f /
+                                        (dstMaxVals[i] - dstMinVals[i]);
+                } else {
+                    dstScaleFactor[i] = 
+                        ((float) ((1 << dstSM.getSampleSize(i)) - 1)) /
+                        (dstMaxVals[i] - dstMinVals[i]);
+                }
+            }
+        }
+        int ys = src.getMinY();
+        int yd = dst.getMinY();
+        int xs, xd;
+        float sample;
+        float[] color = new float[srcNumBands];
+        float[] tmpColor;
+        ColorSpace srcColorSpace = CSList[0];
+        ColorSpace dstColorSpace = CSList[1];
+        // process each pixel
+        for (int y = 0; y < h; y++, ys++, yd++) {
+            // get src scanline
+            xs = src.getMinX();
+            xd = dst.getMinX();
+            for (int x = 0; x < w; x++, xs++, xd++) {
+                for (int i = 0; i < srcNumBands; i++) {
+                    sample = src.getSampleFloat(xs, ys, i);
+                    if (!srcIsFloat) {
+                        sample = sample * srcScaleFactor[i] + srcMinVals[i];
+                    }
+                    color[i] = sample;
+                }
+                tmpColor = srcColorSpace.toCIEXYZ(color);
+                tmpColor = dstColorSpace.fromCIEXYZ(tmpColor);
+                for (int i = 0; i < dstNumBands; i++) {
+                    sample = tmpColor[i];
+                    if (!dstIsFloat) {
+                        sample = (sample - dstMinVals[i]) * dstScaleFactor[i];
+                    }
+                    dst.setSample(xd, yd, i, sample);
+                }
+            }
+        }
+        return dst;
+    }
 
-        return dest;
+    private void getMinMaxValsFromProfiles(ICC_Profile srcProfile,
+                                           ICC_Profile dstProfile) {
+        int type = srcProfile.getColorSpaceType();
+        int nc = srcProfile.getNumComponents();
+        srcMinVals = new float[nc];
+        srcMaxVals = new float[nc];
+        setMinMax(type, nc, srcMinVals, srcMaxVals);
+        type = dstProfile.getColorSpaceType();
+        nc = dstProfile.getNumComponents();
+        dstMinVals = new float[nc];
+        dstMaxVals = new float[nc];
+        setMinMax(type, nc, dstMinVals, dstMaxVals);
+    }
+
+    private void setMinMax(int type, int nc, float[] minVals, float[] maxVals) {
+        if (type == ColorSpace.TYPE_Lab) {
+            minVals[0] = 0.0f;    // L
+            maxVals[0] = 100.0f;
+            minVals[1] = -128.0f; // a
+            maxVals[1] = 127.0f;
+            minVals[2] = -128.0f; // b
+            maxVals[2] = 127.0f;
+        } else if (type == ColorSpace.TYPE_XYZ) {
+            minVals[0] = minVals[1] = minVals[2] = 0.0f; // X, Y, Z
+            maxVals[0] = maxVals[1] = maxVals[2] = 1.0f + (32767.0f/ 32768.0f);
+        } else {
+            for (int i = 0; i < nc; i++) {
+                minVals[i] = 0.0f;
+                maxVals[i] = 1.0f;
+            }
+        }
+    }
+
+    private void getMinMaxValsFromColorSpaces(ColorSpace srcCspace,
+                                              ColorSpace dstCspace) {
+        int nc = srcCspace.getNumComponents();
+        srcMinVals = new float[nc];
+        srcMaxVals = new float[nc];
+        for (int i = 0; i < nc; i++) {
+            srcMinVals[i] = srcCspace.getMinValue(i);
+            srcMaxVals[i] = srcCspace.getMaxValue(i);
+        }
+        nc = dstCspace.getNumComponents();
+        dstMinVals = new float[nc];
+        dstMaxVals = new float[nc];
+        for (int i = 0; i < nc; i++) {
+            dstMinVals[i] = dstCspace.getMinValue(i);
+            dstMaxVals[i] = dstCspace.getMaxValue(i);
+        }
     }
 
 }

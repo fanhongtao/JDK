@@ -1,4 +1,6 @@
 /*
+ * @(#)jni_md.h	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,12 +12,13 @@
 #define JNIIMPORT
 #define JNICALL
 
-#ifdef _LP64 /* 64-bit Solaris */
 typedef int jint;
+#ifdef _LP64 /* 64-bit Solaris */
+typedef long jlong;
 #else
-typedef long jint;
-#endif
 typedef long long jlong;
+#endif
+
 typedef signed char jbyte;
 
 #endif /* !_JAVASOFT_JNI_MD_H_ */

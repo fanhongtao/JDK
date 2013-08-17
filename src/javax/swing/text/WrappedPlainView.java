@@ -1,4 +1,6 @@
 /*
+ * @(#)WrappedPlainView.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -29,7 +31,7 @@ import javax.swing.event.*;
  * without concern for the layout aspects.
  *
  * @author  Timothy Prinzing
- * @version 1.23 02/06/02
+ * @version 1.28 12/03/01
  * @see     View
  */
 public class WrappedPlainView extends BoxView implements TabExpander {
@@ -54,7 +56,6 @@ public class WrappedPlainView extends BoxView implements TabExpander {
      */
     public WrappedPlainView(Element elem, boolean wordWrap) {
 	super(elem, Y_AXIS);
-	lineBuffer = new Segment();
 	this.wordWrap = wordWrap;
     }
 
@@ -152,15 +153,18 @@ public class WrappedPlainView extends BoxView implements TabExpander {
      * @param y the starting Y coordinate >= 0
      * @param p0 the beginning position in the model >= 0
      * @param p1 the ending position in the model >= p0
-     * @returns the X location of the end of the range >= 0
+     * @return the X location of the end of the range >= 0
      * @exception BadLocationException if the range is invalid
      */
     protected int drawUnselectedText(Graphics g, int x, int y, 
                                      int p0, int p1) throws BadLocationException {
         g.setColor(unselected);
         Document doc = getDocument();
-        doc.getText(p0, p1 - p0, lineBuffer);
-        return Utilities.drawTabbedText(lineBuffer, x, y, g, this, p0);
+        Segment segment = SegmentCache.getSharedSegment();
+        doc.getText(p0, p1 - p0, segment);
+        int ret = Utilities.drawTabbedText(segment, x, y, g, this, p0);
+        SegmentCache.releaseSharedSegment(segment);
+        return ret;
     }
 
     /**
@@ -174,24 +178,30 @@ public class WrappedPlainView extends BoxView implements TabExpander {
      * @param y the starting Y coordinate >= 0
      * @param p0 the beginning position in the model >= 0
      * @param p1 the ending position in the model >= p0
-     * @returns the location of the end of the range.
+     * @return the location of the end of the range.
      * @exception BadLocationException if the range is invalid
      */
     protected int drawSelectedText(Graphics g, int x, 
                                    int y, int p0, int p1) throws BadLocationException {
         g.setColor(selected);
         Document doc = getDocument();
-        doc.getText(p0, p1 - p0, lineBuffer);
-        return Utilities.drawTabbedText(lineBuffer, x, y, g, this, p0);
+        Segment segment = SegmentCache.getSharedSegment();
+        doc.getText(p0, p1 - p0, segment);
+        int ret = Utilities.drawTabbedText(segment, x, y, g, this, p0);
+        SegmentCache.releaseSharedSegment(segment);
+        return ret;
     }
 
     /**
      * Gives access to a buffer that can be used to fetch 
      * text from the associated document.
      *
-     * @returns the buffer
+     * @return the buffer
      */
     protected final Segment getLineBuffer() {
+        if (lineBuffer == null) {
+            lineBuffer = new Segment();
+        }
         return lineBuffer;
     }
 
@@ -205,16 +215,18 @@ public class WrappedPlainView extends BoxView implements TabExpander {
      */
     protected int calculateBreakPosition(int p0, int p1) {
 	int p;
-	loadText(p0, p1);
+        Segment segment = SegmentCache.getSharedSegment();
+	loadText(segment, p0, p1);
 	if (wordWrap) {
-	    p = p0 + Utilities.getBreakLocation(lineBuffer, metrics,
+	    p = p0 + Utilities.getBreakLocation(segment, metrics,
 						tabBase, tabBase + getWidth(),
 						this, p0);
 	} else {
-	    p = p0 + Utilities.getTabbedTextOffset(lineBuffer, metrics, 
+	    p = p0 + Utilities.getTabbedTextOffset(segment, metrics, 
 						   tabBase, tabBase + getWidth(),
 						   this, p0);
 	}
+        SegmentCache.releaseSharedSegment(segment);
 	return p;
     }
 
@@ -274,10 +286,10 @@ public class WrappedPlainView extends BoxView implements TabExpander {
      * broken off of this view as well as this 
      * view itself.
      */
-    final void loadText(int p0, int p1) {
+    final void loadText(Segment segment, int p0, int p1) {
 	try {
 	    Document doc = getDocument();
-	    doc.getText(p0, p1 - p0, lineBuffer);
+	    doc.getText(p0, p1 - p0, segment);
 	} catch (BadLocationException bl) {
 	    throw new StateInvariantError("Can't get line text");
 	}
@@ -338,9 +350,9 @@ public class WrappedPlainView extends BoxView implements TabExpander {
     }
 
     /**
-     * Sets the size of the view.  If the size has changed, layout
-     * is redone.  The size is the full size of the view including
-     * the inset areas.  
+     * Sets the size of the view.  This should cause 
+     * layout of the view along the given axis, if it 
+     * has any layout duties.
      *
      * @param width the width >= 0
      * @param height the height >= 0
@@ -366,7 +378,7 @@ public class WrappedPlainView extends BoxView implements TabExpander {
      * wrapped lines).
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the span the view would like to be rendered into.
+     * @return  the span the view would like to be rendered into.
      *           Typically the view is told to render into the span
      *           that is returned, although there is no guarantee.  
      *           The parent may choose to resize or break the view.
@@ -386,7 +398,7 @@ public class WrappedPlainView extends BoxView implements TabExpander {
      * wrapped lines).
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the span the view would like to be rendered into.
+     * @return  the span the view would like to be rendered into.
      *           Typically the view is told to render into the span
      *           that is returned, although there is no guarantee.  
      *           The parent may choose to resize or break the view.
@@ -406,7 +418,7 @@ public class WrappedPlainView extends BoxView implements TabExpander {
      * wrapped lines).
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the span the view would like to be rendered into.
+     * @return  the span the view would like to be rendered into.
      *           Typically the view is told to render into the span
      *           that is returned, although there is no guarantee.  
      *           The parent may choose to resize or break the view.
@@ -522,7 +534,7 @@ public class WrappedPlainView extends BoxView implements TabExpander {
          * axis.
          *
          * @param axis may be either X_AXIS or Y_AXIS
-         * @returns  the span the view would like to be rendered into.
+         * @return   the span the view would like to be rendered into.
          *           Typically the view is told to render into the span
          *           that is returned, although there is no guarantee.  
          *           The parent may choose to resize or break the view.
@@ -531,7 +543,13 @@ public class WrappedPlainView extends BoxView implements TabExpander {
         public float getPreferredSpan(int axis) {
             switch (axis) {
             case View.X_AXIS:
-                return getWidth();
+                float width = getWidth();
+                if (width == Integer.MAX_VALUE) {
+                    // We have been initially set to MAX_VALUE, but we don't
+                    // want this as our preferred.
+                    return 100f;
+                }
+                return width;
             case View.Y_AXIS:
 		if (nlines == 0 || widthChanging) {
 		    nlines = calculateLineCount();
@@ -603,19 +621,23 @@ public class WrappedPlainView extends BoxView implements TabExpander {
 		int p = calculateBreakPosition(p0, p1);
                 if ((pos >= p0) && (testP < p)) {
                     // it's in this line
-                    loadText(p0, pos);
-                    alloc.x += Utilities.getTabbedTextWidth(lineBuffer, metrics, 
+                    Segment segment = SegmentCache.getSharedSegment();
+                    loadText(segment, p0, pos);
+                    alloc.x += Utilities.getTabbedTextWidth(segment, metrics, 
                                                             alloc.x, 
                                                             WrappedPlainView.this, p0);
+                    SegmentCache.releaseSharedSegment(segment);
                     return alloc;
                 }
 		if (p == p1 && pos == p1) {
 		    // Wants end.
 		    if (pos > p0) {
-			loadText(p0, pos);
-			alloc.x += Utilities.getTabbedTextWidth(lineBuffer,
+                        Segment segment = SegmentCache.getSharedSegment();
+			loadText(segment, p0, pos);
+			alloc.x += Utilities.getTabbedTextWidth(segment,
 					     metrics, alloc.x, 
 					     WrappedPlainView.this, p0);
+                        SegmentCache.releaseSharedSegment(segment);
 		    }
                     return alloc;
 		}
@@ -672,9 +694,12 @@ public class WrappedPlainView extends BoxView implements TabExpander {
 			    return p;
 			} else {
 			    // Determine the offset into the text
-			    int n = Utilities.getTabbedTextOffset(lineBuffer, metrics, 
+                            Segment segment = SegmentCache.getSharedSegment();
+                            loadText(segment, p0, p1);
+			    int n = Utilities.getTabbedTextOffset(segment, metrics, 
 								    alloc.x, x, 
 								    WrappedPlainView.this, p0);
+                            SegmentCache.releaseSharedSegment(segment);
 			    return Math.min(p0 + n, p1 - 1);
 			}
 		    }

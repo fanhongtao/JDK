@@ -1,4 +1,6 @@
 /*
+ * @(#)AccessibleRelationSet.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,13 +13,13 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 /**
- * Class AccessibleRelationSet determines a component's relation set.  The relation
- * set of a component is a set of AccessibleRelation objects that describe the
- * component's relationships with other components.
+ * Class AccessibleRelationSet determines a component's relation set.  The 
+ * relation set of a component is a set of AccessibleRelation objects that 
+ * describe the component's relationships with other components.
  *
  * @see AccessibleRelation
  *
- * @version     1.4 10/12/99
+ * @version     1.9 12/03/01
  * @author      Lynn Monsanto
  */
 public class AccessibleRelationSet {
@@ -52,37 +54,47 @@ public class AccessibleRelationSet {
         if (relations.length != 0) {
             this.relations = new Vector(relations.length);
             for (int i = 0; i < relations.length; i++) {
-                if (!this.relations.contains(relations[i])) {
-                    this.relations.addElement(relations[i]);
-                }
+		add(relations[i]);
             }
         }
     }
 
     /**
-     * Adds a new relation to the current relation set if it is not already
-     * present.  If the relation is already in the relation set, the relation
-     * set is unchanged and the return value is false.  Otherwise, 
-     * the relation is added to the relation set and the return value is
-     * true.
+     * Adds a new relation to the current relation set.  If the relation 
+     * is already in the relation set, the target(s) of the specified
+     * relation is merged with the target(s) of the existing relation.  
+     * Otherwise,  the new relation is added to the relation set.
+     *
      * @param relation the relation to add to the relation set
      * @return true if relation is added to the relation set; false if the 
      * relation set is unchanged
      */
     public boolean add(AccessibleRelation relation) {
-        // [[[ PENDING:  WDW - the implementation of this does not need
-        // to always use a vector of relations.  It could be improved by
-        // caching the relations as a bit set.]]]
         if (relations == null) {
             relations = new Vector();
         }
 
-        if (!relations.contains(relation)) {
+	// Merge the relation targets if the key exists
+	AccessibleRelation existingRelation = get(relation.getKey());
+	if (existingRelation == null) {
             relations.addElement(relation);
             return true;
         } else {
-            return false;
+	    Object [] existingTarget = existingRelation.getTarget();
+	    Object [] newTarget = relation.getTarget();
+	    int mergedLength = existingTarget.length + newTarget.length;
+	    Object [] mergedTarget = new Object[mergedLength];
+	    for (int i = 0; i < existingTarget.length; i++) {
+		mergedTarget[i] = existingTarget[i];
+	    }
+	    for (int i = existingTarget.length, j = 0; 
+		 i < mergedLength; 
+		 i++, j++) {
+		mergedTarget[i] = newTarget[j];
+	    }
+	    existingRelation.setTarget(mergedTarget);
         }
+	return true;
     }
 
     /**
@@ -96,9 +108,7 @@ public class AccessibleRelationSet {
 		this.relations = new Vector(relations.length);
             }
             for (int i = 0; i < relations.length; i++) {
-                if (!this.relations.contains(relations[i])) {
-                    this.relations.addElement(relations[i]);
-                }
+		add(relations[i]);
             }
         }
     }

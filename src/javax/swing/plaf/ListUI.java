@@ -1,4 +1,6 @@
 /*
+ * @(#)ListUI.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,16 +18,17 @@ import java.awt.Rectangle;
  * coordinates, to list cells and from cell indices to the bounds of 
  * the cell.
  *
- * @version 1.9 02/06/02
+ * @version 1.10 12/03/01
  * @author Hans Muller
  */
 
 public abstract class ListUI extends ComponentUI
 {
     /** 
-     * Convert a point in JList coordinates to the index
-     * of the cell at that location.  Returns -1 if there's no
-     * cell the specified location.  
+     * Convert a point in <code>JList</code> coordinates to the closest index
+     * of the cell at that location. To determine if the cell actually
+     * contains the specified location use a combination of this method and
+     * <code>getCellBounds</code>.  Returns -1 if the model is empty.
      * 
      * @param location The JList relative coordinates of the cell
      * @return The index of the cell at location, or -1.

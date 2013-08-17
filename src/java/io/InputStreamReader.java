@@ -1,20 +1,23 @@
 /*
+ * @(#)InputStreamReader.java	1.42 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
 
-import sun.io.ByteToCharConverter;
-import sun.io.ConversionBufferFullException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import sun.nio.cs.StreamDecoder;
 
 
 /**
  * An InputStreamReader is a bridge from byte streams to character streams: It
- * reads bytes and translates them into characters according to a specified <a
- * href="../lang/package-summary.html#charenc">character encoding</a>.  The
- * encoding that it uses may be specified by name, or the platform's default
- * encoding may be accepted.
+ * reads bytes and decodes them into characters using a specified {@link
+ * java.nio.charset.Charset <code>charset</code>}.  The charset that it uses
+ * may be specified by name or may be given explicitly, or the platform's
+ * default charset may be accepted.
  *
  * <p> Each invocation of one of an InputStreamReader's read() methods may
  * cause one or more bytes to be read from the underlying byte-input stream.
@@ -32,176 +35,108 @@ import sun.io.ConversionBufferFullException;
  *
  * @see BufferedReader
  * @see InputStream
- * @see <a href="../lang/package-summary.html#charenc">Character encodings</a>
+ * @see java.nio.charset.Charset
  *
- * @version 	1.26, 02/02/06
- * @author	Mark Reinhold
- * @since	JDK1.1
+ * @version     1.42, 01/12/03
+ * @author      Mark Reinhold
+ * @since       JDK1.1
  */
 
 public class InputStreamReader extends Reader {
 
-    private ByteToCharConverter btc;
-    private InputStream in;
-
-    private static final int defaultByteBufferSize = 8192;
-    private byte bb[];		/* Input buffer */
+    private final StreamDecoder sd;
 
     /**
-     * Create an InputStreamReader that uses the default character encoding.
+     * Create an InputStreamReader that uses the default charset.
      *
      * @param  in   An InputStream
      */
     public InputStreamReader(InputStream in) {
-	this(in, ByteToCharConverter.getDefault());
+	super(in);
+        try {
+	    sd = StreamDecoder.forInputStreamReader(in, this, (String)null); // ## check lock object
+        } catch (UnsupportedEncodingException e) {
+	    // The default encoding should always be available
+	    throw new Error(e);
+	}
     }
 
     /**
-     * Create an InputStreamReader that uses the named character encoding.
+     * Create an InputStreamReader that uses the named charset.
      *
-     * @param  in   An InputStream
-     * @param  enc  The name of a supported
-     *              <a href="../lang/package-summary.html#charenc">character
-     *              encoding</a>
+     * @param  in
+     *         An InputStream
+     *
+     * @param  charsetName
+     *         The name of a supported
+     *         {@link java.nio.charset.Charset </code>charset<code>}
      *
      * @exception  UnsupportedEncodingException
-     *             If the named encoding is not supported
+     *             If the named charset is not supported
      */
-    public InputStreamReader(InputStream in, String enc)
-	throws UnsupportedEncodingException
+    public InputStreamReader(InputStream in, String charsetName)
+        throws UnsupportedEncodingException
     {
-	this(in, ByteToCharConverter.getConverter(enc));
-    }
-
-    /**
-     * Create an InputStreamReader that uses the specified byte-to-character
-     * converter.  The converter is assumed to have been reset.
-     *
-     * @param  in   An InputStream
-     * @param  btc  A ByteToCharConverter
-     */
-    private InputStreamReader(InputStream in, ByteToCharConverter btc) {
 	super(in);
-	if (in == null) 
-	    throw new NullPointerException("input stream is null");
-	this.in = in;
-	this.btc = btc;
-	bb = new byte[defaultByteBufferSize];
+	if (charsetName == null)
+	    throw new NullPointerException("charsetName");
+	sd = StreamDecoder.forInputStreamReader(in, this, charsetName);
     }
 
     /**
-     * Returns the canonical name of the character encoding being used by this
-     * stream.  If this <code>InputStreamReader</code> was created with the
-     * {@link #InputStreamReader(InputStream, String)} constructor then the
-     * returned encoding name, being canonical, may differ from the encoding
-     * name passed to the constructor.  May return <code>null</code> if the
-     * stream has been closed.
+     * Create an InputStreamReader that uses the given charset. </p>
      *
-     * @return a String representing the encoding name, or possibly
+     * @param  in       An InputStream
+     * @param  cs       A charset
+     *
+     * @since 1.4
+     * @spec JSR-51
+     */
+    public InputStreamReader(InputStream in, Charset cs) {
+        super(in);
+	if (cs == null)
+	    throw new NullPointerException("charset");
+	sd = StreamDecoder.forInputStreamReader(in, this, cs);
+    }
+
+    /**
+     * Create an InputStreamReader that uses the given charset decoder.  </p>
+     *
+     * @param  in       An InputStream
+     * @param  dec      A charset decoder
+     *
+     * @since 1.4
+     * @spec JSR-51
+     */
+    public InputStreamReader(InputStream in, CharsetDecoder dec) {
+        super(in);
+	if (dec == null)
+	    throw new NullPointerException("charset decoder");
+	sd = StreamDecoder.forInputStreamReader(in, this, dec);
+    }
+
+    /**
+     * Return the name of the character encoding being used by this stream.
+     *
+     * <p> If the encoding has an historical name then that name is returned;
+     * otherwise the encoding's canonical name is returned.
+     *
+     * <p> If this instance was created with the {@link
+     * #InputStreamReader(InputStream, String)} constructor then the returned
+     * name, being unique for the encoding, may differ from the name passed to
+     * the constructor.  This method may return <code>null</code> if the stream
+     * has been closed. </p>
+     *
+     * @return The historical name of this encoding, or possibly
      *         <code>null</code> if the stream has been closed
      *
-     * @see <a href="../lang/package-summary.html#charenc">Character
-     *      encodings</a>
+     * @see java.nio.charset.Charset
+     *
+     * @revised 1.4
+     * @spec JSR-51
      */
     public String getEncoding() {
-	synchronized (lock) {
-	    if (btc != null)
-		return btc.getCharacterEncoding();
-	    else
-		return null;
-	}
-    }
-
-
-    /* Buffer handling */
-
-    private int nBytes = 0;	/* -1 implies EOF has been reached */
-    private int nextByte = 0;
-
-    private void malfunction() {
-	throw new InternalError("Converter malfunction (" +
-				btc.getCharacterEncoding() +
-				") -- please submit a bug report via " +
-				System.getProperty("java.vendor.url.bug"));
-    }
-
-    private int convertInto(char cbuf[], int off, int end) throws IOException {
-	int nc = 0;
-	if (nextByte < nBytes) {
-	    try {
-		nc = btc.convert(bb, nextByte, nBytes,
-				 cbuf, off, end);
-		nextByte = nBytes;
-		if (btc.nextByteIndex() != nextByte)
-		    malfunction();
-	    }
-	    catch (ConversionBufferFullException x) {
-		nextByte = btc.nextByteIndex();
-		nc = btc.nextCharIndex() - off;
-	    }
-	}
-	return nc;
-    }
-
-    private int flushInto(char cbuf[], int off, int end) throws IOException {
-	int nc = 0;
-	try {
-	    nc = btc.flush(cbuf, off, end);
-	}
-	catch (ConversionBufferFullException x) {
-	    nc = btc.nextCharIndex() - off;
-	}
-	return nc;
-    }
-
-    private int fill(char cbuf[], int off, int end) throws IOException {
-	int nc = 0;
-
-	if (nextByte < nBytes)
-	    nc = convertInto(cbuf, off, end);
-
-	while (off + nc < end) {
-
-	    if (nBytes != -1) {
-		if ((nc > 0) && !inReady())
-		    break;	/* Block at most once */
-		nBytes = in.read(bb);
-	    }
-
-	    if (nBytes == -1) {
-                nBytes = 0; /* Allow file to grow */
-		nc += flushInto(cbuf, off + nc, end);
-		if (nc == 0)
-		    return -1;
-		else
-		    break;
-	    }
-	    else {
-		nextByte = 0;
-		nc += convertInto(cbuf, off + nc, end);
-	    }
-	}
-	return nc;
-    }
-
-    /**
-     * Tell whether the underlying byte stream is ready to be read.  Return
-     * false for those streams that do not support available(), such as the
-     * Win32 console stream.
-     */
-    private boolean inReady() {
-	try {
-	    return in.available() > 0;
-	} catch (IOException x) {
-	    return false;
-	}
-    }
-
-
-    /** Check to make sure that the stream has not been closed */
-    private void ensureOpen() throws IOException {
-	if (in == null)
-	    throw new IOException("Stream closed");
+	return sd.getEncoding();
     }
 
     /**
@@ -213,36 +148,23 @@ public class InputStreamReader extends Reader {
      * @exception  IOException  If an I/O error occurs
      */
     public int read() throws IOException {
-	char cb[] = new char[1];
-	if (read(cb, 0, 1) == -1)
-	    return -1;
-	else
-	    return cb[0];
+        return sd.read();
     }
 
     /**
      * Read characters into a portion of an array.
      *
-     * @param      cbuf  Destination buffer
-     * @param      off   Offset at which to start storing characters
-     * @param      len   Maximum number of characters to read
+     * @param      cbuf     Destination buffer
+     * @param      offset   Offset at which to start storing characters
+     * @param      length   Maximum number of characters to read
      *
-     * @return     The number of characters read, or -1 if the end of the stream
-     *             has been reached
+     * @return     The number of characters read, or -1 if the end of the 
+     *             stream has been reached
      *
      * @exception  IOException  If an I/O error occurs
      */
-    public int read(char cbuf[], int off, int len) throws IOException {
-	synchronized (lock) {
-	    ensureOpen();
-            if ((off < 0) || (off > cbuf.length) || (len < 0) ||
-                ((off + len) > cbuf.length) || ((off + len) < 0)) {
-                throw new IndexOutOfBoundsException();
-            } else if (len == 0) {
-                return 0;
-            }
-	    return fill(cbuf, off, off + len);
-	}
+    public int read(char cbuf[], int offset, int length) throws IOException {
+	return sd.read(cbuf, offset, length);
     }
 
     /**
@@ -253,10 +175,7 @@ public class InputStreamReader extends Reader {
      * @exception  IOException  If an I/O error occurs
      */
     public boolean ready() throws IOException {
-	synchronized (lock) {
-	    ensureOpen();
-	    return (nextByte < nBytes) || inReady();
-	}
+	return sd.ready();
     }
 
     /**
@@ -265,14 +184,7 @@ public class InputStreamReader extends Reader {
      * @exception  IOException  If an I/O error occurs
      */
     public void close() throws IOException {
-	synchronized (lock) {
-	    if (in == null)
-		return;
-	    in.close();
-	    in = null;
-	    bb = null;
-	    btc = null;
-	}
+	sd.close();
     }
 
 }

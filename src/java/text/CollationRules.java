@@ -1,4 +1,6 @@
 /*
+ * @(#)CollationRules.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -24,7 +26,7 @@ package java.text;
  * so they do not have to contain accented characters, such as A-grave.
  * @see                RuleBasedCollator
  * @see                LocaleElements
- * @version            1.23, 02/06/02
+ * @version            1.24, 12/03/01
  * @author             Helena Shih, Mark Davis
  */
 final class CollationRules {
@@ -123,9 +125,11 @@ final class CollationRules {
         + ";\u033d"          // non-spacing x above
         + ";\u033e"          // non-spacing vertical tilde
         + ";\u033f"          // non-spacing double overscore
-        + ";\u0340"          // non-spacing grave tone mark
-        + ";\u0341"          // non-spacing acute tone mark
-        + ";\u0342;\u0343;\u0344;\u0345;\u0360;\u0361"    // newer
+        //+ ";\u0340"          // non-spacing grave tone mark == \u0300
+        //+ ";\u0341"          // non-spacing acute tone mark == \u0301
+        + ";\u0342;"
+	//+ "\u0343;" // == \u0313
+	+ "\u0344;\u0345;\u0360;\u0361"    // newer
         + ";\u0483;\u0484;\u0485;\u0486"    // Cyrillic accents
 
         + ";\u20D0;\u20D1;\u20D2"           // symbol accents

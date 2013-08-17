@@ -1,9 +1,12 @@
 /*
+ * @(#)InlineView.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
+import java.awt.Container;
 import java.awt.Shape;
 import java.awt.FontMetrics;
 import java.text.BreakIterator;
@@ -15,7 +18,7 @@ import javax.swing.text.*;
  * based upon css attributes.
  *
  * @author  Timothy Prinzing
- * @version 1.20 02/06/02
+ * @version 1.21 12/03/01
  */
 public class InlineView extends LabelView {
 
@@ -115,7 +118,13 @@ public class InlineView extends LabelView {
 		doc.getText(p0, p1 - p0, segment);
 		int word0 = p0;
 		int word1 = p0;
-		BreakIterator words = BreakIterator.getWordInstance();
+                Container c = getContainer();
+                BreakIterator words;
+                if (c != null) {
+                    words = BreakIterator.getWordInstance(c.getLocale());
+                } else {
+                    words = BreakIterator.getWordInstance();
+                }
 		words.setText(segment);
 		int start = words.first();
 		for (int end = words.next(); end != BreakIterator.DONE;

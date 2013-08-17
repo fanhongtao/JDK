@@ -1,4 +1,6 @@
 /*
+ * @(#)Keymap.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,7 +15,7 @@ import javax.swing.KeyStroke;
  * resolve in a hierarchy.  
  *
  * @author  Timothy Prinzing
- * @version 1.15 02/06/02
+ * @version 1.16 12/03/01
  */
 public interface Keymap {
 
@@ -51,8 +53,8 @@ public interface Keymap {
      * to resolve through the parent keymap, if one is set.
      *
      * @param key the key sequence
-     * @returns  the action associated with the key
-     *  sequence if one is defined, otherwise null
+     * @return  the action associated with the key
+     *  sequence if one is defined, otherwise <code>null</code>
      */
     public Action getAction(KeyStroke key);
 

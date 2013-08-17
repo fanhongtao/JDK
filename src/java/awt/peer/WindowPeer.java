@@ -1,4 +1,6 @@
 /*
+ * @(#)WindowPeer.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,11 +20,5 @@ import java.awt.event.KeyEvent;
 public interface WindowPeer extends ContainerPeer {
     void toFront();
     void toBack();
-
-    int handleFocusTraversalEvent(KeyEvent e);
-    public final static int IGNORE_EVENT = 0;
-    public final static int CONSUME_EVENT = 1;
-    public final static int FOCUS_NEXT = 2;
-    public final static int FOCUS_PREVIOUS = 3;
 }
 

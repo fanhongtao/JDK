@@ -1,4 +1,6 @@
 /*
+ * @(#)NO_MEMORY.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,9 +8,8 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>NO_MEMORY</code> exception, which may be thrown
- * by either the client or the server
- * when there is not enough memory for a dynamic memory allocation.
+ * Exception  thrown when the ORB run time has run out of memory.
+ * <P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

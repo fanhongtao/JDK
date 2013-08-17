@@ -1,4 +1,6 @@
 /*
+ * @(#)FilterReader.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,8 +10,13 @@ package java.io;
 
 /**
  * Abstract class for reading filtered character streams.
+ * The abstract class <code>FilterReader</code> itself
+ * provides default methods that pass all requests to 
+ * the contained stream. Subclasses of <code>FilterReader</code>
+ * should override some of these methods and may also provide
+ * additional methods and fields.
  *
- * @version 	1.12, 02/02/06
+ * @version 	1.13, 01/12/03
  * @author	Mark Reinhold
  * @since	JDK1.1
  */

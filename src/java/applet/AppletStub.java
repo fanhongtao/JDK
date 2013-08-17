@@ -1,4 +1,6 @@
 /*
+ * @(#)AppletStub.java	1.22 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,7 +16,7 @@ import java.net.URL;
  * is running.
  *
  * @author 	Arthur van Hoff
- * @version     1.22, 02/06/02
+ * @version     1.22, 12/03/01
  * @see         java.applet.Applet#setStub(java.applet.AppletStub)
  * @since       JDK1.0
  */

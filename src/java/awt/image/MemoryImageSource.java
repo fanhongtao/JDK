@@ -1,4 +1,6 @@
 /*
+ * @(#)MemoryImageSource.java	1.27 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -80,7 +82,7 @@ import java.util.Enumeration;
  *
  * @see ImageProducer
  *
- * @version	1.24 02/06/02
+ * @version	1.27 12/03/01
  * @author 	Jim Graham
  * @author	Animation capabilities inspired by the
  *		MemoryAnimationSource class written by Garth Dickie
@@ -100,6 +102,14 @@ public class MemoryImageSource implements ImageProducer {
     /**
      * Constructs an ImageProducer object which uses an array of bytes
      * to produce data for an Image object.
+     * @param w the width of the rectangle of pixels
+     * @param h the height of the rectangle of pixels
+     * @param cm the specified <code>ColorModel</code>
+     * @param pix an array of pixels
+     * @param off the offset into the array of where to store the 
+     *        first pixel
+     * @param scan the distance from one row of pixels to the next in
+     *        the array
      * @see java.awt.Component#createImage
      */
     public MemoryImageSource(int w, int h, ColorModel cm,
@@ -110,6 +120,16 @@ public class MemoryImageSource implements ImageProducer {
     /**
      * Constructs an ImageProducer object which uses an array of bytes
      * to produce data for an Image object.
+     * @param w the width of the rectangle of pixels
+     * @param h the height of the rectangle of pixels
+     * @param cm the specified <code>ColorModel</code>
+     * @param pix an array of pixels
+     * @param off the offset into the array of where to store the 
+     *        first pixel
+     * @param scan the distance from one row of pixels to the next in
+     *        the array
+     * @param props a list of properties that the <code>ImageProducer</code>
+     *        uses to process an image
      * @see java.awt.Component#createImage
      */
     public MemoryImageSource(int w, int h, ColorModel cm,
@@ -120,6 +140,14 @@ public class MemoryImageSource implements ImageProducer {
     /**
      * Constructs an ImageProducer object which uses an array of integers
      * to produce data for an Image object.
+     * @param w the width of the rectangle of pixels
+     * @param h the height of the rectangle of pixels
+     * @param cm the specified <code>ColorModel</code>
+     * @param pix an array of pixels
+     * @param off the offset into the array of where to store the 
+     *        first pixel
+     * @param scan the distance from one row of pixels to the next in
+     *        the array
      * @see java.awt.Component#createImage
      */
     public MemoryImageSource(int w, int h, ColorModel cm,
@@ -130,6 +158,16 @@ public class MemoryImageSource implements ImageProducer {
     /**
      * Constructs an ImageProducer object which uses an array of integers
      * to produce data for an Image object.
+     * @param w the width of the rectangle of pixels
+     * @param h the height of the rectangle of pixels
+     * @param cm the specified <code>ColorModel</code>
+     * @param pix an array of pixels
+     * @param off the offset into the array of where to store the 
+     *        first pixel
+     * @param scan the distance from one row of pixels to the next in
+     *        the array
+     * @param props a list of properties that the <code>ImageProducer</code>
+     *        uses to process an image
      * @see java.awt.Component#createImage
      */
     public MemoryImageSource(int w, int h, ColorModel cm,
@@ -154,6 +192,13 @@ public class MemoryImageSource implements ImageProducer {
     /**
      * Constructs an ImageProducer object which uses an array of integers
      * in the default RGB ColorModel to produce data for an Image object.
+     * @param w the width of the rectangle of pixels
+     * @param h the height of the rectangle of pixels
+     * @param pix an array of pixels
+     * @param off the offset into the array of where to store the 
+     *        first pixel
+     * @param scan the distance from one row of pixels to the next in
+     *        the array
      * @see java.awt.Component#createImage
      * @see ColorModel#getRGBdefault
      */
@@ -165,6 +210,15 @@ public class MemoryImageSource implements ImageProducer {
     /**
      * Constructs an ImageProducer object which uses an array of integers
      * in the default RGB ColorModel to produce data for an Image object.
+     * @param w the width of the rectangle of pixels
+     * @param h the height of the rectangle of pixels
+     * @param pix an array of pixels
+     * @param off the offset into the array of where to store the 
+     *        first pixel
+     * @param scan the distance from one row of pixels to the next in
+     *        the array
+     * @param props a list of properties that the <code>ImageProducer</code>
+     *        uses to process an image
      * @see java.awt.Component#createImage
      * @see ColorModel#getRGBdefault
      */
@@ -177,6 +231,7 @@ public class MemoryImageSource implements ImageProducer {
     /**
      * Adds an ImageConsumer to the list of consumers interested in
      * data for this image.
+     * @param ic the specified <code>ImageConsumer</code>
      * @see ImageConsumer
      */
     public synchronized void addConsumer(ImageConsumer ic) {
@@ -204,9 +259,11 @@ public class MemoryImageSource implements ImageProducer {
     }
 
     /**
-     * Determine if an ImageConsumer is on the list of consumers currently
+     * Determines if an ImageConsumer is on the list of consumers currently
      * interested in data for this image.
-     * @return true if the ImageConsumer is on the list; false otherwise
+     * @param ic the specified <code>ImageConsumer</code>
+     * @return <code>true</code> if the <code>ImageConsumer</code>
+     * is on the list; <code>false</code> otherwise.
      * @see ImageConsumer
      */
     public synchronized boolean isConsumer(ImageConsumer ic) {
@@ -214,8 +271,9 @@ public class MemoryImageSource implements ImageProducer {
     }
 
     /**
-     * Remove an ImageConsumer from the list of consumers interested in
+     * Removes an ImageConsumer from the list of consumers interested in
      * data for this image.
+     * @param ic the specified <code>ImageConsumer</code>
      * @see ImageConsumer
      */
     public synchronized void removeConsumer(ImageConsumer ic) {
@@ -224,7 +282,9 @@ public class MemoryImageSource implements ImageProducer {
 
     /**
      * Adds an ImageConsumer to the list of consumers interested in
-     * data for this image, and immediately start delivery of the
+     * data for this image and immediately starts delivery of the
+     * image data through the ImageConsumer interface.
+     * @param ic the specified <code>ImageConsumer</code>
      * image data through the ImageConsumer interface.
      * @see ImageConsumer
      */
@@ -235,6 +295,7 @@ public class MemoryImageSource implements ImageProducer {
     /**
      * Requests that a given ImageConsumer have the image data delivered
      * one more time in top-down, left-right order.
+     * @param ic the specified <code>ImageConsumer</code>
      * @see ImageConsumer
      */
     public void requestTopDownLeftRightResend(ImageConsumer ic) {
@@ -243,7 +304,7 @@ public class MemoryImageSource implements ImageProducer {
     }
 
     /**
-     * Change this memory image into a multi-frame animation or a
+     * Changes this memory image into a multi-frame animation or a
      * single-frame static image depending on the animated parameter.
      * <p>This method should be called immediately after the
      * MemoryImageSource is constructed and before an image is
@@ -252,7 +313,8 @@ public class MemoryImageSource implements ImageProducer {
      * is added to this ImageProducer before this flag is set then
      * that ImageConsumer will see only a snapshot of the pixel
      * data that was available when it connected.
-     * @param animated true if the image is a multi-frame animation
+     * @param animated <code>true</code> if the image is a 
+     *       multi-frame animation
      */
     public synchronized void setAnimated(boolean animated) {
 	this.animating = animated;
@@ -270,7 +332,7 @@ public class MemoryImageSource implements ImageProducer {
     }
 
     /**
-     * Specify whether this animated memory image should always be
+     * Specifies whether this animated memory image should always be
      * updated by sending the complete buffer of pixels whenever
      * there is a change.
      * This flag is ignored if the animation flag is not turned on
@@ -279,7 +341,8 @@ public class MemoryImageSource implements ImageProducer {
      * MemoryImageSource is constructed and before an image is
      * created with it to ensure that all ImageConsumers will
      * receive the correct pixel delivery hints.
-     * @param fullbuffers true if the complete pixel buffer should always
+     * @param fullbuffers <code>true</code> if the complete pixel 
+     *             buffer should always
      * be sent
      * @see #setAnimated
      */
@@ -301,11 +364,12 @@ public class MemoryImageSource implements ImageProducer {
     }
 
     /**
-     * Send a whole new buffer of pixels to any ImageConsumers that
+     * Sends a whole new buffer of pixels to any ImageConsumers that
      * are currently interested in the data for this image and notify
      * them that an animation frame is complete.
      * This method only has effect if the animation flag has been
      * turned on through the setAnimated() method.
+     * @see #newPixels(int, int, int, int, boolean)
      * @see ImageConsumer
      * @see #setAnimated
      */
@@ -314,7 +378,7 @@ public class MemoryImageSource implements ImageProducer {
     }
 
     /**
-     * Send a rectangular region of the buffer of pixels to any
+     * Sends a rectangular region of the buffer of pixels to any
      * ImageConsumers that are currently interested in the data for
      * this image and notify them that an animation frame is complete.
      * This method only has effect if the animation flag has been
@@ -328,6 +392,7 @@ public class MemoryImageSource implements ImageProducer {
      * of pixels to be sent
      * @param w the width of the rectangle of pixels to be sent
      * @param h the height of the rectangle of pixels to be sent
+     * @see #newPixels(int, int, int, int, boolean)
      * @see ImageConsumer
      * @see #setAnimated
      * @see #setFullBufferUpdates
@@ -337,7 +402,7 @@ public class MemoryImageSource implements ImageProducer {
     }
 
     /**
-     * Send a rectangular region of the buffer of pixels to any
+     * Sends a rectangular region of the buffer of pixels to any
      * ImageConsumers that are currently interested in the data for
      * this image.
      * If the framenotify parameter is true then the consumers are
@@ -353,8 +418,8 @@ public class MemoryImageSource implements ImageProducer {
      * of pixels to be sent
      * @param w the width of the rectangle of pixels to be sent
      * @param h the height of the rectangle of pixels to be sent
-     * @param framenotify true if the consumers should be sent a
-     * SINGLEFRAMEDONE notification
+     * @param framenotify <code>true</code> if the consumers should be sent a
+     * {@link ImageConsumer#SINGLEFRAMEDONE SINGLEFRAMEDONE} notification
      * @see ImageConsumer
      * @see #setAnimated
      * @see #setFullBufferUpdates
@@ -399,11 +464,17 @@ public class MemoryImageSource implements ImageProducer {
     }
 
     /**
-     * Change to a new byte array to hold the pixels for this image.
+     * Changes to a new byte array to hold the pixels for this image.
      * If the animation flag has been turned on through the setAnimated()
      * method, then the new pixels will be immediately delivered to any
      * ImageConsumers that are currently interested in the data for
      * this image.
+     * @param newpix the new pixel array
+     * @param newmodel the specified <code>ColorModel</code>
+     * @param offset the offset into the array
+     * @param scansize the distance from one row of pixels to the next in
+     * the array
+     * @see #newPixels(int, int, int, int, boolean)
      * @see #setAnimated
      */
     public synchronized void newPixels(byte[] newpix, ColorModel newmodel,
@@ -416,11 +487,17 @@ public class MemoryImageSource implements ImageProducer {
     }
 
     /**
-     * Change to a new int array to hold the pixels for this image.
+     * Changes to a new int array to hold the pixels for this image.
      * If the animation flag has been turned on through the setAnimated()
      * method, then the new pixels will be immediately delivered to any
      * ImageConsumers that are currently interested in the data for
      * this image.
+     * @param newpix the new pixel array
+     * @param newmodel the specified <code>ColorModel</code>
+     * @param offset the offset into the array
+     * @param scansize the distance from one row of pixels to the next in
+     * the array
+     * @see #newPixels(int, int, int, int, boolean)
      * @see #setAnimated
      */
     public synchronized void newPixels(int[] newpix, ColorModel newmodel,

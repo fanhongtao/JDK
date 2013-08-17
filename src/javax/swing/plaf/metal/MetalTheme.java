@@ -1,4 +1,6 @@
 /*
+ * @(#)MetalTheme.java	1.20 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,7 +15,7 @@ import javax.swing.*;
  * used by Metal.  Classes which implement this interface can
  * be used to swap the colors in a Metal application.
  *
- * @version 1.16 02/06/02
+ * @version 1.20 12/03/01
  * @author Steve Wilson
  */
 
@@ -59,7 +61,11 @@ public abstract class MetalTheme {
     public ColorUIResource getPrimaryControlInfo() { return getBlack(); } 
     public ColorUIResource getPrimaryControlHighlight() { return getWhite(); }  
 
-    public ColorUIResource getSystemTextColor() { return getPrimary1(); }
+    /**
+     * Returns the color used, by default, for the text in labels
+     * and titled borders.
+     */
+    public ColorUIResource getSystemTextColor() { return getBlack(); }
     public ColorUIResource getControlTextColor() { return getControlInfo(); }  
     public ColorUIResource getInactiveControlTextColor() { return getControlDisabled(); }  
     public ColorUIResource getInactiveSystemTextColor() { return getSecondary2(); }

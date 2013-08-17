@@ -1,4 +1,6 @@
 /*
+ * @(#)Naming.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,6 +8,8 @@ package java.rmi;
 
 import java.rmi.registry.*;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * The <code>Naming</code> class provides methods for storing and obtaining
@@ -198,94 +202,84 @@ public final class Naming {
     }
 
     /**
-     * Fix for: 4251878 java.rmi.Naming shouldn't rely upon the
-     * parsing functionality of java.net.URL
-     *
      * Dissect Naming URL strings to obtain referenced host, port and
      * object name.
      *
      * @return an object which contains each of the above
      * components.
      *
-     * @exception MalformedURLException if hostname in url contains '#' or
-     *            if incorrect protocol specified
+     * @exception MalformedURLException if given url string is malformed
      */
-    private static ParsedNamingURL parseURL(String url) 
+    private static ParsedNamingURL parseURL(String str) 
 	throws MalformedURLException 
     {
-	ParsedNamingURL parsed = new ParsedNamingURL();
-	int startFile = -1;
-
-	// remove the approved protocol
-	if (url.startsWith("rmi:")) {
-	    url = url.substring(4);
-	}
-
-	// Anchors (i.e. '#') are meaningless in rmi URLs - disallow them
-	if (url.indexOf('#') >= 0) {
-	    throw new MalformedURLException
-		("Invalid character, '#', in URL: " + url);
-	}
-
-	// No protocol must remain
-	int checkProtocol = url.indexOf(':');
-	if (checkProtocol >= 0 && (checkProtocol < url.indexOf('/')))
-	    throw new java.net.MalformedURLException("invalid protocol: " +
-	        url.substring(0, checkProtocol));
-
-	if (url.startsWith("//")) {
-	    final int startHost = 2;
-	    int nextSlash = url.indexOf("/", startHost);
-	    if (nextSlash >= 0) {
-		startFile = nextSlash + 1;
-	    } else {
-		// no trailing slash implies no name
-		nextSlash = url.length();
-		startFile = nextSlash;
+	try {
+	    URI uri = new URI(str);
+	    if (uri.getFragment() != null) {
+		throw new MalformedURLException(
+		    "invalid character, '#', in URL name: " + str);
+	    } else if (uri.getQuery() != null) {
+		throw new MalformedURLException(
+		    "invalid character, '?', in URL name: " + str);
+	    } else if (uri.getUserInfo() != null) {
+		throw new MalformedURLException(
+		    "invalid character, '@', in URL host: " + str);
+	    }
+	    String scheme = uri.getScheme();
+	    if (scheme != null && !scheme.equals("rmi")) {
+		throw new MalformedURLException("invalid URL scheme: " + str);
 	    }
 
-	    int colon = url.indexOf(":", startHost);
-	    if ((colon > 1) && (colon < nextSlash)) {
-		// explicit port supplied
-		try {
-		    parsed.port = 
-			Integer.parseInt(url.substring(colon + 1,
-						       nextSlash));
-		} catch (NumberFormatException e) {
-		    throw new MalformedURLException(
-		        "invalid port number: " + url);
+	    String name = uri.getPath();
+	    if (name != null) {
+		if (name.startsWith("/")) {
+		    name = name.substring(1);
+		}
+		if (name.length() == 0) {
+		    name = null;
 		}
 	    }
 
-	    // if have colon then endhost, else end with slash
-	    int endHost;
-	    if (colon >= startHost) {
-		endHost = colon;
-	    } else {
-		endHost = nextSlash;
+	    String host = uri.getHost();
+	    if (host == null) {
+		host = "";
+		if (uri.getPort() == -1) {
+		    /* handle URIs with explicit port but no host
+		     * (e.g., "//:1098/foo"); although they do not strictly
+		     * conform to RFC 2396, Naming's javadoc explicitly allows
+		     * them.
+		     */
+		    String authority = uri.getAuthority();
+		    if (authority != null && authority.startsWith(":")) {
+			authority = "localhost" + authority;
+			uri = new URI(null, authority, null, null, null);
+		    }
+		}
 	    }
-	    parsed.host = url.substring(startHost, endHost);
-	    
-	} else if (url.startsWith("/")) {
-	    startFile = 1;
-	} else {
-	    startFile = 0;
-	}
-	// set the bind name
-	parsed.name = url.substring(startFile);
-	if (parsed.name.equals("") || parsed.name.equals("/")) {
-	    parsed.name = null;
-	}
+	    int port = uri.getPort();
+	    if (port == -1) {
+		port = Registry.REGISTRY_PORT;
+	    }
+	    return new ParsedNamingURL(host, port, name);
 
-	return parsed;
+	} catch (URISyntaxException ex) {
+	    throw (MalformedURLException) new MalformedURLException(
+		"invalid URL string: " + str).initCause(ex);
+	}
     }
 
     /**
      * Simple class to enable multiple URL return values.
      */
     private static class ParsedNamingURL {
-	String host = "";
-	int port = Registry.REGISTRY_PORT;
-	String name = null;
+	String host;
+	int port;
+	String name;
+	
+	ParsedNamingURL(String host, int port, String name) {
+	    this.host = host;
+	    this.port = port;
+	    this.name = name;
+	}
     }
 }

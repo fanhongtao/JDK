@@ -1,4 +1,6 @@
 /*
+ * @(#)CertificateFactorySpi.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -7,6 +9,8 @@ package java.security.cert;
 
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.security.Provider;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -18,8 +22,9 @@ import java.security.NoSuchProviderException;
  * cryptographic service provider who wishes to supply the implementation
  * of a certificate factory for a particular certificate type, e.g., X.509.
  *
- * <p>Certificate factories are used to generate certificate and certificate
- * revocation list (CRL) objects from their encoding.
+ * <p>Certificate factories are used to generate certificate, certification path
+ * (<code>CertPath</code>) and certificate revocation list (CRL) objects from 
+ * their encodings.
  *
  * <p>A certificate factory for X.509 must return certificates that are an
  * instance of <code>java.security.cert.X509Certificate</code>, and CRLs
@@ -27,12 +32,14 @@ import java.security.NoSuchProviderException;
  *
  * @author Hemma Prafullchandra
  * @author Jan Luehe
+ * @author Sean Mullan
  *
- * @version 1.10, 02/06/02
+ * @version 1.14, 12/03/01
  *
  * @see CertificateFactory
  * @see Certificate
  * @see X509Certificate
+ * @see CertPath
  * @see CRL
  * @see X509CRL
  *
@@ -44,9 +51,6 @@ public abstract class CertificateFactorySpi {
     /**
      * Generates a certificate object and initializes it with
      * the data read from the input stream <code>inStream</code>.
-     *
-     * <p>The given input stream <code>inStream</code> must contain a single
-     * certificate.
      *
      * <p>In order to take advantage of the specialized certificate format
      * supported by this certificate factory,
@@ -65,7 +69,13 @@ public abstract class CertificateFactorySpi {
      * <p>Note that if the given input stream does not support
      * {@link java.io.InputStream#mark(int) mark} and
      * {@link java.io.InputStream#reset() reset}, this method will
-     * consume the entire input stream.
+     * consume the entire input stream. Otherwise, each call to this
+     * method consumes one certificate and the read position of the input stream
+     * is positioned to the next available byte after the the inherent
+     * end-of-certificate marker. If the data in the
+     * input stream does not contain an inherent end-of-certificate marker (other
+     * than EOF) and there is trailing data after the certificate is parsed, a
+     * <code>CertificateException</code> is thrown.
      *
      * @param inStream an input stream with the certificate data.
      *
@@ -76,6 +86,100 @@ public abstract class CertificateFactorySpi {
      */
     public abstract Certificate engineGenerateCertificate(InputStream inStream)
         throws CertificateException;
+
+    /**
+     * Generates a <code>CertPath</code> object and initializes it with
+     * the data read from the <code>InputStream</code> inStream. The data
+     * is assumed to be in the default encoding.
+     *
+     * @param inStream an <code>InputStream</code> containing the data
+     * @return a <code>CertPath</code> initialized with the data from the
+     *   <code>InputStream</code>
+     * @exception CertificateException if an exception occurs while decoding
+     * @since 1.4
+     */
+    public CertPath engineGenerateCertPath(InputStream inStream)
+        throws CertificateException
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Generates a <code>CertPath</code> object and initializes it with
+     * the data read from the <code>InputStream</code> inStream. The data
+     * is assumed to be in the specified encoding.
+     *
+     * <p> This method was added to version 1.4 of the Java 2 Platform
+     * Standard Edition. In order to maintain backwards compatibility with
+     * existing service providers, this method cannot be <code>abstract</code>
+     * and by default throws an <code>UnsupportedOperationException</code>.
+     *
+     * @param inStream an <code>InputStream</code> containing the data
+     * @param encoding the encoding used for the data
+     * @return a <code>CertPath</code> initialized with the data from the
+     *   <code>InputStream</code>
+     * @exception CertificateException if an exception occurs while decoding or
+     *   the encoding requested is not supported
+     * @exception UnsupportedOperationException if the method is not supported
+     * @since 1.4
+     */
+    public CertPath engineGenerateCertPath(InputStream inStream,
+        String encoding) throws CertificateException
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Generates a <code>CertPath</code> object and initializes it with
+     * a <code>List</code> of <code>Certificate</code>s.
+     * <p>
+     * The certificates supplied must be of a type supported by the
+     * <code>CertificateFactory</code>. They will be copied out of the supplied
+     * <code>List</code> object.
+     *
+     * <p> This method was added to version 1.4 of the Java 2 Platform
+     * Standard Edition. In order to maintain backwards compatibility with
+     * existing service providers, this method cannot be <code>abstract</code>
+     * and by default throws an <code>UnsupportedOperationException</code>.
+     *
+     * @param certificates a <code>List</code> of <code>Certificate</code>s
+     * @return a <code>CertPath</code> initialized with the supplied list of
+     *   certificates
+     * @exception CertificateException if an exception occurs
+     * @exception UnsupportedOperationException if the method is not supported
+     * @since 1.4
+     */
+    public CertPath engineGenerateCertPath(List certificates)
+        throws CertificateException
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Returns an iteration of the <code>CertPath</code> encodings supported 
+     * by this certificate factory, with the default encoding first. See 
+     * Appendix A in the 
+     * <a href="../../../../guide/security/certpath/CertPathProgGuide.html#AppA">
+     * Java Certification Path API Programmer's Guide</a>
+     * for information about standard encoding names.
+     * <p>
+     * Attempts to modify the returned <code>Iterator</code> via its
+     * <code>remove</code> method result in an
+     * <code>UnsupportedOperationException</code>.
+     *
+     * <p> This method was added to version 1.4 of the Java 2 Platform
+     * Standard Edition. In order to maintain backwards compatibility with
+     * existing service providers, this method cannot be <code>abstract</code>
+     * and by default throws an <code>UnsupportedOperationException</code>.
+     *
+     * @return an <code>Iterator</code> over the names of the supported
+     *         <code>CertPath</code> encodings (as <code>String</code>s)
+     * @exception UnsupportedOperationException if the method is not supported
+     * @since 1.4
+     */
+    public Iterator engineGetCertPathEncodings() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Returns a (possibly empty) collection view of the certificates read
@@ -130,7 +234,13 @@ public abstract class CertificateFactorySpi {
      * <p>Note that if the given input stream does not support
      * {@link java.io.InputStream#mark(int) mark} and
      * {@link java.io.InputStream#reset() reset}, this method will
-     * consume the entire input stream.
+     * consume the entire input stream. Otherwise, each call to this
+     * method consumes one CRL and the read position of the input stream
+     * is positioned to the next available byte after the the inherent
+     * end-of-CRL marker. If the data in the
+     * input stream does not contain an inherent end-of-CRL marker (other
+     * than EOF) and there is trailing data after the CRL is parsed, a
+     * <code>CRLException</code> is thrown.
      *
      * @param inStream an input stream with the CRL data.
      *

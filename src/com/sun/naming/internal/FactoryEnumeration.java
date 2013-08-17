@@ -1,11 +1,13 @@
 /*
+ * @(#)FactoryEnumeration.java	1.6 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.naming.internal;
 
-import java.util.Vector;
+import java.util.List;
 import javax.naming.NamingException;
 
 /**
@@ -13,22 +15,23 @@ import javax.naming.NamingException;
   * 
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.4 01/06/18
+  * @version 1.6 01/12/03
  */
 
 // no need to implement Enumeration since this is only for internal use
 public final class FactoryEnumeration { 
-    private Vector vec;
+    private List factories;
     private int posn = 0;
     private ClassLoader loader;
 
     /**
-     * Records the input vector and uses it directly to satisfy
+     * Records the input list and uses it directly to satisfy
      * hasMore()/next() requests. An alternative would have been to use
-     * vec.elements(), but we want to update the vector so we keep the
-     * original Vector. The Vector initially contains Class objects.
+     * an enumeration/iterator from the list, but we want to update the 
+     * list so we keep the
+     * original list. The list initially contains Class objects.
      * As each element is used, the Class object is replaced by an
-     * instance of the Class itself; eventually, the vector contains
+     * instance of the Class itself; eventually, the list contains
      * only a list of factory instances and no more updates are required.
      *
      * <p> Both Class objects and factories are wrapped in weak
@@ -36,19 +39,18 @@ public final class FactoryEnumeration {
      * weak reference is tagged with the factory's class name so the
      * class can be reloaded if the reference is cleared.
 
-     * @param vec	A non-null vector
-     * @param loader	The class loader of the vector's contents
+     * @param factories	A non-null list
+     * @param loader	The class loader of the list's contents
      */
-    FactoryEnumeration(Vector vec, ClassLoader loader) {
-	this.vec = vec;
+    FactoryEnumeration(List factories, ClassLoader loader) {
+	this.factories = factories;
 	this.loader = loader;
     }
  
     public Object next() throws NamingException {
-	synchronized (vec) {
+	synchronized (factories) {
 
-	    NamedWeakReference ref = (NamedWeakReference)
-		vec.elementAt(posn++);
+	    NamedWeakReference ref = (NamedWeakReference) factories.get(posn++);
 	    Object answer = ref.get();
 	    if ((answer != null) && !(answer instanceof Class)) {
 		return answer;
@@ -63,7 +65,7 @@ public final class FactoryEnumeration {
 		// Instantiate Class to get factory
 		answer = ((Class) answer).newInstance();
 		ref = new NamedWeakReference(answer, className);
-		vec.setElementAt(ref, posn-1);  // replace Class object or null
+		factories.set(posn-1, ref);  // replace Class object or null
 		return answer;
 	    } catch (ClassNotFoundException e) {
 		NamingException ne = 
@@ -84,7 +86,8 @@ public final class FactoryEnumeration {
     }
 
     public boolean hasMore() {
-	return posn < vec.size();
+	synchronized (factories) {
+	    return posn < factories.size();
+	}
     }
 }
-

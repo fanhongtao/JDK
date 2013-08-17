@@ -1,4 +1,6 @@
 /*
+ * @(#)ObjectStreamField.java	1.39 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,134 +10,134 @@ package java.io;
 import java.lang.reflect.Field;
 
 /**
- * A description of a Serializable field from a Serializable class.
- * An array of ObjectStreamFields is used to declare the Serializable
- * fields of a class.
+ * A description of a Serializable field from a Serializable class.  An array
+ * of ObjectStreamFields is used to declare the Serializable fields of a class.
  *
- * @author  Roger Riggs
- * @version 1.31, 02/06/02
+ * @author	Mike Warres
+ * @author	Roger Riggs
+ * @version 1.39, 01/12/03
  * @see ObjectStreamClass
  * @since 1.2
  */
 public class ObjectStreamField implements Comparable {
-    /**
-     * Create a Serializable field with the specified type.
-     * This field should be documented with a <code>serialField</code>
-     * tag. 
-     *
-     * @param n the name of the serializable field
-     * @param clazz the <code>Class</code> object of the serializable field
-     */
-    public ObjectStreamField(String n, Class clazz) {
-    	name = n;
-    	this.clazz = clazz;
 
-	// Compute the typecode for easy switching
-	if (clazz.isPrimitive()) {
-	    if (clazz == Integer.TYPE) {
-		type = 'I';
-	    } else if (clazz == Byte.TYPE) {
-		type = 'B';
-	    } else if (clazz == Long.TYPE) {
-		type = 'J';
-	    } else if (clazz == Float.TYPE) {
-		type = 'F';
-	    } else if (clazz == Double.TYPE) {
-		type = 'D';
-	    } else if (clazz == Short.TYPE) {
-		type = 'S';
-	    } else if (clazz == Character.TYPE) {
-		type = 'C';
-	    } else if (clazz == Boolean.TYPE) {
-		type = 'Z';
-	    }
-	} else if (clazz.isArray()) {
-	    type = '[';
-	    typeString = ObjectStreamClass.getSignature(clazz).intern();
-	} else {
-	    type = 'L';
-	    typeString = ObjectStreamClass.getSignature(clazz).intern();
+    /** field name */
+    private final String name;
+    /** canonical JVM signature of field type */
+    private final String signature;
+    /** field type (Object.class if unknown non-primitive type) */
+    private final Class type;
+    /** whether or not to (de)serialize field values as unshared */
+    private final boolean unshared;
+    /** corresponding reflective field object, if any */
+    private final Field field;
+    /** offset of field value in enclosing field group */
+    private int offset = 0;
+
+    /**
+     * Create a Serializable field with the specified type.  This field should
+     * be documented with a <code>serialField</code> tag. 
+     *
+     * @param	name the name of the serializable field
+     * @param	type the <code>Class</code> object of the serializable field
+     */
+    public ObjectStreamField(String name, Class type) {
+	this(name, type, false);
+    }
+    
+    /**
+     * Creates an ObjectStreamField representing a serializable field with the
+     * given name and type.  If unshared is false, values of the represented
+     * field are serialized and deserialized in the default manner--if the
+     * field is non-primitive, object values are serialized and deserialized as
+     * if they had been written and read by calls to writeObject and
+     * readObject.  If unshared is true, values of the represented field are
+     * serialized and deserialized as if they had been written and read by
+     * calls to writeUnshared and readUnshared.
+     *
+     * @param   name field name
+     * @param   type field type
+     * @param   unshared if false, write/read field values in the same manner
+     *          as writeObject/readObject; if true, write/read in the same
+     *          manner as writeUnshared/readUnshared
+     */
+    public ObjectStreamField(String name, Class type, boolean unshared) {
+	if (name == null) {
+	    throw new NullPointerException();
+	}
+	this.name = name;
+	this.type = type;
+	this.unshared = unshared;
+	signature = ObjectStreamClass.getClassSignature(type).intern();
+	field = null;
+    }
+
+    /**
+     * Creates an ObjectStreamField representing a field with the given name,
+     * signature and unshared setting.
+     */
+    ObjectStreamField(String name, String signature, boolean unshared) {
+	if (name == null) {
+	    throw new NullPointerException();
+	}
+	this.name = name;
+	this.signature = signature.intern();
+	this.unshared = unshared;
+	field = null;
+	
+	switch (signature.charAt(0)) {
+	    case 'Z': type = Boolean.TYPE; break;
+	    case 'B': type = Byte.TYPE; break;
+	    case 'C': type = Character.TYPE; break;
+	    case 'S': type = Short.TYPE; break;
+	    case 'I': type = Integer.TYPE; break;
+	    case 'J': type = Long.TYPE; break;
+	    case 'F': type = Float.TYPE; break;
+	    case 'D': type = Double.TYPE; break;
+	    case 'L':
+	    case '[': type = Object.class; break;
+	    default: throw new IllegalArgumentException("illegal signature");
 	}
     }
-
+    
     /**
-     * Create a default Serializable field for <code>field</code>.
+     * Creates an ObjectStreamField representing the given field with the
+     * specified unshared setting.  For compatibility with the behavior of
+     * earlier serialization implementations, a "showType" parameter is
+     * necessary to govern whether or not a getType() call on this
+     * ObjectStreamField (if non-primitive) will return Object.class (as
+     * opposed to a more specific reference type).
      */
-    ObjectStreamField(Field field) {
-	this(field.getName(), field.getType());
+    ObjectStreamField(Field field, boolean unshared, boolean showType) {
 	this.field = field;
-    }
-
-    /**
-     * Create an ObjectStreamField containing a reflected Field.
-     */
-    ObjectStreamField(String n, char t, Field f, String ts)
-    {
-	//	System.out.println("new field, " + n + " " + t + " " + ts);
-	name = n;
-	type = t;
-	field = f;
-	typeString = (ts != null ? ts.intern() : null);
-    }
-
-    /**
-     * SearchKey constructor.
-     * @see #compareTo(Object)
-     */
-    private ObjectStreamField(String name, boolean isPrimitive) {
-
-	// only set fields that compareTo uses for comparison.
-	this.name = name;
-	setSearchKeyTypeString(isPrimitive);
+	this.unshared = unshared;
+	name = field.getName();
+	Class ftype = field.getType();
+	type = (showType || ftype.isPrimitive()) ? ftype : Object.class;
+	signature = ObjectStreamClass.getClassSignature(ftype).intern();
     }
 
     /**
      * Get the name of this field.
      *
-     * @return a <code>String</code> representing the name of the serializable
-     * field 
+     * @return	a <code>String</code> representing the name of the serializable
+     * 		field 
      */
     public String getName() {
-    	return name;
+	return name;
     }
 
     /**
      * Get the type of the field.
      *
-     * @return the <code>Class</code> object of the serializable field 
+     * @return	the <code>Class</code> object of the serializable field 
      */
     public Class getType() {
-    	if (clazz != null)
-    	    return clazz;
-	switch (type) {
-	case 'B': clazz = Byte.TYPE;
-	    break;
-	case 'C': clazz = Character.TYPE;
-	    break;
-	case 'S': clazz = Short.TYPE;
-	    break;
-	case 'I': clazz = Integer.TYPE;
-	    break;
-	case 'J': clazz = Long.TYPE;
-	    break;
-	case 'F': clazz = Float.TYPE;
-	    break;
-	case 'D': clazz = Double.TYPE;
-	    break;
-	case 'Z': clazz = Boolean.TYPE;
-	    break;
-	case '[':
-	case 'L':
-	    clazz = Object.class;
-	    break;
-	}
-
-    	return clazz;
+	return type;
     }
 
     /** 
-     * Returns character encoding of field type.
-     * The encoding is as follows:
+     * Returns character encoding of field type.  The encoding is as follows:
      * <blockquote><pre>
      * B            byte
      * C            char
@@ -149,143 +151,100 @@ public class ObjectStreamField implements Comparable {
      * [            array
      * </pre></blockquote>
      *
-     * @return the typecode of the serializable field
+     * @return	the typecode of the serializable field
      */
+    // REMIND: deprecate?
     public char getTypeCode() {
-	return type;
+	return signature.charAt(0);
     }
 
     /**
      * Return the JVM type signature.
      *
-     * @return null if this field has a primitive type.
+     * @return	null if this field has a primitive type.
      */
+    // REMIND: deprecate?
     public String getTypeString() {
-	return typeString;
+	return isPrimitive() ? null : signature;
     }
 
     /**
      * Offset of field within instance data.
      *
-     * @return the offset of this field
+     * @return	the offset of this field
      * @see #setOffset
      */
+    // REMIND: deprecate?
     public int getOffset() {
-	return bufoffset;
+	return offset;
     }
 
     /** 
      * Offset within instance data.
      *
-     * @param offset the offset of the field
+     * @param	offset the offset of the field
      * @see #getOffset
      */
+    // REMIND: deprecate?
     protected void setOffset(int offset) {
-	bufoffset = offset;
-    }
-
-    /*
-     * Default constructor creates an empty field.
-     * Usually used just to get to the sort functions.
-     */ 
-    ObjectStreamField() {
+	this.offset = offset;
     }
 
     /**
      * Return true if this field has a primitive type.
      *
-     * @return true if and only if this field corresponds to a primitive type
+     * @return	true if and only if this field corresponds to a primitive type
      */
+    // REMIND: deprecate?
     public boolean isPrimitive() {
-	return (type != '[' && type != 'L');
+	char tcode = signature.charAt(0);
+	return ((tcode != 'L') && (tcode != '['));
+    }
+    
+    /**
+     * Returns boolean value indicating whether or not the serializable field
+     * represented by this ObjectStreamField instance is unshared.
+     */
+    public boolean isUnshared() {
+	return unshared;
     }
 
     /**
-     * Compare this field with another <code>ObjectStreamField</code>.
-     * Return -1 if this is smaller, 0 if equal, 1 if greater.
-     * Types that are primitives are "smaller" than object types.
-     * If equal, the field names are compared.
+     * Compare this field with another <code>ObjectStreamField</code>.  Return
+     * -1 if this is smaller, 0 if equal, 1 if greater.  Types that are
+     * primitives are "smaller" than object types.  If equal, the field names
+     * are compared.
      */
-    public int compareTo(Object o) {
-	ObjectStreamField f2 = (ObjectStreamField)o;
-	boolean thisprim = (this.typeString == null);
-	boolean otherprim = (f2.typeString == null);
-
-	if (thisprim != otherprim) {
-	    return (thisprim ? -1 : 1);
+    // REMIND: deprecate?
+    public int compareTo(Object obj) {
+	ObjectStreamField other = (ObjectStreamField) obj;
+	boolean isPrim = isPrimitive();
+	if (isPrim != other.isPrimitive()) {
+	    return isPrim ? -1 : 1;
 	}
-	return this.name.compareTo(f2.name);
+	return name.compareTo(other.name);
     }
 
     /**
      * Return a string that describes this field.
      */
     public String toString() {
-	if (typeString != null)
-	    return typeString + " " + name;
-	else
-	    return type + " " + name;
+	return signature + ' ' + name;
     }
-
+    
     /**
-     * Compare the type of this ObjectStreamField with <code>other</code>.
-     * 
-     * @return true if both ObjectStreamFields are serializable compatible.
-     */
-    boolean typeEquals(ObjectStreamField other) {
-	if (other == null || type != other.type)
-	  return false;
-
-	/* Optimization: Since interning typeString, 
-	 *               this short circuit can save some time.
-	 * Also, covers case where both typeStrings are null. 
-	 */
-	if (typeString == other.typeString)
-	    return true;
-	else
-	    return ObjectStreamClass.compareClassNames(typeString,
-						       other.typeString,
-						       '/');
-    }
-
-    /*
-     * Return a field.
-     * @see java.lang.reflect.Field
+     * Returns field represented by this ObjectStreamField, or null if
+     * ObjectStreamField is not associated with an actual field.
      */
     Field getField() {
- 	return field;
+	return field;
     }
- 
-    void setField(Field field) {
- 	this.field = field;
-    }
-
-
+    
     /**
-     * @return a ObjectStreamField with enough fields set to search 
-     *          a list for a matching ObjectStreamField.
-     * @see #compareTo(Object)
+     * Returns JVM type signature of field (similar to getTypeString, except
+     * that signature strings are returned for primitive fields as well).
      */
-    static ObjectStreamField constructSearchKey(String fieldName, 
-						Class fieldType) 
-    {
-	return new ObjectStreamField(fieldName, fieldType.isPrimitive());
+    String getSignature() {
+	return signature;
     }
-
-    void setSearchKeyTypeString(boolean isPrimitive) {
-	typeString = isPrimitive ? null : OBJECT_TYPESTRING;
-    }
-
-    private String name;	// the name of the field
-    private char type;		// first byte of the type signature
-    private Field field;	// Reflected field.
-    private String typeString;	// iff object, fully qualified typename containing '/'
-    private int bufoffset;      // offset in the data buffer, or index in objects
-    private Class clazz;	// the type of this field, if has been resolved
-
-    /* a string object used for ObjectStreamField search. For search purposes,
-     * it is sufficient that this string is non-null.
-     */
-    private static final String OBJECT_TYPESTRING=new String("");
-
-};
+}

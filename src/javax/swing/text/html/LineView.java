@@ -1,4 +1,6 @@
 /*
+ * @(#)LineView.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,7 +20,7 @@ import javax.swing.text.*;
  * Row of text.
  *
  * @author  Timothy Prinzing
- * @version 1.13 02/06/02
+ * @version 1.14 12/03/01
  */
 class LineView extends ParagraphView {
     /** Last place painted at. */
@@ -46,8 +48,9 @@ class LineView extends ParagraphView {
      * axis.  The preformatted line should refuse to be 
      * sized less than the preferred size.
      *
-     * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the minimum span the view can be rendered into.
+     * @param axis may be either <code>View.X_AXIS</code> or 
+     *	<code>View.Y_AXIS</code>
+     * @return  the minimum span the view can be rendered into
      * @see View#getPreferredSpan
      */
     public float getMinimumSpan(int axis) {

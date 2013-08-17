@@ -1,4 +1,6 @@
 /*
+ * @(#)MessageDigest.java	1.73 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -61,7 +63,7 @@ import java.io.ByteArrayInputStream;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.72, 02/06/02
+ * @version 1.73, 12/03/01
  *
  * @see DigestInputStream
  * @see DigestOutputStream
@@ -115,7 +117,8 @@ public abstract class MessageDigest extends MessageDigestSpi {
     public static MessageDigest getInstance(String algorithm) 
     throws NoSuchAlgorithmException { 
 	try {
-	    Object[] objs = Security.getImpl(algorithm, "MessageDigest", null);
+	    Object[] objs = Security.getImpl(algorithm, "MessageDigest",
+					     (String)null);
 	    if (objs[0] instanceof MessageDigest) {
 		MessageDigest md = (MessageDigest)objs[0];
 		md.provider = (Provider)objs[1];
@@ -153,13 +156,63 @@ public abstract class MessageDigest extends MessageDigestSpi {
      *
      * @exception NoSuchProviderException if the provider is not
      * available in the environment. 
-     * 
+     *
+     * @exception IllegalArgumentException if the provider name is null
+     * or empty.
+     *
      * @see Provider 
      */
     public static MessageDigest getInstance(String algorithm, String provider)
 	throws NoSuchAlgorithmException, NoSuchProviderException
     {
 	if (provider == null || provider.length() == 0)
+	    throw new IllegalArgumentException("missing provider");
+	Object[] objs = Security.getImpl(algorithm, "MessageDigest", provider);
+	if (objs[0] instanceof MessageDigest) {
+	    MessageDigest md = (MessageDigest)objs[0];
+	    md.provider = (Provider)objs[1];
+	    return md;
+	} else {
+	    MessageDigest delegate =
+		new Delegate((MessageDigestSpi)objs[0], algorithm);
+	    delegate.provider = (Provider)objs[1];
+	    return delegate;
+	}
+    }
+
+    /**
+     * Generates a MessageDigest object implementing the specified
+     * algorithm, as supplied from the specified provider, if such an 
+     * algorithm is available from the provider. Note: the 
+     * <code>provider</code> doesn't have to be registered. 
+     *
+     * @param algorithm the name of the algorithm requested. 
+     * See Appendix A in the <a href=
+     * "../../../guide/security/CryptoSpec.html#AppA">
+     * Java Cryptography Architecture API Specification &amp; Reference </a> 
+     * for information about standard algorithm names.
+     *
+     * @param provider the provider.
+     *
+     * @return a Message Digest object implementing the specified
+     * algorithm.
+     *
+     * @exception NoSuchAlgorithmException if the algorithm is
+     * not available in the package supplied by the requested
+     * provider.
+     *
+     * @exception IllegalArgumentException if the <code>provider</code> is
+     * null.
+     *
+     * @see Provider
+     *
+     * @since 1.4
+     */
+    public static MessageDigest getInstance(String algorithm,
+					    Provider provider)
+	throws NoSuchAlgorithmException
+    {
+	if (provider == null)
 	    throw new IllegalArgumentException("missing provider");
 	Object[] objs = Security.getImpl(algorithm, "MessageDigest", provider);
 	if (objs[0] instanceof MessageDigest) {

@@ -1,10 +1,14 @@
 /*
+ * @(#)RemoteServer.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.server;
 
 import java.rmi.*;
+import sun.rmi.server.UnicastServerRef;
+import sun.rmi.runtime.Log;
 
 /**
  * The <code>RemoteServer</code> class is the common superclass to server
@@ -14,15 +18,12 @@ import java.rmi.*;
  * available) are provided abstractly by <code>RemoteServer</code> and
  * concretely by its subclass(es).
  *
- * @version 1.23, 02/06/02
+ * @version 1.28, 12/03/01
  * @author  Ann Wollrath
  * @since   JDK1.1
  */
 public abstract class RemoteServer extends RemoteObject
 {
-    private static String logname = "RMI";
-    private static LogStream log;
-
     /* indicate compatibility with JDK 1.1.x version of class */
     private static final long serialVersionUID = -4100238210092549637L;
 
@@ -45,13 +46,15 @@ public abstract class RemoteServer extends RemoteObject
     }
 
     /**
-     * Return the hostname of the current client.  When called from a
-     * thread actively handling a remote method invocation the
-     * hostname of the client is returned.
-     * @exception ServerNotActiveException If called outside of servicing
-     * a remote method invocation.
-     * @return client hostname
-     * @since JDK1.1
+     * Returns a string representation of the client host for the
+     * remote method invocation being processed in the current thread.
+     *
+     * @return 	a string representation of the client host
+     *
+     * @throws	ServerNotActiveException if no remote method invocation
+     * is being processed in the current thread
+     *
+     * @since	JDK1.1
      */
     public static String getClientHost() throws ServerNotActiveException {
 	return sun.rmi.transport.tcp.TCPTransport.getClientHost();
@@ -65,13 +68,8 @@ public abstract class RemoteServer extends RemoteObject
      */
     public static void setLog(java.io.OutputStream out) 
     {
-	if (out == null) {
-	    log = null;
-	} else {
-	    LogStream tempLog = LogStream.log(logname);
-	    tempLog.setOutputStream(out);
-	    log = tempLog;
-	}
+	logNull = (out == null);
+	UnicastServerRef.callLog.setOutputStream(out);
     }
     
     /**
@@ -81,18 +79,9 @@ public abstract class RemoteServer extends RemoteObject
      */
     public static java.io.PrintStream getLog() 
     {
-	return log;
+	return (logNull ? null : UnicastServerRef.callLog.getPrintStream());
     }
 
-    static 
-    {
-	// initialize log
-	try {
-	    Boolean tmp = (Boolean)java.security.AccessController.doPrivileged(
-                    new sun.security.action.GetBooleanAction("java.rmi.server.logCalls"));
-	    boolean logCalls = tmp.booleanValue();
-	    log = logCalls ? LogStream.log(logname) : null;
-	} catch (Exception e) {
-	}
-    }
+    // initialize log status
+    private static boolean logNull = !UnicastServerRef.logCalls;
 }

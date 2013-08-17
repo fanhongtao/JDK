@@ -1,4 +1,6 @@
 /*
+ * @(#)FileSystem.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -56,6 +58,14 @@ abstract class FileSystem {
      * pathname.
      */
     public abstract String getDefaultParent();
+
+    /**
+     * Post-process the given URI path string if necessary.  This is used on
+     * win32, e.g., to transform "/c:/foo" into "c:/foo".  The path string
+     * still has slash separators; code in the File class will translate them
+     * after this method returns.
+     */
+    public abstract String fromURIPath(String path);
 
 
     /* -- Path operations -- */

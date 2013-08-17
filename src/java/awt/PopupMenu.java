@@ -1,4 +1,6 @@
 /*
+ * @(#)PopupMenu.java	1.26 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,13 +13,15 @@ import javax.accessibility.*;
 
 /**
  * A class that implements a menu which can be dynamically popped up
- * at a specified position within a component.<p>
- * As the inheritance hierarchy implies, a PopupMenu can be used anywhere
- * a Menu can be used. However, if you use a PopupMenu like a Menu (e.g.,
- * you add it to a MenuBar), then you <b>cannot</b> call <code>show</code>
- * on that PopupMenu.
+ * at a specified position within a component.
+ * <p>
+ * As the inheritance hierarchy implies, a <code>PopupMenu</code>
+ *  can be used anywhere a <code>Menu</code> can be used.
+ * However, if you use a <code>PopupMenu</code> like a <code>Menu</code>
+ * (e.g., you add it to a <code>MenuBar</code>), then you <b>cannot</b>
+ * call <code>show</code> on that <code>PopupMenu</code>.
  *
- * @version	1.25 02/06/02
+ * @version	1.26 12/03/01
  * @author 	Amy Fowler
  */
 public class PopupMenu extends Menu {
@@ -31,24 +35,31 @@ public class PopupMenu extends Menu {
     private static final long serialVersionUID = -4620452533522760060L;
 
     /**
-     * Creates a new popup menu.
+     * Creates a new popup menu with an empty name.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public PopupMenu() {
+    public PopupMenu() throws HeadlessException {
 	this("");
     }
 
     /**
      * Creates a new popup menu with the specified name.
      *
-     * @param label a non-null string specifying the popup menu's label 
+     * @param label a non-<code>null</code> string specifying
+     *                the popup menu's label 
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public PopupMenu(String label) {
+    public PopupMenu(String label) throws HeadlessException {
 	super(label);
     }
 
     /**
-     * Construct a name for this MenuComponent.  Called by getName() when
-     * the name is null.
+     * Constructs a name for this <code>MenuComponent</code>.
+     * Called by <code>getName</code> when the name is <code>null</code>.
      */
     String constructComponentName() {
         synchronized (getClass()) {
@@ -82,18 +93,25 @@ public class PopupMenu extends Menu {
     }
 
    /**
-     * Shows the popup menu at the x, y position relative to an origin component.
+     * Shows the popup menu at the x, y position relative to an origin
+     * component.
      * The origin component must be contained within the component
      * hierarchy of the popup menu's parent.  Both the origin and the parent 
-     * must be showing on the screen for this method to be valid.<p>
-     * If this PopupMenu is being used as a Menu (i.e., it has a non-Component
-     * parent), then you cannot call this method on the PopupMenu.
+     * must be showing on the screen for this method to be valid.
+     * <p>
+     * If this <code>PopupMenu</code> is being used as a <code>Menu</code>
+     * (i.e., it has a non-<code>Component</code> parent),
+     * then you cannot call this method on the <code>PopupMenu</code>.
      * 
      * @param origin the component which defines the coordinate space
      * @param x the x coordinate position to popup the menu
      * @param y the y coordinate position to popup the menu
-     * @exception IllegalArgumentException  if this PopupMenu has a non-
-     *            Component parent
+     * @exception NullPointerException  if the parent is <code>null</code>
+     * @exception IllegalArgumentException  if this <code>PopupMenu</code>
+     *                has a non-<code>Component</code> parent
+     * @exception IllegalArgumentException if the origin is not in the
+     *                parent's heirarchy
+     * @exception RuntimeException if the parent is not showing on screen
      */
     public void show(Component origin, int x, int y) {
         // Use localParent for thread safety.
@@ -132,13 +150,11 @@ public class PopupMenu extends Menu {
 ////////////////
 
     /**
-     * Gets the AccessibleContext associated with this PopupMenu. 
-     * For popup menus, the AccessibleContext takes the form of an 
-     * AccessibleAWTPopupMenu. 
-     * A new AccessibleAWTPopupMenu instance is created if necessary.
+     * Gets the <code>AccessibleContext</code> associated with this
+     * <code>PopupMenu</code>.
      *
-     * @return an AccessibleAWTPopupMenu that serves as the 
-     *         AccessibleContext of this PopupMenu
+     * @return the <code>AccessibleContext</code> of this
+     *                <code>PopupMenu</code>
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -153,9 +169,7 @@ public class PopupMenu extends Menu {
      * application developers, but is instead meant only to be
      * subclassed by menu component developers.
      * <p>
-     * This class implements accessibility support for the 
-     * <code>PopupMenu</code> class.  It provides an implementation of the 
-     * Java Accessibility API appropriate to popup menu user-interface elements.
+     * The class used to obtain the accessible role for this object.
      */
     protected class AccessibleAWTPopupMenu extends AccessibleAWTMenu {
 

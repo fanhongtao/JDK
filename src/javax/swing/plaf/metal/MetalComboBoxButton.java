@@ -1,4 +1,6 @@
 /*
+ * @(#)MetalComboBoxButton.java	1.33 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,13 +20,15 @@ import java.io.Serializable;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @see MetalComboBoxButton
- * @version 1.28 02/06/02
+ * @version 1.33 12/03/01
  * @author Tom Santos
  */
 public class MetalComboBoxButton extends JButton {
@@ -52,6 +56,10 @@ public class MetalComboBoxButton extends JButton {
         };
 
         setModel( model );
+        
+        // Set the background and foreground to the combobox colors.
+        setBackground(UIManager.getColor("ComboBox.background"));
+        setForeground(UIManager.getColor("ComboBox.foreground"));
     }
 
     public MetalComboBoxButton( JComboBox cb, Icon i, 
@@ -62,7 +70,6 @@ public class MetalComboBoxButton extends JButton {
         rendererPane = pane;
         listBox = list;
         setEnabled( comboBox.isEnabled() );
-        setRequestFocusEnabled( comboBox.isEnabled() );
     }
 
     public MetalComboBoxButton( JComboBox cb, Icon i, boolean onlyIcon,
@@ -72,7 +79,7 @@ public class MetalComboBoxButton extends JButton {
     }
 
     public boolean isFocusTraversable() {
-       return (!comboBox.isEditable()) && comboBox.isEnabled();
+	return false;
     }
 
     public void paintComponent( Graphics g ) {
@@ -122,7 +129,7 @@ public class MetalComboBoxButton extends JButton {
             comboIcon.paintIcon( this, g, iconLeft, iconTop );
 
             // Paint the focus
-            if ( hasFocus() ) {
+            if ( comboBox.hasFocus() ) {
                 g.setColor( MetalLookAndFeel.getFocusColor() );
                 g.drawRect( left - 1, top - 1, width + 3, height + 1 );
             }
@@ -159,13 +166,20 @@ public class MetalComboBoxButton extends JButton {
 
 
             int cWidth = width - (insets.right + iconWidth);
+            
+            // Fix for 4238829: should lay out the JPanel.
+            boolean shouldValidate = false;
+            if (c instanceof JPanel)  {
+                shouldValidate = true;
+            }
+            
 	    if (leftToRight) {
 	        rendererPane.paintComponent( g, c, this, 
-					     left, top, cWidth, height );
+					     left, top, cWidth, height, shouldValidate );
 	    }
 	    else {
 	        rendererPane.paintComponent( g, c, this, 
-					     left + iconWidth, top, cWidth, height );
+					     left + iconWidth, top, cWidth, height, shouldValidate );
 	    }
         }
     }

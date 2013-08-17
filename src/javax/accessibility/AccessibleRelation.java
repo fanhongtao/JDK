@@ -1,4 +1,6 @@
 /*
+ * @(#)AccessibleRelation.java	1.8 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,9 +22,7 @@ import java.util.ResourceBundle;
  * for a locale independent key from a predefined ResourceBundle for the 
  * keys defined in this class.
  * <p>The constants in this class present a strongly typed enumeration
- * of common object roles.  A public constructor for this class has been
- * purposely omitted and applications should use one of the constants
- * from this class.  If the constants in this class are not sufficient
+ * of common object roles. If the constants in this class are not sufficient
  * to describe the role of an object, a subclass should be generated
  * from this class and it should provide constants in a similar manner.
  *

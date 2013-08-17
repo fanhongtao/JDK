@@ -1,4 +1,6 @@
 /*
+ * @(#)Point.java	1.34 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,14 +13,14 @@ import java.awt.geom.Point2D;
  * A point representing a location in (x, y) coordinate space, specified
  * in integer precision.
  *
- * @version 	1.29, 02/06/02
+ * @version 	1.34, 12/03/01
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
 public class Point extends Point2D implements java.io.Serializable {
     /**
      * The <i>x</i> coordinate.
-     * If no <i>x</i> coordinate is set it will default to '0'.
+     * If no <i>x</i> coordinate is set it will default to 0.
      *
      * @serial
      * @see #getLocation()
@@ -28,7 +30,7 @@ public class Point extends Point2D implements java.io.Serializable {
 
     /**
      * The <i>y</i> coordinate. 
-     * If no <i>y</i> coordinate is set it will default to '0'.
+     * If no <i>y</i> coordinate is set it will default to 0.
      *
      * @serial
      * @see #getLocation()
@@ -53,7 +55,7 @@ public class Point extends Point2D implements java.io.Serializable {
     /**
      * Constructs and initializes a point with the same location as
      * the specified <code>Point</code> object.
-     * @param       p a point.
+     * @param       p a point
      * @since       JDK1.1
      */
     public Point(Point p) {
@@ -63,8 +65,8 @@ public class Point extends Point2D implements java.io.Serializable {
     /**
      * Constructs and initializes a point at the specified 
      * (<i>x</i>,&nbsp;<i>y</i>) location in the coordinate space. 
-     * @param       x   the <i>x</i> coordinate.
-     * @param       y   the <i>y</i> coordinate.
+     * @param       x   the <i>x</i> coordinate
+     * @param       y   the <i>y</i> coordinate
      */
     public Point(int x, int y) {
 	this.x = x;
@@ -73,6 +75,7 @@ public class Point extends Point2D implements java.io.Serializable {
 
     /**
      * Returns the X coordinate of the point in double precision.
+     * @return the X coordinate of the point in double precision
      */
     public double getX() {
 	return x;
@@ -80,6 +83,7 @@ public class Point extends Point2D implements java.io.Serializable {
 
     /**
      * Returns the Y coordinate of the point in double precision.
+     * @return the Y coordinate of the point in double precision
      */
     public double getY() {
 	return y;
@@ -89,7 +93,7 @@ public class Point extends Point2D implements java.io.Serializable {
      * Returns the location of this point.
      * This method is included for completeness, to parallel the
      * <code>getLocation</code> method of <code>Component</code>.
-     * @return      a copy of this point, at the same location.
+     * @return      a copy of this point, at the same location
      * @see         java.awt.Component#getLocation
      * @see         java.awt.Point#setLocation(java.awt.Point)
      * @see         java.awt.Point#setLocation(int, int)
@@ -100,10 +104,10 @@ public class Point extends Point2D implements java.io.Serializable {
     }	
 
     /**
-     * Sets the location of the point to the specificed location.
+     * Sets the location of the point to the specified location.
      * This method is included for completeness, to parallel the
      * <code>setLocation</code> method of <code>Component</code>.
-     * @param       p  a point, the new location for this point.
+     * @param       p  a point, the new location for this point
      * @see         java.awt.Component#setLocation(java.awt.Point)
      * @see         java.awt.Point#getLocation
      * @since       JDK1.1
@@ -113,13 +117,13 @@ public class Point extends Point2D implements java.io.Serializable {
     }	
 
     /**
-     * Changes the point to have the specificed location.
+     * Changes the point to have the specified location.
      * <p>
      * This method is included for completeness, to parallel the
      * <code>setLocation</code> method of <code>Component</code>.
      * Its behavior is identical with <code>move(int,&nbsp;int)</code>.
-     * @param       x  the <i>x</i> coordinate of the new location.
-     * @param       y  the <i>y</i> coordinate of the new location.
+     * @param       x  the <i>x</i> coordinate of the new location
+     * @param       y  the <i>y</i> coordinate of the new location
      * @see         java.awt.Component#setLocation(int, int)
      * @see         java.awt.Point#getLocation
      * @see         java.awt.Point#move(int, int)
@@ -131,18 +135,27 @@ public class Point extends Point2D implements java.io.Serializable {
 
     /**
      * Sets the location of this point to the specified float coordinates.
+     * The float values will be rounded to integer values.
+     * Any number smaller than <code>Integer.MIN_VALUE</code>
+     * will be reset to <code>MIN_VALUE</code>, and any number
+     * larger than <code>Integer.MAX_VALUE</code> will be
+     * reset to <code>MAX_VALUE</code>.
+     *
+     * @param x the <i>x</i> coordinate of the new location
+     * @param y the <i>y</i> coordinate of the new location
+     * @see #getLocation
      */
     public void setLocation(double x, double y) {
-	this.x = (int) Math.round(x);
-	this.y = (int) Math.round(y);
+	this.x = (int) Math.floor(x+0.5);
+	this.y = (int) Math.floor(y+0.5);
     }
 
     /**
-     * Moves this point to the specificed location in the 
+     * Moves this point to the specified location in the 
      * (<i>x</i>,&nbsp;<i>y</i>) coordinate plane. This method
      * is identical with <code>setLocation(int,&nbsp;int)</code>.
-     * @param       x  the <i>x</i> coordinate of the new location.
-     * @param       y  the <i>y</i> coordinate of the new location.
+     * @param       x  the <i>x</i> coordinate of the new location
+     * @param       y  the <i>y</i> coordinate of the new location
      * @see         java.awt.Component#setLocation(int, int)
      */
     public void move(int x, int y) {
@@ -156,14 +169,14 @@ public class Point extends Point2D implements java.io.Serializable {
      * along the <i>y</i> axis so that it now represents the point 
      * (<code>x</code>&nbsp;<code>+</code>&nbsp;<code>dx</code>, 
      * <code>y</code>&nbsp;<code>+</code>&nbsp;<code>dy</code>). 
-     * @param       x   the distance to move this point 
-     *                            along the <i>x</i> axis.
-     * @param       y    the distance to move this point 
-     *                            along the <i>y</i> axis.
+     * @param       dx   the distance to move this point 
+     *                            along the <i>x</i> axis
+     * @param       dy    the distance to move this point 
+     *                            along the <i>y</i> axis
      */
-    public void translate(int x, int y) {
-	this.x += x;
-	this.y += y;
+    public void translate(int dx, int dy) {
+	this.x += dx;
+	this.y += dy;
     }	
 
     /**
@@ -172,10 +185,10 @@ public class Point extends Point2D implements java.io.Serializable {
      * the values of their <code>x</code> and <code>y</code> member 
      * fields, representing their position in the coordinate space, are
      * the same.
-     * @param      obj   an object to be compared with this point.
+     * @param      obj   an object to be compared with this point
      * @return     <code>true</code> if the object to be compared is
-     *                     an instance of <code>Point2D</code> and has
-     *                     the same values; <code>false</code> otherwise.
+     *                     an instance of <code>Point</code> and has
+     *                     the same values; <code>false</code> otherwise
      */
     public boolean equals(Object obj) {
 	if (obj instanceof Point) {
@@ -192,7 +205,7 @@ public class Point extends Point2D implements java.io.Serializable {
      * and format of the returned string may vary between implementations. 
      * The returned string may be empty but may not be <code>null</code>.
      * 
-     * @return  a string representation of this point.
+     * @return  a string representation of this point
      */
     public String toString() {
 	return getClass().getName() + "[x=" + x + ",y=" + y + "]";

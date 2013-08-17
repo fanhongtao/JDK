@@ -1,4 +1,6 @@
 /*
+ * @(#)CellRendererPane.java	1.36 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,7 +18,7 @@ import javax.accessibility.*;
 /** 
  * This class is inserted in between cell renderers and the components that 
  * use them.  It just exists to thwart the repaint() and invalidate() methods 
- * which would otherwise propogate up the tree when the renderer was configured.
+ * which would otherwise propagate up the tree when the renderer was configured.
  * It's used by the implementations of JTable, JTree, and JList.  For example,
  * here's how CellRendererPane is used in the code the paints each row
  * in a JList:
@@ -33,13 +35,15 @@ import javax.accessibility.*;
  * with isShowing false.  
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.35 02/06/02
+ * @version 1.36 12/03/01
  * @author Hans Muller
  */
 public class CellRendererPane extends Container implements Accessible
@@ -54,7 +58,7 @@ public class CellRendererPane extends Container implements Accessible
     }
 
     /** 
-     * Overridden to avoid propogating a invalidate up the tree when the
+     * Overridden to avoid propagating a invalidate up the tree when the
      * cell renderer child is configured.
      */
     public void invalidate() { }
@@ -89,7 +93,7 @@ public class CellRendererPane extends Container implements Accessible
 
     /** 
      * Paint a cell renderer component c on graphics object g.  Before the component
-     * is drawn it's reparented to this (if that's neccessary), it's bounds 
+     * is drawn it's reparented to this (if that's necessary), it's bounds 
      * are set to w,h and the graphics object is (effectively) translated to x,y.  
      * If it's a JComponent, double buffering is temporarily turned off. After 
      * the component is painted it's bounds are reset to -w, -h, 0, 0 so that, if 
@@ -133,13 +137,8 @@ public class CellRendererPane extends Container implements Accessible
 	    cg.dispose();
 	}
 
-	if ((c instanceof JComponent) && wasDoubleBuffered) {
+	if (wasDoubleBuffered && (c instanceof JComponent)) {
 	    ((JComponent)c).setDoubleBuffered(true);
-	}
-
-	if (c instanceof JComponent) {
-	    JComponent jc = (JComponent)c;
-	    jc.setDoubleBuffered(wasDoubleBuffered);
 	}
 
 	c.setBounds(-w, -h, 0, 0);
@@ -195,7 +194,6 @@ public class CellRendererPane extends Container implements Accessible
      * <code>CellRendererPane</code> class.
      */
     protected class AccessibleCellRendererPane extends AccessibleAWTContainer {
-
         // AccessibleContext methods
         //
         /**
@@ -208,7 +206,6 @@ public class CellRendererPane extends Container implements Accessible
         public AccessibleRole getAccessibleRole() {
 	    return AccessibleRole.PANEL;
         }
-
     } // inner class AccessibleCellRendererPane
 }
 

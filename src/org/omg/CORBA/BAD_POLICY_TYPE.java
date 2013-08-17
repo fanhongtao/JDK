@@ -1,4 +1,6 @@
 /*
+ * @(#)BAD_POLICY_TYPE.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,11 +8,11 @@
 package org.omg.CORBA;
 
 /**
- * BAD_POLICY_TYPE is one of the PolicyErrorCodes which would be filled in
- * the PolicyError exception.
+ * A <tt>PolicyErrorCode</tt> which would be filled in
+ * the <tt>PolicyError</tt> exception.
  *
  * @author rip-dev
- * @version 1.8 02/06/02
+ * @version 1.11 12/03/01
  */
 public interface BAD_POLICY_TYPE {
     /**

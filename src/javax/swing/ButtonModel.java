@@ -1,4 +1,6 @@
 /*
+ * @(#)ButtonModel.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -32,7 +34,7 @@ import javax.swing.event.*;
  * A button is triggered when it is both "armed" and "pressed".
  * </blockquote>
  *
- * @version 1.24 02/06/02
+ * @version 1.24 12/03/01
  * @author Jeff Dinkins
  */
 public interface ButtonModel extends ItemSelectable {

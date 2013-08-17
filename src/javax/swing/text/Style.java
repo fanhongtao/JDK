@@ -1,4 +1,6 @@
 /*
+ * @(#)Style.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,17 +22,18 @@ import java.util.Hashtable;
  * customized attributes that get associated with the element will
  * effectively be name-value pairs that live in a hierarchy and if a name
  * (key) is not found locally, the request is forwarded to the parent.
- * Commonly used attributes are seperated out to facilitate alternative
+ * Commonly used attributes are separated out to facilitate alternative
  * implementations that are more efficient.
  *
  * @author  Timothy Prinzing
- * @version 1.17 02/06/02
+ * @version 1.19 12/03/01
  */
 public interface Style extends MutableAttributeSet {
 
     /**
      * Fetches the name of the style.   A style is not required to be named,
-     * so null is returned if there is no name associated with the style.
+     * so <code>null</code> is returned if there is no name 
+     * associated with the style.
      *
      * @return the name
      */

@@ -1,4 +1,6 @@
 /*
+ * @(#)Number.java	1.27 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,9 @@
 package java.lang;
 
 /**
- * The abstract class <code>Number</code> is the superclass of 
- * classes <code>Byte</code>, <code>Double</code>, <code>Float</code>,
+ * The abstract class <code>Number</code> is the superclass of classes
+ * <code>BigDecimal</code>, <code>BigInteger</code>,
+ * <code>Byte</code>, <code>Double</code>, <code>Float</code>,
  * <code>Integer</code>, <code>Long</code>, and <code>Short</code>.
  * <p>
  * Subclasses of <code>Number</code> must provide methods to convert 
@@ -17,7 +20,7 @@ package java.lang;
  *
  * @author	Lee Boynton
  * @author	Arthur van Hoff
- * @version 1.26, 02/06/02
+ * @version 1.27, 12/03/01
  * @see     java.lang.Byte
  * @see     java.lang.Double
  * @see     java.lang.Float
@@ -29,7 +32,7 @@ package java.lang;
 public abstract class Number implements java.io.Serializable {
     /**
      * Returns the value of the specified number as an <code>int</code>.
-     * This may involve rounding.
+     * This may involve rounding or truncation.
      *
      * @return  the numeric value represented by this object after conversion
      *          to type <code>int</code>.
@@ -38,7 +41,7 @@ public abstract class Number implements java.io.Serializable {
 
     /**
      * Returns the value of the specified number as a <code>long</code>.
-     * This may involve rounding.
+     * This may involve rounding or truncation.
      *
      * @return  the numeric value represented by this object after conversion
      *          to type <code>long</code>.

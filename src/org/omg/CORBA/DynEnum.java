@@ -1,4 +1,6 @@
 /*
+ * @(#)DynEnum.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,7 +8,7 @@
 
 package org.omg.CORBA;
 
-/** The DynEnum interface represents a DynAny object which is associated
+/** Represents a <tt>DynAny</tt> object  associated
  *  with an IDL enum.
  */
 

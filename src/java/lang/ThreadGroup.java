@@ -1,4 +1,6 @@
 /*
+ * @(#)ThreadGroup.java	1.54 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,7 +21,7 @@ import sun.misc.VM;
  * parent thread group or any other thread groups. 
  *
  * @author  unascribed
- * @version 1.52, 02/06/02
+ * @version 1.54, 12/03/01
  * @since   JDK1.0
  */
 /* The locking strategy for this code is to try to lock only one level of the
@@ -197,13 +199,24 @@ class ThreadGroup {
     }
 
     /**
-     * Sets the maximum priority of the group. 
+     * Sets the maximum priority of the group. Threads in the thread 
+     * group that already have a higher priority are not affected. 
      * <p>
      * First, the <code>checkAccess</code> method of this thread group is 
      * called with no arguments; this may result in a security exception. 
      * <p>
-     * Threads in the thread group that already have a higher priority 
-     * are not affected. 
+     * If the <code>pri</code> argument is less than 
+     * {@link Thread#MIN_PRIORITY} or greater than 
+     * {@link Thread#MAX_PRIORITY}, the maximum priority of the group 
+     * remains unchanged.
+     * <p>
+     * Otherwise, the priority of this ThreadGroup object is set to the 
+     * smaller of the specified <code>pri</code> and the maximum permitted 
+     * priority of the parent of this thread group. (If this thread group 
+     * is the system thread group, which has no parent, then its maximum 
+     * priority is simply set to <code>pri</code>.) Then this method is 
+     * called recursively, with <code>pri</code> as its argument, for 
+     * every thread group that belongs to this thread group.
      *
      * @param      pri   the new priority of the thread group.
      * @exception  SecurityException  if the current thread cannot modify

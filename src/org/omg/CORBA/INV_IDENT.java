@@ -1,4 +1,6 @@
 /*
+ * @(#)INV_IDENT.java	1.30 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,10 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>INV_IDENT</code> exception, which is thrown
- * when identifier syntax is invalid.
+ * This exception indicates that an IDL identifier is syntactically 
+ * invalid. It may be raised if, for example, an identifier passed 
+ * to the interface repository does not conform to IDL identifier 
+ * syntax, or if an illegal operation name is used with the DII.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

@@ -1,4 +1,6 @@
 /*
+ * @(#)AbstractList.java	1.35 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -38,7 +40,7 @@ package java.util;
  * collection being implemented admits a more efficient implementation.
  *
  * @author  Josh Bloch
- * @version 1.32, 02/06/02
+ * @version 1.35, 12/03/01
  * @see Collection
  * @see List
  * @see AbstractSequentialList
@@ -289,6 +291,8 @@ public abstract class AbstractList extends AbstractCollection implements List {
      * 
      * @throws IndexOutOfBoundsException index out of range (<tt>index &lt; 0
      *            || index &gt; size()</tt>).
+     *
+     * @throws NullPointerException if the specified collection is null.
      */
     public boolean addAll(int index, Collection c) {
 	boolean modified = false;
@@ -450,17 +454,18 @@ public abstract class AbstractList extends AbstractCollection implements List {
 	    return cursor != 0;
 	}
 
-	public Object previous() {
-	    try {
-		Object previous = get(--cursor);
-		checkForComodification();
-		lastRet = cursor;
-		return previous;
-	    } catch(IndexOutOfBoundsException e) {
-		checkForComodification();
-		throw new NoSuchElementException();
-	    }
-	}
+        public Object previous() {
+            try {
+                int i = cursor - 1;
+                Object previous = get(i);
+                checkForComodification();
+                lastRet = cursor = i;
+                return previous;
+            } catch(IndexOutOfBoundsException e) {
+                checkForComodification();
+                throw new NoSuchElementException();
+            }
+        }
 
 	public int nextIndex() {
 	    return cursor;
@@ -526,7 +531,10 @@ public abstract class AbstractList extends AbstractCollection implements List {
      * <tt>AbstractList</tt>.  The subclass stores, in private fields, the
      * offset of the subList within the backing list, the size of the subList
      * (which can change over its lifetime), and the expected
-     * <tt>modCount</tt> value of the backing list.<p>
+     * <tt>modCount</tt> value of the backing list.  There are two variants
+     * of the subclass, one of which implements <tt>RandomAccess</tt>.
+     * If this list implements <tt>RandomAccess</tt> the returned list will
+     * be an instance of the subclass that implements <tt>RandomAccess</tt>.<p>
      *
      * The subclass's <tt>set(int, Object)</tt>, <tt>get(int)</tt>,
      * <tt>add(int, Object)</tt>, <tt>remove(int)</tt>, <tt>addAll(int,
@@ -554,7 +562,9 @@ public abstract class AbstractList extends AbstractCollection implements List {
      * @throws IllegalArgumentException endpoint indices out of order
      * <tt>(fromIndex &gt; toIndex)</tt> */
     public List subList(int fromIndex, int toIndex) {
-        return new SubList(this, fromIndex, toIndex);
+        return (this instanceof RandomAccess ?
+                new RandomAccessSubList(this, fromIndex, toIndex) :
+                new SubList(this, fromIndex, toIndex));
     }
 
     // Comparison and hashing
@@ -841,3 +851,12 @@ class SubList extends AbstractList {
     }
 }
 
+class RandomAccessSubList extends SubList implements RandomAccess {
+    RandomAccessSubList(AbstractList list, int fromIndex, int toIndex) {
+        super(list, fromIndex, toIndex);
+    }
+
+    public List subList(int fromIndex, int toIndex) {
+        return new RandomAccessSubList(this, fromIndex, toIndex);
+    }
+}

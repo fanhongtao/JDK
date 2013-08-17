@@ -1,4 +1,6 @@
 /*
+ * @(#)INVALID_TRANSACTION.java	1.20 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,10 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>INVALID_TRANSACTION</code> exception, which is thrown
- * when there is a transaction error.
+ * Exception  thrown
+ * when the request carried an invalid transaction context. 
+ * For example, this exception could be raised if an error 
+ * occurred when trying to register a resource.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.
@@ -22,7 +26,7 @@ package org.omg.CORBA;
 public final class INVALID_TRANSACTION extends SystemException {
     /**
      * Constructs an <code>INVALID_TRANSACTION</code> exception with a default minor code
-     * of 0 and a completion state of COMPLETED_MAYBE.
+     * of 0 and a completion state of COMPLETED_NO.
      */
     public INVALID_TRANSACTION() {
 	this("");

@@ -1,4 +1,6 @@
 /*
+ * @(#)DateFormatSymbols.java	1.39 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,9 +23,11 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.io.Serializable;
 import java.lang.ref.SoftReference;
-import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Enumeration;
+import sun.text.Utility;
+import sun.text.resources.LocaleData;
+import java.util.Hashtable;
 
 /**
  * <code>DateFormatSymbols</code> is a public class for encapsulating
@@ -36,7 +40,7 @@ import java.util.Enumeration;
  * Typically you shouldn't use <code>DateFormatSymbols</code> directly.
  * Rather, you are encouraged to create a date-time formatter with the
  * <code>DateFormat</code> class's factory methods: <code>getTimeInstance</code>,
- * <code>getDateInstance</code>, or <code>getDateTimeInstance</code>. 
+ * <code>getDateInstance</code>, or <code>getDateTimeInstance</code>.
  * These methods automatically create a <code>DateFormatSymbols</code> for
  * the formatter so that you don't have to. After the
  * formatter is created, you may modify its format pattern using the
@@ -54,7 +58,7 @@ import java.util.Enumeration;
  * </blockquote>
  *
  * <p>
- * <code>DateFormatSymbols</code> objects are clonable. When you obtain
+ * <code>DateFormatSymbols</code> objects are cloneable. When you obtain
  * a <code>DateFormatSymbols</code> object, feel free to modify the
  * date-time formatting data. For instance, you can replace the localized
  * date-time format pattern characters with the ones that you feel easy
@@ -68,7 +72,7 @@ import java.util.Enumeration;
  * @see          DateFormat
  * @see          SimpleDateFormat
  * @see          java.util.SimpleTimeZone
- * @version      1.33 02/06/02
+ * @version      1.39 12/03/01
  * @author       Chen-Lieh Huang
  */
 public class DateFormatSymbols implements Serializable, Cloneable {
@@ -105,7 +109,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * @serial
      */
     String eras[] = null;
-    
+
     /**
      * Month strings. For example: "January", "February", etc.  An array
      * of 13 strings (some calendars have 13 months), indexed by
@@ -113,7 +117,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * @serial
      */
     String months[] = null;
-    
+
     /**
      * Short month strings. For example: "Jan", "Feb", etc.  An array of
      * 13 strings (some calendars have 13 months), indexed by
@@ -122,7 +126,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * @serial
      */
     String shortMonths[] = null;
-    
+
     /**
      * Weekday strings. For example: "Sunday", "Monday", etc.  An array
      * of 8 strings, indexed by <code>Calendar.SUNDAY</code>,
@@ -131,7 +135,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * @serial
      */
     String weekdays[] = null;
-    
+
     /**
      * Short weekday strings. For example: "Sun", "Mon", etc.  An array
      * of 8 strings, indexed by <code>Calendar.SUNDAY</code>,
@@ -140,7 +144,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * @serial
      */
     String shortWeekdays[] = null;
-    
+
     /**
      * AM and PM strings. For example: "AM" and "PM".  An array of
      * 2 strings, indexed by <code>Calendar.AM</code> and
@@ -148,7 +152,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * @serial
      */
     String ampms[] = null;
-    
+
     /**
      * Localized names of time zones in this locale.  This is a
      * two-dimensional array of strings of size <em>n</em> by <em>m</em>,
@@ -171,18 +175,17 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * value associated with a system time zone object.  All other entries
      * are localized names.  If a zone does not implement daylight savings
      * time, the daylight savings time names are ignored.
-     * @see java.text.resources.DateFormatZoneData
      * @see java.util.TimeZone
      * @serial
      */
     String zoneStrings[][] = null;
-    
+
     /**
      * Unlocalized date-time pattern characters. For example: 'y', 'd', etc.
      * All locales use the same these unlocalized pattern characters.
      */
-    static final String  patternChars = "GyMdkHmsSEDFwWahKz";
-    
+    static final String  patternChars = "GyMdkHmsSEDFwWahKzZ";
+
     /**
      * Localized date-time pattern characters. For example, a locale may
      * wish to use 'u' rather than 'y' to represent years in its date format
@@ -194,7 +197,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * @serial
      */
     String  localPatternChars = null;
-   
+
     /* use serialVersionUID from JDK 1.1.4 for interoperability */
     static final long serialVersionUID = -5987973545549424702L;
 
@@ -286,7 +289,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
 
     /**
      * Gets ampm strings. For example: "AM" and "PM".
-     * @return the weekday strings.
+     * @return the ampm strings.
      */
     public String[] getAmPmStrings() {
         return duplicate(ampms);
@@ -390,7 +393,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * Useful constant for defining timezone offsets.
      */
     static final int millisPerHour = 60*60*1000;
-    
+
     /**
      * Cache to hold the LocaleElements and DateFormatZoneData ResourceBundles
      * of a Locale.
@@ -402,85 +405,74 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      */
     private static Hashtable cachedZoneData = new Hashtable();
 
-    /* Utility methods for fetching resource bundles */
-    private ResourceBundle getLocaleElements(Locale desiredLocale) {
-    return ResourceBundle.getBundle("java.text.resources.LocaleElements",
-                    desiredLocale);
-    }
-
-    private ResourceBundle getZoneData(Locale desiredLocale) {
-    return ResourceBundle.getBundle("java.text.resources.DateFormatZoneData",
-                    desiredLocale);
-    }
-
     /**
      * Look up resource data for the desiredLocale in the cache; update the
      * cache if necessary.
      */
     private ResourceBundle[] cacheLookup(Locale desiredLocale) {
-	ResourceBundle[] rbs = new ResourceBundle[2];
-	SoftReference[] data
-	    = (SoftReference[])cachedLocaleData.get(desiredLocale);
-	if (data == null) {
-	    rbs[0] = getLocaleElements(desiredLocale);
-	    rbs[1] = getZoneData(desiredLocale);
-	    data = new SoftReference[] { new SoftReference(rbs[0]),
-					     new SoftReference(rbs[1]) };
-	    cachedLocaleData.put(desiredLocale, data);
-	} else {
-	    ResourceBundle r;
-	    if ((r = (ResourceBundle)data[0].get()) == null) {
-		r = getLocaleElements(desiredLocale);
-		data[0] = new SoftReference(r);
-	    }
-	    rbs[0] = r;
-	    if ((r = (ResourceBundle)data[1].get()) == null) {
-		r = getZoneData(desiredLocale);
-		data[1] = new SoftReference(r);
-	    }
-	    rbs[1] = r;
-	}
-	return rbs;
+    ResourceBundle[] rbs = new ResourceBundle[2];
+    SoftReference[] data
+        = (SoftReference[])cachedLocaleData.get(desiredLocale);
+    if (data == null) {
+        rbs[0] = LocaleData.getLocaleElements(desiredLocale);
+        rbs[1] = LocaleData.getDateFormatZoneData(desiredLocale);
+        data = new SoftReference[] { new SoftReference(rbs[0]),
+                         new SoftReference(rbs[1]) };
+        cachedLocaleData.put(desiredLocale, data);
+    } else {
+        ResourceBundle r;
+        if ((r = (ResourceBundle)data[0].get()) == null) {
+        r = LocaleData.getLocaleElements(desiredLocale);
+        data[0] = new SoftReference(r);
+        }
+        rbs[0] = r;
+        if ((r = (ResourceBundle)data[1].get()) == null) {
+        r = LocaleData.getDateFormatZoneData(desiredLocale);
+        data[1] = new SoftReference(r);
+        }
+        rbs[1] = r;
+    }
+    return rbs;
     }
 
     /**
      * Load time zone localized strings. Enumerate all keys (except
      * "localPatternChars" and "zoneStrings").
      */
-    private String[][] loadZoneStrings(Locale desiredLocale, 
-				       ResourceBundle rsrc) 
+    private String[][] loadZoneStrings(Locale desiredLocale,
+                       ResourceBundle rsrc)
     {
-	String[][] zones;
-	SoftReference data = (SoftReference)cachedZoneData.get(desiredLocale);
-	if (data == null || ((zones = (String[][])data.get()) == null)) {
-	    Vector vec = new Vector();
-	    Enumeration keys = rsrc.getKeys();
-	    while(keys.hasMoreElements()) {
-		String key = (String)keys.nextElement();
-		if (!key.equals("localPatternChars") && 
-		    !key.equals("zoneStrings")) {
-		    vec.add(rsrc.getObject(key));
-		}
-	    }
-	    zones = new String[vec.size()][];
-	    vec.toArray(zones);
-	    data = new SoftReference(zones);
-	    cachedZoneData.put(desiredLocale, data);
-	} 
-	return zones;
+    String[][] zones;
+    SoftReference data = (SoftReference)cachedZoneData.get(desiredLocale);
+    if (data == null || ((zones = (String[][])data.get()) == null)) {
+        Vector vec = new Vector();
+        Enumeration keys = rsrc.getKeys();
+        while(keys.hasMoreElements()) {
+        String key = (String)keys.nextElement();
+        if (!key.equals("localPatternChars") &&
+            !key.equals("zoneStrings")) {
+            vec.add(rsrc.getObject(key));
+        }
+        }
+        zones = new String[vec.size()][];
+        vec.toArray(zones);
+        data = new SoftReference(zones);
+        cachedZoneData.put(desiredLocale, data);
+    }
+    return zones;
     }
 
     private void initializeData(Locale desiredLocale)
     {
-	int i;
-	ResourceBundle[] rbs = cacheLookup(desiredLocale);
-	ResourceBundle resource = rbs[0];
-	ResourceBundle zoneResource = rbs[1];
+    int i;
+    ResourceBundle[] rbs = cacheLookup(desiredLocale);
+    ResourceBundle resource = rbs[0];
+    ResourceBundle zoneResource = rbs[1];
 
-	// FIXME: cache only ResourceBundle. Hence every time, will do
-	// getObject(). This won't be necessary if the Resource itself
-	// is cached.
-	eras = (String[])resource.getObject("Eras");
+    // FIXME: cache only ResourceBundle. Hence every time, will do
+    // getObject(). This won't be necessary if the Resource itself
+    // is cached.
+    eras = (String[])resource.getObject("Eras");
         months = resource.getStringArray("MonthNames");
         shortMonths = resource.getStringArray("MonthAbbreviations");
         String[] lWeekdays = resource.getStringArray("DayNames");
@@ -494,8 +486,8 @@ public class DateFormatSymbols implements Serializable, Cloneable {
         for (i=0; i<sWeekdays.length; i++)
             shortWeekdays[i+1] = sWeekdays[i];
         ampms = resource.getStringArray("AmPmMarkers");
-	zoneStrings = (String[][])loadZoneStrings(desiredLocale, 
-						  zoneResource);
+    zoneStrings = (String[][])loadZoneStrings(desiredLocale,
+                          zoneResource);
         localPatternChars
             = (String) zoneResource.getObject("localPatternChars");
     }

@@ -1,4 +1,6 @@
 /*
+ * @(#)MetalInternalFrameTitlePane.java	1.49 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,7 +20,7 @@ import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 
 /**
  * Class that manages a JLF title bar
- * @version 1.40 02/06/02
+ * @version 1.49 12/03/01
  * @author Steve Wilson
  * @author Brian Beck
  * @since 1.3
@@ -31,6 +33,27 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
     protected int paletteTitleHeight;
 
     private static final Border handyEmptyBorder = new EmptyBorder(0,0,0,0);
+
+    /**
+     * Key used to lookup Color from UIManager. If this is null,
+     * <code>getWindowTitleBackground</code> is used.
+     */
+    private String selectedBackgroundKey;
+    /**
+     * Key used to lookup Color from UIManager. If this is null,
+     * <code>getWindowTitleForeground</code> is used.
+     */
+    private String selectedForegroundKey;
+    /**
+     * Key used to lookup shadow color from UIManager. If this is null,
+     * <code>getPrimaryControlDarkShadow</code> is used.
+     */
+    private String selectedShadowKey;
+    /**
+     * Boolean indicating the state of the <code>JInternalFrame</code>s
+     * closable property at <code>updateUI</code> time.
+     */
+    private boolean wasClosable;
 
     int buttonsWidth = 0;	
     
@@ -46,19 +69,41 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
                           MetalLookAndFeel.getControl() );
     MetalBumps paletteBumps;
 
+    private Color activeBumpsHighlight = MetalLookAndFeel.
+                             getPrimaryControlHighlight();
+    private Color activeBumpsShadow = MetalLookAndFeel.
+                             getPrimaryControlDarkShadow();
 					    
     public MetalInternalFrameTitlePane(JInternalFrame f) {
         super( f );
     }
 
+    public void addNotify() {
+        super.addNotify();
+        // This is done here instead of in installDefaults as I was worried
+        // that the BasicInternalFrameUI might not be fully initialized, and
+        // that if this resets the closable state the BasicInternalFrameUI
+        // Listeners that get notified might be in an odd/uninitialized state.
+        updateOptionPaneState();
+    }
+
     protected void installDefaults() {
         super.installDefaults();
-        setFont( UIManager.getFont("InternalFrame.font") );
+        setFont( UIManager.getFont("InternalFrame.titleFont") );
         paletteTitleHeight
             = UIManager.getInt("InternalFrame.paletteTitleHeight");
         paletteCloseIcon = UIManager.getIcon("InternalFrame.paletteCloseIcon");
+        wasClosable = frame.isClosable();
+        selectedForegroundKey = selectedBackgroundKey = null;
     }
     
+    protected void uninstallDefaults() {
+        super.uninstallDefaults();
+        if (wasClosable != frame.isClosable()) {
+            frame.setClosable(wasClosable);
+        }
+    }
+
     protected void createButtons() {
         super.createButtons();
 
@@ -72,14 +117,12 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
         maxButton.putClientProperty("paintActive", paintActive);
         maxButton.setBorder(handyEmptyBorder);
         maxButton.getAccessibleContext().setAccessibleName(
-            UIManager.getString(
-                "InternalFrameTitlePane.maximizeButtonAccessibleName"));
+            UIManager.getString("InternalFrameTitlePane.maximizeButtonAccessibleName"));
         
         closeButton.putClientProperty("paintActive", paintActive);
         closeButton.setBorder(handyEmptyBorder);
         closeButton.getAccessibleContext().setAccessibleName(
-            UIManager.getString(
-                "InternalFrameTitlePane.closeButtonAccessibleName"));
+            UIManager.getString("InternalFrameTitlePane.closeButtonAccessibleName"));
 
         // The palette close icon isn't opaque while the regular close icon is.
         // This makes sure palette close buttons have the right background.
@@ -116,15 +159,6 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
         return new MetalTitlePaneLayout();
     }
 
-    /*
-     * These accessors allow our inner classes to get at member variables
-     * they couldn't otherwise access.  This work's around a javac bug.
-     */
-    private JInternalFrame getFrame() { return frame; }
-    private JButton getIconButton() { return iconButton; }
-    private JButton getCloseButton() { return closeButton; }
-    private JButton getMaxButton() { return maxButton; }
-
     class MetalPropertyChangeHandler
         extends BasicInternalFrameTitlePane.PropertyChangeHandler
     {
@@ -132,51 +166,73 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
 	    String prop = (String)evt.getPropertyName();
             if( prop.equals(JInternalFrame.IS_SELECTED_PROPERTY) ) {
                 Boolean b = (Boolean)evt.getNewValue();
-                getIconButton().putClientProperty("paintActive", b);
-                getCloseButton().putClientProperty("paintActive", b);
-                getMaxButton().putClientProperty("paintActive", b);
-                repaint();
+                iconButton.putClientProperty("paintActive", b);
+                closeButton.putClientProperty("paintActive", b);
+                maxButton.putClientProperty("paintActive", b);
+            }
+            else if ("JInternalFrame.messageType".equals(prop)) {
+                updateOptionPaneState();
+                frame.repaint();
             }
             super.propertyChange(evt);
         }
     }
 
-    class MetalTitlePaneLayout implements LayoutManager {    
+    class MetalTitlePaneLayout extends TitlePaneLayout {    
         public void addLayoutComponent(String name, Component c) {}
         public void removeLayoutComponent(Component c) {}   
         public Dimension preferredLayoutSize(Container c)  {
-            return getPreferredSize(c);
+            return minimumLayoutSize(c);
         }
 
-        public Dimension getPreferredSize(Container c)  {
-            return new Dimension(c.getSize().width, computeHeight());
-        }
-        
         public Dimension minimumLayoutSize(Container c) {
-            return preferredLayoutSize(c);
+            // Compute width.
+            int width = 30;
+            if (frame.isClosable()) {
+                width += 21;
+            }
+            if (frame.isMaximizable()) {
+                width += 16 + (frame.isClosable() ? 10 : 4);
+            }
+            if (frame.isIconifiable()) {
+                width += 16 + (frame.isMaximizable() ? 2 :
+                    (frame.isClosable() ? 10 : 4));
+            }
+            FontMetrics fm = getFontMetrics(getFont());
+            String frameTitle = frame.getTitle();
+            int title_w = frameTitle != null ? fm.stringWidth(frameTitle) : 0;
+            int title_length = frameTitle != null ? frameTitle.length() : 0;
+
+            if (title_length > 2) {
+                int subtitle_w =
+                    fm.stringWidth(frame.getTitle().substring(0, 2) + "...");
+                width += (title_w < subtitle_w) ? title_w : subtitle_w;
+            }
+            else {
+                width += title_w;
+            }
+
+            // Compute height.
+            int height = 0;
+            if (isPalette) {
+                height = paletteTitleHeight;
+            } else {
+                int fontHeight = fm.getHeight();
+                fontHeight += 7;
+                Icon icon = frame.getFrameIcon();
+                int iconHeight = 0;
+                if (icon != null) {
+                    // SystemMenuBar forces the icon to be 16x16 or less.
+                    iconHeight = Math.min(icon.getIconHeight(), 16);
+                }
+                iconHeight += 5;
+                height = Math.max(fontHeight, iconHeight);
+            }
+
+            return new Dimension(width, height);
         } 
     
-        protected int computeHeight() {      
-            if ( isPalette ) {
-                return paletteTitleHeight;
-            }
-	  
-            FontMetrics fm 
-                = Toolkit.getDefaultToolkit().getFontMetrics(getFont());
-            int fontHeight = fm.getHeight();
-            fontHeight += 7;
-            Icon icon = getFrame().getFrameIcon();
-            int iconHeight = 0;
-            if (icon != null) iconHeight = icon.getIconHeight();
-            iconHeight += 5;
-      
-            int finalHeight = Math.max( fontHeight, iconHeight );
-
-            return finalHeight;
-        }	
-				    
         public void layoutContainer(Container c) {
-            JInternalFrame frame = getFrame();
             boolean leftToRight = MetalUtils.isLeftToRight(frame);
        
             int w = getWidth();
@@ -186,7 +242,6 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
       
             // assumes all buttons have the same dimensions
             // these dimensions include the borders
-            JButton closeButton = getCloseButton();
             int buttonHeight = closeButton.getIcon().getIconHeight(); 
             int buttonWidth = closeButton.getIcon().getIconWidth();
 
@@ -205,7 +260,6 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
             }
 
             if(frame.isMaximizable() && !isPalette ) {
-                JButton maxButton = getMaxButton();
                 spacing = frame.isClosable() ? 10 : 4;
                 x += leftToRight ? -spacing -buttonWidth : spacing;
                 maxButton.setBounds(x, y, buttonWidth, buttonHeight);
@@ -213,7 +267,6 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
             } 
         
             if(frame.isIconifiable() && !isPalette ) {
-                JButton iconButton = getIconButton();
                 spacing = frame.isMaximizable() ? 2
                           : (frame.isClosable() ? 10 : 4);
                 x += leftToRight ? -spacing -buttonWidth : spacing;
@@ -267,28 +320,45 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
         int width = getWidth();
         int height = getHeight();
     
-        Color background;
-        Color foreground;
-        Color darkShadow;
+        Color background = null;
+        Color foreground = null;
+        Color shadow = null;
 
         MetalBumps bumps;
 
         if (isSelected) {
-            background = MetalLookAndFeel.getWindowTitleBackground();
-            foreground = MetalLookAndFeel.getWindowTitleForeground();
-            darkShadow = MetalLookAndFeel.getPrimaryControlDarkShadow();
+            if (selectedBackgroundKey != null) {
+                background = UIManager.getColor(selectedBackgroundKey);
+            }
+            if (background == null) {
+                background = MetalLookAndFeel.getWindowTitleBackground();
+            }
+            if (selectedForegroundKey != null) {
+                foreground = UIManager.getColor(selectedForegroundKey);
+            }
+            if (selectedShadowKey != null) {
+                shadow = UIManager.getColor(selectedShadowKey);
+            }
+            if (shadow == null) {
+                shadow = MetalLookAndFeel.getPrimaryControlDarkShadow();
+            }
+            if (foreground == null) {
+                foreground = MetalLookAndFeel.getWindowTitleForeground();
+            }
+            activeBumps.setBumpColors(activeBumpsHighlight, activeBumpsShadow,
+                                      background);
             bumps = activeBumps;
         } else {
             background = MetalLookAndFeel.getWindowTitleInactiveBackground();
             foreground = MetalLookAndFeel.getWindowTitleInactiveForeground();
-            darkShadow = MetalLookAndFeel.getControlDarkShadow();
+            shadow = MetalLookAndFeel.getControlDarkShadow();
             bumps = inactiveBumps;
         }
 
         g.setColor(background);
         g.fillRect(0, 0, width, height);
 
-        g.setColor( darkShadow );
+        g.setColor( shadow );
         g.drawLine ( 0, height - 1, width, height -1);
         g.drawLine ( 0, 0, 0 ,0);    
         g.drawLine ( width - 1, 0 , width -1, 0);
@@ -312,13 +382,30 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
             g.setFont(f);
             FontMetrics fm = g.getFontMetrics();
             int fHeight = fm.getHeight();
-            titleLength = fm.stringWidth(frameTitle);
 
             g.setColor(foreground);
 
             int yOffset = ( (height - fm.getHeight() ) / 2 ) + fm.getAscent();
-            if( !leftToRight )
-                xOffset -= titleLength;
+
+            Rectangle rect = new Rectangle(0, 0, 0, 0);
+            if (frame.isIconifiable()) { rect = iconButton.getBounds(); }
+            else if (frame.isMaximizable()) { rect = maxButton.getBounds(); }
+            else if (frame.isClosable()) { rect = closeButton.getBounds(); }
+            int titleW;
+
+            if( leftToRight ) {
+              if (rect.x == 0) {
+		rect.x = frame.getWidth()-frame.getInsets().right-2;
+	      }
+              titleW = rect.x - xOffset - 4;
+              frameTitle = getTitle(frameTitle, fm, titleW);
+            } else {
+              titleW = xOffset - rect.x - rect.width - 4;
+              frameTitle = getTitle(frameTitle, fm, titleW);
+              xOffset -= SwingUtilities.computeStringWidth(fm, frameTitle);
+            }
+
+            titleLength = SwingUtilities.computeStringWidth(fm, frameTitle);
             g.drawString( frameTitle, xOffset, yOffset );
             xOffset += leftToRight ? titleLength + 5  : -5;
         }
@@ -326,7 +413,7 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
         int bumpXOffset;
         int bumpLength;
         if( leftToRight ) {
-            bumpLength = width - buttonsWidth - xOffset -5;
+            bumpLength = width - buttonsWidth - xOffset - 5;
             bumpXOffset = xOffset;
         } else {
             bumpLength = xOffset - buttonsWidth - 5;
@@ -357,4 +444,62 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
 	revalidate();
 	repaint();
     }		     
+
+    /**
+     * Updates any state dependant upon the JInternalFrame being shown in
+     * a <code>JOptionPane</code>.
+     */
+    private void updateOptionPaneState() {
+        int type = -2;
+        boolean closable = wasClosable;
+        Object obj = frame.getClientProperty("JInternalFrame.messageType");
+
+        if (obj == null) {
+            // Don't change the closable state unless in an JOptionPane.
+            return;
+        }
+        if (obj instanceof Integer) {
+            type = ((Integer) obj).intValue();
+        }
+        switch (type) {
+        case JOptionPane.ERROR_MESSAGE:
+            selectedBackgroundKey =
+                              "OptionPane.errorDialog.titlePane.background";
+            selectedForegroundKey =
+                              "OptionPane.errorDialog.titlePane.foreground";
+            selectedShadowKey = "OptionPane.errorDialog.titlePane.shadow";
+            closable = false;
+            break;
+        case JOptionPane.QUESTION_MESSAGE:
+            selectedBackgroundKey =
+                            "OptionPane.questionDialog.titlePane.background";
+            selectedForegroundKey =
+                    "OptionPane.questionDialog.titlePane.foreground";
+            selectedShadowKey =
+                          "OptionPane.questionDialog.titlePane.shadow";
+            closable = false;
+            break;
+        case JOptionPane.WARNING_MESSAGE:
+            selectedBackgroundKey =
+                              "OptionPane.warningDialog.titlePane.background";
+            selectedForegroundKey =
+                              "OptionPane.warningDialog.titlePane.foreground";
+            selectedShadowKey = "OptionPane.warningDialog.titlePane.shadow";
+            closable = false;
+            break;
+        case JOptionPane.INFORMATION_MESSAGE:
+        case JOptionPane.PLAIN_MESSAGE:
+            selectedBackgroundKey = selectedForegroundKey = selectedShadowKey =
+                                    null;
+            closable = false;
+            break;
+        default:
+            selectedBackgroundKey = selectedForegroundKey = selectedShadowKey =
+                                    null;
+            break;
+        }
+        if (closable != frame.isClosable()) {
+            frame.setClosable(closable);
+        }
+    }
 }  

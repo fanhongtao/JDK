@@ -1,4 +1,6 @@
 /*
+ * @(#)CharArrayReader.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,7 +12,7 @@ package java.io;
  * character-input stream.
  *
  * @author	Herb Jellinek
- * @version 	1.16, 02/06/02
+ * @version 	1.17, 12/03/01
  * @since       JDK1.1
  */
 public
@@ -24,7 +26,10 @@ class CharArrayReader extends Reader {
     /** The position of mark in buffer. */
     protected int markedPos = 0;
 
-    /** The number of valid characters in the buffer. */
+    /** 
+     *  The index of the end of this buffer.  There is not valid
+     *  data at or beyond this index.
+     */
     protected int count;
 
     /**

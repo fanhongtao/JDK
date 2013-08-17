@@ -1,4 +1,6 @@
 /*
+ * @(#)Security.java	1.114 01/12/20
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,23 +10,28 @@ package java.security;
 import java.lang.reflect.*;
 import java.util.*;
 import java.io.*;
+import java.net.URL;
 import java.security.InvalidParameterException;
+import sun.security.util.Debug;
+import sun.security.util.PropertyExpander;
 
 /**
  * <p>This class centralizes all security properties and common security
  * methods. One of its primary uses is to manage providers.
  *
  * @author Benjamin Renaud
- * @version 1.102, 02/06/02
+ * @version 1.114, 12/20/01
  */
 
 public final class Security {
 
     // Do providers need to be reloaded?
-    private static boolean reloadProviders = false;
+    private static boolean reloadProviders = true;
 
     /* Are we debugging? -- for developers */
     static final boolean debug = false;
+    private static final Debug sdebug =
+			Debug.getInstance("properties");
 
     /* Are we displaying errors? -- for users */
     static final boolean error = true;
@@ -44,11 +51,29 @@ public final class Security {
     // Where we cache search results
     private static Hashtable searchResultsCache;
 
+    // providers currently attempting to be loaded
+    private static Hashtable providerLoads;
+
     // An element in the cache
     private static class ProviderProperty {
 	String className;
 	Provider provider;
     }
+
+    // Number of statically registered security providers. No duplicates.
+    private static int numOfStaticProviders = 0;
+
+    /* A vector of statically registered providers' master class names,
+     * in order of priority. No duplicates.
+     */
+    private static Vector providerMasterClassNames = new Vector(6);
+
+    // Index for the vector providerMasterClassNames.
+    // It points to the next provider which we should try to load.
+    private static int indexStaticProviders = 0;
+
+    // Does the indexStaticProviders need to be reset?
+    private static boolean resetProviderIndex = false;
 
     static {
 	// doPrivileged here because there are multiple
@@ -69,25 +94,103 @@ public final class Security {
 	providerPropertiesCache = new Hashtable();
 	engineCache = new Hashtable();
 	searchResultsCache = new Hashtable(5);
+	providerLoads = new Hashtable(1);
+	boolean loadedProps = false;
+	boolean overrideAll = false;
 
+	// first load the system properties file
+	// to determine the value of security.overridePropertiesFile
 	File propFile = securityPropFile("java.security");
-	if (!propFile.exists()) {
-	    System.err.println
-		("security properties not found. using defaults.");
-	    initializeStatic();
-	} else {
+	if (propFile.exists()) {
 	    try {
-		FileInputStream is = new FileInputStream(propFile);
-		// Inputstream has been buffered in Properties class
+		FileInputStream fis = new FileInputStream(propFile);
+		InputStream is = new BufferedInputStream(fis);
 		props.load(is);
 		is.close();
+		loadedProps = true;
+
+		if (sdebug != null) {
+		    sdebug.println("reading security properties file: " +
+				propFile);
+		}
 	    } catch (IOException e) {
-		error("could not load security properties file from " +
-		      propFile + ". using defaults.");
-		initializeStatic();
+		if (sdebug != null) {
+		    sdebug.println("unable to load security properties from " +
+				propFile);
+		    e.printStackTrace();
+		}
 	    }
 	}
-	loadProviders();
+
+	if ("true".equalsIgnoreCase(props.getProperty
+		("security.overridePropertiesFile"))) {
+
+	    String extraPropFile = System.getProperty
+					("java.security.properties");
+	    if (extraPropFile != null && extraPropFile.startsWith("=")) {
+		overrideAll = true;
+		extraPropFile = extraPropFile.substring(1);
+	    }
+
+	    if (overrideAll) {
+		props = new Properties();
+		if (sdebug != null) {
+		    sdebug.println
+			("overriding other security properties files!");
+		}
+	    }
+
+	    // now load the user-specified file so its values
+	    // will win if they conflict with the earlier values
+	    if (extraPropFile != null) {
+		try {
+		    URL propURL;
+
+		    extraPropFile = PropertyExpander.expand(extraPropFile);
+		    propFile = new File(extraPropFile);
+		    if (propFile.exists()) {
+			propURL = new URL
+				("file:" + propFile.getCanonicalPath());
+		    } else {
+			propURL = new URL(extraPropFile);
+		    }
+		    BufferedInputStream bis = new BufferedInputStream
+					(propURL.openStream());
+		    props.load(bis);
+		    bis.close();
+		    loadedProps = true;
+
+		    if (sdebug != null) {
+			sdebug.println("reading security properties file: " +
+					propURL);
+			if (overrideAll) {
+			    sdebug.println
+				("overriding other security properties files!");
+			}
+		    }
+		} catch (Exception e) {
+		    if (sdebug != null) {
+			sdebug.println
+				("unable to load security properties from " +
+				extraPropFile);
+			e.printStackTrace();
+		    }
+		}
+	    }
+	}
+
+	if (!loadedProps) {
+	    initializeStatic();
+	    if (sdebug != null) {
+		sdebug.println("unable to load security properties " +
+			"-- using defaults");
+	    }
+	}
+
+	// Not loading providers here. Just counts how many providers
+	// are statically registered. This reduces the startup 
+	// footprint.
+	countProviders();
     }
 
     /* 
@@ -115,66 +218,155 @@ public final class Security {
      * The order determines the default search order when looking for 
      * an algorithm.
      */
-    private static synchronized void loadProviders() {
+    private static synchronized void countProviders() {
 
 	int i = 1;
-	sun.misc.Launcher l = sun.misc.Launcher.getLauncher();
 
 	while (true) {
-	    String name = props.getProperty("security.provider." + i++);
+	    String name = props.getProperty("security.provider." + i);
 	    if (name == null) {
 		break;
 	    } else {
-		Provider prov = Provider.loadProvider(name.trim());
-		if (prov != null) {
-		    /* This must manipulate the datastructure
-		       directly, because going through addProviders
-		       causes a security check to happen, which
-		       sometimes will cause the security
-		       initialization to fail with bad
-		       consequences. */
-		    providers.addElement(prov);
-		} else if (l == null) {
-		    reloadProviders = true;
+		String fullClassName = name.trim();
+		if (fullClassName.length() == 0) {
+		    System.err.println("invalid entry for " +
+				       "security.provider." + i);
+		    break;
+		} else {
+		    // Get rid of duplicate providers.
+		    if (!providerMasterClassNames.contains(fullClassName)) {
+			providerMasterClassNames.add(fullClassName);
+		    }
+		    i++;
 		}
-	    }
+	    }		   
 	}
+	
+	// Get the number of statically registered providers.
+	numOfStaticProviders = providerMasterClassNames.size();
+ 
     }
 
     /*
      * Reload the providers (provided as extensions) that could not be loaded 
-     * (because there was no system class loader available).when this class
+     * (because there was no system class loader available) when this class
      * was initialized.
      */
     private static synchronized void reloadProviders() {
 	if (reloadProviders) {
 	    sun.misc.Launcher l = sun.misc.Launcher.getLauncher();
 	    if (l != null) {
-		reloadProviders = false;
-		providers.removeAllElements();
-		int i = 1;
-		while (true) {
-		    final String name =
-			props.getProperty("security.provider." + i++);
-		    if (name == null) {
-			break;
-		    } else {
+		synchronized (Security.class) {		     
+		    reloadProviders = false;
+		    // We don't want loadOneMoreProvider() to do
+		    // anything from now on since this method will 
+		    // load all static providers.
+		    indexStaticProviders = numOfStaticProviders;
+		    resetProviderIndex = false;
+		    providers.removeAllElements();
+		    // i is an index for the vector 
+		    // providerMasterClassNames. So it starts from 0.
+		    int i = 0;
+		    while (i < numOfStaticProviders) {
+			final String name =
+			    (String)providerMasterClassNames.elementAt(i);
+			i++;			     
 			Provider prov =
 			    (Provider)AccessController.doPrivileged(
-   				            new PrivilegedAction() {
+					    new PrivilegedAction() {
 				public Object run() { 
-				    return Provider.loadProvider(name.trim());
+				    return Provider.loadProvider(name);
 				}
 			    });
 			if (prov != null) {
 			    providers.addElement(prov);
 			}
 		    }
+		    // empty provider-property cache
+		    providerPropertiesCache.clear();
+		    engineCache.clear();
+		    searchResultsCache.clear();
 		}
+	    }
+	}
+    }
+
+    /**
+     * Try our best to load one more statically registered provider.
+     * This is used by getEngineClassName(String algName, String engineType).
+     */
+    private static synchronized void loadOneMoreProvider() {
+	sun.misc.Launcher l = sun.misc.Launcher.getLauncher();
+	/* 
+	 * Even if the launcher l is null, we still want to
+	 * load providers if we can. See bug 4418903.
+	 * When we first see that the launcher isn't null, we
+	 * could be in one of the following situations:
+	 * a) some providers were loaded out of the priority order.
+	 *    For example, 6 providers are statically configured, and
+	 *    provider 2 and 4 are loaded. The field resetProviderIndex
+	 *    should be "true". So we can try to load providers
+	 *    according to the priority order when the launcher isn't null.
+	 * b) some providers were loaded, but not out of order.
+	 *    For example, 6 providers are statically configured, and
+	 *    provider 1 and 2 are loaded. The field resetProviderIndex
+	 *    should be "false". So we just try to load the next
+	 *    provider whose index is indexStaticProviders.
+	 * c) no providers were loaded. The field resetProviderIndex
+	 *    should be "false". So we just try to load the first
+	 *    provider. Note: indexStaticProviders is 0 in this case.
+	 */
+
+	if (indexStaticProviders >= numOfStaticProviders) {
+	    return;
+	}
+
+	Provider prov = null;
+
+	while (indexStaticProviders < numOfStaticProviders) {
+	    final String name = (String)providerMasterClassNames.elementAt(
+				     indexStaticProviders);
+
+	    // determine if the loadProvider call below is looping.
+	    // this may occur if the provider to be loaded is signed.
+	    // if looping, simply return
+	    if (providerLoads.get(name) != null) {
+		return;
+	    } else {
+		providerLoads.put(name, name);
+	    }
+
+	    prov = (Provider)AccessController.doPrivileged(
+			                 new PrivilegedAction() {
+		public Object run() {
+		    return Provider.loadProvider(name);
+		}
+	    });
+
+	    // indexStaticProviders points to the next provider we
+	    // should try to load.
+	    indexStaticProviders++;
+	    providerLoads.remove(name);   
+
+	    if (prov != null) {
+		/* This must manipulate the datastructure
+		   directly, because going through addProviders
+		   causes a security check to happen, which
+		   sometimes will cause the security
+		   initialization to fail with bad
+		   consequences. */
+		providers.addElement(prov);
 		// empty provider-property cache
 		providerPropertiesCache.clear();
 		engineCache.clear();
 		searchResultsCache.clear();
+		break;
+	    } else {
+		if (l == null) {
+		    // Set resetProviderIndex to true since we may load
+		    // providers out of the priority order.
+		    resetProviderIndex = true;
+		}
 	    }
 	}
     }
@@ -320,15 +512,52 @@ public final class Security {
 	    return pp;
 
 	synchronized (Security.class) {
+	    sun.misc.Launcher l = sun.misc.Launcher.getLauncher();
+	    /*
+	     * In case some providers have been loaded out of the
+	     * priority order when the launcher l is null, we should
+	     * clear the vector "providers" and reset the indexStaticProviders
+	     * to zero when the launcher l isn't null.
+	     *
+	     * We should only do the above if the "reloadProviders" is true
+	     * which means that the method reloadProviders() hasn't
+	     * load all statically registered providers yet.
+	     * Once the reloadProviders() method has loaded all statically
+	     * registered providers, we shouldn't clear the vector
+	     * "providers" in this getEngineClassName() method.
+	     */
+	    if ((reloadProviders == true) &&
+		(l != null) && (resetProviderIndex == true)) {
+		resetProviderIndex = false;
+		indexStaticProviders = 0;
+		providers.removeAllElements();
+		providerPropertiesCache.clear();
+		engineCache.clear();
+		searchResultsCache.clear();
+		providerLoads.clear();
+	    }
+
+	    // We should call loadOneMoreProvider() if no provider
+	    // has been loaded yet. Otherwise, we may not be able to
+	    // get in the following "for" loop.
+	    if (providers.size() == 0) {
+		loadOneMoreProvider();
+	    }
 	    for (int i = 0; i < providers.size(); i++) {
 		Provider prov = (Provider)providers.elementAt(i);
 		try {
-		    pp = getEngineClassName(algName, prov.getName(),
+		    pp = getEngineClassName(algName, prov,
 					    engineType);
 		} catch (NoSuchAlgorithmException e) {
-		    continue;
-		} catch (NoSuchProviderException e) {
-		    // can't happen except for sync failures
+		    if (i == providers.size() - 1) {
+			// The requested algorithm may be available in
+			// a registered provider which hasn't been loaded
+			// yet. Let's try to load one more registered
+			// provider. The method loadOneMoreProvider()
+			// won't do anything if we have tried to load all
+			// registered providers.
+			loadOneMoreProvider();
+		    }
 		    continue;
 		}
 
@@ -359,34 +588,46 @@ public final class Security {
 					      provider);
 	}
 
+	return getEngineClassName(algName, prov, engineType); 
+    }
+
+    /**
+     * The parameter provider cannot be null.
+     */
+    private static ProviderProperty getEngineClassName(String algName,
+						       Provider provider, 
+						       String engineType) 
+	throws NoSuchAlgorithmException
+    {
 	String key;
 	if (engineType.equalsIgnoreCase("SecureRandom") && algName == null)
 	    key = engineType;
 	else
 	    key = engineType + "." + algName;
 	
-	String className = getProviderProperty(key, prov);
+	String className = getProviderProperty(key, provider);
 	if (className == null) {
 	    if (engineType.equalsIgnoreCase("SecureRandom") &&
 		algName == null)
 		throw new NoSuchAlgorithmException
-		    ("SecureRandom not available for provider " + provider);
+		    ("SecureRandom not available for provider " +
+		     provider.getName());
 	    else {
 		// try algName as alias name
-		String stdName = getStandardName(algName, engineType, prov);
+		String stdName = getStandardName(algName, engineType, provider);
 		if (stdName != null) key = engineType + "." + stdName;
 		if ((stdName == null)
-		    || (className = getProviderProperty(key, prov)) == null)
+		    || (className = getProviderProperty(key, provider)) == null)
 		    throw new NoSuchAlgorithmException("no such algorithm: " +
 						       algName
 						       + " for provider " +
-						       provider);
+						       provider.getName());
 	    }
 	}
 	
 	ProviderProperty entry = new ProviderProperty();
 	entry.className = className;
-	entry.provider = prov;
+	entry.provider = provider;
 
 	return entry;
     }
@@ -493,7 +734,13 @@ public final class Security {
      * @see java.security.SecurityPermission
      */
     public static int addProvider(Provider provider) {
-	return insertProviderAt(provider, providers.size() + 1);
+	/*
+ 	 * We can't assign a position here because the statically
+	 * registered providers may not have been installed yet. 
+	 * insertProviderAt() will fix that value after it has 
+	 * loaded the static providers.
+ 	 */
+	return insertProviderAt(provider, 0);
     }
 
     /**
@@ -559,7 +806,7 @@ public final class Security {
 
     /**
      * Returns the provider installed with the specified name, if
-     * any. Returns null if no provider with the speicified name is
+     * any. Returns null if no provider with the specified name is
      * installed.
      * 
      * @param name the name of the provider to get.
@@ -780,16 +1027,68 @@ public final class Security {
     static Object[] getImpl(String algorithm, String type, String provider)
 	throws NoSuchAlgorithmException, NoSuchProviderException
     {
-	reloadProviders();
-
 	ProviderProperty pp = getEngineClassName(algorithm, provider, type);
+	return doGetImpl(algorithm, type, pp);
+    }
+
+    static Object[] getImpl(String algorithm, String type, String provider,
+			    Object params)
+	throws NoSuchAlgorithmException, NoSuchProviderException,
+	       InvalidAlgorithmParameterException
+    {
+	ProviderProperty pp = getEngineClassName(algorithm, provider, type);
+	return doGetImpl(algorithm, type, pp, params);
+    }
+
+    /*
+     * Returns an array of objects: the first object in the array is
+     * an instance of an implementation of the requested algorithm
+     * and type, and the second object in the array identifies the provider
+     * of that implementation.
+     * The <code>provider</code> argument cannot be null.
+     */
+    static Object[] getImpl(String algorithm, String type, Provider provider)
+	throws NoSuchAlgorithmException
+    {
+	ProviderProperty pp = getEngineClassName(algorithm, provider, type);
+	return doGetImpl(algorithm, type, pp);
+    }
+
+    static Object[] getImpl(String algorithm, String type, Provider provider,
+			    Object params)
+	throws NoSuchAlgorithmException, InvalidAlgorithmParameterException
+    {
+	ProviderProperty pp = getEngineClassName(algorithm, provider, type);
+	return doGetImpl(algorithm, type, pp, params);
+    }
+
+    private static Object[] doGetImpl(String algorithm, String type, 
+				      ProviderProperty pp)
+	throws NoSuchAlgorithmException
+    {
+	try {
+	    return doGetImpl(algorithm, type, pp, null);
+	} catch (InvalidAlgorithmParameterException e) {
+	    // should not occur
+	    throw new NoSuchAlgorithmException(e.getMessage());
+	}
+    }
+
+    private static Object[] doGetImpl(String algorithm, String type, 
+				      ProviderProperty pp, Object params)
+	throws NoSuchAlgorithmException, InvalidAlgorithmParameterException
+    { 
 	String className = pp.className;
+	String providerName = pp.provider.getName();
 
 	try {
 	    // java.security.<type>.Spi is a system class, therefore
 	    // Class.forName() always works
 	    Class typeClass;
-	    if (type.equals("CertificateFactory")) {
+	    if (type.equals("CertificateFactory") ||
+		type.equals("CertPathBuilder") ||
+		type.equals("CertPathValidator") ||
+		type.equals("CertStore")) {
 		typeClass = Class.forName("java.security.cert." + type
 					  + "Spi");
 	    } else {
@@ -813,7 +1112,15 @@ public final class Security {
 	    }
 
 	    if (checkSuperclass(implClass, typeClass)) {
-		Object obj = implClass.newInstance();
+		Object obj;
+		if (type.equals("CertStore")) {
+		    Constructor cons = 
+			implClass.getConstructor(new Class[] 
+			    { Class.forName
+				("java.security.cert.CertStoreParameters") });
+		    obj = cons.newInstance(new Object[] {params});
+		} else
+		    obj = implClass.newInstance();
 		return new Object[] { obj, pp.provider };
 	    } else {
 		throw new NoSuchAlgorithmException("class configured for " + 
@@ -823,26 +1130,44 @@ public final class Security {
 	} catch (ClassNotFoundException e) {
 	    throw new NoSuchAlgorithmException("class configured for " + 
 					       type + "(provider: " + 
-					       provider + ")" + 
+					       providerName + ")" + 
 					       "cannot be found.\n" + 
 					       e.getMessage());
 	} catch (InstantiationException e) {
-	    throw new NoSuchAlgorithmException("class " + className + 
+	    throw (NoSuchAlgorithmException) new NoSuchAlgorithmException("class " + className + 
 					       " configured for " + type +
-					       "(provider: " + provider + 
-					       ") cannot be instantiated.\n"+ 
-					       e.getMessage());
+					       "(provider: " + providerName + 
+					       ") cannot be " +
+					       "instantiated.\n").initCause(e);
 	} catch (IllegalAccessException e) {
 	    throw new NoSuchAlgorithmException("class " + className + 
 					       " configured for " + type +
-					       "(provider: " + provider +
+					       "(provider: " + providerName +
 					       ") cannot be accessed.\n" + 
 					       e.getMessage());
 	} catch (SecurityException e) {
 	    throw new NoSuchAlgorithmException("class " + className + 
 					       " configured for " + type +
-					       "(provider: " + provider +
+					       "(provider: " + providerName +
 					       ") cannot be accessed.\n" + 
+					       e.getMessage());
+	} catch (NoSuchMethodException e) {
+	    throw new NoSuchAlgorithmException("constructor for " +
+					       "class " + className + 
+					       " configured for " + type +
+					       "(provider: " + providerName +
+					       ") cannot be instantiated.\n" + 
+					       e.getMessage());
+	} catch (InvocationTargetException e) {
+	    Throwable t = e.getCause();
+	    if (t != null && t instanceof InvalidAlgorithmParameterException)
+		throw (InvalidAlgorithmParameterException) t;
+	    else
+	        throw new InvalidAlgorithmParameterException("constructor " +
+					       "for class " + className + 
+					       " configured for " + type +
+					       "(provider: " + providerName +
+					       ") cannot be instantiated.\n" + 
 					       e.getMessage());
 	}
     }
@@ -866,6 +1191,7 @@ public final class Security {
      *          denies
      *          access to retrieve the specified security property value
      * 
+     * @see #setProperty
      * @see java.security.SecurityPermission
      */
     public static String getProperty(String key) {
@@ -898,6 +1224,7 @@ public final class Security {
      *          java.lang.SecurityManager#checkPermission}</code> method
      *          denies access to set the specified security property value
      * 
+     * @see #getProperty
      * @see java.security.SecurityPermission
      */
     public static void setProperty(String key, String datum) {
@@ -1236,6 +1563,57 @@ public final class Security {
 	result[2] = attrName;
 
 	return result;
+    }
+
+   /**
+    * Returns a Set of Strings containing the names of all available
+    * algorithms or types for the specified Java cryptographic service
+    * (e.g., Signature, MessageDigest, Cipher, Mac, KeyStore). Returns
+    * an empty Set if there is no provider that supports the  
+    * specified service. For a complete list of Java cryptographic
+    * services, please see the 
+    * <a href="../../../guide/security/CryptoSpec.html">Java 
+    * Cryptography Architecture API Specification &amp; Reference</a>.
+    * Note: the returned set is immutable.
+    *
+    * @param serviceName the name of the Java cryptographic 
+    * service (e.g., Signature, MessageDigest, Cipher, Mac, KeyStore).
+    * Note: this parameter is case-insensitive.
+    *
+    * @return a Set of Strings containing the names of all available 
+    * algorithms or types for the specified Java cryptographic service
+    * or an empty set if no provider supports the specified service.
+    *
+    * @since 1.4
+    **/
+    public static Set getAlgorithms(String serviceName) {
+	HashSet result = new HashSet();
+
+	if ((serviceName == null) || (serviceName.length() == 0) ||
+	    (serviceName.endsWith("."))) {
+	    return result;
+	}
+
+	Provider[] providers = Security.getProviders();
+
+	for (int i = 0; i < providers.length; i++) {
+	    // Check the keys for each provider.
+	    for (Enumeration e = providers[i].keys(); e.hasMoreElements(); ) {
+		String currentKey = ((String)e.nextElement()).toUpperCase();
+		if (currentKey.startsWith(serviceName.toUpperCase())) {
+		    // We should skip the currentKey if it contains a 
+		    // whitespace. The reason is: such an entry in the
+		    // provider property contains attributes for the
+		    // implementation of an algorithm. We are only interested
+		    // in entries which lead to the implementation
+		    // classes.
+		    if (currentKey.indexOf(" ") < 0) {
+			result.add(currentKey.substring(serviceName.length() + 1));
+		    }
+		}
+	    }	    
+	}
+	return Collections.unmodifiableSet(result);
     }
 }
 	

@@ -1,4 +1,6 @@
 /*
+ * @(#)PrintWriter.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ package java.io;
  * <p> Methods in this class never throw I/O exceptions.  The client may
  * inquire as to whether any errors have occurred by invoking checkError().
  *
- * @version 	1.25, 02/06/02
+ * @version 	1.28, 12/03/01
  * @author	Frank Yellin
  * @author	Mark Reinhold
  * @since	JDK1.1
@@ -107,7 +109,10 @@ public class PrintWriter extends Writer {
 	    throw new IOException("Stream closed");
     }
 
-    /** Flush the stream. */
+    /** 
+     * Flush the stream. 
+     * @see #checkError()
+     */
     public void flush() {
 	try {
 	    synchronized (lock) {
@@ -120,7 +125,10 @@ public class PrintWriter extends Writer {
 	}
     }
 
-    /** Close the stream. */
+    /** 
+     * Close the stream. 
+     * @see #checkError()
+     */
     public void close() {
 	try {
 	    synchronized (lock) {
@@ -136,9 +144,9 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Flush the stream and check its error state.  Errors are cumulative;
-     * once the stream encounters an error, this routine will return true on
-     * all successive calls.
+     * Flush the stream if it's not closed and check its error state.  
+     * Errors are cumulative; once the stream encounters an error, this 
+     * routine will return true on all successive calls.
      *
      * @return True if the print stream has encountered an error, either on the
      * underlying output stream or during a format conversion.
@@ -160,7 +168,10 @@ public class PrintWriter extends Writer {
      * which also implement the write() methods of Writer
      */
 
-    /** Write a single character. */
+    /** 
+     * Write a single character.
+     * @param c int specifying a character to be written.
+     */
     public void write(int c) {
 	try {
 	    synchronized (lock) {
@@ -176,7 +187,12 @@ public class PrintWriter extends Writer {
 	}
     }
 
-    /** Write a portion of an array of characters. */
+    /** 
+     * Write a portion of an array of characters. 
+     * @param buf Array of characters
+     * @param off Offset from which to start writing characters
+     * @param len Number of characters to write
+     */
     public void write(char buf[], int off, int len) {
 	try {
 	    synchronized (lock) {
@@ -195,12 +211,18 @@ public class PrintWriter extends Writer {
     /**
      * Write an array of characters.  This method cannot be inherited from the
      * Writer class because it must suppress I/O exceptions.
+     * @param buf Array of characters to be written
      */
     public void write(char buf[]) {
 	write(buf, 0, buf.length);
     }
 
-    /** Write a portion of a string. */
+    /** 
+     * Write a portion of a string. 
+     * @param s A String
+     * @param off Offset from which to start writing characters
+     * @param len Number of characters to write
+     */
     public void write(String s, int off, int len) {
 	try {
 	    synchronized (lock) {
@@ -219,6 +241,7 @@ public class PrintWriter extends Writer {
     /**
      * Write a string.  This method cannot be inherited from the Writer class
      * because it must suppress I/O exceptions.
+     * @param s String to be written
      */
     public void write(String s) {
 	write(s, 0, s.length());
@@ -266,7 +289,7 @@ public class PrintWriter extends Writer {
      * @param      c   The <code>char</code> to be printed
      */
     public void print(char c) {
-	write(String.valueOf(c));
+	write(c);
     }
 
     /**

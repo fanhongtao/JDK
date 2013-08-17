@@ -1,4 +1,6 @@
 /*
+ * @(#)AdjustmentEvent.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,7 +17,7 @@ import java.awt.Event;
  * @see AdjustmentListener
  *
  * @author Amy Fowler
- * @version 1.22 02/06/02
+ * @version 1.24 12/03/01
  * @since 1.1
  */
 public class AdjustmentEvent extends AWTEvent {
@@ -64,7 +66,7 @@ public class AdjustmentEvent extends AWTEvent {
      * The adjustable object that fired the event.
      *
      * @serial
-     * @see getAdjustable()
+     * @see #getAdjustable
      */
     Adjustable adjustable;
 
@@ -74,7 +76,7 @@ public class AdjustmentEvent extends AWTEvent {
      * range associated adjustable object.
      *
      * @serial
-     * @see getValue()
+     * @see #getValue
      */
     int value;
 
@@ -86,33 +88,72 @@ public class AdjustmentEvent extends AWTEvent {
      * and a unit is associated with line increments/decrements.
      *
      * @serial
-     * @see getAdjustmentType()
+     * @see #getAdjustmentType
      */
     int adjustmentType;
+
+
+    /**
+     * The <code>isAdjusting</code> is true if the event is one
+     * of the series of multiple adjustment events.
+     *
+     * @since 1.4
+     * @serial
+     * @see #getValueIsAdjusting
+     */
+    boolean isAdjusting;
+
 
     /*
      * JDK 1.1 serialVersionUID 
      */
      private static final long serialVersionUID = 5700290645205279921L;
 
+
     /**
-     * Constructs a AdjustmentEvent object with the specified Adjustable 
-     * source, event type, adjustment type, and value.
-     * type, and value.
-     * @param source the Adjustable object where the event originated
+     * Constructs an <code>AdjustmentEvent</code> object with the
+     * specified <code>Adjustable</code> source, event type,
+     * adjustment type, and value. 
+     * <p>Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior.
+     *
+     * @param source the <code>Adjustable</code> object where the
+     *               event originated
      * @param id     the event type
      * @param type   the adjustment type 
      * @param value  the current value of the adjustment
      */
     public AdjustmentEvent(Adjustable source, int id, int type, int value) {
+	this(source, id, type, value, false);
+    }
+
+    /**
+     * Constructs an <code>AdjustmentEvent</code> object with the
+     * specified Adjustable source, event type, adjustment type, and value.
+     * <p>Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior.
+     * 
+     * @param source the <code>Adjustable</code> object where the
+     *               event originated
+     * @param id     the event type
+     * @param type   the adjustment type 
+     * @param value  the current value of the adjustment
+     * @param isAdjusting <code>true</code> if the event is one
+     *               of a series of multiple adjusting events,
+     *               otherwise <code>false</code>
+     */
+    public AdjustmentEvent(Adjustable source, int id, int type, int value, boolean isAdjusting) {
         super(source, id);
 	adjustable = source;
         this.adjustmentType = type;
 	this.value = value;
+	this.isAdjusting = isAdjusting;
     }
 
     /**
-     * Returns the Adjustable object where this event originated.
+     * Returns the <code>Adjustable</code> object where this event originated.
+     *
+     * @return the <code>Adjustable</code> object where this event originated
      */
     public Adjustable getAdjustable() {
         return adjustable;
@@ -120,6 +161,8 @@ public class AdjustmentEvent extends AWTEvent {
 
     /**
      * Returns the current value in the adjustment event.
+     *
+     * @return the current value in the adjustment event
      */
     public int getValue() {
         return value;
@@ -127,15 +170,29 @@ public class AdjustmentEvent extends AWTEvent {
 
     /**
      * Returns the type of adjustment which caused the value changed
-     * event.
-     * @see #UNIT_INCREMENT
-     * @see #UNIT_DECREMENT
-     * @see #BLOCK_INCREMENT
-     * @see #BLOCK_DECREMENT
-     * @see #TRACK
+     * event.  It will have one of the following values:
+     * <ul>
+     * <li>{@link #UNIT_INCREMENT}
+     * <li>{@link #UNIT_DECREMENT}
+     * <li>{@link #BLOCK_INCREMENT}
+     * <li>{@link #BLOCK_DECREMENT}
+     * <li>{@link #TRACK}
+     * </ul>
+     * @return one of the adjustment values listed above
      */
     public int getAdjustmentType() {
         return adjustmentType;
+    }
+
+    /**
+     * Returns <code>true</code> if this is one of multiple
+     * adjustment events.
+     *
+     * @return <code>true</code> if this is one of multiple
+     *         adjustment events, otherwise returns <code>false</code>
+     */
+    public boolean getValueIsAdjusting() {
+	return isAdjusting;
     }
 
     public String paramString() {
@@ -167,6 +224,9 @@ public class AdjustmentEvent extends AWTEvent {
           default:
               adjTypeStr = "unknown type";
         }
-        return typeStr + ",adjType="+adjTypeStr + ",value="+value;
+        return typeStr
+	    + ",adjType="+adjTypeStr
+	    + ",value="+value
+	    + ",isAdjusting="+isAdjusting;
     }
 }

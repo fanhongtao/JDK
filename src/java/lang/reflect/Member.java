@@ -1,4 +1,6 @@
 /*
+ * @(#)Member.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -36,12 +38,17 @@ interface Member {
     /**
      * Returns the Class object representing the class or interface
      * that declares the member or constructor represented by this Member.
+     *
+     * @return an object representing the declaring class of the
+     * underlying member
      */
     public Class getDeclaringClass();
 
     /**
      * Returns the simple name of the underlying member or constructor
      * represented by this Member.
+     * 
+     * @return the simple name of the underlying member
      */
     public String getName();
 
@@ -50,6 +57,8 @@ interface Member {
      * constructor represented by this Member, as an integer.  The
      * Modifier class should be used to decode the modifiers in
      * the integer.
+     * 
+     * @return the Java language modifiers for the underlying member
      * @see Modifier
      */
     public int getModifiers();

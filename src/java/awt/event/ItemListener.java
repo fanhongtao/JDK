@@ -1,4 +1,6 @@
 /*
+ * @(#)ItemListener.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,7 +19,7 @@ import java.util.EventListener;
  * <code>itemStateChanged</code> method is invoked.
  *
  * @author Amy Fowler
- * @version 1.14 02/06/02
+ * @version 1.15 12/03/01
  *
  * @see ItemSelectable 
  * @see ItemEvent
@@ -29,7 +31,7 @@ import java.util.EventListener;
 public interface ItemListener extends EventListener {
 
     /**
-     * Invoked when an item has been selected or deselected.
+     * Invoked when an item has been selected or deselected by the user.
      * The code written for this method performs the operations
      * that need to occur when an item is selected (or deselected).
      */    

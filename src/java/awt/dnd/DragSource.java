@@ -1,4 +1,6 @@
 /*
+ * @(#)DragSource.java	1.37 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,22 +13,24 @@ import java.awt.event.InputEvent;
 import java.awt.AWTPermission;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.GraphicsEnvironment;
+import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Toolkit;
-
-import java.awt.datatransfer.Transferable;
-
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DragSourceContext;
-import java.awt.dnd.DragSourceListener;
 import java.awt.datatransfer.FlavorMap;
 import java.awt.datatransfer.SystemFlavorMap;
-import java.awt.dnd.InvalidDnDOperationException;
-
+import java.awt.datatransfer.Transferable;
 import java.awt.dnd.peer.DragSourceContextPeer;
-
+import java.io.Serializable;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.security.AccessController;
+import java.util.EventListener;
+import sun.awt.dnd.SunDragSourceContextPeer;
+
 
 /**
  * The <code>DragSource</code> is the entity responsible 
@@ -93,17 +97,23 @@ import java.security.AccessController;
  * duration of the operation with respect to the 
  * <code>DragSource</code>. 
  *
- * @version 	1.31, 02/06/02
+ * @version 	1.37, 12/03/01
  * @since 1.2
  */
 
-public class DragSource {
+public class DragSource implements Serializable {
+
+    private static final long serialVersionUID = 6236096958971414066L;
 
     /*
      * load a system default cursor
      */
 
     private static Cursor load(String name) {
+        if (GraphicsEnvironment.isHeadless()) {
+            return null;
+        }
+
 	try {
 	    return (Cursor)Toolkit.getDefaultToolkit().getDesktopProperty(name);
 	} catch (Exception e) {
@@ -115,63 +125,89 @@ public class DragSource {
 
    
     /**
-     * The default <code>Cursor</code> to use with a copy operation 
-     * indicating that a drop is currently allowed.
+     * The default <code>Cursor</code> to use with a copy operation indicating
+     * that a drop is currently allowed. <code>null</code> if
+     * <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>.
+     *
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public static final Cursor DefaultCopyDrop = load("DnD.Cursor.CopyDrop");
+    public static final Cursor DefaultCopyDrop =
+        load("DnD.Cursor.CopyDrop");
 
     /**
-     * The default <code>Cursor</code> to use 
-     * with a move operation indicating that 
-     * a drop is currently allowed.
+     * The default <code>Cursor</code> to use with a move operation indicating
+     * that a drop is currently allowed. <code>null</code> if
+     * <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>.
+     *
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public static final Cursor DefaultMoveDrop = load("DnD.Cursor.MoveDrop");
+    public static final Cursor DefaultMoveDrop =
+        load("DnD.Cursor.MoveDrop");
 
     /**
-     * The default <code>Cursor</code> to use with a 
-     * link operation indicating that a 
-     * drop is currently allowed.
+     * The default <code>Cursor</code> to use with a link operation indicating
+     * that a drop is currently allowed. <code>null</code> if
+     * <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>.
+     *
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public static final Cursor DefaultLinkDrop = load("DnD.Cursor.LinkDrop");
+    public static final Cursor DefaultLinkDrop =
+        load("DnD.Cursor.LinkDrop");
 
     /**
-     * The default <code>Cursor</code> to use with 
-     * a copy operation indicating that a drop is currently not allowed.
+     * The default <code>Cursor</code> to use with a copy operation indicating
+     * that a drop is currently not allowed. <code>null</code> if
+     * <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>.
+     *
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public static final Cursor DefaultCopyNoDrop = load("DnD.Cursor.CopyNoDrop");
+    public static final Cursor DefaultCopyNoDrop =
+        load("DnD.Cursor.CopyNoDrop");
 
     /**
-     * The default <code>Cursor</code> to use with a move 
-     * operation indicating that a drop is currently not allowed.
+     * The default <code>Cursor</code> to use with a move operation indicating
+     * that a drop is currently not allowed. <code>null</code> if
+     * <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>.
+     *
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public static final Cursor DefaultMoveNoDrop = load("DnD.Cursor.MoveNoDrop");
+    public static final Cursor DefaultMoveNoDrop =
+        load("DnD.Cursor.MoveNoDrop");
 
     /**
-     * The default <code>Cursor</code> to use 
-     * with a link operation indicating 
-     * that a drop is currently not allowed.
+     * The default <code>Cursor</code> to use with a link operation indicating 
+     * that a drop is currently not allowed. <code>null</code> if
+     * <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>.
+     *
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public static final Cursor DefaultLinkNoDrop = load("DnD.Cursor.LinkNoDrop");
+    public static final Cursor DefaultLinkNoDrop =
+        load("DnD.Cursor.LinkNoDrop");
 
-    /*
-     * The System FlavorMap
+    private static final DragSource dflt =
+        (GraphicsEnvironment.isHeadless()) ? null : new DragSource();
+
+    /** 
+     * Internal constants for serialization. 
      */
-
-    private static final FlavorMap defaultFlavorMap = SystemFlavorMap.getDefaultFlavorMap();
-
-    private static DragSource dflt;
+    static final String dragSourceListenerK = "dragSourceL";
+    static final String dragSourceMotionListenerK = "dragSourceMotionL";
 
     /**
-     * This method returns the <code>DragSource</code> 
-     * object associated with the underlying platform.
-     * <P>
+     * This method returns the <code>DragSource</code> object associated with
+     * the underlying platform.
+     *
      * @return the platform DragSource
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     *            returns true
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-
     public static DragSource getDefaultDragSource() {
-	if (dflt == null) dflt = new DragSource();
-
-	return dflt;
+        if (GraphicsEnvironment.isHeadless()) {
+            throw new HeadlessException();
+        } else {
+            return dflt;
+        }
     }
 
     /**
@@ -199,9 +235,16 @@ public class DragSource {
 
     /**
      * Construct a new <code>DragSource</code>.
+     *
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     *            returns true
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-
-    public DragSource() { super(); }
+    public DragSource() throws HeadlessException {
+        if (GraphicsEnvironment.isHeadless()) {
+            throw new HeadlessException();
+        }
+    }
 
     /**
      * Start a drag, given the <code>DragGestureEvent</code> 
@@ -239,26 +282,32 @@ public class DragSource {
 			  DragSourceListener dsl,
 			  FlavorMap	     flavorMap) throws InvalidDnDOperationException {
 
-	
-	if (flavorMap != null) this.flavorMap = flavorMap;
+        SunDragSourceContextPeer.setDragDropInProgress(true);
 
-	DragSourceContextPeer dscp = Toolkit.getDefaultToolkit().createDragSourceContextPeer(trigger);
+        try {
+            if (flavorMap != null) this.flavorMap = flavorMap;
 
-	DragSourceContext     dsc = createDragSourceContext(dscp,
-							    trigger,
-							    dragCursor,
-							    dragImage,
-							    imageOffset,
-							    transferable,
-							    dsl
-				    );
+            DragSourceContextPeer dscp = Toolkit.getDefaultToolkit().createDragSourceContextPeer(trigger);
 
-	if (dsc == null) {
-	    throw new InvalidDnDOperationException();
-	}
+            DragSourceContext     dsc = createDragSourceContext(dscp,
+                                                                trigger,
+                                                                dragCursor,
+                                                                dragImage,
+                                                                imageOffset,
+                                                                transferable,
+                                                                dsl
+                                                                );
+            
+            if (dsc == null) {
+                throw new InvalidDnDOperationException();
+            }
 							    
-	dscp.startDrag(dsc, dsc.getCursor(), dragImage, imageOffset); // may throw
-}
+            dscp.startDrag(dsc, dsc.getCursor(), dragImage, imageOffset); // may throw
+        } catch (RuntimeException e) {
+            SunDragSourceContextPeer.setDragDropInProgress(false);
+            throw e;
+        }
+    }
 
     /**
      * Start a drag, given the <code>DragGestureEvent</code> 
@@ -438,29 +487,349 @@ public class DragSource {
 	return Toolkit.getDefaultToolkit().createDragGestureRecognizer(MouseDragGestureRecognizer.class, this, c, actions, dgl);
     }
 
+    /**
+     * Add the specified <code>DragSourceListener</code> to this
+     * <code>DragSource</code> to receive drag source events during drag
+     * operations intiated with this <code>DragSource</code>.
+     * If a <code>null</code> listener is specified, no action is taken and no
+     * exception is thrown.
+     *
+     * @param dsl the <code>DragSourceListener</code> to add.
+     *
+     * @see      #removeDragSourceListener
+     * @see      #getDragSourceListeners
+     * @since 1.4
+     */
+    public void addDragSourceListener(DragSourceListener dsl) {
+	if (dsl != null) {
+            synchronized (this) {
+                listener = DnDEventMulticaster.add(listener, dsl);
+            }
+        }
+    }
+
+    /**
+     * Remove the specified <code>DragSourceListener</code> from this
+     * <code>DragSource</code>. 
+     * If a <code>null</code> listener is specified, no action is taken and no
+     * exception is thrown.
+     * If the listener specified by the argument was not previously added to
+     * this <code>DragSource</code>, no action is taken and no exception
+     * is thrown.
+     * 
+     * @param dsl the <code>DragSourceListener</code> to remove.
+     *
+     * @see      #addDragSourceListener
+     * @see      #getDragSourceListeners
+     * @since 1.4
+     */
+    public void removeDragSourceListener(DragSourceListener dsl) {
+        if (dsl != null) {
+            synchronized (this) {
+                listener = DnDEventMulticaster.remove(listener, dsl);
+            }
+        }
+    }
+
+    /**
+     * Returns an array of all the <code>DragSourceListener</code>s
+     * registered with this <code>DragSource</code>.
+     *
+     * @return all of this <code>DragSource</code>'s
+     *         <code>DragSourceListener</code>s or an empty array if no
+     *         such listeners are currently registered
+     *
+     * @see      #addDragSourceListener
+     * @see      #removeDragSourceListener
+     * @since    1.4
+     */
+    public DragSourceListener[] getDragSourceListeners() {
+        return (DragSourceListener[])getListeners(DragSourceListener.class);
+    }
+
+    /**
+     * Add the specified <code>DragSourceMotionListener</code> to this
+     * <code>DragSource</code> to receive drag motion events during drag
+     * operations intiated with this <code>DragSource</code>.
+     * If a <code>null</code> listener is specified, no action is taken and no
+     * exception is thrown.
+     *
+     * @param dsl the <code>DragSourceMotionListener</code> to add.
+     *
+     * @see      #removeDragSourceMotionListener
+     * @see      #getDragSourceMotionListeners
+     * @since 1.4
+     */
+    public void addDragSourceMotionListener(DragSourceMotionListener dsml) {
+	if (dsml != null) {
+            synchronized (this) {
+                motionListener = DnDEventMulticaster.add(motionListener, dsml);
+            }
+        }
+    }
+
+    /**
+     * Remove the specified <code>DragSourceMotionListener</code> from this
+     * <code>DragSource</code>. 
+     * If a <code>null</code> listener is specified, no action is taken and no
+     * exception is thrown.
+     * If the listener specified by the argument was not previously added to
+     * this <code>DragSource</code>, no action is taken and no exception
+     * is thrown.
+     * 
+     * @param dsml the <code>DragSourceMotionListener</code> to remove.
+     *
+     * @see      #addDragSourceMotionListener
+     * @see      #getDragSourceMotionListeners
+     * @since 1.4
+     */
+    public void removeDragSourceMotionListener(DragSourceMotionListener dsml) {
+        if (dsml != null) {
+            synchronized (this) {
+                motionListener = DnDEventMulticaster.remove(motionListener, dsml);
+            }
+        }
+    }
+
+    /**
+     * Returns an array of all the <code>DragSourceMotionListener</code>s
+     * registered with this <code>DragSource</code>.
+     *
+     * @return all of this <code>DragSource</code>'s
+     *         <code>DragSourceMotionListener</code>s or an empty array if no
+     *         such listeners are currently registered
+     *
+     * @see      #addDragSourceMotionListener
+     * @see      #removeDragSourceMotionListener
+     * @since    1.4
+     */
+    public DragSourceMotionListener[] getDragSourceMotionListeners() {
+        return (DragSourceMotionListener[])
+            getListeners(DragSourceMotionListener.class); 
+    }
+
+    /**
+     * Returns an array of all the objects currently registered as
+     * <code><em>Foo</em>Listener</code>s upon this <code>DragSource</code>.
+     * <code><em>Foo</em>Listener</code>s are registered using the
+     * <code>add<em>Foo</em>Listener</code> method.
+     *
+     * @param listenerType the type of listeners requested; this parameter
+     *          should specify an interface that descends from
+     *          <code>java.util.EventListener</code>
+     * @return an array of all objects registered as
+     *          <code><em>Foo</em>Listener</code>s on this
+     *          <code>DragSource</code>, or an empty array if no such listeners
+     *          have been added 
+     * @exception <code>ClassCastException</code> if <code>listenerType</code>
+     *          doesn't specify a class or interface that implements
+     *          <code>java.util.EventListener</code>
+     *
+     * @see #getDragSourceListeners
+     * @see #getDragSourceMotionListeners
+     * @since 1.4
+     */
+    public EventListener[] getListeners(Class listenerType) { 
+        EventListener l = null; 
+        if (listenerType == DragSourceListener.class) { 
+            l = listener;
+        } else if (listenerType == DragSourceMotionListener.class) {
+            l = motionListener;
+        }
+        return DnDEventMulticaster.getListeners(l, listenerType);
+    }
+
+    /**
+     * This method calls <code>dragEnter</code> on the
+     * <code>DragSourceListener</code>s registered with this
+     * <code>DragSource</code>, and passes them the specified
+     * <code>DragSourceDragEvent</code>.
+     *
+     * @param dsde the <code>DragSourceDragEvent</code>
+     */
+    void processDragEnter(DragSourceDragEvent dsde) {
+        DragSourceListener dsl = listener;
+        if (dsl != null) {
+            dsl.dragEnter(dsde);
+        }
+    }
+
+    /**
+     * This method calls <code>dragOver</code> on the
+     * <code>DragSourceListener</code>s registered with this
+     * <code>DragSource</code>, and passes them the specified
+     * <code>DragSourceDragEvent</code>.
+     *
+     * @param dsde the <code>DragSourceDragEvent</code>
+     */
+    void processDragOver(DragSourceDragEvent dsde) {
+        DragSourceListener dsl = listener;
+        if (dsl != null) {
+            dsl.dragOver(dsde);
+        }
+    }
+
+    /**
+     * This method calls <code>dropActionChanged</code> on the
+     * <code>DragSourceListener</code>s registered with this
+     * <code>DragSource</code>, and passes them the specified
+     * <code>DragSourceDragEvent</code>.
+     *
+     * @param dsde the <code>DragSourceDragEvent</code>
+     */
+    void processDropActionChanged(DragSourceDragEvent dsde) {
+        DragSourceListener dsl = listener;
+        if (dsl != null) {
+            dsl.dropActionChanged(dsde);
+        }
+    }
+
+    /**
+     * This method calls <code>dragExit</code> on the
+     * <code>DragSourceListener</code>s registered with this
+     * <code>DragSource</code>, and passes them the specified
+     * <code>DragSourceEvent</code>.
+     *
+     * @param dse the <code>DragSourceEvent</code>
+     */
+    void processDragExit(DragSourceEvent dse) {
+        DragSourceListener dsl = listener;
+        if (dsl != null) {
+            dsl.dragExit(dse);
+        }
+    }
+
+    /**
+     * This method calls <code>dragDropEnd</code> on the
+     * <code>DragSourceListener</code>s registered with this
+     * <code>DragSource</code>, and passes them the specified
+     * <code>DragSourceDropEvent</code>.
+     *
+     * @param dsde the <code>DragSourceEvent</code>
+     */
+    void processDragDropEnd(DragSourceDropEvent dsde) {
+        DragSourceListener dsl = listener;
+        if (dsl != null) {
+            dsl.dragDropEnd(dsde);
+        }
+    }
+
+    /**
+     * This method calls <code>dragMouseMoved</code> on the
+     * <code>DragSourceMotionListener</code>s registered with this
+     * <code>DragSource</code>, and passes them the specified
+     * <code>DragSourceDragEvent</code>.
+     *
+     * @param dsde the <code>DragSourceEvent</code>
+     */
+    void processDragMouseMoved(DragSourceDragEvent dsde) {
+        DragSourceMotionListener dsml = motionListener;
+        if (dsml != null) {
+            dsml.dragMouseMoved(dsde);
+        }
+    }
+
+    /**
+     * Serializes this <code>DragSource</code>. This method first performs
+     * default serialization. Next, it writes out this object's
+     * <code>FlavorMap</code> if and only if it can be serialized. If not,
+     * <code>null</code> is written instead. Next, it writes out
+     * <code>Serializable</code> listeners registered with this
+     * object. Listeners are written in a <code>null</code>-terminated sequence
+     * of 0 or more pairs. The pair consists of a <code>String</code> and an
+     * <code>Object</code>; the <code>String</code> indicates the type of the
+     * <code>Object</code> and is one of the following:
+     * <ul>
+     * <li><code>dragSourceListenerK</code> indicating a
+     *     <code>DragSourceListener</code> object;
+     * <li><code>dragSourceMotionListenerK</code> indicating a
+     *     <code>DragSourceMotionListener</code> object.
+     * </ul>
+     *
+     * @serialData Either a <code>FlavorMap</code> instance, or
+     *      <code>null</code>, followed by a <code>null</code>-terminated
+     *      sequence of 0 or more pairs; the pair consists of a
+     *      <code>String</code> and an <code>Object</code>; the
+     *      <code>String</code> indicates the type of the <code>Object</code>
+     *      and is one of the following:
+     *      <ul>
+     *      <li><code>dragSourceListenerK</code> indicating a
+     *          <code>DragSourceListener</code> object;
+     *      <li><code>dragSourceMotionListenerK</code> indicating a
+     *          <code>DragSourceMotionListener</code> object.
+     *      </ul>.
+     * @since 1.4
+     */
+    private void writeObject(ObjectOutputStream s) throws IOException {
+        s.defaultWriteObject();
+
+        s.writeObject(SerializationTester.test(flavorMap) ? flavorMap : null);
+
+        DnDEventMulticaster.save(s, dragSourceListenerK, listener);
+        DnDEventMulticaster.save(s, dragSourceMotionListenerK, motionListener);
+        s.writeObject(null);
+    }
+
+    /**
+     * Deserializes this <code>DragSource</code>. This method first performs
+     * default deserialization. Next, this object's <code>FlavorMap</code> is 
+     * deserialized by using the next object in the stream.
+     * If the resulting <code>FlavorMap</code> is <code>null</code>, this
+     * object's <code>FlavorMap</code> is set to the default FlavorMap for
+     * this thread's <code>ClassLoader</code>.
+     * Next, this object's listeners are deserialized by reading a
+     * <code>null</code>-terminated sequence of 0 or more key/value pairs
+     * from the stream: 
+     * <ul>
+     * <li>If a key object is a <code>String</code> equal to
+     * <code>dragSourceListenerK</code>, a <code>DragSourceListener</code> is 
+     * deserialized using the corresponding value object and added to this
+     * <code>DragSource</code>. 
+     * <li>If a key object is a <code>String</code> equal to
+     * <code>dragSourceMotionListenerK</code>, a
+     * <code>DragSourceMotionListener</code> is deserialized using the
+     * corresponding value object and added to this <code>DragSource</code>.
+     * <li>Otherwise, the key/value pair is skipped.
+     * </ul>
+     *
+     * @see java.awt.datatransfer.SystemFlavorMap#getDefaultFlavorMap
+     * @since 1.4
+     */
+    private void readObject(ObjectInputStream s) 
+      throws ClassNotFoundException, IOException {
+        s.defaultReadObject();
+
+        // 'flavorMap' was written explicitly
+        flavorMap = (FlavorMap)s.readObject();
+
+        // Implementation assumes 'flavorMap' is never null.
+        if (flavorMap == null) {
+            flavorMap = SystemFlavorMap.getDefaultFlavorMap();
+        }
+
+        Object keyOrNull;
+        while (null != (keyOrNull = s.readObject())) {
+            String key = ((String)keyOrNull).intern();
+
+            if (dragSourceListenerK == key) {
+                addDragSourceListener((DragSourceListener)(s.readObject()));
+            } else if (dragSourceMotionListenerK == key) {
+                addDragSourceMotionListener(
+                    (DragSourceMotionListener)(s.readObject()));
+            } else { 
+                // skip value for unrecognized key
+                s.readObject();
+            }
+        }
+    }
+
     /*
      * fields
      */
 
-    private transient FlavorMap flavorMap = defaultFlavorMap;
+    private transient FlavorMap flavorMap = SystemFlavorMap.getDefaultFlavorMap();
+
+    private transient DragSourceListener listener;
+
+    private transient DragSourceMotionListener motionListener;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,4 +1,6 @@
 /*
+ * @(#)JToggleButton.java	1.56 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -27,14 +29,16 @@ import java.io.IOException;
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JToggleButton">JToggleButton</a> key assignments.
+ * <a href="doc-files/Key-Index.html#JToggleButton"><code>JToggleButton</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @beaninfo
  *   attribute: isContainer false
@@ -42,7 +46,7 @@ import java.io.IOException;
  * 
  * @see JRadioButton
  * @see JCheckBox
- * @version 1.51 02/06/02
+ * @version 1.56 12/03/01
  * @author Jeff Dinkins
  */
 public class JToggleButton extends AbstractButton implements Accessible {
@@ -146,8 +150,7 @@ public class JToggleButton extends AbstractButton implements Accessible {
     }
 
     /**
-     * Notification from the UIFactory that the L&F
-     * has changed. 
+     * Resets the UI property to a value from the current look and feel.
      *
      * @see JComponent#updateUI
      */
@@ -177,10 +180,12 @@ public class JToggleButton extends AbstractButton implements Accessible {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class ToggleButtonModel extends DefaultButtonModel {
 
@@ -194,11 +199,11 @@ public class JToggleButton extends AbstractButton implements Accessible {
          * Checks if the button is selected.
          */
         public boolean isSelected() {
-            if(getGroup() != null) {
-                return getGroup().isSelected(this);
-            } else {
+//              if(getGroup() != null) {
+//                  return getGroup().isSelected(this);
+//              } else {
                 return (stateMask & SELECTED) != 0;
-            }
+//              }
         }
 
 
@@ -208,23 +213,21 @@ public class JToggleButton extends AbstractButton implements Accessible {
          *          false deselects the toggle button.
          */
         public void setSelected(boolean b) {
-	    // The following is commented out because of a design bug
-	    // in how ButtonGroup and ButtonModel interact. See bug #4277049
-	    /*
-            if (isSelected() == b) {
-                	return;
-            }
-	    */
-                
-            if(getGroup() != null) {
+            ButtonGroup group = getGroup();
+            if (group != null) {
                 // use the group model instead
-                getGroup().setSelected(this, b);
+                group.setSelected(this, b);
+                b = group.isSelected(this);
+            }
+
+            if (isSelected() == b) {
+                return;
+            }
+
+            if (b) {
+                stateMask |= SELECTED;
             } else {
-                if (b) {
-                    stateMask |= SELECTED;
-                } else {
-                    stateMask &= ~SELECTED;
-                }
+                stateMask &= ~SELECTED;
             }
 
             // Send ChangeEvent
@@ -260,10 +263,18 @@ public class JToggleButton extends AbstractButton implements Accessible {
             fireStateChanged();
 
             if(!isPressed() && isArmed()) {
+                int modifiers = 0;
+                AWTEvent currentEvent = EventQueue.getCurrentEvent();
+                if (currentEvent instanceof InputEvent) {
+                    modifiers = ((InputEvent)currentEvent).getModifiers();
+                } else if (currentEvent instanceof ActionEvent) {
+                    modifiers = ((ActionEvent)currentEvent).getModifiers();
+                }
                 fireActionPerformed(
                     new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
-                                    getActionCommand())
-                    );
+                                    getActionCommand(),
+                                    EventQueue.getMostRecentEventTime(),
+                                    modifiers));
             }
 
         }
@@ -276,9 +287,13 @@ public class JToggleButton extends AbstractButton implements Accessible {
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
+        }
     }
 
 
@@ -327,10 +342,12 @@ public class JToggleButton extends AbstractButton implements Accessible {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJToggleButton extends AccessibleAbstractButton
 	    implements ItemListener {

@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicToggleButtonUI.java	1.55 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,7 +21,7 @@ import javax.swing.text.View;
  * BasicToggleButton implementation
  * <p>
  *
- * @version 1.54 02/06/02
+ * @version 1.55 12/03/01
  * @author Jeff Dinkins
  */
 public class BasicToggleButtonUI extends BasicButtonUI {
@@ -70,9 +72,8 @@ public class BasicToggleButtonUI extends BasicButtonUI {
             c, fm, b.getText(), b.getIcon(),
             b.getVerticalAlignment(), b.getHorizontalAlignment(),
             b.getVerticalTextPosition(), b.getHorizontalTextPosition(),
-            viewRect, iconRect, textRect, b.getText() == null ? 0 : getDefaultTextIconGap(b)
-        );
-
+            viewRect, iconRect, textRect,
+	    b.getText() == null ? 0 : b.getIconTextGap());
 
         g.setColor(b.getBackground());
 
@@ -144,36 +145,13 @@ public class BasicToggleButtonUI extends BasicButtonUI {
         
         icon.paintIcon(b, g, iconRect.x, iconRect.y);
     }
-    
-    protected void paintText(Graphics g, AbstractButton b, Rectangle textRect, String text){
-        ButtonModel model = b.getModel();
-	
-        FontMetrics fm = g.getFontMetrics();
-	
-        if(model.isEnabled()) {
-            // *** paint the text normally
-	    g.setColor(b.getForeground());
-            BasicGraphicsUtils.drawString(g,text, model.getMnemonic(),
-                                          textRect.x,
-                                          textRect.y + fm.getAscent());
-        } else {
-            // *** paint the text disabled
-	    g.setColor(b.getBackground().brighter());
-            BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                          textRect.x, textRect.y + fm.getAscent());
-            g.setColor(b.getBackground().darker());
-            BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                          textRect.x - 1, textRect.y + fm.getAscent() - 1);
-        }
-    }
-    
-    // Basic does nothing - L&F like Motif paint the button's focus
-    protected void paintFocus(Graphics g, AbstractButton b,
-                              Rectangle viewRect, Rectangle textRect, Rectangle iconRect) {
-    }
-    
-    // Basic does nothing - L&F like Motif shade the button
-    protected void paintButtonPressed(Graphics g, AbstractButton b){
+
+    /**
+     * Overriden so that the text will not be rendered as shifted for
+     * Toggle buttons and subclasses.
+     */
+    protected int getTextShiftOffset() {
+	return 0;
     }
 
 }

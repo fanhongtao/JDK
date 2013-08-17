@@ -1,4 +1,6 @@
 /*
+ * @(#)View.java	1.63 01/12/12
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,43 +11,51 @@ import javax.swing.SwingConstants;
 import javax.swing.event.*;
 
 /**
-<p>
-A very important part of the text package is the View class.  As the name 
-suggests it represents a view of the text model, or a piece of the text
-model.  It is this class that is responsible for the look of the text component.  
-The view is not intended to be some completely new thing that one must learn, 
-but rather is much like a lightweight component.  In fact, the original View
-implementation was a lightweight component.   There were several reasons why
-the Component implementation was abandoned in favor of an alternative.
-
-  <ol>
-  <li>
-  <p>There was barely had time to get the lightweight component support in the 
-  1.1 version of the JDK.  There simply wasn't time to lighten up the component 
-  further to where it would need to be to be used for text purposes.  The additions
-  made to JComponent increased the memory consumption, and as it currently stands 
-  it's much too heavy for representing text.
-  </p>
-  <li>
-  <p>The layout semantics aren't quite right for text, and changing the current layout 
-  semantics of component might break existing applications.
-  </p>
-  <li>
-  <p>The component api uses integers, but in 1.2 one can use floating point device 
-  independent coordinates.  An api that works in both 1.1 and 1.2 would be convenient 
-  for minimizing transition difficulties.  The View class uses the Shape interface
-  and float arguments to enable View implementations for the Java 2 platform v1.2 and later while
-  still functioning in the older 1.1 JDK.
-  </p>
-  </ol>
-
-<p>
+ * <p>
+ * A very important part of the text package is the <code>View</code> class.
+ * As the name suggests it represents a view of the text model,
+ * or a piece of the text model. 
+ * It is this class that is responsible for the look of the text component.  
+ * The view is not intended to be some completely new thing that one must
+ * learn, but rather is much like a lightweight component.
+ * In fact, the original <code>View</code> implementation was a
+ * lightweight component.   There were several reasons why
+ * the <code>Component</code> implementation was abandoned in favor of
+ * an alternative.
+ * <ol>
+ * <li>
+ * <p>
+ * There was barely time to get the lightweight component support in the 
+ * 1.1 version of the JDK.  There simply wasn't time to lighten up the 
+ * component further to where it would need to be to be used for text purposes.
+ * The additions made to <code>JComponent</code> increased the memory
+ * consumption, and as it currently stands its much too heavy for
+ * representing text.
+ * </p>
+ * <li>
+ * <p>
+ * The layout semantics aren't quite right for text,
+ * and changing the current layout 
+ * semantics of component might break existing applications.
+ * </p>
+ * <li>
+ * <p>
+ * The component api uses integers, but in 1.2 one can use floating point
+ * device independent coordinates.  An api that works in both 1.1 and 1.2
+ * would be convenient for minimizing transition difficulties.  The
+ * <code>View</code> class uses the <code>Shape</code> interface and
+ * float arguments to enable View implementations for the Java 2 platform
+ * v1.2 and later while still functioning in the older 1.1 JDK.
+ * </p>
+ * </ol>
+ * <p>
 By default, a view is very light.  It contains a reference to the parent 
 view from which it can fetch many things without holding state, and it 
-contains a reference to a portion of the model (Element).  A view does not 
+contains a reference to a portion of the model (</code>Element</code>).
+A view does not 
 have to exactly represent an element in the model, that is simply a typical 
 and therefore convenient mapping.  A view can alternatively maintain a couple 
-of Position objects to maintain it's location in the model (i.e. represent 
+of Position objects to maintain its location in the model (i.e. represent 
 a fragment of an element).  This is typically the result of formatting where 
 views have been broken down into pieces.  The convenience of a substantial 
 relationship to the element makes it easier to build factories to produce the 
@@ -58,13 +68,15 @@ A view has the following responsibilities:
 
     <dt><b>Participate in layout.</b>
     <dd>
-    <p>The view has a setSize method which is like doLayout and setSize in 
-    Component combined.  The view has a preferenceChanged method which is 
-    like invalidate in Component except that one can invalidate just one axis 
+    <p>The view has a <code>setSize</code> method which is like
+    <code>doLayout</code> and <code>setSize</code> in <code>Component</code> combined.
+    The view has a <code>preferenceChanged</code> method which is 
+    like <code>invalidate</code> in <code>Component</code> except that one can
+    invalidate just one axis 
     and the child requesting the change is identified.
     <p>A View expresses the size that it would like to be in terms of three
     values, a minimum, a preferred, and a maximum span.  Layout in a view is
-    can be done independantly upon each axis.  For a properly functioning View
+    can be done independently upon each axis.  For a properly functioning View
     implementation, the minimum span will be &lt;= the preferred span which in turn
     will be &lt;= the maximum span.
     </p>
@@ -79,15 +91,18 @@ A view has the following responsibilities:
     <li><a href="#setSize(float, float)">setSize</a>
     </ul>
   
-  <p>The setSize method should be prepared to be called a number of times
-    (i.e. It may be called even if the size didn't change).  The setSize method
+  <p>The <code>setSize</code> method should be prepared to be called a number of times
+    (i.e. It may be called even if the size didn't change). 
+    The <code>setSize</code> method
     is generally called to make sure the View layout is complete prior to trying
-    to perform an operation on it that requires an up-to-date layout.  A views
+    to perform an operation on it that requires an up-to-date layout.  A view's
     size should <em>always</em> be set to a value within the minimum and maximum
     span specified by that view.  Additionally, the view must always call the
-    preferenceChanged method on the parent if it has changed the values for the
+    <code>preferenceChanged</code> method on the parent if it has changed the
+    values for the
     layout it would like, and expects the parent to honor.  The parent View is
-    not required to recognize a change until the preferenceChanged has been sent.
+    not required to recognize a change until the <code>preferenceChanged</code>
+    has been sent.
     This allows parent View implementations to cache the child requirements if
     desired.  The calling sequence looks something like the following:
     </p>
@@ -102,26 +117,28 @@ A view has the following responsibilities:
     <dd>
     <p>This is done in the paint method, which is pretty much like a component 
     paint method.  Views are expected to potentially populate a fairly large 
-    tree.  A View has the following semantics for rendering:
+    tree.  A <code>View</code> has the following semantics for rendering:
     </p>
     <ul>
-    <li>The view gets it's allocation from the parent at paint time, so it 
+    <li>The view gets its allocation from the parent at paint time, so it 
     must be prepared to redo layout if the allocated area is different from 
     what it is prepared to deal with.
-    <li>The coordinate system is the same as the hosting Component (i.e. the
-    Component returned by the <a href="#getContainer">getContainer</a> method).
+    <li>The coordinate system is the same as the hosting <code>Component</code>
+    (i.e. the <code>Component</code> returned by the
+    <a href="#getContainer">getContainer</a> method).
     This means a child view lives in the same coordinate system as the parent
     view unless the parent has explicitly changed the coordinate system.
     To schedule itself to be repainted a view can call repaint on the hosting
-    Component.
-    <li>The default is to <em>not clip</em> the children.  It is more effecient
+    <code>Component</code>.
+    <li>The default is to <em>not clip</em> the children.  It is more efficient
     to allow a view to clip only if it really feels it needs clipping.
-    <li>The Graphics object given is not initialized in any way.  A view should
-    set any settings needed.
-    <li>A View is inherently transparent.  While a view may render into it's
+    <li>The <code>Graphics</code> object given is not initialized in any way. 
+    A view should set any settings needed.
+    <li>A <code>View</code> is inherently transparent.  While a view may render into its
     entire allocation, typically a view does not.  Rendering is performed by
-    tranversing down the tree of View implementations.  Each View is responsible
-    for rendering it's children.  This behavior is depended upon for thread
+    tranversing down the tree of <code>View</code> implementations. 
+    Each <code>View</code> is responsible
+    for rendering its children.  This behavior is depended upon for thread
     safety.  While view implementations do not necessarily have to be implemented
     with thread safety in mind, other view implementations that do make use of
     concurrency can depend upon a tree traversal to guarantee thread safety.
@@ -153,19 +170,20 @@ A view has the following responsibilities:
     </ul>
     <p>The layout must be valid prior to attempting to make the translation.
     The translation is not valid, and must not be attempted while changes
-    are being broadcasted from the model via a DocumentEvent.  
+    are being broadcasted from the model via a <code>DocumentEvent</code>.  
     </p>
 
     <dt><b>Respond to changes from the model.</b>
     <dd>
     <p>If the overall view is represented by many pieces (which is the best situation 
     if one want to be able to change the view and write the least amount of new code), 
-    it would be impractical to have a huge number of DocumentListeners.  If each 
+    it would be impractical to have a huge number of <code>DocumentListener</code>s.
+    If each 
     view listened to the model, only a few would actually be interested in the 
     changes broadcasted at any given time.   Since the model has no knowledge of 
     views, it has no way to filter the broadcast of change information.  The view 
     hierarchy itself is instead responsible for propagating the change information.  
-    At any level in the view hierarchy, that view knows enough about it's children to 
+    At any level in the view hierarchy, that view knows enough about its children to 
     best distribute the change information further.   Changes are therefore broadcasted 
     starting from the root of the view hierarchy.
     The methods for doing this are:
@@ -178,14 +196,14 @@ A view has the following responsibilities:
 </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.52 02/06/02
+ * @version 1.63 12/12/01
  */
 public abstract class View implements SwingConstants {
 
     /**
-     * Creates a new View object.
+     * Creates a new <code>View</code> object.
      *
-     * @param elem the element to represent
+     * @param elem the <code>Element</code> to represent
      */
     public View(Element elem) {
 	this.elem = elem;
@@ -194,7 +212,7 @@ public abstract class View implements SwingConstants {
     /**
      * Returns the parent of the view.
      *
-     * @return the parent, null if none
+     * @return the parent, or <code>null</code> if none exists
      */
     public View getParent() {
 	return parent;
@@ -205,7 +223,7 @@ public abstract class View implements SwingConstants {
      *  the view is visible or not.  By default
      *  all views are visible.
      *
-     * @return boolean value.
+     *  @return always returns true
      */
     public boolean isVisible() {
 	return true;
@@ -216,11 +234,12 @@ public abstract class View implements SwingConstants {
      * Determines the preferred span for this view along an
      * axis.
      *
-     * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the span the view would like to be rendered into.
+     * @param axis may be either <code>View.X_AXIS</code> or
+     *		<code>View.Y_AXIS</code>
+     * @return   the span the view would like to be rendered into.
      *           Typically the view is told to render into the span
      *           that is returned, although there is no guarantee.  
-     *           The parent may choose to resize or break the view.
+     *           The parent may choose to resize or break the view
      * @see View#getPreferredSpan
      */
     public abstract float getPreferredSpan(int axis);
@@ -229,8 +248,9 @@ public abstract class View implements SwingConstants {
      * Determines the minimum span for this view along an
      * axis.
      *
-     * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the minimum span the view can be rendered into.
+     * @param axis may be either <code>View.X_AXIS</code> or
+     *		<code>View.Y_AXIS</code>
+     * @return  the minimum span the view can be rendered into
      * @see View#getPreferredSpan
      */
     public float getMinimumSpan(int axis) {
@@ -246,8 +266,9 @@ public abstract class View implements SwingConstants {
      * Determines the maximum span for this view along an
      * axis.
      *
-     * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the maximum span the view can be rendered into.
+     * @param axis may be either <code>View.X_AXIS</code> or
+     *		<code>View.Y_AXIS</code>
+     * @return  the maximum span the view can be rendered into
      * @see View#getPreferredSpan
      */
     public float getMaximumSpan(int axis) {
@@ -280,14 +301,15 @@ public abstract class View implements SwingConstants {
 
     /**
      * Determines the desired alignment for this view along an
-     * axis.  By default this is simply centered.
+     * axis.  The desired alignment is returned.  This should be
+     * a value >= 0.0 and <= 1.0, where 0 indicates alignment at
+     * the origin and 1.0 indicates alignment to the full span
+     * away from the origin.  An alignment of 0.5 would be the
+     * center of the view.
      *
-     * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns The desired alignment.  This should be a value
-     *   >= 0.0 and <= 1.0 where 0 indicates alignment at the
-     *   origin and 1.0 indicates alignment to the full span
-     *   away from the origin.  An alignment of 0.5 would be the
-     *   center of the view.
+     * @param axis may be either <code>View.X_AXIS</code> or
+     *		<code>View.Y_AXIS</code>
+     * @return the value 0.5
      */
     public float getAlignment(int axis) {
 	return 0.5f;
@@ -310,15 +332,28 @@ public abstract class View implements SwingConstants {
      * parent view is functioning properly.  This is also
      * the last method called, since it is called to indicate
      * the view has been removed from the hierarchy as 
-     * well.  If this is reimplemented, 
-     * <code>super.setParent()</code> should be called.
+     * well. When this method is called to set the parent to
+     * null, this method does the same for each of its children,
+     * propogating the notification that they have been
+     * disconnected from the view tree. If this is
+     * reimplemented, <code>super.setParent()</code> should
+     * be called.
      *
-     * @param parent the new parent, or null if the view is
-     *  being removed from a parent it was previously added
-     *  to
+     * @param parent the new parent, or <code>null</code> if the view is
+     * 		being removed from a parent
      */
     public void setParent(View parent) {
-	this.parent = parent;
+        // if the parent is null then propogate down the view tree
+        if (parent == null) {
+            for (int i = 0; i < getViewCount(); i++) {
+		if (getView(i).getParent() == this) {
+		    // in FlowView.java view might be referenced 
+		    // from two super-views as a child. see logicalView
+		    getView(i).setParent(null);
+		}
+            }
+        }
+        this.parent = parent;
     }
 
     /** 
@@ -334,8 +369,8 @@ public abstract class View implements SwingConstants {
     }
 
     /** 
-     * Gets the nth child view.  Since there are no
-     * children by default, this returns null.
+     * Gets the <i>n</i>th child view.  Since there are no
+     * children by default, this returns <code>null</code>.
      *
      * @param n the number of the view to get, >= 0 && < getViewCount()
      * @return the view
@@ -347,7 +382,7 @@ public abstract class View implements SwingConstants {
 
     /**
      * Removes all of the children.  This is a convenience
-     * call to replace.
+     * call to <code>replace</code>.
      *
      * @since 1.3
      */
@@ -357,7 +392,7 @@ public abstract class View implements SwingConstants {
 
     /**
      * Removes one of the children at the given position.
-     * This is a convenience call to replace.
+     * This is a convenience call to <code>replace</code>.
      * @since 1.3
      */
     public void remove(int i) {
@@ -366,7 +401,7 @@ public abstract class View implements SwingConstants {
 
     /**
      * Inserts a single child view.  This is a convenience 
-     * call to replace.
+     * call to <code>replace</code>.
      *
      * @param offs the offset of the view to insert before >= 0
      * @param v the view
@@ -381,7 +416,7 @@ public abstract class View implements SwingConstants {
 
     /**
      * Appends a single child view.  This is a convenience 
-     * call to replace.
+     * call to <code>replace</code>.
      *
      * @param v the view
      * @see #replace
@@ -394,20 +429,21 @@ public abstract class View implements SwingConstants {
     }
 
     /**
-     * Replace child views.  If there are no views to remove
+     * Replaces child views.  If there are no views to remove
      * this acts as an insert.  If there are no views to
      * add this acts as a remove.  Views being removed will
-     * have the parent set to null, and the internal reference
+     * have the parent set to <code>null</code>, and the internal reference
      * to them removed so that they can be garbage collected.
      * This is implemented to do nothing, because by default
      * a view has no children.
      *
      * @param index the starting index into the child views to insert
-     *   the new views.  This should be a value >= 0 and <= getViewCount.
-     * @param length the number of existing child views to remove.
+     *   the new views.  This should be a value >= 0 and <= getViewCount
+     * @param length the number of existing child views to remove
      *   This should be a value >= 0 and <= (getViewCount() - offset).
-     * @param views the child views to add.  This value can be null
-     *   to indicate no children are being added (useful to remove).
+     * @param views the child views to add.  This value can be
+     *   <code>null</code> to indicate no children are being added
+     *   (useful to remove).
      * @since 1.3
      */
     public void replace(int offset, int length, View[] views) {
@@ -420,7 +456,7 @@ public abstract class View implements SwingConstants {
      * position.
      *
      * @param pos the position >= 0
-     * @returns  index of the view representing the given position, or 
+     * @return  index of the view representing the given position, or 
      *   -1 if no view represents that position
      * @since 1.3
      */
@@ -431,12 +467,13 @@ public abstract class View implements SwingConstants {
     /**
      * Fetches the allocation for the given child view. 
      * This enables finding out where various views
-     * are located, without assuming the views store
-     * their location.  This returns null since the
+     * are located, without assuming how the views store
+     * their location.  This returns <code>null</code> since the
      * default is to not have any child views.
      *
-     * @param index the index of the child, >= 0 && < getViewCount()
-     * @param a  the allocation to this view.
+     * @param index the index of the child, >= 0 && <
+     *		<code>getViewCount()</code>
+     * @param a  the allocation to this view
      * @return the allocation to the child
      */
     public Shape getChildAllocation(int index, Shape a) {
@@ -445,20 +482,27 @@ public abstract class View implements SwingConstants {
 
     /**
      * Provides a way to determine the next visually represented model 
-     * location that one might place a caret.  Some views may not be visible,
+     * location at which one might place a caret.
+     * Some views may not be visible,
      * they might not be in the same order found in the model, or they just
      * might not allow access to some of the locations in the model.
      *
      * @param pos the position to convert >= 0
-     * @param a the allocated region to render into
+     * @param a the allocated region in which to render
      * @param direction the direction from the current position that can
      *  be thought of as the arrow keys typically found on a keyboard.
-     *  This may be SwingConstants.WEST, SwingConstants.EAST, 
-     *  SwingConstants.NORTH, or SwingConstants.SOUTH.  
+     *  This will be one of the following values:
+     * <ul>
+     * <li>SwingConstants.WEST
+     * <li>SwingConstants.EAST
+     * <li>SwingConstants.NORTH
+     * <li>SwingConstants.SOUTH
+     * </ul>
      * @return the location within the model that best represents the next
-     *  location visual position.
+     *  location visual position
      * @exception BadLocationException
-     * @exception IllegalArgumentException for an invalid direction
+     * @exception IllegalArgumentException if <code>direction</code>
+     *		doesn't have one of the legal values above
      */
     public int getNextVisualPositionFrom(int pos, Position.Bias b, Shape a, 
 					 int direction, Position.Bias[] biasRet) 
@@ -519,39 +563,57 @@ public abstract class View implements SwingConstants {
     }
 
     /**
-     * Provides a mapping from the document model coordinate space
-     * to the coordinate space of the view mapped to it.
+     * Provides a mapping, for a given character,
+     * from the document model coordinate space
+     * to the view coordinate space.  
      *
-     * @param pos the position to convert >= 0
-     * @param a the allocated region to render into
+     * @param pos the position of the desired character (>=0)
+     * @param a the area of the view, which encompasses the requested character
      * @param b the bias toward the previous character or the
      *  next character represented by the offset, in case the 
-     *  position is a boundary of two views. 
-     * @return the bounding box of the given position is returned
-     * @exception BadLocationException  if the given position does
+     *  position is a boundary of two views; <code>b</code> will have one
+     *  of these values:
+     * <ul>
+     * <li> <code>Position.Bias.Forward</code>
+     * <li> <code>Position.Bias.Backward</code>
+     * </ul>
+     * @return the bounding box, in view coordinate space,
+     *		of the character at the specified position
+     * @exception BadLocationException  if the specified position does
      *   not represent a valid location in the associated document
-     * @exception IllegalArgumentException for an invalid bias argument
+     * @exception IllegalArgumentException if <code>b</code> is not one of the
+     *		legal <code>Position.Bias</code> values listed above
      * @see View#viewToModel
      */
     public abstract Shape modelToView(int pos, Shape a, Position.Bias b) throws BadLocationException;
 
     /**
-     * Provides a mapping from the document model coordinate space
-     * to the coordinate space of the view mapped to it.
+     * Provides a mapping, for a given region,
+     * from the document model coordinate space
+     * to the view coordinate space. The specified region is
+     * created as a union of the first and last character positions.
      *
-     * @param p0 the position to convert >= 0
-     * @param b0 the bias toward the previous character or the
-     *  next character represented by p0, in case the 
-     *  position is a boundary of two views. 
-     * @param p1 the position to convert >= 0
-     * @param b1 the bias toward the previous character or the
-     *  next character represented by p1, in case the 
-     *  position is a boundary of two views. 
-     * @param a the allocated region to render into
-     * @return the bounding box of the given position is returned
+     * @param p0 the position of the first character (>=0)
+     * @param b0 the bias of the first character position,
+     *  toward the previous character or the
+     *  next character represented by the offset, in case the 
+     *  position is a boundary of two views; <code>b0</code> will have one
+     *  of these values:
+     * <ul>
+     * <li> <code>Position.Bias.Forward</code>
+     * <li> <code>Position.Bias.Backward</code>
+     * </ul>
+     * @param p1 the position of the last character (>=0)
+     * @param b1 the bias for the second character position, defined
+     *		one of the legal values shown above
+     * @param a the area of the view, which encompasses the requested region
+     * @return the bounding box which is a union of the region specified
+     *		by the first and last character positions
      * @exception BadLocationException  if the given position does
      *   not represent a valid location in the associated document
-     * @exception IllegalArgumentException for an invalid bias argument
+     * @exception IllegalArgumentException if <code>b0</code> or
+     *		<code>b1</code> are not one of the
+     *		legal <code>Position.Bias</code> values listed above
      * @see View#viewToModel
      */
     public Shape modelToView(int p0, Position.Bias b0, int p1, Position.Bias b1, Shape a) throws BadLocationException {
@@ -590,15 +652,17 @@ public abstract class View implements SwingConstants {
 
     /**
      * Provides a mapping from the view coordinate space to the logical
-     * coordinate space of the model.  The biasReturn argument will be
-     * filled in to indicate that the point given is closer to the next
-     * character in the model or the previous character in the model.
+     * coordinate space of the model.  The <code>biasReturn</code>
+     * argument will be filled in to indicate that the point given is
+     * closer to the next character in the model or the previous
+     * character in the model.
      *
      * @param x the X coordinate >= 0
      * @param y the Y coordinate >= 0
-     * @param a the allocated region to render into
+     * @param a the allocated region in which to render
      * @return the location within the model that best represents the
-     *  given point in the view >= 0.  The biasReturn argument will be
+     *  given point in the view >= 0.  The <code>biasReturn</code>
+     *  argument will be
      * filled in to indicate that the point given is closer to the next
      * character in the model or the previous character in the model.
      */
@@ -620,7 +684,7 @@ public abstract class View implements SwingConstants {
      * <li><a href="#forwardUpdate">forwardUpdate</a> is called
      * to forward the DocumentEvent to the appropriate child views.
      * <li><a href="#updateLayout">updateLayout</a> is called to
-     * give the view a chance to either repair it's layout, to reschedule
+     * give the view a chance to either repair its layout, to reschedule
      * layout, or do nothing.
      * </ol>
      *
@@ -661,7 +725,7 @@ public abstract class View implements SwingConstants {
      * <li><a href="#forwardUpdate">forwardUpdate</a> is called
      * to forward the DocumentEvent to the appropriate child views.
      * <li><a href="#updateLayout">updateLayout</a> is called to
-     * give the view a chance to either repair it's layout, to reschedule
+     * give the view a chance to either repair its layout, to reschedule
      * layout, or do nothing.
      * </ol>
      *
@@ -702,7 +766,7 @@ public abstract class View implements SwingConstants {
      * <li><a href="#forwardUpdate">forwardUpdate</a> is called
      * to forward the DocumentEvent to the appropriate child views.
      * <li><a href="#updateLayout">updateLayout</a> is called to
-     * give the view a chance to either repair it's layout, to reschedule
+     * give the view a chance to either repair its layout, to reschedule
      * layout, or do nothing.
      * </ol>
      *
@@ -730,7 +794,7 @@ public abstract class View implements SwingConstants {
     /**
      * Fetches the model associated with the view.
      *
-     * @return the view model, null if none
+     * @return the view model, <code>null</code> if none
      * @see View#getDocument
      */
     public Document getDocument() {
@@ -738,8 +802,8 @@ public abstract class View implements SwingConstants {
     }
 
     /**
-     * Fetches the portion of the model that this view is
-     * responsible for.
+     * Fetches the portion of the model for which this view is
+     * responsible.
      *
      * @return the starting offset into the model >= 0
      * @see View#getStartOffset
@@ -749,8 +813,8 @@ public abstract class View implements SwingConstants {
     }
 
     /**
-     * Fetches the portion of the model that this view is
-     * responsible for.
+     * Fetches the portion of the model for which this view is
+     * responsible.
      *
      * @return the ending offset into the model >= 0
      * @see View#getEndOffset
@@ -772,10 +836,12 @@ public abstract class View implements SwingConstants {
     }
 
     /**
-     * Fetch a Graphics for rendering.  This can be used to determine
+     * Fetch a <code>Graphics</code> for rendering.
+     * This can be used to determine
      * font characteristics, and will be different for a print view
      * than a component view.
      *
+     * @return a <code>Graphics</code> object for rendering
      * @since 1.3
      */
     public Graphics getGraphics() {
@@ -794,7 +860,8 @@ public abstract class View implements SwingConstants {
      * subclasses.
      * Each view should document what attributes it recognizes
      * for the purpose of rendering or layout, and should always
-     * access them through the AttributeSet returned by this method.
+     * access them through the <code>AttributeSet</code> returned
+     * by this method.
      */
     public AttributeSet getAttributes() {
 	return elem.getAttributes();
@@ -815,16 +882,17 @@ public abstract class View implements SwingConstants {
      * given offset, and the end offset should be less than
      * or equal to the end offset of the view being broken.
      *
-     * @param axis may be either View.X_AXIS or View.Y_AXIS
+     * @param axis may be either <code>View.X_AXIS</code> or
+     *		<code>View.Y_AXIS</code>
      * @param offset the location in the document model
      *   that a broken fragment would occupy >= 0.  This
      *   would be the starting offset of the fragment
-     *   returned.
+     *   returned
      * @param pos the position along the axis that the
      *  broken view would occupy >= 0.  This may be useful for
-     *  things like tab calculations.
+     *  things like tab calculations
      * @param len specifies the distance along the axis
-     *  where a potential break is desired >= 0.  
+     *  where a potential break is desired >= 0
      * @return the fragment of the view that represents the
      *  given span, if the view can be broken.  If the view
      *  doesn't support breaking behavior, the view itself is
@@ -836,7 +904,7 @@ public abstract class View implements SwingConstants {
     }
 
     /**
-     * Create a view that represents a portion of the element.
+     * Creates a view that represents a portion of the element.
      * This is potentially useful during formatting operations
      * for taking measurements of fragments of the view.  If 
      * the view doesn't support fragmenting (the default), it 
@@ -848,8 +916,8 @@ public abstract class View implements SwingConstants {
      * @param p1 the ending offset > p0.  This should be a value
      *   less than or equal to the elements end offset and
      *   greater than the elements starting offset.
-     * @returns the view fragment, or itself if the view doesn't
-     *   support breaking into fragments.
+     * @return the view fragment, or itself if the view doesn't
+     *   support breaking into fragments
      * @see LabelView
      */
     public View createFragment(int p0, int p1) {
@@ -879,14 +947,15 @@ public abstract class View implements SwingConstants {
      * An example of a view that uses break weight is 
      * <code>ParagraphView</code>.
      *
-     * @param axis may be either View.X_AXIS or View.Y_AXIS
+     * @param axis may be either <code>View.X_AXIS</code> or
+     *		<code>View.Y_AXIS</code>
      * @param pos the potential location of the start of the 
      *   broken view >= 0.  This may be useful for calculating tab
-     *   positions.
+     *   positions
      * @param len specifies the relative length from <em>pos</em>
-     *   where a potential break is desired >= 0.
+     *   where a potential break is desired >= 0
      * @return the weight, which should be a value between
-     *   ForcedBreakWeight and BadBreakWeight.
+     *   ForcedBreakWeight and BadBreakWeight
      * @see LabelView
      * @see ParagraphView
      * @see #BadBreakWeight
@@ -905,7 +974,8 @@ public abstract class View implements SwingConstants {
      * Determines the resizability of the view along the
      * given axis.  A value of 0 or less is not resizable.
      *
-     * @param axis View.X_AXIS or View.Y_AXIS
+     * @param axis may be either <code>View.X_AXIS</code> or
+     *		<code>View.Y_AXIS</code>
      * @return the weight
      */
     public int getResizeWeight(int axis) {
@@ -914,8 +984,8 @@ public abstract class View implements SwingConstants {
 
     /**
      * Sets the size of the view.  This should cause 
-     * layout of the view, if it has any layout duties.
-     * The default is to do nothing.
+     * layout of the view along the given axis, if it 
+     * has any layout duties.
      *
      * @param width the width >= 0
      * @param height the height >= 0
@@ -929,7 +999,7 @@ public abstract class View implements SwingConstants {
      * components font, etc.  The default implementation
      * of this is to forward the query to the parent view.
      *
-     * @return the container, null if none
+     * @return the container, <code>null</code> if none
      */
     public Container getContainer() {
 	View v = getParent();
@@ -937,17 +1007,66 @@ public abstract class View implements SwingConstants {
     }
 
     /**
-     * Fetches the ViewFactory implementation that is feeding
+     * Fetches the <code>ViewFactory</code> implementation that is feeding
      * the view hierarchy.  Normally the views are given this
      * as an argument to updates from the model when they
      * are most likely to need the factory, but this
      * method serves to provide it at other times.
      *
-     * @return the factory, null if none
+     * @return the factory, <code>null</code> if none
      */
     public ViewFactory getViewFactory() {
 	View v = getParent();
 	return (v != null) ? v.getViewFactory() : null;
+    }
+
+    /**
+     * Returns the tooltip text at the specified location. The default
+     * implementation returns the value from the child View identified by
+     * the passed in location.
+     *
+     * @since 1.4
+     * @see JTextComponent#getToolTipText
+     */
+    public String getToolTipText(float x, float y, Shape allocation) {
+	int viewIndex = getViewIndex(x, y, allocation);
+        if (viewIndex >= 0) {
+            allocation = getChildAllocation(viewIndex, allocation);
+            Rectangle rect = (allocation instanceof Rectangle) ?
+                             (Rectangle)allocation : allocation.getBounds();
+            if (rect.contains(x, y)) {
+                return getView(viewIndex).getToolTipText(x, y, allocation);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns the child view index representing the given position in
+     * the view. This iterates over all the children returning the
+     * first with a bounds that contains <code>x</code>, <code>y</code>.
+     *
+     * @param x the x coordinate
+     * @param y the y coordinate
+     * @param allocation current allocation of the View.
+     * @return  index of the view representing the given location, or 
+     *   -1 if no view represents that position
+     * @since 1.4
+     */
+    public int getViewIndex(float x, float y, Shape allocation) {
+	for (int counter = getViewCount() - 1; counter >= 0; counter--) {
+	    Shape childAllocation = getChildAllocation(counter, allocation);
+
+            if (childAllocation != null) {
+                Rectangle rect = (childAllocation instanceof Rectangle) ?
+		         (Rectangle)childAllocation : allocation.getBounds();
+
+                if (rect.contains(x, y)) {
+                    return counter;
+                }
+            }
+	}
+	return -1;
     }
 
     /**
@@ -956,15 +1075,15 @@ public abstract class View implements SwingConstants {
      * element this view is responsible for.  This is implemented
      * to assume the child views are directly responsible for the
      * child elements of the element this view represents.  The
-     * ViewFactory is used to create child views for each element
-     * specified as added in the ElementChange, starting at the
-     * index specified in the given ElementChange.  The number of
+     * <code>ViewFactory</code> is used to create child views for each element
+     * specified as added in the <code>ElementChange</code>, starting at the
+     * index specified in the given <code>ElementChange</code>.  The number of
      * child views representing the removed elements specified are 
      * removed.
      * 
-     * @param ec The change information for the element this view
-     *  is responsible for.  This should not be null if this method
-     *  gets called.
+     * @param ec the change information for the element this view
+     *  is responsible for.  This should not be <code>null</code> if 
+     *  this method gets called
      * @param e the change information from the associated document
      * @param f the factory to use to build child views
      * @return whether or not the child views represent the
@@ -973,7 +1092,7 @@ public abstract class View implements SwingConstants {
      *  of the element they are responsible for, and should return
      *  false.  This information is used to determine if views 
      *  in the range of the added elements should be forwarded to
-     *  or not.
+     *  or not
      * @see #insertUpdate
      * @see #removeUpdate
      * @see #changedUpdate
@@ -1000,7 +1119,7 @@ public abstract class View implements SwingConstants {
     }
 
     /**
-     * Forward the given DocumentEvent to the child views
+     * Forwards the given <code>DocumentEvent</code> to the child views
      * that need to be notified of the change to the model.
      * If there were changes to the element this view is 
      * responsible for, that should be considered when 
@@ -1008,7 +1127,7 @@ public abstract class View implements SwingConstants {
      * notified).
      *
      * @param ec changes to the element this view is responsible
-     *  for (may be null if there were no changes).
+     *  for (may be <code>null</code> if there were no changes).
      * @param e the change information from the associated document
      * @param a the current allocation of the view
      * @param f the factory to use to rebuild if the view has children
@@ -1068,14 +1187,14 @@ public abstract class View implements SwingConstants {
     }
 
     /**
-     * Forward the DocumentEvent to the give child view.  This
-     * simply messages the view with a call to insertUpdate, 
-     * removeUpdate, or changedUpdate depending upon the type
-     * of the event.  This is called by
+     * Forwards the <code>DocumentEvent</code> to the give child view.  This
+     * simply messages the view with a call to <code>insertUpdate</code>, 
+     * <code>removeUpdate</code>, or <code>changedUpdate</code> depending
+     * upon the type of the event.  This is called by
      * <a href="#forwardUpdate">forwardUpdate</a> to forward 
      * the event to children that need it.
      *
-     * @param v the child view to forward the event to.
+     * @param v the child view to forward the event to
      * @param e the change information from the associated document
      * @param a the current allocation of the view
      * @param f the factory to use to rebuild if the view has children
@@ -1095,12 +1214,13 @@ public abstract class View implements SwingConstants {
     }
 
     /**
-     * Update the layout in response to receiving notification of
-     * change from the model.  This is implemented to call preferenceChanged
-     * to reschedule a new layout if the ElementChange record is not null.
+     * Updates the layout in response to receiving notification of
+     * change from the model.  This is implemented to call
+     * <code>preferenceChanged</code> to reschedule a new layout
+     * if the <code>ElementChange</code> record is not <code>null</code>.
      *
      * @param ec changes to the element this view is responsible
-     *  for (may be null if there were no changes).
+     *  for (may be <code>null</code> if there were no changes)
      * @param e the change information from the associated document
      * @param a the current allocation of the view
      * @param f the factory to use to rebuild if the view has children
@@ -1127,6 +1247,7 @@ public abstract class View implements SwingConstants {
      * value indicates that no attempt should be made to
      * break the view into fragments as the view has 
      * not been written to support fragmenting.
+     *
      * @see #getBreakWeight
      * @see #GoodBreakWeight
      * @see #ExcellentBreakWeight
@@ -1160,7 +1281,7 @@ public abstract class View implements SwingConstants {
     /**
      * The weight to indicate a view supports breaking,
      * and must be broken to be represented properly 
-     * when placed in a view that formats it's children
+     * when placed in a view that formats its children
      * by breaking them.
      *
      * @see #getBreakWeight
@@ -1183,11 +1304,11 @@ public abstract class View implements SwingConstants {
     /**
      * Provides a mapping from the document model coordinate space
      * to the coordinate space of the view mapped to it. This is 
-     * implemented to default the bias to Position.Bias.Forward
+     * implemented to default the bias to <code>Position.Bias.Forward</code>
      * which was previously implied.
      *
      * @param pos the position to convert >= 0
-     * @param a the allocated region to render into
+     * @param a the allocated region in which to render
      * @return the bounding box of the given position is returned
      * @exception BadLocationException  if the given position does
      *   not represent a valid location in the associated document
@@ -1205,7 +1326,7 @@ public abstract class View implements SwingConstants {
      *
      * @param x the X coordinate >= 0
      * @param y the Y coordinate >= 0
-     * @param a the allocated region to render into
+     * @param a the allocated region in which to render
      * @return the location within the model that best represents the
      *  given point in the view >= 0
      * @see View#viewToModel

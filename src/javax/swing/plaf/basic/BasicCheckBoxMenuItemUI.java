@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicCheckBoxMenuItemUI.java	1.51 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,7 +18,7 @@ import java.io.Serializable;
 /**
  * BasicCheckboxMenuItem implementation
  *
- * @version 1.50 02/06/02
+ * @version 1.51 12/03/01
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -25,16 +27,6 @@ public class BasicCheckBoxMenuItemUI extends BasicMenuItemUI {
 
     public static ComponentUI createUI(JComponent c) {
         return new BasicCheckBoxMenuItemUI();
-    }
-
-    protected void installDefaults() {
- 	super.installDefaults();
-	String prefix = getPropertyPrefix();
- 	if (menuItem.getSelectedIcon() == null ||
- 	    menuItem.getSelectedIcon() instanceof UIResource) {
- 	    menuItem.setSelectedIcon(
-			 UIManager.getIcon(prefix + ".checkIcon"));
- 	}
     }
 
     protected String getPropertyPrefix() {

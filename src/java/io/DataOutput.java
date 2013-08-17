@@ -1,4 +1,6 @@
 /*
+ * @(#)DataOutput.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ package java.io;
  * an <code>IOException</code> is thrown.
  *
  * @author  Frank Yellin
- * @version 1.14, 02/06/02
+ * @version 1.16, 12/03/01
  * @see     java.io.DataInput
  * @see     java.io.DataOutputStream
  * @since   JDK1.0
@@ -173,11 +175,12 @@ interface DataOutput {
     void writeInt(int v) throws IOException;
 
     /**
-     * Writes an <code>long</code> value, which is
-     * comprised of four bytes, to the output stream.
+     * Writes a <code>long</code> value, which is
+     * comprised of eight bytes, to the output stream.
      * The byte values to be written, in the  order
      * shown, are:
      * <p><pre><code>
+     * (byte)(0xff &amp; (v &gt;&gt; 56))
      * (byte)(0xff &amp; (v &gt;&gt; 48))
      * (byte)(0xff &amp; (v &gt;&gt; 40))
      * (byte)(0xff &amp; (v &gt;&gt; 32))

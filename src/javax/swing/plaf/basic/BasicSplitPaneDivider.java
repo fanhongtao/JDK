@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicSplitPaneDivider.java	1.45 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -30,12 +32,14 @@ import java.io.*;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.39 02/06/02
+ * @version 1.45 12/03/01
  * @author Scott Violet
  */
 public class BasicSplitPaneDivider extends Container
@@ -126,6 +130,8 @@ public class BasicSplitPaneDivider extends Container
         setLayout(new DividerLayout());
         setBasicSplitPaneUI(ui);
         orientation = splitPane.getOrientation();
+        setCursor((orientation == JSplitPane.HORIZONTAL_SPLIT) ?
+                  horizontalCursor : verticalCursor);
         setBackground(UIManager.getColor("SplitPane.background"));
     }
 
@@ -235,7 +241,14 @@ public class BasicSplitPaneDivider extends Container
      * Returns dividerSize x dividerSize
      */
     public Dimension getPreferredSize() {
-        return new Dimension(getDividerSize(), getDividerSize());
+        // Ideally this would return the size from the layout manager,
+        // but that could result in the layed out size being different from
+        // the dividerSize, which may break developers as well as
+        // BasicSplitPaneUI.
+        if (orientation == JSplitPane.HORIZONTAL_SPLIT) {
+            return new Dimension(getDividerSize(), 1);
+        }
+        return new Dimension(1, getDividerSize());
     }
 
     /**
@@ -254,6 +267,8 @@ public class BasicSplitPaneDivider extends Container
         if (e.getSource() == splitPane) {
             if (e.getPropertyName().equals(JSplitPane.ORIENTATION_PROPERTY)) {
                 orientation = splitPane.getOrientation();
+                setCursor((orientation == JSplitPane.HORIZONTAL_SPLIT) ?
+                          horizontalCursor : verticalCursor);
                 invalidate();
                 validate();
             }
@@ -328,8 +343,7 @@ public class BasicSplitPaneDivider extends Container
                 if (splitPane != null) {
                     int[]   xs = new int[3];
                     int[]   ys = new int[3];
-                    int     blockSize = Math.min(getDividerSize(),
-                                                 ONE_TOUCH_SIZE);
+                    int     blockSize;
 
                     // Fill the background first ...
                     g.setColor(this.getBackground());
@@ -339,6 +353,7 @@ public class BasicSplitPaneDivider extends Container
                     // ... then draw the arrow.
                     g.setColor(Color.black);
                     if (orientation == JSplitPane.VERTICAL_SPLIT) {
+                        blockSize = Math.min(getHeight(), ONE_TOUCH_SIZE);
                         xs[0] = blockSize;
                         xs[1] = 0;
                         xs[2] = blockSize << 1;
@@ -348,6 +363,7 @@ public class BasicSplitPaneDivider extends Container
                                                   // arrows of equal size
                     }
                     else {
+                        blockSize = Math.min(getWidth(), ONE_TOUCH_SIZE);
                         xs[0] = xs[2] = blockSize;
                         xs[1] = 0;
                         ys[0] = 0;
@@ -362,9 +378,11 @@ public class BasicSplitPaneDivider extends Container
 		return false;
 	    }
         };
+        b.setMinimumSize(new Dimension(ONE_TOUCH_SIZE, ONE_TOUCH_SIZE));
 	b.setCursor(defaultCursor);
         b.setFocusPainted(false);
         b.setBorderPainted(false);
+        b.setRequestFocusEnabled(false);
         return b;
     }
 
@@ -381,8 +399,7 @@ public class BasicSplitPaneDivider extends Container
                 if (splitPane != null) {
                     int[]          xs = new int[3];
                     int[]          ys = new int[3];
-                    int            blockSize = Math.min(getDividerSize(),
-                                                        ONE_TOUCH_SIZE);
+                    int            blockSize;
 
                     // Fill the background first ...
                     g.setColor(this.getBackground());
@@ -391,6 +408,7 @@ public class BasicSplitPaneDivider extends Container
 
                     // ... then draw the arrow.
                     if (orientation == JSplitPane.VERTICAL_SPLIT) {
+                        blockSize = Math.min(getHeight(), ONE_TOUCH_SIZE);
                         xs[0] = blockSize;
                         xs[1] = blockSize << 1;
                         xs[2] = 0;
@@ -398,6 +416,7 @@ public class BasicSplitPaneDivider extends Container
                         ys[1] = ys[2] = 0;
                     }
                     else {
+                        blockSize = Math.min(getWidth(), ONE_TOUCH_SIZE);
                         xs[0] = xs[2] = 0;
                         xs[1] = blockSize;
                         ys[0] = 0;
@@ -413,9 +432,11 @@ public class BasicSplitPaneDivider extends Container
 		return false;
 	    }
         };
+        b.setMinimumSize(new Dimension(ONE_TOUCH_SIZE, ONE_TOUCH_SIZE));
 	b.setCursor(defaultCursor);
         b.setFocusPainted(false);
         b.setBorderPainted(false);
+        b.setRequestFocusEnabled(false);
         return b;
     }
 
@@ -560,56 +581,26 @@ public class BasicSplitPaneDivider extends Container
          *  Resets the cursor based on the orientation.
          */
         public void mouseMoved(MouseEvent e) {
-            if (dragger != null) return;
-
-            int         eventX = e.getX();
-            int         eventY = e.getY();
-            Rectangle   bounds = getBounds();
-	    Cursor      newCursor;
-
-	    if (e.getSource() == BasicSplitPaneDivider.this) {
-		if (eventX >= 0 && eventX < bounds.width &&
-		    eventY >= 0 && eventY < bounds.height) {
-		    newCursor = (orientation == JSplitPane.HORIZONTAL_SPLIT) ?
-			        horizontalCursor : verticalCursor;
-		}
-		else {
-		    newCursor = defaultCursor;
-		}
-	    }
-	    else {
-		if (eventX >= bounds.x &&
-		    eventX < (bounds.x + bounds.width) &&
-		    eventY >= bounds.y &&
-		    eventY < (bounds.y + bounds.height)) {
-		    newCursor = (orientation == JSplitPane.HORIZONTAL_SPLIT) ?
-			        horizontalCursor : verticalCursor;
-		}
-		else {
-		    newCursor = defaultCursor;
-		}
-	    }
-	    if (getCursor() != newCursor) {
-		setCursor(newCursor);
-            }
         }
     }
 
 
     /**
      * Handles the events during a dragging session for a
-     * HORIZONTAL_SPLIT orientated split pane. This continually
-     * messages dragDividerTo and then when done messages
-     * finishDraggingTo. When an instance is created it should be
-     * messaged with isValid() to insure that dragging can happen
+     * HORIZONTAL_SPLIT oriented split pane. This continually
+     * messages <code>dragDividerTo</code> and then when done messages
+     * <code>finishDraggingTo</code>. When an instance is created it should be
+     * messaged with <code>isValid</code> to insure that dragging can happen
      * (dragging won't be allowed if the two views can not be resized).
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class DragController
     {
@@ -642,7 +633,7 @@ public class BasicSplitPaneDivider extends Container
 		offset = e.getX() - initialX;
 	    }
 	    if (leftC == null || rightC == null || offset < -1 ||
-		offset > getSize().width) {
+		offset >= getSize().width) {
 		// Don't allow dragging.
 		maxX = -1;
 	    }
@@ -738,10 +729,10 @@ public class BasicSplitPaneDivider extends Container
 
     /**
      * Handles the events during a dragging session for a
-     * VERTICAL_SPLIT orientated split pane. This continually
-     * messages dragDividerTo and then when done messages
-     * finishDraggingTo. When an instance is created it should be
-     * messaged with isValid() to insure that dragging can happen
+     * VERTICAL_SPLIT oriented split pane. This continually
+     * messages <code>dragDividerTo</code> and then when done messages
+     * <code>finishDraggingTo</code>. When an instance is created it should be
+     * messaged with <code>isValid</code> to insure that dragging can happen
      * (dragging won't be allowed if the two views can not be resized).
      */
     protected class VerticalDragController extends DragController
@@ -823,8 +814,9 @@ public class BasicSplitPaneDivider extends Container
 
 
     /**
-     * Used to layout a BasicSplitPaneDivider. Layout for the divider
-     * involves appropraitely moving the left/right buttons around.
+     * Used to layout a <code>BasicSplitPaneDivider</code>.
+     * Layout for the divider
+     * involves appropriately moving the left/right buttons around.
      * <p>
      */
     protected class DividerLayout implements LayoutManager
@@ -837,12 +829,13 @@ public class BasicSplitPaneDivider extends Container
 
                     if (orientation == JSplitPane.VERTICAL_SPLIT) {
 			int extraX = (insets != null) ? insets.left : 0;
-			int blockSize = getDividerSize();
+			int blockSize = getHeight();
 
 			if (insets != null) {
 			    blockSize -= (insets.top + insets.bottom);
+                            blockSize = Math.max(blockSize, 0);
 			}
-			blockSize = Math.min(blockSize, ONE_TOUCH_SIZE);
+                        blockSize = Math.min(blockSize, ONE_TOUCH_SIZE);
 
                         int y = (c.getSize().height - blockSize) / 2;
 
@@ -854,12 +847,13 @@ public class BasicSplitPaneDivider extends Container
                     }
                     else {
 			int extraY = (insets != null) ? insets.top : 0;
-			int blockSize = getDividerSize();
+			int blockSize = getWidth();
 
 			if (insets != null) {
 			    blockSize -= (insets.left + insets.right);
+                            blockSize = Math.max(blockSize, 0);
 			}
-			blockSize = Math.min(blockSize, ONE_TOUCH_SIZE);
+                        blockSize = Math.min(blockSize, ONE_TOUCH_SIZE);
 
                         int x = (c.getSize().width - blockSize) / 2;
 
@@ -879,12 +873,48 @@ public class BasicSplitPaneDivider extends Container
 
 
         public Dimension minimumLayoutSize(Container c) {
-            return new Dimension(0,0);
+            // NOTE: This isn't really used, refer to
+            // BasicSplitPaneDivider.getPreferredSize for the reason.
+            // I leave it in hopes of having this used at some point.
+            if (c != BasicSplitPaneDivider.this || splitPane == null) {
+                return new Dimension(0,0);
+            }
+            Dimension buttonMinSize = null;
+
+            if (splitPane.isOneTouchExpandable() && leftButton != null) {
+                buttonMinSize = leftButton.getMinimumSize();
+            }
+
+            Insets insets = getInsets();
+            int width = getDividerSize();
+            int height = width;
+
+            if (orientation == JSplitPane.VERTICAL_SPLIT) {
+                if (buttonMinSize != null) {
+                    int size = buttonMinSize.height;
+                    if (insets != null) {
+                        size += insets.top + insets.bottom;
+                    }
+                    height = Math.max(height, size);
+                }
+                width = 1;
+            }
+            else {
+                if (buttonMinSize != null) {
+                    int size = buttonMinSize.width;
+                    if (insets != null) {
+                        size += insets.left + insets.right;
+                    }
+                    width = Math.max(width, size);
+                }
+                height = 1;
+            }
+            return new Dimension(width, height);
         }
 
 
         public Dimension preferredLayoutSize(Container c) {
-            return new Dimension(0, 0);
+            return minimumLayoutSize(c);
         }
 
 
@@ -918,14 +948,14 @@ public class BasicSplitPaneDivider extends Container
 	    if (toMinimum) {
 		if (orientation == JSplitPane.VERTICAL_SPLIT) {
 		    if (currentLoc >= (splitPane.getHeight() -
-				       insets.bottom - getDividerSize()))
+				       insets.bottom - getHeight()))
 			newLoc = lastLoc;
 		    else
 			newLoc = insets.top;
 		}
 		else {
 		    if (currentLoc >= (splitPane.getWidth() -
-				       insets.right - getDividerSize()))
+				       insets.right - getWidth()))
 			newLoc = lastLoc;
 		    else
 			newLoc = insets.left;

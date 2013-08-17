@@ -1,10 +1,14 @@
 /*
+ * @(#)GraphicsDevice.java	1.25 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
 package java.awt;
+
+import java.awt.image.ColorModel;
 
 /**
  * The <code>GraphicsDevice</code> class describes the graphics devices
@@ -43,9 +47,13 @@ package java.awt;
  * </pre>                           
  * @see GraphicsEnvironment
  * @see GraphicsConfiguration
- * @version 1.22, 02/06/02
+ * @version 1.25, 12/03/01
  */
 public abstract class GraphicsDevice {
+
+    private Window fullScreenWindow;
+    private Rectangle windowedModeBounds;
+    
     /**
      * This is an abstract class that cannot be instantiated directly.
      * Instances must be obtained from a suitable factory or query method.
@@ -138,4 +146,162 @@ public abstract class GraphicsDevice {
         return gct.getBestConfiguration(configs);
     }
  
+    /**
+     * Returns <code>true</code> if this <code>GraphicsDevice</code>
+     * supports full-screen exclusive mode.
+     * @return whether full-screen exclusive mode is available for
+     * this graphics device
+     * @since 1.4
+     */
+    public boolean isFullScreenSupported() {
+        return false;
+    }
+    
+    /**
+     * Enter full-screen mode, or return to windowed mode.
+     * <p>
+     * If <code>isFullScreenSupported</code> returns <code>true</code>, full
+     * screen mode is considered to be <i>exclusive</i>, which implies:
+     * <ul>
+     * <li>Windows cannot overlap the full-screen window.  All other application
+     * windows will always appear beneath the full-screen window in the Z-order.
+     * <li>Input method windows are disabled.  It is advisable to call
+     * <code>Component.enableInputMethods(false)</code> to make a component
+     * a non-client of the input method framework.
+     * </ul>
+     * <p>
+     * If <code>isFullScreenSupported</code> returns
+     * <code>false</code>, full-screen exclusive mode is simulated by resizing
+     * the window to the size of the screen and positioning it at (0,0).
+     * <p>
+     * When returning to windowed mode from an exclusive full-screen window, any
+     * display changes made by calling <code>setDisplayMode</code> are
+     * automatically restored to their original state.
+     *
+     * @param w a window to use as the full-screen window; <code>null</code>
+     * if returning to windowed mode.
+     * @see #isFullScreenSupported
+     * @see #getFullScreenWindow
+     * @see #setDisplayMode
+     * @see Component#enableInputMethods
+     * @since 1.4
+     */
+    public void setFullScreenWindow(Window w) {
+        // Get display mode before changing the full screen window
+        DisplayMode dm;
+        if (w == null) {
+            dm = null;
+        } else {
+            dm = getDisplayMode();
+        }
+        if (fullScreenWindow != null && windowedModeBounds != null) {
+            fullScreenWindow.setBounds(windowedModeBounds);
+	}
+        // Set the full screen window
+        fullScreenWindow = w;
+        if (fullScreenWindow != null) {
+            fullScreenWindow.setVisible(true);
+            windowedModeBounds = fullScreenWindow.getBounds();
+            fullScreenWindow.setBounds(0, 0, dm.getWidth(), dm.getHeight());
+            fullScreenWindow.toFront();
+        }
+    }
+    
+    /**
+     * Returns the <code>Window</code> object representing the 
+     * full-screen window if the device is in full-screen mode.
+     * @return the full-screen window, <code>null</code> if the device is
+     * not in full-screen mode.
+     * @see #setFullScreenWindow(Window)
+     * @since 1.4
+     */
+    public Window getFullScreenWindow() {
+        return fullScreenWindow;
+    }
+    
+    /**
+     * Returns <code>true</code> if this <code>GraphicsDevice</code>
+     * supports low-level display changes.
+     * @return whether low-level display changes are supported for this
+     * graphics device.  Note that this may or may not be dependent on
+     * full-screen exclusive mode.
+     * @see #setDisplayMode
+     * @since 1.4
+     */
+    public boolean isDisplayChangeSupported() {
+        return false;
+    }
+    
+    /**
+     * Sets the display mode of this graphics device.  This may only be allowed
+     * in full-screen, exclusive mode.
+     * @param dm the new display mode of this graphics device
+     * @exception IllegalArgumentException if the <code>DisplayMode</code>
+     * supplied is <code>null</code>, or is not available in the array returned
+     * by <code>getDisplayModes</code>
+     * @exception UnsupportedOperationException if
+     * <code>isDisplayChangeSupported</code> returns <code>false</code>
+     * @see #getDisplayMode
+     * @see #getDisplayModes
+     * @see #isDisplayChangeSupported
+     * @since 1.4
+     */
+    public void setDisplayMode(DisplayMode dm) {
+        throw new UnsupportedOperationException("Cannot change display mode");
+    }
+    
+    /**
+     * Returns the current display mode of this 
+     * <code>GraphicsDevice</code>.
+     * @return the current display mode of this graphics device.
+     * @see #setDisplayMode(DisplayMode)
+     * @since 1.4
+     */
+    public DisplayMode getDisplayMode() {
+        GraphicsConfiguration gc = getDefaultConfiguration();
+        Rectangle r = gc.getBounds();
+        ColorModel cm = gc.getColorModel();
+        return new DisplayMode(r.width, r.height, cm.getPixelSize(), 0);
+    }
+    
+    /**
+     * Returns all display modes available for this      
+     * <code>GraphicsDevice</code>.
+     * @return all of the display modes available for this graphics device.
+     * @since 1.4
+     */
+    public DisplayMode[] getDisplayModes() {
+        return new DisplayMode[] { getDisplayMode() };
+    }
+
+    /**
+     * This method returns the number of bytes available in
+     * accelerated memory on this device.
+     * Some images are created or cached
+     * in accelerated memory on a first-come,
+     * first-served basis.  On some operating systems,
+     * this memory is a finite resource.  Calling this method
+     * and scheduling the creation and flushing of images carefully may
+     * enable applications to make the most efficient use of
+     * that finite resource.
+     * <br>
+     * Note that the number returned is a snapshot of how much
+     * memory is available; some images may still have problems
+     * being allocated into that memory.  For example, depending
+     * on operating system, driver, memory configuration, and
+     * thread situations, the full extent of the size reported
+     * may not be available for a given image.  There are further
+     * inquiry methods on the {@link ImageCapabilities} object
+     * associated with a VolatileImage that can be used to determine
+     * whether a particular VolatileImage has been created in accelerated
+     * memory.
+     * @return number of bytes available in accelerated memory.
+     * A negative return value indicates that accelerated memory
+     * is unlimited.
+     * @see java.awt.image.VolatileImage#flush
+     * @see ImageCapabilities#isAccelerated
+     */
+    public int getAvailableAcceleratedMemory() {
+	return -1;
+    }
 }

@@ -1,17 +1,19 @@
 /*
+ * @(#)JMenu.java	1.164 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
 
+import java.awt.AWTEvent;
 import java.awt.Component;
+import java.awt.ComponentOrientation;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.awt.GraphicsConfiguration;
 import java.awt.Point;
 import java.awt.Polygon;
@@ -52,20 +54,22 @@ import java.lang.ref.WeakReference;
  * a section in <em>The Java Tutorial.</em>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JMenu">JMenu</a> key assignments.
+ * <a href="doc-files/Key-Index.html#JMenu"><code>JMenu</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @beaninfo
  *   attribute: isContainer true
  * description: A popup window containing menu items displayed in a menu bar.
  *
- * @version 1.149 03/26/02
+ * @version 1.164 12/03/01
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -112,15 +116,11 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      */
     private int delay;
 
-    /**
-     * Set to true when a KEY_PRESSED event is received and the menu is
-     * selected, and false when a KEY_RELEASED (or focus lost) is received.
-     * If processKeyEvent is invoked with a KEY_TYPED or KEY_RELEASED event,
-     * and this is false, a MenuKeyEvent is NOT created. This is needed to
-     * avoid activating a menuitem when the menu and menuitem share the
-     * same mnemonic.
-     */
-    private boolean receivedKeyPressed;
+     /*
+      * Location of the popup component. Location is <code>null</code>
+      * if it was not customized by <code>setMenuLocation</code>
+      */
+     private Point customMenuLocation = null;
 
     /* Diagnostic aids -- should be false for production builds. */
     private static final boolean TRACE =   false; // trace creates and disposes
@@ -167,11 +167,24 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
         this(s);
     }
 
-    
+
     /**
-     * Notification from the <code>UIFactory</code> that the L&F has changed. 
-     * Called to replace the UI with the latest version from the 
-     * <code>UIFactory</code>.
+     * Overriden to do nothing. We want JMenu to be focusable, but
+     * <code>JMenuItem</code> doesn't want to be, thus we override this
+     * do nothing. We don't invoke <code>setFocusable(true)</code> after
+     * super's constructor has completed as this has the side effect that 
+     * <code>JMenu</code> will be considered traversable via the
+     * keyboard, which we don't want. Making a Component traversable by
+     * the keyboard after invoking <code>setFocusable(true)</code> is OK,
+     * as <code>setFocusable</code> is new API
+     * and is speced as such, but internally we don't want to use it like
+     * this else we change the keyboard traversability.
+     */
+    void initFocusability() {
+    }
+
+    /**
+     * Resets the UI property with a value from the current look and feel.
      *
      * @see JComponent#updateUI
      */
@@ -293,20 +306,20 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      *           hidden: true
      */
     public void setPopupMenuVisible(boolean b) {
-	if (!isEnabled())
-	    return;
 	if (DEBUG) {
 	    System.out.println("in JMenu.setPopupMenuVisible " + b);
 	    // Thread.dumpStack();
 	}
 
 	boolean isVisible = isPopupMenuVisible();
-        if (b != isVisible) {
+        if (b != isVisible && (isEnabled() || !b)) {
             ensurePopupMenuCreated();
-            // Set location of popupMenu (pulldown or pullright)
-            //  Perhaps this should be dictated by L&F
             if ((b==true) && isShowing()) {
-		Point p = getPopupMenuOrigin();
+                // Set location of popupMenu (pulldown or pullright)
+ 		Point p = getCustomMenuLocation();
+ 		if (p == null) {
+ 		    p = getPopupMenuOrigin();
+ 		}
 		getPopupMenu().show(this, p.x, p.y);
             } else {
                 getPopupMenu().setVisible(false);
@@ -317,36 +330,25 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
 
     /**
      * Computes the origin for the <code>JMenu</code>'s popup menu.
+     * This method uses Look and Feel properties named
+     * <code>Menu.menuPopupOffsetX</code>,
+     * <code>Menu.menuPopupOffsetY</code>,
+     * <code>Menu.submenuPopupOffsetX</code>, and
+     * <code>Menu.submenuPopupOffsetY</code>
+     * to adjust the exact location of popup.
      *
      * @return a <code>Point</code> in the coordinate space of the
      *		menu which should be used as the origin
      * 		of the <code>JMenu</code>'s popup menu
+     *
+     * @since 1.3
      */
     protected Point getPopupMenuOrigin() {
 	int x = 0;
 	int y = 0;
 	JPopupMenu pm = getPopupMenu();
-
-	// Figure out the GraphicsDevices available in the graphics Engironment.
-	// and get the bounds of the Graphics configuration to calculate the menu 
-	// position.
-     
-	Rectangle screenSize = new Rectangle();
-	GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-	GraphicsDevice[] gs = ge.getScreenDevices();
-	for (int j = 0; j < gs.length; j++) {   
-		GraphicsDevice gd = gs[j];          
-		if(gd.getType() == GraphicsDevice.TYPE_RASTER_SCREEN) {
-			GraphicsConfiguration gc = gd.getDefaultConfiguration();
-			screenSize = screenSize.union(gc.getBounds());
-
-			//For border cases popups should'nt occupy multiple screens
-			//i.e."screenSize" = [gc.getBounds() containing menu origin]
-
-			if(screenSize.contains(getLocationOnScreen())) break;
-		}
-	}
-
+	// Figure out the sizes needed to caclulate the menu position
+	Dimension screenSize;
 	Dimension s = getSize();
 	Dimension pmSize = pm.getSize();
 	// For the first time the menu is popped up, 
@@ -355,55 +357,82 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
 	    pmSize = pm.getPreferredSize();
 	}
 	Point position = getLocationOnScreen();
+        GraphicsConfiguration gc = getGraphicsConfiguration();
+        if (gc == null) {
+            screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        }
+        else {
+            Rectangle sBounds = gc.getBounds();
+
+            screenSize = sBounds.getSize();
+            position.x -= sBounds.x;
+            position.y -= sBounds.y;
+        }
 	
 	Container parent = getParent();
 	if (parent instanceof JPopupMenu) {
 	    // We are a submenu (pull-right)
+            int xOffset = UIManager.getInt("Menu.submenuPopupOffsetX");
+            int yOffset = UIManager.getInt("Menu.submenuPopupOffsetY");
 
             if( SwingUtilities.isLeftToRight(this) ) {
                 // First determine x:
-                if (position.x+s.width + pmSize.width < screenSize.width) {
-                    x = s.width;         // Prefer placement to the right
-                } else {
-                    x = 0-pmSize.width;  // Otherwise place to the left
+                x = s.width + xOffset;   // Prefer placement to the right
+                if (position.x + x + pmSize.width >= screenSize.width &&
+                    // popup doesn't fit - place it wherever there's more room
+                    screenSize.width - s.width < 2*position.x) {
+
+                    x = 0 - xOffset - pmSize.width;
                 }
             } else {
                 // First determine x:
-                if (position.x < pmSize.width) {
-                    x = s.width;         // Prefer placement to the right
-                } else {
-                    x = 0-pmSize.width;  // Otherwise place to the left
+                x = 0 - xOffset - pmSize.width; // Prefer placement to the left
+                if (position.x + x < 0 &&
+                    // popup doesn't fit - place it wherever there's more room
+                    screenSize.width - s.width > 2*position.x) {
+
+                    x = s.width + xOffset;
                 }
             }
             // Then the y:
-            if (position.y+pmSize.height < screenSize.height) {
-                y = 0;                       // Prefer dropping down
-            } else {
-                y = s.height-pmSize.height;  // Otherwise drop 'up'
+            y = yOffset;                     // Prefer dropping down
+            if (position.y + y + pmSize.height >= screenSize.height &&
+                // popup doesn't fit - place it wherever there's more room
+                screenSize.height - s.height < 2*position.y) {
+
+                y = s.height - yOffset - pmSize.height;
             }
 	} else {
 	    // We are a toplevel menu (pull-down)
+            int xOffset = UIManager.getInt("Menu.menuPopupOffsetX");
+            int yOffset = UIManager.getInt("Menu.menuPopupOffsetY");
 
             if( SwingUtilities.isLeftToRight(this) ) {
                 // First determine the x:
-                if (position.x+pmSize.width < screenSize.width) {
-                    x = 0;                     // Prefer extending to right 
-                } else {
-                    x = s.width-pmSize.width;  // Otherwise extend to left
+                x = xOffset;                   // Extend to the right
+                if (position.x + x + pmSize.width >= screenSize.width &&
+                    // popup doesn't fit - place it wherever there's more room
+                    screenSize.width - s.width < 2*position.x) {
+
+                    x = s.width - xOffset - pmSize.width;
                 }
             } else {
                 // First determine the x:
-                if (position.x+s.width < pmSize.width) {
-                    x = 0;                     // Prefer extending to right 
-                } else {
-                    x = s.width-pmSize.width;  // Otherwise extend to left
+                x = s.width - xOffset - pmSize.width; // Extend to the left
+                if (position.x + x < 0 &&
+                    // popup doesn't fit - place it wherever there's more room
+                    screenSize.width - s.width > 2*position.x) {
+
+                    x = xOffset;
                 }
             }
 	    // Then the y:
-	    if (position.y+s.height+pmSize.height < screenSize.height) {
-		y = s.height;          // Prefer dropping down
-	    } else {
-		y = 0-pmSize.height;   // Otherwise drop 'up'
+            y = s.height + yOffset;    // Prefer dropping down
+	    if (position.y + y + pmSize.height >= screenSize.height &&
+                // popup doesn't fit - place it wherever there's more room
+                screenSize.height - s.height < 2*position.y) {
+
+		y = 0 - yOffset - pmSize.height;   // Otherwise drop 'up'
 	    }
 	}
 	return new Point(x,y);
@@ -474,6 +503,13 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
         }
     }
 
+    /*
+     * Return the customized location of the popup component.
+     */
+    private Point getCustomMenuLocation() {
+ 	return customMenuLocation;
+    } 
+    
     /**
      * Sets the location of the popup component.
      *
@@ -481,6 +517,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      * @param y the y coordinate of the popup's new position
      */
     public void setMenuLocation(int x, int y) {
+ 	customMenuLocation = new Point(x, y);
         if (popupMenu != null)
 	    popupMenu.setLocation(x, y);
     }
@@ -553,7 +590,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     /**
      * Creates a new menu item attached to the specified 
      * <code>Action</code> object and appends it to the end of this menu.
-     * As of JDK 1.3, this is no longer the preferred method for adding 
+     * As of 1.3, this is no longer the preferred method for adding 
      * <code>Actions</code> to
      * a container. Instead it is recommended to configure a control with 
      * an action using <code>setAction</code>,
@@ -573,7 +610,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     /**
      * Factory method which creates the <code>JMenuItem</code> for 
      * <code>Action</code>s added to the <code>JMenu</code>.
-     * As of JDK 1.3, this is no
+     * As of 1.3, this is no
      * longer the preferred method. Instead it is recommended to configure
      * a control with an action using <code>setAction</code>,
      * and then adding that
@@ -582,6 +619,8 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      * @param a the <code>Action</code> for the menu item to be added
      * @return the new menu item
      * @see Action
+     *
+     * @since 1.3
      */
     protected JMenuItem createActionComponent(Action a) {
         JMenuItem mi = new JMenuItem((String)a.getValue(Action.NAME),
@@ -594,7 +633,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
 		return pcl;
 	    }
 	};
-        mi.setHorizontalTextPosition(JButton.RIGHT);
+        mi.setHorizontalTextPosition(JButton.TRAILING);
         mi.setVerticalTextPosition(JButton.CENTER);
         mi.setEnabled(a.isEnabled());   
 	return mi;
@@ -603,7 +642,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     /**
      * Returns a properly configured <code>PropertyChangeListener</code>
      * which updates the control as changes to the <code>Action</code> occur. 
-     * As of JDK 1.3, this is no longer the preferred method for adding
+     * As of 1.3, this is no longer the preferred method for adding
      * <code>Action</code>s to a <code>Container</code>.
      * Instead it is recommended to configure a control with 
      * an action using <code>setAction</code>, and then add that
@@ -623,32 +662,32 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
         }
         public void propertyChange(PropertyChangeEvent e) {
             String propertyName = e.getPropertyName();
-	    JMenuItem mi = (JMenuItem)getTarget();
-	    if (mi == null) {
-		Action action = (Action)e.getSource();
-            	action.removePropertyChangeListener(this);
+            JMenuItem mi = (JMenuItem)getTarget();
+            if (mi == null) {
+                Action action = (Action)e.getSource();
+                action.removePropertyChangeListener(this);
             } else {
-            	if (propertyName.equals(Action.NAME)) {
-                	String text = (String) e.getNewValue();
-                	mi.setText(text);
-            	} else if (propertyName.equals("enabled")) {
-                	Boolean enabledState = (Boolean) e.getNewValue();
-                	mi.setEnabled(enabledState.booleanValue());
-            	} else if (e.getPropertyName().equals(Action.SMALL_ICON)) {
-                	Icon icon = (Icon) e.getNewValue();
-                	mi.setIcon(icon);
-                	mi.invalidate();
-                	mi.repaint();
-            	} else if (propertyName.equals(Action.ACTION_COMMAND_KEY)) {
-                	mi.setActionCommand((String)e.getNewValue());
-                } 
-	   } 
+                if (propertyName.equals(Action.NAME)) {
+                    String text = (String) e.getNewValue();
+                    mi.setText(text);
+                } else if (propertyName.equals("enabled")) {
+                    Boolean enabledState = (Boolean) e.getNewValue();
+                    mi.setEnabled(enabledState.booleanValue());
+                } else if (propertyName.equals(Action.SMALL_ICON)) {
+                    Icon icon = (Icon) e.getNewValue();
+                    mi.setIcon(icon);
+                    mi.invalidate();
+                    mi.repaint();
+                } else if (propertyName.equals(Action.ACTION_COMMAND_KEY)) {
+                    mi.setActionCommand((String)e.getNewValue());
+                }
+            }
         }
 	public void setTarget(JMenuItem b) {
 	    menuItem = new WeakReference(b);
 	}
-	public JMenuItem getTarget() {
-             return (JMenuItem)menuItem.get();
+        public JMenuItem getTarget() {
+            return (JMenuItem)menuItem.get();
         }
     }
 
@@ -719,7 +758,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
         ensurePopupMenuCreated();
         JMenuItem mi = new JMenuItem((String)a.getValue(Action.NAME),
 				     (Icon)a.getValue(Action.SMALL_ICON));
-        mi.setHorizontalTextPosition(JButton.RIGHT);
+        mi.setHorizontalTextPosition(JButton.TRAILING);
         mi.setVerticalTextPosition(JButton.CENTER);
         mi.setEnabled(a.isEnabled());   
         mi.setAction(a);
@@ -999,10 +1038,21 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     }
 
     /**
+     * Returns an array of all the <code>MenuListener</code>s added
+     * to this JMenu with addMenuListener().
+     *
+     * @return all of the <code>MenuListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public MenuListener[] getMenuListeners() {
+        return (MenuListener[])listenerList.getListeners(MenuListener.class);
+    }
+
+    /**
      * Notifies all listeners that have registered interest for
      * notification on this event type.  The event instance 
-     * is lazily created using the parameters passed into 
-     * the fire method.
+     * is created lazily.
      *
      * @exception Error  if there is a <code>null</code> listener
      * @see EventListenerList
@@ -1032,8 +1082,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     /**
      * Notifies all listeners that have registered interest for
      * notification on this event type.  The event instance 
-     * is lazily created using the parameters passed into 
-     * the fire method.
+     * is created lazily.
      *
      * @exception Error if there is a <code>null</code> listener
      * @see EventListenerList
@@ -1063,8 +1112,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     /**
      * Notifies all listeners that have registered interest for
      * notification on this event type.  The event instance 
-     * is lazily created using the parameters passed into 
-     * the fire method.
+     * is created lazily.
      *
      * @exception Error if there is a <code>null</code> listener
      * @see EventListenerList
@@ -1090,6 +1138,24 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
                 }              
             }
         }
+    }
+
+    /**
+     * Factory method which sets the <code>ActionEvent</code>
+     * source's properties according to values from the
+     * <code>Action</code> instance.  The properties 
+     * which are set may differ for subclasses.  By default,
+     * the properties which get set are <code>Text, Icon, Enabled,
+     * ToolTipText, ActionCommand</code>, and <code>Mnemonic</code>.
+     *
+     * @param a the <code>Action</code> from which to get the properties,
+     *		or <code>null</code>
+     * @since 1.4
+     * @see Action
+     * @see #setAction
+     */
+    protected void configurePropertiesFromAction(Action a) {
+        configurePropertiesFromAction(a, null);
     }
 
     class MenuChangeListener implements ChangeListener, Serializable {
@@ -1132,10 +1198,12 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class WinListener extends WindowAdapter implements Serializable {
         JPopupMenu popupMenu;
@@ -1201,6 +1269,37 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     }
 
 
+    /**
+     * Sets the <code>ComponentOrientation</code> property of this menu
+     * and all components contained within it. This includes all 
+     * components returned by {@link #getMenuComponents getMenuComponents}.
+     *
+     * @param orientation the new component orientation of this menu and
+     *        the components contained within it.
+     * @exception NullPointerException if <code>orientation</code> is null.
+     * @see java.awt.Component#setComponentOrientation
+     * @see java.awt.Component#getComponentOrientation
+     * @since 1.4
+     */
+    public void applyComponentOrientation(ComponentOrientation o) {
+        super.applyComponentOrientation(o);
+        
+        if ( popupMenu != null ) {
+            int ncomponents = getMenuComponentCount();
+            for (int i = 0 ; i < ncomponents ; ++i) {
+                getMenuComponent(i).applyComponentOrientation(o);
+            }
+            popupMenu.setComponentOrientation(o);
+        }
+    }
+
+    public void setComponentOrientation(ComponentOrientation o) {
+        super.setComponentOrientation(o);
+        if ( popupMenu != null ) {
+            popupMenu.setComponentOrientation(o);
+        }
+    }
+
     /** 
      * <code>setAccelerator</code> is not defined for <code>JMenu</code>.
      * Use <code>setMnemonic</code> instead. 
@@ -1220,94 +1319,20 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     }
 
     /**
-     * Processes any focus events, such as
-     * <code>FocusEvent.FOCUS_GAINED</code> or
-     * <code>FocusEvent.FOCUS_LOST</code>.
+     * Processes key stroke events such as mnemonics and accelerators.
      *
-     * @param e the <code>FocusEvent</code>
-     * @see FocusEvent
+     * @param evt  the key event to be processed
      */
-    protected void processFocusEvent(FocusEvent e) {
-        switch(e.getID()) {
-          case FocusEvent.FOCUS_LOST:
-              receivedKeyPressed = false;
-              break;
-        default:
-            break;
-        }
-        super.processFocusEvent(e);
-    }
-
-    /**
-     * Processes key stroke events for this menu, such as mnemonics and
-     * accelerators.
-     * @param e  the key event to be processed
-     */
-    protected void processKeyEvent(KeyEvent e) {
-	if (DEBUG) {
-	    System.out.println("in JMenu.processKeyEvent for " + getText() + 
-				   "  " + KeyStroke.getKeyStrokeForEvent(e));
-	    System.out.println("Event consumption = " + e.isConsumed());
-	    Thread.dumpStack();
-	}
-        boolean createMenuEvent = false;
-        switch (e.getID()) {
-        case KeyEvent.KEY_PRESSED:
-            if (isSelected()) {
-                createMenuEvent = receivedKeyPressed = true;
-            }
-            else {
-                receivedKeyPressed = false;
-            }
-            break;
-        case KeyEvent.KEY_RELEASED:
-            if (receivedKeyPressed) {
-                receivedKeyPressed = false;
-                createMenuEvent = true;
-            }
-            break;
-        default:
-            createMenuEvent = receivedKeyPressed;
-            break;
-        }
-        if (createMenuEvent) {
-            MenuSelectionManager.defaultManager().processKeyEvent(e);
-        }
-	if(e.isConsumed()) {
-            return;
-	}
-	/* The "if" block below  fixes bug #4108907.
-	   Without this code, opened menus that
-	   weren't interested in TAB key events (most menus are not) would
-	   allow such events to propagate up until a component was found
-	   that was interested in the event. This would often result in
-	   the focus being moved to another component as a result of the
-	   TAB, while the menu stayed open. The behavior that is most
-	   probably desired is that menus are modal, and thus consume
-	   all keyboard events while they are open. This is implemented
-	   by the inner "if" clause. But if the desired behavior on TABs
-	   is that the menu should close and allow the focus to move,
-	   the "else" clause takes care of that. Note that this is probably
-	   not the right way to implement that behavior; instead, the menu
-	   should unpost whenever it looses focus, which would also fix
-	   another bug: 4156858.
-	   The fact that one has to special-case TABS here in JMenu code
-	   also offends me...
-	   hania 23 July 1998 */
-	if(isSelected() && (e.getKeyCode() == KeyEvent.VK_TAB
-	   || e.getKeyChar() == '\t')) {
-	  if ((Boolean) UIManager.get("Menu.consumesTabs") == Boolean.TRUE) {
-	    e.consume();
+    protected void processKeyEvent(KeyEvent evt) {
+	MenuSelectionManager.defaultManager().processKeyEvent(evt);
+	if (evt.isConsumed())
 	    return;
-	  } else {
-	    MenuSelectionManager.defaultManager().clearSelectedPath();
-	  }
-	}
-        super.processKeyEvent(e);
+
+	super.processKeyEvent(evt);
     }
 
     /**
-     * Programatically performs a "click".  This overrides the method
+     * Programmatically performs a "click".  This overrides the method
      * <code>AbstractButton.doClick</code> in order to make the menu pop up.
      * @param pressTime  indicates the number of milliseconds the
      *		button was pressed for
@@ -1357,9 +1382,13 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
+        }
     }
 
 
@@ -1404,10 +1433,12 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJMenu extends AccessibleJMenuItem 
 	implements AccessibleSelection {

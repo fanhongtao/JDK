@@ -1,4 +1,6 @@
 /*
+ * @(#)WindowAdapter.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -30,10 +32,13 @@ package java.awt.event;
  *
  * @author Carl Quinn
  * @author Amy Fowler
- * @version 1.16, 02/06/02
+ * @author David Mendenhall
+ * @version 1.18, 12/03/01
  * @since 1.1
  */
-public abstract class WindowAdapter implements WindowListener {
+public abstract class WindowAdapter
+    implements WindowListener, WindowStateListener, WindowFocusListener
+{
     /**
      * Invoked when a window has been opened.
      */
@@ -69,4 +74,28 @@ public abstract class WindowAdapter implements WindowListener {
      * Invoked when a window is de-activated.
      */
     public void windowDeactivated(WindowEvent e) {}
+
+    /**
+     * Invoked when a window state is changed.
+     * @since 1.4
+     */
+    public void windowStateChanged(WindowEvent e) {}
+
+    /**
+     * Invoked when the Window is set to be the focused Window, which means
+     * that the Window, or one of its subcomponents, will receive keyboard
+     * events.
+     *
+     * @since 1.4
+     */
+    public void windowGainedFocus(WindowEvent e) {}
+
+    /**
+     * Invoked when the Window is no longer the focused Window, which means
+     * that keyboard events will no longer be delivered to the Window or any of
+     * its subcomponents.
+     *
+     * @since 1.4
+     */
+    public void windowLostFocus(WindowEvent e) {}
 }

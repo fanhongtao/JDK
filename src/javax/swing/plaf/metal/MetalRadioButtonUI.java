@@ -1,4 +1,6 @@
 /*
+ * @(#)MetalRadioButtonUI.java	1.23 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,12 +22,14 @@ import javax.swing.text.View;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.18 02/06/02
+ * @version 1.23 12/03/01
  * @author Michael C. Albers (Metal modifications)
  * @author Jeff Dinkins (original BasicRadioButtonCode)
  */
@@ -110,8 +114,7 @@ public class MetalRadioButtonUI extends BasicRadioButtonUI {
             c, fm, b.getText(), altIcon != null ? altIcon : getDefaultIcon(),
             b.getVerticalAlignment(), b.getHorizontalAlignment(),
             b.getVerticalTextPosition(), b.getHorizontalTextPosition(),
-            viewRect, iconRect, textRect, getDefaultTextIconGap(b)
-        );
+            viewRect, iconRect, textRect, b.getIconTextGap());
         
         // fill background
         if(c.isOpaque()) {
@@ -165,17 +168,17 @@ public class MetalRadioButtonUI extends BasicRadioButtonUI {
             if (v != null) {
                 v.paint(g, textRect);
             } else {
+               int mnemIndex = b.getDisplayedMnemonicIndex();
                if(model.isEnabled()) {
                    // *** paint the text normally
                    g.setColor(b.getForeground());
-                   BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                                 textRect.x, textRect.y + fm.getAscent());
+                   BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
+                       mnemIndex, textRect.x, textRect.y + fm.getAscent());
                } else {
                    // *** paint the text disabled
-                   g.setColor(b.getBackground().darker());
-                   BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                                 textRect.x,
-                                                 textRect.y + fm.getAscent());
+                   g.setColor(getDisabledTextColor());
+                   BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
+                       mnemIndex, textRect.x, textRect.y + fm.getAscent());
                }
                if(b.hasFocus() && b.isFocusPainted() &&
                   textRect.width > 0 && textRect.height > 0 ) {
@@ -187,6 +190,6 @@ public class MetalRadioButtonUI extends BasicRadioButtonUI {
 
     protected void paintFocus(Graphics g, Rectangle t, Dimension d){
         g.setColor(getFocusColor());
-        g.drawRect(t.x,t.y-1,t.width+1,t.height+1);
+        g.drawRect(t.x-1, t.y-1, t.width+1, t.height+1);
     } 
 }

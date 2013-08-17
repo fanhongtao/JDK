@@ -1,4 +1,6 @@
 /*
+ * @(#)ContentModel.java	1.8 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,7 +20,7 @@ import java.io.*;
  * See Annex H on page 556 of the SGML handbook for more information.
  *
  * @author   Arthur van Hoff
- * @version  1.7,02/06/02
+ * @version  1.8,12/03/01
  *
  */
 public final class ContentModel implements Serializable {
@@ -170,6 +172,17 @@ public final class ContentModel implements Serializable {
 
 	  default:
 	    return (content == token);
+            // PENDING: refer to comment in ContentModelState
+/*
+              if (content == token) {
+                  return true;
+              }
+              Element e = (Element)content;
+              if (e.omitStart() && e.content != null) {
+                  return e.content.first(token);
+              }
+              return false;
+*/
 	}
     }
 

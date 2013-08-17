@@ -1,4 +1,6 @@
 /*
+ * @(#)PlainDocument.java	1.39 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -26,13 +28,15 @@ import javax.swing.event.*;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.35 02/06/02
+ * @version 1.39 12/03/01
  * @see     Document
  * @see     AbstractDocument
  */
@@ -53,8 +57,8 @@ public class PlainDocument extends AbstractDocument {
     public static final String lineLimitAttribute = "lineLimit";
 
     /**
-     * Constructs a plain text document.  A default model using StringContent
-     * is constructed and set.
+     * Constructs a plain text document.  A default model using 
+     * <code>GapContent</code> is constructed and set.
      */
     public PlainDocument() {
 	this(new GapContent());
@@ -66,10 +70,48 @@ public class PlainDocument extends AbstractDocument {
      *
      * @param c  the container for the content
      */
-    protected PlainDocument(Content c) {
+    public PlainDocument(Content c) {
 	super(c);
 	putProperty(tabSizeAttribute, new Integer(8));
 	defaultRoot = createDefaultRoot();
+    }
+
+    /**
+     * Inserts some content into the document.  
+     * Inserting content causes a write lock to be held while the
+     * actual changes are taking place, followed by notification
+     * to the observers on the thread that grabbed the write lock.
+     * <p>
+     * This method is thread safe, although most Swing methods
+     * are not. Please see 
+     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
+     * and Swing</A> for more information.
+     *
+     * @param offs the starting offset >= 0
+     * @param str the string to insert; does nothing with null/empty strings
+     * @param a the attributes for the inserted content
+     * @exception BadLocationException  the given insert position is not a valid 
+     *   position within the document
+     * @see Document#insertString
+     */
+    public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
+	// fields don't want to have multiple lines.  We may provide a field-specific
+	// model in the future in which case the filtering logic here will no longer
+	// be needed.
+	Object filterNewlines = getProperty("filterNewlines");
+	if ((filterNewlines instanceof Boolean) && filterNewlines.equals(Boolean.TRUE)) {
+	    if ((str != null) && (str.indexOf('\n') >= 0)) {
+		StringBuffer filtered = new StringBuffer(str);
+		int n = filtered.length();
+		for (int i = 0; i < n; i++) {
+		    if (filtered.charAt(i) == '\n') {
+			filtered.setCharAt(i, ' ');
+		    }
+		}
+		str = filtered.toString();
+	    }
+	}
+	super.insertString(offs, str, a);
     }
 
     /**

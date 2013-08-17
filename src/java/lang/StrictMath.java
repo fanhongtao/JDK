@@ -1,4 +1,6 @@
 /*
+ * @(#)StrictMath.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -35,7 +37,7 @@ import java.util.Random;
  * the letter <code>e</code>). 
  *
  * @author  unascribed
- * @version 1.10, 02/06/02
+ * @version 1.13, 12/03/01
  * @since   1.3
  */
 
@@ -47,14 +49,15 @@ public final strictfp class StrictMath {
     private StrictMath() {}
 
     /**
-     * The <code>double</code> value that is closer than any other to 
-     * <code>e</code>, the base of the natural logarithms. 
+     * The <code>double</code> value that is closer than any other to
+     * <i>e</i>, the base of the natural logarithms.
      */
     public static final double E = 2.7182818284590452354;
 
     /**
-     * The <code>double</code> value that is closer than any other to 
-     * <i>pi</i>, the ratio of the circumference of a circle to its diameter. 
+     * The <code>double</code> value that is closer than any other to
+     * <i>pi</i>, the ratio of the circumference of a circle to its
+     * diameter.
      */
     public static final double PI = 3.14159265358979323846;
 
@@ -62,9 +65,8 @@ public final strictfp class StrictMath {
      * Returns the trigonometric sine of an angle. Special cases:
      * <ul><li>If the argument is NaN or an infinity, then the 
      * result is NaN.
-     * <li>If the argument is positive zero, then the result is 
-     * positive zero; if the argument is negative zero, then the 
-     * result is negative zero.</ul>
+     * <li>If the argument is zero, then the result is a zero with the
+     * same sign as the argument.</ul>
      *
      * @param   a   an angle, in radians.
      * @return  the sine of the argument.
@@ -72,7 +74,7 @@ public final strictfp class StrictMath {
     public static native double sin(double a);
     
     /**
-     * Returns the trigonometric cosine of an angle. Special case:
+     * Returns the trigonometric cosine of an angle. Special cases:
      * <ul><li>If the argument is NaN or an infinity, then the 
      * result is NaN.</ul>
      *
@@ -85,9 +87,8 @@ public final strictfp class StrictMath {
      * Returns the trigonometric tangent of an angle. Special cases:
      * <ul><li>If the argument is NaN or an infinity, then the result 
      * is NaN.
-     * <li>If the argument is positive zero, then the result is 
-     * positive zero; if the argument is negative zero, then the 
-     * result is negative zero</ul>
+     * <li>If the argument is zero, then the result is a zero with the
+     * same sign as the argument.</ul>
      *
      * @param   a   an angle, in radians.
      * @return  the tangent of the argument.
@@ -99,12 +100,10 @@ public final strictfp class StrictMath {
      * <i>pi</i>/2. Special cases: 
      * <ul><li>If the argument is NaN or its absolute value is greater 
      * than 1, then the result is NaN.
-     * <li>If the argument is positive zero, then the result is positive 
-     * zero; if the argument is negative zero, then the result is 
-     * negative zero.</ul>
+     * <li>If the argument is zero, then the result is a zero with the
+     * same sign as the argument.</ul>
      *
-     * @param   a   the <code>double</code> value whose arc sine is to 
-     *              be returned.
+     * @param   a   the value whose arc sine is to be returned.
      * @return  the arc sine of the argument.
      */
     public static native double asin(double a);
@@ -115,8 +114,7 @@ public final strictfp class StrictMath {
      * <ul><li>If the argument is NaN or its absolute value is greater 
      * than 1, then the result is NaN.</ul>
      *
-     * @param   a   the <code>double</code> value whose arc cosine is to 
-     *              be returned.
+     * @param   a   the value whose arc cosine is to be returned.
      * @return  the arc cosine of the argument.
      */
     public static native double acos(double a); 
@@ -125,19 +123,18 @@ public final strictfp class StrictMath {
      * Returns the arc tangent of an angle, in the range of -<i>pi</i>/2
      * through <i>pi</i>/2. Special cases: 
      * <ul><li>If the argument is NaN, then the result is NaN.
-     * <li>If the argument is positive zero, then the result is positive 
-     * zero; if the argument is negative zero, then the result is 
-     * negative zero.</ul>
+     * <li>If the argument is zero, then the result is a zero with the
+     * same sign as the argument.</ul>
      *
-     * @param   a   the <code>double</code> value whose arc tangent is to 
-     *              be returned.
+     * @param   a   the value whose arc tangent is to be returned.
      * @return  the arc tangent of the argument.
      */
     public static native double atan(double a);
 
     /**
-     * Converts an angle measured in degrees to the equivalent angle
-     * measured in radians.
+     * Converts an angle measured in degrees to an approximately
+     * equivalent angle measured in radians.  The conversion from
+     * degrees to radians is generally inexact.
      *
      * @param   angdeg   an angle, in degrees
      * @return  the measurement of the angle <code>angdeg</code>
@@ -148,8 +145,11 @@ public final strictfp class StrictMath {
     }
 
     /**
-     * Converts an angle measured in radians to the equivalent angle
-     * measured in degrees.
+     * Converts an angle measured in radians to an approximately
+     * equivalent angle measured in degrees.  The conversion from
+     * radians to degrees is generally inexact; users should
+     * <i>not</i> expect <code>cos(toRadians(90.0))</code> to exactly
+     * equal <code>0.0</code>.
      *
      * @param   angrad   an angle, in radians
      * @return  the measurement of the angle <code>angrad</code>
@@ -160,17 +160,17 @@ public final strictfp class StrictMath {
     }
 
     /**
-     * Returns the exponential number <i>e</i> (i.e., 2.718...) raised to
-     * the power of a <code>double</code> value. Special cases:
+     * Returns Euler's number <i>e</i> raised to the power of a
+     * <code>double</code> value. Special cases:
      * <ul><li>If the argument is NaN, the result is NaN.
      * <li>If the argument is positive infinity, then the result is 
      * positive infinity.
      * <li>If the argument is negative infinity, then the result is 
      * positive zero.</ul>
      *
-     * @param   a   a <code>double</code> value.
-     * @return  the value <i>e</i><sup>a</sup>, where <i>e</i> is the base of
-     *          the natural logarithms.
+     * @param   a   the exponent to raise <i>e</i> to.
+     * @return  the value <i>e</i><sup><code>a</code></sup>, 
+     *		where <i>e</i> is the base of the natural logarithms.
      */
     public static native double exp(double a);
 
@@ -191,7 +191,8 @@ public final strictfp class StrictMath {
     public static native double log(double a);
 
     /**
-     * Returns the positive square root of a <code>double</code> value. 
+     * Returns the correctly rounded positive square root of a
+     * <code>double</code> value.
      * Special cases:
      * <ul><li>If the argument is NaN or less than zero, then the result 
      * is NaN. 
@@ -202,7 +203,7 @@ public final strictfp class StrictMath {
      * Otherwise, the result is the <code>double</code> value closest to 
      * the true mathetmatical square root of the argument value.
      *
-     * @param   a   a <code>double</code> value.
+     * @param   a   a value.
      * <!--@return  the value of &radic;&nbsp;<code>a</code>.-->
      * @return  the positive square root of <code>a</code>.
      */
@@ -245,10 +246,10 @@ public final strictfp class StrictMath {
      * Note that the value of <code>Math.ceil(x)</code> is exactly the 
      * value of <code>-Math.floor(-x)</code>.
      *
-     * @param   a   a <code>double</code> value.
+     * @param   a   a value.
      * <!--@return  the value &lceil;&nbsp;<code>a</code>&nbsp;&rceil;.-->
      * @return  the smallest (closest to negative infinity) 
-     *          <code>double</code> value that is not less than the argument
+     *          floating-point value that is not less than the argument
      *          and is equal to a mathematical integer. 
      */
     public static native double ceil(double a);
@@ -265,33 +266,33 @@ public final strictfp class StrictMath {
      * @param   a   a <code>double</code> value.
      * <!--@return  the value &lfloor;&nbsp;<code>a</code>&nbsp;&rfloor;.-->
      * @return  the largest (closest to positive infinity) 
-     *          <code>double</code> value that is not greater than the argument
+     *          floating-point value that is not greater than the argument
      *          and is equal to a mathematical integer. 
      */
     public static native double floor(double a);
 
     /**
-     * Returns the <code>double</code> value that is closest in value to 
-     * <code>a</code> and is equal to a mathematical integer. If two 
-     * <code>double</code> values that are mathematical integers are equally 
-     * close to the value of the argument, the result is the integer value 
-     * that is even. Special cases:
+     * Returns the <code>double</code> value that is closest in value
+     * to the argument and is equal to a mathematical integer. If two
+     * <code>double</code> values that are mathematical integers are
+     * equally close to the value of the argument, the result is the
+     * integer value that is even. Special cases:
      * <ul><li>If the argument value is already equal to a mathematical 
      * integer, then the result is the same as the argument. 
      * <li>If the argument is NaN or an infinity or positive zero or negative 
      * zero, then the result is the same as the argument.</ul>
      *
-     * @param   a   a <code>double</code> value.
-     * @return  the closest <code>double</code> value to <code>a</code> that is
+     * @param   a   a value.
+     * @return  the closest floating-point value to <code>a</code> that is
      *          equal to a mathematical integer.
      */
     public static native double rint(double a);
 
     /**
-     * Converts rectangular coordinates (<code>b</code>,&nbsp;<code>a</code>)
+     * Converts rectangular coordinates (<code>x</code>,&nbsp;<code>y</code>)
      * to polar (r,&nbsp;<i>theta</i>).
      * This method computes the phase <i>theta</i> by computing an arc tangent
-     * of <code>a/b</code> in the range of -<i>pi</i> to <i>pi</i>. Special 
+     * of <code>y/x</code> in the range of -<i>pi</i> to <i>pi</i>. Special 
      * cases:
      * <ul><li>If either argument is NaN, then the result is NaN. 
      * <li>If the first argument is positive zero and the second argument 
@@ -304,38 +305,38 @@ public final strictfp class StrictMath {
      * <li>If the first argument is positive zero and the second argument 
      * is negative, or the first argument is positive and finite and the 
      * second argument is negative infinity, then the result is the 
-     * <code>double</code> value closest to pi. 
+     * <code>double</code> value closest to <i>pi</i>. 
      * <li>If the first argument is negative zero and the second argument 
      * is negative, or the first argument is negative and finite and the 
      * second argument is negative infinity, then the result is the 
-     * <code>double</code> value closest to -pi. 
+     * <code>double</code> value closest to -<i>pi</i>. 
      * <li>If the first argument is positive and the second argument is 
      * positive zero or negative zero, or the first argument is positive 
      * infinity and the second argument is finite, then the result is the 
-     * <code>double</code> value closest to pi/2. 
+     * <code>double</code> value closest to <i>pi</i>/2. 
      * <li>If the first argument is negative and the second argument is 
      * positive zero or negative zero, or the first argument is negative 
      * infinity and the second argument is finite, then the result is the 
-     * <code>double</code> value closest to -pi/2. 
+     * <code>double</code> value closest to -<i>pi</i>/2. 
      * <li>If both arguments are positive infinity, then the result is the 
-     * <code>double</code> value closest to pi/4. 
+     * <code>double</code> value closest to <i>pi</i>/4. 
      * <li>If the first argument is positive infinity and the second argument 
      * is negative infinity, then the result is the <code>double</code> 
-     * value closest to 3*pi/4. 
+     * value closest to 3*<i>pi</i>/4. 
      * <li>If the first argument is negative infinity and the second argument 
      * is positive infinity, then the result is the <code>double</code> value 
-     * closest to -pi/4. 
+     * closest to -<i>pi</i>/4. 
      * <li>If both arguments are negative infinity, then the result is the 
-     * <code>double</code> value closest to -3*pi/4.</ul>
+     * <code>double</code> value closest to -3*<i>pi</i>/4.</ul>
      *
-     * @param   a   a <code>double</code> value.
-     * @param   b   a <code>double</code> value.
+     * @param   y   the ordinate coordinate
+     * @param   x   the abscissa coordinate
      * @return  the <i>theta</i> component of the point
      *          (<i>r</i>,&nbsp;<i>theta</i>)
      *          in polar coordinates that corresponds to the point
-     *          (<i>b</i>,&nbsp;<i>a</i>) in Cartesian coordinates.
+     *          (<i>x</i>,&nbsp;<i>y</i>) in Cartesian coordinates.
      */
-    public static native double atan2(double a, double b);
+    public static native double atan2(double y, double x);
 
 
     /**
@@ -396,15 +397,16 @@ public final strictfp class StrictMath {
      * of the second argument if that result can in fact be represented 
      * exactly as a double value.</ul>
      * 
-     * <p>(In the foregoing descriptions, a floating-point value is 
-     * considered to be an integer if and only if it is a fixed point of the 
-     * method {@link #ceil <tt>ceil</tt>} or, which is the same thing, a fixed 
-     * point of the method {@link #floor <tt>floor</tt>}. A value is a fixed 
-     * point of a one-argument method if and only if the result of applying 
-     * the method to the value is equal to the value.)  
+     * <p>(In the foregoing descriptions, a floating-point value is
+     * considered to be an integer if and only if it is a fixed point
+     * of the method {@link #ceil <tt>ceil</tt>} or, equivalently, a
+     * fixed point of the method {@link #floor <tt>floor</tt>}. A
+     * value is a fixed point of a one-argument method if and only if
+     * the result of applying the method to the value is equal to the
+     * value.)
      *
-     * @param   a   a <code>double</code> value.
-     * @param   b   a <code>double</code> value.
+     * @param   a   base.
+     * @param   b   the exponent.
      * @return  the value <code>a<sup>b</sup></code>.
      */
     public static native double pow(double a, double b);
@@ -425,7 +427,7 @@ public final strictfp class StrictMath {
      * equal to the value of <code>Integer.MAX_VALUE</code>, the result is 
      * equal to the value of <code>Integer.MAX_VALUE</code>.</ul> 
      *
-     * @param   a   a <code>float</code> value.
+     * @param   a   a floating-point value to be rounded to an integer.
      * @return  the value of the argument rounded to the nearest
      *          <code>int</code> value.
      * @see     java.lang.Integer#MAX_VALUE
@@ -451,7 +453,8 @@ public final strictfp class StrictMath {
      * equal to the value of <code>Long.MAX_VALUE</code>, the result is 
      * equal to the value of <code>Long.MAX_VALUE</code>.</ul> 
      *
-     * @param   a   a <code>double</code> value.
+     * @param   a  a floating-point value to be rounded to a
+     *		<code>long</code>. 
      * @return  the value of the argument rounded to the nearest
      *          <code>long</code> value.
      * @see     java.lang.Long#MAX_VALUE
@@ -504,8 +507,7 @@ public final strictfp class StrictMath {
      * <code>int</code> value, the result is that same value, which is 
      * negative. 
      *
-     * @param   a   the <code>int</code> argument whose absolute value is 
-     *          to be determined.
+     * @param   a   the  argument whose absolute value is to be determined.
      * @return  the absolute value of the argument.
      * @see     java.lang.Integer#MIN_VALUE
      */
@@ -523,7 +525,7 @@ public final strictfp class StrictMath {
      * <code>long</code> value, the result is that same value, which is 
      * negative. 
      *
-     * @param   a   a <code>long</code> value.
+     * @param   a   the  argument whose absolute value is to be determined.
      * @return  the absolute value of the argument.
      * @see     java.lang.Long#MIN_VALUE
      */
@@ -540,10 +542,10 @@ public final strictfp class StrictMath {
      * result is positive zero. 
      * <li>If the argument is infinite, the result is positive infinity. 
      * <li>If the argument is NaN, the result is NaN.</ul>
-     * In other words, the result is equal to the value of the expression: 
+     * In other words, the result is the same as the value of the expression: 
      * <p><pre>Float.intBitsToFloat(0x7fffffff & Float.floatToIntBits(a))</pre>
      *
-     * @param   a   a <code>float</code> value.
+     * @param   a   the argument whose absolute value is to be determined
      * @return  the absolute value of the argument.
      */
     public static float abs(float a) {
@@ -559,10 +561,10 @@ public final strictfp class StrictMath {
      * is positive zero. 
      * <li>If the argument is infinite, the result is positive infinity. 
      * <li>If the argument is NaN, the result is NaN.</ul>
-     * In other words, the result is equal to the value of the expression: 
-     * <p><pre>Double.longBitsToDouble((Double.doubleToLongBits(a)<<1)>>>1)</pre>
+     * In other words, the result is the same as the value of the expression: 
+     * <p><code>Double.longBitsToDouble((Double.doubleToLongBits(a)&lt;&lt;1)&gt;&gt;&gt;1)</code>
      *
-     * @param   a   a <code>double</code> value.
+     * @param   a   the argument whose absolute value is to be determined
      * @return  the absolute value of the argument.
      */
     public static double abs(double a) {
@@ -575,8 +577,8 @@ public final strictfp class StrictMath {
      * <code>Integer.MAX_VALUE</code>. If the arguments have the same value, 
      * the result is that same value.
      *
-     * @param   a   an <code>int</code> value.
-     * @param   b   an <code>int</code> value.
+     * @param   a   an argument.
+     * @param   b   another argument.
      * @return  the larger of <code>a</code> and <code>b</code>.
      * @see     java.lang.Long#MAX_VALUE
      */
@@ -590,8 +592,8 @@ public final strictfp class StrictMath {
      * <code>Long.MAX_VALUE</code>. If the argumens have the same value, 
      * the result is that same value. 
      *
-     * @param   a   a <code>long</code> value.
-     * @param   b   a <code>long</code> value.
+     * @param   a   an argument.
+     * @param   b   another argument.
      * @return  the larger of <code>a</code> and <code>b</code>.
      * @see     java.lang.Long#MAX_VALUE
      */
@@ -603,17 +605,17 @@ public final strictfp class StrictMath {
     private static long negativeZeroDoubleBits = Double.doubleToLongBits(-0.0d);
 
     /**
-     * Returns the greater of two <code>float</code> values.  That is, the 
-     * result is the argument closer to positive infinity. If the 
-     * arguments have the same value, the result is that same value. If 
-     * either value is <code>NaN</code>, then the result is <code>NaN</code>.  
-     * Unlike the the numerical comparison operators, this method considers 
-     * negative zero to be strictly smaller than positive zero. If one 
-     * argument is positive zero and the other negative zero, the result 
-     * is positive zero.
+     * Returns the greater of two <code>float</code> values.  That is,
+     * the result is the argument closer to positive infinity. If the
+     * arguments have the same value, the result is that same
+     * value. If either value is NaN, then the result is NaN.  Unlike
+     * the the numerical comparison operators, this method considers
+     * negative zero to be strictly smaller than positive zero. If one
+     * argument is positive zero and the other negative zero, the
+     * result is positive zero.
      *
-     * @param   a   a <code>float</code> value.
-     * @param   b   a <code>float</code> value.
+     * @param   a   an argument.
+     * @param   b   another argument.
      * @return  the larger of <code>a</code> and <code>b</code>.
      */
     public static float max(float a, float b) {
@@ -626,17 +628,17 @@ public final strictfp class StrictMath {
     }
 
     /**
-     * Returns the greater of two <code>double</code> values.  That is, the 
-     * result is the argument closer to positive infinity. If the 
-     * arguments have the same value, the result is that same value. If 
-     * either value is <code>NaN</code>, then the result is <code>NaN</code>.  
-     * Unlike the the numerical comparison operators, this method considers 
-     * negative zero to be strictly smaller than positive zero. If one 
-     * argument is positive zero and the other negative zero, the result 
-     * is positive zero.
+     * Returns the greater of two <code>double</code> values.  That
+     * is, the result is the argument closer to positive infinity. If
+     * the arguments have the same value, the result is that same
+     * value. If either value is NaN, then the result is NaN.  Unlike
+     * the the numerical comparison operators, this method considers
+     * negative zero to be strictly smaller than positive zero. If one
+     * argument is positive zero and the other negative zero, the
+     * result is positive zero.
      *
-     * @param   a   a <code>double</code> value.
-     * @param   b   a <code>double</code> value.
+     * @param   a   an argument.
+     * @param   b   another argument.
      * @return  the larger of <code>a</code> and <code>b</code>.
      */
     public static double max(double a, double b) {
@@ -649,12 +651,13 @@ public final strictfp class StrictMath {
     }
 
     /**
-     * Returns the smaller of two <code>int</code> values. That is, the 
-     * result the argument closer to the value of <code>Integer.MIN_VALUE</code>. 
-     * If the arguments have the same value, the result is that same value.
+     * Returns the smaller of two <code>int</code> values. That is,
+     * the result the argument closer to the value of
+     * <code>Integer.MIN_VALUE</code>.  If the arguments have the same
+     * value, the result is that same value.
      *
-     * @param   a   an <code>int</code> value.
-     * @param   b   an <code>int</code> value.
+     * @param   a   an argument.
+     * @param   b   another argument.
      * @return  the smaller of <code>a</code> and <code>b</code>.
      * @see     java.lang.Long#MIN_VALUE
      */
@@ -663,13 +666,13 @@ public final strictfp class StrictMath {
     }
 
     /**
-     * Returns the smaller of two <code>long</code> values. That is, the 
-     * result is the argument closer to the value of
-     * <code>Long.MIN_VALUE</code>. If the arguments have the same value, 
-     * the result is that same value.
+     * Returns the smaller of two <code>long</code> values. That is,
+     * the result is the argument closer to the value of
+     * <code>Long.MIN_VALUE</code>. If the arguments have the same
+     * value, the result is that same value.
      *
-     * @param   a   a <code>long</code> value.
-     * @param   b   a <code>long</code> value.
+     * @param   a   an argument.
+     * @param   b   another argument.
      * @return  the smaller of <code>a</code> and <code>b</code>.
      * @see     java.lang.Long#MIN_VALUE
      */
@@ -678,17 +681,17 @@ public final strictfp class StrictMath {
     }
 
     /**
-     * Returns the smaller of two <code>float</code> values.  That is, the 
-     * result is the value closer to negative infinity. If the arguments 
-     * have the same value, the result is that same value. If either value
-     * is <code>NaN</code>, then the result is <code>NaN</code>.  Unlike the
-     * the numerical comparison operators, this method considers negative zero
-     * to be strictly smaller than positive zero.  If one argument is 
-     * positive zero and the other is negative zero, the result is negative 
-     * zero.
+     * Returns the smaller of two <code>float</code> values.  That is,
+     * the result is the value closer to negative infinity. If the
+     * arguments have the same value, the result is that same
+     * value. If either value is NaN, then the result is NaN.  Unlike
+     * the the numerical comparison operators, this method considers
+     * negative zero to be strictly smaller than positive zero.  If
+     * one argument is positive zero and the other is negative zero,
+     * the result is negative zero.
      *
-     * @param   a   a <code>float</code> value.
-     * @param   b   a <code>float</code> value.
+     * @param   a   an argument.
+     * @param   b   another argument.
      * @return  the smaller of <code>a</code> and <code>b.</code>
      */
     public static float min(float a, float b) {
@@ -701,17 +704,17 @@ public final strictfp class StrictMath {
     }
 
     /**
-     * Returns the smaller of two <code>double</code> values.  That is, the 
-     * result is the value closer to negative infinity. If the arguments have 
-     * the same value, the result is that same value. If either value
-     * is <code>NaN</code>, then the result is <code>NaN</code>.  Unlike the
-     * the numerical comparison operators, this method considers negative zero
-     * to be strictly smaller than positive zero. If one argument is 
-     * positive zero and the other is negative zero, the result is negative 
-     * zero.
+     * Returns the smaller of two <code>double</code> values.  That
+     * is, the result is the value closer to negative infinity. If the
+     * arguments have the same value, the result is that same
+     * value. If either value is NaN, then the result is NaN.  Unlike
+     * the the numerical comparison operators, this method considers
+     * negative zero to be strictly smaller than positive zero. If one
+     * argument is positive zero and the other is negative zero, the
+     * result is negative zero.
      *
-     * @param   a   a <code>double</code> value.
-     * @param   b   a <code>double</code> value.
+     * @param   a   an argument.
+     * @param   b   another argument.
      * @return  the smaller of <code>a</code> and <code>b</code>.
      */
     public static double min(double a, double b) {

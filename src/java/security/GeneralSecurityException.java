@@ -1,4 +1,6 @@
 /*
+ * @(#)GeneralSecurityException.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,12 +11,14 @@ package java.security;
  * This is the general security exception class, which serves to group all
  * the exception classes of the <code>java.security</code> package that
  * extend from it.
- * (Exceptions are AccessControlException and CertificateException,
- * which subclass from <code>java.lang.SecurityException</code>, and ProviderException
- * and InvalidParameterException, which subclass from 
- * <code>java.lang.RuntimeException</code>.)
- * 
- * @version 1.10, 02/02/06
+ * <P>
+ * The exceptions to this grouping are:
+ * <UL>
+ *  <LI>AccessControlException and RMISecurityException, which subclass java.lang.SecurityException
+ *  <LI>ProviderException, which subclasses java.lang.RuntimeException
+ *  <LI>InvalidParameterException, which subclasses java.lang.IllegalArgumentException
+ * </UL> 
+ * @version 1.11, 01/12/03
  * @author Jan Luehe
  */
 

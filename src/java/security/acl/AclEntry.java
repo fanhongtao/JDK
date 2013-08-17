@@ -1,4 +1,6 @@
 /*
+ * @(#)AclEntry.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -42,6 +44,8 @@ public interface AclEntry extends Cloneable {
      *
      * @return true if the principal is set, false if there was
      * already a principal set for this entry.
+     *
+     * @see #getPrincipal
      */
     public boolean setPrincipal(Principal user);
 
@@ -51,6 +55,8 @@ public interface AclEntry extends Cloneable {
      * entry yet.
      *
      * @return the principal associated with this entry.
+     *
+     * @see #setPrincipal
      */
     public Principal getPrincipal();
 

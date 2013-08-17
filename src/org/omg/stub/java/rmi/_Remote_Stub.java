@@ -1,4 +1,6 @@
 /*
+ * @(#)_Remote_Stub.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -38,6 +40,6 @@ public final class _Remote_Stub extends Stub implements Remote {
      * @return an array of repository ids that an object implements.
      */
     public String[] _ids() {
-        return _type_ids;
+        return (String[]) _type_ids.clone();
     } 
 }

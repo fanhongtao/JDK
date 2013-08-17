@@ -1,8 +1,9 @@
 /*
+ * @(#)ClassLoader.java	1.160 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-
 package java.lang;
 
 import java.io.InputStream;
@@ -10,6 +11,8 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.PrintWriter;
 import java.io.File;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -25,21 +28,24 @@ import java.net.MalformedURLException;
 import java.security.AccessController;
 import java.security.AccessControlContext;
 import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.security.ProtectionDomain;
-import java.security.PermissionCollection;
+import java.security.Permissions;
 import java.security.CodeSource;
 import java.security.Policy;
 import sun.misc.URLClassPath;
 import sun.misc.Resource;
 import sun.misc.CompoundEnumeration;
 import sun.misc.ClassFileTransformer;
-
 //import sun.misc.Launcher;
+import sun.reflect.Reflection;
+import sun.security.action.GetPropertyAction;
 
 /**
- * The class <code>ClassLoader</code> is an abstract class. 
  * A class loader is an object that is responsible for loading 
- * classes. Given the name of a class, it should attempt to locate 
+ * classes. The class <code>ClassLoader</code> is an abstract class.
+ * Given the name of a class, a class loader should attempt to locate 
  * or generate data that constitutes a definition for the class. A 
  * typical strategy is to transform the name into a file
  * name and then read a "class file" of that name from a file system. 
@@ -121,7 +127,7 @@ import sun.misc.ClassFileTransformer;
  *     }
  * </pre></blockquote><hr>
  *
- * @version 1.145, 02/06/02
+ * @version 1.160, 12/03/01
  * @see     java.lang.Class
  * @see     java.lang.Class#newInstance()
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
@@ -130,6 +136,12 @@ import sun.misc.ClassFileTransformer;
  * @since   JDK1.0
  */
 public abstract class ClassLoader {
+
+    private static native void registerNatives();
+    static {
+        registerNatives();
+    }
+
     /*
      * If initialization succeed this is set to true and security checks will
      * succeed. Otherwise the object is not initialized and the object is
@@ -184,12 +196,12 @@ public abstract class ClassLoader {
      * <p>
      * If there is a security manager, its <code>checkCreateClassLoader</code>
      * method is called. This may result in a security exception. 
+     * 
+     * @param parent the parent class loader
      *
      * @throws  SecurityException if a security manager exists and its
      * <code>checkCreateClassLoader</code> method doesn't allow creation of a
      * new class loader.
-     * 
-     * @param parent the parent class loader
      * @see       java.lang.SecurityException
      * @see       java.lang.SecurityManager#checkCreateClassLoader()
      * @since     1.2
@@ -356,11 +368,14 @@ public abstract class ClassLoader {
      *             by the 
      *             <a href="http://java.sun.com/docs/books/vmspec/">Java 
      *             Virtual Machine Specification</a>.
-     * @param      off the start offset of the class data
+     * @param      off  the start offset in <code>b</code> of the class data
      * @param      len the length of the class data
      * @return     the <code>Class</code> object that was created from the
      *             specified class data
      * @exception  ClassFormatError if the data did not contain a valid class
+     * @exception  IndexOutOfBoundsException if either <code>off</code> or 
+     *             <code>len</code> is negative, or if 
+     *             <code>off+len</code> is greater than <code>b.length</code>.
      * @see        ClassLoader#loadClass(java.lang.String, boolean)
      * @see        ClassLoader#resolveClass(java.lang.Class)
      * @deprecated Replaced by defineClass(java.lang.String, byte[], int, int) 
@@ -379,7 +394,7 @@ public abstract class ClassLoader {
      * the newly defined class. The <code>ProtectionDomain</code> 
      * contains the set of permissions granted when
      * a call to <code>Policy.getPolicy().getPermissions()</code> is made with
-     * a Codesource of <code>null,null</code>. The default domain is 
+     * a code source of <code>null,null</code>. The default domain is 
      * created on the first invocation of <code>defineClass</code>, and
      * re-used on subsequent calls.
      * <p>
@@ -387,7 +402,7 @@ public abstract class ClassLoader {
      * use the <code>defineClass</code> method that takes a 
      * <code>ProtectionDomain</code> as one of its arguments.
      *
-     * @param	   name the expected name of the class, or <code>null</code>
+     * @param      name the expected name of the class, or <code>null</code>
      *                  if not known, using '.' and not '/' as the separator
      *                  and without a trailing ".class" suffix.
      * @param      b    the bytes that make up the class data. The bytes in 
@@ -396,7 +411,7 @@ public abstract class ClassLoader {
      *             by the 
      *             <a href="http://java.sun.com/docs/books/vmspec/">Java 
      *             Virtual Machine Specification</a>.
-     * @param      off  the start offset of the class data
+     * @param      off  the start offset in <code>b</code> of the class data
      * @param      len  the length of the class data
      * @return     the <code>Class</code> object that was created from the
      *             specified class data
@@ -406,8 +421,8 @@ public abstract class ClassLoader {
      *             <code>off+len</code> is greater than <code>b.length</code>.
      * @exception  SecurityException if an attempt is made to add this class
      *             to a package that contains classes that were signed by
-     *             a different set of certificates then this class, which
-     *             is unsigned.
+     *             a different set of certificates than this class (which
+     *             is unsigned), or if the class name begins with "java.".
      *
      * @see        ClassLoader#loadClass(java.lang.String, boolean)
      * @see        ClassLoader#resolveClass(java.lang.Class)
@@ -444,26 +459,32 @@ public abstract class ClassLoader {
      *
      * <p>The specified class name cannot begin with "java.", since all 
      * classes in the java.* packages can only be defined by the bootstrap 
-     * class loader.
+     * class loader. If the name parameter is not <TT>null</TT>, it
+     * must be equal to the name of the class specified by the byte
+     * array b, otherwise a <TT>ClassFormatError</TT> is raised.
      * 
-     *
+     * @param      name the expected name of the class, or <code>null</code>
+     *                  if not known, using '.' and not '/' as the separator
+     *                  and without a trailing ".class" suffix.
+     * @param      b    the bytes that make up the class data. The bytes in 
+     *             positions <code>off</code> through <code>off+len-1</code> 
+     *             should have the format of a valid class file as defined 
+     *             by the 
+     *             <a href="http://java.sun.com/docs/books/vmspec/">Java 
+     *             Virtual Machine Specification</a>.
+     * @param      off  the start offset in <code>b</code> of the class data
+     * @param      len  the length of the class data
+     * @param protectionDomain the ProtectionDomain of the class
+     * @return the <code>Class</code> object created from the data,
+     *         and optional ProtectionDomain.
      * @exception  ClassFormatError if the data did not contain a valid class
      * @exception  IndexOutOfBoundsException if either <code>off</code> or 
      *             <code>len</code> is negative, or if 
      *             <code>off+len</code> is greater than <code>b.length</code>.
-     *
      * @exception  SecurityException if an attempt is made to add this class
      *             to a package that contains classes that were signed by
      *             a different set of certificates than this class, or if 
      *             the class name begins with "java.".
-     *
-     * @param name the name of the class
-     * @param b the class bytes
-     * @param off the start offset of the class bytes
-     * @param len the length of the class bytes
-     * @param protectionDomain the ProtectionDomain of the class
-     * @return the <code>Class</code> object created from the data,
-     *         and optional ProtectionDomain.
      */
     protected final Class defineClass(String name, byte[] b, int off, int len,
 				      ProtectionDomain protectionDomain)
@@ -958,34 +979,55 @@ public abstract class ClassLoader {
      * delegation parent for new <code>ClassLoader</code> instances, and
      * is typically the class loader used to start the application.
      * <p>
+     * This method is first invoked early in the runtime's startup
+     * sequence, at which point it creates the system class loader
+     * and sets it as the context class loader of the invoking
+     * <tt>Thread</tt>.
+     * <p>
+     * The default system class loader is an implementation-dependent
+     * instance of this class.
+     * <p>
+     * If the system property <tt>java.system.class.loader</tt> is
+     * defined when this method is first invoked then the value of that
+     * property is taken to be the name of a class that will be returned as
+     * the system class loader. The class is loaded using the default system
+     * class loader and must define a public constructor that takes a single
+     * parameter of type <tt>ClassLoader</tt> which is used
+     * as the delegation parent. An instance is then created using this
+     * constructor with the default system class loader as the parameter.
+     * The resulting class loader is defined to be the system class loader.
+     * <p>
      * If a security manager is present, and the caller's class loader is
      * not null and the caller's class loader is not the same as or an ancestor of
      * the system class loader, then
-     * this method calls the security manager's <code>checkPermission</code> 
-     * method with a <code>RuntimePermission("getClassLoader")</code> 
+     * this method calls the security manager's <code>checkPermission</code>
+     * method with a <code>RuntimePermission("getClassLoader")</code>
      * permission to ensure it's ok to access the system class loader.
      * If not, a <code>SecurityException</code> will be thrown.
      *
      * @return the system <code>ClassLoader</code> for delegation, or
      *         <code>null</code> if none
      * @throws SecurityException
-     *        if a security manager exists and its 
-     *        <code>checkPermission</code> method doesn't allow 
+     *        if a security manager exists and its
+     *        <code>checkPermission</code> method doesn't allow
      *        access to the system class loader.
+     * @throws IllegalStateException
+     *        if invoked recursively during the construction
+     *        of the class loader specified by the
+     *        <code>java.system.class.loader</code> property.
+     * @throws Error
+     *        if the system property <tt>java.system.class.loader</tt>
+     *        is defined but the named class could not be loaded, the
+     *        provider class does not define the required constructor, or an
+     *        exception is thrown by that constructor when it is invoked. The
+     *        underlying cause of the error can be retrieved via the
+     *        {@link Throwable#getCause()} method.
      * @see SecurityManager#checkPermission
      * @see java.lang.RuntimePermission
-     * @since 1.2
+     * @revised 1.4
      */
     public static ClassLoader getSystemClassLoader() {
-	if (!sclSet) {
-            // Workaround for 4154308 (1.2FCS build breaker)
-            // Launcher l = Launcher.getLauncher();
-            sun.misc.Launcher l = sun.misc.Launcher.getLauncher();
-	    if (l != null) {
-		scl = l.getClassLoader();
-	    }
-	    sclSet = true;
-	}
+	initSystemClassLoader();
 	if (scl == null) {
 	    return null;
 	}
@@ -997,6 +1039,37 @@ public abstract class ClassLoader {
 	    }
 	}
 	return scl;
+    }
+
+    private static synchronized void initSystemClassLoader() {
+	if (!sclSet) {
+	    if (scl != null)
+		throw new IllegalStateException("recursive call");
+            sun.misc.Launcher l = sun.misc.Launcher.getLauncher();
+	    if (l != null) {
+		Throwable oops = null;
+		scl = l.getClassLoader();
+	        try {
+		    PrivilegedExceptionAction a;
+		    a = new SystemClassLoaderAction(scl);
+                    scl = (ClassLoader) AccessController.doPrivileged(a);
+	        } catch (PrivilegedActionException pae) {
+		    oops = pae.getCause();
+	            if (oops instanceof InvocationTargetException) {
+		        oops = oops.getCause();
+		    }
+	        }
+		if (oops != null) {
+		    if (oops instanceof Error) {
+			throw (Error) oops;
+		    } else {
+		        // wrap the exception
+		        throw new Error(oops);
+		    }
+		}
+	    }
+	    sclSet = true;
+	}
     }
 
     // Returns true if the specified class loader can be found
@@ -1012,8 +1085,20 @@ public abstract class ClassLoader {
 	return false;
     }
 
-    // Returns the caller's class loader, or null if none
-    static native ClassLoader getCallerClassLoader();
+    // Returns the caller's class loader, or null if none.
+    // NOTE this must always be called when there is exactly one
+    // intervening frame from the core libraries on the stack between
+    // this method's invocation and the desired caller.
+    static ClassLoader getCallerClassLoader() {
+        // NOTE use of more generic Reflection.getCallerClass()
+        Class caller = Reflection.getCallerClass(3);
+        // This can be null if the VM is requesting it
+        if (caller == null) {
+            return null;
+        }
+        // Circumvent security check since this is package-private
+        return caller.getClassLoader0();
+    }
 
     // The class loader for the system
     private static ClassLoader scl;
@@ -1158,7 +1243,7 @@ public abstract class ClassLoader {
      * by the VM when it loads the library, and used by the VM to pass
      * the correct version of JNI to the native methods.
      *
-     * @version 1.145, 02/06/02
+     * @version 1.160, 12/03/01
      * @see     java.lang.ClassLoader
      * @since   1.2
      */ 
@@ -1216,33 +1301,14 @@ public abstract class ClassLoader {
      */
     private ProtectionDomain defaultDomain = null;
 
-    /* the "default" permissions, shared by the default domains.
-     */
-    private static PermissionCollection defaultPermissions = null;
-
     /*
      * returns (and initializes) the default domain.
      */
 
-    private ProtectionDomain getDefaultDomain() {
+    private synchronized ProtectionDomain getDefaultDomain() {
 	if (defaultDomain == null) {
-	    synchronized(ClassLoader.class) {
-		if (defaultPermissions == null) {
-		    defaultPermissions = (PermissionCollection)
-			AccessController.doPrivileged(new PrivilegedAction() {
-			    public Object run() {
-				CodeSource cs = new CodeSource(null, null);
-				return Policy.getPolicy().getPermissions(cs);
-			    }
-			});
-		}
-
-		if (defaultDomain == null) {
-		    CodeSource cs = new CodeSource(null, null);
-		    defaultDomain = new ProtectionDomain(cs,
-							 defaultPermissions);
-		}
-	    }
+	    CodeSource cs = new CodeSource(null, null);
+	    defaultDomain = new ProtectionDomain(cs, null, this, null);
 	}
 	return defaultDomain;
     }
@@ -1439,5 +1505,235 @@ public abstract class ClassLoader {
 	    }
 	}
 	return 0;
+    }
+
+    /*
+     * The default toggle for assertion checking.
+     */
+    private boolean defaultAssertionStatus = false;
+
+    /*
+     * Maps String packageName to Boolean package default assertion status
+     * Note that the default package is placed under a null map key.
+     * If this field is null then we are delegating assertion status queries
+     * to the VM, i.e., none of this ClassLoader's assertion status
+     * modification methods have been called.
+     */
+    private Map packageAssertionStatus = null;
+
+    /*
+     * Maps String fullyQualifiedClassName to Boolean assertionStatus
+     * If this field is null then we are delegating assertion status queries
+     * to the VM, i.e., none of this ClassLoader's assertion status
+     * modification methods have been called.
+     */
+    Map classAssertionStatus = null;
+
+    /**
+     * Sets the default assertion status for this class loader.  This setting
+     * determines whether classes loaded by this class loader and initialized
+     * in the future will have assertions enabled or disabled by default.
+     * This setting may be overridden on a per-package or per-class basis by
+     * invoking {@link #setPackageAssertionStatus(String,boolean)} or {@link
+     * #setClassAssertionStatus(String,boolean)}.
+     *
+     * @param enabled <tt>true</tt> if classes loaded by this class loader
+     *        will henceforth have assertions enabled by default,
+     *        <tt>false</tt> if they will have assertions disabled by default.
+     * @since 1.4
+     */
+    public synchronized void setDefaultAssertionStatus(boolean enabled) {
+        if (classAssertionStatus == null)
+            initializeJavaAssertionMaps();
+
+        defaultAssertionStatus = enabled;
+    }
+
+    /**
+     * Sets the package default assertion status for the named
+     * package.  The package default assertion status determines the
+     * assertion status for classes initialized in the future that belong
+     * to the named package or any of its "subpackages."
+     * <p>
+     * A subpackage of a package named p is any package whose name
+     * begins with "p." .  For example, <tt>javax.swing.text</tt> is
+     * a subpackage of <tt>javax.swing</tt>, and both <tt>java.util</tt>
+     * and <tt>java.lang.reflect</tt> are subpackages of <tt>java</tt>.
+     * <p>
+     * In the event that multiple package defaults apply to a given
+     * class, the package default pertaining to the most specific package
+     * takes precedence over the others.  For example, if
+     * <tt>javax.lang</tt> and <tt>javax.lang.reflect</tt> both have
+     * package defaults associated with them, the latter package
+     * default applies to classes in <tt>javax.lang.reflect</tt>.
+     * <p>
+     * Package defaults take precedence over the class loader's default
+     * assertion status, and may be overridden on a per-class basis by
+     * invoking {@link #setClassAssertionStatus(String,boolean)}.
+     *
+     * @param packageName the name of the package whose package default
+     *        assertion status is to be set. A null value
+     *        indicates the unnamed package that is "current"
+     *        (JLS 7.4.2).
+     * @param enabled <tt>true</tt> if classes loaded by this classloader
+     *        and belonging to the named package or any of its subpackages
+     *        will have assertions enabled by default, <tt>false</tt> if they
+     *        will have assertions disabled by default.
+     * @since 1.4
+     */
+    public synchronized void setPackageAssertionStatus(String packageName,
+                                                       boolean enabled)
+    {
+        if (packageAssertionStatus == null)
+            initializeJavaAssertionMaps();
+
+        packageAssertionStatus.put(packageName, Boolean.valueOf(enabled));
+    }
+
+    /**
+     * Sets the desired assertion status for the named top-level class in
+     * this class loader and any nested classes contained therein.
+     * This setting takes precedence over the  class loader's default
+     * assertion status, and over any applicable per-package default.
+     * This method has no effect if the named class has already been
+     * initialized.  (Once a class is initialized, its assertion status cannot
+     * change.)
+     * <p>
+     * If the named class is not a top-level class, this call will have no
+     * effect on the actual assertion status of any class, and its return
+     * value is undefined.
+     *
+     * @param className the fully qualified class name of the top-level class
+     *        whose assertion status is to be set.
+     * @param enabled <tt>true</tt> if the named class is to have assertions
+     *        enabled when (and if) it is initialized, <tt>false</tt> if the
+     *        class is to have assertions disabled.
+     * @since 1.4
+     */
+    public synchronized void setClassAssertionStatus(String className,
+                                                     boolean enabled)
+    {
+        if (classAssertionStatus == null)
+            initializeJavaAssertionMaps();
+
+        classAssertionStatus.put(className, Boolean.valueOf(enabled));
+    }
+
+    /**
+     * Sets the default assertion status for this class loader to
+     * <tt>false</tt> and discards any package defaults or class assertion
+     * status settings associated with the class loader.  This call is
+     * provided so that class loaders can be made to ignore any command line
+     * or persistent assertion status settings and "start with a clean slate."
+     *
+     * @since 1.4
+     */
+    public synchronized void clearAssertionStatus() {
+        /*
+         * Whether or not "Java assertion maps" are initialized, set
+         * them to empty maps, effectively ignoring any present settings.
+         */
+        classAssertionStatus = new HashMap();
+        packageAssertionStatus = new HashMap();
+
+        defaultAssertionStatus = false;
+    }
+
+    /**
+     * Returns the assertion status that would be assigned to the specified
+     * class if it were to be initialized at the time this method is invoked.
+     * If the named class has had its assertion status set, the most recent
+     * setting will be returned; otherwise, if any package default assertion
+     * status pertains to this class, the most recent setting for the most
+     * specific pertinent package default assertion status is returned;
+     * otherwise, this class loader's default assertion status is returned.
+     *
+     * @param  className the fully qualified class name of the class whose
+     *         desired assertion status is being queried.
+     * @return the desired assertion status of the specified class.
+     * @see    #setClassAssertionStatus(String,boolean)
+     * @see    #setPackageAssertionStatus(String,boolean)
+     * @see    #setDefaultAssertionStatus(boolean)
+     * @since  1.4
+     */
+    synchronized boolean desiredAssertionStatus(String className) {
+        Boolean result;
+
+        // assert classAssertionStatus   != null;
+        // assert packageAssertionStatus != null;
+
+        // Check for a class entry
+        result = (Boolean)classAssertionStatus.get(className);
+        if (result != null)
+            return result.booleanValue();
+        
+        // Check for most specific package entry
+        int dotIndex = className.lastIndexOf(".");
+        if (dotIndex < 0) { // default package
+            result = (Boolean)packageAssertionStatus.get(null);
+            if (result != null)
+                return result.booleanValue();
+        }
+        while(dotIndex > 0) {
+            className = className.substring(0, dotIndex);
+            result = (Boolean)packageAssertionStatus.get(className);
+            if (result != null)
+                return result.booleanValue();
+            dotIndex = className.lastIndexOf(".", dotIndex-1);
+        }
+
+        // Return the classloader default
+        return defaultAssertionStatus;
+    }
+
+    // Set up the assertions with information provided by the VM.
+    private void initializeJavaAssertionMaps() {
+        // assert Thread.holdsLock(this);
+
+        classAssertionStatus = new HashMap();
+        packageAssertionStatus = new HashMap();
+        AssertionStatusDirectives directives = retrieveDirectives();
+
+        for(int i=0; i<directives.classes.length; i++)
+            classAssertionStatus.put(directives.classes[i],
+                              Boolean.valueOf(directives.classEnabled[i]));
+
+        for(int i=0; i<directives.packages.length; i++)
+            packageAssertionStatus.put(directives.packages[i],
+                              Boolean.valueOf(directives.packageEnabled[i]));
+
+        defaultAssertionStatus = directives.deflt;
+    }
+
+    // Retrieves the assertion directives from the VM.
+    private static native AssertionStatusDirectives retrieveDirectives();
+
+}
+
+
+class SystemClassLoaderAction implements PrivilegedExceptionAction {
+    private ClassLoader parent;
+
+    SystemClassLoaderAction(ClassLoader parent) {
+	this.parent = parent;
+    }
+
+    public Object run() throws Exception {
+	ClassLoader sys;
+	Constructor ctor;
+	Class c;
+	Class cp[] = { ClassLoader.class };
+	Object params[] = { parent };
+
+        String cls = System.getProperty("java.system.class.loader");
+	if (cls == null) {
+	    return parent;
+	}
+
+	c = Class.forName(cls, true, parent);
+	ctor = c.getDeclaredConstructor(cp);
+	sys = (ClassLoader) ctor.newInstance(params);
+	Thread.currentThread().setContextClassLoader(sys);
+	return sys;
     }
 }

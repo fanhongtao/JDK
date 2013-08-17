@@ -1,4 +1,6 @@
 /*
+ * @(#)Any.java	1.43 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,7 +11,6 @@ import org.omg.CORBA.portable.InputStream;
 import org.omg.CORBA.portable.OutputStream;
 import org.omg.CORBA.portable.Streamable;
 import org.omg.CORBA.portable.IDLEntity;
-
 
 /**
  * Serves as a container for any data that can be
@@ -78,13 +79,25 @@ import org.omg.CORBA.portable.IDLEntity;
 abstract public class Any implements IDLEntity {
 
     /**
+     * Checks for equality between this <code>Any</code> object and the
+     * given <code>Any</code> object.  Two <code>Any</code> objects are
+     * equal if both their values and type codes are equal.
+     *
+     * @param a	the <code>Any</code> object to test for equality
+     * @return	<code>true</code> if the <code>Any</code> objects are equal;
+     * <code>false</code> otherwise
+     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
+     *      comments for unimplemented features</a>
+     */
+    abstract public boolean equal(Any a);
+
+    /**
      * Returns type information for the element contained in this
      * <code>Any</code> object.
      *
      * @return		the <code>TypeCode</code> object containing type information
      *                about the value contained in this <code>Any</code> object
      */
-
     abstract public TypeCode type();
 
     /**
@@ -102,22 +115,7 @@ abstract public class Any implements IDLEntity {
      *                information for the value in
      *                this <code>Any</code> object
      */
-
     abstract public void type(TypeCode t);
-
-    /**
-     * Checks for equality between this <code>Any</code> object and the
-     * given <code>Any</code> object.  Two <code>Any</code> objects are
-     * equal if both their values and type codes are equal.
-     *
-     * @param a	the <code>Any</code> object to test for equality
-     * @return	<code>true</code> if the <code>Any</code> objects are equal;
-     * <code>false</code> otherwise
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
-     */
-
-    abstract public boolean equal(Any a);
 
     ///////////////////////////////////////////////////////////////////////////
     // marshalling/unmarshalling routines
@@ -137,24 +135,25 @@ abstract public class Any implements IDLEntity {
      *                    not consistent with the value that was contained
      *                    in the input stream
      */
-
     abstract public void   read_value(InputStream is, TypeCode t)
 	throws MARSHAL;
 
     /**
-     * Writes out to the given output stream the typecode and value
-     * of this <code>Any</code> object.
+     * Writes out the value of this <code>Any</code> object
+     * to the given output stream.  If both <code>typecode</code>
+     * and <code>value</code> need to be written, use 
+     * <code>create_output_stream()</code> to create an <code>OutputStream</code>,
+     * then use <code>write_any</code> on the <code>OutputStream</code>.
      * <P>
      * If this method is called on an <code>Any</code> object that has not
      * had a value inserted into its <code>value</code> field, it will throw
      * the exception <code>java.lang.NullPointerException</code>.
      *
      * @param os	the <code>org.omg.CORBA.portable.OutputStream</code>
-     *                object into which to marshal the value and typecode
+     *                object into which to marshal the value 
      *                of this <code>Any</code> object
      *
      */
-
     abstract public void   write_value(OutputStream os);
 
     /**
@@ -163,7 +162,6 @@ abstract public class Any implements IDLEntity {
      *
      * @return		the newly-created <code>OutputStream</code>
      */
-
     abstract public OutputStream  create_output_stream();
 
     /**
@@ -172,24 +170,7 @@ abstract public class Any implements IDLEntity {
      *
      * @return		the newly-created <code>InputStream</code>
      */
-
     abstract public InputStream  create_input_stream();
-
-    ///////////////////////////////////////////////////////////////////////////
-    // insertion of streamables
-
-    /**
-     * Inserts the given <code>Streamable</code> object
-     * into this <code>Any</code> object's <code>value</code> field.
-     * This method allows the insertion of non-primitive IDL types.
-     *
-     * @param s		the <code>Streamable</code> object to insert into this
-     *                <code>Any</code> object; may be a non-primitive
-     *                IDL type
-     */
-
-    abstract public void insert_Streamable(Streamable s);
-
 
     ///////////////////////////////////////////////////////////////////////////
     // basic insertion/extraction methods
@@ -223,7 +204,6 @@ abstract public class Any implements IDLEntity {
      *              contains something other than an <code>int</code> or the
      *              <code>value</code> field has not yet been set
      */
-
     abstract public int      extract_long() throws BAD_OPERATION;
 
     /**
@@ -256,7 +236,6 @@ abstract public class Any implements IDLEntity {
      */
     abstract public void     insert_longlong(long l);
 
-
     /**
      * Extracts the <code>short</code> in this
      * <code>Any</code> object's <code>value</code> field.
@@ -276,7 +255,6 @@ abstract public class Any implements IDLEntity {
      *                <code>Any</code> object
      */
     abstract public void     insert_ushort(short s);
-
 
     /**
      * Extracts the <code>int</code> in this
@@ -298,7 +276,6 @@ abstract public class Any implements IDLEntity {
      */
     abstract public void     insert_ulong(int l);
 
-
     /**
      * Extracts the <code>long</code> in this
      * <code>Any</code> object's <code>value</code> field.
@@ -318,7 +295,6 @@ abstract public class Any implements IDLEntity {
      *                <code>Any</code> object
      */
     abstract public void     insert_ulonglong(long l);
-
 
     /**
      * Extracts the <code>float</code> in this
@@ -340,7 +316,6 @@ abstract public class Any implements IDLEntity {
      */
     abstract public void     insert_float(float f);
 
-
     /**
      * Extracts the <code>double</code> in this
      * <code>Any</code> object's <code>value</code> field.
@@ -361,7 +336,6 @@ abstract public class Any implements IDLEntity {
      */
     abstract public void     insert_double(double d);
 
-
     /**
      * Extracts the <code>boolean</code> in this
      * <code>Any</code> object's <code>value</code> field.
@@ -381,7 +355,6 @@ abstract public class Any implements IDLEntity {
      *                <code>Any</code> object
      */
     abstract public void     insert_boolean(boolean b);
-
 
     /**
      * Extracts the <code>char</code> in this
@@ -405,6 +378,25 @@ abstract public class Any implements IDLEntity {
      */
     abstract public void     insert_char(char c) throws DATA_CONVERSION;
 
+    /**
+     * Extracts the <code>char</code> in this
+     * <code>Any</code> object's <code>value</code> field.
+     *
+     * @return the <code>char</code> stored in this <code>Any</code> object
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a <code>char</code> or the
+     *              <code>value</code> field has not yet been set
+     */
+    abstract public char     extract_wchar() throws BAD_OPERATION;
+
+    /**
+     * Inserts the given <code>char</code> 
+     * into this <code>Any</code> object's <code>value</code> field.
+     *
+     * @param c		the <code>char</code> to insert into this
+     *                <code>Any</code> object
+     */
+    abstract public void     insert_wchar(char c);
 
     /**
      * Extracts the <code>byte</code> in this
@@ -426,28 +418,6 @@ abstract public class Any implements IDLEntity {
      */
     abstract public void     insert_octet(byte b);
 
-
-    /**
-     * Extracts the <code>char</code> in this
-     * <code>Any</code> object's <code>value</code> field.
-     *
-     * @return the <code>char</code> stored in this <code>Any</code> object
-     * @exception BAD_OPERATION if this  <code>Any</code> object 
-     *              contains something other than a <code>char</code> or the
-     *              <code>value</code> field has not yet been set
-     */
-    abstract public char     extract_wchar() throws BAD_OPERATION;
-
-    /**
-     * Inserts the given <code>char</code> 
-     * into this <code>Any</code> object's <code>value</code> field.
-     *
-     * @param c		the <code>char</code> to insert into this
-     *                <code>Any</code> object
-     */
-    abstract public void     insert_wchar(char c);
-
-
     /**
      * Extracts the <code>Any</code> object in this
      * <code>Any</code> object's <code>value</code> field.
@@ -468,6 +438,80 @@ abstract public class Any implements IDLEntity {
      */
     abstract public void     insert_any(Any a);
 
+    /**
+     * Extracts the <code>org.omg.CORBA.Object</code> in this
+     * <code>Any</code> object's <code>value</code> field.
+     *
+     * @return the <code>org.omg.CORBA.Object</code> stored in 
+     *         this <code>Any</code> object
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than an 
+     *              <code>org.omg.CORBA.Object</code> or the
+     *              <code>value</code> field has not yet been set
+     */
+    abstract public org.omg.CORBA.Object extract_Object() throws BAD_OPERATION;
+
+    /**
+     * Inserts the given <code>org.omg.CORBA.Object</code> object
+     * into this <code>Any</code> object's <code>value</code> field.
+     *
+     * @param o		the <code>org.omg.CORBA.Object</code> object to insert into this
+     *                <code>Any</code> object
+     */
+    abstract public void insert_Object(org.omg.CORBA.Object o);
+
+    /**
+     * Extracts the <code>java.io.Serializable</code> object in this
+     * <code>Any</code> object's <code>value</code> field.
+     *
+     * @return the <code>java.io.Serializable</code> object stored in
+     *         this <code>Any</code> object
+     * @exception BAD_OPERATION if this  <code>Any</code> object 
+     *              contains something other than a <code>java.io.Serializable</code> 
+     *              object or the
+     *              <code>value</code> field has not yet been set
+     */
+    abstract public java.io.Serializable extract_Value() throws BAD_OPERATION ;
+
+    /**
+     * Inserts the given <code>java.io.Serializable</code> object
+     * into this <code>Any</code> object's <code>value</code> field.
+     *
+     * @param v		the <code>java.io.Serializable</code> object to insert into this
+     *                <code>Any</code> object
+     */
+    abstract public void insert_Value(java.io.Serializable v) ;
+
+    /**
+     * Inserts the given <code>java.io.Serializable</code> object
+     * into this <code>Any</code> object's <code>value</code> field.
+     *
+     * @param v		the <code>java.io.Serializable</code> object to insert into this
+     *                <code>Any</code> object
+     * @param t     the <code>TypeCode</code> object that is to be inserted into
+     *              this <code>Any</code> object's <code>type</code> field
+     *              and that describes the <code>java.io.Serializable</code> 
+     *              object being inserted
+	 * @throws MARSHAL if the ORB has a problem marshalling or
+	 *          unmarshalling parameters
+     */
+    abstract public void insert_Value(java.io.Serializable v, TypeCode t)
+	throws MARSHAL ;
+/**
+     * Inserts the given <code>org.omg.CORBA.Object</code> object
+     * into this <code>Any</code> object's <code>value</code> field.
+     *
+     * @param o		the <code>org.omg.CORBA.Object</code> instance to insert into this
+     *                <code>Any</code> object
+     * @param t     the <code>TypeCode</code> object that is to be inserted into
+     *              this <code>Any</code> object and that describes
+     *              the <code>Object</code> being inserted
+     * @exception BAD_OPERATION if this  method is invalid for this
+	 *            <code>Any</code> object
+     *              
+     */
+    abstract public void insert_Object(org.omg.CORBA.Object o, TypeCode t) 
+	throws BAD_PARAM;
 
     /**
      * Extracts the <code>String</code> object in this
@@ -492,7 +536,6 @@ abstract public class Any implements IDLEntity {
      */
     abstract public void     insert_string(String s) throws DATA_CONVERSION, MARSHAL;
 
-
     /**
      * Extracts the <code>String</code> object in this
      * <code>Any</code> object's <code>value</code> field.
@@ -515,46 +558,6 @@ abstract public class Any implements IDLEntity {
      */
     abstract public void     insert_wstring(String s) throws MARSHAL;
 
-
-    /**
-     * Extracts the <code>org.omg.CORBA.Object</code> in this
-     * <code>Any</code> object's <code>value</code> field.
-     *
-     * @return the <code>org.omg.CORBA.Object</code> stored in 
-     *         this <code>Any</code> object
-     * @exception BAD_OPERATION if this  <code>Any</code> object 
-     *              contains something other than an 
-     *              <code>org.omg.CORBA.Object</code> or the
-     *              <code>value</code> field has not yet been set
-     */
-    abstract public org.omg.CORBA.Object extract_Object() throws BAD_OPERATION;
-
-    /**
-     * Inserts the given <code>org.omg.CORBA.Object</code> object
-     * into this <code>Any</code> object's <code>value</code> field.
-     *
-     * @param o		the <code>org.omg.CORBA.Object</code> object to insert into this
-     *                <code>Any</code> object
-     */
-    abstract public void     insert_Object(org.omg.CORBA.Object o);
-
-    /**
-     * Inserts the given <code>org.omg.CORBA.Object</code> object
-     * into this <code>Any</code> object's <code>value</code> field.
-     *
-     * @param o		the <code>org.omg.CORBA.Object</code> instance to insert into this
-     *                <code>Any</code> object
-     * @param t     the <code>TypeCode</code> object that is to be inserted into
-     *              this <code>Any</code> object and that describes
-     *              the <code>Object</code> being inserted
-     * @exception BAD_OPERATION if this  method is invalid for this
-	 *            <code>Any</code> object
-     *              
-     */
-    abstract public void     insert_Object(org.omg.CORBA.Object o, 
-					   TypeCode t) 
-	throws BAD_OPERATION;
-
     /**
      * Extracts the <code>TypeCode</code> object in this
      * <code>Any</code> object's <code>value</code> field.
@@ -575,7 +578,6 @@ abstract public class Any implements IDLEntity {
      */
     abstract public void	   insert_TypeCode(TypeCode t);
 
-
     /**
      * Extracts the <code>Principal</code> object in this
      * <code>Any</code> object's <code>value</code> field.
@@ -586,9 +588,13 @@ abstract public class Any implements IDLEntity {
      *              contains something other than a
      *              <code>Principal</code> object or the
      *              <code>value</code> field has not yet been set
+     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
+     *      comments for unimplemented features</a>
      * @deprecated Deprecated by CORBA 2.2.
      */
-    abstract public Principal extract_Principal() throws BAD_OPERATION;
+    public Principal extract_Principal() throws BAD_OPERATION {
+	throw new org.omg.CORBA.NO_IMPLEMENT() ;
+    }
 
     /**
      * Inserts the given <code>Principal</code> object
@@ -597,10 +603,46 @@ abstract public class Any implements IDLEntity {
      *
      * @param p		the <code>Principal</code> object to insert into this
      *                <code>Any</code> object
+     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
+     *      comments for unimplemented features</a>
      * @deprecated Deprecated by CORBA 2.2.
      */
-    abstract public void	   insert_Principal(Principal p);
+    public void	   insert_Principal(Principal p) {
+	throw new org.omg.CORBA.NO_IMPLEMENT() ;
+    }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // insertion/extraction of streamables
+
+    /** 
+     * Extracts a <code>Streamable</code> from this <code>Any</code> object's 
+     * <code>value</code> field.  This method allows the extraction of 
+     * non-primitive IDL types.
+     *
+     * @return the <code>Streamable</code> stored in the <code>Any</code> object.
+     * @throws BAD_INV_ORDER if the caller has invoked operations in the wrong order
+     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
+     *      comments for unimplemented features</a>
+     */
+    public org.omg.CORBA.portable.Streamable extract_Streamable()
+	throws org.omg.CORBA.BAD_INV_ORDER {
+	throw new org.omg.CORBA.NO_IMPLEMENT() ;
+    }
+
+    /**
+     * Inserts the given <code>Streamable</code> object
+     * into this <code>Any</code> object's <code>value</code> field.
+     * This method allows the insertion of non-primitive IDL types.
+     *
+     * @param s		the <code>Streamable</code> object to insert into this
+     *                <code>Any</code> object; may be a non-primitive
+     *                IDL type
+     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
+     *      comments for unimplemented features</a>
+     */
+    public void insert_Streamable(Streamable s) {
+	throw new org.omg.CORBA.NO_IMPLEMENT() ;
+    }
 
     /**
      * Extracts the <code>java.math.BigDecimal</code> object in this
@@ -612,25 +654,33 @@ abstract public class Any implements IDLEntity {
      *              contains something other than a
      *              <code>java.math.BigDecimal</code> object or the
      *              <code>value</code> field has not yet been set
+     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
+     *      comments for unimplemented features</a>
      */
     public java.math.BigDecimal extract_fixed() {
         throw new org.omg.CORBA.NO_IMPLEMENT();
     }
 
-
     /**
+     * Throws an <a href="package-summary.html#NO_IMPLEMENT">
+     * <code>org.omg.CORBA.NO_IMPLEMENT</code></a> exception.
+     * <P>
      * Inserts the given <code>java.math.BigDecimal</code> object
      * into this <code>Any</code> object's <code>value</code> field.
      *
      * @param value		the <code>java.math.BigDecimal</code> object
      *                  to insert into this <code>Any</code> object
+     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
+     *      comments for unimplemented features</a>
      */
     public void insert_fixed(java.math.BigDecimal value) {
 	throw new org.omg.CORBA.NO_IMPLEMENT();
     }
 
-
     /**
+     * Throws an <a href="package-summary.html#NO_IMPLEMENT">
+     * <code>org.omg.CORBA.NO_IMPLEMENT</code></a> exception.
+     * <P>
      * Inserts the given <code>java.math.BigDecimal</code> object
      * into this <code>Any</code> object's <code>value</code> field.
      *
@@ -640,59 +690,12 @@ abstract public class Any implements IDLEntity {
      *              this <code>Any</code> object's <code>type</code> field
      *              and that describes the <code>java.math.BigDecimal</code> 
      *              object being inserted
+     * @throws org.omg.CORBA.BAD_INV_ORDER if this method is  invoked improperly
+     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
+     *      comments for unimplemented features</a>
      */
     public void insert_fixed(java.math.BigDecimal value, org.omg.CORBA.TypeCode type)
-    {
-               
-	throw new org.omg.CORBA.NO_IMPLEMENT();
-    }
-
-    // Changes due to orbos/98-01-18: Objects-by-Value
-
-
-    /**
-     * Extracts the <code>java.io.Serializable</code> object in this
-     * <code>Any</code> object's <code>value</code> field.
-     *
-     * @return the <code>java.io.Serializable</code> object stored in
-     *         this <code>Any</code> object
-     * @exception BAD_OPERATION if this  <code>Any</code> object 
-     *              contains something other than a <code>java.io.Serializable</code> 
-     *              object or the
-     *              <code>value</code> field has not yet been set
-     */
-    public java.io.Serializable extract_Value() throws BAD_OPERATION {
-	throw new org.omg.CORBA.NO_IMPLEMENT();
-    }
-
-
-    /**
-     * Inserts the given <code>java.io.Serializable</code> object
-     * into this <code>Any</code> object's <code>value</code> field.
-     *
-     * @param v		the <code>java.io.Serializable</code> object to insert into this
-     *                <code>Any</code> object
-     */
-    public void insert_Value(java.io.Serializable v) {
-	throw new org.omg.CORBA.NO_IMPLEMENT();
-    }
-
-
-    /**
-     * Inserts the given <code>java.io.Serializable</code> object
-     * into this <code>Any</code> object's <code>value</code> field.
-     *
-     * @param v		the <code>java.io.Serializable</code> object to insert into this
-     *                <code>Any</code> object
-     * @param t     the <code>TypeCode</code> object that is to be inserted into
-     *              this <code>Any</code> object's <code>type</code> field
-     *              and that describes the <code>java.io.Serializable</code> 
-     *              object being inserted
-	 * @throws MARSHAL if the ORB has a problem marshalling or
-	 *          unmarshalling parameters
-     */
-    public void insert_Value(java.io.Serializable v, TypeCode t)
-	throws MARSHAL
+        throws org.omg.CORBA.BAD_INV_ORDER
     {
 	throw new org.omg.CORBA.NO_IMPLEMENT();
     }

@@ -1,4 +1,6 @@
 /*
+ * @(#)NO_IMPLEMENT.java	1.31 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,12 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>NO_IMPLEMENT</code> exception, which is thrown
- * when the implementation for a method is not available.
+ * This exception indicates that even though the operation that 
+ * was invoked exists (it has an IDL definition), no implementation 
+ * for that operation exists. <tt>NO_IMPLEMENT</tt> can, for 
+ * example, be raised by an ORB if a client asks for an object's 
+ * type definition from the interface repository, but no interface 
+ * repository is provided by the ORB.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.
@@ -41,7 +47,7 @@ public final class NO_IMPLEMENT extends SystemException {
     /**
      * Constructs a <code>NO_IMPLEMENT</code> exception with the specified
      * minor code and completion status.
-     * @param minor the minor code
+     * @param minor an <code>int</code> specifying the minor code
      * @param completed a <code>CompletionStatus</code> instance indicating
      *                  the completion status
      */
@@ -53,6 +59,7 @@ public final class NO_IMPLEMENT extends SystemException {
      * Constructs a <code>NO_IMPLEMENT</code> exception with the specified description
      * message, minor code, and completion status.
      * @param s the String containing a description message
+     * @param minor an <code>int</code> specifying the minor code
      * @param completed a <code>CompletionStatus</code> instance indicating
      *                  the completion status
      */

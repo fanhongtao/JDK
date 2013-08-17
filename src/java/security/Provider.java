@@ -1,4 +1,6 @@
 /*
+ * @(#)Provider.java	1.50 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,9 @@ import java.util.*;
 /**
  * This class represents a "provider" for the
  * Java Security API, where a provider implements some or all parts of
- * Java Security, including:<ul>
+ * Java Security. Services that a provider may implement include:
+ *
+ * <ul>
  *
  * <li>Algorithms (such as DSA, RSA, MD5 or SHA-1).
  *
@@ -32,7 +36,7 @@ import java.util.*;
  * service in Java that uses a pluggable architecture with a choice
  * of implementations that fit underneath. 
  *
- * @version 1.49, 02/06/02
+ * @version 1.50, 12/03/01
  * @author Benjamin Renaud
  */
 public abstract class Provider extends Properties {

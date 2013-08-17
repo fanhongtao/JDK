@@ -1,4 +1,6 @@
 /*
+ * @(#)FontMetrics.java	1.47 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -69,7 +71,7 @@ import java.text.CharacterIterator;
  * called a <em>ligature</em>.  Measuring characters individually does
  * not account for these transformations.
  *
- * @version 	1.21 03/18/98
+ * @version 	1.47 12/03/01
  * @author 	Jim Graham
  * @see         java.awt.Font
  * @since       JDK1.0
@@ -79,7 +81,9 @@ public abstract class FontMetrics implements java.io.Serializable {
     static {
         /* ensure that the necessary native libraries are loaded */
 	Toolkit.loadLibraries();
-        initIDs();
+        if (!GraphicsEnvironment.isHeadless()) {
+            initIDs();
+        }
     }
 
     /**
@@ -165,8 +169,9 @@ public abstract class FontMetrics implements java.io.Serializable {
     /**
      * Gets the standard height of a line of text in this font.  This
      * is the distance between the baseline of adjacent lines of text.
-     * It is the sum of the leading + ascent + descent.  There is no
-     * guarantee that lines of text spaced at this distance are
+     * It is the sum of the leading + ascent + descent. Due to rounding
+     * this may not be the same as getAscent() + getDescent() + getLeading().
+     * There is no guarantee that lines of text spaced at this distance are
      * disjoint; such lines may overlap if some characters overshoot
      * either the standard ascent or the standard descent metric.
      * @return    the standard height of the font.
@@ -204,6 +209,8 @@ public abstract class FontMetrics implements java.io.Serializable {
 
     /**
      * For backward compatibility only.
+     * @return    the maximum descent of any character in the
+     * <code>Font</code>.
      * @see #getMaxDescent()
      * @deprecated As of JDK version 1.1.1,
      * replaced by <code>getMaxDescent()</code>.
@@ -251,6 +258,7 @@ public abstract class FontMetrics implements java.io.Serializable {
      * character's baseline.  Note that the advance of a
      * <code>String</code> is not necessarily the sum of the advances 
      * of its characters.
+     * @param ch the character to be measured
      * @return     the advance width of the specified <code>char</code>
      *                  in the <code>Font</code> described by this 
      *			<code>FontMetrics</code> object.

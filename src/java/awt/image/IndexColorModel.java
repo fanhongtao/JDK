@@ -1,4 +1,6 @@
 /*
+ * @(#)IndexColorModel.java	1.88 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -7,7 +9,6 @@ package java.awt.image;
 
 import java.awt.Transparency;
 import java.awt.color.ColorSpace;
-import sun.java2d.loops.ImageData;
 import java.math.BigInteger;
 
 /**
@@ -255,7 +256,7 @@ public class IndexColorModel extends ColorModel {
                                                ") must be >= 1");
         }
 	map_size = size;
-	rgb = new int[Math.max(size, 256)];
+	rgb = new int[calcRealMapSize(bits, size)];
 	int j = start;
 	int alpha = 0xff;
         transparency = OPAQUE;
@@ -332,6 +333,9 @@ public class IndexColorModel extends ColorModel {
      *           than 1 or greater than 16
      * @throws IllegalArgumentException if <code>size</code> is less
      *           than 1
+     * @throws IllegalArgumentException if <code>transferType</code> is not
+     *           one of <code>DataBuffer.TYPE_BYTE</code> or
+     *           <code>DataBuffer.TYPE_USHORT</code>
      */
     public IndexColorModel(int bits, int size,
                            int cmap[], int start,
@@ -354,8 +358,13 @@ public class IndexColorModel extends ColorModel {
             throw new IllegalArgumentException("Map size ("+size+
                                                ") must be >= 1");
         }
+        if ((transferType != DataBuffer.TYPE_BYTE) &&
+            (transferType != DataBuffer.TYPE_USHORT)) {
+            throw new IllegalArgumentException("transferType must be either" +
+                "DataBuffer.TYPE_BYTE or DataBuffer.TYPE_USHORT");
+        }
 	map_size = size;
-	rgb = new int[Math.max(size, 256)];
+	rgb = new int[calcRealMapSize(bits, size)];
 	int j = start;
 	int alpha = 0xff000000;
         transparency = OPAQUE;
@@ -394,9 +403,8 @@ public class IndexColorModel extends ColorModel {
      * The array must have enough values in it to fill all
      * of the needed component arrays of the specified size.
      * The <code>ColorSpace</code> is the default sRGB space.  
-     * The transfer type is the smallest of
-     * DataBuffer.TYPE_BYTE, DataBuffer.TYPE_USHORT, or DataBuffer.TYPE_INT
-     * that can hold a single pixel.
+     * The transfer type must be one of <code>DataBuffer.TYPE_BYTE</code>
+     * <code>DataBuffer.TYPE_USHORT</code>.
      * The <code>BigInteger</code> object specifies the valid/invalid pixels
      * in the <code>cmap</code> array.  A pixel is valid if the 
      * <code>BigInteger</code> value at that index is set, and is invalid
@@ -411,6 +419,13 @@ public class IndexColorModel extends ColorModel {
      *    If a bit is not set, the pixel at that index
      *    is considered invalid.  If null, all pixels are valid.
      *    Only bits from 0 to map_size will be considered.
+     * @throws IllegalArgumentException if <code>bits</code> is less
+     *           than 1 or greater than 16
+     * @throws IllegalArgumentException if <code>size</code> is less
+     *           than 1
+     * @throws IllegalArgumentException if <code>transferType</code> is not
+     *           one of <code>DataBuffer.TYPE_BYTE</code> or
+     *           <code>DataBuffer.TYPE_USHORT</code>
      *    
      */
     public IndexColorModel(int bits, int size, int cmap[], int start,
@@ -420,13 +435,18 @@ public class IndexColorModel extends ColorModel {
                true, false, Transparency.TRANSLUCENT,
                transferType);
         
-        if (bits < 1 || bits > 32) {
+        if (bits < 1 || bits > 16) {
             throw new IllegalArgumentException("Number of bits must be between"
-                                               +" 1 and 32.");
+                                               +" 1 and 16.");
         }
         if (size < 1) {
             throw new IllegalArgumentException("Map size ("+size+
                                                ") must be >= 1");
+        }
+        if ((transferType != DataBuffer.TYPE_BYTE) &&
+            (transferType != DataBuffer.TYPE_USHORT)) {
+            throw new IllegalArgumentException("transferType must be either" +
+                "DataBuffer.TYPE_BYTE or DataBuffer.TYPE_USHORT");
         }
 
 	map_size = size;
@@ -440,7 +460,7 @@ public class IndexColorModel extends ColorModel {
             }
         }
         
-	rgb = new int[Math.max(size, 256)];
+	rgb = new int[calcRealMapSize(bits, size)];
 	int j = start;
 	int alpha;
         transparency = OPAQUE;
@@ -465,7 +485,7 @@ public class IndexColorModel extends ColorModel {
                                                ") must be >= 1");
         }
 	map_size = size;
-	rgb = new int[Math.max(size, 256)];
+	rgb = new int[calcRealMapSize(pixel_bits, size)];
 	int alpha = 0xff;
         transparency = OPAQUE;
 	for (int i = 0; i < size; i++) {
@@ -486,6 +506,11 @@ public class IndexColorModel extends ColorModel {
         nBits[0] = nBits[1] = nBits[2] = nBits[3] = 8;
         maxBits = 8;
         
+    }
+
+    private int calcRealMapSize(int bits, int size) {
+	int newSize = Math.max(1 << bits, size);
+	return Math.max(newSize, 256);
     }
 
     private BigInteger getAllValid() {
@@ -761,7 +786,27 @@ public class IndexColorModel extends ColorModel {
 	    }
 	}
 
-        if (alpha == 0) {
+	if (allgrayopaque) {
+	    int minDist = 256;
+	    int d;
+	    int gray = (int) (red*77 + green*150 + blue*29 + 128)/256;
+
+	    for (int i = 0; i < map_size; i++) {
+		if (this.rgb[i] == 0x0) {
+		    // ignore transparent black
+		    continue;
+		}
+		d = (this.rgb[i] & 0xff) - gray;
+		if (d < 0) d = -d;
+		if (d < minDist) {
+		    pix = i;
+		    if (d == 0) {
+			break;
+		    }
+		    minDist = d;
+		}
+	    }
+	} else if (alpha == 0) {
             // Look for another transparent pixel
             if (transparent_index > -1) {
                 pix = transparent_index;
@@ -1199,11 +1244,17 @@ public class IndexColorModel extends ColorModel {
      *     TYPE_INT_RGB
      * @return a <code>BufferedImage</code> created with the specified
      *     <code>Raster</code>
+     * @throws IllegalArgumentException if the raster argument is not
+     *           compatible with this IndexColorModel
      */
     public BufferedImage convertToIntDiscrete(Raster raster, 
                                               boolean forceARGB) {
         ColorModel cm;
 
+        if (!isCompatibleRaster(raster)) {
+            throw new IllegalArgumentException("This raster is not compatible" +
+                 "with this IndexColorModel.");
+        }
         if (forceARGB || transparency == TRANSLUCENT) {
             cm = ColorModel.getRGBdefault();
         }
@@ -1298,9 +1349,8 @@ public class IndexColorModel extends ColorModel {
      * longer referenced.
      */    
     public void finalize() {
-        ImageData.freeNativeICMData(this);
+	sun.awt.image.BufImgSurfaceData.freeNativeICMData(this);
     }
-
 
     /**
      * Returns the <code>String</code> representation of the contents of
@@ -1318,5 +1368,4 @@ public class IndexColorModel extends ColorModel {
                          + " isAlphaPre = "+isAlphaPremultiplied
                          );
     }
-
 }

@@ -1,4 +1,6 @@
 /*
+ * @(#)LookAndFeel.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,7 +11,9 @@ import java.awt.Font;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.SystemColor;
+import java.awt.Toolkit;
 
 import javax.swing.text.*;
 import javax.swing.border.*;
@@ -25,7 +29,7 @@ import java.util.StringTokenizer;
  * Completely characterizes a look and feel from the point of view
  * of the pluggable look and feel components.  
  * 
- * @version 1.25 02/06/02
+ * @version 1.29 12/03/01
  * @author Tom Ball
  * @author Hans Muller
  */
@@ -273,6 +277,51 @@ public abstract class LookAndFeel
     }
 
     /**
+     * Invoked when the user attempts an invalid operation, 
+     * such as pasting into an uneditable <code>JTextField</code> 
+     * that has focus. The default implementation beeps. Subclasses 
+     * that wish different behavior should override this and provide 
+     * the additional feedback.
+     *
+     * @param component Component the error occured in, may be null 
+     *			indicating the error condition is not directly 
+     *			associated with a <code>Component</code>.
+     */
+    public void provideErrorFeedback(Component component) {
+	Toolkit toolkit = null;
+	if (component != null) {
+	    toolkit = component.getToolkit();
+	} else {
+	    toolkit = Toolkit.getDefaultToolkit();
+	}
+	toolkit.beep();
+    } // provideErrorFeedback()
+
+    /**
+     * Returns the value of the specified system desktop property by
+     * invoking <code>Toolkit.getDefaultToolkit().getDesktopProperty()</code>.
+     * If the current value of the specified property is null, the 
+     * fallbackValue is returned.
+     * @param systemPropertyName the name of the system desktop property being queried
+     * @param fallbackValue the object to be returned as the value if the system value is null
+     * @return the current value of the desktop property
+     *
+     * @see java.awt.Toolkit#getDesktopProperty
+     *
+     */
+    public static Object getDesktopPropertyValue(String systemPropertyName, Object fallbackValue) {
+	Object value = Toolkit.getDefaultToolkit().getDesktopProperty(systemPropertyName);
+	if (value == null) {
+	    return fallbackValue;
+	} else if (value instanceof Color) {
+	    return new ColorUIResource((Color)value);
+	} else if (value instanceof Font) {
+	    return new FontUIResource((Font)value);
+	}
+	return value;
+    }
+
+    /**
      * Return a short string that identifies this look and feel, e.g.
      * "CDE/Motif".  This string should be appropriate for a menu item.
      * Distinct look and feels should have different names, e.g. 
@@ -303,6 +352,25 @@ public abstract class LookAndFeel
      */
     public abstract String getDescription();
 
+
+    /**
+     * Returns true if the <code>LookAndFeel</code> returned
+     * <code>RootPaneUI</code> instances support providing Window decorations
+     * in a <code>JRootPane</code>.
+     * <p>
+     * The default implementation returns false, subclasses that support
+     * Window decorations should override this and return true.
+     *
+     * @return True if the RootPaneUI instances created support client side
+     *              decorations
+     * @see JDialog#setDefaultLookAndFeelDecorated
+     * @see JFrame#setDefaultLookAndFeelDecorated
+     * @see JRootPane#setWindowDecorationStyle
+     * @since 1.4
+     */
+    public boolean getSupportsWindowDecorations() {
+        return false;
+    }
 
     /**
      * If the underlying platform has a "native" look and feel, and this

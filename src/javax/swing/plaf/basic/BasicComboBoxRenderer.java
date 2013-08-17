@@ -1,5 +1,7 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * @(#)BasicComboBoxRenderer.java	1.18 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -17,34 +19,27 @@ import java.io.Serializable;
  * ComboBox renderer
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.19 06/06/06
+ * @version 1.18 12/03/01
  * @author Arnaud Weber
  */
 public class BasicComboBoxRenderer extends JLabel
 implements ListCellRenderer, Serializable {
     protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
-    private final static Border SAFE_NO_FOCUS_BORDER =
-                                new EmptyBorder(1, 1, 1, 1);
 
     public BasicComboBoxRenderer() {
         super();
         setOpaque(true);
-        setBorder(getNoFocusBorder());
+        setBorder(noFocusBorder);
     }
-   
-    private static Border getNoFocusBorder() {
-        if (System.getSecurityManager() != null) {
-            return SAFE_NO_FOCUS_BORDER;
-        } else {
-            return noFocusBorder;
-        }
-    } 
+    
     
     public Dimension getPreferredSize() {
         Dimension size;
@@ -106,10 +101,12 @@ implements ListCellRenderer, Serializable {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class UIResource extends BasicComboBoxRenderer implements javax.swing.plaf.UIResource {
     }

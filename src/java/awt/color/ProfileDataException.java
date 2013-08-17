@@ -1,4 +1,6 @@
 /*
+ * @(#)ProfileDataException.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,6 +16,7 @@ public class ProfileDataException extends java.lang.RuntimeException {
 
     /**
      *  Constructs a ProfileDataException with the specified detail message.
+     *  @param s the specified detail message
      */
     public ProfileDataException(String s) {
 	super (s);

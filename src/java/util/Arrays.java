@@ -1,4 +1,6 @@
 /*
+ * @(#)Arrays.java	1.44 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -7,22 +9,25 @@ package java.util;
 
 /**
  * This class contains various methods for manipulating arrays (such as
- * sorting and searching).  It also contains a static factory that allows
- * arrays to be viewed as lists.<p>
+ * sorting and searching).  This class also contains a static factory 
+ * that allows arrays to be viewed as lists.
  *
- * The documentation for the sorting and searching methods contained in this
- * class includes briefs description of the <i>implementations</i>.  Such
- * descriptions should be regarded as <i>implementation notes</i>, rather than
- * parts of the <i>specification</i>.  Implementors should feel free to
- * substitute other algorithms, so long as the specification itself is adhered
- * to.  (For example, the algorithm used by <tt>sort(Object[])</tt> does not
- * have to be a mergesort, but it does have to be <i>stable</i>.)
+ * <p>The methods in this class all throw a <tt>NullPointerException</tt> if
+ * the specified array reference is null.
+ *
+ * <p>The documentation for the methods contained in this class includes
+ * briefs description of the <i>implementations</i>.  Such descriptions should
+ * be regarded as <i>implementation notes</i>, rather than parts of the
+ * <i>specification</i>.  Implementors should feel free to substitute other
+ * algorithms, so long as the specification itself is adhered to.  (For
+ * example, the algorithm used by <tt>sort(Object[])</tt> does not have to be
+ * a mergesort, but it does have to be <i>stable</i>.)
  *
  * @author  Josh Bloch
- * @version 1.38, 02/06/02
- * @see Comparable
- * @see Comparator
- * @since 1.2
+ * @version 1.44, 12/03/01
+ * @see     Comparable
+ * @see     Comparator
+ * @since   1.2
  */
 
 public class Arrays {
@@ -229,6 +234,21 @@ public class Arrays {
 
     /**
      * Sorts the specified array of doubles into ascending numerical order.
+     * <p>
+     * The <code>&lt;</code> relation does not provide a total order on
+     * all floating-point values; although they are distinct numbers
+     * <code>-0.0 == 0.0</code> is <code>true</code> and a NaN value
+     * compares neither less than, greater than, nor equal to any
+     * floating-point value, even itself.  To allow the sort to
+     * proceed, instead of using the <code>&lt;</code> relation to
+     * determine ascending numerical order, this method uses the total
+     * order imposed by {@link Double#compareTo}.  This ordering
+     * differs from the <code>&lt;</code> relation in that
+     * <code>-0.0</code> is treated as less than <code>0.0</code> and
+     * NaN is considered greater than any other floating-point value.
+     * For the purposes of sorting, all NaN values are considered
+     * equivalent and equal.
+     * <p>
      * The sorting algorithm is a tuned quicksort, adapted from Jon
      * L. Bentley and M. Douglas McIlroy's "Engineering a Sort Function",
      * Software-Practice and Experience, Vol. 23(11) P. 1249-1265 (November
@@ -245,8 +265,22 @@ public class Arrays {
      * Sorts the specified range of the specified array of doubles into
      * ascending numerical order.  The range to be sorted extends from index
      * <tt>fromIndex</tt>, inclusive, to index <tt>toIndex</tt>, exclusive.
-     * (If <tt>fromIndex==toIndex</tt>, the range to be sorted is empty.)<p>
-     *
+     * (If <tt>fromIndex==toIndex</tt>, the range to be sorted is empty.)
+     * <p>
+     * The <code>&lt;</code> relation does not provide a total order on
+     * all floating-point values; although they are distinct numbers
+     * <code>-0.0 == 0.0</code> is <code>true</code> and a NaN value
+     * compares neither less than, greater than, nor equal to any
+     * floating-point value, even itself.  To allow the sort to
+     * proceed, instead of using the <code>&lt;</code> relation to
+     * determine ascending numerical order, this method uses the total
+     * order imposed by {@link Double#compareTo}.  This ordering
+     * differs from the <code>&lt;</code> relation in that
+     * <code>-0.0</code> is treated as less than <code>0.0</code> and
+     * NaN is considered greater than any other floating-point value.
+     * For the purposes of sorting, all NaN values are considered
+     * equivalent and equal.
+     * <p>
      * The sorting algorithm is a tuned quicksort, adapted from Jon
      * L. Bentley and M. Douglas McIlroy's "Engineering a Sort Function",
      * Software-Practice and Experience, Vol. 23(11) P. 1249-1265 (November
@@ -268,6 +302,21 @@ public class Arrays {
 
     /**
      * Sorts the specified array of floats into ascending numerical order.
+     * <p>
+     * The <code>&lt;</code> relation does not provide a total order on
+     * all floating-point values; although they are distinct numbers
+     * <code>-0.0f == 0.0f</code> is <code>true</code> and a NaN value
+     * compares neither less than, greater than, nor equal to any
+     * floating-point value, even itself.  To allow the sort to
+     * proceed, instead of using the <code>&lt;</code> relation to
+     * determine ascending numerical order, this method uses the total
+     * order imposed by {@link Float#compareTo}.  This ordering
+     * differs from the <code>&lt;</code> relation in that
+     * <code>-0.0f</code> is treated as less than <code>0.0f</code> and
+     * NaN is considered greater than any other floating-point value.
+     * For the purposes of sorting, all NaN values are considered
+     * equivalent and equal.
+     * <p>
      * The sorting algorithm is a tuned quicksort, adapted from Jon
      * L. Bentley and M. Douglas McIlroy's "Engineering a Sort Function",
      * Software-Practice and Experience, Vol. 23(11) P. 1249-1265 (November
@@ -284,8 +333,22 @@ public class Arrays {
      * Sorts the specified range of the specified array of floats into
      * ascending numerical order.  The range to be sorted extends from index
      * <tt>fromIndex</tt>, inclusive, to index <tt>toIndex</tt>, exclusive.
-     * (If <tt>fromIndex==toIndex</tt>, the range to be sorted is empty.)<p>
-     *
+     * (If <tt>fromIndex==toIndex</tt>, the range to be sorted is empty.)
+     * <p>
+     * The <code>&lt;</code> relation does not provide a total order on
+     * all floating-point values; although they are distinct numbers
+     * <code>-0.0f == 0.0f</code> is <code>true</code> and a NaN value
+     * compares neither less than, greater than, nor equal to any
+     * floating-point value, even itself.  To allow the sort to
+     * proceed, instead of using the <code>&lt;</code> relation to
+     * determine ascending numerical order, this method uses the total
+     * order imposed by {@link Float#compareTo}.  This ordering
+     * differs from the <code>&lt;</code> relation in that
+     * <code>-0.0f</code> is treated as less than <code>0.0f</code> and
+     * NaN is considered greater than any other floating-point value.
+     * For the purposes of sorting, all NaN values are considered
+     * equivalent and equal.
+     * <p>
      * The sorting algorithm is a tuned quicksort, adapted from Jon
      * L. Bentley and M. Douglas McIlroy's "Engineering a Sort Function",
      * Software-Practice and Experience, Vol. 23(11) P. 1249-1265 (November
@@ -320,8 +383,9 @@ public class Arrays {
         int i = fromIndex, n = toIndex;
         while(i < n) {
             if (a[i] != a[i]) {
+		double swap = a[i];
                 a[i] = a[--n];
-                a[n] = Double.NaN;
+                a[n] = swap;
             } else {
                 if (a[i]==0 && Double.doubleToLongBits(a[i])==NEG_ZERO_BITS) {
                     a[i] = 0.0d;
@@ -363,8 +427,9 @@ public class Arrays {
         int i = fromIndex, n = toIndex;
         while(i < n) {
             if (a[i] != a[i]) {
+		float swap = a[i];
                 a[i] = a[--n];
-                a[n] = Float.NaN;
+                a[n] = swap;
             } else {
                 if (a[i]==0 && Float.floatToIntBits(a[i])==NEG_ZERO_BITS) {
                     a[i] = 0.0f;
@@ -409,7 +474,7 @@ public class Arrays {
 	}
 
 	// Choose a partition element, v
-	int m = off + len/2;       // Small arrays, middle element
+	int m = off + (len >> 1);       // Small arrays, middle element
 	if (len > 7) {
 	    int l = off;
 	    int n = off + len - 1;
@@ -492,7 +557,7 @@ public class Arrays {
 	}
 
 	// Choose a partition element, v
-	int m = off + len/2;       // Small arrays, middle element
+	int m = off + (len >> 1);       // Small arrays, middle element
 	if (len > 7) {
 	    int l = off;
 	    int n = off + len - 1;
@@ -575,7 +640,7 @@ public class Arrays {
 	}
 
 	// Choose a partition element, v
-	int m = off + len/2;       // Small arrays, middle element
+	int m = off + (len >> 1);       // Small arrays, middle element
 	if (len > 7) {
 	    int l = off;
 	    int n = off + len - 1;
@@ -659,7 +724,7 @@ public class Arrays {
 	}
 
 	// Choose a partition element, v
-	int m = off + len/2;       // Small arrays, middle element
+	int m = off + (len >> 1);       // Small arrays, middle element
 	if (len > 7) {
 	    int l = off;
 	    int n = off + len - 1;
@@ -743,7 +808,7 @@ public class Arrays {
 	}
 
 	// Choose a partition element, v
-	int m = off + len/2;       // Small arrays, middle element
+	int m = off + (len >> 1);       // Small arrays, middle element
 	if (len > 7) {
 	    int l = off;
 	    int n = off + len - 1;
@@ -827,7 +892,7 @@ public class Arrays {
 	}
 
 	// Choose a partition element, v
-	int m = off + len/2;       // Small arrays, middle element
+	int m = off + (len >> 1);       // Small arrays, middle element
 	if (len > 7) {
 	    int l = off;
 	    int n = off + len - 1;
@@ -911,7 +976,7 @@ public class Arrays {
 	}
 
 	// Choose a partition element, v
-	int m = off + len/2;       // Small arrays, middle element
+	int m = off + (len >> 1);       // Small arrays, middle element
 	if (len > 7) {
 	    int l = off;
 	    int n = off + len - 1;
@@ -1062,7 +1127,7 @@ public class Arrays {
 	}
 
         // Recursively sort halves of dest into src
-        int mid = (low + high)/2;
+        int mid = (low + high) >> 1;
         mergeSort(dest, src, low, mid);
         mergeSort(dest, src, mid, high);
 
@@ -1179,7 +1244,7 @@ public class Arrays {
 	}
 
         // Recursively sort halves of dest into src
-        int mid = (low + high)/2;
+        int mid = (low + high) >> 1;
         mergeSort(dest, src, low, mid, c);
         mergeSort(dest, src, mid, high, c);
 
@@ -1240,7 +1305,7 @@ public class Arrays {
 	int high = a.length-1;
 
 	while (low <= high) {
-	    int mid =(low + high)/2;
+	    int mid = (low + high) >> 1;
 	    long midVal = a[mid];
 
 	    if (midVal < key)
@@ -1279,7 +1344,7 @@ public class Arrays {
 	int high = a.length-1;
 
 	while (low <= high) {
-	    int mid =(low + high)/2;
+	    int mid = (low + high) >> 1;
 	    int midVal = a[mid];
 
 	    if (midVal < key)
@@ -1317,7 +1382,7 @@ public class Arrays {
 	int high = a.length-1;
 
 	while (low <= high) {
-	    int mid =(low + high)/2;
+	    int mid = (low + high) >> 1;
 	    short midVal = a[mid];
 
 	    if (midVal < key)
@@ -1355,7 +1420,7 @@ public class Arrays {
 	int high = a.length-1;
 
 	while (low <= high) {
-	    int mid =(low + high)/2;
+	    int mid = (low + high) >> 1;
 	    char midVal = a[mid];
 
 	    if (midVal < key)
@@ -1393,7 +1458,7 @@ public class Arrays {
 	int high = a.length-1;
 
 	while (low <= high) {
-	    int mid =(low + high)/2;
+	    int mid = (low + high) >> 1;
 	    byte midVal = a[mid];
 
 	    if (midVal < key)
@@ -1412,7 +1477,8 @@ public class Arrays {
      * (as by the <tt>sort</tt> method, above) prior to making this call.  If
      * it is not sorted, the results are undefined.  If the array contains
      * multiple elements with the specified value, there is no guarantee which
-     * one will be found.
+     * one will be found.  This method considers all NaN values to be 
+     * equivalent and equal.
      *
      * @param a the array to be searched.
      * @param key the value to be searched for.
@@ -1432,7 +1498,7 @@ public class Arrays {
 
     private static int binarySearch(double[] a, double key, int low,int high) {
 	while (low <= high) {
-	    int mid =(low + high)/2;
+	    int mid = (low + high) >> 1;
 	    double midVal = a[mid];
 
             int cmp;
@@ -1464,7 +1530,8 @@ public class Arrays {
      * (as by the <tt>sort</tt> method, above) prior to making this call.  If
      * it is not sorted, the results are undefined.  If the array contains
      * multiple elements with the specified value, there is no guarantee which
-     * one will be found.
+     * one will be found.  This method considers all NaN values to be 
+     * equivalent and equal.
      *
      * @param a the array to be searched.
      * @param key the value to be searched for.
@@ -1484,7 +1551,7 @@ public class Arrays {
 
     private static int binarySearch(float[] a, float key, int low,int high) {
 	while (low <= high) {
-	    int mid =(low + high)/2;
+	    int mid = (low + high) >> 1;
 	    float midVal = a[mid];
 
             int cmp;
@@ -1516,7 +1583,11 @@ public class Arrays {
      * search algorithm.  The array must be sorted into ascending order
      * according to the <i>natural ordering</i> of its elements (as by
      * <tt>Sort(Object[]</tt>), above) prior to making this call.  If it is
-     * not sorted, the results are undefined.  If the array contains multiple
+     * not sorted, the results are undefined.
+     * (If the array contains elements that are not  mutually comparable (for
+     * example,strings and integers), it <i>cannot</i> be sorted according 
+     * to the natural order of its elements, hence results are undefined.)
+     *  If the array contains multiple
      * elements equal to the specified object, there is no guarantee which
      * one will be found.
      *
@@ -1530,10 +1601,8 @@ public class Arrays {
      *	       elements in the list are less than the specified key.  Note
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the key is found.
-     * @throws ClassCastException if the array contains elements that are not
-     *	       <i>mutually comparable</i> (for example, strings and integers),
-     *         or the search key in not mutually comparable with the elements
-     *         of the array.
+     * @throws ClassCastException if the search key in not comparable to the
+     *         elements of the array.
      * @see Comparable
      * @see #sort(Object[])
      */
@@ -1542,7 +1611,7 @@ public class Arrays {
 	int high = a.length-1;
 
 	while (low <= high) {
-	    int mid =(low + high)/2;
+	    int mid = (low + high) >> 1;
 	    Object midVal = a[mid];
 	    int cmp = ((Comparable)midVal).compareTo(key);
 
@@ -1561,7 +1630,8 @@ public class Arrays {
      * search algorithm.  The array must be sorted into ascending order
      * according to the specified comparator (as by the <tt>Sort(Object[],
      * Comparator)</tt> method, above), prior to making this call.  If it is
-     * not sorted, the results are undefined.  If the array contains multiple
+     * not sorted, the results are undefined. 
+     * If the array contains multiple
      * elements equal to the specified object, there is no guarantee which one
      * will be found.
      *
@@ -1593,7 +1663,7 @@ public class Arrays {
 	int high = a.length-1;
 
 	while (low <= high) {
-	    int mid =(low + high)/2;
+	    int mid = (low + high) >> 1;
 	    Object midVal = a[mid];
 	    int cmp = c.compare(midVal, key);
 
@@ -1756,7 +1826,7 @@ public class Arrays {
     }
 
     /**
-     * Returns <tt>true</tt> if the two specified arrays of equals are
+     * Returns <tt>true</tt> if the two specified arrays of booleans are
      * <i>equal</i> to one another.  Two arrays are considered equal if both
      * arrays contain the same number of elements, and all corresponding pairs
      * of elements in the two arrays are equal.  In other words, two arrays
@@ -2207,7 +2277,7 @@ public class Arrays {
      * the returned list "write through" to the array.)  This method acts
      * as bridge between array-based and collection-based APIs, in
      * combination with <tt>Collection.toArray</tt>.  The returned list is
-     * serializable.
+     * serializable and implements {@link RandomAccess}.
      *
      * @param a the array by which the list will be backed.
      * @return a list view of the specified array.
@@ -2221,7 +2291,7 @@ public class Arrays {
      * @serial include
      */
     private static class ArrayList extends AbstractList
-    				   implements java.io.Serializable
+			   implements RandomAccess, java.io.Serializable
     {
         private static final long serialVersionUID = -2764017481108945198L;
 	private Object[] a;

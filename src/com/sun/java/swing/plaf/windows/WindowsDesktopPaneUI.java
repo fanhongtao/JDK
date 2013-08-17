@@ -1,4 +1,6 @@
 /*
+ * @(#)WindowsDesktopPaneUI.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,7 +22,7 @@ import java.awt.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version %i% 02/06/02
+ * @version %i% 12/03/01
  * @author David Kloba
  */
 public class WindowsDesktopPaneUI extends BasicDesktopPaneUI
@@ -36,26 +38,8 @@ public class WindowsDesktopPaneUI extends BasicDesktopPaneUI
 	}
     }
 
-    void switchFrame(boolean next) {
-        WindowsDesktopManager dm = 
-            (WindowsDesktopManager)desktop.getDesktopManager();
-        if (dm == null) {
-            return;
-        }
-        if (next) {
-            dm.activateNextFrame();
-        } else {
-            dm.activatePreviousFrame();
-        }
-    }
-
     protected void installKeyboardActions() {
 	super.installKeyboardActions();
-	ActionMap map = SwingUtilities.getUIActionMap(desktop);
-	if (map != null) {
-	    map.put("selectNextFrame", new SwitchFrameAction(true));
-	    map.put("selectPreviousFrame", new SwitchFrameAction(false));
-	}
 
         // Request focus if it isn't set.
         if(!desktop.requestDefaultFocus()) {
@@ -63,17 +47,5 @@ public class WindowsDesktopPaneUI extends BasicDesktopPaneUI
         }
     }
 
-
-    class SwitchFrameAction extends AbstractAction {
-	boolean direction;
-
-	SwitchFrameAction(boolean direction) {
-	    this.direction = direction;
-	}
-
-	public void actionPerformed(ActionEvent e) {
-	    switchFrame(direction);
-	}
-    }
 }
 

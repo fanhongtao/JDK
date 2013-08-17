@@ -1,4 +1,6 @@
 /*
+ * @(#)UndoManager.java	1.32 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,24 +12,28 @@ import javax.swing.UIManager;
 import java.util.*;
 
 /**
- * Concrete subclass of CompoundEdit which can serve as an
- * UndoableEditListener, consolidating the UndoableEditEvents from a
+ * Concrete subclass of <code>CompoundEdit</code> 
+ * which can serve as a <code>UndoableEditListener</code>,
+ * consolidating the <code>UndoableEditEvents</code> from a
  * variety of sources, and undoing or redoing them one at a time.
  *
- * Unlike AbstractUndoableEdit and CompoundEdit, the public methods of this
+ * Unlike <code>AbstractUndoableEdit</code> and <code>CompoundEdit</code>,
+ * the public methods of this
  * class are synchronized, and should be safe to call from multiple
- * threads. This should make UndoManager a convenient marshall for
- * sets of undoable JavaBeans.
+ * threads. This should make <code>UndoManager</code>
+ * a convenient marshall for sets of undoable JavaBeans.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @author Ray Ryan
- * @version 1.29, 02/06/02
+ * @version 1.32, 12/03/01
  */ 
 public class UndoManager extends CompoundEdit implements UndoableEditListener {
     int indexOfNextAdd;
@@ -286,12 +292,13 @@ public class UndoManager extends CompoundEdit implements UndoableEditListener {
     }
 
     /**
-     * If this UndoManager is inProgress, redoes the last significant
-     * UndoableEdit at indexOfNextAdd or after, and all insignificant
-     * edits up to it. Updates indexOfNextAdd accordingly.
+     * If this <code>UndoManager</code> is <code>inProgress</code>,
+     * redoes the last significant <code>UndoableEdit</code> at
+     * <code>indexOfNextAdd</code> or after, and all insignificant
+     * edits up to it. Updates <code>indexOfNextAdd</code> accordingly.
      *
-     * <p>If not inProgress, indexOfNextAdd is ignored and super's routine is
-     * called.</p>
+     * <p>If not <code>inProgress</code>, <code>indexOfNextAdd</code>
+     * is ignored and super's routine is called.</p>
      *
      * @see CompoundEdit#end
      */
@@ -327,8 +334,10 @@ public class UndoManager extends CompoundEdit implements UndoableEditListener {
      * reverse of the order the edits were added. Updates
      * indexOfNextAdd.
      *
-     * <p>If not inProgress, acts as a CompoundEdit</p>
+     * <p>If not <code>inProgress</code>, acts as a
+     * <code>CompoundEdit</code>.
      *
+     * @param anEdit the edit to be added
      * @see CompoundEdit#end
      * @see CompoundEdit#addEdit
      */
@@ -388,7 +397,7 @@ public class UndoManager extends CompoundEdit implements UndoableEditListener {
     /**
      * If inProgress, returns getUndoPresentationName of the
      * significant edit that will be undone when undo() is invoked.
-     * If there is none, returns AbstractUndoableEdit.undoText from the 
+     * If there is none, returns AbstractUndoableEdit.undoText from the
      * defaults table.
      * 
      * <p>If not inProgress, acts as a CompoundEdit</p>
@@ -411,7 +420,7 @@ public class UndoManager extends CompoundEdit implements UndoableEditListener {
     /**
      * If inProgress, returns getRedoPresentationName of the
      * significant edit that will be redone when redo() is invoked.
-     * If there is none, returns AbstractUndoableEdit.redoText from the 
+     * If there is none, returns AbstractUndoableEdit.redoText from the
      * defaults table.
      * 
      * <p>If not inProgress, acts as a CompoundEdit</p>

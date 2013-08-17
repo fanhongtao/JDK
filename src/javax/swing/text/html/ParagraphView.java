@@ -1,4 +1,6 @@
 /*
+ * @(#)ParagraphView.java	1.26 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ import javax.swing.text.JTextComponent;
  * configuration.
  *
  * @author  Timothy Prinzing
- * @version 1.22 02/06/02
+ * @version 1.26 12/03/01
  */
 
 public class ParagraphView extends javax.swing.text.ParagraphView {
@@ -54,7 +56,9 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
      */
     public void setParent(View parent) {
 	super.setParent(parent);
-	setPropertiesFromAttributes();
+        if (parent != null) {
+	    setPropertiesFromAttributes();
+        }
     }
 
     /**
@@ -99,6 +103,11 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
 		    setJustification(StyleConstants.ALIGN_JUSTIFIED);
 		}
 	    }
+            // Get the width/height
+            cssWidth = (CSS.LengthValue)attr.getAttribute(
+                                        CSS.Attribute.WIDTH);
+            cssHeight = (CSS.LengthValue)attr.getAttribute(
+                                         CSS.Attribute.HEIGHT);
 	}
     }
 
@@ -118,24 +127,35 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
     protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
 	r = super.calculateMinorAxisRequirements(axis, r);
 
-	// PENDING(prinz) Need to make this better so it doesn't require
-	// InlineView and works with font changes within the word.
+        if (!BlockView.spanSetFromAttributes(axis, r, cssWidth, cssHeight)) {
+            // PENDING(prinz) Need to make this better so it doesn't require
+            // InlineView and works with font changes within the word.
 
-	// find the longest minimum span.
-	float min = 0;
-	int n = getLayoutViewCount();
-	for (int i = 0; i < n; i++) {
-	    View v = getLayoutView(i);
-	    if (v instanceof InlineView) {
-		float wordSpan = ((InlineView) v).getLongestWordSpan();
-		min = Math.max(wordSpan, min);
-	    } else {
-		min = Math.max(v.getMinimumSpan(axis), min);
-	    }
-	}
-	r.minimum = Math.max(r.minimum, (int) min);
-	r.preferred = Math.max(r.minimum,  r.preferred);
-	r.maximum = Math.max(r.preferred, r.maximum);
+            // find the longest minimum span.
+            float min = 0;
+            int n = getLayoutViewCount();
+            for (int i = 0; i < n; i++) {
+                View v = getLayoutView(i);
+                if (v instanceof InlineView) {
+                    float wordSpan = ((InlineView) v).getLongestWordSpan();
+                    min = Math.max(wordSpan, min);
+                } else {
+                    min = Math.max(v.getMinimumSpan(axis), min);
+                }
+            }
+            r.minimum = Math.max(r.minimum, (int) min);
+            r.preferred = Math.max(r.minimum,  r.preferred);
+            r.maximum = Math.max(r.preferred, r.maximum);
+        }
+        else {
+            // Offset by the margins so that pref/min/max return the
+            // right value.
+            int margin = (axis == X_AXIS) ? getLeftInset() + getRightInset() :
+                                            getTopInset() + getBottomInset();
+            r.minimum -= margin;
+            r.preferred -= margin;
+            r.maximum -= margin;
+        }
 	return r;
     }
 
@@ -148,7 +168,7 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
      * will not be considered visible.  Otherwise,
      * it will be considered visible and return true.
      * 
-     * @returns true if the paragraph should be displayed.
+     * @return true if the paragraph should be displayed
      */
     public boolean isVisible() {
 	
@@ -207,17 +227,17 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
      * axis.
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the span the view would like to be rendered into.
-     *           Typically the view is told to render into the span
-     *           that is returned, although there is no guarantee.  
-     *           The parent may choose to resize or break the view.
+     * @return   the span the view would like to be rendered into;
+     *           typically the view is told to render into the span
+     *           that is returned, although there is no guarantee;
+     *           the parent may choose to resize or break the view
      * @see javax.swing.text.ParagraphView#getPreferredSpan
      */
     public float getPreferredSpan(int axis) {
 	if (!isVisible()) {
 	    return 0;
 	}
-	return 	super.getPreferredSpan(axis);
+	return super.getPreferredSpan(axis);
     }
 
     /**
@@ -225,8 +245,9 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
      * axis.  Returns 0 if the view is not visible, otherwise 
      * it calls the superclass method to get the minimum span.
      *
-     * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the minimum span the view can be rendered into.
+     * @param axis may be either <code>View.X_AXIS</code> or 
+     *	<code>View.Y_AXIS</code>
+     * @return  the minimum span the view can be rendered into
      * @see javax.swing.text.ParagraphView#getMinimumSpan
      */
     public float getMinimumSpan(int axis) {
@@ -241,8 +262,9 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
      * axis.  Returns 0 if the view is not visible, otherwise
      * it calls the superclass method ot get the maximum span.
      *
-     * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the maximum span the view can be rendered into.
+     * @param axis may be either <code>View.X_AXIS</code> or 
+     *	<code>View.Y_AXIS</code>
+     * @return  the maximum span the view can be rendered into
      * @see javax.swing.text.ParagraphView#getMaximumSpan
      */
     public float getMaximumSpan(int axis) {
@@ -254,5 +276,7 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
 
     private AttributeSet attr;
     private StyleSheet.BoxPainter painter;
+    private CSS.LengthValue cssWidth;
+    private CSS.LengthValue cssHeight;
 }
 

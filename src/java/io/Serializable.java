@@ -1,4 +1,6 @@
 /*
+ * @(#)Serializable.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,7 +21,7 @@ package java.io;
  * package fields.  The subtype may assume this responsibility only if
  * the class it extends has an accessible no-arg constructor to
  * initialize the class's state.  It is an error to declare a class
- * Serializable in this case.  The error will be detected at runtime. <p>
+ * Serializable if this is not the case.  The error will be detected at runtime. <p>
  *
  * During deserialization, the fields of non-serializable classes will
  * be initialized using the public or protected no-arg constructor of
@@ -32,8 +34,9 @@ package java.io;
  * NotSerializableException will be thrown and will identify the class
  * of the non-serializable object. <p>
  *
- * Classes that require special handling during the serialization and deserialization
- * process must implement special methods with these exact signatures: <p>
+ * Classes that require special handling during the serialization and
+ * deserialization process must implement special methods with these exact
+ * signatures: <p>
  *
  * <PRE>
  * private void writeObject(java.io.ObjectOutputStream out)
@@ -52,8 +55,8 @@ package java.io;
  * ObjectOutputStream using the writeObject method or by using the
  * methods for primitive data types supported by DataOutput. <p>
  *
- * The readObject method is responsible for reading from the stream and restoring
- * the classes fields. It may call in.defaultReadObject to invoke
+ * The readObject method is responsible for reading from the stream and
+ * restoring the classes fields. It may call in.defaultReadObject to invoke
  * the default mechanism for restoring the object's non-static and non-transient
  * fields.  The defaultReadObject method uses information in the stream to
  * assign the fields of the object saved in the stream with the correspondingly
@@ -80,7 +83,7 @@ package java.io;
  *
  * Classes that need to designate a replacement when an instance of it
  * is read from the stream should implement this special method with the
- * exact signatute.<p>
+ * exact signature.<p>
  *
  * <PRE>
  * ANY-ACCESS-MODIFIER Object readResolve() throws ObjectStreamException;
@@ -90,7 +93,7 @@ package java.io;
  * accessibility rules as writeReplace.
  *
  * @author  unascribed
- * @version 1.17, 02/06/02
+ * @version 1.19, 12/03/01
  * @see java.io.ObjectOutputStream
  * @see java.io.ObjectInputStream
  * @see java.io.ObjectOutput

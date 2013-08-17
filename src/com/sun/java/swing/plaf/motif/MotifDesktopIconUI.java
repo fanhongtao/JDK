@@ -1,4 +1,6 @@
 /*
+ * @(#)MotifDesktopIconUI.java	1.20 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,7 +21,7 @@ import java.io.Serializable;
 /**
  * Motif rendition of the component.
  *
- * @version 1.19 02/06/02
+ * @version 1.20 12/03/01
  * @author Thomas Ball
  * @author Rich Schiavi
  */
@@ -227,7 +229,10 @@ public class MotifDesktopIconUI extends BasicDesktopIconUI
         public Dimension getPreferredSize() {
             String title = frame.getTitle();
             FontMetrics fm = Toolkit.getDefaultToolkit().getFontMetrics(defaultTitleFont);
-            int w = fm.stringWidth(title) + 4;
+            int w = 4;
+            if (title != null) {
+                w += fm.stringWidth(title);
+            }
             return new Dimension(w, LABEL_HEIGHT + LABEL_DIVIDER);
         }
 
@@ -251,7 +256,10 @@ public class MotifDesktopIconUI extends BasicDesktopIconUI
             g.setClip(2, 1, maxX - 4, LABEL_HEIGHT);
             int y = LABEL_HEIGHT - g.getFontMetrics().getDescent();
             g.setColor(UIManager.getColor("inactiveCaptionText"));
-            g.drawString(frame.getTitle(), 4, y);
+            String title = frame.getTitle();
+            if (title != null) {
+                g.drawString(title, 4, y);
+            }
         }
     }
 

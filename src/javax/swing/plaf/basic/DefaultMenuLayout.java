@@ -1,4 +1,6 @@
 /*
+ * @(#)DefaultMenuLayout.java	1.6 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,6 +11,7 @@ import javax.swing.*;
 import javax.swing.plaf.UIResource;
 
 import java.awt.Container;
+import java.awt.Dimension;
 
 /**
  * The default layout manager for Popup menus and menubars.  This
@@ -16,12 +19,22 @@ import java.awt.Container;
  * so that plauggable L&Fs can distinguish it from user-installed
  * layout managers on menus.
  *
- * @version 1.5 02/06/02
+ * @version 1.6 12/03/01
  * @author Georges Saab
  */
 
 public class DefaultMenuLayout extends BoxLayout implements UIResource {
     public DefaultMenuLayout(Container target, int axis) {
 	super(target, axis);
+    }
+
+    public Dimension preferredLayoutSize(Container target) {
+        if (target instanceof JPopupMenu) {
+          ((JPopupMenu)target).putClientProperty(
+                                 BasicMenuItemUI.MAX_TEXT_WIDTH, null); 
+          ((JPopupMenu)target).putClientProperty(
+                                 BasicMenuItemUI.MAX_ACC_WIDTH, null);
+        }
+        return super.preferredLayoutSize(target);
     }
 }

@@ -1,4 +1,6 @@
 /*
+ * @(#)Image.java	1.32 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,7 +18,7 @@ import java.awt.image.ReplicateScaleFilter;
  * classes that represent graphical images. The image must be 
  * obtained in a platform-specific manner.
  *
- * @version 	1.32, 02/06/02
+ * @version 	1.32, 12/03/01
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0

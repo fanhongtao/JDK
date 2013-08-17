@@ -1,4 +1,6 @@
 /*
+ * @(#)TypeCode.java	1.50 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -176,9 +178,7 @@ public abstract class TypeCode implements IDLEntity {
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
      */
-    public boolean equivalent(TypeCode tc) {
-	throw new org.omg.CORBA.NO_IMPLEMENT();
-    }
+    public abstract boolean equivalent(TypeCode tc);
 
     /**
      * Strips out all optional name and member name fields,
@@ -189,9 +189,7 @@ public abstract class TypeCode implements IDLEntity {
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
      */
-    public TypeCode get_compact_typecode() {
-	throw new org.omg.CORBA.NO_IMPLEMENT();
-    }
+    public abstract TypeCode get_compact_typecode();
 
 
     /**
@@ -437,12 +435,8 @@ public abstract class TypeCode implements IDLEntity {
      *           is invoked on an inappropriate kind of <code>TypeCode</code>
      *           object
 	 *
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
      */
-    public short fixed_digits() throws BadKind {
-	throw new org.omg.CORBA.NO_IMPLEMENT();
-    }
+    public abstract short fixed_digits() throws BadKind ;
 
     /**
 	 * Returns the scale of the fixed type described by this 
@@ -460,12 +454,8 @@ public abstract class TypeCode implements IDLEntity {
      * @throws org.omg.CORBA.TypeCodePackage.BadKind if this method
      *           is invoked on an inappropriate kind of <code>TypeCode</code>
      *           object
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
      */
-    public short fixed_scale() throws BadKind {
-	throw new org.omg.CORBA.NO_IMPLEMENT();
-    }
+    public abstract short fixed_scale() throws BadKind ;
 
     /**
      * Returns the constant that indicates the visibility of the member
@@ -487,11 +477,8 @@ public abstract class TypeCode implements IDLEntity {
      *      comments for unimplemented features</a>
      */
     
-    public short member_visibility(int index)
-        throws BadKind, org.omg.CORBA.TypeCodePackage.Bounds
-    {
-	throw new org.omg.CORBA.NO_IMPLEMENT();
-    }
+    abstract public short member_visibility(int index)
+        throws BadKind, org.omg.CORBA.TypeCodePackage.Bounds ;
 
     /**
      * Returns a constant indicating the modifier of the value type
@@ -510,9 +497,7 @@ public abstract class TypeCode implements IDLEntity {
      *      comments for unimplemented features</a>
      */
     
-    public short type_modifier() throws BadKind {
-	throw new org.omg.CORBA.NO_IMPLEMENT();
-    }
+    abstract public short type_modifier() throws BadKind ;
 
     /**
      * Returns the <code>TypeCode</code> object that describes the concrete base type
@@ -528,7 +513,5 @@ public abstract class TypeCode implements IDLEntity {
      *      comments for unimplemented features</a>
      */
     
-    public TypeCode concrete_base_type() throws BadKind {
-	throw new org.omg.CORBA.NO_IMPLEMENT();
-    }
+    abstract public TypeCode concrete_base_type() throws BadKind ;
 }

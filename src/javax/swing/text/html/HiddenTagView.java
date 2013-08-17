@@ -1,4 +1,6 @@
 /*
+ * @(#)HiddenTagView.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -22,7 +24,7 @@ import java.util.*;
  * not editable, the textfield will not be visible.
  *
  * @author  Scott Violet
- * @version 1.10, 02/06/02
+ * @version 1.11, 12/03/01
  */
 class HiddenTagView extends EditableView implements DocumentListener {
     HiddenTagView(Element e) {
@@ -114,7 +116,7 @@ class HiddenTagView extends EditableView implements DocumentListener {
 	FontMetrics fm = Toolkit.getDefaultToolkit().getFontMetrics(font);
 	float h = fm.getHeight();
 	float d = fm.getDescent();
-	float yAlign = (h - d) / h;
+	yAlign = (h - d) / h;
     }
 
     void resetBorder() {

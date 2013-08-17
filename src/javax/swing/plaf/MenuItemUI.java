@@ -1,4 +1,6 @@
 /*
+ * @(#)MenuItemUI.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,7 +12,7 @@ import java.awt.event.*;
 /**
  * Pluggable look and feel interface for JMenuItem.
  *
- * @version @(#)MenuItemUI.java	1.14 02/02/06
+ * @version @(#)MenuItemUI.java	1.14 01/12/03
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber

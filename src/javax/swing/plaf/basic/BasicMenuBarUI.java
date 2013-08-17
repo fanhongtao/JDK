@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicMenuBarUI.java	1.76 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -28,7 +30,7 @@ import javax.swing.plaf.*;
  * A default L&F implementation of MenuBarUI.  This implementation
  * is a "combined" view/controller.
  *
- * @version 1.75 02/06/02
+ * @version 1.76 12/03/01
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -110,7 +112,8 @@ public class BasicMenuBarUI extends MenuBarUI  {
 	if (map == null) {
 	    map = createActionMap();
 	    if (map != null) {
-		UIManager.put("MenuBar.actionMap", map);
+		UIManager.getLookAndFeelDefaults().put("MenuBar.actionMap",
+                                                       map);
 	    }
 	}
 	return map;

@@ -1,5 +1,7 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)MotifLookAndFeel.java	1.153 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,7 +44,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.135 06/27/03
+ * @version 1.153 12/03/01
  * @author unattributed
  */
 public class MotifLookAndFeel extends BasicLookAndFeel
@@ -62,7 +64,8 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 
     public boolean isNativeLookAndFeel() {
         String osName = System.getProperty("os.name");
-        return (osName != null) && (osName.indexOf("Solaris") != -1);
+        return (osName != null) && 
+	       (osName.indexOf("SunOS") != -1 || osName.indexOf("Solaris") != -1);
     }
 
 
@@ -160,14 +163,12 @@ public class MotifLookAndFeel extends BasicLookAndFeel
     }
 
 
-    private void loadResourceBundle(UIDefaults table) {
-        ResourceBundle bundle = ResourceBundle.getBundle("com.sun.java.swing.plaf.motif.resources.motif");
-	Enumeration iter = bundle.getKeys();
-	while(iter.hasMoreElements()) {
-	    String key = (String)iter.nextElement();
-	    //System.out.println("key :" +key+ " value: " + bundle.getObject(key));
-	    table.put( key, bundle.getObject(key) );
-	}
+    /**
+     * Initialize the defaults table with the name of the ResourceBundle
+     * used for getting localized defaults.
+     */
+    private void initResourceBundle(UIDefaults table) {
+        table.addResourceBundle( "com.sun.java.swing.plaf.motif.resources.motif" );
     }
 
 
@@ -175,7 +176,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
     {
         super.initComponentDefaults(table);
 
-        loadResourceBundle(table);
+        initResourceBundle(table);
 
         FontUIResource dialogPlain12 = new FontUIResource("Dialog", 
                                                           Font.PLAIN, 12);
@@ -220,17 +221,17 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 
         Border buttonBorder = new BorderUIResource.CompoundBorderUIResource(
                                       new MotifBorders.ButtonBorder(
-                                          table.getColor("controlShadow"),
-                                          table.getColor("controlHighlight"),
-                                          table.getColor("controlDkShadow"),
+                                          table.getColor("Button.shadow"),
+                                          table.getColor("Button.highlight"),
+                                          table.getColor("Button.darkShadow"),
                                           table.getColor("activeCaptionBorder")),
                                       marginBorder);
 
         Border toggleButtonBorder = new BorderUIResource.CompoundBorderUIResource(
                                       new MotifBorders.ToggleButtonBorder(
-                                          table.getColor("controlShadow"),
-                                          table.getColor("controlHighlight"),
-                                          table.getColor("controlDkShadow"),
+                                          table.getColor("ToggleButton.shadow"),
+                                          table.getColor("ToggleButton.highlight"),
+                                          table.getColor("ToggleButton.darkShadow"),
                                           table.getColor("activeCaptionBorder")),                                                        marginBorder);
 
         Border textFieldBorder = new BorderUIResource.CompoundBorderUIResource(
@@ -345,7 +346,8 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 	             "shift HOME", DefaultEditorKit.selectionBeginLineAction,
 	              "shift END", DefaultEditorKit.selectionEndLineAction,
 	     "control BACK_SLASH", "unselect"/*DefaultEditorKit.unselectAction*/,
-	                  "ENTER", JTextField.notifyAction
+	                  "ENTER", JTextField.notifyAction,
+                "control shift O", "toggle-componentOrientation"/*DefaultEditorKit.toggleComponentOrientation*/
 	});
 
 	Object multilineInputMap = new UIDefaults.LazyInputMap(new Object[] {
@@ -397,7 +399,8 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 	      "control shift END", DefaultEditorKit.selectionEndAction,
                       "control T", "next-link-action", 
                 "control shift T", "previous-link-action", 
-                  "control SPACE", "activate-link-action" 
+                  "control SPACE", "activate-link-action",
+                "control shift O", "toggle-componentOrientation"/*DefaultEditorKit.toggleComponentOrientation*/
 	});
 
         // *** Tree
@@ -427,9 +430,9 @@ public class MotifLookAndFeel extends BasicLookAndFeel
         };
 
         Border menuBarBorder = new MotifBorders.MenuBarBorder(
-                                          table.getColor("controlShadow"),
-                                          table.getColor("controlHighlight"),
-                                          table.getColor("controlDkShadow"),
+                                          table.getColor("MenuBar.shadow"),
+                                          table.getColor("MenuBar.highlight"),
+                                          table.getColor("MenuBar.darkShadow"),
                                           table.getColor("activeCaptionBorder"));
 
 
@@ -456,11 +459,11 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 
         // ** for optionpane
 
-        Object optionPaneBorder = new BorderUIResource.EmptyBorderUIResource(10,0,10,0);
+        Object optionPaneBorder = new BorderUIResource.EmptyBorderUIResource(10,0,0,0);
 
-        Object optionPaneButtonAreaBorder = new BorderUIResource.EmptyBorderUIResource(10,10,12,10);
+        Object optionPaneButtonAreaBorder = new BorderUIResource.EmptyBorderUIResource(10,10,10,10);
 
-        Object optionPaneMessageAreaBorder = new BorderUIResource.EmptyBorderUIResource(0,10,12,10);
+        Object optionPaneMessageAreaBorder = new BorderUIResource.EmptyBorderUIResource(10,10,12,10);
 
 
         Object[] defaults = {
@@ -474,19 +477,29 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 		 "ctrl F8", "resize",
 		   "RIGHT", "right",
 		"KP_RIGHT", "right",
+             "shift RIGHT", "shrinkRight",
+          "shift KP_RIGHT", "shrinkRight",
 		    "LEFT", "left",
 		 "KP_LEFT", "left",
+              "shift LEFT", "shrinkLeft",
+           "shift KP_LEFT", "shrinkLeft",
 		      "UP", "up",
 		   "KP_UP", "up",
+                "shift UP", "shrinkUp",
+             "shift KP_UP", "shrinkUp",
 		    "DOWN", "down",
 		 "KP_DOWN", "down",
+              "shift DOWN", "shrinkDown",
+           "shift KP_DOWN", "shrinkDown",
 		  "ESCAPE", "escape",
 		 "ctrl F9", "minimize", 
 		"ctrl F10", "maximize",
 		 "ctrl F6", "selectNextFrame",
 		"ctrl TAB", "selectNextFrame",
 	     "ctrl alt F6", "selectNextFrame",
-       "shift ctrl alt F6", "selectPreviousFrame"	      
+       "shift ctrl alt F6", "selectPreviousFrame",
+                "ctrl F12", "navigateNext",
+          "shift ctrl F12", "navigatePrevious"
 	      }),
 
             "Panel.background", table.get("control"),
@@ -509,9 +522,9 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "Button.foreground", table.get("controlText"),
             "Button.select", table.get("controlLightShadow"),
             "Button.font", dialogPlain12,
-	    "Button.focusInputMap", new UIDefaults.LazyInputMap(new Object[] {
-                         "SPACE", "pressed",
-                "released SPACE", "released"
+            "Button.focusInputMap", new UIDefaults.LazyInputMap(new Object[] {
+                          "SPACE", "pressed",
+                 "released SPACE", "released"
               }),
 
 	    "CheckBox.textIconGap", new Integer(8),
@@ -558,21 +571,12 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "Menu.selectionBackground", menuItemPressedBackground,
             "Menu.checkIcon", menuItemCheckIcon,
             "Menu.arrowIcon", menuArrowIcon,
-	    // These window InputMap bindings are used when the Menu is
-	    // selected.
-	    "Menu.selectedWindowInputMapBindings", new Object[] {
-		  "ESCAPE", "cancel",
-                    "DOWN", "selectNext",
-		 "KP_DOWN", "selectNext",
-		      "UP", "selectPrevious",
-		   "KP_UP", "selectPrevious",
-		    "LEFT", "selectParent",
-		 "KP_LEFT", "selectParent",
-		   "RIGHT", "selectChild",
-		"KP_RIGHT", "selectChild",
-		   "ENTER", "return",
-		   "SPACE", "return"
-	    },
+	    "Menu.menuPopupOffsetX", new Integer(0),
+	    "Menu.menuPopupOffsetY", new Integer(0),
+	    "Menu.submenuPopupOffsetX", new Integer(-2),
+	    "Menu.submenuPopupOffsetY", new Integer(3),
+            "Menu.shortcutKeys", new int[] {KeyEvent.ALT_MASK,
+                                            KeyEvent.META_MASK},
 
             "MenuBar.border", menuBarBorder,
             "MenuBar.background", table.get("menu"),
@@ -629,6 +633,12 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "List.focusCellHighlightBorder", focusCellHighlightBorder,
 	    "List.focusInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
+			     "COPY", "copy",
+			    "PASTE", "paste",
+			      "CUT", "cut",
+	           "control INSERT", "copy",
+	             "shift INSERT", "paste",
+	             "shift DELETE", "cut",
 		               "UP", "selectPreviousRow",
 		            "KP_UP", "selectPreviousRow",
 		         "shift UP", "selectPreviousRowExtendSelection",
@@ -637,6 +647,14 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 		          "KP_DOWN", "selectNextRow",
 		       "shift DOWN", "selectNextRowExtendSelection",
 		    "shift KP_DOWN", "selectNextRowExtendSelection",
+		             "LEFT", "selectPreviousColumn",
+		          "KP_LEFT", "selectPreviousColumn",
+		       "shift LEFT", "selectPreviousColumnExtendSelection",
+		    "shift KP_LEFT", "selectPreviousColumnExtendSelection",
+		            "RIGHT", "selectNextColumn",
+		         "KP_RIGHT", "selectNextColumn",
+		      "shift RIGHT", "selectNextColumnExtendSelection",
+		   "shift KP_RIGHT", "selectNextColumnExtendSelection",
 		       "ctrl SPACE", "selectNextRowExtendSelection",
 		             "HOME", "selectFirstRow",
 		       "shift HOME", "selectFirstRowExtendSelection",
@@ -658,6 +676,8 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 	    "DesktopIcon.windowBindings", new Object[]
 	      { "ESCAPE", "hideSystemMenu" },
 
+	    "InternalFrame.activeTitleBackground", table.get("activeCaptionBorder"),
+	    "InternalFrame.inactiveTitleBackground", table.get("inactiveCaptionBorder"),
 	    "InternalFrame.windowBindings", new Object[] {
 		"shift ESCAPE", "showSystemMenu",
 		  "ctrl SPACE", "showSystemMenu",
@@ -671,19 +691,19 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "ScrollBar.thumb", table.get("control"),
             "ScrollBar.thumbHighlight", table.get("controlHighlight"),
             "ScrollBar.thumbDarkShadow", table.get("controlDkShadow"),
-            "ScrollBar.thumbLightShadow", table.get("controlShadow"),
+            "ScrollBar.thumbShadow", table.get("controlShadow"),
             "ScrollBar.border", loweredBevelBorder,
 	    "ScrollBar.allowsAbsolutePositioning", Boolean.TRUE,
 	    "ScrollBar.focusInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
-		       "RIGHT", "negativeUnitIncrement",
-		    "KP_RIGHT", "negativeUnitIncrement",
+		       "RIGHT", "positiveUnitIncrement",
+		    "KP_RIGHT", "positiveUnitIncrement",
 		        "DOWN", "positiveUnitIncrement",
 		     "KP_DOWN", "positiveUnitIncrement",
 		   "PAGE_DOWN", "positiveBlockIncrement",
 	      "ctrl PAGE_DOWN", "positiveBlockIncrement",
-		        "LEFT", "positiveUnitIncrement",
-		     "KP_LEFT", "positiveUnitIncrement",
+		        "LEFT", "negativeUnitIncrement",
+		     "KP_LEFT", "negativeUnitIncrement",
 		          "UP", "negativeUnitIncrement",
 		       "KP_UP", "negativeUnitIncrement",
 		     "PAGE_UP", "negativeBlockIncrement",
@@ -737,6 +757,15 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 		           "END", "maxScroll"
 	    }),
 
+            // Spinner
+            "Spinner.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+                               "UP", "increment",
+                            "KP_UP", "increment",
+                             "DOWN", "decrement",
+                          "KP_DOWN", "decrement",
+               }),
+
             "SplitPane.background", table.get("control"),
             "SplitPane.highlight", table.get("controlHighlight"),
             "SplitPane.shadow", table.get("controlShadow"),
@@ -761,8 +790,8 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "TabbedPane.font", dialogPlain12,
             "TabbedPane.background", table.get("control"),
             "TabbedPane.foreground", table.get("controlText"),
-            "TabbedPane.highlight", table.get("controlHighlight"),
-            "TabbedPane.lightHighlight", table.get("controlLtHighlight"),
+            "TabbedPane.light", table.get("controlHighlight"),
+            "TabbedPane.highlight", table.get("controlLtHighlight"),
             "TabbedPane.shadow", table.get("controlShadow"),
             "TabbedPane.darkShadow", table.get("controlShadow"),
             "TabbedPane.unselectedTabBackground", unselectedTabBackground,
@@ -817,6 +846,12 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 	    "Tree.rowHeight", new Integer(18),
 	    "Tree.drawsFocusBorderAroundIcon", Boolean.TRUE,
 	    "Tree.focusInputMap", new UIDefaults.LazyInputMap(new Object[] {
+			        "COPY", "copy",
+			       "PASTE", "paste",
+			         "CUT", "cut",
+	              "control INSERT", "copy",
+	                "shift INSERT", "paste",
+	                "shift DELETE", "cut",
 		                  "UP", "selectPreviousChangeLead",
 		               "KP_UP", "selectPreviousChangeLead",
 		            "shift UP", "selectPreviousExtendSelection",
@@ -837,7 +872,6 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 		          "shift HOME", "selectFirstExtendSelection",
 		                 "END", "selectLastChangeLead",
 		           "shift END", "selectLastExtendSelection",
-		               "ENTER", "toggle",
 		                  "F2", "startEditing",
 		              "ctrl A", "selectAll",
 		          "ctrl SLASH", "selectAll",
@@ -860,6 +894,12 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             //      "Table.focusCellBackground", white,
 	    "Table.ancestorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
+			         "COPY", "copy",
+			        "PASTE", "paste",
+			          "CUT", "cut",
+	               "control INSERT", "copy",
+	                 "shift INSERT", "paste",
+	                 "shift DELETE", "cut",
 		                "RIGHT", "selectNextColumn",
 		             "KP_RIGHT", "selectNextColumn",
 		                 "LEFT", "selectPreviousColumn",
@@ -901,6 +941,47 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 		                   "F2", "startEditing"
 		 }),
 
+
+            "FormattedTextField.focusInputMap",
+              new UIDefaults.LazyInputMap(new Object[] {
+			   "ctrl C", DefaultEditorKit.copyAction,
+			   "ctrl V", DefaultEditorKit.pasteAction,
+			   "ctrl X", DefaultEditorKit.cutAction,
+			     "COPY", DefaultEditorKit.copyAction,
+			    "PASTE", DefaultEditorKit.pasteAction,
+			      "CUT", DefaultEditorKit.cutAction,
+		       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
+                    "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
+		      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
+		   "shift KP_RIGHT", DefaultEditorKit.selectionForwardAction,
+			"ctrl LEFT", DefaultEditorKit.previousWordAction,
+		     "ctrl KP_LEFT", DefaultEditorKit.previousWordAction,
+		       "ctrl RIGHT", DefaultEditorKit.nextWordAction,
+		    "ctrl KP_RIGHT", DefaultEditorKit.nextWordAction,
+		  "ctrl shift LEFT", DefaultEditorKit.selectionPreviousWordAction,
+	       "ctrl shift KP_LEFT", DefaultEditorKit.selectionPreviousWordAction,
+		 "ctrl shift RIGHT", DefaultEditorKit.selectionNextWordAction,
+	      "ctrl shift KP_RIGHT", DefaultEditorKit.selectionNextWordAction,
+			   "ctrl A", DefaultEditorKit.selectAllAction,
+			     "HOME", DefaultEditorKit.beginLineAction,
+			      "END", DefaultEditorKit.endLineAction,
+		       "shift HOME", DefaultEditorKit.selectionBeginLineAction,
+		        "shift END", DefaultEditorKit.selectionEndLineAction,
+		       "typed \010", DefaultEditorKit.deletePrevCharAction,
+                           "DELETE", DefaultEditorKit.deleteNextCharAction,
+                            "RIGHT", DefaultEditorKit.forwardAction,
+                             "LEFT", DefaultEditorKit.backwardAction,
+                         "KP_RIGHT", DefaultEditorKit.forwardAction,
+                          "KP_LEFT", DefaultEditorKit.backwardAction,
+			    "ENTER", JTextField.notifyAction,
+		  "ctrl BACK_SLASH", "unselect",
+                   "control shift O", "toggle-componentOrientation",
+                           "ESCAPE", "reset-field-edit",
+                               "UP", "increment",
+                            "KP_UP", "increment",
+                             "DOWN", "decrement",
+                          "KP_DOWN", "decrement",
+              }),
 
 	    // ToolBar.
 	    "ToolBar.ancestorInputMap",
@@ -997,7 +1078,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 
 	    "FileChooser.pathLabelMnemonic", new Integer(KeyEvent.VK_P), // 'p'
 	    "FileChooser.filterLabelMnemonic", new Integer (KeyEvent.VK_R), // 'r'
-	    "FileChooser.foldersLabelMnemonic", new Integer (KeyEvent.VK_L), // 'l'
+	    "FileChooser.foldersLabelMnemonic", new Integer (KeyEvent.VK_O), // 'o'
 	    "FileChooser.filesLabelMnemonic", new Integer (KeyEvent.VK_I), // 'i'
 	    "FileChooser.enterFileNameLabelMnemonic", new Integer (KeyEvent.VK_N), // 'n'
 	    "FileChooser.ancestorInputMap", 
@@ -1009,6 +1090,25 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "ToolTip.border", raisedBevelBorder,
             "ToolTip.background", table.get("info"),
             "ToolTip.foreground", table.get("infoText"),
+
+	    // These window InputMap bindings are used when the Menu is
+	    // selected.
+	    "PopupMenu.selectedWindowInputMapBindings", new Object[] {
+		  "ESCAPE", "cancel",
+		     "TAB", "cancel",
+	       "shift TAB", "cancel",
+                    "DOWN", "selectNext",
+		 "KP_DOWN", "selectNext",
+		      "UP", "selectPrevious",
+		   "KP_UP", "selectPrevious",
+		    "LEFT", "selectParent",
+		 "KP_LEFT", "selectParent",
+		   "RIGHT", "selectChild",
+		"KP_RIGHT", "selectChild",
+		   "ENTER", "return",
+		   "SPACE", "return"
+	    },
+
 
             "OptionPane.border", optionPaneBorder,
             "OptionPane.messageAreaBorder", optionPaneMessageAreaBorder,

@@ -1,4 +1,6 @@
 /*
+ * @(#)IMP_LIMIT.java	1.30 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,12 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>IMP_LIMIT</code> exception, which is thrown
- * when the implementation limit has been violated.
+ * This exception indicates that an implementation limit was 
+ * exceeded in the ORB run time. For example, an ORB may reach 
+ * the maximum number of references it can hold simultaneously 
+ * in an address space, the size of a parameter may have 
+ * exceeded the allowed maximum, or an ORB may impose a maximum 
+ * on the number of clients or servers that can run simultaneously.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

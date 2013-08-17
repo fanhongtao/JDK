@@ -1,4 +1,6 @@
 /*
+ * @(#)MouseDragGestureRecognizer.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -23,7 +25,7 @@ import java.awt.event.MouseMotionListener;
  * a Drag and Drop operation.
  *
  * @author Laurence P. G. Cable
- * @version 1.10
+ * @version 1.11
  *
  * @see java.awt.dnd.DragGestureListener
  * @see java.awt.dnd.DragGestureEvent
@@ -31,6 +33,8 @@ import java.awt.event.MouseMotionListener;
  */
 
 public abstract class MouseDragGestureRecognizer extends DragGestureRecognizer implements MouseListener, MouseMotionListener {
+
+    private static final long serialVersionUID = 6220099344182281120L;
 
     /**
      * Construct a new <code>MouseDragGestureRecognizer</code> 

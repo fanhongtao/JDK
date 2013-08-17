@@ -1,4 +1,6 @@
 /*
+ * @(#)RenderableImage.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -71,7 +73,10 @@ public interface RenderableImage {
      */
     Object getProperty(String name);
 
-    /** Returns a list of names recognized by getProperty. */
+    /** 
+     * Returns a list of names recognized by getProperty. 
+     * @return a list of property names.
+     */
     String[] getPropertyNames();
     
     /**
@@ -80,6 +85,9 @@ public interface RenderableImage {
      * may produce different results.  This method may be used to
      * determine whether an existing rendering may be cached and
      * reused.  It is always safe to return true.
+     * @return <code>true</code> if successive renderings with the
+     *         same arguments might produce different results;
+     *         <code>false</code> otherwise.
      */
     boolean isDynamic();
 
@@ -102,11 +110,15 @@ public interface RenderableImage {
     
     /** 
      * Gets the minimum X coordinate of the rendering-independent image data.
+     * @return the minimum X coordinate of the rendering-independent image
+     * data.
      */
     float getMinX();
   
     /** 
      * Gets the minimum Y coordinate of the rendering-independent image data.
+     * @return the minimum Y coordinate of the rendering-independent image
+     * data.
      */
     float getMinY();
 

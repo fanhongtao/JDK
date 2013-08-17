@@ -1,12 +1,11 @@
 /*
+ * @(#)UndeclaredThrowableException.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.reflect;
-
-import java.io.PrintStream;
-import java.io.PrintWriter;
 
 /**
  * Thrown by a method invocation on a proxy instance if its invocation
@@ -25,12 +24,22 @@ import java.io.PrintWriter;
  * <code>RuntimeException</code>, so it is an unchecked exception
  * that wraps a checked exception.
  *
+ * <p>As of release 1.4, this exception has been retrofitted to
+ * conform to the general purpose exception-chaining mechanism.  The
+ * "undeclared checked exception that was thrown by the invocation
+ * handler" that may be provided at construction time and accessed via
+ * the {@link #getUndeclaredThrowable()} method is now known as the
+ * <i>cause</i>, and may be accessed via the {@link
+ * Throwable#getCause()} method, as well as the aforementioned "legacy
+ * method."
+ *
  * @author	Peter Jones
- * @version	1.7, 02/02/06
+ * @version	1.10, 01/12/03
  * @see		InvocationHandler
  * @since	JDK1.3
  */
 public class UndeclaredThrowableException extends RuntimeException {
+    static final long serialVersionUID = 330127114055056639L;
 
     /**
      * the undeclared checked exception that was thrown
@@ -40,14 +49,14 @@ public class UndeclaredThrowableException extends RuntimeException {
 
     /**
      * Constructs an <code>UndeclaredThrowableException</code> with the
-     * specifed <code>Throwable</code>.
+     * specified <code>Throwable</code>.
      *
      * @param	undeclaredThrowable the undeclared checked exception
      *		that was thrown
      */
     public UndeclaredThrowableException(Throwable undeclaredThrowable) {
-	super();
-	this.undeclaredThrowable = undeclaredThrowable;
+	super((Throwable) null);  // Disallow initCause
+        this.undeclaredThrowable = undeclaredThrowable;
     }
 
     /**
@@ -61,55 +70,33 @@ public class UndeclaredThrowableException extends RuntimeException {
     public UndeclaredThrowableException(Throwable undeclaredThrowable,
 					String s)
     {
-	super(s);
-	this.undeclaredThrowable = undeclaredThrowable;
+	super(s, null);  // Disallow initCause
+        this.undeclaredThrowable = undeclaredThrowable;
     }
 
     /**
      * Returns the <code>Throwable</code> instance wrapped in this
-     * <code>UndeclaredThrowableException</code>.
+     * <code>UndeclaredThrowableException</code>, which may be <tt>null</tt>.
+     *
+     * <p>This method predates the general-purpose exception chaining facility.
+     * The {@link Throwable#getCause()} method is now the preferred means of
+     * obtaining this information.
      *
      * @return the undeclared checked exception that was thrown
      */
     public Throwable getUndeclaredThrowable() {
-	return undeclaredThrowable;
+        return undeclaredThrowable;
     }
 
     /**
-     * Prints this <code>UndeclaredThrowableException</code> and its 
-     * backtrace to the standard error stream. 
+     * Returns the the cause of this exception (the <code>Throwable</code>
+     * instance wrapped in this <code>UndeclaredThrowableException</code>,
+     * which may be <tt>null</tt>).
+     *
+     * @return  the cause of this exception.
+     * @since   1.4
      */
-    public void printStackTrace() {
-	printStackTrace(System.err);
-    }
-
-    /**
-     * Prints this <code>UndeclaredThrowableException</code> and its 
-     * backtrace to the specified <code>PrintStream</code>.
-     */
-    public void printStackTrace(PrintStream ps) {
-	synchronized (ps) {
-	    if (undeclaredThrowable != null) {
-		ps.print("java.lang.reflect.UndeclaredThrowableException: ");
-		undeclaredThrowable.printStackTrace(ps);
-	    } else {
-		super.printStackTrace(ps);
-	    }
-	}
-    }
-
-    /**
-     * Prints this <code>UndeclaredThrowableException</code> and its 
-     * backtrace to the specified <code>PrintWriter</code>.
-     */
-    public void printStackTrace(PrintWriter pw) {
-	synchronized (pw) {
-	    if (undeclaredThrowable != null) {
-		pw.print("java.lang.reflect.UndeclaredThrowableException: ");
-		undeclaredThrowable.printStackTrace(pw);
-	    } else {
-		super.printStackTrace(pw);
-	    }
-	}
+    public Throwable getCause() {
+        return undeclaredThrowable;
     }
 }

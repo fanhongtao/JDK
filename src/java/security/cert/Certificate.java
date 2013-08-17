@@ -1,4 +1,6 @@
 /*
+ * @(#)Certificate.java	1.20 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -32,7 +34,7 @@ import java.security.SignatureException;
  * @see CertificateFactory
  *
  * @author Hemma Prafullchandra
- * @version 1.19 02/02/06
+ * @version 1.20 01/12/03
  */
 
 public abstract class Certificate implements java.io.Serializable {
@@ -206,10 +208,10 @@ public abstract class Certificate implements java.io.Serializable {
  	 *
  	 * <p>
  	 *
-	 * @return the resolved Certificate Object.
+	 * @return the resolved Certificate Object
 	 *
-	 * @throws ObjectStreamException if the Certificate could not
-	 *	be resolved.
+	 * @throws java.io.ObjectStreamException if the Certificate 
+	 *	could not be resolved
 	 */
 	protected Object readResolve() throws java.io.ObjectStreamException {
 	    try {
@@ -229,10 +231,10 @@ public abstract class Certificate implements java.io.Serializable {
     /**
      * Replace the Certificate to be serialized.
      *
-     * @return the alternate Certificate object to be serialized.
+     * @return the alternate Certificate object to be serialized
      *
-     * @throws ObjectStreamException if a new object representing this
-     * certificate could not be created
+     * @throws java.io.ObjectStreamException if a new object representing 
+     * this Certificate could not be created
      */
     protected Object writeReplace() throws java.io.ObjectStreamException {
 	try {

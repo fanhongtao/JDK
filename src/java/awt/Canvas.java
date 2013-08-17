@@ -1,9 +1,12 @@
 /*
+ * @(#)Canvas.java	1.32 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
+import java.awt.image.BufferStrategy;
 import java.awt.peer.CanvasPeer;
 import javax.accessibility.*;
 
@@ -17,7 +20,7 @@ import javax.accessibility.*;
  * component. The <code>paint</code> method must be overridden 
  * in order to perform custom graphics on the canvas.
  *
- * @version 	1.29 02/06/02
+ * @version 	1.32 12/03/01
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -74,27 +77,104 @@ public class Canvas extends Component implements Accessible {
     }
 
     /**
-     * This method is called to repaint this canvas. Most applications 
-     * that subclass <code>Canvas</code> should override this method in 
-     * order to perform some useful operation. 
+     * Paints this canvas. 
      * <p>
-     * The <code>paint</code> method provided by <code>Canvas</code> 
-     * redraws this canvas's rectangle in the background color. 
-     * <p>
-     * The graphics context's origin (0,&nbsp;0) is the top-left corner 
-     * of this canvas. Its clipping region is the area of the context. 
-     * @param      g   the graphics context.
-     * @see        java.awt.Graphics
+     * Most applications that subclass <code>Canvas</code> should 
+     * override this method in order to perform some useful operation 
+     * (typically, custom painting of the canvas).  
+     * The default operation is simply to clear the canvas.  
+     * Applications that override this method need not call 
+     * super.paint(g).  
+     * 
+     * @param      g   the specified Graphics context
+     * @see        #update(Graphics)
+     * @see        Component#paint(Graphics)
      */
     public void paint(Graphics g) {
-	g.setColor(getBackground());
-	g.fillRect(0, 0, width, height);
+        g.clearRect(0, 0, width, height);
+    }
+
+    /**
+     * Updates this canvas.
+     * <p>
+     * This method is called in response to a call to <code>repaint</code>.  
+     * The canvas is first cleared by filling it with the background
+     * color, and then completely redrawn by calling this canvas's
+     * <code>paint</code> method.
+     * Note: applications that override this method should either call 
+     * super.update(g) or incorporate the functionality described 
+     * above into their own code. 
+     *
+     * @param g the specified Graphics context
+     * @see   #paint(Graphics)
+     * @see   Component#update(Graphics)
+     */
+    public void update(Graphics g) {
+        g.clearRect(0, 0, width, height);
+        paint(g);
     }
 
     boolean postsOldMouseEvents() {
         return true;
     }
 
+    /**
+     * Creates a new strategy for multi-buffering on this component.
+     * Multi-buffering is useful for rendering performance.  This method
+     * attempts to create the best strategy available with the number of
+     * buffers supplied.  It will always create a <code>BufferStrategy</code>
+     * with that number of buffers.
+     * A page-flipping strategy is attempted first, then a blitting strategy
+     * using accelerated buffers.  Finally, an unaccelerated blitting
+     * strategy is used.
+     * <p>
+     * Each time this method is called,
+     * the existing buffer strategy for this component is discarded.
+     * @param numBuffers number of buffers to create, including the front buffer
+     * @exception IllegalArgumentException if numBuffers is less than 1.
+     * @exception IllegalStateException if the component is not displayable
+     * @see #isDisplayable
+     * @see #getBufferStrategy
+     * @since 1.4
+     */
+    public void createBufferStrategy(int numBuffers) {
+        super.createBufferStrategy(numBuffers);
+    }
+    
+    /**
+     * Creates a new strategy for multi-buffering on this component with the
+     * required buffer capabilities.  This is useful, for example, if only
+     * accelerated memory or page flipping is desired (as specified by the
+     * buffer capabilities).
+     * <p>
+     * Each time this method
+     * is called, the existing buffer strategy for this component is discarded.
+     * @param numBuffers number of buffers to create
+     * @param caps the required capabilities for creating the buffer strategy;
+     * cannot be <code>null</code>
+     * @exception AWTException if the capabilities supplied could not be
+     * supported or met; this may happen, for example, if there is not enough
+     * accelerated memory currently available, or if page flipping is specified
+     * but not possible.
+     * @exception IllegalArgumentException if numBuffers is less than 1, or if
+     * caps is <code>null</code>
+     * @see #getBufferStrategy
+     * @since 1.4
+     */
+    public void createBufferStrategy(int numBuffers,
+        BufferCapabilities caps) throws AWTException {
+        super.createBufferStrategy(numBuffers, caps);
+    }
+    
+    /**
+     * @return the buffer strategy used by this component
+     * @see #createBufferStrategy
+     * @since 1.4
+     */
+    public BufferStrategy getBufferStrategy() {
+        return super.getBufferStrategy();
+    }
+        
     /*
      * --- Accessibility Support ---
      *

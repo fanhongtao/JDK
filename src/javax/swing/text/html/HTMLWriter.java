@@ -1,4 +1,6 @@
 /*
+ * @(#)HTMLWriter.java	1.30 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,7 +19,7 @@ import java.util.NoSuchElementException;
  * This is a writer for HTMLDocuments.
  *
  * @author  Sunita Mani
- * @version 1.27, 02/06/02
+ * @version 1.26, 02/02/00
  */
 
 
@@ -123,9 +125,16 @@ public class HTMLWriter extends AbstractWriter {
 	    segment = new Segment();
 	}
 	inPre = false;
+        boolean forcedBody = false;
 	while ((next = it.next()) != null) {
 	    if (!inRange(next)) {
-		continue;
+                if (completeDoc && next.getAttributes().getAttribute(
+                        StyleConstants.NameAttribute) == HTML.Tag.BODY) {
+                    forcedBody = true;
+                }
+                else {
+                    continue;
+                }
 	    }
 	    if (current != null) {
 		
@@ -134,7 +143,7 @@ public class HTMLWriter extends AbstractWriter {
 		*/
 
 		if (indentNeedsIncrementing(current, next)) {
-		    incrIndent();
+                    incrIndent();
 		} else if (current.getParentElement() != next.getParentElement()) {
 		    /*
 		       next and current are not siblings
@@ -149,7 +158,9 @@ public class HTMLWriter extends AbstractWriter {
 			*/
 			blockElementStack.pop();
 			if (!synthesizedElement(top)) {
-			    if (!matchNameAttribute(top.getAttributes(), HTML.Tag.PRE)) {
+                            AttributeSet attrs = top.getAttributes();
+			    if (!matchNameAttribute(attrs, HTML.Tag.PRE) &&
+                                !isFormElementWithContent(attrs)) {
 				decrIndent();
 			    }
 			    endTag(top);
@@ -177,7 +188,6 @@ public class HTMLWriter extends AbstractWriter {
 	    }
 	    current = next;
 	}
-
 	/* Emit all remaining end tags */
 
 	/* A null parameter ensures that all embedded tags
@@ -186,10 +196,16 @@ public class HTMLWriter extends AbstractWriter {
 	*/
 	closeOutUnwantedEmbeddedTags(null);
 
+        if (forcedBody) {
+            blockElementStack.pop();
+            endTag(current);
+        }
 	while (!blockElementStack.empty()) {
 	    current = (Element)blockElementStack.pop();
 	    if (!synthesizedElement(current)) {
-		if (!matchNameAttribute(current.getAttributes(), HTML.Tag.PRE)) {
+                AttributeSet attrs = current.getAttributes();
+		if (!matchNameAttribute(attrs, HTML.Tag.PRE) &&
+                              !isFormElementWithContent(attrs)) {
 		    decrIndent();
 		}
 		endTag(current);
@@ -511,9 +527,12 @@ public class HTMLWriter extends AbstractWriter {
 	
 	indent();
 	write('<');
-	write("option ");
-	if (option.getValue() != null) {
-	    write("value="+ option.getValue());
+	write("option");
+        // PENDING: should this be changed to check for null first?
+        Object value = option.getAttributes().getAttribute
+                              (HTML.Attribute.VALUE);
+	if (value != null) {
+	    write(" value="+ value);
 	}
 	if (option.isSelected()) {
 	    write(" selected");

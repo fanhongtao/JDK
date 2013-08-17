@@ -1,4 +1,6 @@
 /*
+ * @(#)INV_FLAG.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,9 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>INV_FLAG</code> exception, which is thrown
- * when an invalid flag is specified.
+ * Exception thrown
+ * when an invalid flag was passed to an operation (for example, when 
+ * creating a DII request).<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

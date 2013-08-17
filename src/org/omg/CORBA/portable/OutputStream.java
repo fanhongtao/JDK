@@ -1,4 +1,6 @@
 /*
+ * @(#)OutputStream.java	1.31 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -216,11 +218,14 @@ public abstract class OutputStream extends java.io.OutputStream
      * @param value the value to be written.
      * @deprecated Deprecated by CORBA 2.2.
      */
-    public abstract void write_Principal(Principal value);
+    public void write_Principal(Principal value) {
+        throw new org.omg.CORBA.NO_IMPLEMENT();
+    }
 
     /** 
      * Writes an integer (length of arrays) onto this stream.
      * @param b the value to be written.
+     * @throws java.io.IOException if there is an input/output error 
      * @see <a href="package-summary.html#unimpl"><code>portable</code>
      * package comments for unimplemented features</a>
      */
@@ -231,8 +236,6 @@ public abstract class OutputStream extends java.io.OutputStream
     /** 
      * Writes a BigDecimal number.
      * @param value a BidDecimal--value to be written.
-     * @see <a href="package-summary.html#unimpl"><code>portable</code>
-     * package comments for unimplemented features</a>
      */
     public void write_fixed(java.math.BigDecimal value) {
         throw new org.omg.CORBA.NO_IMPLEMENT();
@@ -243,7 +246,9 @@ public abstract class OutputStream extends java.io.OutputStream
      * Context is marshaled as a sequence of strings.
      * Only those Context values specified in the contexts 
      * parameter are actually written.
-     * @param a CORBA context.
+     * @param ctx a CORBA context
+     * @param contexts a <code>ContextList</code> object containing the list of contexts
+     *        to be written
      * @see <a href="package-summary.html#unimpl"><code>portable</code>
      * package comments for unimplemented features</a>
      */
@@ -254,7 +259,7 @@ public abstract class OutputStream extends java.io.OutputStream
 
     /**
      * Returns the ORB that created this OutputStream.
-     * @return the ORB that created this OutputStream.
+     * @return the ORB that created this OutputStream
      * @see <a href="package-summary.html#unimpl"><code>portable</code>
      * package comments for unimplemented features</a>
      */

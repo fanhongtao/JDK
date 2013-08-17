@@ -1,5 +1,7 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)BasicInternalFrameTitlePane.java	1.51 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,12 +24,14 @@ import java.beans.PropertyVetoException;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.36 10/21/02
+ * @version 1.41 01/18/01
  * @author David Kloba
  * @author Steve Wilson
  */
@@ -72,12 +76,11 @@ public class BasicInternalFrameTitlePane extends JComponent
         UIManager.getString("InternalFrameTitlePane.moveButtonText");
     protected static final String SIZE_CMD =
         UIManager.getString("InternalFrameTitlePane.sizeButtonText");
- 
+
     private String closeButtonToolTip;
     private String iconButtonToolTip;
     private String restoreButtonToolTip;
     private String maxButtonToolTip;
-
 
     public BasicInternalFrameTitlePane(JInternalFrame f) {
 	frame = f;
@@ -87,6 +90,7 @@ public class BasicInternalFrameTitlePane extends JComponent
     protected void installTitlePane() {
 	installDefaults();
         installListeners();
+        
 	createActions();
 	enableActions();
 	createActionMap();
@@ -104,7 +108,6 @@ public class BasicInternalFrameTitlePane extends JComponent
 	add(iconButton);
 	add(maxButton);
 	add(closeButton);
-
     }
 
     protected void createActions() {
@@ -153,14 +156,11 @@ public class BasicInternalFrameTitlePane extends JComponent
                 UIManager.getString("InternalFrame.restoreButtonToolTip");
         maxButtonToolTip =
                 UIManager.getString("InternalFrame.maxButtonToolTip");
-
-
     }
 
 
     protected void uninstallDefaults() {
     }
-
 
     protected void createButtons() {
 	iconButton = new NoFocusButton();
@@ -182,13 +182,13 @@ public class BasicInternalFrameTitlePane extends JComponent
     }
 
     protected void setButtonIcons() {
-	if(frame.isIcon()) {
-	    iconButton.setIcon(minIcon);
+        if(frame.isIcon()) {
+            iconButton.setIcon(minIcon);
             if (restoreButtonToolTip != null &&
                     restoreButtonToolTip.length() != 0) {
                 iconButton.setToolTipText(restoreButtonToolTip);
             }
-	    maxButton.setIcon(maxIcon);
+            maxButton.setIcon(maxIcon);
             if (maxButtonToolTip != null && maxButtonToolTip.length() != 0) {
                 maxButton.setToolTipText(maxButtonToolTip);
             }
@@ -212,7 +212,6 @@ public class BasicInternalFrameTitlePane extends JComponent
 
 	closeButton.setIcon(closeIcon);
     }
-
 
     protected void assembleSystemMenu() {
         menuBar = createSystemMenuBar();
@@ -255,17 +254,12 @@ public class BasicInternalFrameTitlePane extends JComponent
     }
 
     public void paintComponent(Graphics g)  {
-	boolean isSelected = frame.isSelected();
-
-	if(isSelected)
-	    g.setColor(selectedTitleColor);
-	else
-	    g.setColor(notSelectedTitleColor);
-	g.fillRect(0, 0, getWidth(), getHeight());
+	paintTitleBackground(g);
 
 	if(frame.getTitle() != null) {
+	    boolean isSelected = frame.isSelected();
 	    Font f = g.getFont();
-	    g.setFont(UIManager.getFont("InternalFrame.titleFont"));
+	    g.setFont(getFont());
 	    if(isSelected)
 		g.setColor(selectedTextColor);
 	    else
@@ -273,14 +267,22 @@ public class BasicInternalFrameTitlePane extends JComponent
 
             // Center text vertically.
 	    FontMetrics fm = g.getFontMetrics();
-            int fmHeight = fm.getHeight() - fm.getLeading();
-            int baseline = (18 - fmHeight) / 2 + 
-                fm.getAscent() + fm.getLeading();
+            int baseline = (getHeight() + fm.getAscent() - fm.getLeading() -
+                    fm.getDescent()) / 2;
 
             int titleX;
+            Rectangle r = new Rectangle(0, 0, 0, 0);
+            if (frame.isIconifiable())  r = iconButton.getBounds();
+            else if (frame.isMaximizable())  r = maxButton.getBounds();
+            else if (frame.isClosable())  r = closeButton.getBounds();
+	    int titleW;
+	
             String title = frame.getTitle();
             if( BasicGraphicsUtils.isLeftToRight(frame) ) {
-                titleX = menuBar.getX() + menuBar.getWidth() + 2;
+              if (r.x == 0)  r.x = frame.getWidth()-frame.getInsets().right;
+              titleX = menuBar.getX() + menuBar.getWidth() + 2;
+              titleW = r.x - titleX - 3;
+              title = getTitle(frame.getTitle(), fm, titleW);
             } else {
                 titleX = menuBar.getX() - 2
                          - SwingUtilities.computeStringWidth(fm,title);
@@ -290,6 +292,41 @@ public class BasicInternalFrameTitlePane extends JComponent
 	    g.setFont(f);
 	}
     }
+
+   /**
+    * Invoked from paintComponent.
+    * Paints the background of the titlepane.  All text and icons will
+    * then be rendered on top of this background.
+    * @param g the graphics to use to render the background
+    * @since 1.4
+    */
+    protected void paintTitleBackground(Graphics g) {
+	boolean isSelected = frame.isSelected();
+
+	if(isSelected)
+	    g.setColor(selectedTitleColor);
+	else
+	    g.setColor(notSelectedTitleColor);
+	g.fillRect(0, 0, getWidth(), getHeight());
+    }
+
+    protected String getTitle(String text, FontMetrics fm, int availTextWidth) {
+        if ( (text == null) || (text.equals("")) )  return "";
+        int textWidth = SwingUtilities.computeStringWidth(fm, text);
+        String clipString = "...";
+        if (textWidth > availTextWidth) {
+            int totalWidth = SwingUtilities.computeStringWidth(fm, clipString);
+            int nChars;
+            for(nChars = 0; nChars < text.length(); nChars++) {
+                totalWidth += fm.charWidth(text.charAt(nChars));
+                if (totalWidth > availTextWidth) {
+                    break;
+                }
+            }
+            text = text.substring(0, nChars) + clipString;
+        }
+        return text;
+      }
 
     /**
      * Post a WINDOW_CLOSING-like event to the frame, so that it can
@@ -362,7 +399,7 @@ public class BasicInternalFrameTitlePane extends JComponent
                     add(maxButton);
                 else
                     remove(maxButton);
-            } else if( prop.equals("iconifiable") ) {
+            } else if( prop.equals("iconable") ) {
                 if( (Boolean)evt.getNewValue() == Boolean.TRUE )
                     add(iconButton);
                 else
@@ -385,36 +422,93 @@ public class BasicInternalFrameTitlePane extends JComponent
         public void addLayoutComponent(String name, Component c) {}
         public void removeLayoutComponent(Component c) {}    
         public Dimension preferredLayoutSize(Container c)  {
-	    return new Dimension(100, 18);
+	    return minimumLayoutSize(c);
 	}
     
         public Dimension minimumLayoutSize(Container c) {
-	    return preferredLayoutSize(c);
+            // Calculate width.
+            int width = 22;
+ 
+            if (frame.isClosable()) {
+                width += 19;
+            }
+            if (frame.isMaximizable()) {
+                width += 19;
+            }
+            if (frame.isIconifiable()) {
+                width += 19;
+            }
+
+            FontMetrics fm = getFontMetrics(getFont());
+            String frameTitle = frame.getTitle();
+            int title_w = frameTitle != null ? fm.stringWidth(frameTitle) : 0;
+            int title_length = frameTitle != null ? frameTitle.length() : 0;
+
+            // Leave room for three characters in the title.
+            if (title_length > 3) {
+                int subtitle_w =
+                    fm.stringWidth(frameTitle.substring(0, 3) + "...");
+                width += (title_w < subtitle_w) ? title_w : subtitle_w;
+            } else {
+                width += title_w;
+            }
+
+            // Calculate height.
+            Icon icon = frame.getFrameIcon();
+            int fontHeight = fm.getHeight();
+            fontHeight += 2;
+            int iconHeight = 0;
+            if (icon != null) {
+                // SystemMenuBar forces the icon to be 16x16 or less.
+                iconHeight = Math.min(icon.getIconHeight(), 16);
+            }
+            iconHeight += 2;
+      
+            int height = Math.max( fontHeight, iconHeight );
+
+            Dimension dim = new Dimension(width, height);
+
+            // Take into account the border insets if any.
+            if (getBorder() != null) {
+                Insets insets = getBorder().getBorderInsets(c);
+                dim.height += insets.top + insets.bottom;
+                dim.width += insets.left + insets.right;
+            }
+            return dim;
 	}
     
         public void layoutContainer(Container c) {
             boolean leftToRight = BasicGraphicsUtils.isLeftToRight(frame);
             
 	    int w = getWidth();
+            int h = getHeight();
             int x;
 
+            int buttonHeight = closeButton.getIcon().getIconHeight();
+            //int buttonWidth = closeButton.getIcon().getIconWidth();
+
+            Icon icon = frame.getFrameIcon();
+            int iconHeight = 0;
+            if (icon != null) {
+                iconHeight = icon.getIconHeight();
+            }
             x = (leftToRight) ? 2 : w - 16 - 2;
-            menuBar.setBounds(x, 1, 16, 16);
+            menuBar.setBounds(x, (h - iconHeight) / 2, 16, 16);
 
             x = (leftToRight) ? w - 16 - 2 : 2;
             
-	    if(frame.isClosable()) {
-                closeButton.setBounds(x, 2, 16, 14);
+	    if (frame.isClosable()) {
+                closeButton.setBounds(x, (h - buttonHeight) / 2, 16, 14);
                 x += (leftToRight) ? -(16 + 2) : 16 + 2;
 	    } 
             
 	    if(frame.isMaximizable()) {
-	        maxButton.setBounds(x, 2, 16, 14);
+	        maxButton.setBounds(x, (h - buttonHeight) / 2, 16, 14);
 		x += (leftToRight) ? -(16 + 2) : 16 + 2;
 	    }
         
 	    if(frame.isIconifiable()) {
-	        iconButton.setBounds(x, 2, 16, 14);
+	        iconButton.setBounds(x, (h - buttonHeight) / 2, 16, 14);
 	    } 
 	}
     } // end TitlePaneLayout
@@ -580,7 +674,10 @@ public class BasicInternalFrameTitlePane extends JComponent
 
 
     private class NoFocusButton extends JButton {
-      public NoFocusButton() { setFocusPainted(false); }
+        public NoFocusButton() {
+            setFocusPainted(false);
+            setMargin(new Insets(0,0,0,0));
+        }
 	public boolean isFocusTraversable() { return false; }
 	public void requestFocus() {};
         public boolean isOpaque() { return true; }

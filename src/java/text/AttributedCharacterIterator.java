@@ -1,4 +1,6 @@
 /*
+ * @(#)AttributedCharacterIterator.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -155,6 +157,9 @@ public interface AttributedCharacterIterator extends CharacterIterator {
          * @see Annotation
          */
         public static final Attribute INPUT_METHOD_SEGMENT = new Attribute("input_method_segment");
+
+        // make sure the serial version doesn't change between compiler versions
+        private static final long serialVersionUID = -9142742483513960612L;
 
     };
 

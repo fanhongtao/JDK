@@ -1,4 +1,6 @@
 /*
+ * @(#)ObjectHolder.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,6 +13,9 @@ import org.omg.CORBA.portable.OutputStream;
 
 
 /**
+ * The Holder for <tt>Object</tt>.  For more information on 
+ * Holder files, see <a href="doc-files/generatedfiles.html#holder">
+ * "Generated Files: Holder Files"</a>.<P>
  * A Holder class for a CORBA object reference (a value of type
  * <code>org.omg.CORBA.Object</code>).  It is usually
  * used to store "out" and "inout" parameters in IDL methods.

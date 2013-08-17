@@ -1,4 +1,6 @@
 /*
+ * @(#)AbstractButton.java	1.153 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -32,13 +34,15 @@ import java.util.*;
  * <p>
  * 
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.135 02/06/02 
+ * @version 1.153 12/03/01 
  * @author Jeff Dinkins
  */
 public abstract class AbstractButton extends JComponent implements ItemSelectable, SwingConstants {
@@ -78,11 +82,13 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      * or not.
      */
     public static final String FOCUS_PAINTED_CHANGED_PROPERTY = "focusPainted";
-    /** Identifies a change in the button's  */
-    public static final String ROLLOVER_ENABLED_CHANGED_PROPERTY = "rolloverEnabled";
     /**
      * Identifies a change from rollover enabled to disabled or back
      * to enabled.
+     */
+    public static final String ROLLOVER_ENABLED_CHANGED_PROPERTY = "rolloverEnabled";
+    /**
+     * Identifies a change to having the button paint the content area.
      */
     public static final String CONTENT_AREA_FILLED_CHANGED_PROPERTY = "contentAreaFilled";
 
@@ -156,6 +162,13 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     private int        verticalTextPosition    = CENTER;
     private int        horizontalTextPosition  = TRAILING;
 
+    private int        iconTextGap             = 4;
+
+    private int        mnemonic;
+    private int        mnemonicIndex           = -1;
+
+    private long       multiClickThreshhold    = 0;
+
     private AccessibleIcon accessibleIcon      = null;
 
     /** 
@@ -202,6 +215,8 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
         String oldValue = this.text;
         this.text = text;
         firePropertyChange(TEXT_CHANGED_PROPERTY, oldValue, text);
+        updateDisplayedMnemonicIndex(text, getMnemonic());
+
         if (accessibleContext != null) {
             accessibleContext.firePropertyChange(
                 AccessibleContext.ACCESSIBLE_VISIBLE_DATA_PROPERTY,
@@ -510,6 +525,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
                 AccessibleContext.ACCESSIBLE_VISIBLE_DATA_PROPERTY,
                 oldValue, rolloverSelectedIcon);
         }
+        setRolloverEnabled(true);
         if (rolloverSelectedIcon != oldValue) {
             // No way to determine whether we are currently in
             // a rollover state, so repaint regardless
@@ -572,7 +588,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      * If not no disabled selection icon has been set, the button constructs
      * one from the selection icon. 
      * <!-- PENDING(jeff): the disabled selection icon really should be 
-     * created (if necesary) by the L&F. -->
+     * created (if necessary) by the L&F. -->
      *
      * @return the <code>disabledSelectedIcon</code> property
      * @see #getPressedIcon
@@ -584,7 +600,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
                 disabledSelectedIcon = new ImageIcon(
                     GrayFilter.createDisabledImage(((ImageIcon)selectedIcon).getImage()));
             } else {
-                return disabledIcon;
+                return getDisabledIcon();
             }
         }
         return disabledSelectedIcon;
@@ -749,11 +765,11 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      * @return the <code>horizontalTextPosition</code> property, 
      * 		one of the following values:
      * <ul>
-     * <li>SwingConstants.RIGHT (the default)
+     * <li>SwingConstants.RIGHT 
      * <li>SwingConstants.LEFT
      * <li>SwingConstants.CENTER
      * <li>SwingConstants.LEADING
-     * <li>SwingConstants.TRAILING
+     * <li>SwingConstants.TRAILING (the default)
      * </ul>
      */
     public int getHorizontalTextPosition() {
@@ -764,13 +780,13 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      * Sets the horizontal position of the text relative to the icon.
      * @param textPosition one of the following values:
      * <ul>
-     * <li>SwingConstants.RIGHT (the default)
+     * <li>SwingConstants.RIGHT 
      * <li>SwingConstants.LEFT
      * <li>SwingConstants.CENTER
      * <li>SwingConstants.LEADING
-     * <li>SwingConstants.TRAILING
+     * <li>SwingConstants.TRAILING (the default)
      * </ul>
-     * @exception IllegalArgumentException if <code>textPosition</code.
+     * @exception IllegalArgumentException if <code>textPosition</code>
      *		is not one of the legal values listed above
      * @beaninfo
      *        bound: true
@@ -793,6 +809,45 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
         repaint();
     }
     
+    /**
+     * Returns the amount of space between the text and the icon
+     * displayed in this button.
+     *
+     * @return an int equal to the number of pixels between the text
+     *         and the icon.
+     * @since 1.4
+     * @see #setIconTextGap
+     */
+    public int getIconTextGap() {
+        return iconTextGap;
+    }
+
+    /**
+     * If both the icon and text properties are set, this property
+     * defines the space between them.  
+     * <p>
+     * The default value of this property is 4 pixels.
+     * <p>
+     * This is a JavaBeans bound property.
+     * 
+     * @since 1.4
+     * @see #getIconTextGap
+     * @beaninfo
+     *        bound: true
+     *    attribute: visualUpdate true
+     *  description: If both the icon and text properties are set, this
+     *               property defines the space between them.
+     */
+    public void setIconTextGap(int iconTextGap) {
+        int oldValue = this.iconTextGap;
+        this.iconTextGap = iconTextGap;
+        firePropertyChange("iconTextGap", oldValue, iconTextGap);
+        if (iconTextGap != oldValue) {
+            revalidate();
+            repaint();
+        }
+    }
+
     /**
      * Verify that key is a legal value for the
      * <code>horizontalAlignment</code> properties.
@@ -956,8 +1011,8 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      * source's properties according to values from the
      * <code>Action</code> instance.  The properties 
      * which are set may differ for subclasses.  By default,
-     * the properties which get set are <code>Text</code>, <code>Icon
-     * Enabled</code>, <code>ToolTipText</code> and <code>Mnemonic</code>.
+     * the properties which get set are <code>Text, Icon,
+     * Enabled, ToolTipText, ActionCommand</code>, and <code>Mnemonic</code>.
      * <p>
      * If the <code>Action</code> passed in is <code>null</code>, 
      * the following things will occur:
@@ -975,14 +1030,73 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      * @see #setAction
      */
     protected void configurePropertiesFromAction(Action a) {
-	setText((a!=null?(String)a.getValue(Action.NAME):null));
-	setIcon((a!=null?(Icon)a.getValue(Action.SMALL_ICON):null));
-	setEnabled((a!=null?a.isEnabled():true));
- 	setToolTipText((a!=null?(String)a.getValue(Action.SHORT_DESCRIPTION):null));	
-        if (a != null)  {
-            Integer i = (Integer)a.getValue(Action.MNEMONIC_KEY);
-            if (i != null)
-                setMnemonic(i.intValue());
+        configurePropertiesFromAction(a, null);
+    }
+
+    /**
+     * Configures the AbstractButton's properties according to values
+     * from the <code>Action</code> instance.  Which properties to set
+     * is determined by the <code>types</code> parameter.
+     * <code>types</code> may hold the following keys:
+     * <ul>
+     * <li><code>Action.NAME</code> - set the <code>Text</code> property
+     *     from the <code>Action</code>,
+     * <li><code>Action.SHORT_DESCRIPTION</code> - set the
+     *     <code>ToolTipText</code> property from the <code>Action</code>,
+     * <li><code>Action.SMALL_ICON</code> - set the <code>Icon</code> property
+     *     from the <code>Action</code>,
+     * <li><code>Action.MNEMONIC</code> - set the <code>Mnemonic</code>
+     *     property from the <code>Action</code>,
+     * <li><code>Action.ACTION_COMMAND_KEY</code> - set the
+     *     <code>ActionCommand</code> property from the <code>Action</code>,
+     * <li><code>"enabled"</code> - set <code>Enabled</code> property
+     *     from the <code>Action</code>
+     * </ul>
+     * <p>
+     * If the <code>Action</code> passed in is <code>null</code>, 
+     * the following things will occur:
+     * <ul>
+     * <li>the text is set to <code>null</code>,
+     * <li>the icon is set to <code>null</code>,
+     * <li>enabled is set to true,
+     * <li>the tooltip text is set to <code>null</code>
+     * <li>the mnemonic is set to <code>'\0'</code>
+     * </ul>
+     *
+     * @param a the <code>Action</code> from which to get the properties,
+     *		or <code>null</code>
+     * @param types determines which properties to set from the
+     *          <code>Action</code>
+     * @since 1.4
+     * @see Action
+     * @see #setAction
+     * @see #configurePropertiesFromAction(javax.swing.Action)
+     */
+    void configurePropertiesFromAction(Action a, String[] types) {
+        if (types == null) {
+            String[] alltypes = { Action.MNEMONIC_KEY, Action.NAME,
+                                  Action.SHORT_DESCRIPTION, Action.SMALL_ICON,
+                                  Action.ACTION_COMMAND_KEY, "enabled" };
+            types = alltypes;
+        }
+        for (int i=0; i<types.length; i++) {
+            String type = types[i];
+            if (type == null) continue;
+
+            if (type.equals(Action.MNEMONIC_KEY)) {
+                Integer n = (a==null) ? null : (Integer)a.getValue(type);
+                setMnemonic(n==null ? '\0' : n.intValue());
+            } else if (type.equals(Action.NAME)) {
+                setText(a!=null ? (String)a.getValue(type) : null);
+            } else if (type.equals(Action.SHORT_DESCRIPTION)) {
+                setToolTipText(a!=null ? (String)a.getValue(type) : null);
+            } else if (type.equals(Action.SMALL_ICON)) {
+                setIcon(a!=null ? (Icon)a.getValue(type) : null);
+            } else if (type.equals(Action.ACTION_COMMAND_KEY)) {
+                setActionCommand(a!=null? (String)a.getValue(type) : null);
+            } else if (type.equals("enabled")) {
+                setEnabled(a!=null ? a.isEnabled() : true);
+            }
         }
     }
 
@@ -1023,9 +1137,12 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
 		action.removePropertyChangeListener(this);
 		} else {
 		    if (e.getPropertyName().equals(Action.NAME)) {
-			String text = (String) e.getNewValue();
-			button.setText(text);
-			button.repaint();
+			Boolean hide = (Boolean)button.getClientProperty("hideActionText");
+			if (hide == null || hide == Boolean.FALSE) {
+			    String text = (String) e.getNewValue();
+			    button.setText(text);
+			    button.repaint();
+			}
 		    } else if (e.getPropertyName().equals(Action.SHORT_DESCRIPTION)) {
 			String text = (String) e.getNewValue();
 			button.setToolTipText(text);
@@ -1043,14 +1160,17 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
 			button.setMnemonic(mn.intValue());
 			button.invalidate();
 			button.repaint();
-		    } 
+		    } else if (e.getPropertyName().equals(Action.ACTION_COMMAND_KEY)) {
+                        button.setActionCommand((String)e.getNewValue());
+                    }
 		}
 	}
     }
 
     /**
-     * Returns whether the border should be painted.
-     * @return true if the border should be painted, false otherwise
+     * Gets the <code>borderPainted</code> property.
+     *
+     * @return the value of the <code>borderPainted</code> property
      * @see #setBorderPainted
      */
     public boolean isBorderPainted() {
@@ -1058,9 +1178,13 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     }
     
     /**
-     * Sets whether the border should be painted.
+     * Sets the <code>borderPainted</code> property.
+     * If <code>true</code> and the button has a border,
+     * the border is painted. The default value for the
+     * <code>borderPainted</code> property is <code>true</code>.
+     *
      * @param b if true and border property is not <code>null</code>,
-     *		the border is painted.
+     *		the border is painted
      * @see #isBorderPainted
      * @beaninfo
      *        bound: true
@@ -1079,7 +1203,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
 
     /**
      * Paint the button's border if <code>BorderPainted</code>
-     * property is true.
+     * property is true and the button has a border.
      * @param g the <code>Graphics</code> context in which to paint
      * 
      * @see #paint
@@ -1092,7 +1216,8 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     }
  
     /**
-     * Returns whether focus should be painted.
+     * Gets the <code>paintFocus</code> property.
+     *
      * @return the <code>paintFocus</code> property
      * @see #setFocusPainted
      */
@@ -1101,8 +1226,14 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     }
     
     /**
-     * Sets whether focus should be painted.
-     * @param b if true, the focus state is painted
+     * Sets the <code>paintFocus</code> property, which must
+     * be <code>true</code> for the focus state to be painted.
+     * The default value for the <code>paintFocus</code> property
+     * is <code>true</code>.
+     * Some look and feels might not paint focus state;
+     * they will ignore this property.
+     *
+     * @param b if <code>true</code>, the focus state should be painted
      * @see #isFocusPainted
      * @beaninfo
      *        bound: true
@@ -1113,35 +1244,38 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
         boolean oldValue = paintFocus;
         paintFocus = b;
         firePropertyChange(FOCUS_PAINTED_CHANGED_PROPERTY, oldValue, paintFocus);
-        if (b != oldValue && hasFocus()) {
+        if (b != oldValue && isFocusOwner()) {
             revalidate();
             repaint();
         }
     }
 
     /**
-     * Checks whether the "content area" of the button should be filled.
+     * Gets the <code>contentAreaFilled</code> property.
+     *
      * @return the <code>contentAreaFilled</code> property
-     * @see #setFocusPainted
+     * @see #setContentAreaFilled
      */
     public boolean isContentAreaFilled() {
         return contentAreaFilled;
     }
     
     /**
-     * Sets whether the button should paint the content area
-     * or leave it transparent.  If you wish to have a transparent
-     * button, for example and icon only button, then you should set
-     * this to false.  Do not call <code>setOpaque(false)</code>.
-     * Whether the button follows the
-     * <code>RepaintManager</code>'s concept of opacity is L&F depandant.
+     * Sets the <code>contentAreaFilled</code> property.
+     * If <code>true</code> the button will paint the content
+     * area.  If you wish to have a transparent button, such as
+     * an icon only button, for example, then you should set
+     * this to <code>false</code>. Do not call <code>setOpaque(false)</code>.
+     * The default value for the the <code>contentAreaFilled</code>
+     * property is <code>true</code>.
      * <p>
      * This function may cause the component's opaque property to change.
      * <p>
      * The exact behavior of calling this function varies on a
      * component-by-component and L&F-by-L&F basis.
      *
-     * @param b if true, rollover effects should be painted
+     * @param b if true, the content should be filled; if false
+     *		the content area is not filled
      * @see #isContentAreaFilled
      * @see #setOpaque
      * @beaninfo
@@ -1160,17 +1294,24 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     }
 
     /**
-     * Checks whether rollover effects are enabled.
-     * @return the <code>rolloverEnabled</code> property
-     * @see #setFocusPainted
+     * Gets the <code>rolloverEnabled</code> property.
+     *
+     * @return the value of the <code>rolloverEnabled</code> property
+     * @see #setRolloverEnabled
      */
     public boolean isRolloverEnabled() {
         return rolloverEnabled;
     }
     
     /**
-     * Sets whether rollover effects should be enabled.
-     * @param b if true, rollover effects should be painted
+     * Sets the <code>rolloverEnabled</code> property, which
+     * must be <code>true</code> for rollover effects to occur.
+     * The default value for the <code>rolloverEnabled</code>
+     * property is <code>false</code>.
+     * Some look and feels might not implement rollover effects;
+     * they will ignore this property.
+     *
+     * @param b if <code>true</code>, rollover effects should be painted
      * @see #isRolloverEnabled
      * @beaninfo
      *        bound: true
@@ -1191,13 +1332,34 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      * @return the keyboard mnemonic from the model
      */
     public int getMnemonic() {
-        return model.getMnemonic();
+        return mnemonic;
     }
 
     /**
      * Sets the keyboard mnemonic on the current model.
+     * The mnemonic is the key which when combined with the look and feel's
+     * mouseless modifier (usually Alt) will activate this button
+     * if focus is contained somewhere within this button's ancestor 
+     * window.  
+     * <p>
+     * A mnemonic must correspond to a single key on the keyboard
+     * and should be specified using one of the <code>VK_XXX</code>
+     * keycodes defined in <code>java.awt.event.KeyEvent</code>. 
+     * Mnemonics are case-insensitive, therefore a key event
+     * with the corresponding keycode would cause the button to be
+     * activated whether or not the Shift modifier was pressed.
+     * <p>
+     * If the character defined by the mnemonic is found within
+     * the button's label string, the first occurrence of it
+     * will be underlined to indicate the mnemonic to the user.  
+     * If the corresponding character is not contained within the 
+     * button's label, then it will be displayed near the label in 
+     * a look and feel dependent manner (commonly to the right, 
+     * surrounded by parenthesis).
      *
      * @param mnemonic the key code which represents the mnemonic
+     * @see     java.awt.event.KeyEvent
+     *
      * @beaninfo
      *        bound: true
      *    attribute: visualUpdate true
@@ -1206,17 +1368,17 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     public void setMnemonic(int mnemonic) {
         int oldValue = getMnemonic();
         model.setMnemonic(mnemonic);
-        firePropertyChange(MNEMONIC_CHANGED_PROPERTY, oldValue, mnemonic);
-        if (mnemonic != oldValue) {
-            revalidate();
-            repaint();
-        }
+        updateMnemonicProperties();
     }
 
     /**
-     * Specifies the mnemonic value.
+     * This method is now obsolete, please use <code>setMnemonic(int)</code>
+     * to set the mnemonic for a button.  This method is only designed
+     * to handle character values which fall between 'a' and 'z' or
+     * 'A' and 'Z'.
      *
      * @param mnemonic  a char specifying the mnemonic value
+     * @see #setMnemonic(int)
      * @beaninfo
      *        bound: true
      *    attribute: visualUpdate true
@@ -1230,14 +1392,133 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     }
 
     /**
-     * Identifies whether or not this component can receive the focus.
+     * Provides a hint to the look and feel as to which character in the
+     * text should be decorated to represent the mnemonic. Not all look and
+     * feels may support this. A value of -1 indicates either there is no
+     * mnemonic, the mnemonic character is not contained in the string, or
+     * the developer does not wish the mnemonic to be displayed.
+     * <p>
+     * The value of this is updated as the properties relating to the
+     * mnemonic change (such as the mnemonic itself, the text...).
+     * You should only ever have to call this if
+     * you do not wish the default character to be underlined. For example, if
+     * the text was 'Save As', with a mnemonic of 'a', and you wanted the 'A'
+     * to be decorated, as 'Save <u>A</u>s', you would have to invoke
+     * <code>setDisplayedMnemonicIndex(5)</code> after invoking
+     * <code>setMnemonic(KeyEvent.VK_A)</code>.
      *
-     * @return true if this component can receive the focus
+     * @since 1.4
+     * @param index Index into the String to underline
+     * @exception IllegalArgumentException will be thrown if <code>index</code>
+     *            is &gt;= length of the text, or &lt; -1
+     * @see #getDisplayedMnemonicIndex
+     *
+     * @beaninfo
+     *        bound: true
+     *    attribute: visualUpdate true
+     *  description: the index into the String to draw the keyboard character
+     *               mnemonic at
      */
-    public boolean isFocusTraversable() {
-        return isEnabled();
+    public void setDisplayedMnemonicIndex(int index)
+                                          throws IllegalArgumentException {
+        int oldValue = mnemonicIndex;
+        if (index == -1) {
+            mnemonicIndex = -1;
+        } else {
+            String text = getText();
+            int textLength = (text == null) ? 0 : text.length();
+            if (index < -1 || index >= textLength) {  // index out of range
+                throw new IllegalArgumentException("index == " + index);
+            }
+        }
+        mnemonicIndex = index;
+        firePropertyChange("displayedMnemonicIndex", oldValue, index);
+        if (index != oldValue) {
+            revalidate();
+            repaint();
+        }
     }
 
+    /**
+     * Returns the character, as an index, that the look and feel should
+     * provide decoration for as representing the mnemonic character.
+     *
+     * @since 1.4
+     * @return index representing mnemonic character
+     * @see #setDisplayedMnemonicIndex
+     */
+    public int getDisplayedMnemonicIndex() {
+        return mnemonicIndex;
+    }
+
+    /**
+     * Update the displayedMnemonicIndex property. This method
+     * is called when either text or mnemonic changes. The new
+     * value of the displayedMnemonicIndex property is the index
+     * of the first occurrence of mnemonic in text.
+     */
+    private void updateDisplayedMnemonicIndex(String text, int mnemonic) {
+        setDisplayedMnemonicIndex(
+            SwingUtilities.findDisplayedMnemonicIndex(text, mnemonic));
+    }
+
+    /**
+     * Brings the mnemonic property in accordance with model's mnemonic.
+     * This is called when model's mnemonic changes. Also updates the
+     * displayedMnemonicIndex property.
+     */
+    private void updateMnemonicProperties() {
+        int newMnemonic = model.getMnemonic();
+        if (mnemonic != newMnemonic) {
+            int oldValue = mnemonic;
+            mnemonic = newMnemonic;
+            firePropertyChange(MNEMONIC_CHANGED_PROPERTY,
+                               oldValue, mnemonic);
+            updateDisplayedMnemonicIndex(getText(), mnemonic);
+            revalidate();
+            repaint();
+        }
+    }
+
+    /**
+     * Sets the amount of time (in milliseconds) required between
+     * mouse press events for the button to generate the corresponding
+     * action events.  After the initial mouse press occurs (and action
+     * event generated) any subsequent mouse press events which occur
+     * on intervals less than the threshhold will be ignored and no 
+     * corresponding action event generated.  By default the threshhold is 0, 
+     * which means that for each mouse press, an action event will be
+     * fired, no matter how quickly the mouse clicks occur.  In buttons
+     * where this behavior is not desirable (for example, the "OK" button
+     * in a dialog), this threshhold should be set to an appropriate
+     * positive value.
+     *
+     * @see #getMultiClickThreshhold
+     * @param threshhold the amount of time required between mouse
+     *        press events to generate corresponding action events
+     * @exception   IllegalArgumentException if threshhold < 0
+     * @since 1.4
+     */
+    public void setMultiClickThreshhold(long threshhold) {
+	if (threshhold < 0) {
+	    throw new IllegalArgumentException("threshhold must be >= 0");
+	}
+	this.multiClickThreshhold = threshhold;
+    }
+
+    /**
+     * Gets the amount of time (in milliseconds) required between
+     * mouse press events for the button to generate the corresponding
+     * action events.
+     *
+     * @see #setMultiClickThreshhold
+     * @return the amount of time required between mouse press events
+     *         to generate corresponding action events
+     * @since 1.4
+     */
+    public long getMultiClickThreshhold() {
+	return multiClickThreshhold;
+    }
 
     /**
      * Returns the model that this button represents.
@@ -1276,7 +1557,13 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
             newModel.addChangeListener(changeListener);
             newModel.addActionListener(actionListener);
             newModel.addItemListener(itemListener);
+
+            mnemonic = newModel.getMnemonic();
+        } else {
+            mnemonic = '\0';
         }
+
+        updateDisplayedMnemonicIndex(getText(), mnemonic);
 
         firePropertyChange(MODEL_CHANGED_PROPERTY, oldModel, newModel);
         if (newModel != oldModel) {
@@ -1300,6 +1587,11 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      * Sets the L&F object that renders this component.
      * @param ui the <code>ButtonUI</code> L&F object
      * @see #getUI
+     * @beaninfo
+     *        bound: true
+     *       hidden: true
+     *    attribute: visualUpdate true
+     *  description: The UI object that implements the LookAndFeel. 
      */
     public void setUI(ButtonUI ui) {
         super.setUI(ui);
@@ -1307,8 +1599,8 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
 
     
     /**
-     * Notification from the <code>UIFactory</code> that the
-     * L&F has changed.  Subtypes of <code>AbstractButton</code>
+     * Resets the UI property to a value from the current look
+     * and feel.  Subtypes of <code>AbstractButton</code>
      * should override this to update the UI. For
      * example, <code>JButton</code> might do the following:
      * <pre>
@@ -1336,10 +1628,22 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     }
     
     /**
+     * Returns an array of all the <code>ChangeListener</code>s added
+     * to this AbstractButton with addChangeListener().
+     *
+     * @return all of the <code>ChangeListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public ChangeListener[] getChangeListeners() {
+        return (ChangeListener[])(listenerList.getListeners(
+            ChangeListener.class));
+    }
+
+    /**
      * Notifies all listeners that have registered interest for
      * notification on this event type.  The event instance 
-     * is lazily created using the parameters passed into 
-     * the fire method.
+     * is lazily created.
      * @see EventListenerList
      */
     protected void fireStateChanged() {
@@ -1381,6 +1685,18 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
 	}
     }
     
+    /**
+     * Returns an array of all the <code>ActionListener</code>s added
+     * to this AbstractButton with addActionListener().
+     *
+     * @return all of the <code>ActionListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public ActionListener[] getActionListeners() {
+        return (ActionListener[])(listenerList.getListeners(
+            ActionListener.class));
+    }
     
     /**
      * Subclasses that want to handle <code>ChangeEvents</code> differently
@@ -1398,16 +1714,21 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class ButtonChangeListener implements ChangeListener, Serializable {
         ButtonChangeListener() {
         }
 
         public void stateChanged(ChangeEvent e) {
+            Object source = e.getSource();
+
+            updateMnemonicProperties();
             fireStateChanged();
             repaint();
         }
@@ -1417,10 +1738,10 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     /**
      * Notifies all listeners that have registered interest for
      * notification on this event type.  The event instance 
-     * is lazily created using the parameters passed into 
-     * the fire method.
+     * is lazily created using the <code>event</code> 
+     * parameter.
      *
-     * @param e  the <code>ActionEvent</code> object
+     * @param event  the <code>ActionEvent</code> object
      * @see EventListenerList
      */
     protected void fireActionPerformed(ActionEvent event) {
@@ -1440,6 +1761,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
                       e = new ActionEvent(AbstractButton.this,
                                           ActionEvent.ACTION_PERFORMED,
                                           actionCommand,
+                                          event.getWhen(),
                                           event.getModifiers());
                 }
                 ((ActionListener)listeners[i+1]).actionPerformed(e);
@@ -1450,8 +1772,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     /**
      * Notifies all listeners that have registered interest for
      * notification on this event type.  The event instance 
-     * is lazily created using the parameters passed into 
-     * the fire method.
+     * is lazily created using the <code>event</code> parameter.
      * 
      * @param event  the <code>ItemEvent</code> object
      * @see EventListenerList
@@ -1569,6 +1890,18 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
         listenerList.remove(ItemListener.class, l);
     }
 
+    /**
+     * Returns an array of all the <code>ItemListener</code>s added
+     * to this AbstractButton with addItemListener().
+     *
+     * @return all of the <code>ItemListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public ItemListener[] getItemListeners() {
+        return (ItemListener[])listenerList.getListeners(ItemListener.class);
+    }
+
    /**
      * Returns an array (length 1) containing the label or
      * <code>null</code> if the button is not selected.
@@ -1636,12 +1969,13 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      */
     public boolean imageUpdate(Image img, int infoflags,
 			       int x, int y, int w, int h) {
+        // For disabledSelectedIcon and disabledIcon we don't use the getter
+        // as it will trigger creation of the Icon if it is null.
 	if (!SwingUtilities.doesIconReferenceImage(getIcon(), img) &&
 	    !SwingUtilities.doesIconReferenceImage(getPressedIcon(), img) &&
 	    !SwingUtilities.doesIconReferenceImage(disabledIcon, img) &&
 	    !SwingUtilities.doesIconReferenceImage(getSelectedIcon(), img) &&
-	    !SwingUtilities.doesIconReferenceImage(disabledSelectedIcon,
-						   img) &&
+	    !SwingUtilities.doesIconReferenceImage(disabledSelectedIcon,img) &&
 	    !SwingUtilities.doesIconReferenceImage(getRolloverIcon(), img) &&
 	    !SwingUtilities.doesIconReferenceImage(getRolloverSelectedIcon(),
 						   img)) {
@@ -1720,14 +2054,16 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected abstract class AccessibleAbstractButton
         extends AccessibleJComponent implements AccessibleAction, 
-        AccessibleValue, AccessibleText {
+        AccessibleValue, AccessibleText, AccessibleExtendedComponent {
 
         /**
          * Returns the accessible name of this object.  
@@ -1774,7 +2110,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
             if (getModel().isArmed()) {
                 states.add(AccessibleState.ARMED);
             }
-            if (hasFocus()) {
+            if (isFocusOwner()) {
                 states.add(AccessibleState.FOCUSED);
             }
             if (getModel().isPressed()) {
@@ -2069,7 +2405,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
             case AccessibleText.WORD:
                 try {
                     String s = getText(0, getCharCount());
-                    BreakIterator words = BreakIterator.getWordInstance();
+                    BreakIterator words = BreakIterator.getWordInstance(getLocale());
                     words.setText(s);
                     int end = words.following(index);
                     return s.substring(words.previous(), end);
@@ -2080,7 +2416,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
                 try {
                     String s = getText(0, getCharCount());
                     BreakIterator sentence = 
-			BreakIterator.getSentenceInstance();
+			BreakIterator.getSentenceInstance(getLocale());
                     sentence.setText(s);
                     int end = sentence.following(index);
                     return s.substring(sentence.previous(), end);
@@ -2118,7 +2454,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
             case AccessibleText.WORD:
                 try {
                     String s = getText(0, getCharCount());
-                    BreakIterator words = BreakIterator.getWordInstance();
+                    BreakIterator words = BreakIterator.getWordInstance(getLocale());
                     words.setText(s);
                     int start = words.following(index);
 		    if (start == BreakIterator.DONE || start >= s.length()) {
@@ -2136,7 +2472,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
                 try {
                     String s = getText(0, getCharCount());
                     BreakIterator sentence = 
-			BreakIterator.getSentenceInstance();
+			BreakIterator.getSentenceInstance(getLocale());
                     sentence.setText(s);
                     int start = sentence.following(index);
 		    if (start == BreakIterator.DONE || start >= s.length()) {
@@ -2181,7 +2517,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
             case AccessibleText.WORD:
                 try {
                     String s = getText(0, getCharCount());
-                    BreakIterator words = BreakIterator.getWordInstance();
+                    BreakIterator words = BreakIterator.getWordInstance(getLocale());
                     words.setText(s);
                     int end = words.following(index);
                     end = words.previous();
@@ -2197,7 +2533,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
                 try {
                     String s = getText(0, getCharCount());
                     BreakIterator sentence = 
-			BreakIterator.getSentenceInstance();
+			BreakIterator.getSentenceInstance(getLocale());
                     sentence.setText(s);
                     int end = sentence.following(index);
                     end = sentence.previous();
@@ -2329,6 +2665,101 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
 		0);
 
 	    return paintTextR;
+	}
+
+	// ----- AccessibleExtendedComponent
+
+	/**
+	 * Returns the AccessibleExtendedComponent
+	 *
+	 * @return the AccessibleExtendedComponent
+	 */
+	AccessibleExtendedComponent getAccessibleExtendedComponent() {
+	    return this;
+	}
+
+	/**
+	 * Returns the tool tip text
+	 *
+	 * @return the tool tip text, if supported, of the object; 
+	 * otherwise, null
+	 */
+	public String getToolTipText() {
+	    return AbstractButton.this.getToolTipText();
+	}
+	
+	/**
+	 * Returns the titled border text
+	 *
+	 * @return the titled border text, if supported, of the object; 
+	 * otherwise, null
+	 */
+	public String getTitledBorderText() {
+	    return super.getTitledBorderText();
+	}
+	    
+	/**
+	 * Returns key bindings associated with this object
+	 *
+	 * @return the key bindings, if supported, of the object; 
+	 * otherwise, null
+	 * @see AccessibleKeyBinding
+	 */
+	public AccessibleKeyBinding getAccessibleKeyBinding() {
+	    int mnemonic = AbstractButton.this.getMnemonic();
+	    if (mnemonic == 0) {
+		return null;
+	    }
+	    return new ButtonKeyBinding(mnemonic);
+	}
+
+	class ButtonKeyBinding implements AccessibleKeyBinding {
+	    int mnemonic;
+
+	    ButtonKeyBinding(int mnemonic) {
+		this.mnemonic = mnemonic;
+	    }
+
+	    /**
+	     * Returns the number of key bindings for this object
+	     *
+	     * @return the zero-based number of key bindings for this object
+	     */
+	    public int getAccessibleKeyBindingCount() {
+		return 1;
+	    }
+	    
+	    /**
+	     * Returns a key binding for this object.  The value returned is an
+	     * java.lang.Object which must be cast to appropriate type depending
+	     * on the underlying implementation of the key.  For example, if the
+	     * Object returned is a javax.swing.KeyStroke, the user of this
+	     * method should do the following:
+	     * <nf><code>
+	     * Component c = <get the component that has the key bindings>
+	     * AccessibleContext ac = c.getAccessibleContext();
+	     * AccessibleKeyBinding akb = ac.getAccessibleKeyBinding();
+	     * for (int i = 0; i < akb.getAccessibleKeyBindingCount(); i++) {
+	     *     Object o = akb.getAccessibleKeyBinding(i);
+	     *     if (o instanceof javax.swing.KeyStroke) {
+	     *         javax.swing.KeyStroke keyStroke = (javax.swing.KeyStroke)o;
+	     *         <do something with the key binding>
+	     *     }
+	     * }
+	     * </code></nf>
+	     *
+	     * @param i zero-based index of the key bindings
+	     * @return a javax.lang.Object which specifies the key binding
+	     * @exception IllegalArgumentException if the index is
+	     * out of bounds
+	     * @see #getAccessibleKeyBindingCount
+	     */
+	    public java.lang.Object getAccessibleKeyBinding(int i) {
+		if (i != 0) {
+		    throw new IllegalArgumentException();
+		}
+		return KeyStroke.getKeyStroke(mnemonic, 0);
+	    }
 	}
     }
 }

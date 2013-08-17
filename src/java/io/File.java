@@ -1,12 +1,16 @@
 /*
+ * @(#)File.java	1.102 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
 
+import java.net.URI;
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Hashtable;
@@ -14,6 +18,7 @@ import java.util.Random;
 import java.security.AccessController;
 import java.security.AccessControlException;
 import sun.security.action.GetPropertyAction;
+
 
 /**
  * An abstract representation of file and directory pathnames.
@@ -24,9 +29,9 @@ import sun.security.action.GetPropertyAction;
  * <em>abstract pathname</em> has two components:
  *
  * <ol>
- * <li> An optional system-dependent <em>prefix</em> string,<br>
- *      such as a disk-drive specifier, <code>"/"</code> for the UNIX root
- *      directory, or <code>"\\"</code> for a Win32 UNC pathname, and
+ * <li> An optional system-dependent <em>prefix</em> string,
+ *      such as a disk-drive specifier, <code>"/"</code>&nbsp;for the UNIX root
+ *      directory, or <code>"\\"</code>&nbsp;for a Win32 UNC pathname, and
  * <li> A sequence of zero or more string <em>names</em>.
  * </ol>
  *
@@ -79,7 +84,7 @@ import sun.security.action.GetPropertyAction;
  * created, the abstract pathname represented by a <code>File</code> object
  * will never change.
  *
- * @version 1.99, 02/06/02
+ * @version 1.102, 12/03/01
  * @author  unascribed
  * @since   JDK1.0
  */
@@ -271,6 +276,70 @@ public class File implements java.io.Serializable, Comparable {
 	this.prefixLength = fs.prefixLength(this.path);
     }
 
+    /**
+     * Creates a new <tt>File</tt> instance by converting the given
+     * <tt>file:</tt> URI into an abstract pathname.
+     *
+     * <p> The exact form of a <tt>file:</tt> URI is system-dependent, hence
+     * the transformation performed by this constructor is also
+     * system-dependent.
+     *
+     * <p> For a given abstract pathname <i>f</i> it is guaranteed that
+     *
+     * <blockquote><tt>
+     * new File(</tt><i>&nbsp;f</i><tt>.{@link #toURI() toURI}()).equals(</tt><i>&nbsp;f</i><tt>)
+     * </tt></blockquote>
+     *
+     * so long as the original abstract pathname, the URI, and the new abstract
+     * pathname are all created in (possibly different invocations of) the same
+     * Java virtual machine.  This relationship typically does not hold,
+     * however, when a <tt>file:</tt> URI that is created in a virtual machine
+     * on one operating system is converted into an abstract pathname in a
+     * virtual machine on a different operating system.
+     *
+     * @param  uri
+     *         An absolute, hierarchical URI with a scheme equal to
+     *         <tt>"file"</tt>, a non-empty path component, and undefined
+     *         authority, query, and fragment components
+     *
+     * @throws  NullPointerException
+     *          If <tt>uri</tt> is <tt>null</tt>
+     *
+     * @throws  IllegalArgumentException
+     *          If the preconditions on the parameter do not hold
+     *
+     * @see #toURI()
+     * @see java.net.URI
+     * @since 1.4
+     */
+    public File(URI uri) {
+
+	// Check our many preconditions
+	if (!uri.isAbsolute())
+	    throw new IllegalArgumentException("URI is not absolute");
+	if (uri.isOpaque())
+	    throw new IllegalArgumentException("URI is not hierarchical");
+	String scheme = uri.getScheme();
+	if ((scheme == null) || !scheme.equalsIgnoreCase("file"))
+	    throw new IllegalArgumentException("URI scheme is not \"file\"");
+	if (uri.getAuthority() != null)
+	    throw new IllegalArgumentException("URI has an authority component");
+	if (uri.getFragment() != null)
+	    throw new IllegalArgumentException("URI has a fragment component");
+	if (uri.getQuery() != null)
+	    throw new IllegalArgumentException("URI has a query component");
+	String p = uri.getPath();
+	if (p.equals(""))
+	    throw new IllegalArgumentException("URI path component is empty");
+
+	// Okay, now initialize
+	p = fs.fromURIPath(p);
+	if (File.separatorChar != '/')
+	    p = p.replace('/', File.separatorChar);
+	this.path = fs.normalize(p);
+	this.prefixLength = fs.prefixLength(this.path);
+    }
+
 
     /* -- Path-component accessors -- */
 
@@ -381,6 +450,9 @@ public class File implements java.io.Serializable, Comparable {
      * @return  The absolute pathname string denoting the same file or
      *          directory as this abstract pathname
      *
+     * @throws  SecurityException
+     *          If a required system property value cannot be accessed.
+     *
      * @see     java.io.File#isAbsolute()
      */
     public String getAbsolutePath() {
@@ -393,6 +465,9 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @return  The absolute abstract pathname denoting the same file or
      *          directory as this abstract pathname
+     *
+     * @throws  SecurityException
+     *          If a required system property value cannot be accessed.
      *
      * @since 1.2
      */
@@ -429,6 +504,9 @@ public class File implements java.io.Serializable, Comparable {
      *          construction of the canonical pathname may require
      *          filesystem queries
      *
+     * @throws  SecurityException
+     *          If a required system property value cannot be accessed.
+     *
      * @since   JDK1.1
      */
     public String getCanonicalPath() throws IOException {
@@ -447,10 +525,24 @@ public class File implements java.io.Serializable, Comparable {
      *          construction of the canonical pathname may require
      *          filesystem queries
      *
+     * @throws  SecurityException
+     *          If a required system property value cannot be accessed.
+     *
      * @since 1.2
      */
     public File getCanonicalFile() throws IOException {
 	return new File(getCanonicalPath());
+    }
+
+    private static String slashify(String path, boolean isDirectory) {
+	String p = path;
+	if (File.separatorChar != '/')
+	    p = p.replace(File.separatorChar, '/');
+	if (!p.startsWith("/"))
+	    p = "/" + p;
+	if (!p.endsWith("/") && isDirectory)
+	    p = p + "/";
+	return p;
     }
 
     /**
@@ -459,26 +551,70 @@ public class File implements java.io.Serializable, Comparable {
      * the file denoted by this abstract pathname is a directory, then the
      * resulting URL will end with a slash.
      *
-     * @return a URL object representing the equivalent file URL.
-     * @throws MalformedURLException if the path cannot be parsed as a URL.
+     * <p> <b>Usage note:</b> This method does not automatically escape
+     * characters that are illegal in URLs.  It is recommended that new code
+     * convert an abstract pathname into a URL by first converting it into a
+     * URI, via the {@link #toURI() toURI} method, and then converting the URI
+     * into a URL via the {@link java.net.URI#toURL() URI.toURL} method.
+     *
+     * @return  A URL object representing the equivalent file URL
+     *
+     * @throws  MalformedURLException
+     *          If the path cannot be parsed as a URL
+     *
+     * @see     #toURI()
+     * @see     java.net.URI
+     * @see     java.net.URI#toURL()
      * @see     java.net.URL
      * @since   1.2
      */
     public URL toURL() throws MalformedURLException {
-	String path = getAbsolutePath();
-        if (File.separatorChar != '/') {
-            path = path.replace(File.separatorChar, '/');
-        }
-        if (!path.startsWith("/")) {
-            path = "/" + path;
-        }
-        if (!path.endsWith("/") && isDirectory()) {
-            path = path + "/";
-        }
-	return new URL("file", "", path);
+	return new URL("file", "", slashify(getAbsolutePath(), isDirectory()));
     }
 
-
+    /**
+     * Constructs a <tt>file:</tt> URI that represents this abstract pathname.
+     *
+     * <p> The exact form of the URI is system-dependent.  If it can be
+     * determined that the file denoted by this abstract pathname is a
+     * directory, then the resulting URI will end with a slash.
+     *
+     * <p> For a given abstract pathname <i>f</i>, it is guaranteed that
+     *
+     * <blockquote><tt>
+     * new {@link #File(java.net.URI) File}(</tt><i>&nbsp;f</i><tt>.toURI()).equals(</tt><i>&nbsp;f</i><tt>)
+     * </tt></blockquote>
+     *
+     * so long as the original abstract pathname, the URI, and the new abstract
+     * pathname are all created in (possibly different invocations of) the same
+     * Java virtual machine.  Due to the system-dependent nature of abstract
+     * pathnames, however, this relationship typically does not hold when a
+     * <tt>file:</tt> URI that is created in a virtual machine on one operating
+     * system is converted into an abstract pathname in a virtual machine on a
+     * different operating system.
+     *
+     * @return  An absolute, hierarchical URI with a scheme equal to
+     *          <tt>"file"</tt>, a path representing this abstract pathname,
+     *          and undefined authority, query, and fragment components
+     *
+     * @see #File(java.net.URI)
+     * @see java.net.URI
+     * @see java.net.URI#toURL()
+     * @since 1.4
+     */
+    public URI toURI() {
+	try {
+	    File f = getAbsoluteFile();
+	    String sp = slashify(f.getPath(), f.isDirectory());
+	    if (sp.startsWith("//"))
+		sp = "//" + sp;
+	    return new URI("file", null, sp, null);
+	} catch (URISyntaxException x) {
+	    throw new Error(x);		// Can't happen
+	}
+    }
+
+
     /* -- Attribute accessors -- */
 
     /**
@@ -491,8 +627,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkRead}</code> method denies
-     *          read access to the file
+     *          java.lang.SecurityManager#checkRead(java.lang.String)}</code>
+     *          method denies read access to the file
      */
     public boolean canRead() {
 	SecurityManager security = System.getSecurityManager();
@@ -513,8 +649,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkWrite}</code> method denies
-     *          write access to the file
+     *          java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
+     *          method denies write access to the file
      */
     public boolean canWrite() {
 	SecurityManager security = System.getSecurityManager();
@@ -532,8 +668,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkRead}</code> method denies
-     *          read access to the file
+     *          java.lang.SecurityManager#checkRead(java.lang.String)}</code>
+     *          method denies read access to the file
      */
     public boolean exists() {
 	SecurityManager security = System.getSecurityManager();
@@ -553,8 +689,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkRead}</code> method denies
-     *          read access to the file
+     *          java.lang.SecurityManager#checkRead(java.lang.String)}</code>
+     *          method denies read access to the file
      */
     public boolean isDirectory() {
 	SecurityManager security = System.getSecurityManager();
@@ -577,8 +713,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkRead}</code> method denies
-     *          read access to the file
+     *          java.lang.SecurityManager#checkRead(java.lang.String)}</code>
+     *          method denies read access to the file
      */
     public boolean isFile() {
 	SecurityManager security = System.getSecurityManager();
@@ -601,8 +737,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkRead}</code> method denies
-     *          read access to the file
+     *          java.lang.SecurityManager#checkRead(java.lang.String)}</code>
+     *          method denies read access to the file
      *
      * @since 1.2
      */
@@ -625,8 +761,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkRead}</code> method denies
-     *          read access to the file
+     *          java.lang.SecurityManager#checkRead(java.lang.String)}</code>
+     *          method denies read access to the file
      */
     public long lastModified() {
 	SecurityManager security = System.getSecurityManager();
@@ -638,14 +774,15 @@ public class File implements java.io.Serializable, Comparable {
 
     /**
      * Returns the length of the file denoted by this abstract pathname.
+     * The return value is unspecified if this pathname denotes a directory.
      *
      * @return  The length, in bytes, of the file denoted by this abstract
      *          pathname, or <code>0L</code> if the file does not exist
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkRead}</code> method denies
-     *          read access to the file
+     *          java.lang.SecurityManager#checkRead(java.lang.String)}</code>
+     *          method denies read access to the file
      */
     public long length() {
 	SecurityManager security = System.getSecurityManager();
@@ -655,7 +792,7 @@ public class File implements java.io.Serializable, Comparable {
 	return fs.getLength(this);
     }
 
-
+
     /* -- File operations -- */
 
     /**
@@ -677,8 +814,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkWrite}</code> method denies
-     *          write access to the file
+     *          java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
+     *          method denies write access to the file
      *
      * @since 1.2
      */
@@ -758,8 +895,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkRead}</code> method denies
-     *          read access to the directory
+     *          java.lang.SecurityManager#checkRead(java.lang.String)}</code>
+     *          method denies read access to the directory
      */
     public String[] list() {
 	SecurityManager security = System.getSecurityManager();
@@ -793,8 +930,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkRead}</code> method denies
-     *          read access to the directory
+     *          java.lang.SecurityManager#checkRead(java.lang.String)}</code>
+     *          method denies read access to the directory
      */
     public String[] list(FilenameFilter filter) {
 	String names[] = list();
@@ -838,8 +975,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkRead}</code> method denies
-     *          read access to the directory
+     *          java.lang.SecurityManager#checkRead(java.lang.String)}</code>
+     *          method denies read access to the directory
      *
      * @since 1.2
      */
@@ -877,8 +1014,8 @@ public class File implements java.io.Serializable, Comparable {
      *          
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkRead}</code> method denies
-     *          read access to the directory
+     *          java.lang.SecurityManager#checkRead(java.lang.String)}</code>
+     *          method denies read access to the directory
      *
      * @since 1.2
      */
@@ -903,10 +1040,10 @@ public class File implements java.io.Serializable, Comparable {
      * If the given <code>filter</code> is <code>null</code> then all
      * pathnames are accepted.  Otherwise, a pathname satisfies the filter
      * if and only if the value <code>true</code> results when the
-     * <code>{@link FilenameFilter#accept}</code> method of the filter is
-     * invoked on the pathname.
+     * <code>{@link FileFilter#accept(java.io.File)}</code> method of
+     * the filter is invoked on the pathname.
      *
-     * @param  filter  A filename filter
+     * @param  filter  A file filter
      *
      * @return  An array of abstract pathnames denoting the files and
      *          directories in the directory denoted by this abstract
@@ -916,8 +1053,8 @@ public class File implements java.io.Serializable, Comparable {
      *          
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkRead}</code> method denies
-     *          read access to the directory
+     *          java.lang.SecurityManager#checkRead(java.lang.String)}</code>
+     *          method denies read access to the directory
      *
      * @since 1.2
      */
@@ -942,8 +1079,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkWrite}</code> method does not
-     *          permit the named directory to be created
+     *          java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
+     *          method does not permit the named directory to be created
      */
     public boolean mkdir() {
 	SecurityManager security = System.getSecurityManager();
@@ -965,9 +1102,9 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkWrite}</code> method does not
-     *          permit the named directory and all necessary parent directories
-     *          and to be created
+     *          java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
+     *          method does not permit the named directory and all necessary
+     *          parent directories and to be created
      */
     public boolean mkdirs() {
 	if (exists()) {
@@ -990,8 +1127,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkWrite}</code> method denies
-     *          write access to either the old or new pathnames
+     *          java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
+     *          method denies write access to either the old or new pathnames
      * 
      * @throws  NullPointerException  
      *          If parameter <code>dest</code> is <code>null</code>
@@ -1026,8 +1163,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkWrite}</code> method denies
-     *          write access to the named file
+     *          java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
+     *          method denies write access to the named file
      *
      * @since 1.2
      */
@@ -1052,8 +1189,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkWrite}</code> method denies
-     *          write access to the named file
+     *          java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
+     *          method denies write access to the named file
      *
      * @since 1.2
      */
@@ -1099,9 +1236,9 @@ public class File implements java.io.Serializable, Comparable {
      *
      * <p> Unlike most methods in this class, this method does not throw
      * security exceptions.  If a security manager exists and its <code>{@link
-     * java.lang.SecurityManager#checkRead}</code> method denies read access to
-     * a particular root directory, then that directory will not appear in the
-     * result.
+     * java.lang.SecurityManager#checkRead(java.lang.String)}</code> method
+     * denies read access to a particular root directory, then that directory
+     * will not appear in the result.
      *
      * @return  An array of <code>File</code> objects denoting the available
      *          filesystem roots, or <code>null</code> if the set of roots
@@ -1195,7 +1332,10 @@ public class File implements java.io.Serializable, Comparable {
      * default temporary-file directory is specified by the system property
      * <code>java.io.tmpdir</code>.  On UNIX systems the default value of this
      * property is typically <code>"/tmp"</code> or <code>"/var/tmp"</code>; on
-     * Win32 systems it is typically <code>"c:\\temp"</code>.
+     * Win32 systems it is typically <code>"c:\\temp"</code>.  A different
+     * value may be given to this system property when the Java virtual machine
+     * is invoked, but programmatic changes to this property are not guaranteed
+     * to have any effect upon the the temporary directory used by this method.
      *
      * @param  prefix     The prefix string to be used in generating the file's
      *                    name; must be at least three characters long
@@ -1218,8 +1358,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkWrite}</code> method does not
-     *          allow a file to be created
+     *          java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
+     *          method does not allow a file to be created
      *
      * @since 1.2
      */
@@ -1268,8 +1408,8 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkWrite}</code> method does not
-     *          allow a file to be created
+     *          java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
+     *          method does not allow a file to be created
      *
      * @since 1.2
      */
@@ -1279,7 +1419,7 @@ public class File implements java.io.Serializable, Comparable {
 	return createTempFile(prefix, suffix, null);
     }
 
-
+
     /* -- Basic infrastructure -- */
 
     /**

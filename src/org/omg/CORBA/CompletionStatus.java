@@ -1,4 +1,6 @@
 /*
+ * @(#)CompletionStatus.java	1.20 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -31,7 +33,7 @@ package org.omg.CORBA;
  * @since   JDK1.2
  */
 
-public class CompletionStatus implements org.omg.CORBA.portable.IDLEntity
+public final class CompletionStatus implements org.omg.CORBA.portable.IDLEntity
 {
 /**
  * The constant indicating that a method completed running
@@ -94,7 +96,7 @@ public class CompletionStatus implements org.omg.CORBA.portable.IDLEntity
  * @exception org.omg.CORBA.BAD_PARAM  if the argument given is not one of the
  *            <code>int</code> constants defined in <code>CompletionStatus</code>
  */
-    public static CompletionStatus from_int(int i)  throws  org.omg.CORBA.BAD_PARAM {
+    public static CompletionStatus from_int(int i)  {
 	switch (i) {
 	case _COMPLETED_YES:
 	    return COMPLETED_YES;
@@ -115,7 +117,7 @@ public class CompletionStatus implements org.omg.CORBA.portable.IDLEntity
  *          <code>_COMPLETED_MAYBE</code>
  *
  */
-    protected CompletionStatus(int _value) {
+    private CompletionStatus(int _value) {
 	this._value = _value;
     }
 

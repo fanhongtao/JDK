@@ -1,4 +1,6 @@
 /*
+ * @(#)IsindexView.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,12 +21,11 @@ import javax.swing.*;
  * as a JPanel that contains 
  *
  * @author Sunita Mani
- * @version 1.7, 02/06/02
+ * @version 1.9, 12/03/01
  */
 
 class IsindexView extends ComponentView implements ActionListener {
  
-    public static final String DEFAULT_PROMPT = "This is a searchable index.  Enter search keywords:";
     JTextField textField;
 
     /**
@@ -36,8 +37,8 @@ class IsindexView extends ComponentView implements ActionListener {
 
     /**
      * Creates the components necessary to to implement
-     * this view.  THe component returned is a JPanel,
-     * that contains the PROMPT to the left and JTextField
+     * this view.  The component returned is a <code>JPanel</code>,
+     * that contains the PROMPT to the left and <code>JTextField</code>
      * to the right.
      */
     public Component createComponent() {
@@ -48,7 +49,7 @@ class IsindexView extends ComponentView implements ActionListener {
 	
 	String prompt = (String)attr.getAttribute(HTML.Attribute.PROMPT);
 	if (prompt == null) {
-	    prompt = DEFAULT_PROMPT;
+            prompt = UIManager.getString("IsindexView.prompt");
 	}
 	JLabel label = new JLabel(prompt);
 

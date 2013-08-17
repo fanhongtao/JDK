@@ -1,4 +1,6 @@
 /*
+ * @(#)ProgressMonitorInputStream.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -40,7 +42,7 @@ import java.awt.Component;
  * @see ProgressMonitor
  * @see JOptionPane
  * @author James Gosling
- * @version 1.17 02/06/02
+ * @version 1.17 12/03/01
  */
 public class ProgressMonitorInputStream extends FilterInputStream
 {

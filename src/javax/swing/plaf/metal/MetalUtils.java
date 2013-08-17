@@ -1,4 +1,6 @@
 /*
+ * @(#)MetalUtils.java	1.26 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -12,7 +14,7 @@ import java.awt.*;
 /**
  * This is a dumping ground for random stuff we want to use in several places.
  *
- * @version 1.25 02/06/02
+ * @version 1.26 12/03/01
  * @author Steve Wilson
  */
 
@@ -128,5 +130,18 @@ class MetalUtils {
         return c.getComponentOrientation().isLeftToRight();
     }
     
+    static int getInt(Object key, int defaultValue) {
+        Object value = UIManager.get(key);
+
+        if (value instanceof Integer) {
+            return ((Integer)value).intValue();
+        }
+        if (value instanceof String) {
+            try {
+                return Integer.parseInt((String)value);
+            } catch (NumberFormatException nfe) {}
+        }
+        return defaultValue;
+    }
 }
 

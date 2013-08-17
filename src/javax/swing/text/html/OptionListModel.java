@@ -1,4 +1,6 @@
 /*
+ * @(#)OptionListModel.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -22,7 +24,7 @@ import java.io.Serializable;
  * accurate reset, if the user requests a reset of the form.
  *
   @author Sunita Mani
-  @version 1.7 02/06/02
+  @version 1.9 12/03/01
  */
 
 class OptionListModel extends DefaultListModel implements ListSelectionModel, Serializable {
@@ -78,6 +80,19 @@ class OptionListModel extends DefaultListModel implements ListSelectionModel, Se
 
     public void removeListSelectionListener(ListSelectionListener l) {
  	listenerList.remove(ListSelectionListener.class, l);
+    }
+
+    /**
+     * Returns an array of all the <code>ListSelectionListener</code>s added
+     * to this OptionListModel with addListSelectionListener().
+     *
+     * @return all of the <code>ListSelectionListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public ListSelectionListener[] getListSelectionListeners() {
+        return (ListSelectionListener[])listenerList.getListeners(
+                ListSelectionListener.class);
     }
 
     /**
@@ -430,12 +445,13 @@ class OptionListModel extends DefaultListModel implements ListSelectionModel, Se
     }
 
     /**
-     * Returns a clone of the reciever with the same selection.
-     * listenerLists are not duplicated.
+     * Returns a clone of the receiver with the same selection.
+     * <code>listenerLists</code> are not duplicated.
      *
+     * @return a clone of the receiver
      * @exception CloneNotSupportedException if the receiver does not
-     *    both (a) implement the Cloneable interface and (b) define a
-     *    <code>clone</code> method.
+     *    both (a) implement the <code>Cloneable</code> interface
+     *    and (b) define a <code>clone</code> method
      */
     public Object clone() throws CloneNotSupportedException {
 	OptionListModel clone = (OptionListModel)super.clone();

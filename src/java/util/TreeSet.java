@@ -1,4 +1,6 @@
 /*
+ * @(#)TreeSet.java	1.23 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -45,8 +47,16 @@ package java.util;
  * and cleanly, rather than risking arbitrary, non-deterministic behavior at
  * an undetermined time in the future.
  *
+ * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
+ * as it is, generally speaking, impossible to make any hard guarantees in the
+ * presence of unsynchronized concurrent modification.  Fail-fast iterators
+ * throw <tt>ConcurrentModificationException</tt> on a best-effort basis. 
+ * Therefore, it would be wrong to write a program that depended on this
+ * exception for its correctness:   <i>the fail-fast behavior of iterators
+ * should be used only to detect bugs.</i>
+ *
  * @author  Josh Bloch
- * @version 1.21, 02/06/02
+ * @version 1.23, 12/03/01
  * @see	    Collection
  * @see	    Set
  * @see	    HashSet
@@ -54,7 +64,7 @@ package java.util;
  * @see     Comparator
  * @see	    Collections#synchronizedSortedSet(SortedSet)
  * @see	    TreeMap
- * @since 1.2
+ * @since   1.2
  */
 
 public class TreeSet extends AbstractSet
@@ -67,7 +77,7 @@ public class TreeSet extends AbstractSet
     private static final Object PRESENT = new Object();
 
     /**
-     * Constructs a set backed by the given sorted map.
+     * Constructs a set backed by the specified sorted map.
      */
     private TreeSet(SortedMap m) {
         this.m = m;
@@ -92,13 +102,13 @@ public class TreeSet extends AbstractSet
     }
 
     /**
-     * Constructs a new, empty set, sorted according to the given comparator.
-     * All elements inserted into the set must be <i>mutually comparable</i>
-     * by the given comparator: <tt>comparator.compare(e1, e2)</tt> must not
-     * throw a <tt>ClassCastException</tt> for any elements <tt>e1</tt> and
-     * <tt>e2</tt> in the set.  If the user attempts to add an element to the
-     * set that violates this constraint, the <tt>add(Object)</tt> call will
-     * throw a <tt>ClassCastException</tt>.
+     * Constructs a new, empty set, sorted according to the specified
+     * comparator.  All elements inserted into the set must be <i>mutually
+     * comparable</i> by the specified comparator: <tt>comparator.compare(e1,
+     * e2)</tt> must not throw a <tt>ClassCastException</tt> for any elements
+     * <tt>e1</tt> and <tt>e2</tt> in the set.  If the user attempts to add
+     * an element to the set that violates this constraint, the
+     * <tt>add(Object)</tt> call will throw a <tt>ClassCastException</tt>.
      *
      * @param c the comparator that will be used to sort this set.  A
      *        <tt>null</tt> value indicates that the elements' <i>natural
@@ -119,8 +129,9 @@ public class TreeSet extends AbstractSet
      *
      * @param c The elements that will comprise the new set.
      *
-     * @throws ClassCastException if the keys in the given collection are not
-     * comparable, or are not mutually comparable.
+     * @throws ClassCastException if the keys in the specified collection are
+     *         not comparable, or are not mutually comparable.
+     * @throws NullPointerException if the specified collection is null.
      */
     public TreeSet(Collection c) {
         this();
@@ -128,10 +139,11 @@ public class TreeSet extends AbstractSet
     }
 
     /**
-     * Constructs a new set containing the same elements as the given sorted
-     * set, sorted according to the same ordering.
+     * Constructs a new set containing the same elements as the specified
+     * sorted set, sorted according to the same ordering.
      *
      * @param s sorted set whose elements will comprise the new set.
+     * @throws NullPointerException if the specified sorted set is null.
      */
     public TreeSet(SortedSet s) {
         this(s.comparator());
@@ -194,7 +206,7 @@ public class TreeSet extends AbstractSet
     }
 
     /**
-     * Removes the given element from this set if it is present.
+     * Removes the specified element from this set if it is present.
      *
      * @param o object to be removed from this set, if present.
      * @return <tt>true</tt> if the set contained the specified element.
@@ -221,6 +233,7 @@ public class TreeSet extends AbstractSet
      *
      * @throws ClassCastException if the elements provided cannot be compared
      *		  with the elements currently in the set.
+     * @throws NullPointerException of the specified collection is null.
      */
     public boolean addAll(Collection c) {
         // Use linear-time version if applicable
@@ -254,8 +267,8 @@ public class TreeSet extends AbstractSet
      * Note: this method always returns a <i>half-open range</i> (which
      * includes its low endpoint but not its high endpoint).  If you need a
      * <i>closed range</i> (which includes both endpoints), and the element
-     * type allows for calculation of the successor a given value, merely
-     * request the subrange from <tt>lowEndpoint</tt> to
+     * type allows for calculation of the successor of a specified value,
+     * merely request the subrange from <tt>lowEndpoint</tt> to
      * <tt>successor(highEndpoint)</tt>.  For example, suppose that <tt>s</tt>
      * is a sorted set of strings.  The following idiom obtains a view
      * containing all of the strings in <tt>s</tt> from <tt>low</tt> to
@@ -303,8 +316,8 @@ public class TreeSet extends AbstractSet
      *
      * Note: this method always returns a view that does not contain its
      * (high) endpoint.  If you need a view that does contain this endpoint,
-     * and the element type allows for calculation of the successor a given
-     * value, merely request a headSet bounded by
+     * and the element type allows for calculation of the successor of a
+     * specified value, merely request a headSet bounded by
      * <tt>successor(highEndpoint)</tt>.  For example, suppose that <tt>s</tt>
      * is a sorted set of strings.  The following idiom obtains a view
      * containing all of the strings in <tt>s</tt> that are less than or equal
@@ -340,11 +353,12 @@ public class TreeSet extends AbstractSet
      *
      * Note: this method always returns a view that contains its (low)
      * endpoint.  If you need a view that does not contain this endpoint, and
-     * the element type allows for calculation of the successor a given value,
-     * merely request a tailSet bounded by <tt>successor(lowEndpoint)</tt>.
-     * For example, suppose that <tt>s</tt> is a sorted set of strings.  The
-     * following idiom obtains a view containing all of the strings in
-     * <tt>s</tt> that are strictly greater than <tt>low</tt>: <pre>
+     * the element type allows for calculation of the successor of a specified
+     * value, merely request a tailSet bounded by
+     * <tt>successor(lowEndpoint)</tt>.  For example, suppose that <tt>s</tt>
+     * is a sorted set of strings.  The following idiom obtains a view
+     * containing all of the strings in <tt>s</tt> that are strictly greater
+     * than <tt>low</tt>: <pre>
      *     SortedSet tail = s.tailSet(low+"\0");
      * </pre>
      *

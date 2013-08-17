@@ -1,4 +1,6 @@
 /*
+ * @(#)MutableAttributeSet.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,7 +15,7 @@ import java.util.Enumeration;
  * form:<tt>
  * public XXXAttributeSet(ConstAttributeSet source);</tt>
  *
- * @version 1.13 02/06/02
+ * @version 1.14 12/03/01
  */
 public interface MutableAttributeSet extends AttributeSet {
 
@@ -36,25 +38,21 @@ public interface MutableAttributeSet extends AttributeSet {
     public void addAttributes(AttributeSet attributes);
 
     /**
-     * Creates a new attribute set similar to this one except that it contains
-     * no attribute with the given name.
+     * Removes an attribute with the given <code>name</code>.
      *
      * @param name the attribute name
      */
     public void removeAttribute(Object name);
 
     /**
-     * Creates a new attribute set similar to this one except that it contains
-     * no attribute with any of the given names.
+     * Removes an attribute set with the given <code>names</code>.
      *
      * @param names the set of names
      */
     public void removeAttributes(Enumeration names);
 
     /**
-     * Creates a new attribute set similar to this one except that it contains
-     * no attribute with any of the given names and values.  Existing
-     * attributes with the same name and different value will remain.
+     * Removes a set of attributes with the given <code>name</code>.
      *
      * @param attributes the set of attributes
      */

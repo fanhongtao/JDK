@@ -1,4 +1,6 @@
 /*
+ * @(#)SwingPropertyChangeSupport.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,6 +12,10 @@ import java.io.Serializable;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * This subclass of java.beans.PropertyChangeSupport is identical
@@ -19,7 +25,7 @@ import java.io.IOException;
  * only necessary because all of PropertyChangeSupport's instance
  * data is private, without accessor methods.
  *
- * @version 1.18 02/06/02
+ * @version 1.17 12/03/01
  * @author unattributed
  */
 
@@ -44,10 +50,18 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
 
     public synchronized void addPropertyChangeListener(
 				PropertyChangeListener listener) {
-	if (listeners == null) {
-	    listeners = new EventListenerList();
-	}
-	listeners.add(PropertyChangeListener.class, listener);
+        if (listener instanceof PropertyChangeListenerProxy) {
+            PropertyChangeListenerProxy proxy =
+                    (PropertyChangeListenerProxy)listener;
+            // Call two argument add method.
+            addPropertyChangeListener(proxy.getPropertyName(),
+                    (PropertyChangeListener)proxy.getListener());
+        } else {
+            if (listeners == null) {
+                listeners = new EventListenerList();
+	    }
+            listeners.add(PropertyChangeListener.class, listener);
+        }
     }
 
     /**
@@ -60,11 +74,79 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
 
     public synchronized void removePropertyChangeListener(
 				PropertyChangeListener listener) {
-	if (listeners == null) {
-	    return;
-	}
-	listeners.remove(PropertyChangeListener.class, listener);
+        if (listener instanceof PropertyChangeListenerProxy) {
+            PropertyChangeListenerProxy proxy =
+                    (PropertyChangeListenerProxy)listener;
+            // Call two argument remove method.
+            removePropertyChangeListener(proxy.getPropertyName(),
+                    (PropertyChangeListener)proxy.getListener());
+        } else {
+            if (listeners == null) {
+                return;
+            }
+            listeners.remove(PropertyChangeListener.class, listener);
+        }
     }
+
+    /**
+     * Returns an array of all the listeners that were added to the
+     * SwingPropertyChangeSupport object with addPropertyChangeListener().
+     * <p>
+     * If some listeners have been added with a named property, then
+     * the returned array will be a mixture of PropertyChangeListeners
+     * and <code>PropertyChangeListenerProxy</code>s. If the calling
+     * method is interested in distinguishing the listeners then it must
+     * test each element to see if it's a
+     * <code>PropertyChangeListenerProxy</code> perform the cast and examine
+     * the parameter.
+     *
+     * <pre>
+     * PropertyChangeListener[] listeners = support.getPropertyChangeListeners();
+     * for (int i = 0; i < listeners.length; i++) {
+     *	 if (listeners[i] instanceof PropertyChangeListenerProxy) {
+     *     PropertyChangeListenerProxy proxy = 
+     *                    (PropertyChangeListenerProxy)listeners[i];
+     *     if (proxy.getPropertyName().equals("foo")) {
+     *       // proxy is a PropertyChangeListener which was associated
+     *       // with the property named "foo"
+     *     }
+     *   }
+     * }
+     *</pre>
+     *
+     * @see java.beans.PropertyChangeListenerProxy
+     * @see java.beans.PropertyChangeSupport#getPropertyChangeListeners
+     * @return all of the <code>PropertyChangeListener</code>s added or an 
+     *         empty array if no listeners have been added
+     * @since 1.4
+     */
+    public synchronized PropertyChangeListener[] getPropertyChangeListeners() {
+        List returnList = new ArrayList();
+     
+        // Add all the PropertyChangeListeners 
+        if (listeners != null) {
+            returnList.addAll(Arrays.asList(listeners.getListeners(PropertyChangeListener.class)));
+        }
+
+        // Add all the PropertyChangeListenerProxys
+        if (children != null) {
+            Iterator iterator = children.keySet().iterator();
+            while (iterator.hasNext()) {
+                String key = (String)iterator.next();
+                SwingPropertyChangeSupport child =
+                        (SwingPropertyChangeSupport)children.get(key);
+                PropertyChangeListener[] childListeners =
+                        child.getPropertyChangeListeners();
+                for (int index = childListeners.length - 1; index >= 0;
+                        index--) {
+                    returnList.add(new PropertyChangeListenerProxy(
+                            key, childListeners[index]));
+                }
+            }
+        }
+        return (PropertyChangeListener[])returnList.toArray(new PropertyChangeListener[returnList.size()]);
+    }
+
 
     /**
      * Add a PropertyChangeListener for a specific property.  The listener
@@ -112,6 +194,31 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
     }
 
     /**
+     * Returns an array of all the listeners which have been associated 
+     * with the named property.
+     *
+     * @return all of the <code>PropertyChangeListeners</code> associated with
+     *         the named property or an empty array if no listeners have 
+     *         been added
+     */
+    public synchronized PropertyChangeListener[] getPropertyChangeListeners(
+            String propertyName) {
+        List returnList = new ArrayList();
+
+        if (children != null) {
+            SwingPropertyChangeSupport support =
+                    (SwingPropertyChangeSupport)children.get(propertyName);
+            if (support != null) {
+                returnList.addAll(
+                        Arrays.asList(support.getPropertyChangeListeners()));
+            }
+        }
+        return (PropertyChangeListener[])(returnList.toArray(
+                new PropertyChangeListener[0]));
+    }
+
+
+    /**
      * Report a bound property update to any registered listeners.
      * No event is fired if old and new are equal and non-null.
      *
@@ -122,8 +229,8 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
      */
     public void firePropertyChange(String propertyName,
                                    Object oldValue, Object newValue) {
-	firePropertyChange(new PropertyChangeEvent(source, propertyName, 
-						   oldValue, newValue));
+        firePropertyChange(new PropertyChangeEvent(source, propertyName, 
+                                oldValue, newValue));
     }
 
     /**
@@ -136,6 +243,7 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
 	Object oldValue = evt.getOldValue();
 	Object newValue = evt.getNewValue();
         String propertyName = evt.getPropertyName();
+
 	if (oldValue != null && newValue != null && oldValue.equals(newValue)) {
 	    return;
 	}
@@ -151,7 +259,7 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
 
         if (listeners != null)  {
             Object[] listenerList = listeners.getListenerList();
-            for (int i = 0; i <= listenerList.length-2; i += 2) {
+            for (int i = 0 ; i <= listenerList.length-2; i += 2) {
                 if (listenerList[i] == PropertyChangeListener.class)  {
                     ((PropertyChangeListener)listenerList[i+1]).propertyChange(evt);
                 }
@@ -187,6 +295,7 @@ public final class SwingPropertyChangeSupport extends PropertyChangeSupport {
 
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
+
 
         if (listeners != null)  {
             Object[] listenerList = listeners.getListenerList();

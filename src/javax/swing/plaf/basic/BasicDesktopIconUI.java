@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicDesktopIconUI.java	1.30 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,7 +21,7 @@ import java.io.Serializable;
 /**
  * Basic L&F for a minimized window on a desktop.
  *
- * @version 1.28 02/06/02
+ * @version 1.30 12/03/01
  * @author David Kloba
  * @author Steve Wilson
  * @author Rich Schiavi
@@ -29,7 +31,9 @@ public class BasicDesktopIconUI extends DesktopIconUI {
     protected JInternalFrame.JDesktopIcon desktopIcon;
     protected JInternalFrame frame;
 
-    JComponent   iconPane;
+    // This component is only used for windows look and feel, but it's package
+    // private.  This should be protected. (joutwate 2/22/2001)
+    JComponent iconPane;
     MouseInputListener mouseInputListener;
 
 
@@ -51,16 +55,14 @@ public class BasicDesktopIconUI extends DesktopIconUI {
     }
 
     public void uninstallUI(JComponent c) {
-        //	installDefaults( desktopIcon ); ?? install->uninstall??
 	uninstallDefaults();
 	uninstallComponents();
 	uninstallListeners();
-	desktopIcon = null;
 	frame = null;
+	desktopIcon = null;
     }
 
     protected void installComponents() {
-	frame = desktopIcon.getInternalFrame();
 	iconPane = new BasicInternalFrameTitlePane(frame);
 	desktopIcon.setLayout(new BorderLayout());
 	desktopIcon.add(iconPane, BorderLayout.CENTER);
@@ -69,6 +71,7 @@ public class BasicDesktopIconUI extends DesktopIconUI {
     protected void uninstallComponents() {
 	desktopIcon.setLayout(null);
 	desktopIcon.remove(iconPane);
+        iconPane = null;
     }
 
     protected void installListeners() {
@@ -80,6 +83,7 @@ public class BasicDesktopIconUI extends DesktopIconUI {
     protected void uninstallListeners() {
 	desktopIcon.removeMouseMotionListener(mouseInputListener);
 	desktopIcon.removeMouseListener(mouseInputListener);
+        mouseInputListener = null;
     }
 
     protected void installDefaults() {
@@ -87,6 +91,7 @@ public class BasicDesktopIconUI extends DesktopIconUI {
     }
 
     protected void uninstallDefaults() {
+        LookAndFeel.uninstallBorder(desktopIcon);
     }
 
     protected MouseInputListener createMouseInputListener() {
@@ -94,24 +99,22 @@ public class BasicDesktopIconUI extends DesktopIconUI {
     }
     
     public Dimension getPreferredSize(JComponent c) {
-        JInternalFrame iframe = desktopIcon.getInternalFrame();
-	Border border = iframe.getBorder();
-        int w2 = 157;
-	int h2 = 18;
-
-	if(border != null)
-	    h2 += border.getBorderInsets(iframe).bottom + 
-                  border.getBorderInsets(iframe).top;
-
-	return new Dimension(w2, h2);
+        return desktopIcon.getLayout().preferredLayoutSize(desktopIcon);
     }
 
     public Dimension getMinimumSize(JComponent c) {
-	return iconPane.getMinimumSize();
+        Dimension dim = new Dimension(iconPane.getMinimumSize());
+        Border border = frame.getBorder();
+
+        if (border != null) {
+            dim.height += border.getBorderInsets(frame).bottom +
+                          border.getBorderInsets(frame).top;
+        }
+        return dim;
     } 
 
     public Dimension getMaximumSize(JComponent c){
-	return iconPane.getMaximumSize();
+        return iconPane.getMaximumSize();
     }
 
     public Insets getInsets(JComponent c) {

@@ -1,4 +1,6 @@
 /*
+ * @(#)InterruptedNamingException.java	1.6 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,7 +12,7 @@ package javax.naming;
   * being invoked has been interrupted. For example, an application
   * might interrupt a thread that is performing a search. If the
   * search supports being interrupted, it will throw
-  * InterruptedNamingException. Whether an operation is interruptable
+  * InterruptedNamingException. Whether an operation is interruptible
   * and when depends on its implementation (as provided by the
   * service providers). Different implementations have different ways
   * of protecting their resources and objects from being damaged
@@ -21,7 +23,7 @@ package javax.naming;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.5 02/02/06
+  * @version 1.6 01/12/03
   *
   * @see Context
   * @see javax.naming.directory.DirContext

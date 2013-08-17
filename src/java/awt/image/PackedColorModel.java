@@ -1,4 +1,6 @@
 /*
+ * @(#)PackedColorModel.java	1.36 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -68,7 +70,7 @@ import java.awt.color.ColorSpace;
 public abstract class PackedColorModel extends ColorModel {
     int[] maskArray;
     int[] maskOffsets;
-    double[] scaleFactors;
+    float[] scaleFactors;
 
     /**
      * Constructs a <code>PackedColorModel</code> from a color mask array, 
@@ -117,16 +119,14 @@ public abstract class PackedColorModel extends ColorModel {
         }
         maskArray   = new int[numComponents];
         maskOffsets = new int[numComponents];
-        nBits       = new int[numComponents];
-        scaleFactors = new double[numComponents];
+        scaleFactors = new float[numComponents];
 
         for (int i=0; i < numColorComponents; i++) {
             // Get the mask offset and #bits
             DecomposeMask(colorMaskArray[i], i, space.getName(i));
         }
         if (alphaMask != 0) {
-            DecomposeMask(alphaMask , numColorComponents,
-                          space.getName(numColorComponents));
+            DecomposeMask(alphaMask, numColorComponents, "alpha");
             if (nBits[numComponents-1] == 1) {
                 transparency = Transparency.BITMASK;
             }
@@ -187,8 +187,7 @@ public abstract class PackedColorModel extends ColorModel {
         }
         maskArray = new int[numComponents];
         maskOffsets = new int[numComponents];
-        nBits       = new int[numComponents];
-        scaleFactors = new double[numComponents];
+        scaleFactors = new float[numComponents];
 
         DecomposeMask(rmask, 0, "red");
 
@@ -240,33 +239,25 @@ public abstract class PackedColorModel extends ColorModel {
     }
 
     /*
-     * A utility function to decompose a single mask and verify that it
-     * fits in the specified pixel size, and that it does not overlap any
-     * other color component.
+     * A utility function to compute the mask offset and scalefactor,
+     * store these and the mask in instance arrays, and verify that
+     * the mask fits in the specified pixel size.
      */
     private void DecomposeMask(int mask,  int idx, String componentName) {
 	int off = 0;
-	int count = 0;
+	int count = nBits[idx];
 
         // Store the mask
         maskArray[idx]   = mask;
 
-        // Now find the #bits and shifts
+        // Now find the shift
 	if (mask != 0) {
 	    while ((mask & 1) == 0) {
 		mask >>>= 1;
 		off++;
 	    }
-	    while ((mask & 1) == 1) {
-		mask >>>= 1;
-		count++;
-	    }
 	}
-	if (mask != 0) {
-	    throw new IllegalArgumentException(componentName + " mask "+
-                                        Integer.toHexString(maskArray[idx])+
-                                               " bits not contiguous");
-	}
+
 	if (off + count > pixel_bits) {
 	    throw new IllegalArgumentException(componentName + " mask "+
                                         Integer.toHexString(maskArray[idx])+
@@ -275,19 +266,14 @@ public abstract class PackedColorModel extends ColorModel {
 	}
 
 	maskOffsets[idx] = off;
-	nBits[idx]       = count;
 	if (count == 0) {
 	    // High enough to scale any 0-ff value down to 0.0, but not
 	    // high enough to get Infinity when scaling back to pixel bits
-	    scaleFactors[idx] = 256.0;
+	    scaleFactors[idx] = 256.0f;
 	} else {
-	    scaleFactors[idx] = 255. /((1 << count) - 1);
+	    scaleFactors[idx] = 255.0f / ((1 << count) - 1);
 	}
 
-        // Store the maximum #bits per component
-        if (maxBits < count) {
-            maxBits = count;
-        }
     }
 
     /**
@@ -324,6 +310,11 @@ public abstract class PackedColorModel extends ColorModel {
             return false;
         }
 
+        // Must have the same number of components
+        if (numComponents != sm.getNumBands()) {
+            return false;
+        }
+        
         // Transfer type must be the same
         if (sm.getTransferType() != transferType) {
             return false;
@@ -454,7 +445,6 @@ public abstract class PackedColorModel extends ColorModel {
     }
 
     private final static int countBits(int mask) {
-        int saveMask = mask;
         int count = 0;
 	if (mask != 0) {
 	    while ((mask & 1) == 0) {

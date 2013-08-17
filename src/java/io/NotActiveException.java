@@ -1,4 +1,6 @@
 /*
+ * @(#)NotActiveException.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,7 +11,7 @@ package java.io;
  * Thrown when serialization or deserialization is not active.
  *
  * @author  unascribed
- * @version 1.13, 02/06/02
+ * @version 1.13, 12/03/01
  * @since   JDK1.1
  */
 public class NotActiveException extends ObjectStreamException {

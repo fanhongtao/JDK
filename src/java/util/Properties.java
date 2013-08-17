@@ -1,4 +1,6 @@
 /*
+ * @(#)Properties.java	1.68 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -49,7 +51,7 @@ import java.util.Hashtable;
  *
  * @author  Arthur van Hoff
  * @author  Michael McCloskey
- * @version 1.61, 02/06/02
+ * @version 1.64, 06/26/00
  * @since   JDK1.0
  */
 public
@@ -84,12 +86,15 @@ class Properties extends Hashtable {
     }
 
     /**
-     * Calls the hashtable method <code>put</code>. Provided for
+     * Calls the <tt>Hashtable</tt> method <code>put</code>. Provided for
      * parallelism with the <tt>getProperty</tt> method. Enforces use of
-     * strings for property keys and values.
+     * strings for property keys and values. The value returned is the
+     * result of the <tt>Hashtable</tt> call to <code>put</code>.
      *
      * @param key the key to be placed into this property list.
      * @param value the value corresponding to <tt>key</tt>.
+     * @return     the previous value of the specified key in this property
+     *             list, or <code>null</code> if it did not have one.
      * @see #getProperty
      * @since    1.2
      */
@@ -161,7 +166,7 @@ class Properties extends Hashtable {
      * </pre>
      * The key is <code>"fruits"</code> and the associated element is:
      * <p>
-     * <pre>"apple, banana, pear, cantaloupe, watermelon,kiwi, mango"</pre>
+     * <pre>"apple, banana, pear, cantaloupe, watermelon, kiwi, mango"</pre>
      * Note that a space appears before each <code>\</code> so that a space
      * will appear after each comma in the final result; the <code>\</code>,
      * line terminator, and leading whitespace on the continuation line are
@@ -195,7 +200,7 @@ class Properties extends Hashtable {
                     while (continueLine(line)) {
                         String nextLine = in.readLine();
                         if(nextLine == null)
-                            nextLine = new String("");
+                            nextLine = "";
                         String loppedLine = line.substring(0, line.length()-1);
                         // Advance beyond whitespace on new line
                         int startIndex=0;
@@ -430,6 +435,8 @@ class Properties extends Hashtable {
      *             output stream throws an <tt>IOException</tt>.
      * @exception  ClassCastException  if this <code>Properties</code> object
      *             contains any keys or values that are not <code>Strings</code>.
+     * @exception  NullPointerException  if <code>out</code> is null.
+     * @since 1.2
      */
     public synchronized void store(OutputStream out, String header)
     throws IOException
@@ -494,8 +501,10 @@ class Properties extends Hashtable {
     }
 
     /**
-     * Returns an enumeration of all the keys in this property list, including
-     * the keys in the default property list.
+     * Returns an enumeration of all the keys in this property list,
+     * including distinct keys in the default property list if a key
+     * of the same name has not already been found from the main
+     * properties list.
      *
      * @return  an enumeration of all the keys in this property list, including
      *          the keys in the default property list.

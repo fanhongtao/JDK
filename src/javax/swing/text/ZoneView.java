@@ -1,4 +1,6 @@
 /*
+ * @(#)ZoneView.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -7,7 +9,6 @@ package javax.swing.text;
 import java.util.Vector;
 import java.awt.*;
 import javax.swing.event.*;
-import javax.swing.SizeRequirements;
 
 /**
  * ZoneView is a View implementation that creates zones for which 
@@ -53,7 +54,7 @@ import javax.swing.SizeRequirements;
  * large zones efficiently.
  *
  * @author  Timothy Prinzing
- * @version 1.7 02/06/02
+ * @version 1.15 12/03/01
  * @see     View
  * @since   1.3
  */
@@ -61,6 +62,7 @@ public class ZoneView extends BoxView {
 
     int maxZoneSize = 8 * 1024;
     int maxZonesLoaded = 3;
+    Vector loadedZones;
 
     /**
      * Constructs a ZoneView.
@@ -70,6 +72,7 @@ public class ZoneView extends BoxView {
      */
     public ZoneView(Element elem, int axis) {
 	super(elem, axis);
+	loadedZones = new Vector();
     }
 
     /**
@@ -103,14 +106,21 @@ public class ZoneView extends BoxView {
     }
 
     /**
-     * Set the current setting of the number of zones 
-     * allowed to be loaded at the same time.
+     * Sets the current setting of the number of zones 
+     * allowed to be loaded at the same time. This will throw an
+     * <code>IllegalArgumentException</code> if <code>mzl</code> is less
+     * than 1.
      *
      * @param mzl the desired maximum number of zones
-     *  to be actively loaded.
+     *  to be actively loaded, must be greater than 0
+     * @exception IllegalArgumentException if <code>mzl</code> is < 1
      */
     public void setMaxZonesLoaded(int mzl) {
+        if (mzl < 1) {
+            throw new IllegalArgumentException("ZoneView.setMaxZonesLoaded must be greater than 0.");
+        }
 	maxZonesLoaded = mzl;
+	unloadOldZones();
     }
 
     /**
@@ -123,7 +133,17 @@ public class ZoneView extends BoxView {
      * @param zone the child view that was just loaded.
      */
     protected void zoneWasLoaded(View zone) {
-	// TBD
+	//System.out.println("loading: " + zone.getStartOffset() + "," + zone.getEndOffset());
+	loadedZones.addElement(zone);
+	unloadOldZones();
+    }
+
+    void unloadOldZones() {
+	while (loadedZones.size() > getMaxZonesLoaded()) {
+	    View zone = (View) loadedZones.elementAt(0);
+	    loadedZones.removeElementAt(0);
+	    unloadZone(zone);
+	}
     }
 
     /**
@@ -137,6 +157,7 @@ public class ZoneView extends BoxView {
      *  unloaded state.
      */
     protected void unloadZone(View zone) {
+	//System.out.println("unloading: " + zone.getStartOffset() + "," + zone.getEndOffset());
 	zone.removeAll();
     }
 
@@ -201,11 +222,11 @@ public class ZoneView extends BoxView {
     }
 
     /**
-     * Fetches the child view index representing the given position in
-     * the model.
+     * Returns the child view index representing the given position in
+     * the model.  
      *
      * @param pos the position >= 0
-     * @returns  index of the view representing the given position, or 
+     * @return  index of the view representing the given position, or 
      *   -1 if no view represents that position
      */
     protected int getViewIndexAtPosition(int pos) {
@@ -226,7 +247,7 @@ public class ZoneView extends BoxView {
     }
 
     void handleInsert(int pos, int length) {
-	int index = getViewIndexAtPosition(pos);
+	int index = getViewIndex(pos, Position.Bias.Forward);
 	View v = getView(index);
 	int offs0 = v.getStartOffset();
 	int offs1 = v.getEndOffset();
@@ -332,33 +353,13 @@ public class ZoneView extends BoxView {
      * Internally created view that has the purpose of holding
      * the views that represent the children of the ZoneView
      * that have been arranged in a zone.
-     *
-     * PENDING(prinz) should be based upon AsyncBoxView to 
-     * match documentation.  Also, the size estimation is
-     * completely bogus at the moment.  Fixme before release!!
      */
-    class Zone extends BoxView {
+    class Zone extends AsyncBoxView {
 
-	Position start;
-	Position end;
+	private Position start;
+	private Position end;
 
-	/**
-	 * Last allocated span along the minor axis.
-	 * This is used to estimate the volume of
-	 * the zone while waiting to populate it.
-	 */
-	int minorSpan = 500;
-
-	/**
-	 * Value used to guess what volume the zone
-	 * would occupy if it was in fact loaded.
-	 * The default number is a wild guess of a
-	 * font taking 8x12 pixels and occupying less
-	 * than half the space in the display.
-	 */
-	float volumeCoefficient = (8 * 12) * 2.5f;
-
-        Zone(Element elem, Position start, Position end) {
+        public Zone(Element elem, Position start, Position end) {
             super(elem, ZoneView.this.getAxis());
 	    this.start = start;
 	    this.end = end;
@@ -373,8 +374,7 @@ public class ZoneView extends BoxView {
 	 */
 	public void load() {
 	    if (! isLoaded()) {
-		System.out.println("loading: " + getStartOffset() + "," +
-				   getEndOffset());
+		setEstimatedMajorSpan(true);
 		Element e = getElement();
 		ViewFactory f = getViewFactory();
 		int index0 = e.getElementIndex(getStartOffset());
@@ -384,6 +384,8 @@ public class ZoneView extends BoxView {
 		    added[i - index0] = f.create(e.getElement(i));
 		}
 		replace(0, 0, added);
+
+		zoneWasLoaded(this);
 	    }
 	}
 
@@ -392,6 +394,7 @@ public class ZoneView extends BoxView {
 	 * state of unloaded.
 	 */
 	public void unload() {
+	    setEstimatedMajorSpan(true);
 	    removeAll();
 	}
 
@@ -404,51 +407,75 @@ public class ZoneView extends BoxView {
 	}
 
         /**
-         * This is reimplemented to do nothing since the
-         * children are created when the zone is loaded
-	 * rather then when it is placed in the view 
-	 * hierarchy.
+         * This method is reimplemented to not build the children
+	 * since the children are created when the zone is loaded
+	 * rather then when it is placed in the view hierarchy.
+	 * The major span is estimated at this point by building
+	 * the first child (but not storing it), and calling 
+	 * setEstimatedMajorSpan(true) followed by setSpan for 
+	 * the major axis with the estimated span.
          */
         protected void loadChildren(ViewFactory f) {
+	    // mark the major span as estimated
+	    setEstimatedMajorSpan(true);
+
+	    // estimate the span
+	    Element elem = getElement();
+	    int index0 = elem.getElementIndex(getStartOffset());
+	    int index1 = elem.getElementIndex(getEndOffset());
+	    int nChildren = index1 - index0;
+
+	    // replace this with something real
+	    //setSpan(getMajorAxis(), nChildren * 10);
+
+	    View first = f.create(elem.getElement(index0));
+	    first.setParent(this);
+	    float w = first.getPreferredSpan(X_AXIS);
+	    float h = first.getPreferredSpan(Y_AXIS);
+	    if (getMajorAxis() == X_AXIS) {
+		w *= nChildren;
+	    } else {
+		h += nChildren;
+	    }
+
+	    setSize(w, h);
         }
 
 	/**
-	 * Fetches the child view index representing the given position in
+	 * Publish the changes in preferences upward to the parent
+	 * view.  
+	 * <p>
+	 * This is reimplemented to stop the superclass behavior
+	 * if the zone has not yet been loaded.  If the zone is
+	 * unloaded for example, the last seen major span is the
+	 * best estimate and a calculated span for no children
+	 * is undesirable.
+	 */
+        protected void flushRequirementChanges() {
+	    if (isLoaded()) {
+		super.flushRequirementChanges();
+	    }
+	}
+
+	/**
+	 * Returns the child view index representing the given position in
 	 * the model.  Since the zone contains a cluster of the overall
 	 * set of child elements, we can determine the index fairly
 	 * quickly from the model by subtracting the index of the
 	 * start offset from the index of the position given.
 	 *
 	 * @param pos the position >= 0
-	 * @returns  index of the view representing the given position, or 
+	 * @return  index of the view representing the given position, or 
 	 *   -1 if no view represents that position
+	 * @since 1.3
 	 */
-	protected int getViewIndexAtPosition(int pos) {
+        public int getViewIndex(int pos, Position.Bias b) {
+	    boolean isBackward = (b == Position.Bias.Backward);
+	    pos = (isBackward) ? Math.max(0, pos - 1) : pos;
 	    Element elem = getElement();
 	    int index1 = elem.getElementIndex(pos);
 	    int index0 = elem.getElementIndex(getStartOffset());
 	    return index1 - index0;
-	}
-
-	/**
-	 * Performs layout of the children.  The size is the
-	 * area inside of the insets.  
-	 *
-	 * @param width the width >= 0
-	 * @param height the height >= 0
-	 */
-        protected void layout(int width, int height) {
-	    if (isLoaded()) {
-		super.layout(width, height);
-	    } else {
-		int axis = getAxis();
-		int newSpan = (axis == Y_AXIS) ? width : height;
-		if (newSpan != minorSpan) {
-		    minorSpan = newSpan;
-		    // notify preference change along the major axis
-		    preferenceChanged(null, (axis == X_AXIS), (axis == Y_AXIS));
-		}
-	    }
 	}
 
 	protected boolean updateChildren(DocumentEvent.ElementChange ec, 
@@ -484,93 +511,6 @@ public class ZoneView extends BoxView {
         public AttributeSet getAttributes() {
 	    return ZoneView.this.getAttributes();
 	}
-
-	/**
-	 * Determines the preferred span for this view along an
-	 * axis.
-	 *
-	 * @param axis may be either View.X_AXIS or View.Y_AXIS
-	 * @returns  the span the view would like to be rendered into.
-	 *           Typically the view is told to render into the span
-	 *           that is returned, although there is no guarantee.  
-	 *           The parent may choose to resize or break the view.
-	 * @see View#getPreferredSpan
-	 */
-        public float getPreferredSpan(int axis) {
-	    if (isLoaded()) {
-		return super.getPreferredSpan(axis);
-	    }
-	    if (getAxis() == axis) {
-		// major axis
-		int charVolume = getEndOffset() - getStartOffset();
-		float displayVolume = charVolume * volumeCoefficient;
-		float majorSpan = displayVolume / minorSpan;
-		return majorSpan;
-	    }
-	    // minor axis
-	    return minorSpan;
-	}
-
-	/**
-	 * Determines the minimum span for this view along an
-	 * axis.
-	 *
-	 * @param axis may be either View.X_AXIS or View.Y_AXIS
-	 * @returns  the minimum span the view can be rendered into.
-	 * @see View#getPreferredSpan
-	 */
-        public float getMinimumSpan(int axis) {
-	    if (isLoaded()) {
-		return super.getMinimumSpan(axis);
-	    }
-	    if (axis == getAxis()) {
-		// major axis estimate is rigid
-		return getPreferredSpan(axis);
-	    }
-	    // minor axis estimate is flexible
-	    if (axis == X_AXIS) {
-		return getLeftInset() + getRightInset() + 1;
-	    }
-	    return getTopInset() + getBottomInset() + 1;
-	}
-
-	/**
-	 * Determines the maximum span for this view along an
-	 * axis.
-	 *
-	 * @param axis may be either View.X_AXIS or View.Y_AXIS
-	 * @returns  the maximum span the view can be rendered into.
-	 * @see View#getPreferredSpan
-	 */
-        public float getMaximumSpan(int axis) {
-	    if (isLoaded()) {
-		return super.getMaximumSpan(axis);
-	    }
-	    if (axis == getAxis()) {
-		// major axis estimate is rigid
-		return getPreferredSpan(axis);
-	    }
-	    // minor axis estimate is flexible
-	    return (Integer.MAX_VALUE / 1000);
-	}
-	
-	/**
-	 * Determines the desired alignment for this view along an
-	 * axis.  By default this is simply centered.
-	 *
-	 * @param axis may be either View.X_AXIS or View.Y_AXIS
-	 * @returns The desired alignment.  This should be a value
-	 *   >= 0.0 and <= 1.0 where 0 indicates alignment at the
-	 *   origin and 1.0 indicates alignment to the full span
-	 *   away from the origin.  An alignment of 0.5 would be the
-	 *   center of the view.
-	 */
-        public float getAlignment(int axis) {
-	    if (isLoaded()) {
-		return super.getAlignment(axis);
-	    }
-	    return 0.5f;
-        }
 
 	/**
 	 * Renders using the given rendering surface and area on that

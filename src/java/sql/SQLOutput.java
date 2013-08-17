@@ -1,4 +1,6 @@
 /*
+ * @(#)SQLOutput.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,13 +20,12 @@ package java.sql;
  * The driver then creates an instance of <code>SQLOutput</code> and
  * passes it to the method <code>SQLData.writeSQL</code>.
  * The method <code>writeSQL</code> in turn calls the
- * appropriate <code>SQLOutput.writeXXX</code> methods 
+ * appropriate <code>SQLOutput</code> <i>writer</i> methods 
+ * <code>writeBoolean</code>, <code>writeCharacterStream</code>, and so on)
  * to write data from the <code>SQLData</code> object to
  * the <code>SQLOutput</code> output stream as the 
  * representation of an SQL user-defined type.
  * @since 1.2
- * @see <a href="package-summary.html#2.0 API">What Is in the JDBC
- *      2.0 API</a>
  */
 
  public interface SQLOutput {
@@ -206,7 +207,7 @@ package java.sql;
    * method of the given object, which 
    * writes the object's attributes to the stream.
    * The implementation of the method <code>SQLData.writeSQ</code>
-   * calls the appropriate <code>SQLOutput.writeXXX</code> method(s)
+   * calls the appropriate <code>SQLOutput</code> writer method(s)
    * for writing each of the object's attributes in order.
    * The attributes must be read from an <code>SQLInput</code>
    * input stream and written to an <code>SQLOutput</code>
@@ -267,6 +268,19 @@ package java.sql;
    * @exception SQLException if a database access error occurs
    */
   void writeArray(Array x) throws SQLException;
+
+     //--------------------------- JDBC 3.0 ------------------------
+
+     /** 
+      * Writes a SQL <code>DATALINK</code> value to the stream.
+      *
+      * @param x a <code>java.net.URL</code> object representing the data
+      * of SQL DATALINK type
+      *
+      * @exception SQLException if a database access error occurs
+      * @since 1.4
+      */
+     void writeURL(java.net.URL x) throws SQLException;
 
 }
  

@@ -1,4 +1,6 @@
 /*
+ * @(#)BeanContextServiceRevokedEvent.java	1.8 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -51,7 +53,7 @@ public class BeanContextServiceRevokedEvent extends BeanContextEvent {
     /**
      * Checks this event to determine whether or not
      * the service being revoked is of a particular class.
-     * @param service the service of interest
+     * @param service the service of interest (should be non-null)
      * @return <code>true</code> if the service being revoked is of the
      * same class as the specified service
      */

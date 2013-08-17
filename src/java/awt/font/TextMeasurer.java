@@ -1,4 +1,6 @@
 /*
+ * @(#)TextMeasurer.java	1.35 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -22,34 +24,77 @@ package java.awt.font;
 
 import java.awt.Font;
 
-import java.text.CharacterIterator;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
+import java.text.Bidi;
+import java.text.BreakIterator;
+import java.text.CharacterIterator;
 
 import java.awt.font.FontRenderContext;
 
+import java.util.Hashtable;
+import java.util.Map;
+
+import sun.awt.font.BidiUtils;
 import sun.awt.font.TextLineComponent;
 import sun.awt.font.TextLabelFactory;
-import sun.awt.font.Bidi;
+import sun.awt.font.FontResolver;
 
 /**
- * <code>TextMeasurer</code> provides the primitive operations needed for line
- * break: measuring up to a given advance, determining the advance of
- * a range of characters, and generating a <code>TextLayout</code> for a range of
- * characters. It also provides methods for incremental editing
- * of paragraphs.
+ * The <code>TextMeasurer</code> class provides the primitive operations 
+ * needed for line break: measuring up to a given advance, determining the 
+ * advance of a range of characters, and generating a
+ * <code>TextLayout</code> for a range of characters. It also provides 
+ * methods for incremental editing of paragraphs.
  * <p>
- * Most clients will use the more convenient <code>LineBreakMeasurer</code>, which
- * implements the standard line break policy (placing as many words as
- * will fit on each line).
+ * A <code>TextMeasurer</code> object is constructed with an 
+ * {@link java.text.AttributedCharacterIterator AttributedCharacterIterator} 
+ * representing a single paragraph of text.  The value returned by the
+ * {@link AttributedCharacterIterator#getBeginIndex() getBeginIndex} 
+ * method of <code>AttributedCharacterIterator</code>
+ * defines the absolute index of the first character.  The value
+ * returned by the 
+ * {@link AttributedCharacterIterator#getEndIndex() getEndIndex}
+ * method of <code>AttributedCharacterIterator</code> defines the index
+ * past the last character.  These values define the range of indexes to 
+ * use in calls to the <code>TextMeasurer</code>.  For example, calls to
+ * get the advance of a range of text or the line break of a range of text
+ * must use indexes between the beginning and end index values.  Calls to
+ * {@link #insertChar(java.text.AttributedCharacterIterator, int) insertChar} 
+ * and 
+ * {@link #deleteChar(java.text.AttributedCharacterIterator, int) deleteChar} 
+ * reset the <code>TextMeasurer</code> to use the beginning index and end
+ * index of the <code>AttributedCharacterIterator</code> passed in those calls.
+ * <p>
+ * Most clients will use the more convenient <code>LineBreakMeasurer</code>, 
+ * which implements the standard line break policy (placing as many words
+ * as will fit on each line). 
  *
  * @author John Raley
- * @version 1.26, 02/06/02
+ * @version 1.31, 04/20/01
  * @see LineBreakMeasurer
  * @since 1.3
  */
 
-public final class TextMeasurer {
+public final class TextMeasurer implements Cloneable {
+
+    // Number of lines to format to.
+    private static float EST_LINES = (float) 2.1;
+
+    /*
+    static {
+        String s = System.getProperty("estLines");
+        if (s != null) {
+            try {
+                Float f = new Float(s);
+                EST_LINES = f.floatValue();
+            }
+            catch(NumberFormatException e) {
+            }
+        }
+        //System.out.println("EST_LINES="+EST_LINES);
+    }
+    */
 
     private FontRenderContext fFrc;
 
@@ -65,8 +110,25 @@ public final class TextMeasurer {
     // trailing counterdirectional whitespace
     private byte[] fLevels;
 
-    // glyph arrays in logical order
+    // line components in logical order
     private TextLineComponent[] fComponents;
+    
+    // index where components begin
+    private int fComponentStart;
+    
+    // index where components end
+    private int fComponentLimit;
+    
+    private boolean haveLayoutWindow;
+    
+    // used to find valid starting points for line components
+    private BreakIterator fLineBreak = null;
+    private CharArrayIterator charIter = null;
+    int layoutCount = 0;
+    int layoutCharCount = 0;
+    
+    // paragraph, with resolved fonts and styles
+    private StyledParagraph fParagraph;
 
     // paragraph data - same across all layouts
     private boolean fIsDirectionLTR;
@@ -86,6 +148,26 @@ public final class TextMeasurer {
         fFrc = frc;
         initAll(text);
     }
+    
+    protected Object clone() {
+        TextMeasurer other;
+        try {
+            other = (TextMeasurer) super.clone();
+        }
+        catch(CloneNotSupportedException e) {
+            throw new Error();
+        }
+        if (fComponents != null) {
+            other.fComponents = (TextLineComponent[]) fComponents.clone();
+        }
+        return other;
+    }
+    
+    private void invalidateComponents() {
+        fComponentStart = fComponentLimit = fChars.length;
+        fComponents = null;
+        haveLayoutWindow = false;
+    }        
 
     /**
      * Initialize state, including fChars array, direction, and
@@ -104,64 +186,112 @@ public final class TextMeasurer {
         }
         
         text.first();
-        
-        try {
-            Float justifyLF = (Float)text.getAttribute(TextAttribute.JUSTIFICATION);
-            if (justifyLF != null) {
-              fJustifyRatio = justifyLF.floatValue();
+                
+        fBidi = new Bidi(text);
+	if (fBidi.isLeftToRight()) {
+	    fBidi = null;
+	}
 
-              if (fJustifyRatio < 0) {
-                fJustifyRatio = 0;
-              } else if (fJustifyRatio > 1) {
-                fJustifyRatio = 1;
-              }
+        text.first();
+        Map paragraphAttrs = text.getAttributes();
+        if (paragraphAttrs != null) {
+            try {
+                NumericShaper shaper = (NumericShaper)paragraphAttrs.get(TextAttribute.NUMERIC_SHAPING);
+                if (shaper != null) {
+                    shaper.shape(fChars, 0, fChars.length);
+                }
+            }
+            catch (ClassCastException e) {
             }
         }
-        catch (ClassCastException e) {
-        }
 
-        fBidi = TextLine.createBidiOnParagraph(text, fChars);
-        generateComponents(text);
+        fParagraph = new StyledParagraph(text, fChars);
+        
+        // set paragraph attributes
+        {
+            // If there's an embedded graphic at the start of the
+            // paragraph, look for the first non-graphic character
+            // and use it and its font to initialize the paragraph.
+            // If not, use the first graphic to initialize.
+            fJustifyRatio = TextLine.getJustifyRatio(paragraphAttrs);
+            
+            boolean haveFont = TextLine.advanceToFirstFont(text);
+
+            if (haveFont) {
+                Font defaultFont = TextLine.getFontAtCurrentPos(text);
+                int charsStart = text.getIndex() - text.getBeginIndex();
+                LineMetrics lm = defaultFont.getLineMetrics(fChars, charsStart, charsStart+1, fFrc);
+                fBaseline = (byte) lm.getBaselineIndex();
+                fBaselineOffsets = lm.getBaselineOffsets();
+            }
+            else {
+                // hmmm what to do here?  Just try to supply reasonable
+                // values I guess.
+
+                GraphicAttribute graphic = (GraphicAttribute)
+                                paragraphAttrs.get(TextAttribute.CHAR_REPLACEMENT);
+                fBaseline = TextLayout.getBaselineFromGraphic(graphic);
+                Font dummyFont = new Font(new Hashtable(5, (float)0.9));
+                LineMetrics lm = dummyFont.getLineMetrics(" ", 0, 1, fFrc);
+                fBaselineOffsets = lm.getBaselineOffsets();
+            }
+            fBaselineOffsets = TextLine.getNormalizedOffsets(fBaselineOffsets, fBaseline);
+        }
+        
+        invalidateComponents();
     }
     
     /**
      * Generate components for the paragraph.  fChars, fBidi should have been 
      * initialized already.
      */
-    private void generateComponents(AttributedCharacterIterator text) {
+    private void generateComponents(int startingAt, int endingAt) {
         
-        TextLine.FontSource fontSource = new TextLine.ACIFontSource(text);
-
-        TextLabelFactory factory = new TextLabelFactory(fFrc, fChars, fBidi);
+        if (collectStats) {
+            formattedChars += (endingAt-startingAt);
+        }
+	int layoutFlags = 0; // no extra info yet, bidi determines run and line direction
+        TextLabelFactory factory = new TextLabelFactory(fFrc, fChars, fBidi, layoutFlags);
 
         int[] charsLtoV = null;
         
         if (fBidi != null) {
-            charsLtoV = fBidi.getLogicalToVisualMap();
-            fLevels = fBidi.getLevels();
-            fIsDirectionLTR = fBidi.isDirectionLTR();
+            fLevels = BidiUtils.getLevels(fBidi);
+	    int[] charsVtoL = BidiUtils.createVisualToLogicalMap(fLevels);
+            charsLtoV = BidiUtils.createInverseMap(charsVtoL);
+            fIsDirectionLTR = fBidi.baseIsLeftToRight();
         }
         else {
             fLevels = null;
             fIsDirectionLTR = true;
         }
         
-        fComponents = TextLine.getComponents(
-            fontSource, fChars, 0, fChars.length, charsLtoV, fLevels, factory);
-
-        Font firstFont = fontSource.fontAt(0);
-        if (firstFont == null) {
-            firstFont = fontSource.getBestFontAt(0);
+        try {
+            fComponents = TextLine.getComponents(
+                fParagraph, fChars, startingAt, endingAt, charsLtoV, fLevels, factory);
         }
-
-        LineMetrics lm = firstFont.getLineMetrics(fChars, 0, 1, fFrc);
-        fBaselineOffsets = lm.getBaselineOffsets();
+        catch(IllegalArgumentException e) {
+            System.out.println("startingAt="+startingAt+"; endingAt="+endingAt);
+            System.out.println("fComponentLimit="+fComponentLimit);
+            throw e;
+        }
+        
+        fComponentStart = startingAt;
+        fComponentLimit = endingAt;
+        //debugFormatCount += (endingAt-startingAt);
     }
+    
+    private int calcLineBreak(final int pos, final float maxAdvance) {
 
-    private int calcLineBreak(int startPos, float width) {
-
+        // either of these statements removes the bug:
+        //generateComponents(0, fChars.length);
+        //generateComponents(pos, fChars.length);
+        
+        int startPos = pos;
+        float width = maxAdvance;
+        
         int tlcIndex;
-        int tlcStart = 0;
+        int tlcStart = fComponentStart;
 
         for (tlcIndex = 0; tlcIndex < fComponents.length; tlcIndex++) {
             int gaLimit = tlcStart + fComponents[tlcIndex].getNumCharacters();
@@ -172,7 +302,7 @@ public final class TextMeasurer {
                 tlcStart = gaLimit;
             }
         }
-
+        
         // tlcStart is now the start of the tlc at tlcIndex
 
         for (; tlcIndex < fComponents.length; tlcIndex++) {
@@ -181,7 +311,7 @@ public final class TextMeasurer {
             int numCharsInGa = tlc.getNumCharacters();
 
             int lineBreak = tlc.getLineBreakIndex(startPos - tlcStart, width);
-            if (lineBreak == numCharsInGa) {
+            if (lineBreak == numCharsInGa && tlcIndex < fComponents.length) {
                 width -= tlc.getAdvanceBetween(startPos - tlcStart, lineBreak);
                 tlcStart += numCharsInGa;
                 startPos = tlcStart;
@@ -191,6 +321,16 @@ public final class TextMeasurer {
             }
         }
 
+        if (fComponentLimit < fChars.length) {
+            // format more text and try again
+            //if (haveLayoutWindow) {
+            //    outOfWindow++;
+            //}
+            
+            generateComponents(pos, fChars.length);
+            return calcLineBreak(pos, maxAdvance);
+        }
+        
         return fChars.length;
     }
 
@@ -211,8 +351,13 @@ public final class TextMeasurer {
             // Back up over counterdirectional whitespace
             final byte baseLevel = (byte) (fIsDirectionLTR? 0 : 1); 
             for (cdWsStart = limitPos-1; cdWsStart >= startPos; cdWsStart--) {
+		// note: should use the direction code value, but Character doesn't provide
+		// access for now, so use this instead
+                // if ((fLevels[cdWsStart] % 2) == baseLevel || 
+                //        Bidi.getDirectionCode(fChars[cdWsStart]) != Bidi.WS) {
+
                 if ((fLevels[cdWsStart] % 2) == baseLevel || 
-                        Bidi.getDirectionCode(fChars[cdWsStart]) != Bidi.WS) {
+                        !Character.isWhitespace(fChars[cdWsStart])) {
                     cdWsStart++;
                     break;
                 }
@@ -232,7 +377,7 @@ public final class TextMeasurer {
         final int cdWsStart = trailingCdWhitespaceStart(startPos, limitPos);
 
         int tlcIndex;
-        int tlcStart = 0;
+        int tlcStart = fComponentStart;
 
         for (tlcIndex = 0; tlcIndex < fComponents.length; tlcIndex++) {
             int gaLimit = tlcStart + fComponents[tlcIndex].getNumCharacters();
@@ -320,8 +465,9 @@ public final class TextMeasurer {
 
         if (fBidi != null) {
             Bidi lineBidi = fBidi.createLineBidi(startPos, limitPos);
-            charsLtoV = lineBidi.getLogicalToVisualMap();
-            charLevels = lineBidi.getLevels();
+            charLevels = BidiUtils.getLevels(lineBidi);
+	    int[] charsVtoL = BidiUtils.createVisualToLogicalMap(charLevels);
+            charsLtoV = BidiUtils.createInverseMap(charsVtoL);
         }
 
         TextLineComponent[] components = makeComponentsOnRange(startPos, limitPos);
@@ -336,23 +482,78 @@ public final class TextMeasurer {
                             fIsDirectionLTR);
 
     }
+    
+    private void ensureComponents(int start, int limit) {
+        
+        if (start < fComponentStart || limit > fComponentLimit) {
+            generateComponents(start, limit);
+        }
+    }
+    
+    private void makeLayoutWindow(int localStart) {
+        
+        int compStart = localStart;
+        int compLimit = fChars.length;
+        
+        // If we've already gone past the layout window, format to end of paragraph
+        if (layoutCount > 0 && !haveLayoutWindow) {
+            float avgLineLength = Math.max(layoutCharCount / layoutCount, 1);
+            compLimit = Math.min(localStart + (int)(avgLineLength*EST_LINES), fChars.length);
+        }
+        
+        if (localStart > 0 || compLimit < fChars.length) {
+            if (charIter == null) {
+                charIter = new CharArrayIterator(fChars);
+            }
+            else {
+                charIter.reset(fChars);
+            }
+            if (fLineBreak == null) {
+                fLineBreak = BreakIterator.getLineInstance();
+            }
+            fLineBreak.setText(charIter);
+            if (localStart > 0) {
+                if (!fLineBreak.isBoundary(localStart)) {
+                    compStart = fLineBreak.preceding(localStart);
+                }
+            }
+            if (compLimit < fChars.length) {
+                if (!fLineBreak.isBoundary(compLimit)) {
+                    compLimit = fLineBreak.following(compLimit);
+                }
+            }
+        }
+
+        ensureComponents(compStart, compLimit);
+        haveLayoutWindow = true;
+    }
 
     /**
      * Returns the index of the first character which will not fit on
-     * on a line which begins at <code>start</code> and may be up to
-     * <code>maxAdvance</code> in graphical width.
+     * on a line beginning at <code>start</code> and possible
+     * measuring up to <code>maxAdvance</code> in graphical width.
      *
      * @param start the character index at which to start measuring.
      *  <code>start</code> is an absolute index, not relative to the
      *  start of the paragraph
      * @param maxAdvance the graphical width in which the line must fit
-     * @return the index after the last character which will fit
+     * @return the index after the last character that will fit
      *  on a line beginning at <code>start</code>, which is not longer
      *  than <code>maxAdvance</code> in graphical width
+     * @throws IllegalArgumentException if <code>start</code> is
+     *		less than the beginning of the paragraph.
      */
     public int getLineBreakIndex(int start, float maxAdvance) {
         
-        return calcLineBreak(start - fStart, maxAdvance) + fStart;
+        int localStart = start - fStart;
+
+        if (!haveLayoutWindow || 
+                localStart < fComponentStart || 
+                localStart >= fComponentLimit) {
+            makeLayoutWindow(localStart);
+        }
+        
+        return calcLineBreak(localStart, maxAdvance) + fStart;
     }
 
     /**
@@ -365,10 +566,19 @@ public final class TextMeasurer {
      * @param limit the character index at which to stop measuring
      * @return the graphical width of a line beginning at <code>start</code>
      *   and including characters up to <code>limit</code>
+     * @throws IndexOutOfBoundsException if <code>limit</code> is less
+     *         than <code>start</code>
+     * @throws IllegalArgumentException if <code>start</code> or 
+     *		<code>limit</code> is not between the beginning of
+     *		the paragraph and the end of the paragraph. 
      */
     public float getAdvanceBetween(int start, int limit) {
         
-        TextLine line = makeTextLineOnRange(start - fStart, limit - fStart);
+        int localStart = start - fStart;
+        int localLimit = limit - fStart;
+        
+        ensureComponents(localStart, localLimit);
+        TextLine line = makeTextLineOnRange(localStart, localLimit);
         return line.getMetrics().advance;
         // could cache line in case getLayout is called with same start, limit
     }
@@ -381,34 +591,72 @@ public final class TextMeasurer {
      *   than <code>start</code>
      * @return a <code>TextLayout</code> for the characters beginning at
      *  <code>start</code> up to (but not including) <code>limit</code>
+     * @throws IndexOutOfBoundsException if <code>limit</code> is less
+     *         than <code>start</code>
+     * @throws IllegalArgumentException if <code>start</code> or 
+     *		<code>limit</code> is not between the beginning of
+     *		the paragraph and the end of the paragraph. 
      */
     public TextLayout getLayout(int start, int limit) {
         
-        TextLine textLine = makeTextLineOnRange(start-fStart, limit-fStart);
+        int localStart = start - fStart;
+        int localLimit = limit - fStart;
+        
+        ensureComponents(localStart, localLimit);        
+        TextLine textLine = makeTextLineOnRange(localStart, localLimit);
 
-        return new TextLayout(
-                        textLine, fBaseline, fBaselineOffsets, fJustifyRatio);
+        if (localLimit < fChars.length) {
+            layoutCharCount += limit-start;
+            layoutCount++;
+        }
+        
+        return new TextLayout(textLine, 
+                              fBaseline,
+                              fBaselineOffsets,
+                              fJustifyRatio);
     }
 
+    private int formattedChars = 0;
+    private static boolean wantStats = false;/*"true".equals(System.getProperty("collectStats"));*/
+    private boolean collectStats = false;
+    
+    private void printStats() {
+        System.out.println("formattedChars: " + formattedChars);
+        //formattedChars = 0;
+        collectStats = false;
+    }
+    
     /**
      * Updates the <code>TextMeasurer</code> after a single character has 
      * been inserted
      * into the paragraph currently represented by this
      * <code>TextMeasurer</code>.  After this call, this
-     * <code>TextMeasurer</code> is equivalent to a new <code>TextMeasurer</code>
-     * created from the text;  however, it will usually be more efficient
-     * to update an existing <code>TextMeasurer</code> than to create a new one
-     * from scratch.
+     * <code>TextMeasurer</code> is equivalent to a new 
+     * <code>TextMeasurer</code> created from the text;  however, it will
+     * usually be more efficient to update an existing
+     * <code>TextMeasurer</code> than to create a new one from scratch.
      *
      * @param newParagraph the text of the paragraph after performing
      * the insertion.  Cannot be null.
-     * @param insertPos the position in the text where the character was inserted.  
-     * Must not be less than
-     * the start of <code>newParagraph</code>, and must be less than the
-     * end of <code>newParagraph</code>.
+     * @param insertPos the position in the text where the character was 
+     * inserted.  Must not be less than the start of 
+     * <code>newParagraph</code>, and must be less than the end of
+     * <code>newParagraph</code>.
+     * @throws IndexOutOfBoundsException if <code>insertPos</code> is less
+     *         than the start of <code>newParagraph</code> or greater than
+     *         or equal to the end of <code>newParagraph</code>
+     * @throws NullPointerException if <code>newParagraph</code> is   
+     *         <code>null</code>
      */
     public void insertChar(AttributedCharacterIterator newParagraph, int insertPos) {
 
+        if (collectStats) {
+            printStats();
+        }
+        if (wantStats) {
+            collectStats = true;
+        }
+        
         fStart = newParagraph.getBeginIndex();
         int end = newParagraph.getEndIndex();
         if (end - fStart != fChars.length+1) {
@@ -428,13 +676,20 @@ public final class TextMeasurer {
                          end-insertPos-1);
         fChars = newChars;
         
-        if (fBidi != null || Bidi.requiresBidi(newChar) || 
+        if (fBidi != null || Bidi.requiresBidi(newChars, newCharIndex, newCharIndex + 1) || 
                 newParagraph.getAttribute(TextAttribute.BIDI_EMBEDDING) != null) {
 
-            fBidi = TextLine.createBidiOnParagraph(newParagraph, fChars);
+            fBidi = new Bidi(newParagraph);
+	    if (fBidi.isLeftToRight()) {
+		fBidi = null;
+	    }
         }
         
-        generateComponents(newParagraph);
+        fParagraph = StyledParagraph.insertChar(newParagraph, 
+                                                fChars,
+                                                insertPos,
+                                                fParagraph);
+        invalidateComponents();
     }
     
     /**
@@ -453,6 +708,11 @@ public final class TextMeasurer {
      * Must not be less than
      * the start of <code>newParagraph</code>, and must not be greater than the
      * end of <code>newParagraph</code>.
+     * @throws IndexOutOfBoundsException if <code>deletePos</code> is
+     *         less than the start of <code>newParagraph</code> or greater
+     *         than the end of <code>newParagraph</code>
+     * @throws NullPointerException if <code>newParagraph</code> is
+     *         <code>null</code>
      */
     public void deleteChar(AttributedCharacterIterator newParagraph, int deletePos) {
 
@@ -470,10 +730,17 @@ public final class TextMeasurer {
         fChars = newChars;
         
         if (fBidi != null) {
-            fBidi = TextLine.createBidiOnParagraph(newParagraph, fChars);
+            fBidi = new Bidi(newParagraph);
+	    if (fBidi.isLeftToRight()) {
+		fBidi = null;
+	    }
         }
         
-        generateComponents(newParagraph);
+        fParagraph = StyledParagraph.deleteChar(newParagraph, 
+                                                fChars,
+                                                deletePos,
+                                                fParagraph);
+        invalidateComponents();
     }
 
     /**

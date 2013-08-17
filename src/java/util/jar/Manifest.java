@@ -1,4 +1,6 @@
 /*
+ * @(#)Manifest.java	1.38 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,14 +19,13 @@ import java.util.Iterator;
 /**
  * The Manifest class is used to maintain Manifest entry names and their
  * associated Attributes. There are main Manifest Attributes as well as
- * per-entry Attributes. Documentation on the Manifest format can be
- * found at :
- * <blockquote><pre>
- * http://java.sun.com/products/jdk/1.2/docs/guide/jar/manifest.html
- * </pre></blockquote>
+ * per-entry Attributes. For information on the Manifest format, please
+ * see the 
+ * <a href="http://java.sun.com/products/jdk/1.2/docs/guide/jar/manifest.html">
+ * Manifest format specification</a>.
  *
  * @author  David Connelly
- * @version 1.34, 07/01/02
+ * @version 1.38, 12/03/01
  * @see	    Attributes
  * @since   1.2
  */
@@ -85,6 +86,8 @@ public class Manifest implements Cloneable {
      * <pre>
      *	    return (Attributes)getEntries().get(name)
      * </pre>
+     *
+     * @param name entry name
      * @return the Attributes for the specified entry name
      */
     public Attributes getAttributes(String name) {
@@ -100,10 +103,13 @@ public class Manifest implements Cloneable {
     }
 
     /**
-     * Writes the Manifest to the specified OutputStream.
+     * Writes the Manifest to the specified OutputStream. 
+     * Attributes.Name.MANIFEST_VERSION must be set in 
+     * MainAttributes prior to invoking this method.
      *
      * @param out the output stream
      * @exception IOException if an I/O error has occurred
+     * @see #getMainAttributes
      */
     public void write(OutputStream out) throws IOException {
 	DataOutputStream dos = new DataOutputStream(out);
@@ -130,7 +136,7 @@ public class Manifest implements Cloneable {
         int length = line.length();
         if (length > 72) {
             int index = 70;
-	    while (index < length - 2) {
+            while (index < length - 2) {
                 line.insert(index, "\r\n ");
                 index += 72;
                 length += 3;
@@ -246,7 +252,8 @@ public class Manifest implements Cloneable {
     }
 
     /**
-     * Returns a shallow copy of this Manifest, implemented as follows:
+     * Returns a shallow copy of this Manifest.  The shallow copy is
+     * implemented as follows:
      * <pre>
      *     public Object clone() { return new Manifest(this); }
      * </pre>

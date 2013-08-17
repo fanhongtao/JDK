@@ -1,6 +1,11 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * @(#)BigDecimal.java	1.36 01/09/21
+ *
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.math;
@@ -14,20 +19,23 @@ package java.math;
  * provides operations for basic arithmetic, scale manipulation, comparison,
  * hashing, and format conversion.
  * <p>
+
  * The BigDecimal class gives its user complete control over rounding
- * behavior, forcing the user to explicitly specify a rounding behavior for
- * operations capable of discarding precision (<tt>divide</tt> and
- * <tt>setScale</tt>).  Eight <em>rounding modes</em> are provided for this
- * purpose.
+ * behavior, forcing the user to explicitly specify a rounding
+ * behavior for operations capable of discarding precision ({@link
+ * #divide(BigDecimal, int)}, {@link #divide(BigDecimal, int, int)},
+ * and {@link #setScale}).  Eight <em>rounding modes</em> are provided
+ * for this purpose.
+
  * <p>
  * Two types of operations are provided for manipulating the scale of a
  * BigDecimal: scaling/rounding operations and decimal point motion
- * operations.  Scaling/rounding operations (<tt>SetScale</tt>) return a
+ * operations.  Scaling/rounding operations (<tt>setScale</tt>) return a
  * BigDecimal whose value is approximately (or exactly) equal to that of the
  * operand, but whose scale is the specified value; that is, they increase or
  * decrease the precision of the number with minimal effect on its value.
- * Decimal point motion operations (<tt>movePointLeft</tt> and
- * <tt>movePointRight</tt>) return a BigDecimal created from the operand by
+ * Decimal point motion operations ({@link #movePointLeft} and
+ * {@link #movePointRight}) return a BigDecimal created from the operand by
  * moving the decimal point a specified distance in the specified direction;
  * that is, they change a number's value without affecting its precision.
  * <p>
@@ -40,15 +48,21 @@ package java.math;
  * value as the the BigDecimal <tt>j</tt>."  Other pseudo-code expressions are
  * interpreted similarly. 
  * <p>
- * Note: care should be exercised if BigDecimals are to be used as keys in a
- * SortedMap or elements in a SortedSet, as BigDecimal's <i>natural
- * ordering</i> is <i>inconsistent with equals</i>.  See Comparable, SortedMap
- * or SortedSet for more information.
+ * Note: care should be exercised if BigDecimals are to be used as
+ * keys in a {@link java.util.SortedMap} or elements in a {@link
+ * java.util.SortedSet}, as BigDecimal's <i>natural ordering</i> is
+ * <i>inconsistent with equals</i>.  See {@link Comparable}, {@link
+ * java.util.SortedMap} or {@link java.util.SortedSet} for more
+ * information.
+ * <p>
+ * All methods and constructors for this class
+ * throw <CODE>NullPointerException</CODE> when passed
+ * a null object reference for any input parameter.
  *
  * @see     BigInteger
  * @see	    java.util.SortedMap
  * @see	    java.util.SortedSet
- * @version 1.32, 10/14/03
+ * @version 1.36, 09/21/01
  * @author Josh Bloch
  */
 public class BigDecimal extends Number implements Comparable {
@@ -74,21 +88,65 @@ public class BigDecimal extends Number implements Comparable {
     // Constructors
     
     /**
-     * Translates the String representation of a BigDecmal into a BigDecimal.
-     * The String representation consists of an optional sign (<tt>'+'</tt> or
-     * <tt>'-'</tt>) followed by a sequence of zero or more decimal digits
-     * ("the integer"), optionally followed by a fraction, optionally followed
-     * by an exponent.
+     * Translates the String representation of a BigDecimal into a
+     * BigDecimal.  The String representation consists of an optional
+     * sign, <tt>'+'</tt> (<tt>'&#92;u002B'</tt>) or <tt>'-'</tt>
+     * (<tt>'&#92;u002D'</tt>), followed by a sequence of zero or more
+     * decimal digits ("the integer"), optionally followed by a
+     * fraction, optionally followed by an exponent.
      *
      * <p>The fraction consists of of a decimal point followed by zero or more
      * decimal digits.  The string must contain at least one digit in either
      * the integer or the fraction.  The number formed by the sign, the
      * integer and the fraction is referred to as the <i>significand</i>.
      *
-     * <p>The exponent consists of the character <tt>'e'</tt>(<tt>0x75</tt>)
-     * or <tt>E</tt> (<tt>0x45</tt>) followed by one or more decimal digits.
-     * The value of the exponenet must lie between <tt>Integer.MIN_VALUE</tt>
-     * and <tt>Integer.MAX_VALUE</tt>, inclusive.
+     * <p>The exponent consists of the character <tt>'e'</tt>
+     * (<tt>'&#92;u0075'</tt>) or <tt>'E'</tt> (<tt>'&#92;u0045'</tt>)
+     * followed by one or more decimal digits.  The value of the
+     * exponent must lie between -{@link Integer#MAX_VALUE} ({@link
+     * Integer#MIN_VALUE}+1) and {@link Integer.MAX_VALUE}, inclusive.
+     *
+     * <p>More formally, the strings this constructor accepts are
+     * described by the following grammar:
+     * <blockquote>
+     * <dl>
+     * <dt><i>BigDecimalString:</i>
+     * <dd><i>Sign<sub>opt</sub> Significand Exponent<sub>opt</sub></i>
+     * <p>
+     * <dt><i>Sign:</i>
+     * <dd><code>+</code>
+     * <dd><code>-</code>
+     * <p>
+     * <dt><i>Significand:</i>
+     * <dd><i>IntegerPart</i> <code>.</code> <i>FractionPart<sub>opt</sub></i>
+     * <dd><code>.</code> <i>FractionPart</i>
+     * <dd><i>IntegerPart</i>
+     * <p>
+     * <dt><i>IntegerPart:
+     * <dd>Digits</i>
+     * <p>
+     * <dt><i>FractionPart:
+     * <dd>Digits</i>
+     * <p>
+     * <dt><i>Exponent:
+     * <dd>ExponentIndicator SignedInteger</i>
+     * <p>
+     * <dt><i>ExponentIndicator:</i>
+     * <dd><code>e</code>
+     * <dd><code>E</code>
+     * <p>
+     * <dt><i>SignedInteger:
+     * <dd>Sign<sub>opt</sub> Digits</i>
+     * <p>
+     * <dt><i>Digits:
+     * <dd>Digit
+     * <dd>Digits Digit</i>
+     * <p>
+     * <dt><i>Digit:</i>
+     * <dd>any character for which {@link Character#isDigit}
+     * returns <code>true</code>, including 0, 1, 2 ...
+     * </dl>
+     * </blockquote>
      *
      * <p>The scale of the returned BigDecimal will be the number of digits in
      * the fraction, or zero if the string contains no decimal point, subject
@@ -96,21 +154,23 @@ public class BigDecimal extends Number implements Comparable {
      * exponent is subtracted from the scale.  If the resulting scale is
      * negative, the scale of the returned BigDecimal is zero and the unscaled
      * value is multiplied by the appropriate power of ten so that, in every
-     * case, the resulting BigDecimal is equal to <i>significand *
-     * 10<sup>exponent</sup></i>. (If in the future this specification is 
+     * case, the resulting BigDecimal is equal to <i>significand</i> &times;
+     * 10<i><sup>exponent</sup></i>. (If in the future this specification is 
      * amended to permit negative scales, the final step of zeroing the scale
      * and adjusting the unscaled value will be eliminated.)
      *
      * <p>The character-to-digit mapping is provided by {@link
-     * java.lang.Character#digit}.  The String may not contain any extraneous
-     * characters (whitespace, for example).
+     * java.lang.Character#digit} set to convert to radix 10.  The
+     * String may not contain any extraneous characters (whitespace,
+     * for example).
      *
-     * <p>Note: For floats (and doubles) other that NAN, +INFINITY and
-     * -INFINITY, this constructor is compatible with the values returned by
-     * <tt>Float.toString</tt> (and <tt>Double.toString</tt>).  This is
-     * generally the preferred way to convert a float (or double) into a
-     * BigDecimal, as it doesn't suffer from the unpredictability of the
-     * {@link #BigDecimal(double)} constructor.
+     * <p>Note: For values other <tt>float</tt> and <tt>double</tt>
+     * NaN and &plusmn;Infinity, this constructor is compatible with
+     * the values returned by {@link Float#toString} and {@link
+     * Double#toString}.  This is generally the preferred way to
+     * convert a <tt>float</tt> or <tt>double</tt> into a BigDecimal,
+     * as it doesn't suffer from the unpredictability of the {@link
+     * #BigDecimal(double)} constructor.
      *
      * <p>Note: the optional leading plus sign and trailing exponent were
      * added in release 1.3.
@@ -120,12 +180,15 @@ public class BigDecimal extends Number implements Comparable {
      *	       of a BigDecimal.
      */
     public BigDecimal(String val) {
-	if (val.length() == 0)
+        // Empty string not accepted
+        if (val.length() == 0)
             throw new NumberFormatException();
+
         // Deal with leading plus sign if present
         if (val.charAt(0) == '+') {
             val = val.substring(1);      /* Discard leading '+' */
-	    if (val.charAt(0) == '-')	 /* "+-123.456" illegal! */
+	    if (val.length() == 0 || 	 /* "+" illegal! */
+		val.charAt(0) == '-')	 /* "+-123.456" illegal! */
 		throw new NumberFormatException();
         }
 
@@ -140,7 +203,8 @@ public class BigDecimal extends Number implements Comparable {
                 throw new NumberFormatException();
             if (exp.charAt(0) == '+') {
                 exp = exp.substring(1);         /* Discard leading '+' */
-                if (exp.charAt(0) == '-')       /* "123.456e+-7" illegal! */
+                if (exp.length() == 0 ||	/* "123.456e+" illegal! */
+		    exp.charAt(0) == '-')       /* "123.456e+-7" illegal! */
                     throw new NumberFormatException();
             }
             exponent = Integer.parseInt(exp);
@@ -156,26 +220,29 @@ public class BigDecimal extends Number implements Comparable {
 	} else if (pointPos == val.length()-1) { /* e.g. "123." */
 	    intVal = new BigInteger(val.substring(0, val.length()-1));
 	} else {    /* Fraction part exists */
-	    String fracString = val.substring(pointPos+1);
-	    scale = fracString.length();
-	    BigInteger fraction =  new BigInteger(fracString);
-	    if (val.charAt(pointPos+1) == '-')	 /* ".-123" illegal! */
+            if (val.charAt(pointPos+1) == '-')	 /* ".-123" illegal! */
 		throw new NumberFormatException();
-	    if (pointPos==0) {			 /* e.g.  ".123" */
-		intVal = fraction;
-	    } else if (val.charAt(0)=='-' && pointPos==1) {
-		intVal = fraction.negate();	 /* e.g. "-.123" */
-	    } else  {				 /* e.g. "-123.456" */
-		String intString = val.substring(0, pointPos);
-		BigInteger intPart = new BigInteger(intString);
-		if (val.charAt(0) == '-')
-		    fraction = fraction.negate();
-		intVal = timesTenToThe(intPart, scale).add(fraction);
-	    }
+            
+            char[] digits = new char[val.length()-1];
+            // Get chars before decimal point
+            val.getChars(0, pointPos, digits, 0);
+            // Get chars after decimal point
+            val.getChars(pointPos+1, val.length(), digits, pointPos);
+	    scale = val.length() - pointPos - 1;
+            intVal = new BigInteger(digits);
 	}
 
         // Combine exponent into significand
-        scale -= exponent;
+	assert (scale >= 0);  // && scale <= Integer.MAX_VALUE
+	long longScale = (long)scale - (long)exponent; 	// Avoid errors 
+							// in calculating scale
+	if(longScale > Integer.MAX_VALUE)
+	    throw new NumberFormatException("Final scale out of range");
+        scale = (int)longScale;
+	assert (scale == longScale && // conversion should be exact
+		Math.abs(longScale) <= Integer.MAX_VALUE)  // exponent range 
+	    						   // check
+	    :longScale;
         if (scale < 0) {
             intVal = timesTenToThe(intVal, -scale);
             scale = 0;
@@ -193,8 +260,8 @@ public class BigDecimal extends Number implements Comparable {
      * to .1000000000000000055511151231257827021181583404541015625.
      * This is so because .1 cannot be represented exactly as a double
      * (or, for that matter, as a binary fraction of any finite length).
-     * Thus, the long value that is being passed <i>in</i> to the constructor is
-     * not exactly equal to .1, appearances nonwithstanding.
+     * Thus, the long value that is being passed <i>in</i> to the constructor 
+     * is not exactly equal to .1, appearances nonwithstanding.
      * <p>
      * The (String) constructor, on the other hand, is perfectly predictable:
      * <tt>new BigDecimal(".1")</tt> is <i>exactly</i> equal to .1, as one
@@ -472,7 +539,7 @@ public class BigDecimal extends Number implements Comparable {
 
     /**
      * Returns a BigDecimal whose value is <tt>(-this)</tt>, and whose scale
-     * is this.scale().
+     * is <tt>this.scale()</tt>.
      *
      * @return <tt>-this</tt>
      */
@@ -726,7 +793,7 @@ public class BigDecimal extends Number implements Comparable {
 
     /**
      * Compares this BigDecimal with the specified Object.  If the Object is a
-     * BigDecimal, this method behaves like <tt>compareTo(BigDecimal)</tt>.
+     * BigDecimal, this method behaves like {@link #compareTo}.
      * Otherwise, it throws a <tt>ClassCastException</tt> (as BigDecimals are
      * comparable only to other BigDecimals).
      *
@@ -744,10 +811,10 @@ public class BigDecimal extends Number implements Comparable {
     }
 
     /**
-     * Compares this BigDecimal with the specified Object for equality.
-     * Unlike compareTo, this method considers two BigDecimals equal only
-     * if they are equal in value and scale (thus 2.0 is not equal to 2.00
-     * when compared by this method).
+     * Compares this BigDecimal with the specified Object for
+     * equality.  Unlike {@link #compareTo}, this method considers two
+     * BigDecimals equal only if they are equal in value and scale
+     * (thus 2.0 is not equal to 2.00 when compared by this method).
      *
      * @param  x Object to which this BigDecimal is to be compared.
      * @return <tt>true</tt> if and only if the specified Object is a
@@ -768,7 +835,7 @@ public class BigDecimal extends Number implements Comparable {
      * @param  val value with with the minimum is to be computed.
      * @return the BigDecimal whose value is the lesser of this BigDecimal and 
      *	       <tt>val</tt>.  If they are equal, as defined by the
-     * 	       <tt>compareTo</tt> method, either may be returned.
+     * 	       {@link #compareTo} method, either may be returned.
      * @see    #compareTo(java.math.BigDecimal)
      */
     public BigDecimal min(BigDecimal val){
@@ -781,7 +848,7 @@ public class BigDecimal extends Number implements Comparable {
      * @param  val value with with the maximum is to be computed.
      * @return the BigDecimal whose value is the greater of this BigDecimal
      *	       and <tt>val</tt>.  If they are equal, as defined by the
-     * 	       <tt>compareTo</tt> method, either may be returned.
+     * 	       {@link #compareTo} method, either may be returned.
      * @see    #compareTo(java.math.BigDecimal)
      */
     public BigDecimal max(BigDecimal val){
@@ -802,12 +869,41 @@ public class BigDecimal extends Number implements Comparable {
 	return 31*intVal.hashCode() + scale;
     }
 
+    //
+    // add one to the least significant digit.
+    // in the unlikely event there is a carry out,
+    // deal with it.
+    //
+    private String
+    roundup(String val){
+	int i;
+        char[] digits = val.toCharArray();
+        int nDigits = digits.length;
+        
+	int q = digits[ i = (nDigits-1)];
+	if ( q == '9' ){
+	    while ( q == '9' && i > 0 ){
+		digits[i] = '0';
+		q = digits[--i];
+	    }
+	    if ( q == '9' ){
+		// carryout! High-order 1, rest 0s, larger exp.
+		digits[0] = '0';
+		return "1" + String.valueOf(digits);
+	    }
+	    // else fall through.
+	}
+	digits[i] = (char)(q+1);
+        return String.valueOf(digits);
+    }
+
+
 
     // Format Converters
 
     /**
      * Returns the string representation of this BigDecimal.  The digit-to-
-     * character mapping provided by <tt>Character.forDigit</tt> is used.
+     * character mapping provided by {@link Character#forDigit} is used.
      * A leading minus sign is used to indicate sign, and the number of digits
      * to the right of the decimal point is used to indicate scale.  (This
      * representation is compatible with the (String) constructor.)
@@ -819,27 +915,7 @@ public class BigDecimal extends Number implements Comparable {
     public String toString(){
 	if (scale == 0)	/* No decimal point */
 	    return intVal.toString();
-
-	/* Insert decimal point */
-	StringBuffer buf;
-	String intString = intVal.abs().toString();
-	int signum = signum();
-	int insertionPoint = intString.length() - scale;
-	if (insertionPoint == 0) {  /* Point goes right before intVal */
-	    return (signum<0 ? "-0." : "0.") + intString;
-	} else if (insertionPoint > 0) { /* Point goes inside intVal */
-	    buf = new StringBuffer(intString);
-	    buf.insert(insertionPoint, '.');
-	    if (signum < 0)
-		buf.insert(0, '-');
-	} else { /* We must insert zeros between point and intVal */
-	    buf = new StringBuffer(3-insertionPoint + intString.length());
-	    buf.append(signum<0 ? "-0." : "0.");
-	    for (int i=0; i<-insertionPoint; i++)
-		buf.append('0');
-	    buf.append(intString);
-	}
-	return buf.toString();
+        return getValueString(signum(), intVal.abs().toString(), scale);
     }
 
     /**
@@ -856,11 +932,11 @@ public class BigDecimal extends Number implements Comparable {
     }
 
     /**
-     * Converts this BigDecimal to an int.  Standard <i>narrowing primitive
-     * conversion</i> as defined in <i>The Java Language Specification</i>:
-     * any fractional part of this BigDecimal will be discarded, and if the
-     * resulting "BigInteger" is too big to fit in an int, only the low-order
-     * 32 bits are returned.
+     * Converts this BigDecimal to an int.  This is standard <i>narrowing
+     * primitive conversion</i> as defined in <i>The Java Language
+     * Specification</i>: any fractional part of this BigDecimal will be
+     * discarded, and if the resulting "BigInteger" is too big to fit in
+     * an int, only the low-order 32 bits are returned.
      * 
      * @return this BigDecimal converted to an int.
      */
@@ -869,11 +945,11 @@ public class BigDecimal extends Number implements Comparable {
     }
 
     /**
-     * Converts this BigDecimal to a long.  Standard <i>narrowing primitive
-     * conversion</i> as defined in <i>The Java Language Specification</i>:
-     * any fractional part of this BigDecimal will be discarded, and if the
-     * resulting "BigInteger" is too big to fit in a long, only the low-order
-     * 64 bits are returned.
+     * Converts this BigDecimal to a long.  This is standard <i>narrowing
+     * primitive conversion</i> as defined in <i>The Java Language
+     * Specification</i>: any fractional part of this BigDecimal will be
+     * discarded, and if the resulting "BigInteger" is too big to fit in a
+     * long, only the low-order 64 bits are returned.
      * 
      * @return this BigDecimal converted to an int.
      */
@@ -886,7 +962,7 @@ public class BigDecimal extends Number implements Comparable {
      * <i>narrowing primitive conversion</i> defined in <i>The Java Language
      * Specification</i>: if this BigDecimal has too great a magnitude to
      * represent as a float, it will be converted to
-     * <tt>FLOAT.NEGATIVE_INFINITY</tt> or <tt>FLOAT.POSITIVE_INFINITY</tt>
+     * <tt>Float.NEGATIVE_INFINITY</tt> or <tt>Float.POSITIVE_INFINITY</tt>
      * as appropriate.
      * 
      * @return this BigDecimal converted to a float.
@@ -901,7 +977,7 @@ public class BigDecimal extends Number implements Comparable {
      * <i>narrowing primitive conversion</i> defined in <i>The Java Language
      * Specification</i>: if this BigDecimal has too great a magnitude to
      * represent as a double, it will be converted to
-     * <tt>DOUBLE.NEGATIVE_INFINITY</tt> or <tt>DOUBLE.POSITIVE_INFINITY</tt>
+     * <tt>Double.NEGATIVE_INFINITY</tt> or <tt>Double.POSITIVE_INFINITY</tt>
      * as appropriate.
      * 
      * @return this BigDecimal converted to a double.
@@ -913,7 +989,29 @@ public class BigDecimal extends Number implements Comparable {
 
 
     // Private "Helper" Methods
-
+    
+    /* Returns a digit.digit string */
+    private String getValueString(int signum, String intString, int scale) {
+ 	/* Insert decimal point */
+ 	StringBuffer buf;
+ 	int insertionPoint = intString.length() - scale;
+ 	if (insertionPoint == 0) {  /* Point goes right before intVal */
+ 	    return (signum<0 ? "-0." : "0.") + intString;
+ 	} else if (insertionPoint > 0) { /* Point goes inside intVal */
+ 	    buf = new StringBuffer(intString);
+ 	    buf.insert(insertionPoint, '.');
+ 	    if (signum < 0)
+ 		buf.insert(0, '-');
+ 	} else { /* We must insert zeros between point and intVal */
+ 	    buf = new StringBuffer(3-insertionPoint + intString.length());
+ 	    buf.append(signum<0 ? "-0." : "0.");
+ 	    for (int i=0; i<-insertionPoint; i++)
+ 		buf.append('0');
+ 	    buf.append(intString);
+ 	}
+ 	return buf.toString();
+    }
+    
     /* Returns (a * 10^b) */
     private static BigInteger timesTenToThe(BigInteger a, int b) {
 	return a.multiply(BigInteger.valueOf(10).pow(b));

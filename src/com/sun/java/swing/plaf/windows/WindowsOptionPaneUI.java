@@ -1,12 +1,17 @@
 /*
+ * @(#)WindowsOptionPaneUI.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.windows;
 
-import javax.swing.plaf.basic.*;
 import javax.swing.*;
+import javax.swing.plaf.*;
+import javax.swing.plaf.basic.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 
 
@@ -20,6 +25,6 @@ import javax.swing.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  */
-public class WindowsOptionPaneUI extends BasicOptionPaneUI
-{}
+public class WindowsOptionPaneUI extends BasicOptionPaneUI {
+}
 

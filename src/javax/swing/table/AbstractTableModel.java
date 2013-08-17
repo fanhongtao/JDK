@@ -1,4 +1,6 @@
 /*
+ * @(#)AbstractTableModel.java	1.38 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,7 +17,7 @@ import java.util.EventListener;
  *  the methods in the <code>TableModel</code> interface. It takes care of
  *  the management of listeners and provides some conveniences for generating
  *  <code>TableModelEvents</code> and dispatching them to the listeners.
- *  To create a concrete <code>TableModel</code> as a sublcass of
+ *  To create a concrete <code>TableModel</code> as a subclass of
  *  <code>AbstractTableModel</code> you need only provide implementations 
  *  for the following three methods:
  *
@@ -27,12 +29,14 @@ import java.util.EventListener;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.29 02/06/02
+ * @version 1.38 12/03/01
  * @author Alan Chung
  * @author Philip Milne
  */
@@ -141,6 +145,24 @@ public abstract class AbstractTableModel implements TableModel, Serializable
 	listenerList.remove(TableModelListener.class, l);
     }
 
+    /**
+     * Returns an array of all the table model listeners 
+     * registered on this model.
+     *
+     * @return all of this model's <code>TableModelListener</code>s 
+     *         or an empty
+     *         array if no table model listeners are currently registered
+     *
+     * @see #addTableModelListener
+     * @see #removeTableModelListener
+     *
+     * @since 1.4
+     */
+    public TableModelListener[] getTableModelListeners() {
+        return (TableModelListener[])listenerList.getListeners(
+                TableModelListener.class);
+    }
+
 //
 //  Fire methods
 //
@@ -154,6 +176,7 @@ public abstract class AbstractTableModel implements TableModel, Serializable
      *
      * @see TableModelEvent
      * @see EventListenerList
+     * @see javax.swing.JTable#tableChanged(TableModelEvent)
      */
     public void fireTableDataChanged() {
         fireTableChanged(new TableModelEvent(this));
@@ -260,12 +283,39 @@ public abstract class AbstractTableModel implements TableModel, Serializable
     }
 
     /**
-     * Returns an array of all the listeners of the given type that 
-     * were added to this model. 
+     * Returns an array of all the objects currently registered
+     * as <code><em>Foo</em>Listener</code>s
+     * upon this <code>AbstractTableModel</code>.
+     * <code><em>Foo</em>Listener</code>s are registered using the
+     * <code>add<em>Foo</em>Listener</code> method.
      *
-     * @returns all of the objects receiving <code>listenerType</code>
-     *		notifications from this model
+     * <p>
+     *
+     * You can specify the <code>listenerType</code> argument
+     * with a class literal,
+     * such as
+     * <code><em>Foo</em>Listener.class</code>.
+     * For example, you can query a
+     * model <code>m</code>
+     * for its table model listeners with the following code:
+     *
+     * <pre>TableModelListener[] tmls = (TableModelListener[])(m.getListeners(TableModelListener.class));</pre>
+     *
+     * If no such listeners exist, this method returns an empty array.
+     *
+     * @param listenerType the type of listeners requested; this parameter
+     *          should specify an interface that descends from
+     *          <code>java.util.EventListener</code>
+     * @return an array of all objects registered as
+     *          <code><em>Foo</em>Listener</code>s on this component,
+     *          or an empty array if no such
+     *          listeners have been added
+     * @exception ClassCastException if <code>listenerType</code>
+     *          doesn't specify a class or interface that implements
+     *          <code>java.util.EventListener</code>
      * 
+     * @see #getTableModelListeners
+     *
      * @since 1.3
      */
     public EventListener[] getListeners(Class listenerType) { 

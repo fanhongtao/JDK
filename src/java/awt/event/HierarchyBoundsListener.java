@@ -1,4 +1,6 @@
 /*
+ * @(#)HierarchyBoundsListener.java	1.5 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -25,7 +27,7 @@ import java.util.EventListener;
  * program registers an <code>HierarchyBoundsListener</code> or not.
  *
  * @author	David Mendenhall
- * @version	1.5, 02/06/02
+ * @version	1.5, 12/03/01
  * @see		HierarchyBoundsAdapter
  * @see		HierarchyEvent
  * @since 	1.3

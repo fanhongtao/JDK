@@ -1,4 +1,6 @@
 /*
+ * @(#)HTMLFrameHyperlinkEvent.java	1.7 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,7 +15,7 @@ import java.net.URL;
  * parties that link was activated in a frame.
  *
  * @author Sunita Mani
- * @version 1.5, 02/06/02
+ * @version 1.7, 12/03/01
  */
 
 public class HTMLFrameHyperlinkEvent extends HyperlinkEvent {
@@ -31,7 +33,6 @@ public class HTMLFrameHyperlinkEvent extends HyperlinkEvent {
 				   String targetFrame) {
         super(source, type, targetURL);
 	this.targetFrame = targetFrame;
-	this.sourceElement = null;
     }
 
 
@@ -48,7 +49,6 @@ public class HTMLFrameHyperlinkEvent extends HyperlinkEvent {
 				   String targetFrame) {
         super(source, type, targetURL, desc);
 	this.targetFrame = targetFrame;
-	this.sourceElement = null;
     }
 
     /**
@@ -63,9 +63,8 @@ public class HTMLFrameHyperlinkEvent extends HyperlinkEvent {
      */
     public HTMLFrameHyperlinkEvent(Object source, EventType type, URL targetURL, 
 				   Element sourceElement, String targetFrame) {
-        super(source, type, targetURL);
+        super(source, type, targetURL, null, sourceElement);
 	this.targetFrame = targetFrame;
-	this.sourceElement = sourceElement;
     }
 
 
@@ -82,18 +81,8 @@ public class HTMLFrameHyperlinkEvent extends HyperlinkEvent {
      */
     public HTMLFrameHyperlinkEvent(Object source, EventType type, URL targetURL, String desc,  
 				   Element sourceElement, String targetFrame) {
-        super(source, type, targetURL, desc);
+        super(source, type, targetURL, desc, sourceElement);
 	this.targetFrame = targetFrame;
-	this.sourceElement = sourceElement;
-    }
-
-    /**
-     * returns the element that corresponds to the source of the
-     * event.  This would always be the leaf element whose
-     * tag is HTML.Tag.FRAME.
-     */
-    public Element getSourceElement() {
-	return sourceElement;
     }
 
     /**
@@ -104,5 +93,4 @@ public class HTMLFrameHyperlinkEvent extends HyperlinkEvent {
     }
 
     private String targetFrame;
-    private Element sourceElement;
 }

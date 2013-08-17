@@ -1,4 +1,6 @@
 /*
+ * @(#)TableColumnModel.java	1.22 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,7 +17,7 @@ import javax.swing.*;
  * Defines the requirements for a table column model object suitable for
  * use with <code>JTable</code>.
  *
- * @version 1.21 02/06/02
+ * @version 1.22 12/03/01
  * @author Alan Chung
  * @author Philip Milne
  * @see DefaultTableColumnModel
@@ -129,7 +131,22 @@ public interface TableColumnModel
      * horizontal point, <code>xPosition</code>;
      * or -1 if it lies outside the any of the column's bounds.
      *
+     * In keeping with Swing's separable model architecture, a
+     * TableColumnModel does not know how the table columns actually appear on
+     * screen.  The visual presentation of the columns is the responsibility
+     * of the view/controller object using this model (typically JTable).  The
+     * view/controller need not display the columns sequentially from left to
+     * right.  For example, columns could be displayed from right to left to
+     * accomodate a locale preference or some columns might be hidden at the
+     * request of the user.  Because the model does not know how the columns
+     * are laid out on screen, the given <code>xPosition</code> should not be
+     * considered to be a coordinate in 2D graphics space.  Instead, it should
+     * be considered to be a width from the start of the first column in the
+     * model.  If the column index for a given X coordinate in 2D space is
+     * required, <code>JTable.columnAtPoint</code> can be used instead.
+     *
      * @return  the index of the column; or -1 if no column is found
+     * @see javax.swing.JTable#columnAtPoint
      */
     public int getColumnIndexAtX(int xPosition);
     

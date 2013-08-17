@@ -1,4 +1,6 @@
 /*
+ * @(#)FilteredImageSource.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -29,7 +31,7 @@ import java.awt.image.ColorModel;
  *
  * @see ImageProducer
  *
- * @version	1.23 02/06/02
+ * @version	1.24 12/03/01
  * @author 	Jim Graham
  */
 public class FilteredImageSource implements ImageProducer {
@@ -39,6 +41,8 @@ public class FilteredImageSource implements ImageProducer {
     /**
      * Constructs an ImageProducer object from an existing ImageProducer
      * and a filter object.
+     * @param orig the specified <code>ImageProducer</code>
+     * @param imgf the specified <code>ImageFilter</code>
      * @see ImageFilter
      * @see java.awt.Component#createImage
      */
@@ -68,6 +72,7 @@ public class FilteredImageSource implements ImageProducer {
     /**
      * Determines whether an ImageConsumer is on the list of consumers 
      * currently interested in data for this image.
+     * @param ic the specified <code>ImageConsumer</code>
      * @return true if the ImageConsumer is on the list; false otherwise
      * @see ImageConsumer
      */

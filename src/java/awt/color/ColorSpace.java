@@ -1,4 +1,6 @@
 /*
+ * @(#)ColorSpace.java	1.35 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,27 +17,39 @@
 
 package java.awt.color;
 
+import sun.awt.color.CMM;
+
 
 /**
  * This abstract class is used to serve as a color space tag to identify the
  * specific color space of a Color object or, via a ColorModel object,
  * of an Image, a BufferedImage, or a GraphicsDevice.  It contains
- * methods that transform Colors in a specific color space to/from sRGB
+ * methods that transform colors in a specific color space to/from sRGB
  * and to/from a well-defined CIEXYZ color space.
- * <p>Several variables are defined for purposes of referring to color
+ * <p>
+ * For purposes of the methods in this class, colors are represented as
+ * arrays of color components represented as floats in a normalized range
+ * defined by each ColorSpace.  For many ColorSpaces (e.g. sRGB), this
+ * range is 0.0 to 1.0.  However, some ColorSpaces have components whose
+ * values have a different range.  Methods are provided to inquire per
+ * component minimum and maximum normalized values.
+ * <p>
+ * Several variables are defined for purposes of referring to color
  * space types (e.g. TYPE_RGB, TYPE_XYZ, etc.) and to refer to specific
  * color spaces (e.g. CS_sRGB and CS_CIEXYZ).
  * sRGB is a proposed standard RGB color space.  For more information,
  * see <A href="http://www.w3.org/pub/WWW/Graphics/Color/sRGB.html">
  * http://www.w3.org/pub/WWW/Graphics/Color/sRGB.html
  * </A>.
- * <p>The purpose of the methods to transform to/from the well-defined
+ * <p>
+ * The purpose of the methods to transform to/from the well-defined
  * CIEXYZ color space is to support conversions between any two color
  * spaces at a reasonably high degree of accuracy.  It is expected that
  * particular implementations of subclasses of ColorSpace (e.g.
  * ICC_ColorSpace) will support high performance conversion based on
  * underlying platform color management systems.
- * <p>The CS_CIEXYZ space used by the toCIEXYZ/fromCIEXYZ methods can be
+ * <p>
+ * The CS_CIEXYZ space used by the toCIEXYZ/fromCIEXYZ methods can be
  * described as follows:
 <pre>
 
@@ -64,6 +78,8 @@ package java.awt.color;
 
 
 public abstract class ColorSpace implements java.io.Serializable {
+
+    static final long serialVersionUID = -409452704308689724L;
 
     private int type;
     private int numComponents;
@@ -233,6 +249,8 @@ public abstract class ColorSpace implements java.io.Serializable {
     /**
      * Constructs a ColorSpace object given a color space type
      * and the number of components.
+     * @param type One of the <CODE>ColorSpace</CODE> type constants.
+     * @param numcomponents The number of components in the color space.
      */
     protected ColorSpace (int type, int numcomponents) {
         this.type = type;
@@ -246,6 +264,7 @@ public abstract class ColorSpace implements java.io.Serializable {
      * @param colorspace a specific color space identified by one of
      *        the predefined class constants (e.g. CS_sRGB, CS_LINEAR_RGB,
      *        CS_CIEXYZ, CS_GRAY, or CS_PYCC)
+     * @return The requested <CODE>ColorSpace</CODE> object. 
      */
     // NOTE: This method may be called by privileged threads.
     //       DO NOT INVOKE CLIENT CODE ON THIS THREAD!
@@ -286,6 +305,8 @@ public abstract class ColorSpace implements java.io.Serializable {
             if (GRAYspace == null) {
                 ICC_Profile theProfile = ICC_Profile.getInstance (CS_GRAY);
                 GRAYspace = new ICC_ColorSpace (theProfile);
+             CMM.GRAYspace = GRAYspace;   // to allow access from
+                                          // java.awt.ColorModel
             }
 
             theColorSpace = GRAYspace;
@@ -296,6 +317,8 @@ public abstract class ColorSpace implements java.io.Serializable {
             if (LINEAR_RGBspace == null) {
                 ICC_Profile theProfile = ICC_Profile.getInstance(CS_LINEAR_RGB);
                 LINEAR_RGBspace = new ICC_ColorSpace (theProfile);
+             CMM.LINEAR_RGBspace = LINEAR_RGBspace;   // to allow access from
+                                                      // java.awt.ColorModel
             }
 
             theColorSpace = LINEAR_RGBspace;
@@ -312,6 +335,8 @@ public abstract class ColorSpace implements java.io.Serializable {
 
     /**
      * Returns true if the ColorSpace is CS_sRGB.
+     * @return <CODE>true</CODE> if this is a <CODE>CS_sRGB</CODE> color 
+     * space, <code>false</code> if it is not.
      */
     public boolean isCS_sRGB () {
         /* REMIND - make sure we know sRGBspace exists already */
@@ -336,6 +361,8 @@ public abstract class ColorSpace implements java.io.Serializable {
      * @param colorvalue a float array with length of at least the number
      *        of components in this ColorSpace
      * @return a float array of length 3
+     * @throws ArrayIndexOutOfBoundsException if array length is not
+     * at least the number of components in this ColorSpace.
      */
     public abstract float[] toRGB(float[] colorvalue);
 
@@ -358,6 +385,8 @@ public abstract class ColorSpace implements java.io.Serializable {
      * @param rgbvalue a float array with length of at least 3
      * @return a float array with length equal to the number of
      *         components in this ColorSpace
+     * @throws ArrayIndexOutOfBoundsException if array length is not
+     * at least 3.
      */
     public abstract float[] fromRGB(float[] rgbvalue);
 
@@ -383,6 +412,8 @@ public abstract class ColorSpace implements java.io.Serializable {
      * @param colorvalue a float array with length of at least the number
      *        of components in this ColorSpace
      * @return a float array of length 3
+     * @throws ArrayIndexOutOfBoundsException if array length is not
+     * at least the number of components in this ColorSpace.
      */
     public abstract float[] toCIEXYZ(float[] colorvalue);
 
@@ -409,6 +440,8 @@ public abstract class ColorSpace implements java.io.Serializable {
      * @param colorvalue a float array with length of at least 3
      * @return a float array with length equal to the number of
      *         components in this ColorSpace
+     * @throws ArrayIndexOutOfBoundsException if array length is not
+     * at least 3.
      */
     public abstract float[] fromCIEXYZ(float[] colorvalue);
 
@@ -420,6 +453,8 @@ public abstract class ColorSpace implements java.io.Serializable {
      * green, and blue.  It does not define the particular color
      * characteristics of the space, e.g. the chromaticities of the
      * primaries.
+     * @return The type constant that represents the type of this 
+     *         <CODE>ColorSpace</CODE>.
      */
     public int getType() {
         return type;
@@ -427,17 +462,58 @@ public abstract class ColorSpace implements java.io.Serializable {
 
     /**
      * Returns the number of components of this ColorSpace.
+     * @return The number of components in this <CODE>ColorSpace</CODE>.
      */
     public int getNumComponents() {
         return numComponents;
     }
 
     /**
-     * Returns the name of the component given the component index
+     * Returns the name of the component given the component index.
+     * @param idx The component index.
+     * @return The name of the component at the specified index.
      */
     public String getName (int idx) {
         /* REMIND - handle common cases here */
         return new String("Unnamed color component("+idx+")");
+    }
+
+    /**
+     * Returns the minimum normalized color component value for the
+     * specified component.  The default implementation in this abstract
+     * class returns 0.0 for all components.  Subclasses should override
+     * this method if necessary.
+     * @param component The component index.
+     * @return The minimum normalized component value.
+     * @throws IllegalArgumentException if component is less than 0 or
+     *         greater than numComponents - 1.
+     * @since 1.4
+     */
+    public float getMinValue(int component) {
+        if ((component < 0) || (component > numComponents - 1)) {
+            throw new IllegalArgumentException(
+                "Component index out of range: + component");
+        }
+        return 0.0f;
+    }
+
+    /**
+     * Returns the maximum normalized color component value for the
+     * specified component.  The default implementation in this abstract
+     * class returns 1.0 for all components.  Subclasses should override
+     * this method if necessary.
+     * @param component The component index.
+     * @return The maximum normalized component value.
+     * @throws IllegalArgumentException if component is less than 0 or
+     *         greater than numComponents - 1.
+     * @since 1.4
+     */
+    public float getMaxValue(int component) {
+        if ((component < 0) || (component > numComponents - 1)) {
+            throw new IllegalArgumentException(
+                "Component index out of range: + component");
+        }
+        return 1.0f;
     }
 
     /* Returns true if cspace is the XYZspace.

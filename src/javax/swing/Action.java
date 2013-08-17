@@ -1,4 +1,6 @@
 /*
+ * @(#)Action.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -39,7 +41,7 @@ import java.beans.*;
  *     (a tool bar creates a button component, for example).
  * <li>Gets the appropriate property(s) from the <code>Action</code> object to 
  *     customize the component (for example, the icon image and flyover text).
- * <li>Checks the intial state of the <code>Action</code> object to determine 
+ * <li>Checks the initial state of the <code>Action</code> object to determine 
  *     if it is enabled or disabled, and renders the component in the 
  *     appropriate fashion.
  * <li>Registers a listener with the <code>Action</code> object so that is 
@@ -73,7 +75,7 @@ import java.beans.*;
  * you should take care to only use <code>Action</code>s where their benefits
  * are desired, and use simple <code>ActionListeners</code> elsewhere.
  *
- * @version 1.22 02/06/02
+ * @version 1.24 12/03/01
  * @author Georges Saab
  * @see AbstractAction
  */
@@ -117,12 +119,16 @@ public interface Action extends ActionListener {
     /**
      * The key used for storing a <code>KeyStroke</code> to be used as the
      * accelerator for the action.
+     *
+     * @since 1.3
      */
     public static final String ACCELERATOR_KEY="AcceleratorKey";
     
     /**
      * The key used for storing an int key code to be used as the mnemonic
      * for the action.
+     *
+     * @since 1.3
      */
     public static final String MNEMONIC_KEY="MnemonicKey";
 

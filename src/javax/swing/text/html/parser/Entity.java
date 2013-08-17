@@ -1,4 +1,6 @@
 /*
+ * @(#)Entity.java	1.8 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,11 +16,11 @@ import java.io.CharArrayReader;
 import java.net.URL;
 
 /**
- * An entity in as described in a DTD using the ENTITY construct.
+ * An entity is described in a DTD using the ENTITY construct.
  * It defines the type and value of the the entity.
  *
  * @see DTD
- * @version 1.7, 02/06/02
+ * @version 1.8, 12/03/01
  * @author Arthur van Hoff
  */
 public final
@@ -28,7 +30,10 @@ class Entity implements DTDConstants {
     public char data[];
 
     /**
-     * Create an entity.
+     * Creates an entity.
+     * @param name the name of the entity
+     * @param type the type of the entity
+     * @param data the char array of data
      */
     public Entity(String name, int type, char data[]) {
 	this.name = name;
@@ -37,42 +42,48 @@ class Entity implements DTDConstants {
     }
 
     /**
-     * Get the name of the entity.
+     * Gets the name of the entity.
+     * @return the name of the entity, as a <code>String</code>
      */
     public String getName() {
 	return name;
     }
 
     /**
-     * Get the type of the entity.
+     * Gets the type of the entity.
+     * @return the type of the entity
      */
     public int getType() {
 	return type & 0xFFFF;
     }
 
     /**
-     * Return true if it is a parameter entity.
+     * Returns <code>true</code> if it is a parameter entity.
+     * @return <code>true</code> if it is a parameter entity
      */
     public boolean isParameter() {
 	return (type & PARAMETER) != 0;
     }
 
     /**
-     * Return true if it is a parameter entity.
+     * Returns <code>true</code> if it is a general entity.
+     * @return <code>true</code> if it is a general entity
      */
     public boolean isGeneral() {
 	return (type & GENERAL) != 0;
     }
 
     /**
-     * Return the data.
+     * Returns the <code>data</code>.
+     * @return the <code>data</code>
      */
     public char getData()[] {
 	return data;
     }
 
     /**
-     * Return the data as a string.
+     * Returns the data as a <code>String</code>.
+     * @return the data as a <code>String</code>
      */
     public String getString() {
 	return new String(data, 0, data.length);
@@ -93,6 +104,17 @@ class Entity implements DTDConstants {
 	entityTypes.put("SYSTEM", new Integer(SYSTEM));
     }
 
+    /**
+     * Converts <code>nm</code> string to the corresponding
+     * entity type.  If the string does not have a corresponding
+     * entity type, returns the type corresponding to "CDATA".
+     * Valid entity types are: "PUBLIC", "CDATA", "SDATA", "PI",
+     * "STARTTAG", "ENDTAG", "MS", "MD", "SYSTEM".
+     *
+     * @param nm the string to be converted
+     * @return the corresponding entity type, or the type corresponding
+     *   to "CDATA", if none exists
+     */
     public static int name2type(String nm) {
 	Integer i = (Integer)entityTypes.get(nm);
 	return (i == null) ? CDATA : i.intValue();

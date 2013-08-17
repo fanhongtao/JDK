@@ -1,4 +1,6 @@
 /*
+ * @(#)Compiler.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -24,7 +26,7 @@ package java.lang;
  * If no compiler is available, these methods do nothing.
  *
  * @author  Frank Yellin
- * @version 1.16, 02/06/02
+ * @version 1.17, 12/03/01
  * @see     java.lang.System#getProperty(java.lang.String)
  * @see     java.lang.System#getProperty(java.lang.String, java.lang.String)
  * @see     java.lang.System#loadLibrary(java.lang.String)
@@ -74,6 +76,8 @@ public final class Compiler  {
      * @return  <code>true</code> if the compilation succeeded;
      *          <code>false</code> if the compilation failed or no compiler
      *          is available.
+     * @exception NullPointerException if <code>clazz</code> is 
+     *          <code>null</code>.
      */
     public static native boolean compileClass(Class clazz);
 
@@ -84,6 +88,8 @@ public final class Compiler  {
      * @return  <code>true</code> if the compilation succeeded;
      *          <code>false</code> if the compilation failed or no compiler
      *          is available.
+     * @exception NullPointerException if <code>string</code> is 
+     *          <code>null</code>.
      */
     public static native boolean compileClasses(String string);
 
@@ -94,6 +100,8 @@ public final class Compiler  {
      * @param   any   an argument.
      * @return  a compiler-specific value, or <code>null</code> if no compiler
      *          is available.
+     * @exception NullPointerException if <code>any</code> is 
+     *          <code>null</code>.
      */
     public static native Object command(Object any);
 

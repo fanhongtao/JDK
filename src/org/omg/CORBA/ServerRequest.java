@@ -1,4 +1,6 @@
 /*
+ * @(#)ServerRequest.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -67,11 +69,14 @@ public abstract class ServerRequest {
 
 
     /**
+     * Throws an <code>org.omg.CORBA.NO_IMPLEMENT</code> exception.
+     * <P>
      * Retrieves the name of the operation being
      * invoked. According to OMG IDL's rules, these names must be unique
      * among all operations supported by this object's "most-derived"
      * interface. Note that the operation names for getting and setting
-     * attributes are _get_<attribute_name> and _set_<attribute_name>,
+     * attributes are <code>_get_&lt;attribute_name&gt;</code>
+     * and <code>_set_&lt;attribute_name&gt;</code>,
      * respectively.
      *
      * @return     the name of the operation to be invoked
@@ -175,6 +180,7 @@ public abstract class ServerRequest {
      * describe all parameters passed by the client, may result in a MARSHAL
      * system exception.
      *
+     * @param any an <code>Any</code> object containing the return value to be set
      * @deprecated use the method <code>set_result</code>
      */
     public void result(Any any)
@@ -184,6 +190,8 @@ public abstract class ServerRequest {
 
 
     /**
+     * Throws an <code>org.omg.CORBA.NO_IMPLEMENT</code> exception.
+     * <P>
      * Specifies any return value for the call. Unless the method 
      * <code>set_exception</code> is called, if the invoked method
      * has a non-void result type, the method <code>set_result</code>
@@ -201,6 +209,7 @@ public abstract class ServerRequest {
      * describe all parameters passed by the client, may result in a MARSHAL
      * system exception.
      *
+     * @param any an <code>Any</code> object containing the return value to be set
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code>
      *      package comments for unimplemented features</a>
      */
@@ -230,6 +239,8 @@ public abstract class ServerRequest {
     }
 
     /**
+     * Throws an <code>org.omg.CORBA.NO_IMPLEMENT</code> exception.
+     * <P>
      * Returns the given exception to the client.  This method 
      * is invoked by the DIR, which may call it at any time.
      * The <code>Any</code> object  passed to this method must

@@ -1,4 +1,6 @@
 /*
+ * @(#)JColorChooser.java	1.41 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -41,10 +43,12 @@ import javax.accessibility.*;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  *
  * @beaninfo
@@ -52,7 +56,7 @@ import javax.accessibility.*;
  *    description: A component that supports selecting a Color.
  *
  *
- * @version 1.31 02/06/02
+ * @version 1.41 12/03/01
  * @author James Gosling
  * @author Amy Fowler
  * @author Steve Wilson
@@ -71,7 +75,7 @@ public class JColorChooser extends JComponent implements Accessible {
 
     private AbstractColorChooserPanel[] chooserPanels = new AbstractColorChooserPanel[0];
 
-
+    private boolean dragEnabled;
 
     /**
      * The selection model property name.
@@ -100,9 +104,13 @@ public class JColorChooser extends JComponent implements Accessible {
      * @param component    the parent <code>Component</code> for the dialog
      * @param title        the String containing the dialog's title
      * @param initialColor the initial Color set when the color-chooser is shown
+     * @return the selected color or <code>null</code> if the user opted out
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
     public static Color showDialog(Component component,
-                                   String title, Color initialColor) {
+        String title, Color initialColor) throws HeadlessException {
 
         final JColorChooser pane = new JColorChooser(initialColor != null?
                                                initialColor : Color.white);
@@ -120,7 +128,7 @@ public class JColorChooser extends JComponent implements Accessible {
 
     /**
      * Creates and returns a new dialog containing the specified
-     * <code>ColorChooser</code>` pane along with "OK", "Cancel", and "Reset"
+     * <code>ColorChooser</code> pane along with "OK", "Cancel", and "Reset"
      * buttons. If the "OK" or "Cancel" buttons are pressed, the dialog is
      * automatically hidden (but not disposed).  If the "Reset"
      * button is pressed, the color-chooser's color will be reset to the
@@ -134,16 +142,18 @@ public class JColorChooser extends JComponent implements Accessible {
      * @param chooserPane    the color-chooser to be placed inside the dialog
      * @param okListener     the ActionListener invoked when "OK" is pressed
      * @param cancelListener the ActionListener invoked when "Cancel" is pressed
+     * @return a new dialog containing the color-chooser pane
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
     public static JDialog createDialog(Component c, String title, boolean modal,
-                                       JColorChooser chooserPane,
-                                       ActionListener okListener,
-                                       ActionListener cancelListener) {
+        JColorChooser chooserPane, ActionListener okListener,
+        ActionListener cancelListener) throws HeadlessException {
 
         return new ColorChooserDialog(c, title, modal, chooserPane,
                                                 okListener, cancelListener);
     }
-
 
     /**
      * Creates a color chooser pane with an initial color of white.
@@ -171,13 +181,14 @@ public class JColorChooser extends JComponent implements Accessible {
     public JColorChooser(ColorSelectionModel model) {
 	selectionModel = model;
         updateUI();
-
+	dragEnabled = false;
     }
 
     /**
      * Returns the L&F object that renders this component.
      *
-     * @return the ColorChooserUI object that renders this component
+     * @return the <code>ColorChooserUI</code> object that renders
+     *		this component
      */
     public ColorChooserUI getUI() {
         return (ColorChooserUI)ui;
@@ -186,7 +197,7 @@ public class JColorChooser extends JComponent implements Accessible {
     /**
      * Sets the L&F object that renders this component.
      *
-     * @param ui  the ColorChooserUI L&F object
+     * @param ui  the <code>ColorChooserUI</code> L&F object
      * @see UIDefaults#getUI
      *
      * @beaninfo
@@ -231,11 +242,8 @@ public class JColorChooser extends JComponent implements Accessible {
     }
 
     /**
-     * Sets the current color of the color chooser to the
-     * specified color.
-     * This will fire a <code>PropertyChangeEvent</code> for the property
-     * named "color".
-     *
+     * Sets the current color of the color chooser to the specified color.
+     * The <code>ColorSelectionModel</code> will fire a <code>ChangeEvent</code>
      * @param color the color to be set in the color chooser
      * @see JComponent#addPropertyChangeListener
      *
@@ -268,13 +276,70 @@ public class JColorChooser extends JComponent implements Accessible {
      * Sets the current color of the color chooser to the
      * specified color.
      *
-     * @param c an int value that sets the current color in the chooser
+     * @param c an integer value that sets the current color in the chooser
      *          where the low-order 8 bits specify the Blue value,
      *          the next 8 bits specify the Green value, and the 8 bits
      *          above that specify the Red value.
      */
     public void setColor(int c) {
         setColor((c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF);
+    }
+
+    /**
+     * Sets the <code>dragEnabled</code> property,
+     * which must be <code>true</code> to enable
+     * automatic drag handling (the first part of drag and drop)
+     * on this component.
+     * The <code>transferHandler</code> property needs to be set
+     * to a non-<code>null</code> value for the drag to do
+     * anything.  The default value of the <code>dragEnabled</code>
+     * property
+     * is <code>false</code>.
+     *
+     * <p>
+     *
+     * When automatic drag handling is enabled,
+     * most look and feels begin a drag-and-drop operation
+     * when the user presses the mouse button over the preview panel.
+     * Some look and feels might not support automatic drag and drop;
+     * they will ignore this property.  You can work around such
+     * look and feels by modifying the component
+     * to directly call the <code>exportAsDrag</code> method of a
+     * <code>TransferHandler</code>.
+     *
+     * @param b the value to set the <code>dragEnabled</code> property to
+     * @exception HeadlessException if
+     *            <code>b</code> is <code>true</code> and
+     *            <code>GraphicsEnvironment.isHeadless()</code>
+     *            returns <code>true</code>
+     *
+     * @since 1.4
+     *
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see #getDragEnabled
+     * @see #setTransferHandler
+     * @see TransferHandler
+     *
+     * @beaninfo
+     *  description: Determines whether automatic drag handling is enabled.
+     *        bound: false
+     */
+    public void setDragEnabled(boolean b) {
+        if (b && GraphicsEnvironment.isHeadless()) {
+            throw new HeadlessException();
+        }
+	dragEnabled = b;
+    }
+
+    /**
+     * Gets the value of the <code>dragEnabled</code> property.
+     *
+     * @return  the value of the <code>dragEnabled</code> property
+     * @see #setDragEnabled
+     * @since 1.4
+     */
+    public boolean getDragEnabled() {
+	return dragEnabled;
     }
 
     /**
@@ -302,7 +367,7 @@ public class JColorChooser extends JComponent implements Accessible {
     /**
      * Returns the preview panel that shows a chosen color.
      *
-     * @return a JComponent object -- the preview panel
+     * @return a <code>JComponent</code> object -- the preview panel
      */
     public JComponent getPreviewPanel() {
         return previewPanel;
@@ -311,6 +376,7 @@ public class JColorChooser extends JComponent implements Accessible {
     /**
      * Adds a color chooser panel to the color chooser.
      *
+     * @param panel the <code>AbstractColorChooserPanel</code> to be added
      */
     public void addChooserPanel( AbstractColorChooserPanel panel ) {
         AbstractColorChooserPanel[] oldPanels = getChooserPanels();
@@ -323,10 +389,10 @@ public class JColorChooser extends JComponent implements Accessible {
     /**
      * Removes the Color Panel specified.
      *
-     * @exception IllegalArgumentException if panel is not in list of
-     * 			known chooser panels
      * @param name   a string that specifies the panel to be removed
      * @return the color panel
+     * @exception IllegalArgumentException if panel is not in list of
+     * 			known chooser panels
      */
     public AbstractColorChooserPanel removeChooserPanel( AbstractColorChooserPanel panel ) {
 
@@ -366,7 +432,8 @@ public class JColorChooser extends JComponent implements Accessible {
     /**
      * Specifies the Color Panels used to choose a color value.
      *
-     * @param panels  an array of AbstractColorChooserPanel object
+     * @param panels  an array of <code>AbstractColorChooserPanel</code>
+     *		objects
      *
      * @beaninfo
      *       bound: true
@@ -382,7 +449,7 @@ public class JColorChooser extends JComponent implements Accessible {
     /**
      * Returns the specified color panels.
      *
-     * @return an array of AbstractColorChooserPanel objects
+     * @return an array of <code>AbstractColorChooserPanel</code> objects
      */
     public AbstractColorChooserPanel[] getChooserPanels() {
         return chooserPanels;
@@ -391,7 +458,7 @@ public class JColorChooser extends JComponent implements Accessible {
     /**
      * Returns the data model that handles color selections.
      *
-     * @return a ColorSelectionModel object 
+     * @return a <code>ColorSelectionModel</code> object 
      */
     public ColorSelectionModel getSelectionModel() {
         return selectionModel;
@@ -399,9 +466,9 @@ public class JColorChooser extends JComponent implements Accessible {
 
 
     /**
-     * Set the model containing the selected color.
+     * Sets the model containing the selected color.
      *
-     * @param newModel   the new ColorSelectionModel object
+     * @param newModel   the new <code>ColorSelectionModel</code> object
      *
      * @beaninfo
      *       bound: true
@@ -422,9 +489,13 @@ public class JColorChooser extends JComponent implements Accessible {
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
+        }
     }
 
 
@@ -508,8 +579,9 @@ class ColorChooserDialog extends JDialog {
     private JColorChooser chooserPane;
 
     public ColorChooserDialog(Component c, String title, boolean modal,
-                              JColorChooser chooserPane,
-                              ActionListener okListener, ActionListener cancelListener) {
+        JColorChooser chooserPane,
+        ActionListener okListener, ActionListener cancelListener)
+        throws HeadlessException {
         super(JOptionPane.getFrameForComponent(c), title, modal);
         //setResizable(false);
 
@@ -576,8 +648,21 @@ class ColorChooserDialog extends JDialog {
                reset();
            }
         });
+        int mnemonic = UIManager.getInt("ColorChooser.resetMnemonic", -1);
+        if (mnemonic != -1) {
+            resetButton.setMnemonic(mnemonic);
+        }
         buttonPane.add(resetButton);
         contentPane.add(buttonPane, BorderLayout.SOUTH);
+
+        if (JDialog.isDefaultLookAndFeelDecorated()) {
+            boolean supportsWindowDecorations = 
+            UIManager.getLookAndFeel().getSupportsWindowDecorations();
+            if (supportsWindowDecorations) {
+                getRootPane().setWindowDecorationStyle(JRootPane.COLOR_CHOOSER_DIALOG);
+            }
+        }
+        applyComponentOrientation(((c == null) ? getRootPane() : c).getComponentOrientation());
 
         pack();
         setLocationRelativeTo(c);

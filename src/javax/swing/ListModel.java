@@ -1,4 +1,6 @@
 /*
+ * @(#)ListModel.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -23,25 +25,28 @@ public interface ListModel
 {
   /** 
    * Returns the length of the list.
+   * @return the length of the list
    */
   int getSize();
 
   /**
    * Returns the value at the specified index.  
+   * @param index the requested index
+   * @return the value at <code>index</code>
    */
   Object getElementAt(int index);
 
   /**
-   * Add a listener to the list that's notified each time a change
+   * Adds a listener to the list that's notified each time a change
    * to the data model occurs.
-   * @param l the ListDataListener
+   * @param l the <code>ListDataListener</code> to be added
    */  
   void addListDataListener(ListDataListener l);
 
   /**
-   * Remove a listener from the list that's notified each time a 
+   * Removes a listener from the list that's notified each time a 
    * change to the data model occurs.
-   * @param l the ListDataListener
+   * @param l the <code>ListDataListener</code> to be removed
    */  
   void removeListDataListener(ListDataListener l);
 }

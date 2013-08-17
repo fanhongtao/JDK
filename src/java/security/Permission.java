@@ -1,4 +1,6 @@
 /*
+ * @(#)Permission.java	1.36 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -37,7 +39,7 @@ package java.security;
  * @see Permissions
  * @see PermissionCollection
  *
- * @version 1.36 02/02/06
+ * @version 1.36 01/12/03
  *
  * @author Marianne Mueller
  * @author Roland Schemers 

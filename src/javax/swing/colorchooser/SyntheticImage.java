@@ -1,4 +1,6 @@
 /*
+ * @(#)SyntheticImage.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -32,7 +34,7 @@ import java.awt.image.*;
  *  frame has started.  It is acceptable (expected?) for computeRow(0,r)
  *  to pause until the appropriate time to start the next frame.
  *
- *  @version 1.17 02/06/02
+ *  @version 1.19 12/03/01
  *  @author James Gosling
  */
 abstract class SyntheticImage implements ImageProducer {
@@ -77,6 +79,29 @@ abstract class SyntheticImage implements ImageProducer {
     protected boolean isStatic() { return true; }
     public void nextFrame(int param) {}//Override if !isStatic
     public void requestTopDownLeftRightResend(ImageConsumer ic){}
+    
+    protected synchronized void setIsUseful(boolean useful)  {
+        for (SyntheticImageGenerator ics = root; ics != null; ics = ics.next) {
+            ics.useful = useful;
+        }
+    }
+
+
+    public synchronized void restartProduction() {
+        for (SyntheticImageGenerator ics = root; ics != null; ics = ics.next) {
+            if (ics.useful && !ics.isAlive()) {
+                new Thread(ics).start();
+            }
+        }
+    }
+
+    protected boolean isUseful()  {
+        for (SyntheticImageGenerator ics = root; ics != null; ics = ics.next) {
+            if (ics.useful)
+                return true;
+        }
+        return false;
+    }
 }
 
 class SyntheticImageGenerator extends Thread {
@@ -91,7 +116,8 @@ class SyntheticImageGenerator extends Thread {
         this.parent = parent;
         useful = true;
         setDaemon(true);
-	//	System.out.println (Thread.getCurrent() + " is making a generator");
+        // XXX
+//		System.out.println ("SyntheticImage: " + Thread.currentThread() + " is making a generator");
     }
     public void run() {
         ImageConsumer ic = this.ic;
@@ -114,8 +140,8 @@ class SyntheticImageGenerator extends Thread {
 	    });
 
             do {
-
-	      //  System.out.println("doing");
+                //XXX
+  //	            System.out.println("SyntheticImage: doing image");
                 for (int y = 0; y<h && useful; y++) {
                     parent.computeRow(y,row);
                     ic.setPixels(0, y, w, 1, parent.cm, row, 0, w);

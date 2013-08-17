@@ -1,4 +1,6 @@
 /*
+ * @(#)PageFormat.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -253,6 +255,7 @@ public class PageFormat implements Cloneable
      * method.
      * @return a copy of the <code>Paper</code> object associated
      *		with this <code>PageFormat</code>.
+     * @see #setPaper
      */
     public Paper getPaper() {
 	return (Paper)mPaper.clone();
@@ -265,6 +268,7 @@ public class PageFormat implements Cloneable
      * the <code>Paper</code> object for this <code>PageFormat</code>.
      * @exception <code>NullPointerException</code>
      *		    a null paper instance was passed as a parameter.
+     * @see #getPaper
      */
      public void setPaper(Paper paper) {
          mPaper = (Paper)paper.clone();
@@ -275,8 +279,9 @@ public class PageFormat implements Cloneable
      * one of the constants: PORTRAIT, LANDSCAPE,
      * or REVERSE_LANDSCAPE.
      * @param orientation the new orientation for the page
-     * @exception <code>IllegalArgumentException</code> 
+     * @throws IllegalArgumentException if 
      *		an unknown orientation was requested
+     * @see #getOrientation
      */
     public void setOrientation(int orientation) throws IllegalArgumentException
     {
@@ -290,6 +295,7 @@ public class PageFormat implements Cloneable
     /**
      * Returns the orientation of this <code>PageFormat</code>.
      * @return this <code>PageFormat</code> object's orientation.
+     * @see #setOrientation
      */
     public int getOrientation() {
 	return mOrientation;

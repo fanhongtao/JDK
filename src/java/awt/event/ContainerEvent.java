@@ -1,4 +1,6 @@
 /*
+ * @(#)ContainerEvent.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -34,7 +36,7 @@ import java.awt.Component;
  *
  * @author Tim Prinzing
  * @author Amy Fowler
- * @version 1.12 02/06/02
+ * @version 1.13 12/03/01
  * @since 1.1
  */
 public class ContainerEvent extends ComponentEvent {
@@ -74,9 +76,12 @@ public class ContainerEvent extends ComponentEvent {
     private static final long serialVersionUID = -4114942250539772041L;
 
     /**
-     * Constructs a ContainerEvent object.
+     * Constructs a <code>ContainerEvent</code> object.
+     * <p>Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior.
      * 
-     * @param source the Component object (container) that originated the event
+     * @param source the <code>Component</code> object (container)
+     *               that originated the event
      * @param id     an integer indicating the type of event
      * @param child  the component that was added or removed
      */

@@ -1,4 +1,6 @@
 /*
+ * @(#)GridBagConstraints.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,7 +11,7 @@ package java.awt;
  * for components that are laid out using the 
  * <code>GridBagLayout</code> class.
  *
- * @version 	1.27, 02/06/02
+ * @version 	1.29, 12/03/01
  * @author Doug Stein
  * @see java.awt.GridBagLayout
  * @since JDK1.0
@@ -17,7 +19,7 @@ package java.awt;
 public class GridBagConstraints implements Cloneable, java.io.Serializable {
 
    /**
-     * Specify that this component is the next-to-last component in its 
+     * Specifies that this component is the next-to-last component in its 
      * column or row (<code>gridwidth</code>, <code>gridheight</code>), 
      * or that this component be placed next to the previously added 
      * component (<code>gridx</code>, <code>gridy</code>). 
@@ -29,7 +31,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
   public static final int RELATIVE = -1;
 
    /**
-     * Specify that this component is the 
+     * Specifies that this component is the 
      * last component in its column or row. 
      */
   public static final int REMAINDER = 0;
@@ -103,18 +105,93 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      */
   public static final int NORTHWEST = 18;
 
+    /** 
+     * Place the component centered along the edge of its display area
+     * associated with the start of a page for the current
+     * <code>ComponentOrienation</code>.  Equal to NORTH for horizontal
+     * orientations. 
+     */
+  public static final int PAGE_START = 19;
+
+    /**
+     * Place the component centered along the edge of its display area  
+     * associated with the end of a page for the current
+     * <code>ComponentOrienation</code>.  Equal to SOUTH for horizontal
+     * orientations.
+     */
+  public static final int PAGE_END = 20;
+
+    /**
+     * Place the component centered along the edge of its display area where 
+     * lines of text would normally begin for the current 
+     * <code>ComponentOrienation</code>.  Equal to WEST for horizontal,
+     * left-to-right orientations and EAST for horizontal, right-to-left 
+     * orientations.
+     */
+  public static final int LINE_START = 21;
+
+    /**
+     * Place the component centered along the edge of its display area where 
+     * lines of text would normally end for the current 
+     * <code>ComponentOrienation</code>.  Equal to EAST for horizontal,
+     * left-to-right orientations and WEST for horizontal, right-to-left 
+     * orientations.
+     */
+  public static final int LINE_END = 22;
+
+    /**
+     * Place the component in the corner of its display area where 
+     * the first line of text on a page would normally begin for the current 
+     * <code>ComponentOrienation</code>.  Equal to NORTHWEST for horizontal,
+     * left-to-right orientations and NORTHEAST for horizontal, right-to-left 
+     * orientations.
+     */
+  public static final int FIRST_LINE_START = 23;
+
+    /**
+     * Place the component in the corner of its display area where 
+     * the first line of text on a page would normally end for the current 
+     * <code>ComponentOrienation</code>.  Equal to NORTHEAST for horizontal,
+     * left-to-right orientations and NORTHWEST for horizontal, right-to-left 
+     * orientations.
+     */
+  public static final int FIRST_LINE_END = 24;
+
+    /**
+     * Place the component in the corner of its display area where 
+     * the last line of text on a page would normally start for the current 
+     * <code>ComponentOrienation</code>.  Equal to SOUTHWEST for horizontal,
+     * left-to-right orientations and SOUTHEAST for horizontal, right-to-left 
+     * orientations.
+     */
+  public static final int LAST_LINE_START = 25;
+
+    /**
+     * Place the component in the corner of its display area where 
+     * the last line of text on a page would normally end for the current 
+     * <code>ComponentOrienation</code>.  Equal to SOUTHEAST for horizontal,
+     * left-to-right orientations and SOUTHWEST for horizontal, right-to-left 
+     * orientations.
+     */
+  public static final int LAST_LINE_END = 26;
+
    /**
-     * Specifies the cell at the left of the component's display area, 
-     * where the leftmost cell has <code>gridx=0</code>. The value 
-     * <code>RELATIVE</code> specifies that the component be placed just 
-     * to the right of the component that was added to the container just 
-     * before this component was added. 
+     * Specifies the cell containing the leading edge of the component's 
+     * display area, where the first cell in a row has <code>gridx=0</code>. 
+     * The leading edge of a component's display area is its left edge for
+     * a horizontal, left-to-right container and its right edge for a
+     * horizontal, right-to-left container.
+     * The value 
+     * <code>RELATIVE</code> specifies that the component be placed 
+     * immediately following the component that was added to the container 
+     * just before this component was added. 
      * <p>
      * The default value is <code>RELATIVE</code>. 
-     * gridx should be a non-negative value.
+     * <code>gridx</code> should be a non-negative value.
      * @serial
      * @see #clone()
      * @see java.awt.GridBagConstraints#gridy
+     * @see java.awt.ComponentOrientation
      */
   public int gridx;
 
@@ -126,7 +203,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * this component was added. 
      * <p>
      * The default value is <code>RELATIVE</code>.
-     * gridy should be a non-negative value.
+     * <code>gridy</code> should be a non-negative value.
      * @serial
      * @see #clone() 
      * @see java.awt.GridBagConstraints#gridx
@@ -141,7 +218,8 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * last one in its row. Use <code>RELATIVE</code> to specify that the 
      * component be the next-to-last one in its row. 
      * <p>
-     * gridwidth should be non-negative and the default value is 1.
+     * <code>gridwidth</code> should be non-negative and the default
+     * value is 1.
      * @serial
      * @see #clone() 
      * @see java.awt.GridBagConstraints#gridheight
@@ -156,7 +234,8 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * last one in its column. Use <code>RELATIVE</code> to specify that 
      * the component be the next-to-last one in its column. 
      * <p>
-     * gridheight should be a non-negative value and the default value is 1.
+     * <code>gridheight</code> should be a non-negative value and the
+     * default value is 1.
      * @serial
      * @see #clone()
      * @see java.awt.GridBagConstraints#gridwidth
@@ -177,7 +256,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * the grids of the cell and the left and right edges. 
      * <p>
      * The default value of this field is <code>0</code>.
-     * weightx should be a non-negative value.
+     * <code>weightx</code> should be a non-negative value.
      * @serial
      * @see #clone() 
      * @see java.awt.GridBagConstraints#weighty
@@ -198,23 +277,33 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * the grids of the cell and the top and bottom edges. 
      * <p>
      * The default value of this field is <code>0</code>. 
-     * weighty should be a non-negative value.
+     * <code>weighty</code> should be a non-negative value.
      * @serial
      * @see #clone()
      * @see java.awt.GridBagConstraints#weightx
      */
   public double weighty;
 
-   /**
-     * This field is used when the component is smaller than its display 
-     * area. It determines where, within the display area, to place the 
-     * component. Possible values are <code>CENTER</code>, 
-     * <code>NORTH</code>, <code>NORTHEAST</code>, <code>EAST</code>, 
-     * <code>SOUTHEAST</code>, <code>SOUTH</code>, <code>SOUTHWEST</code>, 
-     * <code>WEST</code>, and <code>NORTHWEST</code>.
+   /** 
+    * This field is used when the component is smaller than its display
+     * area. It determines where, within the display area, to place the
+     * component. 
+     * <p>
+     * There are two kinds of possible values: relative and 
+     * absolute.  Relative values are interpreted relative to the container's
+     * component orientation property while absolute values are not.  The absolute
+     * values are:
+     * <code>CENTER</code>, <code>NORTH</code>, <code>NORTHEAST</code>,
+     * <code>EAST</code>, <code>SOUTHEAST</code>, <code>SOUTH</code>,
+     * <code>SOUTHWEST</code>, <code>WEST</code>, and <code>NORTHWEST</code>.
+     * The relative values are: <code>PAGE_START</code>, <code>PAGE_END</code>,
+     * <code>LINE_START</code>, <code>LINE_END</code>, 
+     * <code>FIRST_LINE_START</code>, <code>FIRST_LINE_END</code>, 
+     * <code>LAST_LINE_START</code> and <code>LAST_LINE_END</code>.
      * The default value is <code>CENTER</code>. 
      * @serial
-     * @see #clone()
+     * @see #clone() 
+     * @see java.awt.ComponentOrientation
      */
   public int anchor;
 

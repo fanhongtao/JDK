@@ -1,12 +1,12 @@
 /*
+ * @(#)HRuleView.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
 import java.awt.*;
-import javax.swing.BorderFactory;
-import javax.swing.border.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.text.*;
 import java.util.Enumeration;
@@ -18,7 +18,7 @@ import java.lang.Integer;
  *
  * @author  Timothy Prinzing
  * @author  Sara Swanson
- * @version 1.28 02/06/02
+ * @version 1.29 12/03/01
  */
 class HRuleView extends View  {
 
@@ -51,8 +51,8 @@ class HRuleView extends View  {
 	}
 	if (attr != null) {
             alignment = StyleConstants.getAlignment(attr);
-	    noshade = (String)eAttr.getAttribute("noshade");
-	    Object value = attr.getAttribute("size");
+	    noshade = (String)eAttr.getAttribute(HTML.Attribute.NOSHADE);
+	    Object value = eAttr.getAttribute(HTML.Attribute.SIZE);
 	    if (value != null && (value instanceof String))
 		size = Integer.parseInt((String)value);
 	    value = attr.getAttribute(CSS.Attribute.WIDTH);
@@ -67,9 +67,7 @@ class HRuleView extends View  {
 	else {
 	    topMargin = bottomMargin = leftMargin = rightMargin = 0;
 	}
-	if (bevel == null) {
-	    bevel = BorderFactory.createLoweredBevelBorder();
-	}
+        size = Math.max(2, size);
     }
 
     // This will be removed and centralized at some point, need to unify this
@@ -90,7 +88,8 @@ class HRuleView extends View  {
      * @see View#paint
      */
     public void paint(Graphics g, Shape a) {
-	Rectangle alloc = a.getBounds();
+	Rectangle alloc = (a instanceof Rectangle) ? (Rectangle)a :
+                          a.getBounds();
 	int x = 0;
 	int y = alloc.y + SPACE_ABOVE + (int)topMargin;
 	int width = alloc.width - (int)(leftMargin + rightMargin);
@@ -117,10 +116,28 @@ class HRuleView extends View  {
         }
 
 	// Paint either a shaded rule or a solid line.
-	if (noshade == HTML.NULL_ATTRIBUTE_VALUE)
+	if (noshade != null) {
+            g.setColor(Color.black);
 	    g.fillRect(x, y, width, height);
-	else
-	    bevel.paintBorder(getContainer(), g, x, y, width, height);
+        }
+	else {
+            Color bg = getContainer().getBackground();
+            Color bottom, top;
+            if (bg == null || bg.equals(Color.white)) {
+                top = Color.darkGray;
+                bottom = Color.lightGray;
+            }
+            else {
+                top = Color.darkGray;
+                bottom = Color.white;
+            }
+            g.setColor(bottom);
+            g.drawLine(x + width - 1, y, x + width - 1, y + height - 1);
+            g.drawLine(x, y + height - 1, x + width - 1, y + height - 1);
+            g.setColor(top);
+            g.drawLine(x, y, x + width - 1, y);
+            g.drawLine(x, y, x, y + height - 1);
+        }
 
     }
 
@@ -134,21 +151,19 @@ class HRuleView extends View  {
      * @see View#getPreferredSpan
      */
     public float getPreferredSpan(int axis) {
-	Insets i = bevel.getBorderInsets(getContainer());
 	switch (axis) {
 	case View.X_AXIS:
-	    return i.left + i.right;
+	    return 1;
 	case View.Y_AXIS:
 	    if (size > 0) {
 	        return size + SPACE_ABOVE + SPACE_BELOW + topMargin +
 		    bottomMargin;
 	    } else {
-		if (noshade == HTML.NULL_ATTRIBUTE_VALUE) {
-		    return 1 + SPACE_ABOVE + SPACE_BELOW + topMargin +
+		if (noshade != null) {
+		    return 2 + SPACE_ABOVE + SPACE_BELOW + topMargin +
 			bottomMargin;
 		} else {
-		    return i.top + i.bottom + SPACE_ABOVE + SPACE_BELOW +
-			topMargin + bottomMargin;
+		    return SPACE_ABOVE + SPACE_BELOW + topMargin +bottomMargin;
 		}
 	    }
 	default:
@@ -265,7 +280,6 @@ class HRuleView extends View  {
 
     // --- variables ------------------------------------------------
 
-    private Border bevel;
     private float topMargin;
     private float bottomMargin;
     private float leftMargin;

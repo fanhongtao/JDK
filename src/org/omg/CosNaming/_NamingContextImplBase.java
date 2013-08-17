@@ -1,4 +1,6 @@
 /*
+ * @(#)_NamingContextImplBase.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -7,6 +9,7 @@
  * From: nameservice.idl
  * Date: Tue Aug 11 03:12:09 1998
  *   By: idltojava Java IDL 1.2 Aug 11 1998 02:00:18
+ * @deprecated Deprecated in JDK 1.4.
  */
 
 package org.omg.CosNaming;

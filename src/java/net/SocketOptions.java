@@ -1,4 +1,6 @@
 /*
+ * @(#)SocketOptions.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,11 +19,7 @@ package java.net;
  * type-safe methods to get/set each of these options in Socket, ServerSocket,
  * DatagramSocket and MulticastSocket.
  * <P>
- * A subset of the standard BSD-style socket options are supported in the
- * base classes, <B>PlainSocketImpl</B> and <B>PlainDatagramSocketImpl</B>.
- * A brief description of each and their use is provided.
- * <P>
- * @version 1.21, 02/06/02
+ * @version 1.28, 12/03/01
  * @author David Brown
  */
 
@@ -153,6 +151,17 @@ public interface SocketOptions {
 
     public final static int SO_REUSEADDR = 0x04;
 
+    /**
+     * Sets SO_BROADCAST for a socket. This option enables and disables 
+     * the ability of the process to send broadcast messages. It is supported
+     * for only datagram sockets and only on networks that support
+     * the concept of a broadcast message (e.g. Ethernet, token ring, etc.),
+     * and it is set by default for DatagramSockets.
+     * @since 1.4
+     */
+
+    public final static int SO_BROADCAST = 0x0020;
+
     /** Set which outgoing interface on which to send multicast packets.
      * Useful on hosts with multiple network interfaces, where applications
      * want to use other than the system default.  Takes/returns an InetAddress.
@@ -164,6 +173,34 @@ public interface SocketOptions {
      */
 
     public final static int IP_MULTICAST_IF = 0x10;
+
+    /** Same as above. This option is introduced so that the behaviour 
+     *  with IP_MULTICAST_IF will be kept the same as before, while
+     *  this new option can support setting outgoing interfaces with either 
+     *  IPv4 and IPv6 addresses.
+     *
+     *  NOTE: make sure there is no conflict with this
+     * @see MulticastSocket#setNetworkInterface
+     * @see MulticastSocket#getNetworkInterface
+     * @since 1.4
+     */
+    public final static int IP_MULTICAST_IF2 = 0x1f;
+
+    /** 
+     * This option enables or disables local loopback of multicast datagrams.
+     * This option is enabled by default for Multicast Sockets.
+     * @since 1.4
+     */
+
+    public final static int IP_MULTICAST_LOOP = 0x12;
+
+    /** 
+     * This option sets the type-of-service or traffic class field 
+     * in the IP header for a TCP or UDP socket.
+     * @since 1.4
+     */
+
+    public final static int IP_TOS = 0x3;
 
     /**
      * Specify a linger-on-close timeout.  This option disables/enables
@@ -261,6 +298,17 @@ public interface SocketOptions {
      * @see Socket#getKeepAlive
      */
     public final static int SO_KEEPALIVE = 0x0008;
+
+    /**
+     * When the OOBINLINE option is set, any TCP urgent data received on
+     * the socket will be received through the socket input stream.
+     * When the option is disabled (which is the default) urgent data
+     * is silently discarded.
+     *
+     * @see Socket#setOOBInline
+     * @see Socket#getOOBInline
+     */
+    public final static int SO_OOBINLINE = 0x1003;
 }
 
 

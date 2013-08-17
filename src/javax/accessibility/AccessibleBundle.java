@@ -1,4 +1,6 @@
 /*
+ * @(#)AccessibleBundle.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -32,7 +34,7 @@ public abstract class AccessibleBundle {
 
     private static Hashtable table = null;
     private final String defaultResourceBundleName 
-	= "javax.accessibility.resources.accessibility";
+	= "com.sun.accessibility.internal.resources.accessibility";
 
     /**
      * The locale independent name of the state.  This is a programmatic 

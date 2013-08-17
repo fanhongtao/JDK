@@ -1,4 +1,6 @@
 /*
+ * @(#)ViewportLayout.java	1.34 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -26,12 +28,14 @@ import java.io.Serializable;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.30 02/06/02
+ * @version 1.34 12/03/01
  * @author Hans Muller
  */
 public class ViewportLayout implements LayoutManager, Serializable
@@ -134,8 +138,18 @@ public class ViewportLayout implements LayoutManager, Serializable
 	 * the view when the width of the view is smaller than the
 	 * container.
 	 */
-	if ((viewPosition.x + extentSize.width) > viewSize.width) {
-	    viewPosition.x = Math.max(0, viewSize.width - extentSize.width);
+	if (scrollableView == null ||
+	    vp.getParent() == null ||
+	    vp.getParent().getComponentOrientation().isLeftToRight()) {
+	    if ((viewPosition.x + extentSize.width) > viewSize.width) {
+		viewPosition.x = Math.max(0, viewSize.width - extentSize.width);
+	    }
+	} else {
+	    if (extentSize.width > viewSize.width) {
+		viewPosition.x = viewSize.width - extentSize.width;
+	    } else {
+		viewPosition.x = Math.max(0, Math.min(viewSize.width - extentSize.width, viewPosition.x));
+	    }
 	}
 
 	/* If the new viewport size would leave empty space below the
@@ -150,7 +164,7 @@ public class ViewportLayout implements LayoutManager, Serializable
 	 * should change wrt to the viewport, i.e. if the view isn't
 	 * an instance of Scrollable, then adjust the views size as follows.
 	 * 
-	 * If the orgin of the view is showing and the viewport is
+	 * If the origin of the view is showing and the viewport is
 	 * bigger than the views preferred size, then make the view
 	 * the same size as the viewport.
 	 */

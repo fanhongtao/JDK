@@ -1,4 +1,6 @@
 /*
+ * @(#)CustomValue.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,13 +13,16 @@
  * or indirectly by implementing either the StreamableValue 
  * or CustomValue interface.
  * @author OMG
- * @version 1.9 02/06/02
+ * @version 1.11 12/03/01
  */
 
 package org.omg.CORBA.portable;
 
 import org.omg.CORBA.CustomMarshal;
-
+/**
+ * An extension of <code>ValueBase</code> that is implemented by custom value 
+ * types.
+ */
 public interface CustomValue extends ValueBase, CustomMarshal {
 
 }

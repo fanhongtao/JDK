@@ -1,4 +1,6 @@
 /*
+ * @(#)LocateRegistry.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ import java.rmi.server.RMIServerSocketFactory;
  * the remote host.  Therefore, a subsequent method invocation to a remote
  * registry returned as a result of this method may fail.
  *
- * @version 1.23, 02/06/02
+ * @version 1.29, 12/03/01
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   JDK1.1

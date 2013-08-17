@@ -1,4 +1,6 @@
 /*
+ * @(#)PrintStream.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,11 +22,11 @@ package java.io;
  * (<code>'\n'</code>) is written.
  *
  * <p> All characters printed by a <code>PrintStream</code> are converted into
- * bytes using the platform's default character encoding.  The <code{@link
+ * bytes using the platform's default character encoding.  The <code>{@link
  * PrintWriter}</code> class should be used in situations that require writing
  * characters rather than bytes.
  *
- * @version    1.22, 02/02/06
+ * @version    1.24, 01/12/03
  * @author     Frank Yellin
  * @author     Mark Reinhold
  * @since      JDK1.0
@@ -54,6 +56,27 @@ public class PrintStream extends FilterOutputStream {
 	this(out, false);
     }
 
+    /* Initialization is factored into a private constructor (note the swapped
+     * parameters so that this one isn't confused with the public one) and a
+     * separate init method so that the following two public constructors can
+     * share code.  We use a separate init method so that the constructor that
+     * takes an encoding will throw an NPE for a null stream before it throws
+     * an UnsupportedEncodingException for an unsupported encoding.
+     */
+
+    private PrintStream(boolean autoFlush, OutputStream out)
+    {
+	super(out);
+	if (out == null)
+	    throw new NullPointerException("Null output stream");
+	this.autoFlush = autoFlush;
+    }
+
+    private void init(OutputStreamWriter osw) {
+	this.charOut = osw;
+	this.textOut = new BufferedWriter(osw);
+    }
+
     /**
      * Create a new print stream.
      *
@@ -67,13 +90,31 @@ public class PrintStream extends FilterOutputStream {
      * @see java.io.PrintWriter#PrintWriter(java.io.OutputStream, boolean)
      */
     public PrintStream(OutputStream out, boolean autoFlush) {
-	super(out);
-	if (out == null) {
-	    throw new NullPointerException("Null output stream");
-	}
-	this.autoFlush = autoFlush;
-	this.charOut = new OutputStreamWriter(this);
-	this.textOut = new BufferedWriter(this.charOut);
+	this(autoFlush, out);
+	init(new OutputStreamWriter(this));
+    }
+
+    /**
+     * Create a new print stream.
+     *
+     * @param  out        The output stream to which values and objects will be
+     *                    printed
+     * @param  autoFlush  A boolean; if true, the output buffer will be flushed
+     *                    whenever a byte array is written, one of the
+     *                    <code>println</code> methods is invoked, or a newline
+     *                    character or byte (<code>'\n'</code>) is written
+     * @param  encoding   The name of a supported
+     *                    <a href="../lang/package-summary.html#charenc">
+     *                    character encoding</a>
+     *
+     * @exception  UnsupportedEncodingException
+     *             If the named encoding is not supported
+     */
+    public PrintStream(OutputStream out, boolean autoFlush, String encoding)
+        throws UnsupportedEncodingException
+    {
+	this(autoFlush, out);
+	init(new OutputStreamWriter(this, encoding));
     }
 
     /** Check to make sure that the stream has not been closed */

@@ -1,4 +1,6 @@
 /*
+ * @(#)FixedHeightLayoutCache.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,12 +20,14 @@ import java.util.Stack;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.14 02/06/02
+ * @version 1.19 12/03/01
  * @author Scott Violet
  */
 
@@ -69,7 +73,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
      */
     public void setModel(TreeModel newModel) {
 	super.setModel(newModel);
-	rebuild();
+	rebuild(false);
     }
 
     /**
@@ -429,6 +433,12 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 		if(isVisible) {
 		    if(treeSelectionModel != null)
 			treeSelectionModel.resetRowSelection();
+                    if (treeModel.getChildCount(changedParentNode.
+                                                getUserObject()) == 0 &&
+                                  changedParentNode.isLeaf()) {
+                        // Node has become a leaf, collapse it.
+                        changedParentNode.collapse(false);
+                    }
 		    visibleNodesChanged();
 		}
 		else if(changedParentNode.isVisible())
@@ -449,40 +459,35 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
     public void treeStructureChanged(TreeModelEvent e) {
 	if(e != null) {
 	    TreePath          changedPath = e.getTreePath();
-
-	    if(changedPath != null && changedPath.getPathCount() > 0) {
-		if(changedPath.getPathCount() == 1)
-		    rebuild();
-		else {
-		    FHTreeStateNode changedNode = getNodeForPath
+            FHTreeStateNode   changedNode = getNodeForPath
 			                        (changedPath, false, false);
 
-		    if(changedNode != null) {
-			boolean             wasExpanded, wasVisible;
-			int                 newIndex;
-			FHTreeStateNode     parent = (FHTreeStateNode)
-			                       changedNode.getParent();
-			int                 row = changedNode.getRow();
+	    // Check if root has changed, either to a null root, or
+            // to an entirely new root.
+	    if (changedNode == root ||
+                (changedNode == null &&
+                 ((changedPath == null && treeModel != null &&
+                   treeModel.getRoot() == null) ||
+                  (changedPath != null && changedPath.getPathCount() <= 1)))) {
+                rebuild(true);
+            }
+            else if(changedNode != null) {
+                boolean             wasExpanded, wasVisible;
+                FHTreeStateNode     parent = (FHTreeStateNode)
+                                              changedNode.getParent();
 
-
-			wasExpanded = changedNode.isExpanded();
-			wasVisible = changedNode.isVisible();
-			if(wasVisible && wasExpanded) {
-			    changedNode.collapse(true);
-			    changedNode.removeFromParent();
-			    changedNode = getNodeForPath(changedPath, false,
-							 true);
-			    changedNode.expand();
-			}
-			else
-			    changedNode.removeFromParent();
-			if(treeSelectionModel != null && wasVisible &&
-			   wasExpanded)
-			    treeSelectionModel.resetRowSelection();
-			if(wasVisible)
-			    this.visibleNodesChanged();
-		    }
-		}
+                wasExpanded = changedNode.isExpanded();
+                wasVisible = changedNode.isVisible();
+                parent.removeChildAtModelIndex(changedNode.getChildIndex(),
+                                               wasVisible);
+                if(wasVisible && wasExpanded) {
+                    changedNode = getNodeForPath(changedPath, false, true);
+                    changedNode.expand();
+                }
+                if(treeSelectionModel != null && wasVisible && wasExpanded)
+                    treeSelectionModel.resetRowSelection();
+                if(wasVisible)
+                    this.visibleNodesChanged();
 	    }
 	}
     }
@@ -570,11 +575,11 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
     /**
      * Sent to completely rebuild the visible tree. All nodes are collapsed.
      */
-    private void rebuild() {
-	treePathMapping.clear();
-	if(treeModel != null) {
-	    Object            rootUO = treeModel.getRoot();
+    private void rebuild(boolean clearSelection) {
+        Object            rootUO;
 
+	treePathMapping.clear();
+	if(treeModel != null && (rootUO = treeModel.getRoot()) != null) {
 	    root = createNodeForValue(rootUO, 0);
 	    root.path = new TreePath(rootUO);
 	    addMapping(root);
@@ -592,9 +597,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 	    root = null;
 	    rowCount = 0;
 	}
-	/* Clear out the selection model, might not always be the right
-	   thing to do, but the tree is being rebuilt, soooo.... */
-	if(treeSelectionModel != null) {
+	if(clearSelection && treeSelectionModel != null) {
 	    treeSelectionModel.clearSelection();
 	}
 	this.visibleNodesChanged();
@@ -783,14 +786,14 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 	//
 
 	/**
-	 * Returns the index of the reciever in the model.
+	 * Returns the index of the receiver in the model.
 	 */
 	public int getChildIndex() {
 	    return childIndex;
 	}
 
 	/**
-	 * Returns the TreePath of the receiver.
+	 * Returns the <code>TreePath</code> of the receiver.
 	 */
 	public TreePath getTreePath() {
 	    return path;
@@ -798,8 +801,8 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 
 	/**
 	 * Returns the child for the passed in model index, this will
-	 * return null if the child for <code>index</code> has not yet
-	 * been created (expanded).
+	 * return <code>null</code> if the child for <code>index</code>
+         * has not yet been created (expanded).
 	 */
 	public FHTreeStateNode getChildAtModelIndex(int index) {
 	    // PENDING: Make this a binary search!
@@ -1119,7 +1122,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 	 * Expands the receiver.
 	 */
 	protected void expand() {
-	    if(!isExpanded) {
+	    if(!isExpanded && !isLeaf()) {
 		boolean            visible = isVisible();
 
 		isExpanded = true;
@@ -1155,6 +1158,16 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 		if(adjustRows && isVisible() && treeSelectionModel != null)
 		    treeSelectionModel.resetRowSelection();
 	    }
+	}
+
+	/**
+	 * Returns true if the receiver is a leaf.
+	 */
+	public boolean isLeaf() {
+            TreeModel model = getModel();
+
+            return (model != null) ? model.isLeaf(this.getUserObject()) :
+                   true;
 	}
 
 	/**

@@ -1,4 +1,6 @@
 /*
+ * @(#)TitledBorder.java	1.37 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -35,13 +37,16 @@ import javax.swing.UIManager;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.33 02/06/02 
+ * @version 1.37 12/03/01 
  * @author David Kloba
+ * @author Amy Fowler
  */
 public class TitledBorder extends AbstractBorder
 {
@@ -241,7 +246,7 @@ public class TitledBorder extends AbstractBorder
         switch (titlePos) {
             case ABOVE_TOP:
                 diff = ascent + descent + (Math.max(EDGE_SPACING,
-                                TEXT_SPACING*2) - EDGE_SPACING);
+                                 TEXT_SPACING*2) - EDGE_SPACING);
                 grooveRect.y += diff;
                 grooveRect.height -= diff;
                 textLoc.y = grooveRect.y - (descent + TEXT_SPACING);
@@ -307,22 +312,25 @@ public class TitledBorder extends AbstractBorder
                 break;
         }
 
-        // If title is positioned in middle of border we'll
-        // need to paint the border in sections to leave
-        // space for the component's background to show
-        // through the title.
+        // If title is positioned in middle of border AND its fontsize
+	// is greater than the border's thickness, we'll need to paint 
+	// the border in sections to leave space for the component's background 
+	// to show through the title.
         //
         if (border != null) {
-            if (titlePos == TOP || titlePos == BOTTOM ||
-		titlePos == DEFAULT_POSITION) {
+            if (((titlePos == TOP || titlePos == DEFAULT_POSITION) &&
+		  (grooveRect.y > textLoc.y - ascent)) ||
+		 (titlePos == BOTTOM && 
+		  (grooveRect.y + grooveRect.height < textLoc.y + descent))) {
+		  
                 Rectangle clipRect = new Rectangle();
                 
                 // save original clip
-                Rectangle saveClip = g.getClipBounds();            
+                Rectangle saveClip = g.getClipBounds();
 
                 // paint strip left of text
                 clipRect.setBounds(saveClip);
-                if (computeIntersection(clipRect, x, y, textLoc.x, height)) {
+                if (computeIntersection(clipRect, x, y, textLoc.x-1-x, height)) {
                     g.setClip(clipRect);
                     border.paintBorder(c, g, grooveRect.x, grooveRect.y,
                                   grooveRect.width, grooveRect.height);
@@ -330,26 +338,28 @@ public class TitledBorder extends AbstractBorder
 
                 // paint strip right of text
                 clipRect.setBounds(saveClip);
-                if (computeIntersection(clipRect, textLoc.x+stringWidth, 0,
-                               width-stringWidth-textLoc.x, height)) {
+                if (computeIntersection(clipRect, textLoc.x+stringWidth+1, y,
+                               x+width-(textLoc.x+stringWidth+1), height)) {
                     g.setClip(clipRect);
                     border.paintBorder(c, g, grooveRect.x, grooveRect.y,
                                   grooveRect.width, grooveRect.height);
                 }
 
-                // paint strip below or above text
-                clipRect.setBounds(saveClip);
                 if (titlePos == TOP || titlePos == DEFAULT_POSITION) {
-                    if (computeIntersection(clipRect, textLoc.x, grooveRect.y+insets.top, 
-                                        stringWidth, height-grooveRect.y-insets.top)) {
+                    // paint strip below text
+                    clipRect.setBounds(saveClip);
+                    if (computeIntersection(clipRect, textLoc.x-1, textLoc.y+descent, 
+                                        stringWidth+2, y+height-textLoc.y-descent)) {
                         g.setClip(clipRect);
                         border.paintBorder(c, g, grooveRect.x, grooveRect.y,
                                   grooveRect.width, grooveRect.height);
                     }
+
                 } else { // titlePos == BOTTOM
-                    if (computeIntersection(clipRect, textLoc.x, y, 
-                          stringWidth, height-insets.bottom-
-                                        (height-grooveRect.height-grooveRect.y))) {
+		  // paint strip above text
+                    clipRect.setBounds(saveClip);
+                    if (computeIntersection(clipRect, textLoc.x-1, y, 
+                          stringWidth+2, textLoc.y - ascent - y)) {
                         g.setClip(clipRect); 
                         border.paintBorder(c, g, grooveRect.x, grooveRect.y,
                                   grooveRect.width, grooveRect.height);
@@ -389,6 +399,7 @@ public class TitledBorder extends AbstractBorder
         FontMetrics fm;
         int         descent = 0;
         int         ascent = 16;
+	int         height = 16;
 
         Border border = getBorder();
         if (border != null) {
@@ -423,6 +434,7 @@ public class TitledBorder extends AbstractBorder
 	if(fm != null) {
   	   descent = fm.getDescent();
 	   ascent = fm.getAscent();
+	   height = fm.getHeight();
 	}
 
         switch (getTitlePosition()) {
@@ -445,7 +457,7 @@ public class TitledBorder extends AbstractBorder
               insets.bottom += ascent + descent;
               break;
           case BELOW_BOTTOM:
-              insets.bottom += ascent + TEXT_SPACING;
+              insets.bottom += height;
               break;
         }
         return insets;

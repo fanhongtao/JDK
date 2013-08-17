@@ -1,4 +1,6 @@
 /*
+ * @(#)TRANSACTION_REQUIRED.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,10 +8,8 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>TRANSACTION_REQUIRED</code> exception, which is thrown
- * by the ORB on the client or server during the
- * processing of a request that
- * is required to be enclosed in a transaction.
+ * Exception  indicates that the request carried a null transaction context, 
+ * but an active transaction is required.<P>
  * It contains a minor code, which gives information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

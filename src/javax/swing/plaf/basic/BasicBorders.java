@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicBorders.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ import java.io.Serializable;
 
 /**
  * Factory object that can vend Borders appropriate for the basic L & F.
- * @version 1.21 02/06/02
+ * @version 1.28 12/03/01
  * @author Georges Saab
  * @author Amy Fowler
  */
@@ -32,10 +34,10 @@ public class BasicBorders {
 	UIDefaults table = UIManager.getLookAndFeelDefaults();
 	Border buttonBorder = new BorderUIResource.CompoundBorderUIResource(
 			   new BasicBorders.ButtonBorder(
-					   table.getColor("controlShadow"),
-                                           table.getColor("controlDkShadow"),
-                                           table.getColor("controlHighlight"),
-                                           table.getColor("controlLtHighlight")),
+					   table.getColor("Button.shadow"),
+                                           table.getColor("Button.darkShadow"),
+                                           table.getColor("Button.light"),
+                                           table.getColor("Button.highlight")),
 	       			     new MarginBorder());
 	return buttonBorder;
     }
@@ -44,10 +46,10 @@ public class BasicBorders {
 	UIDefaults table = UIManager.getLookAndFeelDefaults();
 	Border radioButtonBorder = new BorderUIResource.CompoundBorderUIResource(
 			   new BasicBorders.RadioButtonBorder(
-					   table.getColor("controlShadow"),
-                                           table.getColor("controlDkShadow"),
-                                           table.getColor("controlHighlight"),
-                                           table.getColor("controlLtHighlight")),
+					   table.getColor("RadioButton.shadow"),
+                                           table.getColor("RadioButton.darkShadow"),
+                                           table.getColor("RadioButton.light"),
+                                           table.getColor("RadioButton.highlight")),
 	       			     new MarginBorder());
 	return radioButtonBorder;
     }
@@ -56,10 +58,10 @@ public class BasicBorders {
 	UIDefaults table = UIManager.getLookAndFeelDefaults();
 	Border toggleButtonBorder = new BorderUIResource.CompoundBorderUIResource(
 			             new BasicBorders.ToggleButtonBorder(
-                                           table.getColor("controlShadow"),
-                                           table.getColor("controlDkShadow"),
-                                           table.getColor("controlHighlight"),
-                                           table.getColor("controlLtHighlight")),
+ 					   table.getColor("ToggleButton.shadow"),
+                                           table.getColor("ToggleButton.darkShadow"),
+                                           table.getColor("ToggleButton.light"),
+                                           table.getColor("ToggleButton.highlight")),
 				     new MarginBorder());
 	return toggleButtonBorder;
     }
@@ -67,8 +69,8 @@ public class BasicBorders {
     public static Border getMenuBarBorder() {
 	UIDefaults table = UIManager.getLookAndFeelDefaults();
 	Border menuBarBorder = new BasicBorders.MenuBarBorder(
-				        table.getColor("controlShadow"),
-                                        table.getColor("controlLtHighlight")
+				        table.getColor("MenuBar.shadow"),
+                                        table.getColor("MenuBar.highlight")
                                    );
 	return menuBarBorder;
     }
@@ -76,8 +78,8 @@ public class BasicBorders {
     public static Border getSplitPaneBorder() {
 	UIDefaults table = UIManager.getLookAndFeelDefaults();
 	Border splitPaneBorder = new BasicBorders.SplitPaneBorder(
-				     table.getColor("controlLtHighlight"),
-				     table.getColor("controlDkShadow"));
+				     table.getColor("SplitPane.highlight"),
+				     table.getColor("SplitPane.darkShadow"));
 	return splitPaneBorder;
     }
 
@@ -88,18 +90,18 @@ public class BasicBorders {
     public static Border getSplitPaneDividerBorder() {
 	UIDefaults table = UIManager.getLookAndFeelDefaults();
 	Border splitPaneBorder = new BasicBorders.SplitPaneDividerBorder(
-				     table.getColor("controlLtHighlight"),
-				     table.getColor("controlDkShadow"));
+				     table.getColor("SplitPane.highlight"),
+				     table.getColor("SplitPane.darkShadow"));
 	return splitPaneBorder;
     }
 
     public static Border getTextFieldBorder() {
 	UIDefaults table = UIManager.getLookAndFeelDefaults();
 	Border textFieldBorder = new BasicBorders.FieldBorder(
-                                           table.getColor("controlShadow"),
-                                           table.getColor("controlDkShadow"),
-                                           table.getColor("controlHighlight"),
-                                           table.getColor("controlLtHighlight"));
+                                           table.getColor("TextField.shadow"),
+                                           table.getColor("TextField.darkShadow"),
+                                           table.getColor("TextField.light"),
+                                           table.getColor("TextField.highlight"));
 	return textFieldBorder;
     }
 
@@ -113,16 +115,102 @@ public class BasicBorders {
 	UIDefaults table = UIManager.getLookAndFeelDefaults();
 	Border internalFrameBorder = new BorderUIResource.CompoundBorderUIResource(
 				new BevelBorder(BevelBorder.RAISED,
-					table.getColor("controlHighlight"),
-                                        table.getColor("controlLtHighlight"),
-                                        table.getColor("controlDkShadow"),
-                                        table.getColor("controlShadow")),
+					table.getColor("InternalFrame.borderLight"),
+                                        table.getColor("InternalFrame.borderHighlight"),
+                                        table.getColor("InternalFrame.borderDarkShadow"),
+                                        table.getColor("InternalFrame.borderShadow")),
 				BorderFactory.createLineBorder(
-					table.getColor("control"), 1));
+					table.getColor("InternalFrame.borderColor"), 1));
 
 	return internalFrameBorder;
     }
  
+    /**
+     * Special thin border for rollover toolbar buttons.
+     */
+    public static class RolloverButtonBorder extends ButtonBorder {
+
+        public RolloverButtonBorder(Color shadow, Color darkShadow, 
+                                  Color highlight, Color lightHighlight) {
+            super(shadow, darkShadow, highlight, lightHighlight);
+        }
+
+        public void paintBorder( Component c, Graphics g, int x, int y, int w, int h ) {
+            AbstractButton b = (AbstractButton) c;
+            ButtonModel model = b.getModel();
+
+	    Color shade = shadow;
+	    Component p = b.getParent();
+	    if (p != null && p.getBackground().equals(shadow)) {
+		shade = darkShadow;
+	    }
+
+            if ( model.isRollover() && !( model.isPressed() && !model.isArmed() ) ) {
+		Color oldColor = g.getColor();
+		g.translate(x, y);
+
+		if (model.isPressed() && model.isArmed() || model.isSelected()) {
+		    // Draw the pressd button
+		    g.setColor(shade);
+		    g.drawRect(0, 0, w-1, h-1);
+		    g.setColor(lightHighlight);
+		    g.drawLine(w-1, 0, w-1, h-1);
+		    g.drawLine(0, h-1, w-1, h-1);
+		} else {
+		    // Draw a rollover button
+		    g.setColor(lightHighlight);
+		    g.drawRect(0, 0, w-1, h-1);
+		    g.setColor(shade);
+		    g.drawLine(w-1, 0, w-1, h-1);
+		    g.drawLine(0, h-1, w-1, h-1);
+		}
+		g.translate(-x, -y);
+		g.setColor(oldColor);
+            }
+        }
+    }
+
+
+    /**
+     * A border which is like a Margin border but it will only honor the margin
+     * if the margin has been explicitly set by the developer.
+     * 
+     * Note: This is identical to the package private class
+     * MetalBorders.RolloverMarginBorder and should probably be consolidated.
+     */
+    static class RolloverMarginBorder extends EmptyBorder {
+	
+	public RolloverMarginBorder() {
+	    super(3,3,3,3); // hardcoded margin for JLF requirements.
+	}
+
+	public Insets getBorderInsets(Component c) {
+	    return getBorderInsets(c, new Insets(0,0,0,0));
+	}
+
+	public Insets getBorderInsets(Component c, Insets insets) {
+	    Insets margin = null;
+
+	    if (c instanceof AbstractButton) {
+		margin = ((AbstractButton)c).getMargin();
+	    }
+	    if (margin == null || margin instanceof UIResource) {
+		// default margin so replace
+		insets.left = left;
+		insets.top = top;
+		insets.right = right;
+		insets.bottom = bottom;
+	    } else {
+		// Margin which has been explicitly set by the user.
+		insets.left = margin.left;
+		insets.top = margin.top;
+		insets.right = margin.right;
+		insets.bottom = margin.bottom;
+	    }
+	    return insets;
+	}
+    }
+
    public static class ButtonBorder extends AbstractBorder implements UIResource {
         protected Color shadow;
         protected Color darkShadow;
@@ -158,9 +246,16 @@ public class BasicBorders {
         }
 
         public Insets getBorderInsets(Component c)       {
-            // leave room for default visual
-            return new Insets(3,3,3,3);
+            return getBorderInsets(c, new Insets(0,0,0,0));
         }
+
+        public Insets getBorderInsets(Component c, Insets insets)       {
+            // leave room for default visual
+            insets.top = 2;
+            insets.left = insets.bottom = insets.right = 3;
+	    return insets;
+        }
+
     }
 
     public static class ToggleButtonBorder extends ButtonBorder {
@@ -180,6 +275,11 @@ public class BasicBorders {
 
         public Insets getBorderInsets(Component c)       {
             return new Insets(2, 2, 2, 2);
+        }
+
+        public Insets getBorderInsets(Component c, Insets insets)       {
+            insets.top = insets.left = insets.bottom = insets.right = 2;
+	    return insets;
         }
     }
 
@@ -214,7 +314,12 @@ public class BasicBorders {
         }
       
         public Insets getBorderInsets(Component c)       {
-	    return new Insets(2, 2, 2, 2);
+	    return getBorderInsets(c, new Insets(0,0,0,0));
+        }
+
+        public Insets getBorderInsets(Component c, Insets insets)       {
+            insets.top = insets.left = insets.bottom = insets.right = 2;
+	    return insets;
         }
     }
 
@@ -234,13 +339,25 @@ public class BasicBorders {
 	}
 	
 	public Insets getBorderInsets(Component c)       {
-	    return new Insets(0, 0, 2, 0);
+	    return getBorderInsets(c, new Insets(0,0,0,0));
 	}
+
+        public Insets getBorderInsets(Component c, Insets insets)       {
+            insets.top = 0;
+	    insets.left = 0;
+	    insets.bottom = 2;
+	    insets.right = 0;
+	    return insets;
+        }
     }
 
     public static class MarginBorder extends AbstractBorder implements UIResource {
 
         public Insets getBorderInsets(Component c)       {
+	    return getBorderInsets(c, new Insets(0,0,0,0));
+        }
+
+        public Insets getBorderInsets(Component c, Insets insets)       {
             Insets margin = null;
             //
             // Ideally we'd have an interface defined for classes which
@@ -257,8 +374,12 @@ public class BasicBorders {
                JTextComponent t = (JTextComponent)c;
                margin = t.getMargin();
            }
-           
-           return (margin != null? margin : new Insets(0, 0, 0, 0));
+	   insets.top = margin != null? margin.top : 0;
+	   insets.left = margin != null? margin.left : 0;
+	   insets.bottom = margin != null? margin.bottom : 0;
+	   insets.right = margin != null? margin.right : 0;
+	       
+	   return insets;
         }
     }
 
@@ -283,17 +404,21 @@ public class BasicBorders {
                                               highlight, lightHighlight);
         }
 
-        public Insets getBorderInsets(Component c)       {
+        public Insets getBorderInsets(Component c) {
+	    return getBorderInsets(c, new Insets(0,0,0,0));
+	}
+
+	public Insets getBorderInsets(Component c, Insets insets) {
             Insets margin = null;
             if (c instanceof JTextComponent) {
                 margin = ((JTextComponent)c).getMargin();
             }
-            if (margin != null) {
-                return new Insets(2+margin.top, 2+margin.left, 
-                                  2+margin.bottom, 2+margin.right);
-                
-            }
-            return new Insets(2, 2, 2, 2);
+	    insets.top = margin != null? 2+margin.top : 2;
+	    insets.left = margin != null? 2+margin.left : 2;
+	    insets.bottom = margin != null? 2+margin.bottom : 2;
+	    insets.right = margin != null? 2+margin.right : 2;
+	       
+	    return insets;
         }
     }
 
@@ -349,6 +474,7 @@ public class BasicBorders {
 	    }
 	}
 	public Insets getBorderInsets(Component c) {
+	    Insets insets = new Insets(0,0,0,0);
 	    if (c instanceof BasicSplitPaneDivider) {
 		BasicSplitPaneUI bspui = ((BasicSplitPaneDivider)c).
 		                         getBasicSplitPaneUI();
@@ -359,14 +485,19 @@ public class BasicBorders {
 		    if (splitPane != null) {
 			if (splitPane.getOrientation() ==
 			    JSplitPane.HORIZONTAL_SPLIT) {
-			    return new Insets(0, 1, 0, 1);
+			    insets.top = insets.bottom = 0;
+			    insets.left = insets.right = 1;
+			    return insets;
 			}
 			// VERTICAL_SPLIT
-			return new Insets(1, 0, 1, 0);
+			insets.top = insets.bottom = 1;
+			insets.left = insets.right = 0;
+			return insets;
 		    }
 		}
 	    }
-	    return new Insets(1, 1, 1, 1);
+	    insets.top = insets.bottom = insets.left = insets.right = 1;
+	    return insets;
 	}
 	public boolean isBorderOpaque() { return true; }
     }

@@ -1,4 +1,6 @@
 /*
+ * @(#)Key.java	1.51 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -26,8 +28,26 @@ package java.security;
  * <P>This is an external encoded form for the key used when a standard
  * representation of the key is needed outside the Java Virtual Machine,
  * as when transmitting the key to some other party. The key
- * is encoded according to a standard format (such as X.509 or PKCS#8), and
- * is returned using the {@link #getEncoded() getEncoded} method.<P>
+ * is encoded according to a standard format (such as 
+ * X.509 <code>SubjectPublicKeyInfo</code> or PKCS#8), and
+ * is returned using the {@link #getEncoded() getEncoded} method.
+ * Note: The syntax of the ASN.1 type <code>SubjectPublicKeyInfo</code> 
+ * is defined as follows:
+ *
+ * <pre>
+ * SubjectPublicKeyInfo ::= SEQUENCE {
+ *   algorithm AlgorithmIdentifier,
+ *   subjectPublicKey BIT STRING }
+ *
+ * AlgorithmIdentifier ::= SEQUENCE {
+ *   algorithm OBJECT IDENTIFIER,
+ *   parameters ANY DEFINED BY algorithm OPTIONAL }
+ * </pre>
+ * 
+ * For more information, see 
+ * <a href="http://www.ietf.org/rfc/rfc2459.txt">RFC 2459: 
+ * Internet X.509 Public Key Infrastructure Certificate and CRL Profile</a>.
+ * <P>
  *
  * <LI>A Format
  *
@@ -51,7 +71,7 @@ package java.security;
  * @see Identity
  * @see Signer
  *
- * @version 1.48 02/02/06
+ * @version 1.51 01/12/03
  * @author Benjamin Renaud
  */
 

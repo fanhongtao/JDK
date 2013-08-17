@@ -1,4 +1,6 @@
 /*
+ * @(#)UserException.java	1.41 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -28,6 +30,9 @@ public abstract class UserException extends java.lang.Exception implements org.o
     /**
      * Constructs a <code>UserException</code> object with a
      * detail message. This method is called only by subclasses.
+     *
+     * @param reason a <code>String</code> object giving the reason for this
+     *         exception
      */
     protected UserException(String reason) {
 	super(reason);

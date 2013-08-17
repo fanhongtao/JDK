@@ -1,4 +1,6 @@
 /*
+ * @(#)DefaultSwatchChooserPanel.java	1.23 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,13 +22,15 @@ import java.io.Serializable;
  * The standard color swatch chooser.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.17 02/06/02
+ * @version 1.23 12/03/01
  * @author Steve Wilson
  */
 class DefaultSwatchChooserPanel extends AbstractColorChooserPanel {
@@ -44,6 +48,57 @@ class DefaultSwatchChooserPanel extends AbstractColorChooserPanel {
 
     public String getDisplayName() {
         return UIManager.getString("ColorChooser.swatchesNameText");
+    }
+
+    /**
+     * Provides a hint to the look and feel as to the
+     * <code>KeyEvent.VK</code> constant that can be used as a mnemonic to
+     * access the panel. A return value <= 0 indicates there is no mnemonic.
+     * <p>
+     * The return value here is a hint, it is ultimately up to the look
+     * and feel to honor the return value in some meaningful way.
+     * <p>
+     * This implementation looks up the value from the default
+     * <code>ColorChooser.swatchesMnemonic</code>, or if it 
+     * isn't available (or not an <code>Integer</code>) returns -1.
+     * The lookup for the default is done through the <code>UIManager</code>:
+     * <code>UIManager.get("ColorChooser.swatchesMnemonic");</code>.
+     *
+     * @return KeyEvent.VK constant identifying the mnemonic; <= 0 for no
+     *         mnemonic
+     * @see #getDisplayedMnemonicIndex
+     * @since 1.4
+     */
+    public int getMnemonic() {
+        return getInt("ColorChooser.swatchesMnemonic", -1);
+    }
+
+    /**
+     * Provides a hint to the look and feel as to the index of the character in
+     * <code>getDisplayName</code> that should be visually identified as the
+     * mnemonic. The look and feel should only use this if
+     * <code>getMnemonic</code> returns a value > 0.
+     * <p>
+     * The return value here is a hint, it is ultimately up to the look
+     * and feel to honor the return value in some meaningful way. For example,
+     * a look and feel may wish to render each
+     * <code>AbstractColorChooserPanel</code> in a <code>JTabbedPane</code>,
+     * and further use this return value to underline a character in
+     * the <code>getDisplayName</code>.
+     * <p>
+     * This implementation looks up the value from the default
+     * <code>ColorChooser.rgbDisplayedMnemonicIndex</code>, or if it 
+     * isn't available (or not an <code>Integer</code>) returns -1.
+     * The lookup for the default is done through the <code>UIManager</code>:
+     * <code>UIManager.get("ColorChooser.swatchesDisplayedMnemonicIndex");</code>.
+     *
+     * @return Character index to render mnemonic for; -1 to provide no
+     *                   visual identifier for this panel.
+     * @see #getMnemonic
+     * @since 1.4
+     */
+    public int getDisplayedMnemonicIndex() {
+        return getInt("ColorChooser.swatchesDisplayedMnemonicIndex", -1);
     }
 
     public Icon getSmallDisplayIcon() {
@@ -95,11 +150,14 @@ class DefaultSwatchChooserPanel extends AbstractColorChooserPanel {
 	l.setLabelFor(recentSwatchPanel);
 	recentLabelHolder.add(l, BorderLayout.NORTH);
 	JPanel recentHolderHolder = new JPanel(new CenterLayout());
-	recentHolderHolder.setBorder(new EmptyBorder(2,10,2,2));
+        if (this.getComponentOrientation().isLeftToRight()) {
+	    recentHolderHolder.setBorder(new EmptyBorder(2,10,2,2));
+        } else {
+	    recentHolderHolder.setBorder(new EmptyBorder(2,2,2,10));
+        }
 	recentHolderHolder.add(recentLabelHolder);
+	superHolder.add( recentHolderHolder, BorderLayout.AFTER_LINE_ENDS );	
 
-        superHolder.add( recentHolderHolder, BorderLayout.EAST );	
-	
 	add(superHolder);
 	
     }
@@ -172,12 +230,18 @@ class SwatchPanel extends JPanel {
 	    for (int column = 0; column < numSwatches.width; column++) {
 
 	      g.setColor( getColorForCell(column, row) ); 
-		int x = column * (swatchSize.width + gap.width);
+		int x;
+		if ((!this.getComponentOrientation().isLeftToRight()) &&
+		    (this instanceof RecentSwatchPanel)) {
+		    x = (numSwatches.width - column - 1) * (swatchSize.width + gap.width);
+		} else {
+		    x = column * (swatchSize.width + gap.width);
+		}
 		int y = row * (swatchSize.height + gap.height);
 	        g.fillRect( x, y, swatchSize.width, swatchSize.height);
 		g.setColor(Color.black);
 		g.drawLine( x+swatchSize.width-1, y, x+swatchSize.width-1, y+swatchSize.height-1);
-		g.drawLine( x, y+swatchSize.height-1, x+swatchSize.width-1, y+swatchSize.width-1);
+		g.drawLine( x, y+swatchSize.height-1, x+swatchSize.width-1, y+swatchSize.height-1);
 	    }
 	 }
     }
@@ -199,7 +263,13 @@ class SwatchPanel extends JPanel {
     }
 
     public Color getColorForLocation( int x, int y ) {
-        int column = x / (swatchSize.width + gap.width);
+        int column;
+        if ((!this.getComponentOrientation().isLeftToRight()) &&
+            (this instanceof RecentSwatchPanel)) {
+            column = numSwatches.width - x / (swatchSize.width + gap.width) - 1;
+        } else {
+            column = x / (swatchSize.width + gap.width);
+        }
         int row = y / (swatchSize.height + gap.height);
 	return getColorForCell(column, row);
     }
@@ -245,7 +315,7 @@ class MainSwatchPanel extends SwatchPanel {
 
     protected void initValues() {
         swatchSize = UIManager.getDimension("ColorChooser.swatchesSwatchSize");
-	numSwatches = new Dimension( 31, 10 );
+	numSwatches = new Dimension( 31, 9 );
         gap = new Dimension(1, 1);
     }
 
@@ -261,37 +331,8 @@ class MainSwatchPanel extends SwatchPanel {
 
     private int[] initRawValues() {
 
-        int[] rawValues = {     255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
-255, 255, 255,
+        int[] rawValues = {     
+255, 255, 255, // first row.
 204, 255, 255,
 204, 204, 255,
 204, 204, 255,
@@ -322,7 +363,7 @@ class MainSwatchPanel extends SwatchPanel {
 204, 255, 204,
 204, 255, 204,
 204, 255, 204,
-204, 255, 255,
+204, 204, 204,  // second row.
 153, 255, 255,
 153, 204, 255,
 153, 153, 255,
@@ -353,7 +394,7 @@ class MainSwatchPanel extends SwatchPanel {
 153, 255, 153,
 153, 255, 153,
 153, 255, 204,
-153, 255, 255,
+204, 204, 204,  // third row
 102, 255, 255,
 102, 204, 255,
 102, 153, 255,
@@ -384,7 +425,7 @@ class MainSwatchPanel extends SwatchPanel {
 102, 255, 102,
 102, 255, 153,
 102, 255, 204,
-102, 255, 255,
+153, 153, 153, // fourth row
 51, 255, 255,
 51, 204, 255,
 51, 153, 255,
@@ -415,7 +456,7 @@ class MainSwatchPanel extends SwatchPanel {
 51, 255, 102,
 51, 255, 153,
 51, 255, 204,
-51, 255, 255,
+153, 153, 153, // Fifth row
 0, 255, 255,
 0, 204, 255,
 0, 153, 255,
@@ -446,7 +487,7 @@ class MainSwatchPanel extends SwatchPanel {
 0, 255, 102,
 0, 255, 153,
 0, 255, 204,
-0, 255, 255,
+102, 102, 102, // sixth row
 0, 204, 204,
 0, 204, 204,
 0, 153, 204,
@@ -476,8 +517,8 @@ class MainSwatchPanel extends SwatchPanel {
 0, 204, 51,
 0, 204, 102,
 0, 204, 153,
-0, 204, 204,
-0, 204, 204,
+0, 204, 204, 
+102, 102, 102, // seventh row
 0, 153, 153,
 0, 153, 153,
 0, 153, 153,
@@ -508,7 +549,7 @@ class MainSwatchPanel extends SwatchPanel {
 0, 153, 102,
 0, 153, 153,
 0, 153, 153,
-0, 153, 153,
+51, 51, 51, // eigth row
 0, 102, 102,
 0, 102, 102,
 0, 102, 102,
@@ -539,7 +580,7 @@ class MainSwatchPanel extends SwatchPanel {
 0, 102, 102,
 0, 102, 102,
 0, 102, 102,
-0, 102, 102,
+0, 0, 0, // ninth row
 0, 51, 51,
 0, 51, 51,
 0, 51, 51,
@@ -564,13 +605,12 @@ class MainSwatchPanel extends SwatchPanel {
 51, 51, 0,
 51, 51, 0,
 51, 51, 0,
-51, 51, 0,
 0, 51, 0,
 0, 51, 51,
 0, 51, 51,
 0, 51, 51,
 0, 51, 51,
-0, 51, 51 };
+51, 51, 51 };
 	return rawValues;
     }
 }

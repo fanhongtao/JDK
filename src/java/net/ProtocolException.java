@@ -1,4 +1,6 @@
 /*
+ * @(#)ProtocolException.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -12,7 +14,7 @@ import java.io.IOException;
  * protocol, such as a TCP error. 
  *
  * @author  Chris Warth
- * @version 1.14, 02/06/02
+ * @version 1.14, 12/03/01
  * @since   JDK1.0
  */
 public 

@@ -1,4 +1,6 @@
 /*
+ * @(#)LogStream.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,7 @@ import java.util.*;
  * <code>LogStream</code> provides a mechanism for logging errors that are
  * of possible interest to those monitoring a system.  
  *
- * @version 1.16, 02/06/02
+ * @version 1.16, 12/03/01
  * @author  Ann Wollrath (lots of code stolen from Ken Arnold)
  * @since   JDK1.1
  * @deprecated no replacement

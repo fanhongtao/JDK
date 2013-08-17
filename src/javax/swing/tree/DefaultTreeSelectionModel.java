@@ -1,4 +1,6 @@
 /*
+ * @(#)DefaultTreeSelectionModel.java	1.43 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -29,15 +31,17 @@ import javax.swing.DefaultListSelectionModel;
  * <p>
  * 
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @see javax.swing.JTree
  *
- * @version 1.38 02/06/02
+ * @version 1.43 12/03/01
  * @author Scott Violet
  */
 public class DefaultTreeSelectionModel extends Object implements Cloneable, Serializable, TreeSelectionModel
@@ -588,6 +592,24 @@ public class DefaultTreeSelectionModel extends Object implements Cloneable, Seri
     }
 
     /**
+     * Returns an array of all the tree selection listeners 
+     * registered on this model.
+     *
+     * @return all of this model's <code>TreeSelectionListener</code>s 
+     *         or an empty
+     *         array if no tree selection listeners are currently registered
+     *
+     * @see #addTreeSelectionListener
+     * @see #removeTreeSelectionListener
+     *
+     * @since 1.4
+     */
+    public TreeSelectionListener[] getTreeSelectionListeners() {
+        return (TreeSelectionListener[])listenerList.getListeners(
+                TreeSelectionListener.class);
+    }
+
+    /**
      * Notifies all listeners that are registered for
      * tree selection events on this object.  
      * @see addTreeSelectionListener
@@ -610,12 +632,40 @@ public class DefaultTreeSelectionModel extends Object implements Cloneable, Seri
     }
 
     /**
-     * Returns an array of all the listeners of the given type that 
-     * were added to this model. 
+     * Returns an array of all the objects currently registered
+     * as <code><em>Foo</em>Listener</code>s
+     * upon this model.
+     * <code><em>Foo</em>Listener</code>s are registered using the
+     * <code>add<em>Foo</em>Listener</code> method.
      *
-     * @return all of the objects receiving <em>listenerType</em> notifications 
-     *          from this model
-     * 
+     * <p>
+     *
+     * You can specify the <code>listenerType</code> argument
+     * with a class literal,
+     * such as
+     * <code><em>Foo</em>Listener.class</code>.
+     * For example, you can query a
+     * <code>DefaultTreeSelectionModel</code> <code>m</code>
+     * for its tree selection listeners with the following code:
+     *
+     * <pre>TreeSelectionListener[] tsls = (TreeSelectionListener[])(m.getListeners(TreeSelectionListener.class));</pre>
+     *
+     * If no such listeners exist, this method returns an empty array.
+     *
+     * @param listenerType the type of listeners requested; this parameter
+     *          should specify an interface that descends from
+     *          <code>java.util.EventListener</code>
+     * @return an array of all objects registered as
+     *          <code><em>Foo</em>Listener</code>s on this component,
+     *          or an empty array if no such
+     *          listeners have been added
+     * @exception ClassCastException if <code>listenerType</code>
+     *          doesn't specify a class or interface that implements
+     *          <code>java.util.EventListener</code>
+     *
+     * @see #getTreeSelectionListeners
+     * @see #getPropertyChangeListeners
+     *
      * @since 1.3
      */
     public EventListener[] getListeners(Class listenerType) { 
@@ -685,7 +735,7 @@ public class DefaultTreeSelectionModel extends Object implements Cloneable, Seri
     }
 
     /**
-      * Returns true if the row identitifed by row is selected.
+      * Returns true if the row identified by <code>row</code> is selected.
       */
     public boolean isRowSelected(int row) {
 	return listSelectionModel.isSelectedIndex(row);
@@ -782,6 +832,26 @@ public class DefaultTreeSelectionModel extends Object implements Cloneable, Seri
             return;
         }
         changeSupport.removePropertyChangeListener(listener);
+    }
+
+    /**
+     * Returns an array of all the property change listeners 
+     * registered on this <code>DefaultTreeSelectionModel</code>.
+     *
+     * @return all of this model's <code>PropertyChangeListener</code>s 
+     *         or an empty
+     *         array if no property change listeners are currently registered
+     *
+     * @see #addPropertyChangeListener
+     * @see #removePropertyChangeListener
+     *
+     * @since 1.4
+     */
+    public PropertyChangeListener[] getPropertyChangeListeners() {
+        if (changeSupport == null) {
+            return new PropertyChangeListener[0];
+        }
+        return changeSupport.getPropertyChangeListeners();
     }
 
     /**

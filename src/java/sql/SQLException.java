@@ -1,4 +1,6 @@
 /*
+ * @(#)SQLException.java	1.25 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,8 +15,12 @@ package java.sql;
  * <UL>
  *   <LI> a string describing the error.  This is used as the Java Exception
  *       message, available via the method <code>getMesage</code>.
- *   <LI> a "SQLstate" string, which follows the XOPEN SQLstate conventions.
- *       The values of the SQLState string are described in the XOPEN SQL spec.
+ *   <LI> a "SQLstate" string, which follows either the XOPEN SQLstate conventions
+ *        or the SQL 99 conventions.
+ *       The values of the SQLState string are described in the appropriate spec.
+ *       The <code>DatabaseMetaData</code> method <code>getSQLStateType</code>
+ *       can be used to discover whether the driver returns the XOPEN type or
+ *       the SQL 99 type.
  *   <LI> an integer error code that is specific to each vendor.  Normally this will
  *	 be the actual error code returned by the underlying database.
  *   <LI> a chain to a next Exception.  This can be used to provide additional
@@ -27,7 +33,7 @@ public class SQLException extends java.lang.Exception {
      * Constructs a fully-specified <code>SQLException</code> object.  
      *
      * @param reason a description of the exception 
-     * @param SQLState an XOPEN code identifying the exception
+     * @param SQLState an XOPEN or SQL 99 code identifying the exception
      * @param vendorCode a database vendor-specific exception code
      */
     public SQLException(String reason, String SQLState, int vendorCode) {
@@ -35,29 +41,29 @@ public class SQLException extends java.lang.Exception {
 	this.SQLState = SQLState;
 	this.vendorCode = vendorCode;
 	if (!(this instanceof SQLWarning)) {
-	    if (DriverManager.getLogStream() != null) {
+	    if (DriverManager.getLogWriter() != null) {
 		DriverManager.println("SQLException: SQLState(" + SQLState + 
 						") vendor code(" + vendorCode + ")");
-		printStackTrace(DriverManager.getLogStream());
+		printStackTrace(DriverManager.getLogWriter());
 	    }
 	}
     }
 
 
     /**
-     * Constructs an <code>SQLException</code> object with a reason and SQLState;
-     * vendorCode defaults to 0.
+     * Constructs an <code>SQLException</code> object with the given reason and 
+     * SQLState; the <code>vendorCode</code> field defaults to 0.
      *
      * @param reason a description of the exception 
-     * @param SQLState an XOPEN code identifying the exception 
+     * @param SQLState an XOPEN or SQL 99 code identifying the exception 
      */
     public SQLException(String reason, String SQLState) {
 	super(reason);
 	this.SQLState = SQLState;
 	this.vendorCode = 0;
 	if (!(this instanceof SQLWarning)) {
-	    if (DriverManager.getLogStream() != null) {
-		printStackTrace(DriverManager.getLogStream());
+	    if (DriverManager.getLogWriter() != null) {
+		printStackTrace(DriverManager.getLogWriter());
 		DriverManager.println("SQLException: SQLState(" + SQLState + ")");
 	    }
 	}
@@ -65,7 +71,8 @@ public class SQLException extends java.lang.Exception {
 
     /**
      * Constructs an <code>SQLException</code> object with a reason;
-     * SQLState defaults to <code>null</code>, and vendorCode defaults to 0.
+     * the <code>SQLState</code> field defaults to <code>null</code>, and 
+     * the <code>vendorCode</code> field defaults to 0.
      *
      * @param reason a description of the exception 
      */
@@ -74,24 +81,26 @@ public class SQLException extends java.lang.Exception {
 	this.SQLState = null;
 	this.vendorCode = 0;
 	if (!(this instanceof SQLWarning)) {
-	    if (DriverManager.getLogStream() != null) {
-		printStackTrace(DriverManager.getLogStream());
+	    if (DriverManager.getLogWriter() != null) {
+		printStackTrace(DriverManager.getLogWriter());
 	    }
 	}
     }
 
     /**
      * Constructs an <code>SQLException</code> object;
-     * reason defaults to null, SQLState
-     * defaults to <code>null</code>, and vendorCode defaults to 0.
-     * */
+     * the <code>reason</code> field defaults to null, 
+     * the <code>SQLState</code> field defaults to <code>null</code>, and 
+     * the <code>vendorCode</code> field defaults to 0.
+     *
+     */
     public SQLException() {
 	super();
 	this.SQLState = null;
 	this.vendorCode = 0;
 	if (!(this instanceof SQLWarning)) {
-	    if (DriverManager.getLogStream() != null) {
-		printStackTrace(DriverManager.getLogStream());
+	    if (DriverManager.getLogWriter() != null) {
+		printStackTrace(DriverManager.getLogWriter());
 	    }
 	}
     }
@@ -107,7 +116,7 @@ public class SQLException extends java.lang.Exception {
 
     /**
      * Retrieves the vendor-specific exception code
-	 * for this <code>SQLException</code> object.
+     * for this <code>SQLException</code> object.
      *
      * @return the vendor's error code
      */
@@ -117,10 +126,11 @@ public class SQLException extends java.lang.Exception {
 
     /**
      * Retrieves the exception chained to this 
-	 * <code>SQLException</code> object.
+     * <code>SQLException</code> object.
      *
      * @return the next <code>SQLException</code> object in the chain; 
-	 * <code>null</code> if there are none
+     *         <code>null</code> if there are none
+     * @see #setNextException
      */
     public SQLException getNextException() {
 	return (next);
@@ -130,7 +140,8 @@ public class SQLException extends java.lang.Exception {
      * Adds an <code>SQLException</code> object to the end of the chain.
      *
      * @param ex the new exception that will be added to the end of
-	 *            the <code>SQLException</code> chain
+     *            the <code>SQLException</code> chain
+     * @see #getNextException
      */
     public synchronized void setNextException(SQLException ex) {
 	SQLException theEnd = this;

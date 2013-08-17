@@ -1,4 +1,6 @@
 /*
+ * @(#)InputVerifier.java	1.7 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,8 +16,9 @@ import java.util.*;
  * that it's in
  * the proper format) before allowing the user to navigate out of
  * the text field. To do this, clients create a subclass of
- * InputVerifier and, using JComponent's <code>setInputVerifier</code> method,
- * attach an instance of their subclass to the JComponent whose input they
+ * <code>InputVerifier</code> and, using <code>JComponent</code>'s
+ * <code>setInputVerifier</code> method,
+ * attach an instance of their subclass to the <code>JComponent</code> whose input they
  * want to validate. Before focus is transfered to another Swing component
  * that requests it, the input verifier's <code>shouldYieldFocus</code> method is
  * called.  Focus is transfered only if that method returns <code>true</code>.
@@ -38,45 +41,35 @@ import java.util.*;
  * // string "pass" as input, and will allow focus to advance out of it
  * // only after that string is typed in by the user.
  *
- * class VerifierTest extends JFrame {
- *
- *  public VerifierTest () {
- *    JTextField tf;
- *    tf = new JTextField ("TextField1");
- *			   
- *    getContentPane().add (tf, BorderLayout.NORTH);
- *    tf.setInputVerifier(new PassVerifier());
- *
- *    tf = new JTextField ("TextField2");
- *    getContentPane().add (tf, BorderLayout.SOUTH);
- *                  
- *    addWindowListener (new MyWAdapter ());
- *  }
- *
- *
- *
- *   public static void main (String [] args) {
- *     Frame f = new VerifierTest ();
- *     f.pack();
- *     f.show();
- *   }
- *
- *   class MyWAdapter extends WindowAdapter {
- *
- *     public void windowClosing(WindowEvent event) {
- *       System.exit (0);
+ * public class VerifierTest extends JFrame {
+ *     public VerifierTest() {
+ *         JTextField tf1 = new JTextField ("Type \"pass\" here");
+ * 	   getContentPane().add (tf1, BorderLayout.NORTH);
+ * 	   tf1.setInputVerifier(new PassVerifier());
+ * 
+ * 	   JTextField tf2 = new JTextField ("TextField2");
+ * 	   getContentPane().add (tf2, BorderLayout.SOUTH);
+ * 
+ * 	   WindowListener l = new WindowAdapter() {
+ * 	       public void windowClosing(WindowEvent e) { 
+ * 	           System.exit(0); 
+ * 	       }
+ * 	   };
+ * 	   addWindowListener(l);
  *     }
- *   }
- *               
- *   class PassVerifier extends InputVerifier {
- *
- *     public boolean verify(JComponent input) {
- *       JTextField tf = (JTextField) input;
- *       String pass = tf.getText();
- *       if (pass.equals("pass")) return true;
- *       else return false;
+ * 
+ *     class PassVerifier extends InputVerifier {
+ *         public boolean verify(JComponent input) {
+ * 	       JTextField tf = (JTextField) input;
+ * 	       return "pass".equals(tf.getText());
+ *         }
  *     }
- *   }
+ * 
+ *     public static void main(String[] args) {
+ *         Frame f = new VerifierTest();
+ * 	   f.pack();
+ * 	   f.setVisible(true);
+ *     }
  * }
  * </pre>
  *

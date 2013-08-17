@@ -1,4 +1,6 @@
 /*
+ * @(#)JFrame.java	1.90 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -68,14 +70,16 @@ import javax.accessibility.*;
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JFrame">JFrame</a> key assignments.
+ * <a href="doc-files/Key-Index.html#JFrame"><code>JFrame</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @see JRootPane
  * @see #setDefaultCloseOperation
@@ -86,7 +90,7 @@ import javax.accessibility.*;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window which can be minimized to an icon.
  *
- * @version 1.81 05/01/02
+ * @version 1.90 12/03/01
  * @author Jeff Dinkins
  * @author Georges Saab
  * @author David Kloba
@@ -102,6 +106,13 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * @since 1.3
      */
     public static final int EXIT_ON_CLOSE = 3;
+
+    /**
+     * Key into the AppContext, used to check if should provide decorations
+     * by default.
+     */
+    private static final Object defaultLookAndFeelDecoratedKey = 
+    	    new StringBuffer("JFrame.defaultLookAndFeelDecorated");
 
     private int defaultCloseOperation = HIDE_ON_CLOSE;
 
@@ -128,11 +139,18 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 
     /**
      * Constructs a new frame that is initially invisible.
+     * <p>
+     * This constructor sets the component's locale property to the value 
+     * returned by <code>JComponent.getDefaultLocale</code>.
      *
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      * @see Component#setSize
      * @see Component#setVisible
+     * @see JComponent#getDefaultLocale
      */
-    public JFrame() {
+    public JFrame() throws HeadlessException {
         super();        
         frameInit();
     }
@@ -141,16 +159,22 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * Creates a <code>Frame</code> in the specified
      * <code>GraphicsConfiguration</code> of
      * a screen device and a blank title.
+     * <p>
+     * This constructor sets the component's locale property to the value 
+     * returned by <code>JComponent.getDefaultLocale</code>.
      *
      * @param gc the <code>GraphicsConfiguration</code> that is used
      * 		to construct the new <code>Frame</code>;
      * 		if <code>gc</code> is <code>null</code>, the system
      * 		default <code>GraphicsConfiguration</code> is assumed
      * @exception IllegalArgumentException if <code>gc</code> is not from
-     * 		a screen device
+     * 		a screen device.  This exception is always thrown when
+     *      GraphicsEnvironment.isHeadless() returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see JComponent#getDefaultLocale
      * @since     1.3
      */
-  public JFrame(GraphicsConfiguration gc) {
+    public JFrame(GraphicsConfiguration gc) {
         super(gc);
         frameInit();
     }
@@ -158,12 +182,19 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
     /**
      * Creates a new, initially invisible <code>Frame</code> with the 
      * specified title.
+     * <p>
+     * This constructor sets the component's locale property to the value 
+     * returned by <code>JComponent.getDefaultLocale</code>.
      *
      * @param title the title for the frame
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      * @see Component#setSize
      * @see Component#setVisible
+     * @see JComponent#getDefaultLocale
      */
-    public JFrame(String title) {
+    public JFrame(String title) throws HeadlessException {
         super(title);
         frameInit();
     }
@@ -171,6 +202,9 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
     /**
      * Creates a <code>JFrame</code> with the specified title and the
      * specified <code>GraphicsConfiguration</code> of a screen device.
+     * <p>
+     * This constructor sets the component's locale property to the value 
+     * returned by <code>JComponent.getDefaultLocale</code>.
      *
      * @param title the title to be displayed in the
      * 		frame's border. A <code>null</code> value is treated as
@@ -180,7 +214,10 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      *		if <code>gc</code> is <code>null</code>, the system
      * 		default <code>GraphicsConfiguration</code> is assumed
      * @exception IllegalArgumentException if <code>gc</code> is not from
-     * 		a screen device
+     * 		a screen device.  This exception is always thrown when
+     *      GraphicsEnvironment.isHeadless() returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see JComponent#getDefaultLocale
      * @since     1.3
      */
     public JFrame(String title, GraphicsConfiguration gc) {
@@ -191,9 +228,21 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
     /** Called by the constructors to init the <code>JFrame</code> properly. */
     protected void frameInit() {
         enableEvents(AWTEvent.KEY_EVENT_MASK | AWTEvent.WINDOW_EVENT_MASK);
+        setLocale( JComponent.getDefaultLocale() );
         setRootPane(createRootPane());
         setBackground(UIManager.getColor("control"));
         setRootPaneCheckingEnabled(true);
+        if (JFrame.isDefaultLookAndFeelDecorated()) {
+            boolean supportsWindowDecorations = 
+            UIManager.getLookAndFeel().getSupportsWindowDecorations();
+            if (supportsWindowDecorations) {
+                setUndecorated(true);
+                getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
+            }
+        }
+        setFocusTraversalPolicy(KeyboardFocusManager.
+                                getCurrentKeyboardFocusManager().
+                                getDefaultFocusTraversalPolicy());        
     }
 
     /**
@@ -204,21 +253,6 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
         return new JRootPane();
     }
  
-    /** 
-     * Processes key events occurring on this component and, if appropriate,
-     * passes them on to components in the frame which have registered 
-     * interest in them.
-     *
-     * @param  e  the key event
-     * @see    java.awt.Component#processKeyEvent
-     */   
-    protected void processKeyEvent(KeyEvent e) {
-        super.processKeyEvent(e);
-        if(!e.isConsumed()) {
-            JComponent.processKeyBindingsForAllComponents(e,this,e.getID() == KeyEvent.KEY_PRESSED);
-        }
-    }
-
     /** 
      * Processes window events occurring on this component.
      * Hides the window or disposes of it, as specified by the setting
@@ -285,26 +319,35 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * </ul>
      * <p>
      * The value is set to <code>HIDE_ON_CLOSE</code> by default.
+     * @param operation the operation which should be performed when the
+     *        user closes the frame
+     * @exception IllegalArgumentException if defaultCloseOperation value 
+     *             isn't one of the above valid values
      * @see #addWindowListener
      * @see #getDefaultCloseOperation
      * @see WindowConstants
      *
      * @beaninfo
      *   preferred: true
+     *       bound: true
      *        enum: DO_NOTHING_ON_CLOSE WindowConstants.DO_NOTHING_ON_CLOSE
      *              HIDE_ON_CLOSE       WindowConstants.HIDE_ON_CLOSE
      *              DISPOSE_ON_CLOSE    WindowConstants.DISPOSE_ON_CLOSE
-     *              EXIT_ON_CLOSE       JFrame.EXIT_ON_CLOSE
+     *              EXIT_ON_CLOSE       WindowConstants.EXIT_ON_CLOSE
      * description: The frame's default close operation.
      */
     public void setDefaultCloseOperation(int operation) {
-	if (operation == EXIT_ON_CLOSE) {
-	    SecurityManager security = System.getSecurityManager();
-	    if (security != null) {
-		security.checkExit(0);
-	    }
+	if (operation != DO_NOTHING_ON_CLOSE &&
+	    operation != HIDE_ON_CLOSE &&
+	    operation != DISPOSE_ON_CLOSE &&
+	    operation != EXIT_ON_CLOSE) {
+            throw new IllegalArgumentException("defaultCloseOperation must be one of: DO_NOTHING_ON_CLOSE, HIDE_ON_CLOSE, DISPOSE_ON_CLOSE, or EXIT_ON_CLOSE");
 	}
-        this.defaultCloseOperation = operation;
+        if (this.defaultCloseOperation != operation) {
+            int oldValue = this.defaultCloseOperation;
+            this.defaultCloseOperation = operation;
+            firePropertyChange("defaultCloseOperation", oldValue, operation);
+	}
     }
 
 
@@ -454,7 +497,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * the layout of its <code>contentPane</code> should be set instead.  
      * For example:
      * <pre>
-     * thiComponent.getContentPane().setLayout(new BorderLayout())
+     * thisComponent.getContentPane().setLayout(new GridLayout(1, 2))
      * </pre>
      * An attempt to set the layout of this component will cause an
      * runtime exception to be thrown.  Subclasses can disable this
@@ -603,6 +646,55 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
         getRootPane().setGlassPane(glassPane);
     }
 
+    /**
+     * Provides a hint as to whether or not newly created <code>JFrame</code>s
+     * should have their Window decorations (such as borders, widgets to
+     * close the window, title...) provided by the current look
+     * and feel. If <code>defaultLookAndFeelDecorated</code> is true,
+     * the current <code>LookAndFeel</code> supports providing window
+     * decorations, and the current window manager supports undecorated
+     * windows, then newly created <code>JFrame</code>s will have their
+     * Window decorations provided by the current <code>LookAndFeel</code>.
+     * Otherwise, newly created <code>JFrame</code>s will have their
+     * Window decorations provided by the current window manager.
+     * <p>
+     * You can get the same effect on a single JFrame by doing the following:
+     * <pre>
+     *    JFrame frame = new JFrame();
+     *    frame.setUndecorated(true);
+     *    frame.getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
+     * </pre>
+     *
+     * @param defaultLookAndFeelDecorated A hint as to whether or not current
+     *        look and feel should provide window decorations
+     * @see javax.swing.LookAndFeel.getSupportsWindowDecorations
+     * @since 1.4
+     */
+    public static void setDefaultLookAndFeelDecorated(boolean defaultLookAndFeelDecorated) {
+        if (defaultLookAndFeelDecorated) {
+            SwingUtilities.appContextPut(defaultLookAndFeelDecoratedKey, Boolean.TRUE);
+        } else {
+            SwingUtilities.appContextPut(defaultLookAndFeelDecoratedKey, Boolean.FALSE);
+        }
+    }
+
+
+    /**
+     * Returns true if newly created <code>JFrame</code>s should have their
+     * Window decorations provided by the current look and feel. This is only
+     * a hint, as certain look and feels may not support this feature.
+     *
+     * @return true if look and feel should provide Window decorations.
+     * @since 1.4
+     */
+    public static boolean isDefaultLookAndFeelDecorated() {    
+        Boolean defaultLookAndFeelDecorated = 
+            (Boolean) SwingUtilities.appContextGet(defaultLookAndFeelDecoratedKey);
+        if (defaultLookAndFeelDecorated == null) {
+            defaultLookAndFeelDecorated = Boolean.FALSE;
+        }
+        return defaultLookAndFeelDecorated.booleanValue();
+    }
 
     /**
      * Returns a string representation of this <code>JFrame</code>.
@@ -697,6 +789,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
          */
         public AccessibleStateSet getAccessibleStateSet() {
             AccessibleStateSet states = super.getAccessibleStateSet();
+
             if (isResizable()) {
                 states.add(AccessibleState.RESIZABLE);
             }

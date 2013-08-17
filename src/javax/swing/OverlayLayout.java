@@ -1,4 +1,6 @@
 /*
+ * @(#)OverlayLayout.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,23 +22,25 @@ import java.io.Serializable;
  * on top of each other.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.20 02/06/02
+ * @version 1.24 12/03/01
  * @author   Timothy Prinzing
  */
 public class OverlayLayout implements LayoutManager2,Serializable {
 
     /**
      * Constructs a layout manager that performs overlay
-     * arrangment of the children.  The layout manager
+     * arrangement of the children.  The layout manager
      * created is dedicated to the given container.
      *
-     * @param target  The container to do layout against.
+     * @param target  the container to do layout against
      */
     public OverlayLayout(Container target) {
 	this.target = target;
@@ -57,31 +61,36 @@ public class OverlayLayout implements LayoutManager2,Serializable {
     }
 
     /**
-     * Adds the specified component to the layout. Not used by this class.
+     * Adds the specified component to the layout. Used by
+     * this class to know when to invalidate layout.
      *
      * @param name the name of the component
      * @param comp the the component to be added
      */
     public void addLayoutComponent(String name, Component comp) {
+        invalidateLayout(comp.getParent());
     }
 
     /**
-     * Removes the specified component from the layout. Not used by
-     * this class.  
+     * Removes the specified component from the layout. Used by
+     * this class to know when to invalidate layout.
      *
      * @param comp the component to remove
      */
     public void removeLayoutComponent(Component comp) {
+        invalidateLayout(comp.getParent());
     }
 
     /**
      * Adds the specified component to the layout, using the specified
-     * constraint object.
+     * constraint object. Used by this class to know when to invalidate
+     * layout.
      *
      * @param comp the component to be added
      * @param constraints  where/how the component is added to the layout.
      */
     public void addLayoutComponent(Component comp, Object constraints) {
+        invalidateLayout(comp.getParent());
     }
 
     /**
@@ -148,9 +157,6 @@ public class OverlayLayout implements LayoutManager2,Serializable {
 
     /**
      * Returns the alignment along the x axis for the container.
-     * If the major axis of the box is the x axis the default
-     * alignment will be returned, otherwise the alignment needed
-     * to place the children along the x axis will be returned.
      *
      * @param target the container
      * @return the alignment >= 0.0f && <= 1.0f
@@ -163,9 +169,6 @@ public class OverlayLayout implements LayoutManager2,Serializable {
 
     /**
      * Returns the alignment along the y axis for the container.
-     * If the major axis of the box is the y axis the default
-     * alignment will be returned, otherwise the alignment needed
-     * to place the children along the y axis will be returned.
      *
      * @param target the container
      * @return the alignment >= 0.0f && <= 1.0f
@@ -182,7 +185,7 @@ public class OverlayLayout implements LayoutManager2,Serializable {
      * @param target  the container to lay out
      *
      * @exception AWTError  if the target isn't the container specified to the
-     *                      BoxLayout constructor
+     *                      constructor
      */
     public void layoutContainer(Container target) {
 	checkContainer(target);

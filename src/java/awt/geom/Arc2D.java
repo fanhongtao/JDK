@@ -1,4 +1,6 @@
 /*
+ * @(#)Arc2D.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -49,7 +51,7 @@ public abstract class Arc2D extends RectangularShape {
     public final static int PIE = 2;
 
     /**
-     * An arc specified in float precision,
+     * This class defines an arc specified in float precision.
      */
     public static class Float extends Arc2D {
  
@@ -182,7 +184,7 @@ public abstract class Arc2D extends RectangularShape {
 
         /**
          * Returns the width of the ellipse of which this arc is 
-         * a partial section
+         * a partial section.
          *
          * @return A double value that represents the width of the full 
          * ellipse of which this arc is a partial section.
@@ -193,7 +195,7 @@ public abstract class Arc2D extends RectangularShape {
 
         /**
          * Returns the height of the ellipse of which this arc is 
-         * a partial section
+         * a partial section.
          *
          * @return A double value that represents the height of the full 
          * ellipse of which this arc is a partial section.	 
@@ -207,6 +209,7 @@ public abstract class Arc2D extends RectangularShape {
          *
          * @return A double value that represents the starting angle of 
          * the arc in degrees.
+	 * @see #setAngleStart
          */
 	public double getAngleStart() {
 	    return (double) start;
@@ -217,6 +220,7 @@ public abstract class Arc2D extends RectangularShape {
          *
          * @return A double value that represents the angular extent of 
          * the arc in degrees.
+	 * @see #setAngleExtent
          */
 	public double getAngleExtent() {
 	    return (double) extent;
@@ -263,6 +267,7 @@ public abstract class Arc2D extends RectangularShape {
          * value.
          *
          * @param angSt The starting angle of the arc in degrees.
+	 * @see #getAngleStart
          */
 	public void setAngleStart(double angSt) {
 	    this.start = (float) angSt;
@@ -273,6 +278,7 @@ public abstract class Arc2D extends RectangularShape {
          * value.
          *     
          * @param angExt The angular extent of the arc in degrees.
+	 * @see #getAngleExtent
          */
 	public void setAngleExtent(double angExt) {
 	    this.extent = (float) angExt;
@@ -298,7 +304,7 @@ public abstract class Arc2D extends RectangularShape {
     }
 
     /**
-     * An arc specified in double precision,
+     * This class defines an arc specified in double precision.
      */
     public static class Double extends Arc2D {
         /**
@@ -363,11 +369,11 @@ public abstract class Arc2D extends RectangularShape {
          * arc is a partial section. (Specified in double precision.)
          * @param h The overall height of the full ellipse of which this 
          * arc is a partial section. (Specified in double precision.)
-         * @param angSt The starting angle of the arc in degrees.  
+         * @param start The starting angle of the arc in degrees.  
          * (Specified in double precision.)
-         * @param angExt The angular extent of the arc in degrees. 
+         * @param extent The angular extent of the arc in degrees. 
          * (Specified  in double precision.)
-         * @param closure The closure type for the arc: 
+         * @param type The closure type for the arc: 
          * {@link #OPEN OPEN}, {@link #CHORD CHORD}, or {@link #PIE PIE}.
          */
 	public Double(double x, double y, double w, double h,
@@ -388,11 +394,11 @@ public abstract class Arc2D extends RectangularShape {
          * @param ellipseBounds The bounding rectangle that defines the 
          * outer boundary of the full ellipse of which this arc is a 
          * partial section.
-         * @param angSt The starting angle of the arc in degrees. 
+         * @param start The starting angle of the arc in degrees. 
          * (Specified in double precision.)
-         * @param angExt The angular extent of the arc in degrees. 
+         * @param extent The angular extent of the arc in degrees. 
          * (Specified in double precision.)
-         * @param closure The closure type for the arc: 
+         * @param type The closure type for the arc: 
          * {@link #OPEN OPEN}, {@link #CHORD CHORD}, or {@link #PIE PIE}.
          */
 	public Double(Rectangle2D ellipseBounds,
@@ -428,7 +434,7 @@ public abstract class Arc2D extends RectangularShape {
 
         /**
          * Returns the width of the ellipse of which this arc is 
-         * a partial section
+         * a partial section.
          *
          * @return A double value that represents the width of the full 
          * ellipse of which this arc is a partial section.
@@ -439,7 +445,7 @@ public abstract class Arc2D extends RectangularShape {
 
         /**
          * Returns the height of the ellipse of which this arc is 
-         * a partial section
+         * a partial section.
          *
          * @return A double value that represents the height of the full 
          * ellipse of which this arc is a partial section.	 
@@ -451,8 +457,9 @@ public abstract class Arc2D extends RectangularShape {
         /**
          * Returns the starting angle of the arc.
          *
-         * @return A double value that represents the starting angle 
+         * @return a double value that represents the starting angle 
          * of the arc in degrees.
+	 * @see #setAngleStart
          */
 	public double getAngleStart() {
 	    return start;
@@ -463,6 +470,7 @@ public abstract class Arc2D extends RectangularShape {
          *
          * @return A double value that represents the angular extent of 
          * the arc in degrees.
+	 * @see #setAngleExtent
          */	
 	public double getAngleExtent() {
 	    return extent;
@@ -509,6 +517,7 @@ public abstract class Arc2D extends RectangularShape {
          * value.
          *
          * @param angSt The starting angle of the arc in degrees.
+	 * @see #getAngleStart
          */
 	public void setAngleStart(double angSt) {
 	    this.start = angSt;
@@ -519,6 +528,7 @@ public abstract class Arc2D extends RectangularShape {
          * value.
          *
          * @param angExt The angular extent of the arc in degrees.
+	 * @see #getAngleExtent
          */
 	public void setAngleExtent(double angExt) {
 	    this.extent = angExt;
@@ -565,6 +575,7 @@ public abstract class Arc2D extends RectangularShape {
      *
      * @return A double value that represents the starting angle 
      * of the arc in degrees.
+     * @see #setAngleStart
      */
     public abstract double getAngleStart();
 
@@ -573,6 +584,7 @@ public abstract class Arc2D extends RectangularShape {
      *
      * @return A double value that represents the angular extent 
      * of the arc in degrees.
+     * @see #setAngleExtent
      */
     public abstract double getAngleExtent();
 
@@ -581,6 +593,7 @@ public abstract class Arc2D extends RectangularShape {
      * {@link #CHORD CHORD}, or {@link #PIE PIE}.
      * @return One of the integer constant closure types defined 
      * in this class.
+     * @see #setArcType
      */
     public int getArcType() {
 	return type;
@@ -694,7 +707,7 @@ public abstract class Arc2D extends RectangularShape {
      *
      * @param x,&nbsp;y The coordinates of the center of the arc. 
      * (Specified in double precision.)
-     * @param r The radius of the arc. (Specified in double precision.)
+     * @param radius The radius of the arc. (Specified in double precision.)
      * @param angSt The starting angle of the arc in degrees.
      * (Specified in double precision.)
      * @param angExt The angular extent of the arc in degrees. 
@@ -766,6 +779,7 @@ public abstract class Arc2D extends RectangularShape {
      * value.
      *
      * @param angSt The starting angle of the arc in degrees.
+     * @see #getAngleStart
      */
     public abstract void setAngleStart(double angSt);
 
@@ -774,6 +788,7 @@ public abstract class Arc2D extends RectangularShape {
      * value.
      *
      * @param angExt The angular extent of the arc in degrees.
+     * @see #getAngleExtent
      */
     public abstract void setAngleExtent(double angExt);
 
@@ -783,6 +798,7 @@ public abstract class Arc2D extends RectangularShape {
      * The angular extent of the arc will remain the same.
      *
      * @param p The <CODE>Point2D</CODE> that defines the starting angle.
+     * @see #getAngleStart
      */
     public void setAngleStart(Point2D p) {
 	setAngleStart(-Math.toDegrees(Math.atan2(p.getY() - getCenterY(),
@@ -844,6 +860,7 @@ public abstract class Arc2D extends RectangularShape {
      *
      * @throws IllegalArgumentException if <code>type</code> is not
      * 0, 1, or 2.+
+     * @see #getArcType
      */
     public void setArcType(int type) {
 	if (type < OPEN || type > PIE) {
@@ -926,7 +943,7 @@ public abstract class Arc2D extends RectangularShape {
     }
 
     /**
-     * Constructs a Rectangle2D of the appropriate precision
+     * Constructs a <code>Rectangle2D</code> of the appropriate precision
      * to hold the parameters calculated to be the bounding box
      * of this arc.
      * 
@@ -936,6 +953,8 @@ public abstract class Arc2D extends RectangularShape {
      * double precision.)
      * @param h The height of the bounding box. (Specified in 
      * double precision.)
+     * @return a <code>Rectangle2D</code> that is the bounding box
+     *     of this arc.
      */
     protected abstract Rectangle2D makeBounds(double x, double y,
 					      double w, double h);

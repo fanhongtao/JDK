@@ -1,4 +1,6 @@
 /*
+ * @(#)PixelInterleavedSampleModel.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -98,6 +100,8 @@ public class PixelInterleavedSampleModel extends ComponentSampleModel
      * compressed such that the minimum of all of the band offsets is zero.
      * @param w the width of the resulting <code>SampleModel</code>
      * @param h the height of the resulting <code>SampleModel</code>
+     * @return a new <code>SampleModel</code> with the specified width
+     *         and height.
      * @throws IllegalArgumentException if <code>w</code> or
      *         <code>h</code> is not greater than 0
      */
@@ -142,4 +146,8 @@ public class PixelInterleavedSampleModel extends ComponentSampleModel
                                                scanlineStride, newBandOffsets);
     }
 
+    // Differentiate hash code from other ComponentSampleModel subclasses
+    public int hashCode() {
+        return super.hashCode() ^ 0x1;
+    }
 }

@@ -1,4 +1,6 @@
 /*
+ * @(#)JRadioButtonMenuItem.java	1.46 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -33,20 +35,22 @@ import javax.accessibility.*;
  * a section in <em>The Java Tutorial.</em>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JRadioButtonMenuItem">JRadioButtonMenuItem</a> key assignments.
+ * <a href="doc-files/Key-Index.html#JRadioButtonMenuItem"><code>JRadioButtonMenuItem</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @beaninfo
  *   attribute: isContainer false
  * description: A component within a group of menu items which can be selected.
  *
- * @version 1.43 02/06/02
+ * @version 1.46 12/03/01
  * @author Georges Saab
  * @author David Karlton
  * @see ButtonGroup
@@ -145,6 +149,7 @@ public class JRadioButtonMenuItem extends JMenuItem implements Accessible {
 	super(text, icon);
         setModel(new JToggleButton.ToggleButtonModel());
         setSelected(selected);
+	setFocusable(false);
     }
 
     /**
@@ -158,13 +163,6 @@ public class JRadioButtonMenuItem extends JMenuItem implements Accessible {
         return uiClassID;
     }
 
-
-    /**
-     * Overrides <code>Component.requestFocus</code> to not grab focus.
-     */
-    public void requestFocus() {}
-
-
     /** 
      * See <code>readObject</code> and <code>writeObject</code> in
      * <code>JComponent</code> for more 
@@ -172,9 +170,13 @@ public class JRadioButtonMenuItem extends JMenuItem implements Accessible {
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
+        }
     }
 
 
@@ -221,10 +223,12 @@ public class JRadioButtonMenuItem extends JMenuItem implements Accessible {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJRadioButtonMenuItem extends AccessibleJMenuItem {
         /**

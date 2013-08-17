@@ -1,4 +1,6 @@
 /*
+ * @(#)X509Certificate.java	1.33 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,7 +10,12 @@ package java.security.cert;
 import java.math.BigInteger;
 import java.security.Principal;
 import java.security.PublicKey;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
+import javax.security.auth.x500.X500Principal;
+
+import sun.security.x509.X509CertImpl;
 
 /**
  * <p>
@@ -73,7 +80,7 @@ import java.util.Date;
  *
  * @author Hemma Prafullchandra
  *
- * @version 1.28
+ * @version 1.33
  *
  * @see Certificate
  * @see CertificateFactory
@@ -199,9 +206,40 @@ implements X509Extension {
     public abstract Principal getIssuerDN();
 
     /**
+     * Returns the issuer (issuer distinguished name) value from the
+     * certificate as an <code>X500Principal</code>.
+     *
+     * @return an <code>X500Principal</code> representing the issuer
+     *		distinguished name
+     * @since 1.4
+     */
+    public X500Principal getIssuerX500Principal() {
+	if (getIssuerDN() == null) {
+	    throw new IllegalStateException("issuer may not be null");
+	}
+
+	if (getIssuerDN().getName() == null ||
+	    getIssuerDN().getName().length() == 0) {
+	    throw new IllegalStateException("issuer may not be empty");
+	}
+
+	try {
+	    return new X500Principal(getIssuerDN().getName());
+	} catch (Exception e) {
+	    RuntimeException re = new RuntimeException
+		("unable to instantiate X500Principal");
+	    re.initCause(e);
+	    throw re;
+	}
+    }
+
+    /**
      * Gets the <code>subject</code> (subject distinguished name) value 
-     * from the certificate.
-     * The ASN.1 definition for this is:
+     * from the certificate.  If the <code>subject</code> value is empty,
+     * then the <code>getName()</code> method of the returned
+     * <code>Principal</code> object returns an empty string ("").
+     *
+     * <p> The ASN.1 definition for this is:
      * <pre>
      * subject    Name
      * </pre>
@@ -212,6 +250,33 @@ implements X509Extension {
      * @return a Principal whose name is the subject name.
      */
     public abstract Principal getSubjectDN();
+
+    /**
+     * Returns the subject (subject distinguished name) value from the
+     * certificate as an <code>X500Principal</code>.  If the subject value
+     * is empty, then the <code>getName()</code> method of the returned
+     * <code>X500Principal</code> object returns an empty string ("").
+     *
+     * @return an <code>X500Principal</code> representing the subject
+     *		distinguished name
+     * @since 1.4
+     */
+    public X500Principal getSubjectX500Principal() {
+	if (getSubjectDN() == null) {
+	    throw new IllegalStateException("subject may not be null");
+	}
+
+	try {
+	    return (getSubjectDN().getName() == null) ?
+			new X500Principal("") :
+			new X500Principal(getSubjectDN().getName());
+	} catch (Exception e) {
+	    RuntimeException re = new RuntimeException
+		("unable to instantiate X500Principal");
+	    re.initCause(e);
+	    throw re;
+	}
+    }
 
     /**
      * Gets the <code>notBefore</code> date from the validity period of 
@@ -289,7 +354,7 @@ implements X509Extension {
 
     /**
      * Gets the signature algorithm OID string from the certificate.
-     * An OID is represented by a set of positive whole numbers separated
+     * An OID is represented by a set of nonnegative whole numbers separated
      * by periods.
      * For example, the string "1.2.840.10040.4.3" identifies the SHA-1
      * with DSA signature algorithm, as per RFC 2459.
@@ -384,6 +449,42 @@ implements X509Extension {
      * contain a KeyUsage extension.
      */
     public abstract boolean[] getKeyUsage();
+    
+    /**
+     * Gets an unmodifiable list of Strings representing the OBJECT
+     * IDENTIFIERs of the <code>ExtKeyUsageSyntax</code> field of the
+     * extended key usage extension, (OID = 2.5.29.37).  It indicates
+     * one or more purposes for which the certified public key may be
+     * used, in addition to or in place of the basic purposes
+     * indicated in the key usage extension field.  The ASN.1
+     * definition for this is:
+     * <pre>
+     * ExtKeyUsageSyntax ::= SEQUENCE SIZE (1..MAX) OF KeyPurposeId<p>
+     *
+     * KeyPurposeId ::= OBJECT IDENTIFIER<p>
+     * </pre>
+     *
+     * Key purposes may be defined by any organization with a
+     * need. Object identifiers used to identify key purposes shall be
+     * assigned in accordance with IANA or ITU-T Rec. X.660 |
+     * ISO/IEC/ITU 9834-1.
+     * <p>
+     * This method was added to version 1.4 of the Java 2 Platform Standard 
+     * Edition. In order to maintain backwards compatibility with existing 
+     * service providers, this method is not <code>abstract</code>
+     * and it provides a default implementation. Subclasses
+     * should override this method with a correct implementation.
+     *
+     * @return the ExtendedKeyUsage extension of this certificate,
+     *         as an unmodifiable list of object identifiers represented
+     *         as Strings. Returns null if this certificate does not
+     *         contain an ExtendedKeyUsage extension.
+     * @throws CertificateParsingException if the extension cannot be decoded
+     * @since 1.4
+     */
+    public List getExtendedKeyUsage() throws CertificateParsingException {
+	return X509CertImpl.getExtendedKeyUsage(this);
+    }
 
     /**
      * Gets the certificate constraints path length from the
@@ -418,4 +519,111 @@ implements X509Extension {
      * limit to the allowed length of the certification path.
      */
     public abstract int getBasicConstraints();
+
+    /**
+     * Gets an immutable collection of subject alternative names from the
+     * <code>SubjectAltName</code> extension, (OID = 2.5.29.17).
+     * <p>
+     * The ASN.1 definition of the <code>SubjectAltName</code> extension is:
+     * <pre>
+     * SubjectAltName ::= GeneralNames
+     *
+     * GeneralNames :: = SEQUENCE SIZE (1..MAX) OF GeneralName
+     *
+     * GeneralName ::= CHOICE {
+     *      otherName                       [0]     OtherName,
+     *      rfc822Name                      [1]     IA5String,
+     *      dNSName                         [2]     IA5String,
+     *      x400Address                     [3]     ORAddress,
+     *      directoryName                   [4]     Name,
+     *      ediPartyName                    [5]     EDIPartyName,
+     *      uniformResourceIdentifier       [6]     IA5String,
+     *      iPAddress                       [7]     OCTET STRING,
+     *      registeredID                    [8]     OBJECT IDENTIFIER}
+     * </pre>
+     * <p>
+     * If this certificate does not contain a <code>SubjectAltName</code>
+     * extension, <code>null</code> is returned. Otherwise, a 
+     * <code>Collection</code> is returned with an entry representing each 
+     * <code>GeneralName</code> included in the extension. Each entry is a 
+     * <code>List</code> whose first entry is an <code>Integer</code> 
+     * (the name type, 0-8) and whose second entry is a <code>String</code> 
+     * or a byte array (the name, in string or ASN.1 DER encoded form, 
+     * respectively).
+     * <p>
+     * RFC 822, DNS, and URI names are returned as <code>String</code>s, 
+     * using the well-established string formats for those types (subject to
+     * the restrictions included in RFC 2459). IPv4 address names are 
+     * returned using dotted quad notation. IPv6 address names are returned
+     * in the form "a1:a2:...:a8", where a1-a8 are hexadecimal values 
+     * representing the eight 16-bit pieces of the address. OID names are 
+     * returned as <code>String</code>s represented as a series of nonnegative 
+     * integers separated by periods. And directory names (distinguished names) 
+     * are returned in RFC 2253 string format. No standard string format is 
+     * defined for otherNames, X.400 names, EDI party names, or any 
+     * other type of names. They are returned as byte arrays 
+     * containing the ASN.1 DER encoded form of the name.
+     * <p>
+     * Note that the <code>Collection</code> returned may contain more
+     * than one name of the same type. Also, note that the returned
+     * <code>Collection</code> is immutable and any entries containing byte 
+     * arrays are cloned to protect against subsequent modifications.
+     * <p>
+     * This method was added to version 1.4 of the Java 2 Platform Standard 
+     * Edition. In order to maintain backwards compatibility with existing 
+     * service providers, this method is not <code>abstract</code>
+     * and it provides a default implementation. Subclasses
+     * should override this method with a correct implementation.
+     *
+     * @return an immutable <code>Collection</code> of subject alternative 
+     * names (or <code>null</code>)
+     * @throws CertificateParsingException if the extension cannot be decoded
+     * @since 1.4
+     */
+    public Collection getSubjectAlternativeNames()
+	throws CertificateParsingException {
+	return X509CertImpl.getSubjectAlternativeNames(this);
+    }
+
+    /**
+     * Gets an immutable collection of issuer alternative names from the
+     * <code>IssuerAltName</code> extension, (OID = 2.5.29.18).
+     * <p>
+     * The ASN.1 definition of the <code>IssuerAltName</code> extension is:
+     * <pre>
+     * IssuerAltName ::= GeneralNames
+     * </pre>
+     * The ASN.1 definition of <code>GeneralNames</code> is defined
+     * in {@link #getSubjectAlternativeNames getSubjectAlternativeNames}.
+     * <p>
+     * If this certificate does not contain an <code>IssuerAltName</code>
+     * extension, <code>null</code> is returned. Otherwise, a 
+     * <code>Collection</code> is returned with an entry representing each 
+     * <code>GeneralName</code> included in the extension. Each entry is a 
+     * <code>List</code> whose first entry is an <code>Integer</code> 
+     * (the name type, 0-8) and whose second entry is a <code>String</code> 
+     * or a byte array (the name, in string or ASN.1 DER encoded form, 
+     * respectively). For more details about the formats used for each
+     * name type, see the <code>getSubjectAlternativeNames</code> method.
+     * <p>
+     * Note that the <code>Collection</code> returned may contain more
+     * than one name of the same type. Also, note that the returned
+     * <code>Collection</code> is immutable and any entries containing byte 
+     * arrays are cloned to protect against subsequent modifications.
+     * <p>
+     * This method was added to version 1.4 of the Java 2 Platform Standard 
+     * Edition. In order to maintain backwards compatibility with existing 
+     * service providers, this method is not <code>abstract</code>
+     * and it provides a default implementation. Subclasses
+     * should override this method with a correct implementation.
+     *
+     * @return an immutable <code>Collection</code> of issuer alternative 
+     * names (or <code>null</code>)
+     * @throws CertificateParsingException if the extension cannot be decoded
+     * @since 1.4
+     */
+    public Collection getIssuerAlternativeNames()
+	throws CertificateParsingException {
+	return X509CertImpl.getIssuerAlternativeNames(this);
+    }
 }

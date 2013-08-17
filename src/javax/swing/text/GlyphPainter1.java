@@ -1,4 +1,6 @@
 /*
+ * @(#)GlyphPainter1.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,7 +15,7 @@ import java.awt.*;
  * facilitate faster rendering and model/view
  * translation.  At a minimum, the GlyphPainter
  * allows a View implementation to perform its
- * duties independant of a particular version
+ * duties independent of a particular version
  * of JVM and selection of capabilities (i.e.
  * shaping for i18n, etc).
  * <p>
@@ -26,7 +28,7 @@ import java.awt.*;
  * is recommended for the Java 2 SDK.
  *
  * @author  Timothy Prinzing
- * @version 1.7 02/06/02
+ * @version 1.12 12/03/01
  * @see GlyphView
  */
 class GlyphPainter1 extends GlyphView.GlyphPainter {
@@ -40,6 +42,7 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	sync(v);
 	Segment text = v.getText(p0, p1);
 	int width = Utilities.getTabbedTextWidth(text, metrics, (int) x, e, p0);
+        SegmentCache.releaseSharedSegment(text);
 	return width;
     }
 
@@ -49,7 +52,7 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
     }
 
     /**
-     * Fetch the ascent above the baseline for the glyphs
+     * Fetches the ascent above the baseline for the glyphs
      * corresponding to the given range in the model.
      */
     public float getAscent(GlyphView v) {
@@ -58,7 +61,7 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
     }
 
     /**
-     * Fetch the descent below the baseline for the glyphs
+     * Fetches the descent below the baseline for the glyphs
      * corresponding to the given range in the model.
      */
     public float getDescent(GlyphView v) {
@@ -67,7 +70,7 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
     }
 
     /**
-     * Paint the glyphs representing the given range.
+     * Paints the glyphs representing the given range.
      */
     public void paint(GlyphView v, Graphics g, Shape a, int p0, int p1) {
 	sync(v);
@@ -82,6 +85,7 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	    text = v.getText(p, p0);
 	    int width = Utilities.getTabbedTextWidth(text, metrics, x, expander, p);
 	    x += width;
+            SegmentCache.releaseSharedSegment(text);
 	}
 
 	// determine the y coordinate to render the glyphs
@@ -91,6 +95,7 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	text = v.getText(p0, p1);
 	g.setFont(metrics.getFont());
 	Utilities.drawTabbedText(text, x, y, g, expander, p0);
+        SegmentCache.releaseSharedSegment(text);
     }
 
     public Shape modelToView(GlyphView v, int pos, Position.Bias bias,
@@ -113,6 +118,7 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	    // determine range to the left of the position
 	    text = v.getText(p0, pos);
 	    int width = Utilities.getTabbedTextWidth(text, metrics, alloc.x, expander, p0);
+            SegmentCache.releaseSharedSegment(text);
 	    return new Rectangle(alloc.x + width, alloc.y, 0, metrics.getHeight());
 	}
 	throw new BadLocationException("modelToView - can't convert", p1);
@@ -122,12 +128,14 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
      * Provides a mapping from the view coordinate space to the logical
      * coordinate space of the model.
      *
+     * @param v the view containing the view coordinates
      * @param x the X coordinate
      * @param y the Y coordinate
      * @param a the allocated region to render into
-     * @param rightToLeft true if the text is rendered right to left
+     * @param biasReturn always returns <code>Position.Bias.Forward</code>
+     *   as the zero-th element of this array
      * @return the location within the model that best represents the
-     *  given point of view
+     *  given point in the view
      * @see View#viewToModel
      */
     public int viewToModel(GlyphView v, float x, float y, Shape a, 
@@ -142,30 +150,33 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 
 	int offs = Utilities.getTabbedTextOffset(text, metrics, 
 						 alloc.x, (int) x, expander, p0);
+        SegmentCache.releaseSharedSegment(text);
 	int retValue = p0 + offs;
 	if(retValue == p1) {
-	    biasReturn[0] = Position.Bias.Backward;
-	} else {
-	    biasReturn[0] = Position.Bias.Forward;
-	}
+            // No need to return backward bias as GlyphPainter1 is used for
+            // ltr text only.
+            retValue--;
+        }
+        biasReturn[0] = Position.Bias.Forward;
 	return retValue;
     }
 
     /**
-     * Determines the model location to break the given view.
-     * This is implemented to attempt to break on a whitespace
+     * Determines the best location (in the model) to break
+     * the given view.
+     * This method attempts to break on a whitespace
      * location.  If a whitespace location can't be found, the
      * nearest character location is returned.
      *
-     * @param v the view to find the model location to break at.
+     * @param v the view 
      * @param p0 the location in the model where the
-     *  fragment should start it's representation >= 0.
+     *  fragment should start its representation >= 0
      * @param pos the graphic location along the axis that the
-     *  broken view would occupy >= 0.  This may be useful for
-     *  things like tab calculations.
+     *  broken view would occupy >= 0; this may be useful for
+     *  things like tab calculations
      * @param len specifies the distance into the view
-     *  where a potential break is desired >= 0.  
-     * @return the model location desired for a break.
+     *  where a potential break is desired >= 0  
+     * @return the model location desired for a break
      * @see View#breakView
      */
     public int getBoundedPosition(GlyphView v, int p0, float x, float len) {
@@ -174,6 +185,7 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	Segment s = v.getText(p0, v.getEndOffset());
 	int index = Utilities.getTabbedTextOffset(s, metrics, (int)x, (int)(x+len),
 						  expander, p0, false);
+        SegmentCache.releaseSharedSegment(s);
 	int p1 = p0 + index;
 	return p1;
     }

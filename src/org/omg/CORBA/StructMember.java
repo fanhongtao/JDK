@@ -1,4 +1,6 @@
 /*
+ * @(#)StructMember.java	1.20 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -12,7 +14,13 @@
 package org.omg.CORBA;
 
 /**
- * A description of a member of an IDL <code>struct</code>.
+ * Describes a member of an IDL <code>struct</code> in the 
+ * Interface Repository, including
+ * the  name of the <code>struct</code> member, the type of 
+ * the <code>struct</code> member, and
+ * the typedef that represents the IDL type of the 
+ * <code>struct</code> member
+ * described the <code>struct</code> member object.
  */
 public final class StructMember implements org.omg.CORBA.portable.IDLEntity {
 
@@ -48,6 +56,12 @@ public final class StructMember implements org.omg.CORBA.portable.IDLEntity {
     /**
      * Constructs a <code>StructMember</code> object initialized with the
      * given values.
+     * @param __name a <code>String</code> object with the name of the struct
+     *        member
+     * @param __type a <code>TypeCode</code> object describing the type of the struct
+     *        member
+     * @param __type_def an <code>IDLType</code> object representing the IDL type
+     *        of the struct member
      */
     public StructMember(String __name, org.omg.CORBA.TypeCode __type, org.omg.CORBA.IDLType __type_def) {
 	name = __name;

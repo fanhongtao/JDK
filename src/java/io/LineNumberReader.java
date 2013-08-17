@@ -1,4 +1,6 @@
 /*
+ * @(#)LineNumberReader.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -7,11 +9,21 @@ package java.io;
 
 
 /**
- * A buffered character-input stream that keeps track of line numbers.  A line
- * is considered to be terminated by any one of a line feed ('\n'), a carriage
+ * A buffered character-input stream that keeps track of line numbers. 
+ * This class defines methods <CODE>void setLineNumber(int)</CODE> and 
+ * <CODE>int getLineNumber()</CODE> for setting and getting the current 
+ * line number respectively. 
+ * <P>
+ * By default, line numbering begins at 0. This number increments as data is
+ * read, and can be changed with a call to <CODE>setLineNumber(int)</CODE>. 
+ * Note however, that <CODE>setLineNumber(int)</CODE> does not actually change the current
+ * position in the stream; it only changes the value that will be returned
+ * by <CODE>getLineNumber()</CODE>. 
+ * <P>
+ * A line is considered to be terminated by any one of a line feed ('\n'), a carriage
  * return ('\r'), or a carriage return followed immediately by a linefeed.
  *
- * @version 	1.14, 02/02/06
+ * @version 	1.15, 01/12/03
  * @author	Mark Reinhold
  * @since	JDK1.1
  */

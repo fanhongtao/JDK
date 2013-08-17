@@ -1,4 +1,6 @@
 /*
+ * @(#)ArrayList.java	1.36 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -55,18 +57,29 @@ package java.util;
  * arbitrary, non-deterministic behavior at an undetermined time in the
  * future.
  *
+ * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
+ * as it is, generally speaking, impossible to make any hard guarantees in the
+ * presence of unsynchronized concurrent modification.  Fail-fast iterators
+ * throw <tt>ConcurrentModificationException</tt> on a best-effort basis. 
+ * Therefore, it would be wrong to write a program that depended on this
+ * exception for its correctness: <i>the fail-fast behavior of iterators
+ * should be used only to detect bugs.</i>
+ *
  * @author  Josh Bloch
- * @version 1.26, 02/06/02
+ * @version 1.36, 12/03/01
  * @see	    Collection
  * @see	    List
  * @see	    LinkedList
  * @see	    Vector
  * @see	    Collections#synchronizedList(List)
- * @since 1.2
+ * @since   1.2
  */
 
-public class ArrayList extends AbstractList implements List, Cloneable,
-					            java.io.Serializable {
+public class ArrayList extends AbstractList
+        implements List, RandomAccess, Cloneable, java.io.Serializable
+{
+    private static final long serialVersionUID = 8683452581122892189L;
+
     /**
      * The array buffer into which the elements of the ArrayList are stored.
      * The capacity of the ArrayList is the length of this array buffer.
@@ -96,7 +109,7 @@ public class ArrayList extends AbstractList implements List, Cloneable,
     }
 
     /**
-     * Constructs an empty list.
+     * Constructs an empty list with an initial capacity of ten.
      */
     public ArrayList() {
 	this(10);
@@ -109,10 +122,13 @@ public class ArrayList extends AbstractList implements List, Cloneable,
      * 110% the size of the specified collection.
      *
      * @param c the collection whose elements are to be placed into this list.
+     * @throws NullPointerException if the specified collection is null.
      */
     public ArrayList(Collection c) {
         size = c.size();
-	elementData = new Object[(size*110)/100]; // Allow 10% room for growth
+        // Allow 10% room for growth
+        elementData = new Object[
+                      (int)Math.min((size*110L)/100,Integer.MAX_VALUE)]; 
         c.toArray(elementData);
     }
 
@@ -174,6 +190,8 @@ public class ArrayList extends AbstractList implements List, Cloneable,
      * Returns <tt>true</tt> if this list contains the specified element.
      *
      * @param elem element whose presence in this List is to be tested.
+     * @return  <code>true</code> if the specified element is present;
+     *		<code>false</code> otherwise.
      */
     public boolean contains(Object elem) {
 	return indexOf(elem) >= 0;
@@ -256,7 +274,7 @@ public class ArrayList extends AbstractList implements List, Cloneable,
 
     /**
      * Returns an array containing all of the elements in this list in the
-     * correct order.  The runtime type of the returned array is that of the
+     * correct order; the runtime type of the returned array is that of the
      * specified array.  If the list fits in the specified array, it is
      * returned therein.  Otherwise, a new array is allocated with the runtime
      * type of the specified array and the size of this list.<p>
@@ -405,8 +423,10 @@ public class ArrayList extends AbstractList implements List, Cloneable,
      * list is nonempty.)
      *
      * @param c the elements to be inserted into this list.
+     * @return <tt>true</tt> if this list changed as a result of the call.
      * @throws    IndexOutOfBoundsException if index out of range <tt>(index
      *		  &lt; 0 || index &gt; size())</tt>.
+     * @throws    NullPointerException if the specified collection is null.
      */
     public boolean addAll(Collection c) {
 	modCount++;
@@ -431,8 +451,10 @@ public class ArrayList extends AbstractList implements List, Cloneable,
      * @param index index at which to insert first element
      *		    from the specified collection.
      * @param c elements to be inserted into this list.
+     * @return <tt>true</tt> if this list changed as a result of the call.
      * @throws    IndexOutOfBoundsException if index out of range <tt>(index
      *		  &lt; 0 || index &gt; size())</tt>.
+     * @throws    NullPointerException if the specified Collection is null.
      */
     public boolean addAll(int index, Collection c) {
 	if (index > size || index < 0)

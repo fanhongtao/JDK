@@ -1,4 +1,6 @@
 /*
+ * @(#)CommentView.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -22,7 +24,7 @@ import java.util.*;
  * not editable, the textarea will not be visible.
  *
  * @author  Scott Violet
- * @version 1.9, 02/06/02
+ * @version 1.9, 12/03/01
  */
 class CommentView extends HiddenTagView {
     CommentView(Element e) {

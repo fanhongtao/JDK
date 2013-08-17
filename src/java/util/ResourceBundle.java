@@ -1,4 +1,6 @@
 /*
+ * @(#)ResourceBundle.java	1.64 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,6 +19,7 @@
  * Taligent is a registered trademark of Taligent, Inc.
  *
  */
+
 package java.util;
 
 import java.io.InputStream;
@@ -44,35 +47,35 @@ import java.lang.ref.SoftReference;
  * </UL>
  *
  * <P>
- * One resource bundle is, conceptually, a set of related classes that
- * inherit from <code>ResourceBundle</code>. Each related subclass of
- * <code>ResourceBundle</code> has the same base name plus an additional
- * component that identifies its locale. For example, suppose your resource
- * bundle is named <code>MyResources</code>. The first class you are likely
- * to write is the default resource bundle which simply has the same name as
- * its family--<code>MyResources</code>. You can also provide as
- * many related locale-specific classes as you need: for example, perhaps
- * you would provide a German one named <code>MyResources_de</code>.
+ * Resource bundles belong to families whose members share a common base 
+ * name, but whose names also have additional components that identify 
+ * their locales. For example, the base name of a family of resource 
+ * bundles might be "MyResources". The family should have a default 
+ * resource bundle which simply has the same name as its family - 
+ * "MyResources" - and will be used as the bundle of last resort if a
+ * specific locale is not supported. The family can then provide as
+ * many locale-specific members as needed, for example a German one
+ * named "MyResources_de".
  *
  * <P>
- * Each related subclass of <code>ResourceBundle</code> contains the same
- * items, but the items have been translated for the locale represented by that
- * <code>ResourceBundle</code> subclass. For example, both <code>MyResources</code>
- * and <code>MyResources_de</code> may have a <code>String</code> that's used
- * on a button for canceling operations. In <code>MyResources</code> the
- * <code>String</code> may contain <code>Cancel</code> and in
- * <code>MyResources_de</code> it may contain <code>Abbrechen</code>.
+ * Each resource bundle in a family contains the same items, but the items have
+ * been translated for the locale represented by that resource bundle.
+ * For example, both "MyResources" and "MyResources_de" may have a
+ * <code>String</code> that's used on a button for canceling operations.
+ * In "MyResources" the <code>String</code> may contain "Cancel" and in
+ * "MyResources_de" it may contain "Abbrechen".
  *
  * <P>
  * If there are different resources for different countries, you
- * can make specializations: for example, <code>MyResources_de_CH</code>
- * is the German language (de) in Switzerland (CH). If you want to only
+ * can make specializations: for example, "MyResources_de_CH" contains objects for
+ * the German language (de) in Switzerland (CH). If you want to only
  * modify some of the resources
  * in the specialization, you can do so.
  *
  * <P>
  * When your program needs a locale-specific object, it loads
- * the <code>ResourceBundle</code> class using the <code>getBundle</code>
+ * the <code>ResourceBundle</code> class using the
+ * {@link #getBundle(java.lang.String, java.util.Locale) getBundle}
  * method:
  * <blockquote>
  * <pre>
@@ -80,77 +83,6 @@ import java.lang.ref.SoftReference;
  *      ResourceBundle.getBundle("MyResources", currentLocale);
  * </pre>
  * </blockquote>
- * The first argument specifies the family name of the resource
- * bundle that contains the object in question. The second argument
- * indicates the desired locale. <code>getBundle</code>
- * uses these two arguments to construct the name of the
- * <code>ResourceBundle</code> subclass it should load as follows.
- *
- * <P>
- * The resource bundle lookup searches for classes with various suffixes
- * on the basis of (1) the desired locale and (2) the current default locale
- * as returned by Locale.getDefault(), and (3) the root resource bundle (baseclass),
- * in the following order from lower-level (more specific) to parent-level
- * (less specific):
- * <p> baseclass + "_" + language1 + "_" + country1 + "_" + variant1
- * <BR> baseclass + "_" + language1 + "_" + country1 + "_" + variant1 + ".properties"
- * <BR> baseclass + "_" + language1 + "_" + country1
- * <BR> baseclass + "_" + language1 + "_" + country1 + ".properties"
- * <BR> baseclass + "_" + language1
- * <BR> baseclass + "_" + language1 + ".properties"
- * <BR> baseclass + "_" + language2 + "_" + country2 + "_" + variant2
- * <BR> baseclass + "_" + language2 + "_" + country2 + "_" + variant2 + ".properties"
- * <BR> baseclass + "_" + language2 + "_" + country2
- * <BR> baseclass + "_" + language2 + "_" + country2 + ".properties"
- * <BR> baseclass + "_" + language2
- * <BR> baseclass + "_" + language2 + ".properties"
- * <BR> baseclass
- * <BR> baseclass + ".properties"
- *
- * <P>
- * For example, if the current default locale is <TT>en_US</TT>, the locale the caller
- * is interested in is <TT>fr_CH</TT>, and the resource bundle name is <TT>MyResources</TT>,
- * resource bundle lookup will search for the following classes, in order:
- * <BR> <TT>MyResources_fr_CH
- * <BR> MyResources_fr
- * <BR> MyResources_en_US
- * <BR> MyResources_en
- * <BR> MyResources</TT>
- *
- * <P>
- * The result of the lookup is a class, but that class may be backed
- * by a properties file on disk.  That is, if getBundle does not find
- * a class of a given name, it appends ".properties" to the class name
- * and searches for a properties file of that name.  If it finds such
- * a file, it creates a new PropertyResourceBundle object to hold it.
- * Following on the previous example, it will return classes and
- * and files giving preference as follows:
- *
- *  (class) MyResources_fr_CH
- *  (file)  MyResources_fr_CH.properties
- *  (class) MyResources_fr
- *  (file)  MyResources_fr.properties
- *  (class) MyResources_en_US
- *  (file)  MyResources_en_US.properties
- *  (class) MyResources_en
- *  (file)  MyResources_en.properties
- *  (class) MyResources
- *  (file)  MyResources.properties
- *
- * If a lookup fails,
- * <code>getBundle()</code> throws a <code>MissingResourceException</code>.
- *
- * <P>
- * The baseclass <strong>must</strong> be fully
- * qualified (for example, <code>myPackage.MyResources</code>, not just
- * <code>MyResources</code>). It must
- * also be accessable by your code; it cannot be a class that is private
- * to the package where <code>ResourceBundle.getBundle</code> is called.
- *
- * <P>
- * Note: <code>ResourceBundle</code>s are used internally in accessing
- * <code>NumberFormat</code>s, <code>Collation</code>s, and so on.
- * The lookup strategy is the same.
  *
  * <P>
  * Resource bundles contain key/value pairs. The keys uniquely
@@ -159,7 +91,7 @@ import java.lang.ref.SoftReference;
  * two key/value pairs:
  * <blockquote>
  * <pre>
- * class MyResource extends ListResourceBundle {
+ * public class MyResources extends ListResourceBundle {
  *      public Object[][] getContents() {
  *              return contents;
  *      }
@@ -173,19 +105,19 @@ import java.lang.ref.SoftReference;
  * </pre>
  * </blockquote>
  * Keys are always <code>String</code>s.
- * In this example, the keys are <code>OkKey</code> and <code>CancelKey</code>.
+ * In this example, the keys are "OkKey" and "CancelKey".
  * In the above example, the values
- * are also <code>String</code>s--<code>OK</code> and <code>Cancel</code>--but
+ * are also <code>String</code>s--"OK" and "Cancel"--but
  * they don't have to be. The values can be any type of object.
  *
  * <P>
  * You retrieve an object from resource bundle using the appropriate
- * getter method. Because <code>OkKey</code> and <code>CancelKey</code>
+ * getter method. Because "OkKey" and "CancelKey"
  * are both strings, you would use <code>getString</code> to retrieve them:
  * <blockquote>
  * <pre>
- * button1 = new Button(myResourceBundle.getString("OkKey"));
- * button2 = new Button(myResourceBundle.getString("CancelKey"));
+ * button1 = new Button(myResources.getString("OkKey"));
+ * button2 = new Button(myResources.getString("CancelKey"));
  * </pre>
  * </blockquote>
  * The getter methods all require the key as an argument and return
@@ -193,11 +125,11 @@ import java.lang.ref.SoftReference;
  * throws a <code>MissingResourceException</code>.
  *
  * <P>
- * Besides <code>getString</code>; ResourceBundle supports a number
- * of other methods for getting different types of objects such as
- * <code>getStringArray</code>. If you don't have an object that
- * matches one of these methods, you can use <code>getObject</code>
- * and cast the result to the appropriate type. For example:
+ * Besides <code>getString</code>, ResourceBundle also provides
+ * a method for getting string arrays, <code>getStringArray</code>,
+ * as well as a generic <code>getObject</code> method for any other
+ * type of object. When using <code>getObject</code>, you'll
+ * have to cast the result to the appropriate type. For example:
  * <blockquote>
  * <pre>
  * int[] myIntegers = (int[]) myResources.getObject("intList");
@@ -205,20 +137,10 @@ import java.lang.ref.SoftReference;
  * </blockquote>
  *
  * <P>
- * <STRONG>NOTE:</STRONG> You should always supply a baseclass with
- * no suffixes. This will be the class of "last resort", if a locale
- * is requested that does not exist. In fact, you must provide <I>all</I>
- * of the classes in any given inheritance chain that you provide a resource
- * for.  For example, if you provide <TT>MyResources_fr_BE</TT>, you must provide
- * <I>both</I> <TT>MyResources</TT> <I>and</I> <TT>MyResources_fr</TT> or
- * the resource bundle lookup won't work right.
- *
- * <P>
  * The Java 2 platform provides two subclasses of <code>ResourceBundle</code>,
  * <code>ListResourceBundle</code> and <code>PropertyResourceBundle</code>,
- * that provide a fairly simple way to create resources. (Once serialization
- * is fully integrated, we will provide another
- * way.) As you saw briefly in a previous example, <code>ListResourceBundle</code>
+ * that provide a fairly simple way to create resources.
+ * As you saw briefly in a previous example, <code>ListResourceBundle</code>
  * manages its resource as a List of key/value pairs.
  * <code>PropertyResourceBundle</code> uses a properties file to manage
  * its resources.
@@ -232,23 +154,19 @@ import java.lang.ref.SoftReference;
  * <P>
  * The following is a very simple example of a <code>ResourceBundle</code>
  * subclass, MyResources, that manages two resources (for a larger number of
- * resources you would probably use a <code>Hashtable</code>). Notice that if
- * the key is not found, <code>handleGetObject</code> must return null. 
- * If the key is <code>null</code>, a <code>NullPointerException</code> 
- * should be thrown. Notice also that you don't need to supply a value if 
+ * resources you would probably use a <code>Hashtable</code>).
+ * Notice that you don't need to supply a value if 
  * a "parent-level" <code>ResourceBundle</code> handles the same
- * key with the same value (as in United Kingdom below).  Also notice that because
- * you specify an <TT>en_GB</TT> resource bundle, you also have to provide a default <TT>en</TT>
- * resource bundle even though it inherits all its data from the root resource bundle.
+ * key with the same value (as for the okKey below).
  * <p><strong>Example:</strong>
  * <blockquote>
  * <pre>
  * // default (English language, United States)
- * abstract class MyResources extends ResourceBundle {
+ * public class MyResources extends ResourceBundle {
  *     public Object handleGetObject(String key) {
  *         if (key.equals("okKey")) return "Ok";
  *         if (key.equals("cancelKey")) return "Cancel";
- *     return null;
+ *         return null;
  *     }
  * }
  *
@@ -321,8 +239,9 @@ abstract public class ResourceBundle {
     private static SoftCache cacheList = new SoftCache(INITIAL_CACHE_SIZE, CACHE_LOAD_FACTOR);
 
     /**
-     * The parent bundle is consulted by getObject when this bundle
-     * does not contain a particular resource.
+     * The parent bundle of this bundle.
+     * The parent bundle is searched by {@link #getObject getObject}
+     * when this bundle does not contain a particular resource.
      */
     protected ResourceBundle parent = null;
 
@@ -339,35 +258,53 @@ abstract public class ResourceBundle {
     }
 
     /**
-     * Get an object from a ResourceBundle.
-     * <BR>Convenience method to save casting.
-     * @param key see class description.
-     * @exception NullPointerException if <code>key</code> is 
-     * <code>null</code>.
+     * Gets a string for the given key from this resource bundle or one of its parents.
+     * Calling this method is equivalent to calling
+     * <blockquote>
+     * <code>(String) {@link #getObject(java.lang.String) getObject}(key)</code>.
+     * </blockquote>
+     *
+     * @param key the key for the desired string
+     * @exception NullPointerException if <code>key</code> is <code>null</code>
+     * @exception MissingResourceException if no object for the given key can be found
+     * @exception ClassCastException if the object found for the given key is not a string
+     * @return the string for the given key
      */
-    public final String getString(String key) throws MissingResourceException {
+    public final String getString(String key) {
         return (String) getObject(key);
     }
 
     /**
-     * Get an object from a ResourceBundle.
-     * <BR>Convenience method to save casting.
-     * @param key see class description.
-     * @exception NullPointerException if <code>key</code> is 
-     * <code>null</code>.
+     * Gets a string array for the given key from this resource bundle or one of its parents.
+     * Calling this method is equivalent to calling
+     * <blockquote>
+     * <code>(String[]) {@link #getObject(java.lang.String) getObject}(key)</code>.
+     * </blockquote>
+     *
+     * @param key the key for the desired string array
+     * @exception NullPointerException if <code>key</code> is <code>null</code>
+     * @exception MissingResourceException if no object for the given key can be found
+     * @exception ClassCastException if the object found for the given key is not a string array
+     * @return the string array for the given key
      */
-    public final String[] getStringArray(String key)
-        throws MissingResourceException {
+    public final String[] getStringArray(String key) {
         return (String[]) getObject(key);
     }
 
     /**
-     * Get an object from a ResourceBundle.
-     * @param key see class description.
-     * @exception NullPointerException if <code>key</code> is 
-     * <code>null</code>.
+     * Gets an object for the given key from this resource bundle or one of its parents.
+     * This method first tries to obtain the object from this resource bundle using
+     * {@link #handleGetObject(java.lang.String) handleGetObject}.
+     * If not successful, and the parent resource bundle is not null,
+     * it calls the parent's <code>getObject</code> method.
+     * If still not successful, it throws a MissingResourceException.
+     *
+     * @param key the key for the desired object
+     * @exception NullPointerException if <code>key</code> is <code>null</code>
+     * @exception MissingResourceException if no object for the given key can be found
+     * @return the object for the given key
      */
-    public final Object getObject(String key) throws MissingResourceException {
+    public final Object getObject(String key) {
         Object obj = handleGetObject(key);
         if (obj == null) {
             if (parent != null) {
@@ -384,16 +321,18 @@ abstract public class ResourceBundle {
     }
 
     /**
-     * Return the Locale for this ResourceBundle.  (This function can be used after a
-     * call to getBundle() to determine whether the ResourceBundle returned really
-     * corresponds to the requested locale or is a fallback.)
+     * Returns the locale of this resource bundle. This method can be used after a
+     * call to getBundle() to determine whether the resource bundle returned really
+     * corresponds to the requested locale or is a fallback.
+     *
+     * @return the locale of this resource bundle
      */
     public Locale getLocale() {
         return locale;
     }
 
     /**
-     * Set the locale for this bundle.  This is the locale that this
+     * Sets the locale for this bundle.  This is the locale that this
      * bundle actually represents and does not depend on how the
      * bundle was found by getBundle.  Ex. if the user was looking
      * for fr_FR and getBundle found en_US, the bundle's locale would
@@ -452,9 +391,10 @@ abstract public class ResourceBundle {
     private static native Class[] getClassContext();
 
     /**
-     * Set the parent bundle of this bundle.  The parent bundle is
-     * searched by getObject when this bundle does not contain a
-     * particular resource.
+     * Sets the parent bundle of this bundle.
+     * The parent bundle is searched by {@link #getObject getObject}
+     * when this bundle does not contain a particular resource.
+     *
      * @param parent this bundle's parent bundle.
      */
     protected void setParent( ResourceBundle parent ) {
@@ -463,14 +403,18 @@ abstract public class ResourceBundle {
 
      /**
       * Key used for cached resource bundles.  The key checks
-      * both the resource name and its class loader to determine
-      * if the resource is a match to the requested one.  The
-      * loader may be null, but the searchName must have a
-      * non-null value.
+      * the resource name, the class loader, and the default
+      * locale to determine if the resource is a match to the
+      * requested one. The loader may be null, but the
+      * searchName and the default locale must have a non-null value.
+      * Note that the default locale may change over time, and
+      * lookup should always be based on the current default
+      * locale (if at all).
       */
     private static final class ResourceCacheKey implements Cloneable {
         private SoftReference loaderRef;
         private String searchName;
+        private Locale defaultLocale;
         private int hashCodeCache;
 
         public boolean equals(Object other) {
@@ -487,7 +431,16 @@ abstract public class ResourceBundle {
                 if (!searchName.equals(otherEntry.searchName)) {
                     return false;
                 }
-                final boolean hasLoaderRef = loaderRef != null;
+                // are the default locales the same?
+                if (defaultLocale == null) {
+                    if (otherEntry.defaultLocale != null) {
+                        return false;
+                    }
+                } else {
+                    if (!defaultLocale.equals(otherEntry.defaultLocale)) {
+                        return false;
+                    }
+                }
                 //are refs (both non-null) or (both null)?
                 if (loaderRef == null) {
                     return otherEntry.loaderRef == null;
@@ -515,9 +468,13 @@ abstract public class ResourceBundle {
             }
         }
 
-        public void setKeyValues(ClassLoader loader, String searchName) {
+        public void setKeyValues(ClassLoader loader, String searchName, Locale defaultLocale) {
             this.searchName = searchName;
             hashCodeCache = searchName.hashCode();
+            this.defaultLocale = defaultLocale;
+            if (defaultLocale != null) {
+                hashCodeCache ^= defaultLocale.hashCode();
+            }
             if (loader == null) {
                 this.loaderRef = null;
             } else {
@@ -527,16 +484,29 @@ abstract public class ResourceBundle {
         }
 
         public void clear() {
-            setKeyValues(null, "");
+            setKeyValues(null, "", null);
         }
     }
 
     /**
-     * Get the appropriate ResourceBundle subclass.
-     * @param baseName see class description.
+     * Gets a resource bundle using the specified base name, the default locale,
+     * and the caller's class loader. Calling this method is equivalent to calling
+     * <blockquote>
+     * <code>getBundle(baseName, Locale.getDefault(), this.getClass().getClassLoader())</code>,
+     * </blockquote>
+     * except that <code>getClassLoader()</code> is run with the security
+     * privileges of <code>ResourceBundle</code>.
+     * See {@link #getBundle(java.lang.String, java.util.Locale, java.lang.ClassLoader) getBundle}
+     * for a complete description of the search and instantiation strategy.
+     *
+     * @param baseName the base name of the resource bundle, a fully qualified class name
+     * @exception java.lang.NullPointerException
+     *     if <code>baseName</code> is <code>null</code>
+     * @exception MissingResourceException
+     *     if no resource bundle for the specified base name can be found
+     * @return a resource bundle for the given base name and the default locale
      */
     public static final ResourceBundle getBundle(String baseName)
-        throws MissingResourceException
     {
         return getBundleImpl(baseName, Locale.getDefault(),
         /* must determine loader here, else we break stack invariant */
@@ -544,9 +514,23 @@ abstract public class ResourceBundle {
     }
 
     /**
-     * Get the appropriate ResourceBundle subclass.
-     * @param baseName see class description.
-     * @param locale   see class description.
+     * Gets a resource bundle using the specified base name and locale,
+     * and the caller's class loader. Calling this method is equivalent to calling
+     * <blockquote>
+     * <code>getBundle(baseName, locale, this.getClass().getClassLoader())</code>,
+     * </blockquote>
+     * except that <code>getClassLoader()</code> is run with the security
+     * privileges of <code>ResourceBundle</code>.
+     * See {@link #getBundle(java.lang.String, java.util.Locale, java.lang.ClassLoader) getBundle}
+     * for a complete description of the search and instantiation strategy.
+     *
+     * @param baseName the base name of the resource bundle, a fully qualified class name
+     * @param locale the locale for which a resource bundle is desired
+     * @exception java.lang.NullPointerException
+     *     if <code>baseName</code> or <code>locale</code> is <code>null</code>
+     * @exception MissingResourceException
+     *     if no resource bundle for the specified base name can be found
+     * @return a resource bundle for the given base name and locale
      */
     public static final ResourceBundle getBundle(String baseName,
                                                          Locale locale)
@@ -555,14 +539,121 @@ abstract public class ResourceBundle {
     }
 
     /**
-     * Get the appropriate ResourceBundle subclass.
-     * @param baseName see class description.
-     * @param locale see class description.
-     * @param loader the ClassLoader to load the resource from.
+     * Gets a resource bundle using the specified base name, locale, and class loader.
+     *
+     * <p>
+     * Conceptually, <code>getBundle</code> uses the following strategy for locating and instantiating
+     * resource bundles:
+     * <p>
+     * <code>getBundle</code> uses the base name, the specified locale, and the default
+     * locale (obtained from {@link java.util.Locale#getDefault() Locale.getDefault})
+     * to generate a sequence of <em>candidate bundle names</em>.
+     * If the specified locale's language, country, and variant are all empty
+     * strings, then the base name is the only candidate bundle name.
+     * Otherwise, the following sequence is generated from the attribute
+     * values of the specified locale (language1, country1, and variant1)
+     * and of the default locale (language2, country2, and variant2):
+     * <ul>
+     * <li> baseName + "_" + language1 + "_" + country1 + "_" + variant1
+     * <li> baseName + "_" + language1 + "_" + country1
+     * <li> baseName + "_" + language1
+     * <li> baseName + "_" + language2 + "_" + country2 + "_" + variant2
+     * <li> baseName + "_" + language2 + "_" + country2
+     * <li> baseName + "_" + language2
+     * <li> baseName
+     * </ul>
+     * <p>
+     * Candidate bundle names where the final component is an empty string are omitted.
+     * For example, if country1 is an empty string, the second candidate bundle name is omitted.
+     *
+     * <p>
+     * <code>getBundle</code> then iterates over the candidate bundle names to find the first
+     * one for which it can <em>instantiate</em> an actual resource bundle. For each candidate
+     * bundle name, it attempts to create a resource bundle:
+     * <ul>
+     * <li>
+     * First, it attempts to load a class using the candidate bundle name.
+     * If such a class can be found and loaded using the specified class loader, is assignment
+     * compatible with ResourceBundle, is accessible from ResourceBundle, and can be instantiated,
+     * <code>getBundle</code> creates a new instance of this class and uses it as the <em>result
+     * resource bundle</em>.
+     * <li>
+     * Otherwise, <code>getBundle</code> attempts to locate a property resource file.
+     * It generates a path name from the candidate bundle name by replacing all "." characters
+     * with "/" and appending the string ".properties".
+     * It attempts to find a "resource" with this name using
+     * {@link java.lang.ClassLoader#getResource(java.lang.String) ClassLoader.getResource}.
+     * (Note that a "resource" in the sense of <code>getResource</code> has nothing to do with
+     * the contents of a resource bundle, it is just a container of data, such as a file.)
+     * If it finds a "resource", it attempts to create a new
+     * {@link PropertyResourceBundle} instance from its contents.
+     * If successful, this instance becomes the <em>result resource bundle</em>.
+     * </ul>
+     *
+     * <p>
+     * If no result resource bundle has been found, a <code>MissingResourceException</code>
+     * is thrown.
+     *
+     * <p>
+     * Once a result resource bundle has been found, its parent chain is instantiated.
+     * <code>getBundle</code> iterates over the candidate bundle names that can be
+     * obtained by successively removing variant, country, and language
+     * (each time with the preceding "_") from the bundle name of the result resource bundle.
+     * As above, candidate bundle names where the final component is an empty string are omitted.
+     * With each of the candidate bundle names it attempts to instantiate a resource bundle, as
+     * described above.
+     * Whenever it succeeds, it calls the previously instantiated resource
+     * bundle's {@link #setParent(java.util.ResourceBundle) setParent} method
+     * with the new resource bundle, unless the previously instantiated resource
+     * bundle already has a non-null parent.
+     *
+     * <p>
+     * Implementations of <code>getBundle</code> may cache instantiated resource bundles
+     * and return the same resource bundle instance multiple times. They may also
+     * vary the sequence in which resource bundles are instantiated as long as the
+     * selection of the result resource bundle and its parent chain are compatible with
+     * the description above.
+     *
+     * <p>
+     * The <code>baseName</code> argument should be a fully qualified class name. However, for
+     * compatibility with earlier versions, Sun's Java 2 runtime environments do not verify this,
+     * and so it is possible to access <code>PropertyResourceBundle</code>s by specifying a
+     * path name (using "/") instead of a fully qualified class name (using ".").
+     *
+     * <p>
+     * <strong>Example:</strong> The following class and property files are provided:
+     * MyResources.class, MyResources_fr_CH.properties, MyResources_fr_CH.class,
+     * MyResources_fr.properties, MyResources_en.properties, MyResources_es_ES.class.
+     * The contents of all files are valid (that is, public non-abstract subclasses of ResourceBundle for
+     * the ".class" files, syntactically correct ".properties" files).
+     * The default locale is <code>Locale("en", "UK")</code>.
+     * <p>
+     * Calling <code>getBundle</code> with the shown locale argument values instantiates
+     * resource bundles from the following sources:
+     * <ul>
+     * <li>Locale("fr", "CH"): result MyResources_fr_CH.class, parent MyResources_fr.properties, parent MyResources.class
+     * <li>Locale("fr", "FR"): result MyResources_fr.properties, parent MyResources.class
+     * <li>Locale("de", "DE"): result MyResources_en.properties, parent MyResources.class
+     * <li>Locale("en", "US"): result MyResources_en.properties, parent MyResources.class
+     * <li>Locale("es", "ES"): result MyResources_es_ES.class, parent MyResources.class
+     * </ul>
+     * The file MyResources_fr_CH.properties is never used because it is hidden by
+     * MyResources_fr_CH.class.
+     *
+     * <p>
+     *
+     * @param baseName the base name of the resource bundle, a fully qualified class name
+     * @param locale the locale for which a resource bundle is desired
+     * @param loader the class loader from which to load the resource bundle
+     * @exception java.lang.NullPointerException
+     *     if <code>baseName</code>, <code>locale</code>, or <code>loader</code> is <code>null</code>
+     * @exception MissingResourceException
+     *     if no resource bundle for the specified base name can be found
+     * @return a resource bundle for the given base name and locale
+     * @since 1.2
      */
     public static ResourceBundle getBundle(String baseName, Locale locale,
                                            ClassLoader loader)
-        throws MissingResourceException
     {
         if (loader == null) {
             throw new NullPointerException();
@@ -593,8 +684,12 @@ abstract public class ResourceBundle {
             //new Locale("", "", "VARIANT").toString == ""
             bundleName += "___" + locale.getVariant();
         }
+        
+        // The default locale may influence the lookup result, and
+        // it may change, so we get it here once.
+        Locale defaultLocale = Locale.getDefault();
 
-        Object lookup = findBundleInCache(loader, bundleName);
+        Object lookup = findBundleInCache(loader, bundleName, defaultLocale);
         if (lookup == NOTFOUND) {
             throwMissingResourceException(baseName, locale);
         } else if (lookup != null) {
@@ -613,9 +708,9 @@ abstract public class ResourceBundle {
         Object parent = NOTFOUND;
         try {
             //locate the root bundle and work toward the desired child
-            Object root = findBundle(loader, baseName, baseName, null, NOTFOUND);
+            Object root = findBundle(loader, baseName, defaultLocale, baseName, null, NOTFOUND);
             if (root == null) {
-                putBundleInCache(loader, baseName, NOTFOUND);
+                putBundleInCache(loader, baseName, defaultLocale, NOTFOUND);
                 root = NOTFOUND;
             }
 
@@ -632,7 +727,7 @@ abstract public class ResourceBundle {
 	      parent = root;
 	      for (int i = 0; i < names.size(); i++) {
                 bundleName = (String)names.elementAt(i);
-                lookup = findBundle(loader, bundleName, baseName, parent, NOTFOUND);
+                lookup = findBundle(loader, bundleName, defaultLocale, baseName, parent, NOTFOUND);
                 bundlesFound.addElement(lookup);
                 if (lookup != null) {
                     parent = lookup;
@@ -643,25 +738,25 @@ abstract public class ResourceBundle {
             parent = root;
             if (!foundInMainBranch) {
                 //we didn't find anything on the main branch, so we do the fallback branch
-                final Vector fallbackNames = calculateBundleNames(baseName, Locale.getDefault());
+                final Vector fallbackNames = calculateBundleNames(baseName, defaultLocale);
                 for (int i = 0; i < fallbackNames.size(); i++) {
                     bundleName = (String)fallbackNames.elementAt(i);
                     if (names.contains(bundleName)) {
                         //the fallback branch intersects the main branch so we can stop now.
                         break;
                     }
-                    lookup = findBundle(loader, bundleName, baseName, parent, NOTFOUND);
+                    lookup = findBundle(loader, bundleName, defaultLocale, baseName, parent, NOTFOUND);
                     if (lookup != null) {
                         parent = lookup;
                     } else {
                         //propagate the parent to the child.  We can do this
                         //here because we are in the default path.
-                        putBundleInCache(loader, bundleName, parent);
+                        putBundleInCache(loader, bundleName, defaultLocale, parent);
                     }
                 }
             }
             //propagate the inheritance/fallback down through the main branch
-            parent = propagate(loader, names, bundlesFound, parent);
+            parent = propagate(loader, names, bundlesFound, defaultLocale, parent);
         } catch (Exception e) {
             //We should never get here unless there has been a change
             //to the code that doesn't catch it's own exceptions.
@@ -685,15 +780,17 @@ abstract public class ResourceBundle {
      * @param loader the class loader for the bundles
      * @param names the names of the bundles along search path
      * @param bundlesFound the bundles corresponding to the names (some may be null)
-     * @parent the parent of the first bundle in the path (the root bundle)
+     * @param defaultLocale the default locale at the time getBundle was called
+     * @param parent the parent of the first bundle in the path (the root bundle)
      * @return the value of the last bundle along the path
      */
-    private static Object propagate(ClassLoader loader, Vector names, Vector bundlesFound, Object parent) {
+    private static Object propagate(ClassLoader loader, Vector names,
+            Vector bundlesFound, Locale defaultLocale, Object parent) {
         for (int i = 0; i < names.size(); i++) {
             final String bundleName = (String)names.elementAt(i);
             final Object lookup = bundlesFound.elementAt(i);
             if (lookup == null) {
-                putBundleInCache(loader, bundleName, parent);
+                putBundleInCache(loader, bundleName, defaultLocale, parent);
             } else {
                 parent = lookup;
             }
@@ -731,18 +828,19 @@ abstract public class ResourceBundle {
      * from parent to child bundles when the parent is NOTFOUND.
      * @param loader the loader to use when loading a bundle
      * @param bundleName the complete bundle name including locale extension
+     * @param defaultLocale the default locale at the time getBundle was called
      * @param parent the parent of the resource bundle being loaded.  null if
      * the bundle is a root bundle
      * @param NOTFOUND the value to use for NOTFOUND bundles.
      * @return the bundle or null if the bundle could not be found in the cache
      * or loaded.
      */
-    private static Object findBundle(ClassLoader loader, String bundleName,
+    private static Object findBundle(ClassLoader loader, String bundleName, Locale defaultLocale,
             String baseName, Object parent, final Object NOTFOUND) {
         Object result;
         synchronized (cacheList) {
             //check for bundle in cache
-            cacheKey.setKeyValues(loader, bundleName);
+            cacheKey.setKeyValues(loader, bundleName, defaultLocale);
             result = cacheList.get(cacheKey);
             if (result != null) {
                 cacheKey.clear();
@@ -764,7 +862,7 @@ abstract public class ResourceBundle {
                         cacheList.wait();
                     } catch (InterruptedException e) {
                     }
-                    cacheKey.setKeyValues(loader, bundleName);
+                    cacheKey.setKeyValues(loader, bundleName, defaultLocale);
                     beingBuilt = underConstruction.containsKey(cacheKey);
                 }
                 //if someone constructed the bundle for us, return it
@@ -783,26 +881,24 @@ abstract public class ResourceBundle {
         }
 
         //try loading the bundle via the class loader
-        result = loadBundle(loader, bundleName);
+        result = loadBundle(loader, bundleName, defaultLocale);
         if (result != null) {
             // check whether we're still responsible for construction -
             // a recursive call to getBundle might have handled it (4300693)
             boolean constructing;
             synchronized (cacheList) {
-                cacheKey.setKeyValues(loader, bundleName);
+                cacheKey.setKeyValues(loader, bundleName, defaultLocale);
                 constructing = underConstruction.get(cacheKey) == Thread.currentThread();
                 cacheKey.clear();
             }
             if (constructing) {
                 // set the bundle's parent and put it in the cache
                 final ResourceBundle bundle = (ResourceBundle)result;
-                if (parent != NOTFOUND) {
-                    bundle.setParent((ResourceBundle)parent);
-                } else {
-                    bundle.setParent((ResourceBundle)null);
+                if (parent != NOTFOUND && bundle.parent == null) {
+                    bundle.setParent((ResourceBundle) parent);
                 }
                 bundle.setLocale(baseName, bundleName);
-                putBundleInCache(loader, bundleName, result);
+                putBundleInCache(loader, bundleName, defaultLocale, result);
             }
         }
         return result;
@@ -833,14 +929,18 @@ abstract public class ResourceBundle {
         final StringBuffer temp = new StringBuffer(baseName);
         temp.append('_');
         temp.append(language);
-        result.addElement(temp.toString());
+        if (languageLength > 0) {
+            result.addElement(temp.toString());
+        }
 
         if (countryLength + variantLength == 0) {
             return result;
         }
         temp.append('_');
         temp.append(country);
-        result.addElement(temp.toString());
+        if (countryLength > 0) {
+            result.addElement(temp.toString());
+        }
 
         if (variantLength == 0) {
             return result;
@@ -856,13 +956,15 @@ abstract public class ResourceBundle {
      * Find a bundle in the cache.
      * @param loader the class loader that is responsible for loading the bundle.
      * @param bundleName the complete name of the bundle including locale extension.
-     *      ex. java.text.resources.LocaleElements_fr_BE
+     *      ex. sun.text.resources.LocaleElements_fr_BE
+     * @param defaultLocale the default locale at the time getBundle was called
      * @return the cached bundle.  null if the bundle is not in the cache.
      */
-    private static Object findBundleInCache(ClassLoader loader, String bundleName) {
+    private static Object findBundleInCache(ClassLoader loader, String bundleName,
+            Locale defaultLocale) {
         //Synchronize access to cacheList, cacheKey, and underConstruction
         synchronized (cacheList) {
-            cacheKey.setKeyValues(loader, bundleName);
+            cacheKey.setKeyValues(loader, bundleName, defaultLocale);
             Object result = cacheList.get(cacheKey);
             cacheKey.clear();
             return result;
@@ -872,13 +974,14 @@ abstract public class ResourceBundle {
     /**
      * Put a new bundle in the cache and notify waiting threads that a new
      * bundle has been put in the cache.
+     * @param defaultLocale the default locale at the time getBundle was called
      */
     private static void putBundleInCache(ClassLoader loader, String bundleName,
-            Object value) {
+            Locale defaultLocale, Object value) {
         //we use a static shared cacheKey but we use the lock in cacheList since
         //the key is only used to interact with cacheList.
         synchronized (cacheList) {
-            cacheKey.setKeyValues(loader, bundleName);
+            cacheKey.setKeyValues(loader, bundleName, defaultLocale);
             cacheList.put(cacheKey.clone(), value);
             underConstruction.remove(cacheKey);
             cacheKey.clear();
@@ -894,10 +997,11 @@ abstract public class ResourceBundle {
      *      ClassLoader is used.
      * @param bundleName the name of the resource to load.  The name should be complete
      *      including a qualified class name followed by the locale extension.
-     *      ex. java.text.resources.LocaleElements_fr_BE
+     *      ex. sun.text.resources.LocaleElements_fr_BE
+     * @param defaultLocale the default locale at the time getBundle was called
      * @return the bundle or null if none could be found.
      */
-    private static Object loadBundle(final ClassLoader loader, String bundleName) {
+    private static Object loadBundle(final ClassLoader loader, String bundleName, Locale defaultLocale) {
         // Search for class file using class loader
         try {
             Class bundleClass;
@@ -911,7 +1015,7 @@ abstract public class ResourceBundle {
                 // Creating the instance may have triggered a recursive call to getBundle,
                 // in which case the bundle created by the recursive call would be in the
                 // cache now (4300693). For consistency, we'd then return the bundle from the cache.
-                Object otherBundle = findBundleInCache(loader, bundleName);
+                Object otherBundle = findBundleInCache(loader, bundleName, defaultLocale);
                 if (otherBundle != null) {
                     return otherBundle;
                 } else {
@@ -956,18 +1060,20 @@ abstract public class ResourceBundle {
         return null;
     }
 
-    /** Get an object from a ResourceBundle.
-     * <STRONG>NOTE: </STRONG>Subclasses must override.
-     * @param key see class description.
-     * @exception NullPointerException if <code>key</code> is 
-     * <code>null</code>.
+    /**
+     * Gets an object for the given key from this resource bundle.
+     * Returns null if this resource bundle does not contain an
+     * object for the given key.
+     *
+     * @param key the key for the desired object
+     * @exception NullPointerException if <code>key</code> is <code>null</code>
+     * @return the object for the given key, or null
      */
-    protected abstract Object handleGetObject(String key)
-        throws MissingResourceException;
+    protected abstract Object handleGetObject(String key);
 
     /**
-     * Return an enumeration of the keys.
-     * <STRONG>NOTE: </STRONG>Subclasses must override.
+     * Returns an enumeration of the keys.
+     *
      */
     public abstract Enumeration getKeys();
 }

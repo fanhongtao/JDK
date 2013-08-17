@@ -1,4 +1,6 @@
 /*
+ * @(#)TexturePaintContext.java	1.26 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,10 +15,15 @@ import java.awt.image.DirectColorModel;
 import java.awt.image.IndexColorModel;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
+import java.lang.ref.WeakReference;
 import sun.awt.image.IntegerInterleavedRaster;
 import sun.awt.image.ByteInterleavedRaster;
 
 abstract class TexturePaintContext implements PaintContext {
+    public static ColorModel xrgbmodel =
+	new DirectColorModel(24, 0xff0000, 0xff00, 0xff);
+    public static ColorModel argbmodel = ColorModel.getRGBdefault();
+
     ColorModel colorModel;
     int bWidth;
     int bHeight;
@@ -105,9 +112,19 @@ abstract class TexturePaintContext implements PaintContext {
 		mask == 0xff000000);
     }
 
+    public static ColorModel getInternedColorModel(ColorModel cm) {
+	if (xrgbmodel == cm || xrgbmodel.equals(cm)) {
+	    return xrgbmodel;
+	}
+	if (argbmodel == cm || argbmodel.equals(cm)) {
+	    return argbmodel;
+	}
+	return cm;
+    }
+
     TexturePaintContext(ColorModel cm, AffineTransform xform,
 			int bWidth, int bHeight, int maxw) {
-	this.colorModel = cm;
+	this.colorModel = getInternedColorModel(cm);
 	this.bWidth = bWidth;
 	this.bHeight = bHeight;
 	this.maxWidth = maxw;
@@ -159,7 +176,7 @@ abstract class TexturePaintContext implements PaintContext {
      * Release the resources allocated for the operation.
      */
     public void dispose() {
-        // Nothing to dispose
+	dropRaster(colorModel, outRas);
     }
 
     /**
@@ -194,6 +211,82 @@ abstract class TexturePaintContext implements PaintContext {
 		  rowincy, rowincyerr);
 
 	return outRas;
+    }
+
+    private static WeakReference xrgbRasRef;
+    private static WeakReference argbRasRef;
+
+    synchronized static WritableRaster makeRaster(ColorModel cm,
+						  Raster srcRas,
+						  int w, int h)
+    {
+	if (xrgbmodel == cm) {
+	    if (xrgbRasRef != null) {
+		WritableRaster wr = (WritableRaster) xrgbRasRef.get();
+		if (wr != null && wr.getWidth() >= w && wr.getHeight() >= h) {
+		    xrgbRasRef = null;
+		    return wr;
+		}
+	    }
+	    // If we are going to cache this Raster, make it non-tiny
+	    if (w <= 32 && h <= 32) {
+		w = h = 32;
+	    }
+	} else if (argbmodel == cm) {
+	    if (argbRasRef != null) {
+		WritableRaster wr = (WritableRaster) argbRasRef.get();
+		if (wr != null && wr.getWidth() >= w && wr.getHeight() >= h) {
+		    argbRasRef = null;
+		    return wr;
+		}
+	    }
+	    // If we are going to cache this Raster, make it non-tiny
+	    if (w <= 32 && h <= 32) {
+		w = h = 32;
+	    }
+	}
+	if (srcRas != null) {
+	    return srcRas.createCompatibleWritableRaster(w, h);
+	} else {
+	    return cm.createCompatibleWritableRaster(w, h);
+	}
+    }
+
+    synchronized static void dropRaster(ColorModel cm, Raster outRas) {
+	if (outRas == null) {
+	    return;
+	}
+	if (xrgbmodel == cm) {
+	    xrgbRasRef = new WeakReference(outRas);
+	} else if (argbmodel == cm) {
+	    argbRasRef = new WeakReference(outRas);
+	}
+    }
+
+    private static WeakReference byteRasRef;
+
+    synchronized static WritableRaster makeByteRaster(Raster srcRas,
+						      int w, int h)
+    {
+	if (byteRasRef != null) {
+	    WritableRaster wr = (WritableRaster) byteRasRef.get();
+	    if (wr != null && wr.getWidth() >= w && wr.getHeight() >= h) {
+		byteRasRef = null;
+		return wr;
+	    }
+	}
+	// If we are going to cache this Raster, make it non-tiny
+	if (w <= 32 && h <= 32) {
+	    w = h = 32;
+	}
+	return srcRas.createCompatibleWritableRaster(w, h);
+    }
+
+    synchronized static void dropByteRaster(Raster outRas) {
+	if (outRas == null) {
+	    return;
+	}
+	byteRasRef = new WeakReference(outRas);
     }
 
     public abstract WritableRaster makeRaster(int w, int h);
@@ -278,7 +371,7 @@ abstract class TexturePaintContext implements PaintContext {
 	}
 
 	public WritableRaster makeRaster(int w, int h) {
-	    WritableRaster ras = srcRas.createCompatibleWritableRaster(w, h);
+	    WritableRaster ras = makeRaster(colorModel, srcRas, w, h);
 	    IntegerInterleavedRaster iiRas = (IntegerInterleavedRaster) ras;
 	    outData = iiRas.getDataStorage();
 	    outSpan = iiRas.getScanlineStride();
@@ -412,12 +505,16 @@ abstract class TexturePaintContext implements PaintContext {
 	}
 
 	public WritableRaster makeRaster(int w, int h) {
-	    WritableRaster ras = srcRas.createCompatibleWritableRaster(w, h);
+	    WritableRaster ras = makeByteRaster(srcRas, w, h);
 	    ByteInterleavedRaster biRas = (ByteInterleavedRaster) ras;
 	    outData = biRas.getDataStorage();
 	    outSpan = biRas.getScanlineStride();
 	    outOff = biRas.getDataOffset(0);
 	    return ras;
+	}
+
+	public void dispose() {
+	    dropByteRaster(outRas);
 	}
 
 	public void setRaster(int x, int y, int xerr, int yerr,
@@ -518,10 +615,6 @@ abstract class TexturePaintContext implements PaintContext {
 	int outOff;
 	int outSpan;
 
-	public static ColorModel xrgbmodel =
-	    new DirectColorModel(24, 0xff0000, 0xff00, 0xff);
-	public static ColorModel argbmodel = ColorModel.getRGBdefault();
-
 	public ByteFilter(ByteInterleavedRaster srcRas, ColorModel cm,
 			  AffineTransform xform, int maxw)
 	{
@@ -537,8 +630,9 @@ abstract class TexturePaintContext implements PaintContext {
 	}
 
 	public WritableRaster makeRaster(int w, int h) {
-	    WritableRaster ras =
-		colorModel.createCompatibleWritableRaster(w, h);
+	    // Note that we do not pass srcRas to makeRaster since it
+	    // is a Byte Raster and this colorModel needs an Int Raster
+	    WritableRaster ras = makeRaster(colorModel, null, w, h);
 	    IntegerInterleavedRaster iiRas = (IntegerInterleavedRaster) ras;
 	    outData = iiRas.getDataStorage();
 	    outSpan = iiRas.getScanlineStride();
@@ -633,7 +727,7 @@ abstract class TexturePaintContext implements PaintContext {
 	}
 
 	public WritableRaster makeRaster(int w, int h) {
-	    return srcRas.createCompatibleWritableRaster(w, h);
+	    return makeRaster(colorModel, srcRas, w, h);
 	}
 
 	public void setRaster(int x, int y, int xerr, int yerr,

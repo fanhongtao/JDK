@@ -1,4 +1,6 @@
 /*
+ * @(#)DefaultBoundedRangeModel.java	1.42 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,13 +15,15 @@ import java.util.EventListener;
  * A generic implementation of BoundedRangeModel.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.36 02/06/02
+ * @version 1.42 12/03/01
  * @author David Kloba
  * @author Hans Muller
  * @see BoundedRangeModel
@@ -27,7 +31,7 @@ import java.util.EventListener;
 public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
 {
     /**
-     * Only one ChangeEvent is needed per model instance since the
+     * Only one <code>ChangeEvent</code> is needed per model instance since the
      * event's only (read-only) state is the source property.  The source
      * of events generated here is always "this".
      */
@@ -60,8 +64,8 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
 
     /**
      * Initializes value, extent, minimum and maximum. Adjusting is false.
-     * Throws an IllegalArgumentException if the following constraints
-     * aren't satisfied:
+     * Throws an <code>IllegalArgumentException</code> if the following
+     * constraints aren't satisfied:
      * <pre>
      * min <= value <= value+extent <= max
      * </pre>
@@ -84,7 +88,7 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
 
 
     /**
-     * Return the model's current value.
+     * Returns the model's current value.
      * @return the model's current value
      * @see #setValue
      * @see BoundedRangeModel#getValue
@@ -95,7 +99,7 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
 
 
     /**
-     * Return the model's extent.
+     * Returns the model's extent.
      * @return the model's extent
      * @see #setExtent
      * @see BoundedRangeModel#getExtent
@@ -106,7 +110,7 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
 
 
     /**
-     * Return the model's minimum.
+     * Returns the model's minimum.
      * @return the model's minimum
      * @see #setMinimum
      * @see BoundedRangeModel#getMinimum
@@ -117,7 +121,7 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
 
 
     /**
-     * Return the model's maximum.
+     * Returns the model's maximum.
      * @return  the model's maximum
      * @see #setMaximum
      * @see BoundedRangeModel#getMaximum
@@ -191,15 +195,14 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
      */
     public void setMaximum(int n) {
         int newMin = Math.min(n, min);
-        int newValue = Math.min(n, value);
-        int newExtent = Math.min(n - newValue, extent);
-
+        int newExtent = Math.min(n - newMin, extent);
+        int newValue = Math.min(n - newExtent, value);
         setRangeProperties(newValue, newExtent, newMin, n, isAdjusting);
     }
 
 
     /**
-     * Sets the valueIsAdjusting property.
+     * Sets the <code>valueIsAdjusting</code> property.
      * 
      * @see #getValueIsAdjusting
      * @see #setValue
@@ -214,7 +217,7 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
      * Returns true if the value is in the process of changing
      * as a result of actions being taken by the user.
      *
-     * @return the value of the valueIsAdjusting property
+     * @return the value of the <code>valueIsAdjusting</code> property
      * @see #setValue
      * @see BoundedRangeModel#getValueIsAdjusting
      */
@@ -224,13 +227,13 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
 
 
     /**
-     * Sets all of the BoundedRangeModel properties after forcing
+     * Sets all of the <code>BoundedRangeModel</code> properties after forcing
      * the arguments to obey the usual constraints:
      * <pre>
      *     minimum <= value <= value+extent <= maximum
      * </pre>
      * <p>
-     * At most, one ChangeEvent is generated.
+     * At most, one <code>ChangeEvent</code> is generated.
      * 
      * @see BoundedRangeModel#setRangeProperties
      * @see #setValue
@@ -283,7 +286,7 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
 
 
     /**
-     * Adds a ChangeListener.  The change listeners are run each
+     * Adds a <code>ChangeListener</code>.  The change listeners are run each
      * time any one of the Bounded Range model properties changes.
      *
      * @param l the ChangeListener to add
@@ -296,9 +299,9 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
     
 
     /**
-     * Removes a ChangeListener.
+     * Removes a <code>ChangeListener</code>.
      *
-     * @param l the ChangeListener to remove
+     * @param l the <code>ChangeListener</code> to remove
      * @see #addChangeListener
      * @see BoundedRangeModel#removeChangeListener
      */
@@ -307,8 +310,27 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
     }
 
 
+    /**
+     * Returns an array of all the change listeners
+     * registered on this <code>DefaultBoundedRangeModel</code>.
+     *
+     * @return all of this model's <code>ChangeListener</code>s 
+     *         or an empty
+     *         array if no change listeners are currently registered
+     *
+     * @see #addChangeListener
+     * @see #removeChangeListener
+     *
+     * @since 1.4
+     */
+    public ChangeListener[] getChangeListeners() {
+        return (ChangeListener[])listenerList.getListeners(
+                ChangeListener.class);
+    }
+
+
     /** 
-     * Run each ChangeListeners stateChanged() method.
+     * Runs each <code>ChangeListener</code>'s <code>stateChanged</code> method.
      * 
      * @see #setRangeProperties
      * @see EventListenerList
@@ -328,7 +350,8 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
 
     
     /**
-     * Returns a string that displays all of the BoundedRangeModel properties.
+     * Returns a string that displays all of the 
+     * <code>BoundedRangeModel</code> properties.
      */
     public String toString()  {
         String modelString =
@@ -342,12 +365,38 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
     }
 
     /**
-     * Return an array of all the listeners of the given type that 
-     * were added to this model. 
+     * Returns an array of all the objects currently registered as
+     * <code><em>Foo</em>Listener</code>s
+     * upon this model.
+     * <code><em>Foo</em>Listener</code>s
+     * are registered using the <code>add<em>Foo</em>Listener</code> method.
+     * <p>
+     * You can specify the <code>listenerType</code> argument
+     * with a class literal, such as <code><em>Foo</em>Listener.class</code>.
+     * For example, you can query a <code>DefaultBoundedRangeModel</code>
+     * instance <code>m</code>
+     * for its change listeners
+     * with the following code:
      *
-     * @returns all of the objects recieving <em>listenerType</em> notifications 
-     *          from this model
-     * 
+     * <pre>ChangeListener[] cls = (ChangeListener[])(m.getListeners(ChangeListener.class));</pre>
+     *
+     * If no such listeners exist,
+     * this method returns an empty array.
+     *
+     * @param listenerType  the type of listeners requested;
+     *          this parameter should specify an interface
+     *          that descends from <code>java.util.EventListener</code>
+     * @return an array of all objects registered as
+     *          <code><em>Foo</em>Listener</code>s
+     *          on this model,
+     *          or an empty array if no such
+     *          listeners have been added
+     * @exception ClassCastException if <code>listenerType</code> doesn't
+     *          specify a class or interface that implements
+     *          <code>java.util.EventListener</code>
+     *
+     * @see #getChangeListeners
+     *
      * @since 1.3
      */
     public EventListener[] getListeners(Class listenerType) { 

@@ -1,4 +1,6 @@
 /*
+ * @(#)WindowsRadioButtonUI.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -64,10 +66,36 @@ public class WindowsRadioButtonUI extends BasicRadioButtonUI
     // ********************************
     //          Paint Methods
     // ********************************
+
+    /**
+     * Overridden method to render the text without the mnemonic
+     */
+    protected void paintText(Graphics g, AbstractButton b, Rectangle textRect, String text) {
+	WindowsGraphicsUtils.paintText(g, b, textRect, text, getTextShiftOffset());
+    } 
+
+
     protected void paintFocus(Graphics g, Rectangle textRect, Dimension d){
 	g.setColor(getFocusColor());
 	BasicGraphicsUtils.drawDashedRect(g, textRect.x, textRect.y, textRect.width, textRect.height);
     } 
+
+    // ********************************
+    //          Layout Methods
+    // ********************************
+    public Dimension getPreferredSize(JComponent c) {
+	Dimension d = super.getPreferredSize(c);
+
+	/* Ensure that the width and height of the button is odd,
+	 * to allow for the focus line if focus is painted
+	 */
+        AbstractButton b = (AbstractButton)c;
+	if (b.isFocusPainted()) {
+	    if(d.width % 2 == 0) { d.width += 1; }
+	    if(d.height % 2 == 0) { d.height += 1; }
+	}
+	return d;
+    }
 
 }
 

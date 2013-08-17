@@ -1,4 +1,6 @@
 /*
+ * @(#)Insets.java	1.27 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,7 @@ package java.awt;
  * at each of its edges. The space can be a border, a blank space, or 
  * a title. 
  *
- * @version 	1.26, 02/06/02
+ * @version 	1.27, 12/03/01
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see         java.awt.LayoutManager
@@ -68,7 +70,9 @@ public class Insets implements Cloneable, java.io.Serializable {
     static {
         /* ensure that the necessary native libraries are loaded */
 	Toolkit.loadLibraries();
-	initIDs();
+        if (!GraphicsEnvironment.isHeadless()) {
+            initIDs();
+        }
     }
 
     /**

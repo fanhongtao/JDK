@@ -1,4 +1,6 @@
 /*
+ * @(#)SimpleAttributeSet.java	1.37 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,24 +8,26 @@ package javax.swing.text;
 
 import java.util.Hashtable;
 import java.util.Enumeration;
+import java.util.NoSuchElementException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  * A straightforward implementation of MutableAttributeSet using a 
  * hash table.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.33 02/06/02
+ * @version 1.37 12/03/01
  * @author Tim Prinzing
  */
 public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cloneable
@@ -34,6 +38,8 @@ public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cl
     public static final AttributeSet EMPTY = new EmptyAttributeSet();
 
     private transient Hashtable table = new Hashtable(3);
+
+    private static Enumeration emptyEnumeration;
 
     /**
      * Creates a new attribute set.
@@ -87,7 +93,7 @@ public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cl
      * Compares two attribute sets.
      *
      * @param attr the second attribute set
-     * @return true if equathe listl
+     * @return true if the sets are equal, false otherwise
      */
     public boolean isEqual(AttributeSet attr) {
 	return ((getAttributeCount() == attr.getAttributeCount()) &&
@@ -106,7 +112,7 @@ public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cl
     /**
      * Gets the names of the attributes in the set.
      *
-     * @return the names as an Enumeration
+     * @return the names as an <code>Enumeration</code>
      */
     public Enumeration getAttributeNames() {
         return table.keys();
@@ -271,12 +277,12 @@ public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cl
     }
 
     /**
-     * Compares this object to the specifed object.
+     * Compares this object to the specified object.
      * The result is <code>true</code> if the object is an equivalent
      * set of attributes.
-     * @param     obj   the object to compare this font with.
+     * @param     obj   the object to compare this attribute set with
      * @return    <code>true</code> if the objects are equal; 
-     *            <code>false</code> otherwise.
+     *            <code>false</code> otherwise
      */
     public boolean equals(Object obj) {
 	if (this == obj) {
@@ -342,7 +348,7 @@ public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cl
 	    return null;
 	}
 	public Enumeration getAttributeNames() {
-	    return DefaultMutableTreeNode.EMPTY_ENUMERATION;
+	    return getEmptyEnumeration();
 	}
 	public boolean containsAttribute(Object name, Object value) {
 	    return false;
@@ -361,5 +367,19 @@ public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cl
 		    (((AttributeSet)obj).getAttributeCount() == 0));
 	}
     };
+
+    private static Enumeration getEmptyEnumeration() {
+        if (emptyEnumeration == null) {
+            emptyEnumeration = new Enumeration() {
+                public boolean hasMoreElements() {
+                    return false;
+                }
+                public Object nextElement() {
+                    throw new NoSuchElementException("No more elements");
+                }
+            };
+        }
+        return emptyEnumeration;
+    }
 }
 

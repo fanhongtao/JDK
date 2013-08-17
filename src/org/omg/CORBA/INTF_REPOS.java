@@ -1,4 +1,6 @@
 /*
+ * @(#)INTF_REPOS.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,10 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>INTF_REPOS</code> exception, which is thrown
- * when there is an error accessing the interface repository.
+ * Exception raised
+ * when an ORB cannot reach the interface 
+ * repository, or some other failure relating to the interface repository 
+ * is detected.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

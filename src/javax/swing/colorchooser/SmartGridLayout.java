@@ -1,4 +1,6 @@
 /*
+ * @(#)SmartGridLayout.java	1.6 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,7 +18,7 @@ import java.io.Serializable;
 /**
   * A better GridLayout class
   *
-  * @version 1.5 02/06/02
+  * @version 1.6 12/03/01
   * @author Steve Wilson
   */
 class SmartGridLayout implements LayoutManager, Serializable {
@@ -54,20 +56,36 @@ class SmartGridLayout implements LayoutManager, Serializable {
 
 
     Insets insets = c.getInsets();
-    int horizLoc = insets.left;
 
-
-
-    for (int column = 0; column < columns; column++) {
-      int vertLoc = insets.top;
+    if (c.getComponentOrientation().isLeftToRight()) {
+        int horizLoc = insets.left;
+        for (int column = 0; column < columns; column++) {
+          int vertLoc = insets.top;
       
-      for (int row = 0; row < rows; row++) {
-	Component current = layoutGrid[column][row];
-	current.setBounds(horizLoc, vertLoc, columnWidths[column], rowHeights[row]);
-	//	System.out.println(current.getBounds());
-	vertLoc += (rowHeights[row] + yGap);
-      }
-      horizLoc += (columnWidths[column] + xGap );
+          for (int row = 0; row < rows; row++) {
+            Component current = layoutGrid[column][row];
+
+            current.setBounds(horizLoc, vertLoc, columnWidths[column], rowHeights[row]);
+            //	System.out.println(current.getBounds());
+            vertLoc += (rowHeights[row] + yGap);
+          }
+          horizLoc += (columnWidths[column] + xGap );
+        }
+    } else {  
+        int horizLoc = c.getWidth() - insets.right;
+        for (int column = 0; column < columns; column++) {
+          int vertLoc = insets.top;
+          horizLoc -= columnWidths[column];
+      
+          for (int row = 0; row < rows; row++) {
+            Component current = layoutGrid[column][row];
+
+            current.setBounds(horizLoc, vertLoc, columnWidths[column], rowHeights[row]);
+            //	System.out.println(current.getBounds());
+            vertLoc += (rowHeights[row] + yGap);
+          }
+          horizLoc -= xGap;
+        }
     }
       
 

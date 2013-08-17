@@ -1,4 +1,6 @@
 /*
+ * @(#)Shape.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -39,7 +41,14 @@ import java.awt.geom.Rectangle2D;
  * space immediately adjacent to the point in the 
  * increasing <code>Y</code> direction is inside the boundary.
  * </ul>
- *
+ * <p>The <code>contains</code> and <code>intersects</code> methods
+ * consider the interior of a <code>Shape</code> to be the area it
+ * encloses as if it were filled.  This means that these methods
+ * consider
+ * unclosed shapes to be implicitly closed for the purpose of
+ * determining if a shape contains or intersects a rectangle or if a
+ * shape contains a point.
+ * 
  * @see java.awt.geom.PathIterator
  * @see java.awt.geom.AffineTransform
  * @see java.awt.geom.FlatteningPathIterator

@@ -1,4 +1,6 @@
 /*
+ * @(#)ContainerAdapter.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -28,7 +30,7 @@ package java.awt.event;
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
  * @author Amy Fowler
- * @version 1.10 02/06/02
+ * @version 1.10 12/03/01
  * @since 1.1
  */
 public abstract class ContainerAdapter implements ContainerListener {

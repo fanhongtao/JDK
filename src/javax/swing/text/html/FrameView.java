@@ -1,4 +1,6 @@
 /*
+ * @(#)FrameView.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,7 +20,7 @@ import javax.swing.event.*;
  * marginwidth and marginheight attributes.
  *
  * @author    Sunita Mani
- * @version   1.20, 02/06/02
+ * @version   1.21, 12/03/01
  */
 
 class FrameView extends ComponentView implements HyperlinkListener {
@@ -335,10 +337,11 @@ class FrameView extends ComponentView implements HyperlinkListener {
      * Determines the minimum span for this view along an
      * axis.
      *
-     * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns the preferred span.  Given that we do not
+     * @param axis may be either <code>View.X_AXIS</code> or 
+     *	<code>View.Y_AXIS</code>
+     * @return the preferred span; given that we do not
      * support resizing of frames, the minimum span returned
-     * is the same as the preferred span.
+     * is the same as the preferred span
      * 
      */
     public float getMinimumSpan(int axis) {
@@ -349,10 +352,11 @@ class FrameView extends ComponentView implements HyperlinkListener {
      * Determines the maximum span for this view along an
      * axis.
      *
-     * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns the preferred span.  Given that we do not
+     * @param axis may be either <code>View.X_AXIS</code> or 
+     *	<code>View.Y_AXIS</code>
+     * @return the preferred span; given that we do not
      * support resizing of frames, the maximum span returned
-     * is the same as the preferred span.
+     * is the same as the preferred span
      * 
      */
     public float getMaximumSpan(int axis) {

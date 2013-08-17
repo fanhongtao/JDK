@@ -1,4 +1,6 @@
 /*
+ * @(#)AppletInitializer.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,7 +21,7 @@ import java.beans.beancontext.BeanContext;
  *
  * @see java.beans.Beans#instantiate
  *
- * @version 1.9, 02/06/02
+ * @version 1.10, 12/03/01
  * @since 1.2
  *
  */
@@ -51,8 +53,9 @@ public interface AppletInitializer {
      * </ol>
      * </p>
      *
-     * @param The newly instantiated JavaBean
-     * @param The BeanContext intended for this Applet, or null.
+     * @param newAppletBean  The newly instantiated JavaBean
+     * @param bCtxt          The BeanContext intended for this Applet, or 
+     *                       null.
      */
 
     void initialize(Applet newAppletBean, BeanContext bCtxt);
@@ -64,7 +67,7 @@ public interface AppletInitializer {
      * method.
      * </p>
      *
-     * @param The newly instantiated JavaBean
+     * @param newApplet  The newly instantiated JavaBean
      */
 
     void activate(Applet newApplet);

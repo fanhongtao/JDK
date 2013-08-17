@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicTextPaneUI.java	1.64 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,13 +20,15 @@ import javax.swing.border.*;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.62 02/06/02
+ * @version 1.64 12/03/01
  */
 public class BasicTextPaneUI extends BasicEditorPaneUI {
 
@@ -56,17 +60,10 @@ public class BasicTextPaneUI extends BasicEditorPaneUI {
 	return "TextPane";
     }
 
-    /**
-     * Fetches the EditorKit for the UI.  This is whatever is
-     * currently set in the associated JEditorPane.
-     *
-     * @param tc the text component for which this UI is installed
-     * @return the editor capabilities
-     * @see TextUI#getEditorKit
-     */
-    public EditorKit getEditorKit(JTextComponent tc) {
-	JEditorPane pane = (JEditorPane) getComponent();
-	return pane.getEditorKit();
+    public void installUI(JComponent c) {
+        super.installUI(c);
+        updateForeground(c.getForeground());
+        updateFont(c.getFont());
     }
 
     /**
@@ -74,45 +71,74 @@ public class BasicTextPaneUI extends BasicEditorPaneUI {
      * on the associated JTextComponent.  This is a hook
      * which UI implementations may change to reflect how the
      * UI displays bound properties of JTextComponent subclasses.
-     * If the font or foreground has changed, and the
-     * Document is a StyledDocument, the appropriate property
-     * is set in the default style.
+     * If the font, foreground or document has changed, the
+     * the appropriate property is set in the default style of
+     * the document.
      *
      * @param evt the property change event
      */
     protected void propertyChange(PropertyChangeEvent evt) {
 	super.propertyChange(evt);
-	StyledDocument doc = (StyledDocument)getComponent().getDocument();
-	Style style = doc.getStyle(StyleContext.DEFAULT_STYLE);
-	if (style == null)
-	    return;
 
 	String name = evt.getPropertyName();
-	// foreground
+
 	if (name.equals("foreground")) {
-	    Color color = (Color)evt.getNewValue();
-	    if (color != null) {
-		StyleConstants.setForeground(style, color);
-	    }
-	    else {
-		style.removeAttribute(StyleConstants.Foreground);
-	    }
-	}
-	// font
-	else if (name.equals("font")) {
-	    Font font = (Font)evt.getNewValue();
-	    if (font != null) {
-		StyleConstants.setFontFamily(style, font.getName());
-		StyleConstants.setFontSize(style, font.getSize());
-		StyleConstants.setBold(style, font.isBold());
-		StyleConstants.setItalic(style, font.isItalic());
-	    }
-	    else {
-		style.removeAttribute(StyleConstants.FontFamily);
-		style.removeAttribute(StyleConstants.FontSize);
-		style.removeAttribute(StyleConstants.Bold);
-		style.removeAttribute(StyleConstants.Italic);
-	    }
-	}
+            updateForeground((Color)evt.getNewValue());
+	} else if (name.equals("font")) {
+            updateFont((Font)evt.getNewValue());
+	} else if (name.equals("document")) {
+            JComponent comp = getComponent();
+            updateForeground(comp.getForeground());
+            updateFont(comp.getFont());
+        }
     }
+
+    /**
+     * Update the color in the default style of the document.
+     *
+     * @param color the new color to use or null to remove the color attribute
+     *              from the document's style
+     */
+    private void updateForeground(Color color) {
+        StyledDocument doc = (StyledDocument)getComponent().getDocument();
+        Style style = doc.getStyle(StyleContext.DEFAULT_STYLE);
+
+        if (style == null) {
+            return;
+        }
+
+        if (color == null) {
+            style.removeAttribute(StyleConstants.Foreground);
+        } else {
+            StyleConstants.setForeground(style, color);
+        }
+    }
+    
+    /**
+     * Update the font in the default style of the document.
+     *
+     * @param font the new font to use or null to remove the font attribute
+     *             from the document's style
+     */
+    private void updateFont(Font font) {
+        StyledDocument doc = (StyledDocument)getComponent().getDocument();
+        Style style = doc.getStyle(StyleContext.DEFAULT_STYLE);
+
+        if (style == null) {
+            return;
+        }
+
+        if (font == null) {
+            style.removeAttribute(StyleConstants.FontFamily);
+            style.removeAttribute(StyleConstants.FontSize);
+            style.removeAttribute(StyleConstants.Bold);
+            style.removeAttribute(StyleConstants.Italic);
+        } else {
+            StyleConstants.setFontFamily(style, font.getName());
+            StyleConstants.setFontSize(style, font.getSize());
+            StyleConstants.setBold(style, font.isBold());
+            StyleConstants.setItalic(style, font.isItalic());
+        }
+    }
+
 }

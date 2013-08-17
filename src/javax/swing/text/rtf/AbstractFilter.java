@@ -1,4 +1,6 @@
 /*
+ * @(#)AbstractFilter.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,8 +15,9 @@ import java.lang.*;
  * ``specials'' (formatting characters).
  *
  * <p> Most of the functionality
- * of this class would be redundant except that the ByteToChar converters
- * are suddently private API. Presumably this class will disappear
+ * of this class would be redundant except that the
+ * <code>ByteToChar</code> converters
+ * are suddenly private API. Presumably this class will disappear
  * when the API is made public again. (sigh) That will also let us handle
  * multibyte character sets...
  *

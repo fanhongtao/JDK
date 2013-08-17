@@ -1,4 +1,6 @@
 /*
+ * @(#)MenuContainer.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -7,7 +9,7 @@ package java.awt;
 /**
  * The super class of all menu related containers.
  *
- * @version 	1.13, 02/06/02
+ * @version 	1.13, 12/03/01
  * @author 	Arthur van Hoff
  */
 

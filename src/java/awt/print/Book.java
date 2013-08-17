@@ -1,4 +1,6 @@
 /*
+ * @(#)Book.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -53,9 +55,8 @@ public class Book implements Pageable {
      *            <code>PageFormat</code> is being requested
      * @return the <code>PageFormat</code> describing the size and
      *          orientation of the page.
-     * @exception <code>IndexOutOfBoundsException</code>
-     *            The <code>Pageable</code> does not contain the requested
-     *            page 
+     * @throws IndexOutOfBoundsException if the <code>Pageable</code> 
+     * 		does not contain the requested page 
      */
     public PageFormat getPageFormat(int pageIndex)
 	throws IndexOutOfBoundsException
@@ -69,9 +70,8 @@ public class Book implements Pageable {
      * @param pageIndex the zero based index of the page whose
      *                  <code>Printable</code> is being requested
      * @return the <code>Printable</code> that renders the page.
-     * @exception <code>IndexOutOfBoundsException</code>
-     *            the <code>Pageable</code> does not contain the requested
-     *		  page. 
+     * @throws IndexOutOfBoundsException if the <code>Pageable</code>
+     *            does not contain the requested page 
      */
     public Printable getPrintable(int pageIndex)
 	throws IndexOutOfBoundsException
@@ -87,11 +87,10 @@ public class Book implements Pageable {
      * @param painter   the <code>Printable</code> instance that
      *                  renders the page
      * @param page      the size and orientation of the page
-     * @exception <code>IndexOutOfBoundsException</code> If the specified
+     * @throws IndexOutOfBoundsException if the specified
      *		page is not already in this <code>Book</code> 
-     * @throws <code>NullPointerException</code>
-     *          If the <code>painter</code> or <code>page</code>
-     *		argument is <code>null</code>
+     * @throws NullPointerException if the <code>painter</code> or
+     *		<code>page</code> argument is <code>null</code>
      */
     public void setPage(int pageIndex, Printable painter, PageFormat page)
 	throws IndexOutOfBoundsException

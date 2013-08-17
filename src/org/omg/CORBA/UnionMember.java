@@ -1,4 +1,6 @@
 /*
+ * @(#)UnionMember.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -56,6 +58,15 @@ public final class UnionMember implements org.omg.CORBA.portable.IDLEntity {
     /**
      * Constructs a new <code>UnionMember</code> object with its fields initialized
      * to the given values.
+     *
+     * @param __name a <code>String</code> object with the name of this 
+     *        <code>UnionMember</code> object
+     * @param __label an <code>Any</code> object with the label of this 
+     *        <code>UnionMember</code> object
+     * @param __type a <code>TypeCode</code> object describing the type of this 
+     *        <code>UnionMember</code> object
+     * @param __type_def an <code>IDLType</code> object that represents the
+     *        IDL type of this <code>UnionMember</code> object
      */
     public UnionMember(String __name, org.omg.CORBA.Any __label, org.omg.CORBA.TypeCode __type, org.omg.CORBA.IDLType __type_def) {
 	name = __name;

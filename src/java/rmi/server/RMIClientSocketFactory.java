@@ -1,4 +1,6 @@
 /*
+ * @(#)RMIClientSocketFactory.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -25,7 +27,14 @@ import java.net.*;
  * with a remote object registry so that clients can use custom socket
  * communication with a remote object registry.
  *
- * @version 1.8, 02/06/02
+ * <p>An implementation of this interface should be serializable and
+ * should implement {@link Object#equals} to return <code>true</code> when
+ * passed an instance that represents the same (functionally equivalent)
+ * client socket factory, and <code>false</code> otherwise (and it should also
+ * implement {@link Object#hashCode} consistently with its
+ * <code>Object.equals</code> implementation).
+ *
+ * @version 1.9, 12/03/01
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   1.2

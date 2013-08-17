@@ -1,4 +1,6 @@
 /*
+ * @(#)Map.java	1.6 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,7 +18,7 @@ import javax.swing.text.AttributeSet;
  * you can test if a point falls inside the map via the contains method.
  *
  * @author  Scott Violet
- * @version 1.5 02/06/02
+ * @version 1.6 12/03/01
  */
 class Map {
     /** Name of the Map. */
@@ -228,8 +230,7 @@ class Map {
     /**
      * Used to test for containment in a rectangular region.
      */
-    static class RectangleRegionContainment extends Rectangle implements
-                 RegionContainment {
+    static class RectangleRegionContainment implements RegionContainment {
 	/** Will be non-null if one of the values is a percent, and any value
 	 * that is non null indicates it is a percent
 	 * (order is x, y, width, height). */
@@ -238,6 +239,12 @@ class Map {
 	int           lastWidth;
 	/** Last value of height passed in. */
 	int           lastHeight;
+        /** Top left. */
+        int           x0;
+        int           y0;
+        /** Bottom right. */
+        int           x1;
+        int           y1;
 
 	public RectangleRegionContainment(AttributeSet as) {
 	    int[]    coords = Map.extractCoords(as.getAttribute(HTML.
@@ -248,11 +255,11 @@ class Map {
 		throw new RuntimeException("Unable to parse rectangular area");
 	    }
 	    else {
-		x = coords[0];
-		y = coords[1];
-		width = coords[2];
-		height = coords[3];
-		if (x < 0 || y < 0 || width < 0 || height < 0) {
+		x0 = coords[0];
+		y0 = coords[1];
+		x1 = coords[2];
+		y1 = coords[3];
+		if (x0 < 0 || y0 < 0 || x1 < 0 || y1 < 0) {
 		    percents = new float[4];
 		    lastWidth = lastHeight = -1;
 		    for (int counter = 0; counter < 4; counter++) {
@@ -276,20 +283,25 @@ class Map {
 		lastWidth = width;
 		lastHeight = height;
 		if (percents[0] != -1.0f) {
-		    this.x = (int)(percents[0] * width);
+		    x0 = (int)(percents[0] * width);
 		}
 		if (percents[1] != -1.0f) {
-		    this.y = (int)(percents[1] * height);
+		    y0 = (int)(percents[1] * height);
 		}
 		if (percents[2] != -1.0f) {
-		    this.width = (int)(percents[2] * width);
+		    x1 = (int)(percents[2] * width);
 		}
 		if (percents[3] != -1.0f) {
-		    this.height = (int)(percents[3] * height);
+		    y1 = (int)(percents[3] * height);
 		}
 	    }
 	    return contains(x, y);
 	}
+
+        public boolean contains(int x, int y) {
+            return ((x >= x0 && x <= x1) &&
+                    (y >= y0 && y <= y1));
+        }
     }
 
 

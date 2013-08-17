@@ -1,4 +1,6 @@
 /*
+ * @(#)Comparator.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -45,7 +47,7 @@ package java.util;
  * given set of objects <tt>S</tt> is:<pre>
  *       {(x, y) such that c.compare((Object)x, (Object)y) &lt;= 0}.
  * </pre> The <i>quotient</i> for this total order is:<pre>
- *       {(x, y) such that x.compareTo((Object)y) == 0}.
+ *       {(x, y) such that c.compare((Object)x, (Object)y) == 0}.
  * </pre>
  *
  * It follows immediately from the contract for <tt>compare</tt> that the
@@ -59,7 +61,7 @@ package java.util;
  * </pre>
  *
  * @author  Josh Bloch
- * @version 1.16, 02/06/02
+ * @version 1.17, 12/03/01
  * @see Comparable
  * @see Arrays#sort(Object[], Comparator)
  * @see TreeMap

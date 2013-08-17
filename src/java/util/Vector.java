@@ -1,4 +1,6 @@
 /*
+ * @(#)Vector.java	1.85 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -35,17 +37,26 @@ package java.util;
  * The Enumerations returned by Vector's elements method are <em>not</em>
  * fail-fast.
  *
+ * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
+ * as it is, generally speaking, impossible to make any hard guarantees in the
+ * presence of unsynchronized concurrent modification.  Fail-fast iterators
+ * throw <tt>ConcurrentModificationException</tt> on a best-effort basis. 
+ * Therefore, it would be wrong to write a program that depended on this
+ * exception for its correctness:  <i>the fail-fast behavior of iterators
+ * should be used only to detect bugs.</i>
+ *
  * @author  Lee Boynton
  * @author  Jonathan Payne
- * @version 1.72, 02/06/02
+ * @version 1.85, 12/03/01
  * @see Collection
  * @see List
  * @see ArrayList
  * @see LinkedList
  * @since   JDK1.0
  */
-public class Vector extends AbstractList implements List, Cloneable,
-					            java.io.Serializable {
+public class Vector extends AbstractList
+        implements List, RandomAccess, Cloneable, java.io.Serializable
+{
     /**
      * The array buffer into which the components of the vector are
      * stored. The capacity of the vector is the length of this array buffer, 
@@ -126,11 +137,14 @@ public class Vector extends AbstractList implements List, Cloneable,
      *
      * @param c the collection whose elements are to be placed into this
      *       vector.
+     * @throws NullPointerException if the specified collection is null.
      * @since   1.2
      */
     public Vector(Collection c) {
         elementCount = c.size();
-	elementData = new Object[(elementCount*110)/100]; // 10% for growth
+        // 10% for growth
+        elementData = new Object[
+                      (int)Math.min((elementCount*110L)/100,Integer.MAX_VALUE)]; 
         c.toArray(elementData);
     }
 
@@ -142,6 +156,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * <tt>IndexOutOfBoundsException</tt> is thrown.
      *
      * @param   anArray   the array into which the components get copied.
+     * @throws  NullPointerException if the given array is null.
      */
     public synchronized void copyInto(Object anArray[]) {
 	System.arraycopy(elementData, 0, anArray, 0, elementCount);
@@ -149,7 +164,7 @@ public class Vector extends AbstractList implements List, Cloneable,
 
     /**
      * Trims the capacity of this vector to be the vector's current 
-     * size. If the capacity of this cector is larger than its current 
+     * size. If the capacity of this vector is larger than its current 
      * size, then the capacity is changed to equal the size by replacing 
      * its internal data array, kept in the field <tt>elementData</tt>, 
      * with a smaller one. An application can use this operation to 
@@ -234,10 +249,10 @@ public class Vector extends AbstractList implements List, Cloneable,
      * Returns the current capacity of this vector.
      *
      * @return  the current capacity (the length of its internal 
-     *          data arary, kept in the field <tt>elementData</tt> 
-     *          of this vector.
+     *          data array, kept in the field <tt>elementData</tt> 
+     *          of this vector).
      */
-    public int capacity() {
+    public synchronized int capacity() {
 	return elementData.length;
     }
 
@@ -246,7 +261,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      *
      * @return  the number of components in this vector.
      */
-    public int size() {
+    public synchronized int size() {
 	return elementCount;
     }
 
@@ -257,7 +272,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      *          no components, that is, its size is zero;
      *          <code>false</code> otherwise.
      */
-    public boolean isEmpty() {
+    public synchronized boolean isEmpty() {
 	return elementCount == 0;
     }
 
@@ -357,7 +372,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      *          <tt>elem.equals(elementData[k])</tt> is <tt>true</tt>; 
      *          returns <code>-1</code> if the object is not found.
      */
-    public int lastIndexOf(Object elem) {
+    public synchronized int lastIndexOf(Object elem) {
 	return lastIndexOf(elem, elementCount-1);
     }
 
@@ -606,6 +621,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * @see	List
      */
     public synchronized void removeAllElements() {
+        modCount++;
 	// Let gc do its work
 	for (int i = 0; i < elementCount; i++)
 	    elementData[i] = null;
@@ -647,7 +663,7 @@ public class Vector extends AbstractList implements List, Cloneable,
 
     /**
      * Returns an array containing all of the elements in this Vector in the
-     * correct order.  The runtime type of the returned array is that of the
+     * correct order; the runtime type of the returned array is that of the
      * specified array.  If the Vector fits in the specified array, it is
      * returned therein.  Otherwise, a new array is allocated with the runtime
      * type of the specified array and the size of this Vector.<p>
@@ -665,6 +681,8 @@ public class Vector extends AbstractList implements List, Cloneable,
      * @return an array containing the elements of the Vector.
      * @exception ArrayStoreException the runtime type of a is not a supertype
      * of the runtime type of every element in this Vector.
+     * @throws NullPointerException if the given array is null.
+     * @since 1.2
      */
     public synchronized Object[] toArray(Object a[]) {
         if (a.length < elementCount)
@@ -685,6 +703,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * Returns the element at the specified position in this Vector.
      *
      * @param index index of element to return.
+     * @return object at the specified index
      * @exception ArrayIndexOutOfBoundsException index is out of range (index
      * 		  &lt; 0 || index &gt;= size()).
      * @since 1.2
@@ -705,7 +724,6 @@ public class Vector extends AbstractList implements List, Cloneable,
      * @return the element previously at the specified position.
      * @exception ArrayIndexOutOfBoundsException index out of range
      *		  (index &lt; 0 || index &gt;= size()).
-     * @exception IllegalArgumentException fromIndex &gt; toIndex.
      * @since 1.2
      */
     public synchronized Object set(int index, Object element) {
@@ -769,6 +787,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * @exception ArrayIndexOutOfBoundsException index out of range (index
      * 		  &lt; 0 || index &gt;= size()).
      * @param index the index of the element to removed.
+     * @return element that was removed
      * @since 1.2
      */
     public synchronized Object remove(int index) {
@@ -802,8 +821,11 @@ public class Vector extends AbstractList implements List, Cloneable,
      * Returns true if this Vector contains all of the elements in the
      * specified Collection.
      *
+     * @param   c a collection whose elements will be tested for containment
+     *          in this Vector
      * @return true if this Vector contains all of the elements in the
      *	       specified collection.
+     * @throws NullPointerException if the specified collection is null.
      */
     public synchronized boolean containsAll(Collection c) {
         return super.containsAll(c);
@@ -818,8 +840,10 @@ public class Vector extends AbstractList implements List, Cloneable,
      * specified Collection is this Vector, and this Vector is nonempty.)
      *
      * @param c elements to be inserted into this Vector.
+     * @return <tt>true</tt> if this Vector changed as a result of the call.
      * @exception ArrayIndexOutOfBoundsException index out of range (index
      *		  &lt; 0 || index &gt; size()).
+     * @throws NullPointerException if the specified collection is null.
      * @since 1.2
      */
     public synchronized boolean addAll(Collection c) {
@@ -838,7 +862,9 @@ public class Vector extends AbstractList implements List, Cloneable,
      * Removes from this Vector all of its elements that are contained in the
      * specified Collection.
      *
+     * @param c a collection of elements to be removed from the Vector
      * @return true if this Vector changed as a result of the call.
+     * @throws NullPointerException if the specified collection is null.
      * @since 1.2
      */
     public synchronized boolean removeAll(Collection c) {
@@ -850,7 +876,10 @@ public class Vector extends AbstractList implements List, Cloneable,
      * specified Collection.  In other words, removes from this Vector all
      * of its elements that are not contained in the specified Collection. 
      *
+     * @param c a collection of elements to be retained in this Vector
+     *          (all other elements are removed)
      * @return true if this Vector changed as a result of the call.
+     * @throws NullPointerException if the specified collection is null.
      * @since 1.2
      */
     public synchronized boolean retainAll(Collection c)  {
@@ -868,8 +897,10 @@ public class Vector extends AbstractList implements List, Cloneable,
      * @param index index at which to insert first element
      *		    from the specified collection.
      * @param c elements to be inserted into this Vector.
+     * @return <tt>true</tt> if this Vector changed as a result of the call.
      * @exception ArrayIndexOutOfBoundsException index out of range (index
      *		  &lt; 0 || index &gt; size()).
+     * @throws NullPointerException if the specified collection is null.
      * @since 1.2
      */
     public synchronized boolean addAll(int index, Collection c) {
@@ -958,7 +989,7 @@ public class Vector extends AbstractList implements List, Cloneable,
      * @throws IllegalArgumentException endpoint indices out of order
      *	       <code>(fromIndex &gt; toIndex)</code>
      */
-    public List subList(int fromIndex, int toIndex) {
+    public synchronized List subList(int fromIndex, int toIndex) {
         return Collections.synchronizedList(super.subList(fromIndex, toIndex),
                                             this);
     }

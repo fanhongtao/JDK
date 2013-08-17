@@ -1,4 +1,6 @@
 /*
+ * @(#)SetOverrideType.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,11 +10,11 @@ package org.omg.CORBA;
 /**
  * The mapping of a CORBA <code>enum</code> tagging
  * <code>SET_OVERRIDE</code> and <code>ADD_OVERRIDE</code>, which
- * indicate whether policies should replace the
+ * indicate whether policies should replace the 
  * existing policies of an <code>Object</code> or be added to them.
  * <P>
  * The method {@link omg.org.CORBA.Object._set_policy_override} takes
- * either <code>SetOverrideType.SET_OVERRIDE</code> or
+ * either <code>SetOverrideType.SET_OVERRIDE</code> or 
  * <code>SetOverrideType.ADD_OVERRIDE</code> as its second argument.
  * The method <code>_set_policy_override</code>
  * creates a new <code>Object</code> initialized with the
@@ -24,7 +26,7 @@ package org.omg.CORBA;
  * are replaced with the given ones.
  *
  * @author OMG
- * @version 1.12 09/20/00
+ * @version 1.13 12/03/01
  * @since   JDK1.2
  */
 
@@ -63,16 +65,16 @@ public class SetOverrideType implements org.omg.CORBA.portable.IDLEntity {
      * Converts the given <code>int</code> to the corresponding
      * <code>SetOverrideType</code> instance.
      *
-     * @param  i the <code>int</code> to convert.  It must be one of
-     *         the <code>int</code> constants in the class
-     *         <code>SetOverrideType</code>.
+     * @param  i the <code>int</code> to convert; must be either
+     *         <code>SetOverrideType._SET_OVERRIDE</code> or
+     *         <code>SetOverrideType._ADD_OVERRIDE</code> 
      * @return  the <code>SetOverrideType</code> instance whose value
      *       matches the given <code>int</code>
      * @exception  BAD_PARAM  if the given <code>int</code> does not
      *       match the value of
      *       any <code>SetOverrideType</code> instance
      */
-    public static SetOverrideType from_int(int i) throws org.omg.CORBA.BAD_PARAM
+    public static SetOverrideType from_int(int i)
     {
         switch (i) {
 	case _SET_OVERRIDE:
@@ -85,13 +87,19 @@ public class SetOverrideType implements org.omg.CORBA.portable.IDLEntity {
     }
 
     /**
-     * Constructs the <code>SetOverrideType</code> instance given a
+     * Constructs a <code>SetOverrideType</code> instance from an
      * <code>int</code>.
-     * @param _value the value that is passed in could be one of 
-     * SET_OVERRIDE or ADD_OVERRIDE
+     * @param _value must be either <code>SET_OVERRIDE</code> or 
+     *        <code>ADD_OVERRIDE</code>
      */
     protected SetOverrideType(int _value){
         this._value = _value;
     }
+
+    /**
+     * The field containing the value for this <code>SetOverrideType</code>
+     * object.
+     *
+     */
     private int _value;
 }

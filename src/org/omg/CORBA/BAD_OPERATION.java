@@ -1,4 +1,6 @@
 /*
+ * @(#)BAD_OPERATION.java	1.31 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,8 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>BAD_OPERATION</code> exception, which is thrown
- * when a method is invalid.
+ * Exception thrown when an object reference denotes an existing object, 
+ * but that the object does not support the operation that was invoked.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

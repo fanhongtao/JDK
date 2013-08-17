@@ -1,4 +1,6 @@
 /*
+ * @(#)LookupTable.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -59,6 +61,7 @@ public abstract class LookupTable extends Object{
 
     /**
      * Returns the number of components in the lookup table.
+     * @return the number of components in this <code>LookupTable</code>.
      */
     public int getNumComponents() {
         return numComponents;
@@ -66,15 +69,23 @@ public abstract class LookupTable extends Object{
 
     /**
      * Returns the offset.  
+     * @return the offset of this <code>LookupTable</code>.
      */
     public int getOffset() {
         return offset;
     }
 
     /**
-     * Returns an int array of components for one pixel. Source and
-     * destination may be equal.  The dest array is returned.  If dest
-     * is null, a new array will be allocated.
+     * Returns an <code>int</code> array of components for 
+     * one pixel.  The <code>dest</code> array contains the 
+     * result of the lookup and is returned.  If dest is 
+     * <code>null</code>, a new array is allocated.  The 
+     * source and destination can be equal. 
+     * @param src the source array of components of one pixel
+     * @param dest the destination array of components for one pixel,
+     *        translated with this <code>LookupTable</code>
+     * @return an <code>int</code> array of components for one 
+     *         pixel.
      */
     public abstract int[] lookupPixel(int[] src, int[] dest);
     

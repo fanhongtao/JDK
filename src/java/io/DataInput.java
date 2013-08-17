@@ -1,4 +1,6 @@
 /*
+ * @(#)DataInput.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -27,7 +29,7 @@ package java.io;
  * closed.
  *
  * @author  Frank Yellin
- * @version 1.17, 02/06/02
+ * @version 1.19, 12/03/01
  * @see     java.io.DataInputStream
  * @see     java.io.DataOutput
  * @since   JDK1.0
@@ -140,9 +142,7 @@ interface DataInput {
      * number of bytes skipped is returned.
      *
      * @param      n   the number of bytes to be skipped.
-     * @return     the number of bytes skipped, which is always <code>n</code>.
-     * @exception  EOFException  if this stream reaches the end before skipping
-     *               all the bytes.
+     * @return     the number of bytes actually skipped.
      * @exception  IOException   if an I/O error occurs.
      */
     int skipBytes(int n) throws IOException;
@@ -395,7 +395,9 @@ interface DataInput {
      * will have a value less than <code>&#92;u0100</code>,
      * that is, <code>(char)256</code>.
      *
-     * @return     if this stream reaches the end before reading all the bytes.
+     * @return the next line of text from the input stream,
+     *         or <CODE>null</CODE> if the end of file is
+     *         encountered before a byte can be read. 
      * @exception  IOException  if an I/O error occurs.
      */
     String readLine() throws IOException;

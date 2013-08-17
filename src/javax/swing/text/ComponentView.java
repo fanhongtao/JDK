@@ -1,4 +1,6 @@
 /*
+ * @(#)ComponentView.java	1.48 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,9 +17,36 @@ import javax.swing.OverlayLayout;
  * as a gateway from the display-only View implementations to
  * interactive lightweight components (ie it allows components
  * to be embedded into the View hierarchy).
+ * <p>
+ * The component is placed relative to the text baseline 
+ * according to the value returned by 
+ * <code>Component.getAlignmentY</code>.  For Swing components
+ * this value can be conveniently set using the method
+ * <code>JComponent.setAlignmentY</code>.  For example, setting
+ * a value of <code>0.75</code> will cause 75 percent of the 
+ * component to be above the baseline, and 25 percent of the
+ * component to be below the baseline.
+ * <p>
+ * This class is implemented to do the extra work necessary to
+ * work properly in the presence of multiple threads (i.e. from
+ * asynchronous notification of model changes for example) by
+ * ensuring that all component access is done on the event thread.
+ * <p>
+ * The component used is determined by the return value of the
+ * createComponent method.  The default implementation of this
+ * method is to return the component held as an attribute of
+ * the element (by calling StyleConstants.getComponent).  A
+ * limitation of this behavior is that the component cannot 
+ * be used by more than one text component (i.e. with a shared
+ * model).  Subclasses can remove this constraint by implementing
+ * the createComponent to actually create a component based upon
+ * some kind of specification contained in the attributes.  The
+ * ObjectView class in the html package is an example of a
+ * ComponentView implementation that supports multiple component
+ * views of a shared model.
  *
  * @author Timothy Prinzing
- * @version 1.41 02/06/02
+ * @version 1.48 12/03/01
  */
 public class ComponentView extends View  {
 
@@ -63,6 +92,11 @@ public class ComponentView extends View  {
      * @see View#paint
      */
     public void paint(Graphics g, Shape a) {
+	if (c != null) {
+	    Rectangle alloc = (a instanceof Rectangle) ?
+		(Rectangle) a : a.getBounds();
+	    c.setBounds(alloc.x, alloc.y, alloc.width, alloc.height);
+	}
     }
 
     /**
@@ -72,7 +106,7 @@ public class ComponentView extends View  {
      * axis of interest.
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the span the view would like to be rendered into >= 0.
+     * @return   the span the view would like to be rendered into >= 0.
      *           Typically the view is told to render into the span
      *           that is returned, although there is no guarantee.
      *           The parent may choose to resize or break the view.
@@ -100,7 +134,7 @@ public class ComponentView extends View  {
      * axis of interest.
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the span the view would like to be rendered into >= 0.
+     * @return   the span the view would like to be rendered into >= 0.
      *           Typically the view is told to render into the span
      *           that is returned, although there is no guarantee.  
      *           The parent may choose to resize or break the view.
@@ -128,7 +162,7 @@ public class ComponentView extends View  {
      * axis of interest.
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the span the view would like to be rendered into >= 0.
+     * @return   the span the view would like to be rendered into >= 0.
      *           Typically the view is told to render into the span
      *           that is returned, although there is no guarantee.  
      *           The parent may choose to resize or break the view.
@@ -155,7 +189,7 @@ public class ComponentView extends View  {
      * embedded component.
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns the desired alignment.  This should be a value
+     * @return the desired alignment.  This should be a value
      *   between 0.0 and 1.0 where 0 indicates alignment at the
      *   origin and 1.0 indicates alignment to the full span
      *   away from the origin.  An alignment of 0.5 would be the
@@ -174,28 +208,18 @@ public class ComponentView extends View  {
     }
 
     /**
-     * Sets the size of the view.  This is implemented
-     * to do nothing since the component itself will get
-     * its size established by the LayoutManager installed
-     * on the hosting Container.
-     *
-     * @param width the width >= 0
-     * @param height the height >= 0
-     */
-    public void setSize(float width, float height) {
-    }
-
-    /**
      * Sets the parent for a child view.
      * The parent calls this on the child to tell it who its
      * parent is, giving the view access to things like
      * the hosting Container.  The superclass behavior is
      * executed, followed by a call to createComponent if
-     * a component has not yet been created and the embedded
-     * components parent is set to the value returned by 
-     * <code>getContainer</code>.
+     * the parent view parameter is non-null and a component
+     * has not yet been created. The embedded components parent
+     * is then set to the value returned by <code>getContainer</code>.
+     * If the parent view parameter is null, this view is being
+     * cleaned up, thus the component is removed from its parent.
      * <p>
-     * The changing of the component hierarhcy will
+     * The changing of the component hierarchy will
      * touch the component lock, which is the one thing 
      * that is not safe from the View hierarchy.  Therefore,
      * this functionality is executed immediately if on the
@@ -259,7 +283,15 @@ public class ComponentView extends View  {
 		    }
 		}
 	    }
-	}
+	} else {
+            if (c != null) {
+                Container parent = c.getParent();
+                if (parent != null) {
+                    // remove the component from its hosting container
+                    parent.remove(c);
+                }
+            }
+        }
     }
 
     /**
@@ -323,6 +355,12 @@ public class ComponentView extends View  {
      */
     class Invalidator extends Container {
 
+        // NOTE: When we remove this class we are going to have to some
+        // how enforce setting of the focus traversal keys on the children
+        // so that they don't inherit them from the JEditorPane. We need
+        // to do this as JEditorPane has abnormal bindings (it is a focus cycle
+        // root) and the children typically don't want these bindings as well.
+
 	Invalidator(Component child) {
 	    setLayout(new OverlayLayout(this));
 	    add(child);
@@ -341,14 +379,20 @@ public class ComponentView extends View  {
 	 */
 	public void invalidate() {
 	    super.invalidate();
-	    min = super.getMinimumSize();
-	    pref = super.getPreferredSize();
-	    max = super.getMaximumSize();
-	    yalign = super.getAlignmentY();
-	    xalign = super.getAlignmentX();
 	    if (getParent() != null) {
 		preferenceChanged(null, true, true);
 	    }
+        }
+
+        public void validate() {
+            if (!isValid()) {
+                min = super.getMinimumSize();
+                pref = super.getPreferredSize();
+                max = super.getMaximumSize();
+                yalign = super.getAlignmentY();
+                xalign = super.getAlignmentX();
+            }
+            super.validate();
 	}
 
 	/**
@@ -384,6 +428,11 @@ public class ComponentView extends View  {
 	public float getAlignmentY() {
 	    return yalign;
 	}
+
+        public java.util.Set getFocusTraversalKeys(int id) {
+            return KeyboardFocusManager.getCurrentKeyboardFocusManager().
+		    getDefaultFocusTraversalKeys(id);
+        }
 
 	Dimension min;
 	Dimension pref;

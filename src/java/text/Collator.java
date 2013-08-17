@@ -1,4 +1,6 @@
 /*
+ * @(#)Collator.java	1.32 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,8 +23,8 @@ package java.text;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-import java.text.resources.*;
 import sun.misc.SoftCache;
+import sun.text.resources.LocaleData;
 
 
 /**
@@ -99,7 +101,7 @@ import sun.misc.SoftCache;
  * @see         CollationKey
  * @see         CollationElementIterator
  * @see         Locale
- * @version     1.28, 02/06/02
+ * @version     1.32, 12/03/01
  * @author      Helena Shih, Laura Werner, Richard Gillam
  */
 
@@ -149,8 +151,8 @@ public abstract class Collator implements java.util.Comparator, Cloneable {
     /**
      * Decomposition mode value. With NO_DECOMPOSITION
      * set, accented characters will not be decomposed for collation. This
-     * provides the fastest collation but will only produce correct results
-     * for languages that do not use accents.
+     * is the default setting and provides the fastest collation but 
+     * will only produce correct results for languages that do not use accents.
      * @see java.text.Collator#getDecomposition
      * @see java.text.Collator#setDecomposition
      */
@@ -159,7 +161,7 @@ public abstract class Collator implements java.util.Comparator, Cloneable {
     /**
      * Decomposition mode value. With CANONICAL_DECOMPOSITION
      * set, characters that are canonical variants according to Unicode 2.0
-     * will be decomposed for collation. This is the default setting and
+     * will be decomposed for collation. This 
      * should be used to get correct collation of accented characters.
      * <p>
      * CANONICAL_DECOMPOSITION corresponds to Normalization Form D as
@@ -181,7 +183,7 @@ public abstract class Collator implements java.util.Comparator, Cloneable {
      * FULL_DECOMPOSITION is the most complete and therefore the slowest
      * decomposition mode.
      * <p>
-     * FULL_DECOMPOSITION corresponds to Normalization Form DC as
+     * FULL_DECOMPOSITION corresponds to Normalization Form KD as
      * described in 
      * <a href="http://www.unicode.org/unicode/reports/tr15/">Unicode 
      * Technical Report #15</a>.
@@ -222,9 +224,7 @@ public abstract class Collator implements java.util.Comparator, Cloneable {
         int decomp = CANONICAL_DECOMPOSITION;
         
         try {
-            ResourceBundle resource = ResourceBundle.getBundle
-                                      ("java.text.resources.LocaleElements",
-                                       desiredLocale);
+            ResourceBundle resource = LocaleData.getLocaleElements(desiredLocale);
 
             colString = resource.getString("CollationElements");
             decomp = ((Integer)resource.getObject("CollationDecomp")).intValue();

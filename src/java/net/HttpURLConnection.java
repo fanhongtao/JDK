@@ -1,4 +1,6 @@
 /*
+ * @(#)HttpURLConnection.java	1.32 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -78,15 +80,15 @@ abstract public class HttpURLConnection extends URLConnection {
 
     /* valid HTTP methods */
     private static final String[] methods = {
-    "GET", "POST", "HEAD", "OPTIONS", "PUT", "DELETE", "TRACE"
+	"GET", "POST", "HEAD", "OPTIONS", "PUT", "DELETE", "TRACE"
     };
 
     /**
-     * Constructor for the URLStreamHandler.
+     * Constructor for the HttpURLConnection.
      * @param u the URL
      */
     protected HttpURLConnection (URL u) {
-    super(u);
+	super(u);
     }
     
     /**
@@ -108,12 +110,12 @@ abstract public class HttpURLConnection extends URLConnection {
      * @see #getFollowRedirects()
      */
     public static void setFollowRedirects(boolean set) {
-    SecurityManager sec = System.getSecurityManager();
-    if (sec != null) {
-        // seems to be the best check here...
-        sec.checkSetFactory();
-    }
-    followRedirects = set;
+	SecurityManager sec = System.getSecurityManager();
+	if (sec != null) {
+	    // seems to be the best check here...
+	    sec.checkSetFactory();
+	}
+	followRedirects = set;
     }
 
     /**
@@ -126,7 +128,7 @@ abstract public class HttpURLConnection extends URLConnection {
      * @see #setFollowRedirects(boolean)
      */
     public static boolean getFollowRedirects() {
-    return followRedirects;
+	return followRedirects;
     }
 
     /**
@@ -144,7 +146,7 @@ abstract public class HttpURLConnection extends URLConnection {
      * @see #getInstanceFollowRedirects
      */
      public void setInstanceFollowRedirects(boolean followRedirects) {
-    instanceFollowRedirects = followRedirects;
+ 	instanceFollowRedirects = followRedirects;
      }
 
      /**
@@ -179,21 +181,21 @@ abstract public class HttpURLConnection extends URLConnection {
      * @see #getRequestMethod()
      */
     public void setRequestMethod(String method) throws ProtocolException {
-    if (connected) {
-        throw new ProtocolException("Can't reset method: already connected");
-    }
-    // This restriction will prevent people from using this class to 
-    // experiment w/ new HTTP methods using java.  But it should 
-    // be placed for security - the request String could be
-    // arbitrarily long.
+	if (connected) {
+	    throw new ProtocolException("Can't reset method: already connected");
+	}
+	// This restriction will prevent people from using this class to 
+	// experiment w/ new HTTP methods using java.  But it should 
+	// be placed for security - the request String could be
+	// arbitrarily long.
 
-    for (int i = 0; i < methods.length; i++) {
-        if (methods[i].equals(method)) {
-        this.method = method;
-        return;
-        }
-    }
-    throw new ProtocolException("Invalid HTTP method: " + method);
+	for (int i = 0; i < methods.length; i++) {
+	    if (methods[i].equals(method)) {
+		this.method = method;
+		return;
+	    }
+	}
+	throw new ProtocolException("Invalid HTTP method: " + method);
     }
 
     /**
@@ -202,7 +204,7 @@ abstract public class HttpURLConnection extends URLConnection {
      * @see #setRequestMethod(java.lang.String)
      */
     public String getRequestMethod() {
-    return method;
+	return method;
     }
     
     /**
@@ -218,70 +220,7 @@ abstract public class HttpURLConnection extends URLConnection {
      * @return the HTTP Status-Code
      */
     public int getResponseCode() throws IOException {
-      /*
-       * We're got the response code already
-       */
-      if (responseCode != -1) {
-          return responseCode;
-      }
-
-      /*
-       * Ensure that we have connected to the server. Record
-       * exception as we need to re-throw it if there isn't
-       * a status line.
-       */
-      Exception exc = null;
-      try {
-            getInputStream();
-      } catch (Exception e) {
-          exc = e;
-      }
-
-      /*
-       * If we can't a status-line then re-throw any exception
-       * that getInputStream threw.
-       */
-      String statusLine = getHeaderField(0);
-      if (statusLine == null) {
-          if (exc != null) {
-              if (exc instanceof RuntimeException)
-                    throw (RuntimeException)exc;
-                else
-                    throw (IOException)exc;
-          }
-          return -1;
-      }
-
-      /*
-       * Examine the status-line - should be formatted as per
-       * section 6.1 of RFC 2616 :-
-       *
-       * Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase
-       *
-       * If status line can't be parsed return -1.
-       */
-      if (statusLine.startsWith("HTTP/1.")) {
-          int codePos = statusLine.indexOf(' ');
-          if (codePos > 0) {
-
-              int phrasePos = statusLine.indexOf(' ', codePos+1);
-              if (phrasePos > 0 && phrasePos < statusLine.length()) {
-                  responseMessage = statusLine.substring(phrasePos+1);
-              }
-
-              // deviation from RFC 2616 - don't reject status line
-              // if SP Reason-Phrase is not included.
-              if (phrasePos < 0) 
-                  phrasePos = statusLine.length();
-
-              try {
-                  responseCode = Integer.parseInt
-                            (statusLine.substring(codePos+1, phrasePos));     
-                  return responseCode;
-              } catch (NumberFormatException e) { }
-          }
-      }
-      return -1;
+	return -1;
     }
 
     /**
@@ -298,23 +237,21 @@ abstract public class HttpURLConnection extends URLConnection {
      * @return the HTTP response message, or <code>null</code>
      */
     public String getResponseMessage() throws IOException {
-    getResponseCode();
-    return responseMessage;
+	getResponseCode();
+	return responseMessage;
     }
 
     public long getHeaderFieldDate(String name, long Default) {
-    try {
-        String dateString = getHeaderField(name);
-        dateString.trim();
-        if (dateString.indexOf("GMT") == -1) {
-          dateString = dateString+" GMT";
-        }
-        return Date.parse(dateString);
-    } catch (ThreadDeath td) {
-        throw td;
-    } catch(Throwable t) {
-    }
-    return Default;
+	String dateString = getHeaderField(name);
+	try {
+	    dateString.trim();
+	    if (dateString.indexOf("GMT") == -1) {
+	        dateString = dateString+" GMT";
+	    }
+	    return Date.parse(dateString);
+	} catch (Exception e) {
+	}
+	return Default;
     }
 
 
@@ -334,11 +271,11 @@ abstract public class HttpURLConnection extends URLConnection {
     public abstract boolean usingProxy();
 
     public Permission getPermission() throws IOException {
-    int port = url.getPort();
-    port = port < 0 ? 80 : port;
-    String host = url.getHost() + ":" + port;
-    Permission permission = new SocketPermission(host, "connect");
-    return permission;
+	int port = url.getPort();
+	port = port < 0 ? 80 : port;
+	String host = url.getHost() + ":" + port;
+	Permission permission = new SocketPermission(host, "connect");
+	return permission;
     }
 
    /**
@@ -349,18 +286,18 @@ abstract public class HttpURLConnection extends URLConnection {
     * to be thrown in connect, but the server sent an HTML
     * help page with suggestions as to what to do.
     *
-    * <p>This method will not cause a connection to be initiated.
-    * If there the connection was not connected, or if the server
-    * did not have an error while connecting or if the server did
-    * have an error but there no error data was sent, this method
-    * will return null. This is the default.
+    * <p>This method will not cause a connection to be initiated.  If
+    * the connection was not connected, or if the server did not have
+    * an error while connecting or if the server had an error but
+    * no error data was sent, this method will return null. This is
+    * the default.
     *
-    * @return an error stream if any, null if there have been
-    * no errors, the connection is not connected or the server
-    * sent no useful data.
+    * @return an error stream if any, null if there have been no
+    * errors, the connection is not connected or the server sent no
+    * useful data.
     */
     public InputStream getErrorStream() {
-    return null;
+	return null;
     }
 
     /**
@@ -524,8 +461,9 @@ abstract public class HttpURLConnection extends URLConnection {
     /* 5XX: server error */
 
     /**
-    * @deprecated   it is misplaced and shouldn't have existed.
-    */
+     * HTTP Status-Code 500: Internal Server Error. 
+     * @deprecated   it is misplaced and shouldn't have existed.
+     */
     public static final int HTTP_SERVER_ERROR = 500;
 
     /** 

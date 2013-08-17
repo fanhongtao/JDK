@@ -1,4 +1,6 @@
 /*
+ * @(#)ListDataEvent.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,12 +15,14 @@ import java.util.EventObject;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.13 02/06/02
+ * @version 1.15 12/03/01
  * @author Hans Muller
  */
 public class ListDataEvent extends EventObject 
@@ -76,6 +80,23 @@ public class ListDataEvent extends EventObject
 	this.type = type;
 	this.index0 = index0;
 	this.index1 = index1;
+    }
+
+    /**
+     * Returns a string representation of this ListDataEvent. This method 
+     * is intended to be used only for debugging purposes, and the 
+     * content and format of the returned string may vary between      
+     * implementations. The returned string may be empty but may not 
+     * be <code>null</code>.
+     * 
+     * @since 1.4
+     * @return  a string representation of this ListDataEvent.
+     */
+    public String toString() {
+        return getClass().getName() +
+        "[type=" + type +
+        ",index0=" + index0 +
+        ",index1=" + index1 + "]";
     }
 }
 

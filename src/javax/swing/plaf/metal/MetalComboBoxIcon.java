@@ -1,4 +1,6 @@
 /*
+ * @(#)MetalComboBoxIcon.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,7 +20,7 @@ import javax.swing.plaf.basic.BasicComboBoxUI;
  * This utility class draws the horizontal bars which indicate a MetalComboBox
  *
  * @see MetalComboBoxUI
- * @version 1.10 02/06/02
+ * @version 1.11 12/03/01
  * @author Tom Santos
  */
 public class MetalComboBoxIcon implements Icon, Serializable {
@@ -43,12 +45,12 @@ public class MetalComboBoxIcon implements Icon, Serializable {
     }
     
     /**
-     * stubbed to statify the interface.
+     * Created a stub to satisfy the interface.
      */
     public int getIconWidth() { return 10; }
 
     /**
-     * stubbed to statify the interface.
+     * Created a stub to satisfy the interface.
      */
     public int getIconHeight()  { return 5; }
 

@@ -1,4 +1,6 @@
 /*
+ * @(#)PropertyResourceBundle.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,7 +21,6 @@
 
 package java.util;
 
-import java.util.Properties;
 import java.io.InputStream;
 import java.io.IOException;
 
@@ -35,47 +36,48 @@ import java.io.IOException;
  * <p>
  * Unlike other types of resource bundle, you don't subclass
  * <code>PropertyResourceBundle</code>.  Instead, you supply properties
- * files containing the resource data.  <code>ResourceBundle.getBundle()</code>
+ * files containing the resource data.  <code>ResourceBundle.getBundle</code>
  * will automatically look for the appropriate properties file and create a
- * <code>PropertyResourceBundle</code> that refers to it.  The resource
- * bundle name that you pass to <code>ResourceBundle.getBundle()</code> is
- * the file name of the properties file, not the class name of the object that
- * is returned.
+ * <code>PropertyResourceBundle</code> that refers to it. See
+ * {@link ResourceBundle#getBundle(java.lang.String, java.util.Locale, java.lang.ClassLoader) ResourceBundle.getBundle}
+ * for a complete description of the search and instantiation strategy.
  *
  * <p>
- * For example, if you say <code>ResourceBundle.getBundle("MyResources",
- * new Locale("fr", "FR"));</code> the resource bundle lookup mechanism
- * will search the class path for a file called
- * <code>MyResources_fr_FR.properties</code>.
- *
- * <p>
- * If a real class and a properties file with a particular name both exist,
- * the class wins; the properties file will only be used if there is no class
- * with the desired name.
- *
- * <p>
- * In the following example, the keys are of the form "s1"... The actual
+ * The following <a name="sample">example</a> shows a member of a resource
+ * bundle family with the base name "MyResources".
+ * The text defines the bundle "MyResources_de",
+ * the German member of the bundle family.
+ * This member is based on <code>PropertyResourceBundle</code>, and the text
+ * therefore is the content of the file "MyResources_de.properties"
+ * (a related <a href="ListResourceBundle.html#sample">example</a> shows
+ * how you can add bundles to this family that are implemented as subclasses
+ * of <code>ListResourceBundle</code>).
+ * The keys in this example are of the form "s1" etc. The actual
  * keys are entirely up to your choice, so long as they are the same as
  * the keys you use in your program to retrieve the objects from the bundle.
  * Keys are case-sensitive.
  * <blockquote>
  * <pre>
- * s1=3
- * s2=MeinDisk
- * s3=3 Mar 96
- * s4=Der disk '{1}' a {0} a {2}.
- * s5=0
- * s6=keine Datein
- * s7=1
- * s8=ein Datei
- * s9=2
- * s10={0}|3 Datein
- * s11=Der Format worf ein Exception: {0}
- * s12=ERROR
- * s14=Resulte
- * s13=Dialogue
- * s15=Pattern
- * s16=1,3
+ * # MessageFormat pattern
+ * s1=Die Platte \"{1}\" enth&auml;lt {0}.
+ *
+ * # location of {0} in pattern
+ * s2=1
+ *
+ * # sample disk name
+ * s3=Meine Platte
+ *
+ * # first ChoiceFormat choice
+ * s4=keine Dateien
+ *
+ * # second ChoiceFormat choice
+ * s5=eine Datei
+ *
+ * # third ChoiceFormat choice
+ * s6={0,number} Dateien
+ *
+ * # sample date
+ * s7=3. M&auml;rz 1996
  * </pre>
  * </blockquote>
  *
@@ -86,61 +88,33 @@ import java.io.IOException;
  */
 public class PropertyResourceBundle extends ResourceBundle {
     /**
-     * Creates a property resource
+     * Creates a property resource bundle.
      * @param stream property file to read from.
      */
     public PropertyResourceBundle (InputStream stream) throws IOException {
-        lookup.load(stream);
+        Properties properties = new Properties();
+        properties.load(stream);
+        lookup = new HashMap(properties);
     }
 
-    /**
-     * Override of ResourceBundle, same semantics
-     */
+    // Implements java.util.ResourceBundle.handleGetObject; inherits javadoc specification.
     public Object handleGetObject(String key) {
-        Object obj = lookup.get(key);
-        return obj; // once serialization is in place, you can do non-strings
+        if (key == null) {
+            throw new NullPointerException();
+        }
+        return lookup.get(key);
     }
 
     /**
      * Implementation of ResourceBundle.getKeys.
      */
     public Enumeration getKeys() {
-        Enumeration result = null;
-        if (parent != null) {
-            final Enumeration myKeys = lookup.keys();
-            final Enumeration parentKeys = parent.getKeys();
-
-            result = new Enumeration() {
-                public boolean hasMoreElements() {
-                    if (temp == null)
-                        nextElement();
-                    return temp != null;
-                }
-
-                public Object nextElement() {
-                    Object returnVal = temp;
-                    if (myKeys.hasMoreElements())
-                        temp = myKeys.nextElement();
-                    else {
-                        temp = null;
-                        while (temp == null && parentKeys.hasMoreElements()) {
-                            temp = parentKeys.nextElement();
-                            if (lookup.containsKey(temp))
-                                temp = null;
-                        }
-                    }
-                    return returnVal;
-                }
-
-                Object temp = null;
-            };
-        } else {
-            result = lookup.keys();
-        }
-        return result;
+        ResourceBundle parent = this.parent;
+        return new ResourceBundleEnumeration(lookup.keySet(),
+                (parent != null) ? parent.getKeys() : null);
     }
 
     // ==================privates====================
 
-    private Properties lookup = new Properties();
+    private Map lookup;
 }

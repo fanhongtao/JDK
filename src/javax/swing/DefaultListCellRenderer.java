@@ -1,5 +1,7 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * @(#)DefaultListCellRenderer.java	1.21 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,12 +39,14 @@ import java.io.Serializable;
  * 
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.21 06/06/06
+ * @version 1.21 12/03/01
  * @author Philip Milne
  * @author Hans Muller
  */
@@ -50,9 +54,7 @@ public class DefaultListCellRenderer extends JLabel
     implements ListCellRenderer, Serializable
 {
 
-    protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
-    private static final Border SAFE_NO_FOCUS_BORDER =
-                                new EmptyBorder(1, 1, 1, 1);
+    protected static Border noFocusBorder;
 
     /**
      * Constructs a default renderer object for an item
@@ -60,16 +62,11 @@ public class DefaultListCellRenderer extends JLabel
      */
     public DefaultListCellRenderer() {
 	super();
-	setOpaque(true);
-	setBorder(getNoFocusBorder());
-    }
-
-    private static Border getNoFocusBorder() {
-        if (System.getSecurityManager() != null) {
-            return SAFE_NO_FOCUS_BORDER;
-        } else {
-            return noFocusBorder;
+        if (noFocusBorder == null) {
+            noFocusBorder = new EmptyBorder(1, 1, 1, 1);
         }
+	setOpaque(true);
+	setBorder(noFocusBorder);
     }
 
 
@@ -101,7 +98,7 @@ public class DefaultListCellRenderer extends JLabel
 
 	setEnabled(list.isEnabled());
 	setFont(list.getFont());
-	setBorder((cellHasFocus) ? UIManager.getBorder("List.focusCellHighlightBorder") : getNoFocusBorder());
+	setBorder((cellHasFocus) ? UIManager.getBorder("List.focusCellHighlightBorder") : noFocusBorder);
 
 	return this;
     }
@@ -209,10 +206,12 @@ public class DefaultListCellRenderer extends JLabel
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class UIResource extends DefaultListCellRenderer
         implements javax.swing.plaf.UIResource

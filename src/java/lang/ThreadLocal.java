@@ -1,4 +1,6 @@
 /*
+ * @(#)ThreadLocal.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -7,26 +9,48 @@ package java.lang;
 import java.lang.ref.*;
 
 /**
- * This class provides ThreadLocal variables.  These variables differ from
+ * This class provides thread-local variables.  These variables differ from
  * their normal counterparts in that each thread that accesses one (via its
- * get or set method) has its own, independently initialized copy of the
- * variable.  ThreadLocal objects are typically private static variables in
- * classes that wish to associate state with a thread (e.g., a user ID or
- * Transaction ID).
+ * <tt>get</tt> or <tt>set</tt> method) has its own, independently initialized
+ * copy of the variable.  <tt>ThreadLocal</tt> instances are typically private
+ * static fields in classes that wish to associate state with a thread (e.g.,
+ * a user ID or Transaction ID).
+ *
+ * <p>For example, in the class below, the private static <tt>ThreadLocal</tt>
+ * instance (<tt>serialNum</tt>) maintains a "serial number" for each thread
+ * that invokes the class's static <tt>SerialNum.get()</tt> method, which
+ * returns the current thread's serial number.  (A thread's serial number is
+ * assigned the first time it invokes <tt>SerialNum.get()</tt>, and remains
+ * unchanged on subsequent calls.)
+ * <pre>
+ * public class SerialNum {
+ *     // The next serial number to be assigned
+ *     private static int nextSerialNum = 0;
  * 
- * <p>Each thread holds an implicit reference to its copy of a ThreadLocal
- * as long as the thread is alive and the ThreadLocal object is accessible;
- * after a thread goes away, all of its copies of ThreadLocal variables are
- * subject to garbage collection (unless other references to these copies
- * exist).
+ *     private static ThreadLocal serialNum = new ThreadLocal() {
+ *         protected synchronized Object initialValue() {
+ *             return new Integer(nextSerialNum++);
+ *         }
+ *     };
+ * 
+ *     public static int get() {
+ *         return ((Integer) (serialNum.get())).intValue();
+ *     }
+ * }
+ * </pre>
+ * 
+ * <p>Each thread holds an implicit reference to its copy of a thread-local
+ * variable as long as the thread is alive and the <tt>ThreadLocal</tt>
+ * instance is accessible; after a thread goes away, all of its copies of
+ * thread-local instances are subject to garbage collection (unless other
+ * references to these copies exist). 
  *
  * @author  Josh Bloch and Doug Lea
- * @version 1.18, 05/20/02
+ * @version 1.19, 12/03/01
  * @since   1.2
  */
-
 public class ThreadLocal {
-    /**
+    /** 
      * ThreadLocals rely on per-thread hash maps attached to each thread
      * (Thread.threadLocals and inheritableThreadLocals).  The ThreadLocal
      * objects act as keys, searched via threadLocalHashCode.  This is a
@@ -56,40 +80,40 @@ public class ThreadLocal {
      * contend on this lock, memory contention is by far a more serious
      * problem than lock contention.
      */
-    private static synchronized int nextHashCode() {
+    private static synchronized int nextHashCode() { 
         int h = nextHashCode;
         nextHashCode = h + HASH_INCREMENT;
         return h;
     }
 
     /**
-     * Returns the calling thread's initial value for this ThreadLocal
-     * variable. This method will be called once per accessing thread for
-     * each ThreadLocal, the first time each thread accesses the variable
-     * with get or set.  If the programmer desires ThreadLocal variables
-     * to be initialized to some value other than null, ThreadLocal must
-     * be subclassed, and this method overridden.  Typically, an anonymous
-     * inner class will be used.  Typical implementations of initialValue
-     * will call an appropriate constructor and return the newly constructed
-     * object.
+     * Returns the current thread's initial value for this thread-local
+     * variable.  This method will be called once per accessing thread for each
+     * thread-local, the first time each thread accesses the variable with the
+     * {@link #get()} or {@link #set(Object)} method.  If the programmer
+     * desires thread-local variables to be initialized to some value other
+     * than <tt>null</tt>, <tt>ThreadLocal</tt> must be subclassed, and this
+     * method overridden.  Typically, an anonymous inner class will be used.
+     * Typical implementations of <tt>initialValue</tt> will call an
+     * appropriate constructor and return the newly constructed object.
      *
-     * @return the initial value for this ThreadLocal
+     * @return the initial value for this thread-local
      */
     protected Object initialValue() {
-	return null;
+        return null;
     }
 
     /**
-     * Returns the value in the calling thread's copy of this ThreadLocal
+     * Returns the value in the current thread's copy of this thread-local
      * variable.  Creates and initializes the copy if this is the first time
      * the thread has called this method.
      *
-     * @return the current thread's value of this ThreadLocal
+     * @return the current thread's value of this thread-local
      */
     public Object get() {
         Thread t = Thread.currentThread();
         ThreadLocalMap map = getMap(t);
-        if (map != null)
+        if (map != null) 
             return map.get(this);
 
         // Maps are constructed lazily.  if the map for this thread
@@ -101,22 +125,36 @@ public class ThreadLocal {
     }
 
     /**
-     * Sets the calling thread's instance of this ThreadLocal variable
-     * to the given value.  This is only used to change the value from
-     * the one assigned by the initialValue method, and many applications
-     * will have no need for this functionality.
+     * Sets the current thread's copy of this thread-local variable
+     * to the specified value.  This is only used to change the value from
+     * the one assigned by the <tt>initialValue</tt> method, and many
+     * applications will have no need for this functionality.
      *
-     * @param value the value to be stored in the calling threads' copy of
-     *	      this ThreadLocal.
+     * @param value the value to be stored in the current threads' copy of
+     *	      this thread-local.
      */
     public void set(Object value) {
         Thread t = Thread.currentThread();
         ThreadLocalMap map = getMap(t);
-        if (map != null)
+        if (map != null) 
             map.set(this, value);
         else
             createMap(t, value);
     }
+
+    /*
+     * Removes the value for this ThreadLocal.
+
+     THIS METHOD COULD BE UNCOMMENTED TO ADD IT TO THE PUBLIC API IF THAT
+     IS THOUGHT TO DESIRABLE AT SOME POINT.
+
+     public void remove() {
+         ThreadLocalMap m = getMap(Thread.currentThread());
+         if (m != null) 
+             m.remove(this);
+     }
+
+     */
 
     /**
      * Get the map associated with a ThreadLocal. Overridden in

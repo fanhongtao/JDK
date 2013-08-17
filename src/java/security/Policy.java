@@ -1,4 +1,6 @@
 /*
+ * @(#)Policy.java	1.87 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,6 +20,9 @@ import java.util.PropertyPermission;
 
 import java.lang.reflect.*;
 
+import java.util.WeakHashMap;
+import sun.security.util.Debug;
+
 /**
  * This is an abstract class for representing the system security
  * policy for a Java application environment (specifying
@@ -27,26 +32,6 @@ import java.lang.reflect.*;
  * in this Policy class.
  *
  * <p>There is only one Policy object in effect at any given time.
- *
- * <p>The Policy object is typically consulted by objects such as the
- * {@link java.security.SecureClassLoader#defineClass(String, byte[], int,
- * int, CodeSource) SecureClassLoader} when a loader
- * needs to determine the permissions to assign to a particular
- * protection domain. The SecureClassLoader executes code such as the
- * following to ask the currently installed Policy object to populate a
- * PermissionCollection object:
- *
- * <pre>
- *   policy = Policy.getPolicy();
- *   PermissionCollection perms = policy.getPermissions(MyCodeSource)
- * </pre>
- *
- * <p>The SecureClassLoader object passes in a CodeSource
- * object, which encapsulates the codebase (URL) and public key certificates
- * of the classes being loaded.
- * The Policy object consults its policy specification and
- * returns an appropriate Permissions object enumerating
- * the permissions allowed for code from the specified code source.
  *
  * <p>The source location for the policy information utilized by the
  * Policy object is up to the Policy implementation.
@@ -60,15 +45,16 @@ import java.lang.reflect.*;
  * code with permission to reset the Policy).
  *
  * <p>The <code>refresh</code> method causes the policy
- * object to refresh/reload its current configuration. This is
- * implementation-dependent. For example, if the policy object stores
- * its policy in configuration files, calling <code>refresh</code> will
- * cause it to re-read the configuration policy files. The refreshed
- * policy may not have an effect on classes loaded from a given
- * CodeSource. This is dependent on the ProtectionDomain caching strategy
- * of the ClassLoader. For example, the
- * {@link java.security.SecureClassLoader#getPermissions(CodeSource)
- * SecureClassLoader} caches protection domains.
+ * object to refresh/reload its current configuration.
+ *
+ * <p>This is implementation-dependent. For example, if the policy
+ * object stores its policy in configuration files, calling
+ * <code>refresh</code> will cause it to re-read the configuration 
+ * policy files. The refreshed policy may not have an effect on classes
+ * in a particular ProtectionDomain. This is dependent on the Policy
+ * provider's implementation of the 
+ * {@link #implies(ProtectionDomain,Permission) implies}
+ * method and the PermissionCollection caching strategy.
  *
  * <p>The default Policy implementation can be changed by setting the
  * value of the "policy.provider" security property (in the Java
@@ -79,7 +65,8 @@ import java.lang.reflect.*;
  * refers to the directory where the SDK was installed.
  *
  * @author Roland Schemers
- * @version 1.69, 02/06/02
+ * @author Gary Ellison
+ * @version 1.87, 12/03/01
  * @see java.security.CodeSource
  * @see java.security.PermissionCollection
  * @see java.security.SecureClassLoader
@@ -89,7 +76,10 @@ public abstract class Policy {
 
     /** the system-wide policy. */
     private static Policy policy; // package private for AccessControlContext
+    private static final Debug debug = Debug.getInstance("policy");
 
+    // Cache mapping  ProtectionDomain to PermissionCollection
+    private WeakHashMap pdMapping;
 
     /** package private for AccessControlContext */
     static boolean isSet()
@@ -112,7 +102,7 @@ public abstract class Policy {
      *        <code>checkPermission</code> method doesn't allow
      *        getting the Policy object.
      *
-     * @see SecurityManager#checkPermission(SecurityPermission)
+     * @see SecurityManager#checkPermission(Permission)
      * @see #setPolicy(java.security.Policy)
      */
     public static Policy getPolicy()
@@ -130,34 +120,71 @@ public abstract class Policy {
      * @return the installed Policy.
      *
      */
-    static Policy getPolicyNoCheck()
+    static synchronized Policy getPolicyNoCheck()
     {
 	if (policy == null) {
+	    String policy_class = null;
+	    policy_class = (String)AccessController.doPrivileged(
+                new PrivilegedAction() {
+		    public Object run() {
+			return Security.getProperty("policy.provider");
+		    }
+		});
+	    if (policy_class == null) {
+		policy_class = "sun.security.provider.PolicyFile";
+	    }
 
-	    synchronized(Policy.class) {
+	    try {
+		policy = (Policy)
+		    Class.forName(policy_class).newInstance();
+	    } catch (Exception e) {
+		/*
+		 * The policy_class seems to be an extension
+		 * so we have to bootstrap loading it via a policy
+		 * provider that is on the bootclasspath
+		 * If it loads then shift gears to using the configured
+		 * provider. 
+		 */
 
-		if (policy == null) {
-		    String policy_class = null;
-		    policy_class = (String)AccessController.doPrivileged(
-						       new PrivilegedAction() {
+		// install the bootstrap provider to avoid recursion
+		policy = new sun.security.provider.PolicyFile();
+			
+		final String pc = policy_class;
+		Policy p = (Policy)
+		    AccessController.doPrivileged(new PrivilegedAction() {
 			public Object run() {
-			    return Security.getProperty("policy.provider");
+			    try {
+				ClassLoader cl =
+					ClassLoader.getSystemClassLoader();
+				// we want the extension loader 
+				ClassLoader extcl = null;
+				while (cl != null) {
+				    extcl = cl;
+				    cl = cl.getParent();
+				} 
+				return (extcl != null? Class.forName
+					(pc, true, extcl).newInstance():
+					null);
+			    } catch (Exception e) {
+				return null;
+			    }
 			}
 		    });
-		    if (policy_class == null) {
-			policy_class = "sun.security.provider.PolicyFile";
-		    }
-
-		    try {
-			policy = (Policy)
-				Class.forName(policy_class).newInstance();
-		    } catch (Exception e) {
-			policy = new sun.security.provider.PolicyFile();
-		    }
+		/*
+		 * if it loaded install it as the policy provider. Otherwise
+		 * continue to use the system default implementation
+		 */
+		if (p != null) 
+		    policy = p;
+			
+		if (p == null && debug != null) {
+		    debug.println("policy provider " + 
+				  policy_class + " not available;using " +
+				  "sun.security.provider.PolicyFile");
+		    e.printStackTrace();
 		}
 	    }
 	}
-
 	return policy;
     }
 
@@ -174,7 +201,7 @@ public abstract class Policy {
      *        <code>checkPermission</code> method doesn't allow
      *        setting the Policy.
      *
-     * @see SecurityManager#checkPermission(SecurityPermission)
+     * @see SecurityManager#checkPermission(Permission)
      * @see #getPolicy()
      *
      */
@@ -183,9 +210,77 @@ public abstract class Policy {
 	SecurityManager sm = System.getSecurityManager();
 	if (sm != null) sm.checkPermission(
 				 new SecurityPermission("setPolicy"));
+	if (policy != null) {
+	    initPolicy(policy);
+	}
 	Policy.policy = policy;
     }
 
+    /**
+     * Initialize superclass state such that a legacy provider can
+     * handle queries for itself.
+     *
+     * @since 1.4
+     */
+    private static void initPolicy (final Policy p) {
+	/*
+	 * A policy provider not on the bootclasspath could trigger
+	 * security checks fulfilling a call to either Policy.implies
+	 * or Policy.getPermissions. If this does occur the provider
+	 * must be able to answer for it's own ProtectionDomain
+	 * without triggering additional security checks, otherwise
+	 * the policy implementation will end up in an infinite
+	 * recursion.
+	 * 
+	 * To mitigate this, the provider can collect it's own
+	 * ProtectionDomain and associate a PermissionCollection while
+	 * it is being installed. The currently installed policy
+	 * provider (if there is one) will handle calls to
+	 * Policy.implies or Policy.getPermissions during this
+	 * process.
+	 * 
+	 * This Policy superclass caches away the ProtectionDomain and
+	 * statically binds permissions so that legacy Policy 
+	 * implementations will continue to function.
+	 */
+
+	ProtectionDomain policyDomain = (ProtectionDomain)
+		AccessController.doPrivileged(new PrivilegedAction() {
+		    public Object run() {
+			return p.getClass().getProtectionDomain();
+		    }
+		});
+
+	/*
+	 * Collect the permissions granted to this protection domain
+	 * so that the provider can be security checked while processing
+	 * calls to Policy.implies or Policy.getPermissions.
+	 */
+	PermissionCollection policyPerms = null;
+	synchronized (p) {
+	   if (p.pdMapping == null) {
+		    p.pdMapping = new WeakHashMap();
+	   }
+	}
+
+	if (policyDomain.getCodeSource() != null) {
+	    if (Policy.isSet()) {
+		    policyPerms = policy.getPermissions(policyDomain);
+	    }
+
+	    if (policyPerms == null) { // assume it has all
+		policyPerms = new Permissions();
+		policyPerms.add(new AllPermission());
+	    }
+
+	    synchronized (p) {
+		    // cache of pd to permissions
+		    p.pdMapping.put(policyDomain, policyPerms);
+	    }
+	}
+	return;
+    }
+    
     /**
      * Evaluates the global policy and returns a
      * PermissionCollection object specifying the set of
@@ -197,21 +292,124 @@ public abstract class Policy {
      * came from) and the public key(s) of its signer.
      *
      * @return the set of permissions allowed for code from <i>codesource</i>
-     * according to the policy.
+     * according to the policy.The returned set of permissions must be 
+     * a new mutable instance and it must support heterogeneous 
+     * Permission types.
      *
-     * @exception java.lang.SecurityException if the current thread does not
-     *            have permission to call <code>getPermissions</code> on the policy object.
-
      */
     public abstract PermissionCollection getPermissions(CodeSource codesource);
+
+    /**
+     * Evaluates the global policy and returns a
+     * PermissionCollection object specifying the set of
+     * permissions allowed given the characteristics of the 
+     * protection domain.
+     *
+     * @param domain the ProtectionDomain associated with the caller.
+     *
+     * @return the set of permissions allowed for the <i>domain</i>
+     * according to the policy.The returned set of permissions must be 
+     * a new mutable instance and it must support heterogeneous 
+     * Permission types.
+     *
+     * @see java.security.ProtectionDomain
+     * @see java.security.SecureClassLoader
+     * @since 1.4
+     */
+    public PermissionCollection getPermissions(ProtectionDomain domain) {
+	PermissionCollection pc = null;
+
+	if (domain == null)
+	    return new Permissions();
+
+	if (pdMapping == null) {
+	    initPolicy(this);
+	}
+
+	synchronized (pdMapping) {
+	    pc = (PermissionCollection)pdMapping.get(domain);
+	}
+
+	if (pc != null) {
+	    Permissions perms = new Permissions();
+	    for (Enumeration e = pc.elements() ; e.hasMoreElements() ;) {
+		perms.add((Permission)e.nextElement());
+	    }
+	    return perms;
+	}
+
+	pc = getPermissions(domain.getCodeSource());
+	if (pc == null) {
+	    pc = new Permissions();
+	}
+
+	addStaticPerms(pc, domain.getPermissions());
+	return pc;
+    }
+
+    /**
+     * add static permissions to provided permission collection
+     */
+    private void addStaticPerms(PermissionCollection perms,
+				PermissionCollection statics) {
+	if (statics != null) {
+	    Enumeration e = statics.elements();
+	    while (e.hasMoreElements()) {
+		perms.add((Permission)e.nextElement());
+	    }
+	}
+    }
+
+    /**
+     * Evaluates the global policy for the permissions granted to
+     * the ProtectionDomain and tests whether the permission is 
+     * granted.
+     *
+     * @param domain the ProtectionDomain to test
+     * @param permission the Permission object to be tested for implication.
+     *
+     * @return true if "permission" is a proper subset of a permission
+     * granted to this ProtectionDomain.
+     *
+     * @see java.security.ProtectionDomain
+     * @since 1.4
+     */
+    public boolean implies(ProtectionDomain domain, Permission permission) {
+	PermissionCollection pc;
+	WeakHashMap policyCache;
+
+	if (pdMapping == null) {
+	    initPolicy(this);
+	}
+
+	policyCache = pdMapping;
+
+	synchronized (policyCache) {
+	    pc = (PermissionCollection)policyCache.get(domain);
+	}
+
+	if (pc != null) {
+	    return pc.implies(permission);
+	} 
+	
+	pc = getPermissions(domain);
+	if (pc == null) {
+	    return false;
+	}
+
+	synchronized (policyCache) {
+	    // cache it 
+	    policyCache.put(domain, pc);
+	}
+	
+	return pc.implies(permission);
+    }
 
     /**
      * Refreshes/reloads the policy configuration. The behavior of this method
      * depends on the implementation. For example, calling <code>refresh</code>
      * on a file-based policy will cause the file to be re-read.
-      *
-     * @exception java.lang.SecurityException if the current thread does not
-     *            have permission to refresh this Policy object.
+     *
      */
     public abstract void refresh();
 }

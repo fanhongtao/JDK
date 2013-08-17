@@ -1,4 +1,6 @@
 /*
+ * @(#)KeyListener.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ import java.util.EventListener;
  * object is then invoked, and the <code>KeyEvent</code> is passed to it.
  *
  * @author Carl Quinn
- * @version 1.14 02/06/02
+ * @version 1.15 12/03/01
  *
  * @see KeyAdapter
  * @see KeyEvent
@@ -34,17 +36,22 @@ public interface KeyListener extends EventListener {
 
     /**
      * Invoked when a key has been typed.
-     * This event occurs when a key press is followed by a key release.
+     * See the class description for {@link KeyEvent} for a definition of 
+     * a key typed event.
      */
     public void keyTyped(KeyEvent e);
 
     /**
-     * Invoked when a key has been pressed.
+     * Invoked when a key has been pressed. 
+     * See the class description for {@link KeyEvent} for a definition of 
+     * a key pressed event.
      */
     public void keyPressed(KeyEvent e);
 
     /**
      * Invoked when a key has been released.
+     * See the class description for {@link KeyEvent} for a definition of 
+     * a key released event.
      */
     public void keyReleased(KeyEvent e);
 }

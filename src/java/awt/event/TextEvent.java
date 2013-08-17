@@ -1,4 +1,6 @@
 /*
+ * @(#)TextEvent.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ import java.awt.Event;
  * Instead, it can process a "meaningful" (semantic) event like "text changed". 
  *
  * @author Georges Saab
- * @version 1.12 02/06/02
+ * @version 1.13 12/03/01
  *
  * @see java.awt.TextComponent
  * @see TextListener
@@ -54,9 +56,12 @@ public class TextEvent extends AWTEvent {
     private static final long serialVersionUID = 6269902291250941179L;
 
     /**
-     * Constructs a TextEvent object.
+     * Constructs a <code>TextEvent</code> object.
+     * <p>Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior.
      *
-     * @param source the (TextComponent) object that originated the event
+     * @param source the (<code>TextComponent</code>) object that
+     *               originated the event
      * @param id     an integer that identifies the event type
      */
     public TextEvent(Object source, int id) {

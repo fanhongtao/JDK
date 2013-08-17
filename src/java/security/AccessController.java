@@ -1,4 +1,6 @@
 /*
+ * @(#)AccessController.java	1.51 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,7 +10,11 @@ package java.security;
 import sun.security.util.Debug;
 
 /** 
- * <p> The AccessController class is used for three purposes:
+ * <p> The AccessController class is used for access control operations
+ * and decisions.
+ * 
+ * <p> More specifically, the AccessController class is used for 
+ * three purposes:
  * 
  * <ul>
  * <li> to decide whether an access to a critical system
@@ -204,9 +210,10 @@ import sun.security.util.Debug;
  *   somemethod() {
  *         AccessController.doPrivileged(new PrivilegedAction() {
  *              public Object run() {
- *                 // Code goes here. Any permission checks from this
- *                 // point forward require both the current context and
- *                 // the snapshot's context to have the desired permission.
+ *                 // Code goes here. Any permission checks within this
+ *                 // run method will require that the intersection of the
+ *                 // callers protection domain and the snapshot's
+ *                 // context have the desired permission.
  *              }
  *         }, acc);
  *         ...normal code here...
@@ -215,7 +222,7 @@ import sun.security.util.Debug;
  * 
  * @see AccessControlContext
  *
- * @version 1.48 02/02/06
+ * @version 1.51 01/12/03
  * @author Li Gong 
  * @author Roland Schemers
  */
@@ -274,12 +281,12 @@ public final class AccessController {
      * If the action's <code>run</code> method throws an <i>unchecked</i>
      * exception, it will propagate through this method.
      *
-     * @param action the action to be performed.
-     * @return the value returned by the action's <code>run</code> method.
-     * @throws PrivilgedActionException the specified action's
-     *         <code>run</code> method threw a <i>checked</i> exception.
-     * @see #doPrivileged(PrivilegedExceptionAction,AccessControlContext)
+     * @param action the action to be performed
+     * @return the value returned by the action's <code>run</code> method
+     * @throws PrivilegedActionException if the specified action's
+     *         <code>run</code> method threw a <i>checked</i> exception
      * @see #doPrivileged(PrivilegedAction)
+     * @see #doPrivileged(PrivilegedExceptionAction,AccessControlContext)
      */
     public static native Object doPrivileged(PrivilegedExceptionAction action)
 	 throws PrivilegedActionException;
@@ -296,14 +303,14 @@ public final class AccessController {
      * If the action's <code>run</code> method throws an <i>unchecked</i>
      * exception, it will propagate through this method.
      *
-     * @param action the action to be performed.
+     * @param action the action to be performed
      * @param context an <i>access control context</i> representing the
      *		      restriction to be applied to the caller's domain's
-     *		      privileges before performing the specified action.
-     * @return the value returned by the action's <code>run</code> method.
-     * @throws PrivilegedActionException the specified action's
+     *		      privileges before performing the specified action
+     * @return the value returned by the action's <code>run</code> method
+     * @throws PrivilegedActionException if the specified action's
      *         <code>run</code> method
-     *	       threw a <i>checked</i> exception.
+     *	       threw a <i>checked</i> exception
      * @see #doPrivileged(PrivilegedAction)
      * @see #doPrivileged(PrivilegedExceptionAction,AccessControlContext)
      */

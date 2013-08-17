@@ -1,5 +1,7 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)BasicMenuItemUI.java	1.115 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -20,7 +22,7 @@ import javax.swing.text.View;
 /**
  * BasicMenuItem implementation
  *
- * @version 1.104 12/02/02
+ * @version 1.115 12/03/01
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -59,8 +61,8 @@ public class BasicMenuItemUI extends MenuItemUI
     private static final boolean DEBUG =   false;  // show bad params, misc.
 
     /* Client Property keys for text and accelerator text widths */
-    private static final String MAX_TEXT_WIDTH =  "maxTextWidth";
-    private static final String MAX_ACC_WIDTH  =  "maxAccWidth";
+    static final String MAX_TEXT_WIDTH =  "maxTextWidth";
+    static final String MAX_ACC_WIDTH  =  "maxAccWidth";
 
     public static ComponentUI createUI(JComponent c) {
         return new BasicMenuItemUI();
@@ -252,7 +254,7 @@ public class BasicMenuItemUI extends MenuItemUI
 	ActionMap am = (ActionMap)UIManager.get(uiKey);
 	if (am == null) {
 	    am = createActionMap();
-	    UIManager.put(uiKey, am);
+	    UIManager.getLookAndFeelDefaults().put(uiKey, am);
 	}
 	return am;
     }
@@ -260,6 +262,11 @@ public class BasicMenuItemUI extends MenuItemUI
     ActionMap createActionMap() {
 	ActionMap map = new ActionMapUIResource();
 	map.put("doClick", new ClickAction());
+	// Set the ActionMap's parent to the Auditory Feedback Action Map
+	BasicLookAndFeel lf = (BasicLookAndFeel)UIManager.getLookAndFeel();
+	ActionMap audioMap = lf.getAudioActionMap();
+	map.setParent(audioMap);
+
 	return map;
     }
 
@@ -273,6 +280,9 @@ public class BasicMenuItemUI extends MenuItemUI
     void updateAcceleratorBinding() {
 	KeyStroke accelerator = menuItem.getAccelerator();
 
+	if (windowInputMap != null) {
+	    windowInputMap.clear();
+	}
 	if (accelerator != null) {
 	    if (windowInputMap == null) {
 		windowInputMap = createInputMap(JComponent.
@@ -281,9 +291,6 @@ public class BasicMenuItemUI extends MenuItemUI
 			   JComponent.WHEN_IN_FOCUSED_WINDOW, windowInputMap);
 	    }
 	    windowInputMap.put(accelerator, "doClick");
-	}
-	else if (windowInputMap != null) {
-	    windowInputMap.clear();
 	}
     }
 
@@ -314,8 +321,8 @@ public class BasicMenuItemUI extends MenuItemUI
  	return d;
     }
 
-  // these rects are used for painting and preferredsize calculations.
-  // they used to be regenerated constantly.  Now they are reused.
+    // these rects are used for painting and preferredsize calculations.
+    // they used to be regenerated constantly.  Now they are reused.
     static Rectangle zeroRect = new Rectangle(0,0,0,0);
     static Rectangle iconRect = new Rectangle();
     static Rectangle textRect = new Rectangle();
@@ -352,7 +359,12 @@ public class BasicMenuItemUI extends MenuItemUI
                 //acceleratorText += "-";
                 acceleratorText += acceleratorDelimiter;
           }
-            acceleratorText += KeyEvent.getKeyText(accelerator.getKeyCode());
+            int keyCode = accelerator.getKeyCode();
+            if (keyCode != 0) {
+                acceleratorText += KeyEvent.getKeyText(keyCode);
+            } else {
+                acceleratorText += accelerator.getKeyChar();
+            }
         }
 
         Font font = b.getFont();
@@ -505,19 +517,6 @@ public class BasicMenuItemUI extends MenuItemUI
         FontMetrics fm = g.getFontMetrics( f );
         FontMetrics fmAccel = g.getFontMetrics( acceleratorFont );
 
-        // Paint background
-        Color holdc = g.getColor();
-        if(c.isOpaque()) {
-            if (model.isArmed()|| (c instanceof JMenu && model.isSelected())) {
-                g.setColor(background);
-                g.fillRect(0,0, menuWidth, menuHeight);
-            } else {
-                g.setColor(b.getBackground());
-                g.fillRect(0,0, menuWidth, menuHeight);
-            }
-            g.setColor(holdc);
-        }
-
         // get Accelerator text
         KeyStroke accelerator =  b.getAccelerator();
         String acceleratorText = "";
@@ -527,8 +526,14 @@ public class BasicMenuItemUI extends MenuItemUI
                 acceleratorText = KeyEvent.getKeyModifiersText(modifiers);
                 //acceleratorText += "-";
                 acceleratorText += acceleratorDelimiter;
-          }
-            acceleratorText += KeyEvent.getKeyText(accelerator.getKeyCode());
+	    }
+
+            int keyCode = accelerator.getKeyCode();
+            if (keyCode != 0) {
+                acceleratorText += KeyEvent.getKeyText(keyCode);
+            } else {
+                acceleratorText += accelerator.getKeyChar();
+            }
         }
         
         // layout the text and icon
@@ -543,6 +548,11 @@ public class BasicMenuItemUI extends MenuItemUI
             defaultTextIconGap
         );
           
+        // Paint background
+	paintBackground(g, b, background);
+
+        Color holdc = g.getColor();
+
         // Paint the Check
         if (checkIcon != null) {
             if(model.isArmed() || (c instanceof JMenu && model.isSelected())) {
@@ -580,35 +590,7 @@ public class BasicMenuItemUI extends MenuItemUI
  	    if (v != null) {
  		v.paint(g, textRect);
  	    } else {
-		if(!model.isEnabled()) {
-		    // *** paint the text disabled
-		    if ( UIManager.get("MenuItem.disabledForeground") instanceof Color )
-			{
-			    g.setColor( UIManager.getColor("MenuItem.disabledForeground") );
-			    BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-							  textRect.x, textRect.y + fm.getAscent());
-			}
-		    else
-			{
-			    g.setColor(b.getBackground().brighter());
-			    BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-							  textRect.x, textRect.y + fm.getAscent());
-			    g.setColor(b.getBackground().darker());
-			    BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-							  textRect.x - 1, textRect.y + fm.getAscent() - 1);
-			}
-		} else {
-		    // *** paint the text normally
-		    if (model.isArmed()|| (c instanceof JMenu && model.isSelected())) {
-			g.setColor(foreground);
-		    } else {
-			g.setColor(holdc);
-		    }
-		    BasicGraphicsUtils.drawString(g,text, 
-						  model.getMnemonic(),
-						  textRect.x,
-						  textRect.y + fm.getAscent());
-		}
+		paintText(g, b, textRect, text);
 	    }
 	}
 	
@@ -621,8 +603,9 @@ public class BasicMenuItemUI extends MenuItemUI
 	  if (parent != null && parent instanceof JComponent) {
 	    JComponent p = (JComponent) parent;
 	    Integer maxValueInt = (Integer) p.getClientProperty(BasicMenuItemUI.MAX_ACC_WIDTH);
-	    int maxValue = maxValueInt!=null ? maxValueInt.intValue() : 0;
-	    
+	    int maxValue = maxValueInt != null ?
+                maxValueInt.intValue() : acceleratorRect.width;
+
 	    //Calculate the offset, with which the accelerator texts will be drawn with.
 	    accOffset = maxValue - acceleratorRect.width;
 	  }
@@ -670,6 +653,74 @@ public class BasicMenuItemUI extends MenuItemUI
         }
         g.setColor(holdc);
         g.setFont(holdf);
+    }
+
+    /**
+     * Draws the background of the menu item.
+     * 
+     * @param g the paint graphics
+     * @param menuItem menu item to be painted
+     * @param bgColor selection background color
+     * @since 1.4
+     */
+    protected void paintBackground(Graphics g, JMenuItem menuItem, Color bgColor) {
+	ButtonModel model = menuItem.getModel();
+	Color oldColor = g.getColor();
+        int menuWidth = menuItem.getWidth();
+        int menuHeight = menuItem.getHeight();
+
+        if(menuItem.isOpaque()) {
+            if (model.isArmed()|| (menuItem instanceof JMenu && model.isSelected())) {
+                g.setColor(bgColor);
+                g.fillRect(0,0, menuWidth, menuHeight);
+            } else {
+                g.setColor(menuItem.getBackground());
+                g.fillRect(0,0, menuWidth, menuHeight);
+            }
+            g.setColor(oldColor);
+        }
+    }
+
+    /**
+     * Renders the text of the current menu item.
+     * <p>
+     * @param g graphics context
+     * @param menuItem menu item to render
+     * @param textRect bounding rectangle for rendering the text
+     * @param text string to render
+     * @since 1.4
+     */
+    protected void paintText(Graphics g, JMenuItem menuItem, Rectangle textRect, String text) {
+	ButtonModel model = menuItem.getModel();
+	FontMetrics fm = g.getFontMetrics();
+	int mnemIndex = menuItem.getDisplayedMnemonicIndex();
+
+	if(!model.isEnabled()) {
+	    // *** paint the text disabled
+	    if ( UIManager.get("MenuItem.disabledForeground") instanceof Color ) {
+		g.setColor( UIManager.getColor("MenuItem.disabledForeground") );
+		BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,mnemIndex,
+					      textRect.x, 
+					      textRect.y + fm.getAscent());
+	    } else {
+		g.setColor(menuItem.getBackground().brighter());
+		BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,mnemIndex, 
+					      textRect.x, 
+					      textRect.y + fm.getAscent());
+		g.setColor(menuItem.getBackground().darker());
+		BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,mnemIndex, 
+					      textRect.x - 1, 
+					      textRect.y + fm.getAscent() - 1);
+	    }
+	} else {
+	    // *** paint the text normally
+	    if (model.isArmed()|| (menuItem instanceof JMenu && model.isSelected())) {
+		g.setColor(selectionForeground); // Uses protected field.
+	    }
+	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text, mnemIndex, 
+					  textRect.x, 
+					  textRect.y + fm.getAscent());
+	}
     }
 
 
@@ -878,8 +929,7 @@ public class BasicMenuItemUI extends MenuItemUI
             Point p = e.getPoint();
             if(p.x >= 0 && p.x < menuItem.getWidth() &&
                p.y >= 0 && p.y < menuItem.getHeight()) {
-               manager.clearSelectedPath();
-               menuItem.doClick(0);
+		doClick(manager);
             } else {
                 manager.processMouseEvent(e);
             }
@@ -925,11 +975,7 @@ public class BasicMenuItemUI extends MenuItemUI
 
 
     private class MenuDragMouseHandler implements MenuDragMouseListener {
-        public void menuDragMouseEntered(MenuDragMouseEvent e) {
-             MenuSelectionManager manager = e.getMenuSelectionManager();
-             MenuElement path[] = e.getPath();
-             manager.setSelectedPath(path);
-        }
+        public void menuDragMouseEntered(MenuDragMouseEvent e) {}
         public void menuDragMouseDragged(MenuDragMouseEvent e) {
             MenuSelectionManager manager = e.getMenuSelectionManager();
             MenuElement path[] = e.getPath();
@@ -942,8 +988,7 @@ public class BasicMenuItemUI extends MenuItemUI
             Point p = e.getPoint();
             if(p.x >= 0 && p.x < menuItem.getWidth() &&
                p.y >= 0 && p.y < menuItem.getHeight()) {
-               manager.clearSelectedPath();
-               menuItem.doClick(0);
+		doClick(manager);
             } else {
                 manager.clearSelectedPath();
             }
@@ -961,8 +1006,7 @@ public class BasicMenuItemUI extends MenuItemUI
             if(lower(key) == lower((int)(e.getKeyChar()))) {
                 MenuSelectionManager manager = 
                     e.getMenuSelectionManager();
-                manager.clearSelectedPath();
-                menuItem.doClick(0);
+		doClick(manager);
                 e.consume();
             }
         }
@@ -989,7 +1033,8 @@ public class BasicMenuItemUI extends MenuItemUI
 	    if (name.equals("labelFor") || name.equals("displayedMnemonic") ||
 		name.equals("accelerator")) {
 		updateAcceleratorBinding();
-	    } else if (name.equals("text")) {
+	    } else if (name.equals("text") || "font".equals(name) ||
+                       "foreground".equals(name)) {
 		// remove the old html view client property if one
 		// existed, and install a new one if the text installed
 		// into the JLabel is html source.
@@ -1007,4 +1052,66 @@ public class BasicMenuItemUI extends MenuItemUI
 	    mi.doClick();
 	}
     }
+
+    /**
+     * Call this method when a menu item is to be activated.
+     * This method handles some of the details of menu item activation
+     * such as clearing the selected path and messaging the 
+     * JMenuItem's doClick() method.
+     *
+     * @param msm  A MenuSelectionManager. The visual feedback and 
+     *             internal bookkeeping tasks are delegated to 
+     *             this MenuSelectionManager. If <code>null</code> is
+     *             passed as this argument, the 
+     *             <code>MenuSelectionManager.defaultManager</code> is
+     *             used.
+     * @see MenuSelectionManager
+     * @see JMenuItem#doClick(int)
+     * @since 1.4
+     */
+    protected void doClick(MenuSelectionManager msm) {
+	// Auditory cue
+	if (! isInternalFrameSystemMenu()) {
+	    ActionMap map = menuItem.getActionMap();
+	    if (map != null) {
+		Action audioAction = map.get(getPropertyPrefix() + 
+		                             ".commandSound");
+		if (audioAction != null) {
+		    // pass off firing the Action to a utility method
+		    BasicLookAndFeel lf = (BasicLookAndFeel)
+			                   UIManager.getLookAndFeel();
+		    lf.playSound(audioAction);
+		}
+	    }
+	}
+	// Visual feedback
+	if (msm == null) {
+	    msm = MenuSelectionManager.defaultManager();
+	}
+	msm.clearSelectedPath();
+	menuItem.doClick(0);
+    }
+
+    /** 
+     * This is to see if the menu item in question is part of the 
+     * system menu on an internal frame.
+     * The Strings that are being checked can be found in 
+     * MetalInternalFrameTitlePaneUI.java,
+     * WindowsInternalFrameTitlePaneUI.java, and
+     * MotifInternalFrameTitlePaneUI.java.
+     *
+     * @since 1.4
+     */
+    private boolean isInternalFrameSystemMenu() {
+	String actionCommand = menuItem.getActionCommand();
+ 	if ((actionCommand == "Close") ||
+	    (actionCommand == "Minimize") ||
+	    (actionCommand == "Restore") ||
+	    (actionCommand == "Maximize")) {
+	  return true;
+	} else {
+	  return false;
+	} 
+    }
+
 }

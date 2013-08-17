@@ -1,4 +1,6 @@
 /*
+ * @(#)ByteArrayOutputStream.java	1.45 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -12,9 +14,13 @@ package java.io;
  * is written to it. 
  * The data can be retrieved using <code>toByteArray()</code> and
  * <code>toString()</code>.
+ * <p>
+ * Closing a <tt>ByteArrayOutputStream</tt> has no effect. The methods in
+ * this class can be called after the stream has been closed without
+ * generating an <tt>IOException</tt>.
  *
  * @author  Arthur van Hoff
- * @version 1.44, 02/06/02
+ * @version 1.45, 12/03/01
  * @since   JDK1.0
  */
 
@@ -29,19 +35,6 @@ public class ByteArrayOutputStream extends OutputStream {
      * The number of valid bytes in the buffer. 
      */
     protected int count;
-
-    /**
-     * Flag indicating whether the stream has been closed.
-     */
-    private boolean isClosed = false;
-
-    /** Check to make sure that the stream has not been closed */
-    private void ensureOpen() {
-        /* This method does nothing for now.  Once we add throws clauses
-	 * to the I/O methods in this class, it will throw an IOException
-	 * if the stream has been closed.
-	 */
-    }
 
     /**
      * Creates a new byte array output stream. The buffer capacity is 
@@ -72,7 +65,6 @@ public class ByteArrayOutputStream extends OutputStream {
      * @param   b   the byte to be written.
      */
     public synchronized void write(int b) {
-	ensureOpen();
 	int newcount = count + 1;
 	if (newcount > buf.length) {
 	    byte newbuf[] = new byte[Math.max(buf.length << 1, newcount)];
@@ -92,7 +84,6 @@ public class ByteArrayOutputStream extends OutputStream {
      * @param   len   the number of bytes to write.
      */
     public synchronized void write(byte b[], int off, int len) {
-	ensureOpen();
 	if ((off < 0) || (off > b.length) || (len < 0) ||
             ((off + len) > b.length) || ((off + len) < 0)) {
 	    throw new IndexOutOfBoundsException();
@@ -130,7 +121,6 @@ public class ByteArrayOutputStream extends OutputStream {
      * @see     java.io.ByteArrayInputStream#count
      */
     public synchronized void reset() {
-	ensureOpen();
 	count = 0;
     }
 
@@ -211,14 +201,13 @@ public class ByteArrayOutputStream extends OutputStream {
     }
 
     /**
-     * Closes this output stream and releases any system resources 
-     * associated with this stream. A closed stream cannot perform 
-     * output operations and cannot be reopened.
+     * Closing a <tt>ByteArrayOutputStream</tt> has no effect. The methods in
+     * this class can be called after the stream has been closed without
+     * generating an <tt>IOException</tt>.
      * <p>
      *
      */
-    public synchronized void close() throws IOException {
-	isClosed = true;
+    public void close() throws IOException {
     }
 
 }

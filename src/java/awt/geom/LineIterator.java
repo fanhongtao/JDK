@@ -1,4 +1,6 @@
 /*
+ * @(#)LineIterator.java	1.8 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,7 @@ import java.util.*;
  * A utility class to iterate over the path segments of a line segment
  * through the PathIterator interface.
  *
- * @version 	1.8, 02/06/02
+ * @version 	1.8, 12/03/01
  * @author	Jim Graham
  */
 class LineIterator implements PathIterator {

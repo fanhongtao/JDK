@@ -1,4 +1,6 @@
 /*
+ * @(#)GradientPaint.java	1.36 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -53,6 +55,7 @@ public class GradientPaint implements Paint {
      * <code>Point</code> in user space
      * @param color2 <code>Color</code> at the second specified 
      * <code>Point</code>
+     * @throws NullPointerException if either one of colors is null
      */
     public GradientPaint(float x1,
 			 float y1,
@@ -60,6 +63,10 @@ public class GradientPaint implements Paint {
 			 float x2,
 			 float y2,
 			 Color color2) {
+        if ((color1 == null) || (color2 == null)) {
+            throw new NullPointerException("Colors cannot be null");
+        }
+
         p1 = new Point2D.Float(x1, y1);
         p2 = new Point2D.Float(x2, y2);
         this.color1 = color1;
@@ -74,11 +81,18 @@ public class GradientPaint implements Paint {
      * @param pt2 the second specified <code>Point</code> in user space
      * @param color2 <code>Color</code> at the second specified 
      * <code>Point</code>
+     * @throws NullPointerException if either one of colors or points 
+     * is null
      */
     public GradientPaint(Point2D pt1,
 			 Color color1,
 			 Point2D pt2,
 			 Color color2) {
+        if ((color1 == null) || (color2 == null) ||
+            (pt1 == null) || (pt2 == null)) {
+            throw new NullPointerException("Colors and points should be non-null");
+        }
+
         p1 = new Point2D.Float((float)pt1.getX(), (float)pt1.getY());
         p2 = new Point2D.Float((float)pt2.getX(), (float)pt2.getY());
         this.color1 = color1;
@@ -123,6 +137,8 @@ public class GradientPaint implements Paint {
      * <code>Point</code>
      * @param cyclic <code>true</code> if the gradient pattern should cycle
      * repeatedly between the two colors; <code>false</code> otherwise
+     * @throws NullPointerException if either one of colors or points 
+     * is null
      */
     public GradientPaint(Point2D pt1,
 			 Color color1,
@@ -202,7 +218,8 @@ public class GradientPaint implements Paint {
 				      AffineTransform xform,
                                       RenderingHints hints) {
 
-        return new GradientPaintContext(p1, p2, xform, color1, color2, cyclic);
+        return new GradientPaintContext(cm, p1, p2, xform,
+					color1, color2, cyclic);
     }
 
     /**

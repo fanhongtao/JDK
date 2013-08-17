@@ -1,4 +1,6 @@
 /*
+ * @(#)MetalToolTipUI.java	1.23 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,12 +22,14 @@ import javax.swing.plaf.basic.BasicToolTipUI;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.19 02/06/02
+ * @version 1.23 12/03/01
  * @author Steve Wilson
  */
 public class MetalToolTipUI extends BasicToolTipUI {
@@ -47,7 +51,7 @@ public class MetalToolTipUI extends BasicToolTipUI {
 
     public void installUI(JComponent c) {
         super.installUI(c);
-	tip = (JToolTip)c;
+        tip = (JToolTip)c;
 	Font f = c.getFont();
 	smallFont = new Font( f.getName(), f.getStyle(), f.getSize() - 2 );
 	acceleratorDelimiter = UIManager.getString( "MenuItem.acceleratorDelimiter" );
@@ -60,14 +64,14 @@ public class MetalToolTipUI extends BasicToolTipUI {
     }
 
     public void paint(Graphics g, JComponent c) {
-	JToolTip tip = (JToolTip)c;
+        JToolTip tip = (JToolTip)c;
 
 	super.paint(g, c);
 
         Font font = c.getFont();
         FontMetrics metrics = Toolkit.getDefaultToolkit().getFontMetrics(font);
 	String keyText = getAcceleratorString(tip);
-        String tipText = tip.getTipText();
+	String tipText = tip.getTipText();
 	if (tipText == null) {
 	    tipText = "";
 	}
@@ -91,6 +95,11 @@ public class MetalToolTipUI extends BasicToolTipUI {
         return d;
     }
 
+    protected boolean isAcceleratorHidden() {
+        Boolean b = (Boolean)UIManager.get("ToolTip.hideAccelerator");
+        return b != null && b.booleanValue();
+    }
+
     private String getAcceleratorString(JToolTip tip) {
         this.tip = tip;
 
@@ -107,7 +116,7 @@ public class MetalToolTipUI extends BasicToolTipUI {
     // results. If this becomes an issue, MetalToolTipUI should no longer be
     // shared.
     public String getAcceleratorString() {
-	if (tip == null) {
+        if (tip == null || isAcceleratorHidden()) {
             return "";
         }
         JComponent comp = tip.getComponent();
@@ -118,7 +127,6 @@ public class MetalToolTipUI extends BasicToolTipUI {
 	String controlKeyStr = "";
 
 	for (int i = 0; i < keys.length; i++) {
-	  char c = (char)keys[i].getKeyCode();
 	  int mod = keys[i].getModifiers();
 	  int condition =  comp.getConditionForKeyStroke(keys[i]);
 
@@ -127,7 +135,8 @@ public class MetalToolTipUI extends BasicToolTipUI {
 		 (mod & InputEvent.SHIFT_MASK) != 0 || (mod & InputEvent.META_MASK) != 0 ) )
 	  {
 	      controlKeyStr = KeyEvent.getKeyModifiersText(mod) +
-		              acceleratorDelimiter + (char)keys[i].getKeyCode();
+                              acceleratorDelimiter +
+                              KeyEvent.getKeyText(keys[i].getKeyCode());
 	      break;
 	  }
 	}
@@ -139,7 +148,9 @@ public class MetalToolTipUI extends BasicToolTipUI {
 	    int mnemonic = ((JMenuItem) comp).getMnemonic();
 	    if ( mnemonic != 0 )
 	    {
-	        controlKeyStr = "Alt" + acceleratorDelimiter + (char) mnemonic;
+	        controlKeyStr =
+                    KeyEvent.getKeyModifiersText(KeyEvent.ALT_MASK) +
+                    acceleratorDelimiter + (char)mnemonic;
 	    }
 	}
 

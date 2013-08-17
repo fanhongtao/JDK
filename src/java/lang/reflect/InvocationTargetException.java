@@ -1,24 +1,27 @@
 /*
+ * @(#)InvocationTargetException.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.reflect;
 
-import java.io.PrintStream;
-import java.io.PrintWriter;
-
 /**
  * InvocationTargetException is a checked exception that wraps
  * an exception thrown by an invoked method or constructor.
  *
+ * <p>As of release 1.4, this exception has been retrofitted to conform to
+ * the general purpose exception-chaining mechanism.  The "target exception"
+ * that is provided at construction time and accessed via the
+ * {@link #getTargetException()} method is now known as the <i>cause</i>,
+ * and may be accessed via the {@link Throwable#getCause()} method,
+ * as well as the aforementioned "legacy method."
+ *
  * @see Method
  * @see Constructor
- *
  */
-public
-class InvocationTargetException extends Exception {
-
+public class InvocationTargetException extends Exception {
     /**
      * Use serialVersionUID from JDK 1.1.X for interoperability
      */
@@ -39,70 +42,52 @@ class InvocationTargetException extends Exception {
      * <code>null</code> as the target exception.
      */
     protected InvocationTargetException() {
-	super();
+	super((Throwable)null);  // Disallow initCause
     }
 
     /**
      * Constructs a InvocationTargetException with a target exception.
+     * 
+     * @param target the target exception
      */
     public InvocationTargetException(Throwable target) {
-	super();
-	this.target = target;
+	super((Throwable)null);  // Disallow initCause
+        this.target = target;
     }
 
     /**
      * Constructs a InvocationTargetException with a target exception
      * and a detail message.
+     *
+     * @param target the target exception
+     * @param s      the detail message
      */
     public InvocationTargetException(Throwable target, String s) {
-	super(s);
-	this.target = target;
+	super(s, null);  // Disallow initCause
+        this.target = target;
     }
 
     /**
      * Get the thrown target exception.
+     *
+     * <p>This method predates the general-purpose exception chaining facility.
+     * The {@link Throwable#getCause()} method is now the preferred means of
+     * obtaining this information.
+     *
+     * @return the thrown target exception (cause of this exception).
      */
     public Throwable getTargetException() {
 	return target;
     }
 
     /**
-     * Prints the stack trace of the thrown target exception.
+     * Returns the the cause of this exception (the thrown target exception,
+     * which may be <tt>null</tt>).
      *
-     * @see     java.lang.System#err
+     * @return  the cause of this exception.
+     * @since   1.4
      */
-    public void printStackTrace() {
-	printStackTrace(System.err);
+    public Throwable getCause() {
+        return target;
     }
-
-    /**
-     * Prints the stack trace of the thrown target exception to the specified
-     * print stream.
-     */
-    public void printStackTrace(PrintStream ps) {
-	synchronized (ps) {
-	    if (target != null) {
-		ps.print("java.lang.reflect.InvocationTargetException: ");
-		target.printStackTrace(ps);
-	    } else {
-		super.printStackTrace(ps);
-	    }
-	}
-    }
-
-    /**
-     * Prints the stack trace of the thrown target exception to the
-     * specified print writer.
-     */
-    public void printStackTrace(PrintWriter pw) {
-	synchronized (pw) {
-	    if (target != null) {
-		pw.print("java.lang.reflect.InvocationTargetException: ");
-		target.printStackTrace(pw);
-	    } else {
-		super.printStackTrace(pw);
-	    }
-	}
-    }
-
 }

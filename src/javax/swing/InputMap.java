@@ -1,4 +1,6 @@
 /*
+ * @(#)InputMap.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -29,7 +31,7 @@ import java.util.Set;
  * </pre>
  * some of the methods will cause a StackOverflowError to be thrown.
  *
- * @version 1.10 02/06/02
+ * @version 1.11 12/03/01
  * @author Scott Violet
  * @since 1.3
  */
@@ -198,30 +200,8 @@ public class InputMap implements Serializable {
 
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-	KeyStroke[] keys = keys();
-	// Determine valid count
-	int validCount = 0;
-	if (keys != null) {
-	    for(int counter = 0; counter < keys.length; counter++) {
-		Object value = get(keys[counter]);
-		if (value instanceof Serializable) {
-		    validCount++;
-		}
-		else {
-		    keys[counter] = null;
-		}
-	    }
-	}
-	s.writeInt(validCount);
-	int counter = 0;
-	while (validCount > 0) {
-	    if (keys[counter] != null) {
-		s.writeObject(keys[counter]);
-		s.writeObject(get(keys[counter]));
-		validCount--;
-	    }
-	    counter++;
-	}
+
+        AbstractAction.ArrayTable.writeArrayTable(s, arrayTable);
     }
 
     private void readObject(ObjectInputStream s) throws ClassNotFoundException,

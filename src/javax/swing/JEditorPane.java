@@ -1,5 +1,7 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)JEditorPane.java	1.113 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -58,12 +60,12 @@ import javax.accessibility.*;
  * expected to be of this type.
  * <li>
  * The <a href="#read">read</a> method can be used to initialize the 
- * component from a Reader.  Note that if the content type is HTML,
+ * component from a <code>Reader</code>.  Note that if the content type is HTML,
  * relative references (e.g. for things like images) can't be resolved 
  * unless the &lt;base&gt; tag is used or the <em>Base</em> property
- * on HTMLDocument is set.  In this case the current <code>EditorKit</code>
- * will be used, and the content type will be expected to be of this
- * type.
+ * on <code>HTMLDocument</code> is set.
+ * In this case the current <code>EditorKit</code> will be used,
+ * and the content type will be expected to be of this type.
  * <li>
  * The <a href="#setPage">setPage</a> method can be used to initialize
  * the component from a URL.  In this case, the content type will be
@@ -73,7 +75,8 @@ import javax.accessibility.*;
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JEditorPane">JEditorPane</a> key assignments.
+ * <a href="doc-files/Key-Index.html#JEditorPane"><code>JEditorPane</code></a>
+ * key assignments.
  * <p>
  * Some kinds of content may provide hyperlink support by generating
  * hyperlink events.  The HTML <code>EditorKit</code> will generate
@@ -139,19 +142,28 @@ import javax.accessibility.*;
  * (which is an <code>IOException</code>).
  * </ol>
  * <p>
+ * <dt><b><font size=+1>Newlines</font></b>
+ * <dd>
+ * For a discussion on how newlines are handled, see
+ * <a href="text/DefaultEditorKit.html">DefaultEditorKit</a>.
+ * </dl>
+ *
+ * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @beaninfo
  *   attribute: isContainer false
  * description: A text component to edit various types of content.
  *
  * @author  Timothy Prinzing
- * @version 1.98 02/06/02
+ * @version 1.113 12/03/01
  */
 public class JEditorPane extends JTextComponent {
 
@@ -161,6 +173,55 @@ public class JEditorPane extends JTextComponent {
      */
     public JEditorPane() {
         super();
+	setFocusCycleRoot(true);
+	setFocusTraversalPolicy(new LayoutFocusTraversalPolicy() {
+		public Component getComponentAfter(Container focusCycleRoot,
+						   Component aComponent) {
+		    if (focusCycleRoot != JEditorPane.this ||
+			(!isEditable() && getComponentCount() > 0)) {
+			return super.getComponentAfter(focusCycleRoot,
+						       aComponent);
+		    } else {
+			Container rootAncestor = getFocusCycleRootAncestor();
+			return (rootAncestor != null)
+			    ? rootAncestor.getFocusTraversalPolicy().
+			          getComponentAfter(rootAncestor,
+						    JEditorPane.this)
+			    : null;
+		    }
+		}
+		public Component getComponentBefore(Container focusCycleRoot,
+						    Component aComponent) {
+		    if (focusCycleRoot != JEditorPane.this ||
+			(!isEditable() && getComponentCount() > 0)) {
+			return super.getComponentBefore(focusCycleRoot,
+							aComponent);
+		    } else {
+			Container rootAncestor = getFocusCycleRootAncestor();
+			return (rootAncestor != null)
+			    ? rootAncestor.getFocusTraversalPolicy().
+			          getComponentBefore(rootAncestor,
+						     JEditorPane.this)
+			    : null;
+		    }
+		}
+		public Component getDefaultComponent(Container focusCycleRoot)
+		{
+		    return (focusCycleRoot != JEditorPane.this ||
+			    (!isEditable() && getComponentCount() > 0))
+			? super.getDefaultComponent(focusCycleRoot)
+			: null;
+		}
+		protected boolean accept(Component aComponent) {
+		    return (aComponent != JEditorPane.this)
+			? super.accept(aComponent)
+			: false;
+		}
+	    });		
+	setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
+			   JComponent.getManagingFocusForwardTraversalKeys());
+	setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
+			   JComponent.getManagingFocusBackwardTraversalKeys());
     }
 
     /**
@@ -195,6 +256,8 @@ public class JEditorPane extends JTextComponent {
      *
      * @param type mime type of the given text
      * @param text the text to initialize with
+     * @exception NullPointerException if the <code>type</code> parameter
+     *		is <code>null</code>
      */
     public JEditorPane(String type, String text) {
 	this();
@@ -220,6 +283,19 @@ public class JEditorPane extends JTextComponent {
     public synchronized void removeHyperlinkListener(HyperlinkListener listener) {
         listenerList.remove(HyperlinkListener.class, listener);
     }
+
+    /**
+     * Returns an array of all the <code>HyperLinkListener</code>s added
+     * to this JEditorPane with addHyperlinkListener().
+     *
+     * @return all of the <code>HyperLinkListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public synchronized HyperlinkListener[] getHyperlinkListeners() {
+        return (HyperlinkListener[])listenerList.getListeners(
+                HyperlinkListener.class);
+    } 
 
     /**
      * Notifies all listeners that have registered interest for
@@ -331,16 +407,16 @@ public class JEditorPane extends JTextComponent {
 
 		// At this point, one could either load up the model with no
 		// view notifications slowing it down (i.e. best synchronous
-		// behavior) or set the model and start to feed it on a seperate
+		// behavior) or set the model and start to feed it on a separate
 		// thread (best asynchronous behavior).
 		synchronized(this) {
 		    if (loading != null) {
 			// we are loading asynchronously, so we need to cancel 
-                        // the old stream.
-                        loading.cancel();
-                        loading = null;
-                    }
-                }
+			// the old stream.
+			loading.cancel();
+			loading = null;
+		    }
+		}
 		if (doc instanceof AbstractDocument) {
 		    AbstractDocument adoc = (AbstractDocument) doc;
 		    int p = adoc.getAsynchronousLoadPriority();
@@ -348,8 +424,8 @@ public class JEditorPane extends JTextComponent {
 			// load asynchronously
 			setDocument(doc);
 			synchronized(this) {
-                            loading = new PageStream(in);
-                            Thread pl = new PageLoader(doc, loading, p, loaded, page);
+			    loading = new PageStream(in);
+			    Thread pl = new PageLoader(doc, loading, p, loaded, page);
 			    pl.start();
 			}
 			return;
@@ -474,8 +550,8 @@ public class JEditorPane extends JTextComponent {
 	    try {
 		read(in, doc);
 		synchronized(JEditorPane.this) {
-                    loading = null;
-                }
+		    loading = null;
+		}
 		URL page = (URL) doc.getProperty(Document.StreamDescriptionProperty);
 		String reference = page.getRef();
 		if (reference != null) {
@@ -493,7 +569,7 @@ public class JEditorPane extends JTextComponent {
 		    SwingUtilities.invokeLater(callScrollToReference);
 		}
 	    } catch (IOException ioe) {
-		getToolkit().beep();
+		UIManager.getLookAndFeel().provideErrorFeedback(JEditorPane.this);
 	    } finally {
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
@@ -528,46 +604,46 @@ public class JEditorPane extends JTextComponent {
 
     static class PageStream extends FilterInputStream {
 
-        boolean canceled;
+	boolean canceled;
+	
+	public PageStream(InputStream i) {
+	    super(i);
+	    canceled = false;
+	}
 
-        public PageStream(InputStream i) {
-            super(i);
-            canceled = false;
-        }
-
-        /**
-         * Cancel the loading of the stream by throwing
-         * an IOException on the next request.
-         */
+	/**
+	 * Cancel the loading of the stream by throwing
+	 * an IOException on the next request.
+	 */
         public synchronized void cancel() {
-            canceled = true;
-        }
+	    canceled = true;
+	}
 
         protected synchronized void checkCanceled() throws IOException {
-            if (canceled) {
-                throw new IOException("page canceled");
-            }
-        }
+	    if (canceled) {
+		throw new IOException("page canceled");
+	    }
+	}
 
         public int read() throws IOException {
-            checkCanceled();
-            return super.read();
-        }
+	    checkCanceled();
+	    return super.read();
+	}
 
         public long skip(long n) throws IOException {
-            checkCanceled();
-            return super.skip(n);
-        }
+	    checkCanceled();
+	    return super.skip(n);
+	}
 
         public int available() throws IOException {
-            checkCanceled();
-            return super.available();
-        }
+	    checkCanceled();
+	    return super.available();
+	}
 
         public void reset() throws IOException {
-            checkCanceled();
-            super.reset();
-        }
+	    checkCanceled();
+	    super.reset();
+	}
 
     }
 
@@ -644,7 +720,7 @@ public class JEditorPane extends JTextComponent {
      * 
      * @param reference the named location to scroll to
      */
-    protected void scrollToReference(String reference) {
+    public void scrollToReference(String reference) {
 	Document d = getDocument();
 	if (d instanceof HTMLDocument) {
 	    HTMLDocument doc = (HTMLDocument) d;
@@ -663,13 +739,9 @@ public class JEditorPane extends JTextComponent {
 			    //r.y -= (vis.height / 2);
 			    r.height = vis.height;
 			    scrollRectToVisible(r);
-                            int index = viewToModel(new Point(r.x,r.y));
-                            index = Math.min(index, d.getLength()-1);
-                            index = Math.max(index, 0);
-                            setCaretPosition(index);
 			}
 		    } catch (BadLocationException ble) {
-			getToolkit().beep();
+		        UIManager.getLookAndFeel().provideErrorFeedback(JEditorPane.this);
 		    }
 		}
 	    }
@@ -767,13 +839,17 @@ public class JEditorPane extends JTextComponent {
      * <code>text/html</code> and the Reader provided to
      * the <code>EditorKit</code> to load unicode into the document will
      * use the <code>EUC-JP</code> charset for translating
-     * to unicode.
+     * to unicode.  If the type is not recognized, the content
+     * will be loaded using the <code>EditorKit</code> registered
+     * for plain text, <code>text/plain</code>.
      * 
      * @param type the non-<code>null</code> mime type for the content editing
      *   support
      * @see #getContentType
      * @beaninfo
      *  description: the type of content
+     * @throw NullPointerException if the <code>type</code> parameter
+     *		is <code>null</code>
      */
     public final void setContentType(String type) {
 	// The type could have optional info is part of it,
@@ -943,7 +1019,7 @@ public class JEditorPane extends JTextComponent {
      */
     public void replaceSelection(String content) {
         if (! isEditable()) {
-            getToolkit().beep();
+	    UIManager.getLookAndFeel().provideErrorFeedback(JEditorPane.this);
             return;
         }
         EditorKit kit = getEditorKit();
@@ -961,7 +1037,7 @@ public class JEditorPane extends JTextComponent {
 				     getInputAttributes());
                 }
             } catch (BadLocationException e) {
-                getToolkit().beep();
+	        UIManager.getLookAndFeel().provideErrorFeedback(JEditorPane.this);
             }
         }
         else {
@@ -999,7 +1075,10 @@ public class JEditorPane extends JTextComponent {
 		if (loader != null) {
 		    c = loader.loadClass(classname);
 		} else {
-		    c = Class.forName(classname);
+                    // Will only happen if developer has invoked 
+                    // registerEditorKitForContentType(type, class, null).
+		    c = Class.forName(classname, true, Thread.currentThread().
+                                      getContextClassLoader());
 		}
                 k = (EditorKit) c.newInstance();
                 kitRegistry.put(type, k);
@@ -1029,9 +1108,8 @@ public class JEditorPane extends JTextComponent {
      * @param classname the class to load later
      */
     public static void registerEditorKitForContentType(String type, String classname) {
-	getKitLoaderRegistry().remove(type);
-        getKitTypeRegistry().put(type, classname);
-	getKitRegisty().remove(type);
+        registerEditorKitForContentType(type, classname,Thread.currentThread().
+                                        getContextClassLoader());
     }
 
     /**
@@ -1129,105 +1207,29 @@ public class JEditorPane extends JTextComponent {
 	if (getParent() instanceof JViewport) {
 	    JViewport port = (JViewport)getParent();
 	    TextUI ui = getUI();
+            int prefWidth = d.width;
+            int prefHeight = d.height;
 	    if (! getScrollableTracksViewportWidth()) {
 		int w = port.getWidth();
 		Dimension min = ui.getMinimumSize(this);
-		if (w < min.width) {
-		    d.width = min.width;
+		if (w != 0 && w < min.width) {
+                    // Only adjust to min if we have a valid size
+		    prefWidth = min.width;
 		}
 	    }
 	    if (! getScrollableTracksViewportHeight()) {
 		int h = port.getHeight();
 		Dimension min = ui.getMinimumSize(this);
-		if (h < min.height) {
-		    d.height = min.height;
+		if (h != 0 && h < min.height) {
+                    // Only adjust to min if we have a valid size
+		    prefHeight = min.height;
 		}
 	    }
+            if (prefWidth != d.width || prefHeight != d.height) {
+                d = new Dimension(prefWidth, prefHeight);
+            }
 	}
 	return d;
-    }
-
-    // --- JComponent methods ---------------------------------
-
-    /**
-     * Turns off tab traversal once focus is gained.
-     *
-     * @return true, to indicate that the focus is being managed;
-     *		or false otherwise
-     */
-    public boolean isManagingFocus() {
-        return managingFocus;
-    }
-
-    /**
-     * Makes <code>JEditorPane</code> be the root of a focus cycle.
-     * This means that, by default, tabbing within the editor
-     * pane will move between components of the pane, such as
-     * form controls, but not out of the pane.
-     * <p>Note that this method always returns true.
-     *
-     * @see JComponent#isFocusCycleRoot
-     * @return true
-     */
-    public boolean isFocusCycleRoot() {
-        return true;
-    }
-
-    /**
-     * Overridden to handle processing of tab/shift tab. If <code>e</code>
-     * identifies a tab, the editor pane is not editable and has components,
-     * then the <code>FocusManager</code> is asked to pass focus to the
-     * next/previous component.
-     *
-     * @param e  the current key event
-     */
-    protected void processComponentKeyEvent(KeyEvent e)  {
-        super.processComponentKeyEvent(e);
-	if (isManagingFocus()) {
-	  if ((e.getKeyCode() == KeyEvent.VK_TAB || e.getKeyChar() == '\t')) {
-	      if (e.getID() == KeyEvent.KEY_PRESSED && !isEditable() &&
-		  getComponentCount() > 0) {
-		  // We aren't editable, and have child components, which
-		  // are likely form elements. By setting managingFocus to
-		  // false the FocusManager will look at our children and
-		  // give one of them focus.
-		  managingFocus = false;
-		  try {
-		      if ((e.getModifiers() & ActionEvent.SHIFT_MASK) == 
-			  ActionEvent.SHIFT_MASK) {
-			  FocusManager.getCurrentManager().
-			               focusPreviousComponent(this);
-		      }
-		      else {
-			  FocusManager.getCurrentManager().
-			               focusNextComponent(this);
-		      }
-		      e.consume();
-		  }
-		  finally {
-		      managingFocus = true;
-		  }
-	      }
-	  }
-	}
-    }
-
-    /**
-     * Make sure that TAB and Shift-TAB events get consumed, so that
-     * awt doesn't attempt focus traversal.
-     *
-     * @param e the current key event
-     */
-    protected void processKeyEvent(KeyEvent e) {
-        super.processKeyEvent(e);
-        // tab consumption
-	// We are actually consuming any TABs modified in any way, because
-	// we don't want awt to get anything it can use for focus traversal.
-	if (isManagingFocus()) {
-	  if ((e.getKeyCode() == KeyEvent.VK_TAB || e.getKeyChar() == '\t')) {
-	    e.consume();
-	  }
-	}
     }
 
     // --- JTextComponent methods -----------------------------
@@ -1286,9 +1288,9 @@ public class JEditorPane extends JTextComponent {
 	    EditorKit kit = getEditorKit();
             kit.read(r, doc, 0);
         } catch (IOException ioe) {
-            getToolkit().beep();
+	    UIManager.getLookAndFeel().provideErrorFeedback(JEditorPane.this);
         } catch (BadLocationException ble) {
-            getToolkit().beep();
+	    UIManager.getLookAndFeel().provideErrorFeedback(JEditorPane.this);
 	}
     }
 
@@ -1371,9 +1373,13 @@ public class JEditorPane extends JTextComponent {
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
+        }
     }
 
     // --- variables ---------------------------------------
@@ -1395,13 +1401,6 @@ public class JEditorPane extends JTextComponent {
      * Table of registered type handlers for this editor.
      */
     private Hashtable typeHandlers;
-
-    /**
-     * Indicates whether we are managing focus.
-     * @see #processComponentKeyEvent
-     * @see #isManagingFocus
-     */
-    private boolean managingFocus = true;
 
     /*
      * Private AppContext keys for this class's static variables.
@@ -1475,20 +1474,22 @@ public class JEditorPane extends JTextComponent {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJEditorPane extends AccessibleJTextComponent {
 
         /**
          * Gets the accessibleDescription property of this object.  If this
-         * property isn't set, return the content type of this JEditorPane
-         * instead (e.g. "plain/text", "html/text", etc.
+         * property isn't set, returns the content type of this
+         * <code>JEditorPane</code> instead (e.g. "plain/text", "html/text").
          *
-         * @return the localized description of the object; null if
-         * this object does not have a description
+         * @return the localized description of the object; <code>null</code>
+         * 	if this object does not have a description
          *
          * @see #setAccessibleName
          */
@@ -1522,14 +1523,81 @@ public class JEditorPane extends JTextComponent {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * baseline for serialized form of Swing objects.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJEditorPaneHTML extends AccessibleJEditorPane {
+
+	private AccessibleContext accessibleContext;
+
 	public AccessibleText getAccessibleText() {
 	    return new JEditorPaneAccessibleHypertextSupport();
+	}
+
+	protected AccessibleJEditorPaneHTML () {
+	    HTMLEditorKit kit = (HTMLEditorKit)JEditorPane.this.getEditorKit();
+	    accessibleContext = kit.getAccessibleContext();
+	}
+
+	/**
+	 * Returns the number of accessible children of the object.
+	 *
+	 * @return the number of accessible children of the object.
+	 */
+	public int getAccessibleChildrenCount() {
+	    if (accessibleContext != null) {
+		return accessibleContext.getAccessibleChildrenCount();
+	    } else {
+		return 0;
+	    }
+	}
+	
+	/**
+	 * Returns the specified Accessible child of the object.  The Accessible
+	 * children of an Accessible object are zero-based, so the first child 
+	 * of an Accessible child is at index 0, the second child is at index 1,
+	 * and so on.
+	 *
+	 * @param i zero-based index of child
+	 * @return the Accessible child of the object
+	 * @see #getAccessibleChildrenCount
+	 */
+	public Accessible getAccessibleChild(int i) {
+	    if (accessibleContext != null) {
+		return accessibleContext.getAccessibleChild(i);
+	    } else {
+		return null;
+	    }
+	}
+	
+	/**
+	 * Returns the Accessible child, if one exists, contained at the local 
+	 * coordinate Point.
+	 *
+	 * @param p The point relative to the coordinate system of this object.
+	 * @return the Accessible, if it exists, at the specified location; 
+	 * otherwise null
+	 */
+	public Accessible getAccessibleAt(Point p) {
+	    if (accessibleContext != null && p != null) {
+		try {
+		    AccessibleComponent acomp = 
+			accessibleContext.getAccessibleComponent();
+		    if (acomp != null) {
+			return acomp.getAccessibleAt(p);
+		    } else {
+			return null;
+		    }
+		} catch (IllegalComponentStateException e) {
+		    return null;
+		}
+	    } else {
+		return null;
+	    }
 	}
     }
 
@@ -1839,17 +1907,6 @@ public class JEditorPane extends JTextComponent {
     }
 
     static class PlainEditorKit extends DefaultEditorKit implements ViewFactory {
-
-	/**
-	 * Creates a copy of the editor kit.  This
-	 * allows an implementation to serve as a prototype
-	 * for others, so that they can be quickly created.
-	 *
-	 * @return the copy
-	 */
-        public Object clone() {
-	    return new PlainEditorKit();
-	}
 
 	/**
 	 * Fetches a factory that is suitable for producing 

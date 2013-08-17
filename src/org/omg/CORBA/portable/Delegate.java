@@ -1,4 +1,6 @@
 /*
+ * @(#)Delegate.java	1.34 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -24,7 +26,7 @@ import org.omg.CORBA.SystemException;
  *
  * @see org.omg.CORBA.Object
  * @author OMG
- * @version 1.31 02/06/02
+ * @version 1.34 12/03/01
  */
 
 public abstract class Delegate {
@@ -34,10 +36,8 @@ public abstract class Delegate {
      * @param self The object reference whose InterfaceDef needs to be returned
      * @return the InterfaceDef
      */
-    public org.omg.CORBA.Object get_interface_def(org.omg.CORBA.Object self)
-    {
-	throw new org.omg.CORBA.NO_IMPLEMENT();
-    }
+    public abstract org.omg.CORBA.Object get_interface_def(
+        org.omg.CORBA.Object self);
 
     /** 
      * Returns a duplicate of the object reference provided.
@@ -348,10 +348,13 @@ public abstract class Delegate {
     }
 
     /**
-     * Provide the implementation to override the toString() method
+     * Provides the implementation to override the toString() method
      * of the delegating CORBA object.
      *
-     * @param self The object reference which delegated to this delegate.
+     * @param self the object reference that delegated to this delegate
+     * @return a <code>String</code> object that represents the object
+     *         reference that delegated to this <code>Delegate</code>
+     *         object
      */
 
     public String toString(org.omg.CORBA.Object self) {
@@ -359,20 +362,26 @@ public abstract class Delegate {
     }
 
     /**
-     * Provide the implementation to override the hashCode() method
+     * Provides the implementation to override the hashCode() method
      * of the delegating CORBA object.
      *
-     * @param self The object reference which delegated to this delegate.
+     * @param self the object reference that delegated to this delegate
+     * @return an <code>int</code> that represents the hashcode for the
+     *         object reference that delegated to this <code>Delegate</code>
+     *         object
      */
     public int hashCode(org.omg.CORBA.Object self) {
         return System.identityHashCode(self);
     }
 
     /**
-     * Provide the implementation to override the equals(java.lang.Object obj) 
+     * Provides the implementation to override the equals(java.lang.Object obj) 
      * method of the delegating CORBA object.
      *
-     * @param self The object reference which delegated to this delegate.
+     * @param self the object reference that delegated to this delegate
+     * @param obj the <code>Object</code> with which to compare 
+     * @return <code>true</code> if <code>obj</code> equals <code>self</code>;
+     *         <code>false</code> otherwise
      */
     public boolean equals(org.omg.CORBA.Object self, java.lang.Object obj) {
         return (self == obj);

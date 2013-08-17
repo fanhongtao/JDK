@@ -1,4 +1,6 @@
 /*
+ * @(#)BAD_PARAM.java	1.32 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,13 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>BAD_PARAM</code> exception, which is thrown
- * when an invalid parameter is passed to a method.
+ * Exception  thrown
+ * when a parameter passed to a call is out of range or 
+ * otherwise considered illegal. An ORB may raise this exception 
+ * if null values or null pointers are passed to an operation (for 
+ * language mappings where the concept of a null pointers or null 
+ * values applies). BAD_PARAM can also be raised as a result of a
+ * client generating requests with incorrect parameters using the DII. <P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

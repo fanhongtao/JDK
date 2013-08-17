@@ -1,4 +1,6 @@
 /*
+ * @(#)DragGestureRecognizer.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,6 +13,11 @@ import java.awt.Point;
 
 import java.util.TooManyListenersException;
 import java.util.ArrayList;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 /**
  * The <code>DragGestureRecognizer</code> is an 
@@ -48,13 +55,15 @@ import java.util.ArrayList;
  * appropriate). 
  * <P>
  * @author Laurence P. G. Cable
- * @version 1.14
+ * @version 1.17
  * @see java.awt.dnd.DragGestureListener
  * @see java.awt.dnd.DragGestureEvent
  * @see java.awt.dnd.DragSource
  */
 
-public abstract class DragGestureRecognizer {
+public abstract class DragGestureRecognizer implements Serializable {
+
+    private static final long serialVersionUID = 8996673345831063337L;
 
     /**
      * Construct a new <code>DragGestureRecognizer</code> 
@@ -325,10 +334,13 @@ public abstract class DragGestureRecognizer {
      * @param p          The point (in Component coords) where the gesture originated
      */
     protected synchronized void fireDragGestureRecognized(int dragAction, Point p) {
-	if (dragGestureListener != null) {
-	    dragGestureListener.dragGestureRecognized(new DragGestureEvent(this, dragAction, p, events));
-	}
-	events.clear();
+        try {
+            if (dragGestureListener != null) {
+                dragGestureListener.dragGestureRecognized(new DragGestureEvent(this, dragAction, p, events));
+            }
+        } finally {
+            events.clear();
+        }
     }
 
     /**
@@ -353,6 +365,40 @@ public abstract class DragGestureRecognizer {
 	events.add(awtie);
     }
 
+    /**
+     * Serializes this <code>DragGestureRecognizer</code>. This method first
+     * performs default serialization. Then, this object's
+     * <code>DragGestureListener</code> is written out if and only if it can be
+     * serialized. If not, <code>null</code> is written instead.
+     *
+     * @serialData The default serializable fields, in alphabetical order,
+     *             followed by either a <code>DragGestureListener</code>, or
+     *             <code>null</code>.
+     * @since 1.4
+     */
+    private void writeObject(ObjectOutputStream s) throws IOException {
+        s.defaultWriteObject();
+
+        s.writeObject(SerializationTester.test(dragGestureListener)
+                      ? dragGestureListener : null);
+    }
+
+    /**
+     * Deserializes this <code>DragGestureRecognizer</code>. This method first
+     * performs default deserialization for all non-<code>transient</code>
+     * fields. This object's <code>DragGestureListener</code> is then
+     * deserialized as well by using the next object in the stream.
+     *
+     * @since 1.4
+     */
+    private void readObject(ObjectInputStream s)
+        throws ClassNotFoundException, IOException
+    {
+        s.defaultReadObject();
+
+        dragGestureListener = (DragGestureListener)s.readObject();
+    }
+
     /*
      * fields
      */
@@ -361,12 +407,16 @@ public abstract class DragGestureRecognizer {
      * The <code>DragSource</code> 
      * associated with this 
      * <code>DragGestureRecognizer</code>.
+     *
+     * @serial
      */
     protected DragSource          dragSource;
  
     /**
      * The <code>Component</code> 
      * associated with this <code>DragGestureRecognizer</code>.
+     *
+     * @serial
      */
     protected Component           component;
 
@@ -374,12 +424,14 @@ public abstract class DragGestureRecognizer {
      * The <code>DragGestureListener</code> 
      * associated with this <code>DragGestureRecognizer</code>.
      */
-    protected DragGestureListener dragGestureListener;
+    protected transient DragGestureListener dragGestureListener;
 
   /**
    * An <code>int</code> representing 
    * the type(s) of action(s) used 
    * in this Drag and Drop operation.  
+   *
+   * @serial
    */
   protected int	 sourceActions;
 
@@ -387,13 +439,8 @@ public abstract class DragGestureRecognizer {
     * The list of events (in order) that 
     * the <code>DragGestureRecognizer</code> 
     * "recognized" as a "gesture" that triggers a drag.
+    *
+    * @serial
     */
    protected ArrayList events = new ArrayList(1);
 }
-
-
-
-
-
-
-

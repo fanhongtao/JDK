@@ -1,4 +1,6 @@
 /*
+ * @(#)HyperlinkEvent.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,6 +8,7 @@ package javax.swing.event;
 
 import java.util.EventObject;
 import java.net.URL;
+import javax.swing.text.Element;
 
 
 /**
@@ -14,12 +17,14 @@ import java.net.URL;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.13 02/06/02
+ * @version 1.16 12/03/01
  * @author  Timothy Prinzing
  */
 public class HyperlinkEvent extends EventObject {
@@ -35,9 +40,7 @@ public class HyperlinkEvent extends EventObject {
      * @param u the affected URL
      */
     public HyperlinkEvent(Object source, EventType type, URL u) {
-        super(source);
-	this.type = type;
-	this.u = u;
+        this(source, type, u, null);
     }
 
     /**
@@ -53,10 +56,31 @@ public class HyperlinkEvent extends EventObject {
      *   URL.
      */
     public HyperlinkEvent(Object source, EventType type, URL u, String desc) {
+        this(source, type, u, desc, null);
+    }
+
+    /**
+     * Creates a new object representing a hypertext link event.
+     *
+     * @param source the object responsible for the event
+     * @param type the event type
+     * @param u the affected URL.  This may be null if a valid URL
+     *   could not be created.
+     * @param desc the description of the link.  This may be useful
+     *   when attempting to form a URL resulted in a MalformedURLException.
+     *   The description provides the text used when attempting to form the
+     *   URL.
+     * @param sourceElement Element in the Document representing the
+     *   anchor
+     * @since 1.4
+     */
+    public HyperlinkEvent(Object source, EventType type, URL u, String desc,
+                          Element sourceElement) {
         super(source);
 	this.type = type;
 	this.u = u;
 	this.desc = desc;
+        this.sourceElement = sourceElement;
     }
 
     /**
@@ -87,9 +111,24 @@ public class HyperlinkEvent extends EventObject {
 	return u;
     }
 
+    /**
+     * Returns the <code>Element</code> that corresponds to the source of the
+     * event. This will typically be an <code>Element</code> representing
+     * an anchor. If a constructur that is used that does not specify a source
+     * <code>Element</code>, or null was specified as the source
+     * <code>Element</code>, this will return null.
+     *
+     * @return Element indicating source of event, or null
+     * @since 1.4
+     */
+    public Element getSourceElement() {
+	return sourceElement;
+    }
+
     private EventType type;
     private URL u;
     private String desc;
+    private Element sourceElement;
 
 	
     /**

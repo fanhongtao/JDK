@@ -1,4 +1,6 @@
 /*
+ * @(#)JScrollBar.java	1.72 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -29,7 +31,7 @@ import java.io.IOException;
  * program typically adjusts the display so that the end of the
  * scrollbar represents the end of the displayable contents, or 100%
  * of the contents. The start of the scrollbar is the beginning of the 
- * displayable contents, or 0%. The postion of the knob within
+ * displayable contents, or 0%. The position of the knob within
  * those bounds then translates to the corresponding percentage of
  * the displayable contents.
  * <p>
@@ -39,17 +41,19 @@ import java.io.IOException;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @see JScrollPane
  * @beaninfo
  *      attribute: isContainer false
  *    description: A component that helps determine the visible content range of an area.
  *
- * @version 1.66 02/06/02
+ * @version 1.72 12/03/01
  * @author David Kloba
  */
 public class JScrollBar extends JComponent implements Adjustable, Accessible
@@ -106,7 +110,7 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
 
     /**
      * Creates a scrollbar with the specified orientation,
-     * value, extent, mimimum, and maximum.
+     * value, extent, minimum, and maximum.
      * The "extent" is the size of the viewable area. It is also known
      * as the "visible amount". 
      * <p>
@@ -162,6 +166,23 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
      */
     public JScrollBar() {
         this(VERTICAL);
+    }
+
+
+    /**
+     * Sets the L&F object that renders this component.
+     *
+     * @param ui  the <code>ScrollBarUI</code> L&F object
+     * @see UIDefaults#getUI
+     * @since 1.4
+     * @beaninfo
+     *        bound: true
+     *       hidden: true
+     *    attribute: visualUpdate true
+     *  description: The UI object that implements the Component's LookAndFeel
+     */
+    public void setUI(ScrollBarUI ui) {
+        super.setUI(ui);
     }
 
 
@@ -571,7 +592,7 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
     /**
      * Adds an AdjustmentListener.  Adjustment listeners are notified
      * each time the scrollbar's model changes.  Adjustment events are 
-     * provided for backwards compatability with java.awt.Scrollbar.
+     * provided for backwards compatibility with java.awt.Scrollbar.
      * <p>
      * Note that the AdjustmentEvents type property will always have a
      * placeholder value of AdjustmentEvent.TRACK because all changes
@@ -598,6 +619,20 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
      */
     public void removeAdjustmentListener(AdjustmentListener l)  {
         listenerList.remove(AdjustmentListener.class, l);
+    }
+
+
+    /**
+     * Returns an array of all the <code>AdjustmentListener</code>s added
+     * to this JScrollBar with addAdjustmentListener().
+     *
+     * @return all of the <code>AdjustmentListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public AdjustmentListener[] getAdjustmentListeners() {
+        return (AdjustmentListener[])listenerList.getListeners(
+                AdjustmentListener.class);
     }
 
 
@@ -679,26 +714,19 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
         }
     }
 
-    /**
-     * Identifies whether or not this component can receive the focus. This
-     * returns false as JScrollBar's do not want to participate in focus
-     * traversal.
-     *
-     * @return true if this component can receive the focus
-     */
-    public boolean isFocusTraversable() {
-	return false;
-    }
-
     /** 
      * See readObject() and writeObject() in JComponent for more 
      * information about serialization in Swing.
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
+        }
     }
 
 
@@ -749,10 +777,12 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJScrollBar extends AccessibleJComponent
         implements AccessibleValue {

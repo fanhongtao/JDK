@@ -1,4 +1,6 @@
 /*
+ * @(#)SocketImpl.java	1.38 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,10 +21,16 @@ import java.io.FileDescriptor;
  * described, without attempting to go through a firewall or proxy. 
  *
  * @author  unascribed
- * @version 1.31, 02/06/02
+ * @version 1.38, 12/03/01
  * @since   JDK1.0
  */
 public abstract class SocketImpl implements SocketOptions {
+    /**
+     * The actual Socket object.
+     */
+    Socket socket = null;
+    ServerSocket serverSocket = null;
+
     /**
      * The file descriptor object for this socket. 
      */
@@ -72,6 +80,19 @@ public abstract class SocketImpl implements SocketOptions {
      *               connection.
      */
     protected abstract void connect(InetAddress address, int port) throws IOException;
+
+    /**
+     * Connects this socket to the specified port number on the specified host.
+     * A timeout of zero is interpreted as an infinite timeout. The connection
+     * will then block until established or an error occurs.
+     *
+     * @param      address   the Socket address of the remote host.
+     * @param	  timeout  the timeout value, in milliseconds, or zero for no timeout.
+     * @exception  IOException  if an I/O error occurs when attempting a
+     *               connection.
+     * @since 1.4
+     */
+    protected abstract void connect(SocketAddress address, int timeout) throws IOException;
 
     /**
      * Binds this socket to the specified port number on the specified host. 
@@ -206,6 +227,29 @@ public abstract class SocketImpl implements SocketOptions {
     }
 
     /**
+     * Returns whether or not this SocketImpl supports sending 
+     * urgent data. By default, false is returned
+     * unless the method is overridden in a sub-class
+     *
+     * @return  true if urgent data supported
+     * @see     java.net.SocketImpl#address
+     * @since 1.4
+     */
+    protected boolean supportsUrgentData () {
+        return false; // must be overridden in sub-class
+    }
+
+    /**
+     * Send one byte of urgent data on the socket.
+     * The byte to be sent is the low eight bits of the parameter
+     * @param data The byte of data to send
+     * @exception IOException if there is an error
+     *  sending the data.
+     * @since 1.4
+     */
+    protected abstract void sendUrgentData (int data) throws IOException;
+
+    /**
      * Returns the value of this socket's <code>localport</code> field.
      *
      * @return  the value of this socket's <code>localport</code> field.
@@ -215,6 +259,22 @@ public abstract class SocketImpl implements SocketOptions {
 	return localport;
     }
     
+    void setSocket(Socket soc) {
+	this.socket = soc;
+    }
+
+    Socket getSocket() {
+	return socket;
+    }
+
+    void setServerSocket(ServerSocket soc) {
+	this.serverSocket = soc;
+    }
+
+    ServerSocket getServerSocket() {
+	return serverSocket;
+    }
+
     /**
      * Returns the address and port of this socket as a <code>String</code>.
      *
@@ -225,10 +285,10 @@ public abstract class SocketImpl implements SocketOptions {
 	    ",port=" + getPort() + ",localport=" + getLocalPort()  + "]";
     }
 
-	void reset() throws IOException {
-    address = null;
-    port = 0;
-    localport = 0;
-    close();
+    void reset() throws IOException {
+   	address = null;
+    	port = 0;
+    	localport = 0;
+    	close();
     }
 }

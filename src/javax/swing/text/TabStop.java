@@ -1,4 +1,6 @@
 /*
+ * @(#)TabStop.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,13 +15,15 @@ import java.io.Serializable;
  * TabStops are immutable, and usually contained in TabSets.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.15 02/06/02
+ * @version 1.17 12/03/01
  */
 public class TabStop implements Serializable {
 
@@ -33,7 +37,7 @@ public class TabStop implements Serializable {
      * location. */
     public static final int ALIGN_CENTER  = 2;
     /** Characters following tab are aligned such that next
-     * decimal/tab/newline is at the tab location, very similiar to
+     * decimal/tab/newline is at the tab location, very similar to
      * RIGHT_TAB, just includes decimal as additional character to look for.
      */
     public static final int ALIGN_DECIMAL = 4;
@@ -76,28 +80,32 @@ public class TabStop implements Serializable {
     }
 
     /**
-     * @return the postion of the tab.
+     * Returns the position, as a float, of the tab.
+     * @return the position of the tab
      */
     public float getPosition() {
 	return position;
     }
 
     /**
-     * @return the alignment of the tab.
+     * Returns the alignment, as an integer, of the tab.
+     * @return the alignment of the tab
      */
     public int getAlignment() {
 	return alignment;
     }
 
     /**
-     * @return the leader of the tab.
+     * Returns the leader of the tab.
+     * @return the leader of the tab
      */
     public int getLeader() {
 	return leader;
     }
 
     /**
-     * Returns true if other equals the receiver.
+     * Returns true if the tabs are equal.
+     * @return true if the tabs are equal, otherwise false
      */
     public boolean equals(Object other)
     {

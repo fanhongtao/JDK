@@ -1,4 +1,6 @@
 /*
+ * @(#)System.java	1.125 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,6 +15,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.AllPermission;
 import sun.net.InetAddressCachePolicy;
+import sun.reflect.Reflection;
 
 /**
  * The <code>System</code> class contains several useful class fields 
@@ -25,7 +28,7 @@ import sun.net.InetAddressCachePolicy;
  * copying a portion of an array. 
  *
  * @author  Arthur van Hoff 
- * @version 1.113, 03/26/02
+ * @version 1.125, 12/03/01
  * @since   JDK1.0
  */
 public final class System {
@@ -252,14 +255,19 @@ public final class System {
     }
 
     /**
-     * Returns the current time in milliseconds.
-     * <p>
-     * See the description of the class <code>Date</code> for a discussion 
-     * of slight discrepancies that may arise between "computer 
-     * time" and coordinated universal time (UTC). 
+     * Returns the current time in milliseconds.  Note that
+     * while the unit of time of the return value is a millisecond,
+     * the granularity of the value depends on the underlying 
+     * operating system and may be larger.  For example, many 
+     * operating systems measure time in units of tens of 
+     * milliseconds.
      *
-     * @return  the difference, measured in milliseconds, between the current
-     *          time and midnight, January 1, 1970 UTC.
+     * <p> See the description of the class <code>Date</code> for 
+     * a discussion of slight discrepancies that may arise between 
+     * "computer time" and coordinated universal time (UTC). 
+     *
+     * @return  the difference, measured in milliseconds, between 
+     *          the current time and midnight, January 1, 1970 UTC.
      * @see     java.util.Date
      */
     public static native long currentTimeMillis();
@@ -269,24 +277,24 @@ public final class System {
      * specified position, to the specified position of the destination array.
      * A subsequence of array components are copied from the source 
      * array referenced by <code>src</code> to the destination array 
-     * referenced by <code>dst</code>. The number of components copied is 
+     * referenced by <code>dest</code>. The number of components copied is 
      * equal to the <code>length</code> argument. The components at 
-     * positions <code>srcOffset</code> through 
-     * <code>srcOffset+length-1</code> in the source array are copied into 
-     * positions <code>dstOffset</code> through 
-     * <code>dstOffset+length-1</code>, respectively, of the destination 
+     * positions <code>srcPos</code> through 
+     * <code>srcPos+length-1</code> in the source array are copied into 
+     * positions <code>destPos</code> through 
+     * <code>destPos+length-1</code>, respectively, of the destination 
      * array. 
      * <p>
-     * If the <code>src</code> and <code>dst</code> arguments refer to the 
+     * If the <code>src</code> and <code>dest</code> arguments refer to the 
      * same array object, then the copying is performed as if the 
-     * components at positions <code>srcOffset</code> through 
-     * <code>srcOffset+length-1</code> were first copied to a temporary 
+     * components at positions <code>srcPos</code> through 
+     * <code>srcPos+length-1</code> were first copied to a temporary 
      * array with <code>length</code> components and then the contents of 
      * the temporary array were copied into positions 
-     * <code>dstOffset</code> through <code>dstOffset+length-1</code> of the 
+     * <code>destPos</code> through <code>destPos+length-1</code> of the 
      * destination array. 
      * <p>
-     * If <code>dst</code> is <code>null</code>, then a 
+     * If <code>dest</code> is <code>null</code>, then a 
      * <code>NullPointerException</code> is thrown.
      * <p>
      * If <code>src</code> is <code>null</code>, then a 
@@ -299,15 +307,15 @@ public final class System {
      * <ul>
      * <li>The <code>src</code> argument refers to an object that is not an 
      *     array. 
-     * <li>The <code>dst</code> argument refers to an object that is not an 
+     * <li>The <code>dest</code> argument refers to an object that is not an 
      *     array. 
-     * <li>The <code>src</code> argument and <code>dst</code> argument refer to 
-     *     arrays whose component types are different primitive types. 
+     * <li>The <code>src</code> argument and <code>dest</code> argument refer
+     *     to arrays whose component types are different primitive types.
      * <li>The <code>src</code> argument refers to an array with a primitive 
-     *     component type and the <code>dst</code> argument refers to an array 
+     *    component type and the <code>dest</code> argument refers to an array 
      *     with a reference component type. 
      * <li>The <code>src</code> argument refers to an array with a reference 
-     *     component type and the <code>dst</code> argument refers to an array 
+     *    component type and the <code>dest</code> argument refers to an array 
      *     with a primitive component type. 
      * </ul>
      * <p>
@@ -315,57 +323,57 @@ public final class System {
      * <code>IndexOutOfBoundsException</code> is 
      * thrown and the destination is not modified: 
      * <ul>
-     * <li>The <code>srcOffset</code> argument is negative. 
-     * <li>The <code>dstOffset</code> argument is negative. 
+     * <li>The <code>srcPos</code> argument is negative. 
+     * <li>The <code>destPos</code> argument is negative. 
      * <li>The <code>length</code> argument is negative. 
-     * <li><code>srcOffset+length</code> is greater than 
+     * <li><code>srcPos+length</code> is greater than 
      *     <code>src.length</code>, the length of the source array. 
-     * <li><code>dstOffset+length</code> is greater than 
-     *     <code>dst.length</code>, the length of the destination array. 
+     * <li><code>destPos+length</code> is greater than 
+     *     <code>dest.length</code>, the length of the destination array. 
      * </ul>
      * <p>
      * Otherwise, if any actual component of the source array from 
-     * position <code>srcOffset</code> through 
-     * <code>srcOffset+length-1</code> cannot be converted to the component 
+     * position <code>srcPos</code> through 
+     * <code>srcPos+length-1</code> cannot be converted to the component 
      * type of the destination array by assignment conversion, an 
      * <code>ArrayStoreException</code> is thrown. In this case, let 
      * <b><i>k</i></b> be the smallest nonnegative integer less than 
-     * length such that <code>src[srcOffset+</code><i>k</i><code>]</code> 
+     * length such that <code>src[srcPos+</code><i>k</i><code>]</code> 
      * cannot be converted to the component type of the destination 
      * array; when the exception is thrown, source array components from 
-     * positions <code>srcOffset</code> through
-     * <code>srcOffset+</code><i>k</i><code>-1</code> 
+     * positions <code>srcPos</code> through
+     * <code>srcPos+</code><i>k</i><code>-1</code> 
      * will already have been copied to destination array positions 
-     * <code>dstOffset</code> through
-     * <code>dstOffset+</code><i>k</I><code>-1</code> and no other 
+     * <code>destPos</code> through
+     * <code>destPos+</code><i>k</I><code>-1</code> and no other 
      * positions of the destination array will have been modified. 
      * (Because of the restrictions already itemized, this
      * paragraph effectively applies only to the situation where both 
      * arrays have component types that are reference types.)
      *
-     * @param      src          the source array.
-     * @param      src_position start position in the source array.
-     * @param      dst          the destination array.
-     * @param      dst_position pos   start position in the destination data.
-     * @param      length       the number of array elements to be copied.
+     * @param      src      the source array.
+     * @param      srcPos   starting position in the source array.
+     * @param      dest     the destination array.
+     * @param      destPos  starting position in the destination data.
+     * @param      length   the number of array elements to be copied.
      * @exception  IndexOutOfBoundsException  if copying would cause
      *               access of data outside array bounds.
      * @exception  ArrayStoreException  if an element in the <code>src</code>
      *               array could not be stored into the <code>dest</code> array
      *               because of a type mismatch.
      * @exception  NullPointerException if either <code>src</code> or 
-     *               <code>dst</code> is <code>null</code>.
+     *               <code>dest</code> is <code>null</code>.
      */
-    public static native void arraycopy(Object src, int src_position,
-                                        Object dst, int dst_position,
+    public static native void arraycopy(Object src,  int  srcPos,
+                                        Object dest, int destPos,
                                         int length);
 
     /**
-     * Returns the same hashcode for the given object as
+     * Returns the same hash code for the given object as
      * would be returned by the default method hashCode(),
      * whether or not the given object's class overrides
      * hashCode().
-     * The hashcode for the null reference is zero.
+     * The hash code for the null reference is zero.
      *
      * @param x object for which the hashCode is to be calculated
      * @return  the hashCode
@@ -443,6 +451,12 @@ public final class System {
      *     <td>Java class format version number</td></tr>
      * <tr><td><code>java.class.path</code></td>
      *     <td>Java class path</td></tr>
+     * <tr><td><code>java.library.path</code></td>
+     *     <td>List of paths to search when loading libraries</td></tr>
+     * <tr><td><code>java.io.tmpdir</code></td>
+     *     <td>Default temp file path</td></tr>
+     * <tr><td><code>java.compiler</code></td>
+     *     <td>Name of JIT compiler to use</td></tr>
      * <tr><td><code>java.ext.dirs</code></td>
      *     <td>Path of extension directory or directories</td></tr>
      * <tr><td><code>os.name</code></td>
@@ -464,6 +478,9 @@ public final class System {
      * <tr><td><code>user.dir</code></td>
      *     <td>User's current working directory</td></tr>
      * </table>
+     * <p>
+     * Multiple paths in a system property value are separated by the path
+     * separator character of the platform.
      * <p>
      * Note that even if the security manager does not permit the 
      * <code>getProperties</code> operation, it may choose to permit the 
@@ -772,7 +789,7 @@ public final class System {
     /**
      * Loads a code file with the specified filename from the local file 
      * system as a dynamic library. The filename 
-     * argument must be a complete pathname. 
+     * argument must be a complete path name. 
      * <p>
      * The call <code>System.load(name)</code> is effectively equivalent 
      * to the call:
@@ -858,9 +875,29 @@ public final class System {
 	setIn0(new BufferedInputStream(fdIn));
 	setOut0(new PrintStream(new BufferedOutputStream(fdOut, 128), true));
 	setErr0(new PrintStream(new BufferedOutputStream(fdErr, 128), true));
-        Terminator.setup();
+
+	// Enough of the world is now in place that we can risk
+        // initializing the logging configuration.
+	try {
+	    java.util.logging.LogManager.getLogManager().readConfiguration();
+	} catch (Exception ex) {
+	    // System.err.println("Can't read logging configuration:");
+	    // ex.printStackTrace();
+	}
+
+	// Load the zip library now in order to keep java.util.zip.ZipFile
+	// from trying to use itself to load this library later.
+	loadLibrary("zip");
+
+	// Subsystems that are invoked during initialization can invoke
+	// sun.misc.VM.isBooted() in order to avoid doing things that should
+	// wait until the application class loader has been set up.
+	sun.misc.VM.booted();
     }
 
     /* returns the class of the caller. */ 
-    static native Class getCallerClass();
+    static Class getCallerClass() {
+        // NOTE use of more generic Reflection.getCallerClass()
+        return Reflection.getCallerClass(3);
+    }
 }

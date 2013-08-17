@@ -1,4 +1,6 @@
 /*
+ * @(#)DataBufferInt.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -103,7 +105,7 @@ public final class DataBufferInt extends DataBuffer
      */
     public DataBufferInt(int dataArray[][], int size) {
         super(TYPE_INT, size, dataArray.length);
-        bankdata = dataArray;
+        bankdata = (int [][]) dataArray.clone();
         data = bankdata[0];
     }
 
@@ -123,7 +125,7 @@ public final class DataBufferInt extends DataBuffer
      */
     public DataBufferInt(int dataArray[][], int size, int offsets[]) {
         super(TYPE_INT,size,dataArray.length,offsets);
-        bankdata = dataArray;
+        bankdata = (int [][]) dataArray.clone();
         data = bankdata[0];
     }
 
@@ -151,7 +153,7 @@ public final class DataBufferInt extends DataBuffer
      * @return All of the data arrays.
      */
     public int[][] getBankData() {
-        return bankdata;
+        return (int [][]) bankdata.clone();
     }
 
     /**
@@ -159,17 +161,21 @@ public final class DataBufferInt extends DataBuffer
      * 
      * @param i The data array element you want to get.
      * @return The requested data array element as an integer.
+     * @see #setElem(int, int)
+     * @see #setElem(int, int, int)
      */
     public int getElem(int i) {
         return data[i+offset];
     }
 
     /**
-     * Returns the requested data array element from the specified bank
+     * Returns the requested data array element from the specified bank.
      * 
      * @param bank The bank from which you want to get a data array element.
      * @param i The data array element you want to get.
      * @return The requested data array element as an integer.
+     * @see #setElem(int, int)
+     * @see #setElem(int, int, int)
      */
     public int getElem(int bank, int i) {
         return bankdata[bank][i+offsets[bank]];
@@ -181,6 +187,8 @@ public final class DataBufferInt extends DataBuffer
      *
      * @param i The data array element you want to set.
      * @param val The integer value to which you want to set the data array element.
+     * @see #getElem(int)
+     * @see #getElem(int, int)
      */
     public void setElem(int i, int val) {
         data[i+offset] = val;
@@ -192,6 +200,8 @@ public final class DataBufferInt extends DataBuffer
      * @param bank The bank in which you want to set the data array element.
      * @param i The data array element you want to set.
      * @param val The integer value to which you want to set the specified data array element.
+     * @see #getElem(int)
+     * @see #getElem(int, int)
      */
     public void setElem(int bank, int i, int val) {
         bankdata[bank][i+offsets[bank]] = (int)val;

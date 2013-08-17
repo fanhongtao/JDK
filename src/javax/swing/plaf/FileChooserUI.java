@@ -1,4 +1,6 @@
 /*
+ * @(#)FileChooserUI.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,9 +13,9 @@ import javax.swing.filechooser.FileView;
 import java.io.File;
 
 /**
- * Pluggable look and feel interface for JFileChooser
+ * Pluggable look and feel interface for <code>JFileChooser</code>.
  *
- * @version 1.12 02/06/02
+ * @version 1.17 12/03/01
  * @author Jeff Dinkins
  */
 

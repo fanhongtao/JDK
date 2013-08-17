@@ -1,4 +1,6 @@
 /*
+ * @(#)KeyboardManager.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -66,7 +68,7 @@ class KeyboardManager {
     /**
       * register keystrokes here which are for the WHEN_IN_FOCUSED_WINDOW
       * case.
-      * Other types of keystrokes will be handled by walking the heirarchy
+      * Other types of keystrokes will be handled by walking the hierarchy
       * That simplifies some potentially hairy stuff.
       */
      public void registerKeyStroke(KeyStroke k, JComponent c) {
@@ -121,7 +123,7 @@ class KeyboardManager {
 
      public void unregisterKeyStroke(KeyStroke ks, JComponent c) {
 
-       // component may have already been removed from the heirarchy, we
+       // component may have already been removed from the hierarchy, we
        // need to look up the container using the componentKeyStrokeMap.
 
          ComponentKeyStrokePair ckp = new ComponentKeyStrokePair(c,ks);
@@ -201,9 +203,13 @@ class KeyboardManager {
 		 }
 	     } else if ( tmp instanceof Vector) { //more than one comp registered for this
 	         Vector v = (Vector)tmp;
-		 Enumeration iter = v.elements();
-		 while (iter.hasMoreElements()) {
-		     JComponent c = (JComponent)iter.nextElement();
+                 // There is no well defined order for WHEN_IN_FOCUSED_WINDOW
+                 // bindings, but we give precedence to those bindings just
+                 // added. This is done so that JMenus WHEN_IN_FOCUSED_WINDOW
+                 // bindings are accessed before those of the JRootPane (they
+                 // both have a WHEN_IN_FOCUSED_WINDOW binding for enter).
+                 for (int counter = v.size() - 1; counter >= 0; counter--) {
+		     JComponent c = (JComponent)v.elementAt(counter);
 		     //System.out.println("Trying collision: " + c + " vector = "+ v.size());
 		     if ( c.isShowing() && c.isEnabled() ) { // don't want to give these out
 		         fireBinding(c, ks, e, pressed);

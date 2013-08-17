@@ -1,5 +1,7 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * @(#)MetalComboBoxEditor.java	1.16 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,12 +20,14 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.17 06/06/06
+ * @version 1.16 12/03/01
  * @author Steve Wilson
  */
 public class MetalComboBoxEditor extends BasicComboBoxEditor {
@@ -37,8 +41,7 @@ public class MetalComboBoxEditor extends BasicComboBoxEditor {
     }
 
     protected static Insets editorBorderInsets = new Insets( 2, 2, 2, 0 );
-    private static final Insets SAFE_EDITOR_BORDER_INSETS = new Insets( 4, 2, 4, 0 );
-  
+
     class EditorBorder extends AbstractBorder {
         public void paintBorder(Component c, Graphics g, int x, int y, int w, int h) {
             g.translate( x, y );
@@ -58,11 +61,7 @@ public class MetalComboBoxEditor extends BasicComboBoxEditor {
         }
 
         public Insets getBorderInsets( Component c ) {
-            if (System.getSecurityManager() != null) {
-               return SAFE_EDITOR_BORDER_INSETS;
-            } else {
             return editorBorderInsets;
-            }
         }
     }
 
@@ -75,10 +74,12 @@ public class MetalComboBoxEditor extends BasicComboBoxEditor {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class UIResource extends MetalComboBoxEditor
     implements javax.swing.plaf.UIResource {

@@ -1,4 +1,6 @@
 /*
+ * @(#)OutputStream.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,14 +22,14 @@ package org.omg.CORBA_2_3.portable;
  *
  * @see org.omg.CORBA.portable.OutputStream
  * @author  OMG
- * @version %I% %G%
+ * @version 1.14 12/03/01
  * @since   JDK1.2
  */
 
 public abstract class OutputStream extends org.omg.CORBA.portable.OutputStream {
 
     /**
-     * marshals a value type to the output stream.
+     * Marshals a value type to the output stream.
      * @param value is the acutal value to write
      */
     public void write_value(java.io.Serializable value) {
@@ -35,7 +37,7 @@ public abstract class OutputStream extends org.omg.CORBA.portable.OutputStream {
     }
 
     /**
-     * marshals a value type to the output stream.
+     * Marshals a value type to the output stream.
      * @param value is the acutal value to write
      * @param clz is the declared type of the value to be marshaled
      */
@@ -44,7 +46,7 @@ public abstract class OutputStream extends org.omg.CORBA.portable.OutputStream {
     }
 
     /**
-     * marshals a value type to the output stream.
+     * Marshals a value type to the output stream.
      * @param value is the acutal value to write
      * @param repository_id identifies the type of the value type to 
      * be marshaled
@@ -54,7 +56,7 @@ public abstract class OutputStream extends org.omg.CORBA.portable.OutputStream {
     }
 
     /**
-     * marshals a value type to the output stream.
+     * Marshals a value type to the output stream.
      * @param value is the acutal value to write
      * @param factory is the instance of the helper to be used for marshaling
      * the boxed value
@@ -64,8 +66,8 @@ public abstract class OutputStream extends org.omg.CORBA.portable.OutputStream {
     }
 
     /**
-     * marshals a value object or a stub object.
-     * @param the actual value object or the stub to marshal to be marshalled
+     * Marshals a value object or a stub object.
+     * @param obj the actual value object to marshal or the stub to be marshalled
      */
     public void write_abstract_interface(java.lang.Object obj) {
         throw new org.omg.CORBA.NO_IMPLEMENT();

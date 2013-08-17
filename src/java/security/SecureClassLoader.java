@@ -1,11 +1,13 @@
 /*
+ * @(#)SecureClassLoader.java	1.81 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package java.security;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.net.URL;
 
@@ -16,7 +18,7 @@ import sun.security.util.Debug;
  * classes with an associated code source and permissions which are
  * retrieved by the system policy by default.
  *
- * @version 1.74, 02/06/02
+ * @version 1.81, 12/03/01
  * @author  Li Gong 
  * @author  Roland Schemers
  */
@@ -28,8 +30,8 @@ public class SecureClassLoader extends ClassLoader {
      */
     private boolean initialized = false;
 
-    // Hashtable that maps CodeSource to ProtectionDomain
-    private Hashtable pdcache = new Hashtable(11);
+    // HashMap that maps CodeSource to ProtectionDomain
+    private HashMap pdcache = new HashMap(11);
 
     private static final Debug debug = Debug.getInstance("scl");
 
@@ -85,17 +87,32 @@ public class SecureClassLoader extends ClassLoader {
      * with an optional CodeSource. Before the
      * class can be used it must be resolved.
      * <p>
-     * If a non-null CodeSource is supplied and a Policy provider is installed,
-     * Policy.getPermissions() is invoked in order to associate a
-     * ProtectionDomain with the class being defined.
+     * If a non-null CodeSource is supplied a ProtectionDomain is
+     * constructed and associated with the class being defined.
      * <p>
-     * @param name the name of the class
-     * @param b the class bytes
-     * @param off the start offset of the class bytes
-     * @param len the length of the class bytes
-     * @param cs the associated CodeSource, or null if none
+     * @param      name the expected name of the class, or <code>null</code>
+     *                  if not known, using '.' and not '/' as the separator
+     *                  and without a trailing ".class" suffix.
+     * @param      b    the bytes that make up the class data. The bytes in 
+     *             positions <code>off</code> through <code>off+len-1</code> 
+     *             should have the format of a valid class file as defined 
+     *             by the 
+     *             <a href="http://java.sun.com/docs/books/vmspec/">Java 
+     *             Virtual Machine Specification</a>.
+     * @param      off  the start offset in <code>b</code> of the class data
+     * @param      len  the length of the class data
+     * @param      cs   the associated CodeSource, or <code>null</code> if none
      * @return the <code>Class</code> object created from the data,
      *         and optional CodeSource.
+     * @exception  ClassFormatError if the data did not contain a valid class
+     * @exception  IndexOutOfBoundsException if either <code>off</code> or 
+     *             <code>len</code> is negative, or if 
+     *             <code>off+len</code> is greater than <code>b.length</code>.
+     *
+     * @exception  SecurityException if an attempt is made to add this class
+     *             to a package that contains classes that were signed by
+     *             a different set of certificates than this class, or if 
+     *             the class name begins with "java.".
      */
     protected final Class defineClass(String name, byte[] b, int off, int len,
 				      CodeSource cs)
@@ -108,19 +125,10 @@ public class SecureClassLoader extends ClassLoader {
 
     /**
      * Returns the permissions for the given CodeSource object.
-     * The default implementation of this method invokes the
-     * java.security.Policy.getPermissions method to get the permissions
-     * granted by the policy to the specified CodeSource.
      * <p>
      * This method is invoked by the defineClass method which takes
      * a CodeSource as an argument when it is constructing the
      * ProtectionDomain for the class being defined.
-     * <p>
-     * The constructed ProtectionDomain is cached by the SecureClassLoader.
-     * The contents of the cache persist for the lifetime of the
-     * SecureClassLoader instance. This persistence inhibits Policy.refresh()
-     * from influencing the protection domains already in the cache for a 
-     * given CodeSource.
      * <p>
      * @param codesource the codesource.
      *
@@ -130,15 +138,7 @@ public class SecureClassLoader extends ClassLoader {
     protected PermissionCollection getPermissions(CodeSource codesource)
     {
 	check();
-	Policy p = Policy.getPolicyNoCheck();
-
-	PermissionCollection perms;
-	if (p == null) {
-	    return null;
-	} else {
-	    perms = p.getPermissions(codesource);
-	}
-	return perms;
+	return new Permissions(); // ProtectionDomain defers the binding
     }
 
     /*
@@ -148,22 +148,17 @@ public class SecureClassLoader extends ClassLoader {
 	if (cs == null)
 	    return null;
 
-	ProtectionDomain pd = (ProtectionDomain)pdcache.get(cs);
-	if (pd == null) {
-	    synchronized (pdcache) {
-		pd = (ProtectionDomain)pdcache.get(cs);
-		if (pd == null) {
-
-		    PermissionCollection perms = getPermissions(cs);
+	ProtectionDomain pd = null;
+	synchronized (pdcache) {
+	    pd = (ProtectionDomain)pdcache.get(cs);
+	    if (pd == null) {
+		PermissionCollection perms = getPermissions(cs);
+		pd = new ProtectionDomain(cs, perms, this, null);
+		if (pd != null) {
+		    pdcache.put(cs, pd);
 		    if (debug != null) {
-			debug.println(" getPermissions "+ cs);
-			debug.println("  "+perms);
+			debug.println(" getPermissions "+ pd);
 			debug.println("");
-		    }
-		    pd = new ProtectionDomain(cs, perms);
-
-		    if (pd != null) {
-			pdcache.put(cs, pd);
 		    }
 		}
 	    }

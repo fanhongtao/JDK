@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicAttributes.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -37,7 +39,7 @@ import javax.naming.NamingEnumeration;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 02/02/06
+  * @version 1.9 01/12/03
   *
   * @see DirContext#getAttributes
   * @see DirContext#modifyAttributes
@@ -258,7 +260,7 @@ public class BasicAttributes implements Attributes {
     }
 
     /**
-     * Overriden to avoid exposing implementation details.
+     * Overridden to avoid exposing implementation details.
      * @serialData Default field (ignoreCase flag -- a boolean), followed by
      * the number of attributes in the set
      * (an int), and then the individual Attribute objects.
@@ -274,7 +276,7 @@ public class BasicAttributes implements Attributes {
     }
 
     /**
-     * Overriden to avoid exposing implementation details.
+     * Overridden to avoid exposing implementation details.
      */
     private void readObject(java.io.ObjectInputStream s)
 	    throws java.io.IOException, ClassNotFoundException {

@@ -1,4 +1,6 @@
 /*
+ * @(#)Notepad.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,7 +22,7 @@ import javax.swing.*;
  * supports only one font.
  *
  * @author  Timothy Prinzing
- * @version 1.17 02/06/02
+ * @version 1.19 12/03/01
  */
 class Notepad extends JPanel {
 
@@ -54,7 +56,6 @@ class Notepad extends JPanel {
 
 	// create the embedded JTextComponent
 	editor = createEditor();
-	editor.setFont(new Font("monospaced", Font.PLAIN, 12));
 	// Add this as a listener for undoable edits.
 	editor.getDocument().addUndoableEditListener(undoHandler);
 
@@ -125,7 +126,10 @@ class Notepad extends JPanel {
      * Create an editor to represent the given document.  
      */
     protected JTextComponent createEditor() {
-	return new JTextArea();
+	JTextComponent c = new JTextArea();
+	c.setDragEnabled(true);
+	c.setFont(new Font("monospaced", Font.PLAIN, 12));
+	return c;
     }
 
     /** 

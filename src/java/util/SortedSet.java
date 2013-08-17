@@ -1,4 +1,6 @@
 /*
+ * @(#)SortedSet.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -50,7 +52,7 @@ package java.util;
  * <tt>TreeSet</tt> class) complies.
  *
  * @author  Josh Bloch
- * @version 1.16, 02/06/02
+ * @version 1.16, 12/03/01
  * @see Set
  * @see TreeSet
  * @see SortedMap

@@ -1,4 +1,6 @@
 /*
+ * @(#)RTFAttributes.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -191,7 +193,7 @@ class RTFAttributes
 
 	public boolean set(MutableAttributeSet target)
 	{
-	    /* TODO: There's some ambiguity about whenther this should
+	    /* TODO: There's some ambiguity about whether this should
 	       *set* or *toggle* the attribute. */
 	    target.addAttribute(swingName, True);
 

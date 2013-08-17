@@ -1,4 +1,6 @@
 /*
+ * @(#)VirtualMachineError.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,7 @@ package java.lang;
  *
  *
  * @author  Frank Yellin
- * @version 1.12, 02/06/02
+ * @version 1.12, 12/03/01
  * @since   JDK1.0
  */
 abstract public

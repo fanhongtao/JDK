@@ -1,4 +1,6 @@
 /*
+ * @(#)ActivationGroup.java	1.39 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -31,8 +33,8 @@ import sun.security.action.GetIntegerAction;
  * An <code>ActivationGroup</code> is <i>initially</i> created in one
  * of several ways: <ul>
  * <li>as a side-effect of creating an <code>ActivationDesc</code>
- *     (using its first constructor) for the first activatable
- *     object in the group, or
+ *     without an explicit <code>ActivationGroupID</code> for the
+ *     first activatable object in the group, or
  * <li>via the <code>ActivationGroup.createGroup</code> method
  * <li>as a side-effect of activating the first object in a group
  *     whose <code>ActivationGroupDesc</code> was only registered.</ul><p>
@@ -74,11 +76,11 @@ import sun.security.action.GetIntegerAction;
  * manager you would like to install.
  *
  * @author 	Ann Wollrath
- * @version	1.34, 02/06/02
+ * @version	1.39, 01/12/03
  * @see 	ActivationInstantiator
  * @see		ActivationGroupDesc
  * @see		ActivationGroupID
- * @since 1.2 
+ * @since	1.2 
  */
 public abstract class ActivationGroup
 	extends UnicastRemoteObject
@@ -116,12 +118,13 @@ public abstract class ActivationGroup
     private static final long serialVersionUID = -7696947875314805420L;
     
     /**
-     * Constructs and exports an activation group as a UnicastRemoteObject
-     * so that a client can invoke its newInstance method.
+     * Constructs an activation group with the given activation group
+     * identifier.  The group is exported as a
+     * <code>java.rmi.server.UnicastRemoteObject</code>.
      *
-     * @param groupID the group's identifier
-     * @exception RemoteException if group could not be exported
-     * @since 1.2 
+     * @param	groupID the group's identifier
+     * @throws	RemoteException if this group could not be exported
+     * @since	1.2 
      */
     protected ActivationGroup(ActivationGroupID groupID)
 	throws RemoteException 

@@ -1,4 +1,6 @@
 /*
+ * @(#)InvalidName.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,7 +17,7 @@ package org.omg.CORBA.ORBPackage;
  * @since   JDK1.2
  */
 
-public class InvalidName extends org.omg.CORBA.UserException {
+final public class InvalidName extends org.omg.CORBA.UserException {
     /**
      * Constructs an <code>InvalidName</code> exception with no reason message.
      */

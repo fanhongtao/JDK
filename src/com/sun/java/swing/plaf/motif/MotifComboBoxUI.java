@@ -1,4 +1,6 @@
 /*
+ * @(#)MotifComboBoxUI.java	1.35 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ import java.awt.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.33, 02/06/02
+ * @version 1.35, 12/03/01
  * @author Arnaud Weber
  */
 public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
@@ -71,52 +73,27 @@ public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
     }
 
     /**
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
-     * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of <FooUI>.
-     */    	     
-    public class MotifComboPopup extends BasicComboPopup {
-        JComboBox cBox;
+     * Overriden to empty the MouseMotionListener.
+     */
+    protected class MotifComboPopup extends BasicComboPopup {
+
         public MotifComboPopup( JComboBox comboBox ) {
             super( comboBox );
-            cBox = comboBox;
         }
 
+        /**
+         * Motif combo popup should not track the mouse in the list.
+         */
         public MouseMotionListener createListMouseMotionListener() {
            return new MouseMotionAdapter() {};
         }
-
+	
         public KeyListener createKeyListener() {
-            return new InvocationKeyHandler();
+            return super.createKeyListener();
         }
 
-      /**
-       * This inner class is marked &quot;public&quot; due to a compiler bug.
-       * This class should be treated as a &quot;protected&quot; inner class.
-       * Instantiate it only within subclasses of <FooUI>.
-       */    	     
-        public class InvocationKeyHandler extends BasicComboPopup.InvocationKeyHandler {
-            public void keyReleased( KeyEvent e ) {
-                if ( !cBox.isEditable() ) {
-                    if ( e.getKeyCode() == KeyEvent.VK_DOWN ) {
-                        if ( !isVisible() ) {
-                            show();
-                        }
-                    }
-                    else {
-                        super.keyReleased( e );
-                    }
-                }
-                else {
-                    if ( e.getKeyCode() == KeyEvent.VK_UP ||
-                         e.getKeyCode() == KeyEvent.VK_DOWN ) {
-                        if ( !isVisible() ) {
-                            show();
-                        }
-                    }
-                }
-            }
-        }
+        protected class InvocationKeyHandler extends BasicComboPopup.InvocationKeyHandler {
+	}
     }
 
     protected void installComponents() {
@@ -252,7 +229,7 @@ public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
         return new ComboBoxLayoutManager();
     }
 
-    Component motifGetEditor() {
+    private Component motifGetEditor() {
         return editor;
     }
 
@@ -324,28 +301,6 @@ public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
         public int getIconHeight() {
             return 11;
         }
-    }
-
-    protected void selectNextPossibleValue() {
-        super.selectNextPossibleValue();
-    }
-
-    protected void selectPreviousPossibleValue() {
-        super.selectPreviousPossibleValue();
-    }
-
-    /**
-     * This method is here as a workaround for a bug in the javac compiler.
-     */
-    JComboBox motifGetComboBox() {
-        return comboBox;
-    }
-
-    /**
-     * This method is here as a workaround for a bug in the javac compiler.
-     */
-    MotifComboBoxUI motifGetUI() {
-        return this;
     }
 }
 

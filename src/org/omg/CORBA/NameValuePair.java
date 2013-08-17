@@ -1,4 +1,6 @@
 /*
+ * @(#)NameValuePair.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -7,8 +9,8 @@
 package org.omg.CORBA;
 
 /**
- * The NameValuePair interface associates  a name with a value that is an
- * attribute of an IDL struct.  This interface is used in the DynStruct APIs.
+ * Associates  a name with a value that is an
+ * attribute of an IDL struct, and is used in the <tt>DynStruct</tt> APIs.
  */
 
 public final class NameValuePair implements org.omg.CORBA.portable.IDLEntity {

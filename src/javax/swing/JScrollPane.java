@@ -1,4 +1,6 @@
 /*
+ * @(#)JScrollPane.java	1.86 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,6 +19,7 @@ import java.awt.Rectangle;
 import java.awt.Insets;
 import java.awt.Color;
 import java.awt.LayoutManager;
+import java.awt.Point;
 
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
@@ -24,14 +27,15 @@ import java.io.IOException;
 
 
 /**
- * Provides a scrollable view of a component.
+ * Provides a scrollable view of a lightweight component.
  * A <code>JScrollPane</code> manages a viewport, optional
  * vertical and horizontal scroll bars, and optional row and
  * column heading viewports.
  * You can find task-oriented documentation of <code>JScrollPane</code> in
  * <a
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/scrollpane.html">How to Use Scroll Panes</a>,
- * a section in <em>The Java Tutorial</em>.
+ * a section in <em>The Java Tutorial</em>.  Note that
+ * <code>JScrollPane</code> does not support heavyweight components.
  * <p>
  * <TABLE ALIGN="RIGHT" BORDER="0">
  *    <TR>
@@ -89,15 +93,31 @@ import java.io.IOException;
  * <code>JScrollPane</code> draws its background the viewport will
  * usually draw over it.
  * <p>
+ * By default <code>JScrollPane</code> uses <code>ScrollPaneLayout</code>
+ * to handle the layout of its child Components. <code>ScrollPaneLayout</code>
+ * determines the size to make the viewport view in one of two ways:
+ * <ol>
+ *   <li>If the view implements <code>Scrollable</code>
+ *       a combination of <code>getPreferredScrollableViewportSize</code>,
+ *       <code>getScrollableTracksViewportWidth</code> and
+ *       <code>getScrollableTracksViewportHeight</code>is used, otherwise
+ *   <li><code>getPreferredSize</code> is used.
+ * </ol>
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @see JScrollBar
  * @see JViewport
+ * @see ScrollPaneLayout
+ * @see Scrollable
+ * @see Component#getPreferredSize
  * @see #setViewportView
  * @see #setRowHeaderView
  * @see #setColumnHeaderView
@@ -109,7 +129,7 @@ import java.io.IOException;
  *     attribute: containerDelegate getViewport
  *   description: A specialized container that manages a viewport, optional scrollbars and headers
  *
- * @version 1.76 02/06/02
+ * @version 1.79 09/01/00
  * @author Hans Muller
  */
 public class JScrollPane extends JComponent implements ScrollPaneConstants, Accessible
@@ -207,6 +227,10 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
      */
     protected Component upperRight;
 
+    /*
+     * State flag for mouse wheel scrolling
+     */
+    private boolean wheelScrollState = true;
 
     /**
      * Creates a <code>JScrollPane</code> that displays the view
@@ -241,6 +265,10 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
 	}
 	setOpaque(true);
         updateUI();
+
+	if (!this.getComponentOrientation().isLeftToRight()) {
+	    viewport.setViewPosition(new Point(Integer.MAX_VALUE, 0));
+	}
     }
 
 
@@ -292,6 +320,11 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
      * @return the <code>ScrollPaneUI</code> object that renders this
      *				component
      * @see #setUI
+     * @beaninfo
+     *        bound: true
+     *       hidden: true
+     *    attribute: visualUpdate true
+     *  description: The UI object that implements the Component's LookAndFeel. 
      */
     public ScrollPaneUI getUI() {
         return (ScrollPaneUI)ui;
@@ -346,7 +379,8 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
      * <code>java.awt.Container</code> to ensure that only
      * <code>LayoutManager</code>s which
      * are subclasses of <code>ScrollPaneLayout</code> can be used in a
-     * <code>JScrollPane</code>.
+     * <code>JScrollPane</code>. If <code>layout</code> is non-null, this
+     * will invoke <code>syncWithScrollPane</code> on it.
      * 
      * @param layout the specified layout manager
      * @exception ClassCastException if layout is not a
@@ -358,7 +392,11 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
      *    hidden: true
      */
     public void setLayout(LayoutManager layout) {
-        if ((layout == null) || (layout instanceof ScrollPaneLayout)) {
+        if (layout instanceof ScrollPaneLayout) {
+            super.setLayout(layout);
+            ((ScrollPaneLayout)layout).syncWithScrollPane(this);
+        }
+        else if (layout == null) {
             super.setLayout(layout);
         }
 	else {
@@ -428,6 +466,8 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
 	int old = verticalScrollBarPolicy;
 	verticalScrollBarPolicy = policy;
 	firePropertyChange("verticalScrollBarPolicy", old, policy);
+	revalidate();
+	repaint();
     }
 
 
@@ -474,6 +514,8 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
 	int old = horizontalScrollBarPolicy;
 	horizontalScrollBarPolicy = policy;
 	firePropertyChange("horizontalScrollBarPolicy", old, policy);
+	revalidate();
+	repaint();
     }
 
 
@@ -590,10 +632,12 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      *
      * @see Scrollable
      * @see JScrollPane#createVerticalScrollBar
@@ -951,6 +995,8 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
 	    remove(old);
 	}
 	firePropertyChange("rowHeader", old, rowHeader);
+	revalidate();
+	repaint();
     }
 
 
@@ -1144,6 +1190,8 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
 	}
 	add(corner, key);
 	firePropertyChange(key, old, corner);
+	revalidate();
+	repaint();
     }
 
     /**
@@ -1161,8 +1209,43 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
      */
     public void setComponentOrientation( ComponentOrientation co ) {
         super.setComponentOrientation( co );
-        verticalScrollBar.setComponentOrientation( co );
-        horizontalScrollBar.setComponentOrientation( co );
+        if( verticalScrollBar != null )
+            verticalScrollBar.setComponentOrientation( co );
+        if( horizontalScrollBar != null )
+            horizontalScrollBar.setComponentOrientation( co );
+    }
+
+    /**
+     * Indicates whether or not scrolling will take place in response to the
+     * mouse wheel.  Wheel scrolling is enabled by default.
+     * 
+     * @see #setWheelScrollingEnabled
+     * @since 1.4
+     * @beaninfo
+     *       bound: true
+     * description: Flag for enabling/disabling mouse wheel scrolling
+     */
+    public boolean isWheelScrollingEnabled() {return wheelScrollState;}
+
+    /**
+     * Enables/disables scrolling in response to movement of the mouse wheel.
+     * Wheel scrolling is enabled by default.
+     *
+     * @param handleWheel   <code>true</code> if scrolling should be done
+     *                      automatically for a MouseWheelEvent,
+     *                      <code>false</code> otherwise.
+     * @see #isWheelScrollingEnabled
+     * @see java.awt.event.MouseWheelEvent
+     * @see java.awt.event.MouseWheelListener
+     * @since 1.4
+     * @beaninfo
+     *       bound: true
+     * description: Flag for enabling/disabling mouse wheel scrolling
+     */
+    public void setWheelScrollingEnabled(boolean handleWheel) {
+        boolean old = wheelScrollState;
+        wheelScrollState = handleWheel;
+        firePropertyChange("wheelScrollingEnabled", old, handleWheel);
     }
 
     /** 
@@ -1172,9 +1255,13 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
+        }
     }
 
 
@@ -1270,10 +1357,12 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJScrollPane extends AccessibleJComponent 
     implements ChangeListener {

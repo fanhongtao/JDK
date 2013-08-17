@@ -1,4 +1,6 @@
 /*
+ * @(#)SwingUtilities.java	1.114 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,10 +20,12 @@ import javax.accessibility.*;
 import javax.swing.plaf.UIResource;
 import javax.swing.text.View;
 
+import sun.awt.AppContext;
+
 /**
  * A collection of utility methods for Swing.
  *
- * @version 1.96 02/06/02
+ * @version 1.114 12/03/01
  * @author unknown
  */
 public class SwingUtilities implements SwingConstants
@@ -64,6 +68,21 @@ public class SwingUtilities implements SwingConstants
         return null;
     }
 
+    /**
+     * Converts the location <code>x</code> <code>y</code> to the
+     * parents coordinate system, returning the location.
+     */
+    static Point convertScreenLocationToParent(Container parent,int x, int y) {
+        for (Container p = parent; p != null; p = p.getParent()) {
+            if (p instanceof Window) {
+                Point point = new Point(x, y);
+
+                SwingUtilities.convertPointFromScreen(point, parent);
+                return point;
+            }
+        }
+        throw new Error("convertScreenLocationToParent: no window ancestor");
+    }
 
     /**
      * Convert a <code>aPoint</code> in <code>source</code> coordinate system to
@@ -245,14 +264,19 @@ public class SwingUtilities implements SwingConstants
                 if(c instanceof JComponent) {
                     x = ((JComponent)c).getX();
                     y = ((JComponent)c).getY();
-                } else if(c instanceof java.applet.Applet) {
-                    Point pp = c.getLocationOnScreen();
-                    x = pp.x;
-                    y = pp.y;
+                } else if(c instanceof java.applet.Applet ||
+                          c instanceof java.awt.Window) {
+                    try {
+                        Point pp = c.getLocationOnScreen();
+                        x = pp.x;
+                        y = pp.y;
+                    } catch (IllegalComponentStateException icse) {
+			x = c.getX();
+			y = c.getY();
+                    }
                 } else {
-                    b = c.getBounds();
-                    x = b.x;
-                    y = b.y;
+                    x = c.getX();
+                    y = c.getY();
                 }
 
                 p.x += x;
@@ -279,14 +303,19 @@ public class SwingUtilities implements SwingConstants
             if(c instanceof JComponent) {
                 x = ((JComponent)c).getX();
                 y = ((JComponent)c).getY();
-            }  else if(c instanceof java.applet.Applet) {
-                Point pp = c.getLocationOnScreen();
-                x = pp.x;
-                y = pp.y;
+            }  else if(c instanceof java.applet.Applet ||
+                       c instanceof java.awt.Window) {
+                try {
+                    Point pp = c.getLocationOnScreen();
+                    x = pp.x;
+                    y = pp.y;
+                } catch (IllegalComponentStateException icse) {
+		    x = c.getX();
+		    y = c.getY();
+                }
             } else {
-                b = c.getBounds();
-                x = b.x;
-                y = b.y;
+		x = c.getX();
+		y = c.getY();
             }
 
             p.x -= x;
@@ -638,7 +667,7 @@ public class SwingUtilities implements SwingConstants
      * @return true if the left mouse button was active
      */
     public static boolean isLeftMouseButton(MouseEvent anEvent) {
-             return ((anEvent.getModifiers() & InputEvent.BUTTON1_MASK) != 0);
+         return ((anEvent.getModifiers() & InputEvent.BUTTON1_MASK) != 0);   
     }
 
     /**
@@ -670,11 +699,11 @@ public class SwingUtilities implements SwingConstants
      * @return an int containing the string width
      */
     public static int computeStringWidth(FontMetrics fm,String str) {
-            // You can't assume that a string's width is the sum of its
-            // characters' widths in Java2D -- it may be smaller due to
-            // kerning, etc.
-            return fm.stringWidth(str);
-        }
+        // You can't assume that a string's width is the sum of its
+        // characters' widths in Java2D -- it may be smaller due to
+        // kerning, etc.
+        return fm.stringWidth(str);
+    }
 
     /**
      * Compute and return the location of the icons origin, the
@@ -961,38 +990,64 @@ public class SwingUtilities implements SwingConstants
 
 
     /**
-     * Paint a component c on an abitrary graphics g in the
+     * Paints a component <code>c</code> on an arbitrary graphics 
+     * <code>g</code> in the
      * specified rectangle, specifying the rectangle's upper left corner
      * and size.  The component is reparented to a private
-     * container (whose parent becomes p) which prevents c.validate() and
-     * and c.repaint() calls from propogating up the tree.  The intermediate
+     * container (whose parent becomes p) which prevents 
+     * <code>c.validate()</code> and <code>c.repaint()</code>
+     * calls from propagating up the tree.  The intermediate
      * container has no other effect.
      *
-     * @param g  the Graphics object to draw on
-     * @param c  the Component to draw
-     * @param p  the intermedate Container
+     * <p>
+     * The component should either descend from <code>JComponent</code>
+     * or be another kind of lightweight component.
+     * A lightweight component is one whose "lightweight" property
+     * (returned by the <code>Component</code>
+     * <code>isLightweight</code> method)
+     * is true.
+     * <p>
+     *
+     * @param g  the <code>Graphics</code> object to draw on
+     * @param c  the <code>Component</code> to draw
+     * @param p  the intermediate <code>Container</code>
      * @param x  an int specifying the left side of the area draw in, in pixels,
      *           measured from the left edge of the graphics context
      * @param y  an int specifying the top of the area to draw in, in pixels
      *           measured down from the top edge of the graphics context
      * @param w  an int specifying the width of the area draw in, in pixels
      * @param h  an int specifying the height of the area draw in, in pixels
+     * 
+     * @see java.awt.Component#isLightweight
      */
     public static void paintComponent(Graphics g, Component c, Container p, int x, int y, int w, int h) {
         getCellRendererPane(c, p).paintComponent(g, c, p, x, y, w, h,false);
     }
 
     /**
-     * Paint a component c on an abitrary graphics g in the
-     * specified rectangle, specifying a Rectangle object.  The component is reparented to a private
-     * container (whose parent becomes p) which prevents c.validate() and
-     * and c.repaint() calls from propogating up the tree.  The intermediate
+     * Paints a component <code>c</code> on an arbitrary graphics 
+     * <code>g</code> in the specified rectangle, specifying a Rectangle object.
+     * The component is reparented to a private
+     * container (whose parent becomes <code>p</code>) which prevents 
+     * <code>c.validate()</code> and <code>c.repaint()</code>
+     * calls from propagating up the tree.  The intermediate
      * container has no other effect.
      *
-     * @param g  the Graphics object to draw on
-     * @param c  the Component to draw
-     * @param p  the intermedate Container
-     * @param r  the Rectangle to draw in
+     * <p>
+     * The component should either descend from <code>JComponent</code>
+     * or be another kind of lightweight component.
+     * A lightweight component is one whose "lightweight" property
+     * (returned by the <code>Component</code>
+     * <code>isLightweight</code> method)
+     * is true.
+     * <p>
+     *
+     * @param g  the <code>Graphics</code> object to draw on
+     * @param c  the <code>Component</code> to draw
+     * @param p  the intermediate <code>Container</code>
+     * @param r  the <code>Rectangle</code> to draw in
+     * 
+     * @see java.awt.Component#isLightweight
      */
     public static void paintComponent(Graphics g, Component c, Container p, Rectangle r) {
         paintComponent(g, c, p, r.x, r.y, r.width, r.height);
@@ -1000,8 +1055,9 @@ public class SwingUtilities implements SwingConstants
 
 
     /*
-     * Ensure that cell renderer c has a ComponentShell parent and that
-     * the shells parent is p.
+     * Ensures that cell renderer <code>c</code> has a 
+     * <code>ComponentShell</code> parent and that
+     * the shell's parent is p.
      */
     private static CellRendererPane getCellRendererPane(Component c, Container p) {
         Container shell = c.getParent();
@@ -1019,8 +1075,8 @@ public class SwingUtilities implements SwingConstants
 
     /**
      * A simple minded look and feel change: ask each node in the tree
-     * to updateUI() -- that is, to initialize its UI property with the
-     * current look and feel.
+     * to <code>updateUI()</code> -- that is, to initialize its UI property
+     * with the current look and feel.
      */
     public static void updateComponentTreeUI(Component c) {
         updateComponentTreeUI0(c);
@@ -1145,14 +1201,13 @@ public class SwingUtilities implements SwingConstants
      * Returns true if the current thread is an AWT event dispatching thread.
      * <p>
      * As of 1.3 this method is just a cover for 
-     * <code>java.awt.EventQueue.isEventDispatchThread()</code>.
+     * <code>java.awt.EventQueue.isDispatchThread()</code>.
      * 
      * @return true if the current thread is an AWT event dispatching thread
      */
     public static boolean isEventDispatchThread()
     {
-	  return EventQueue.isDispatchThread();
-
+	return EventQueue.isDispatchThread();
     }
 
 
@@ -1176,10 +1231,12 @@ public class SwingUtilities implements SwingConstants
     }
 
     /**
-     * Returns the Accessible child contained at the local coordinate
-     * Point, if one exists.
+     * Returns the <code>Accessible</code> child contained at the
+     * local coordinate <code>Point</code>, if one exists.
+     * Otherwise returns <code>null</code>.
      *
-     * @return the Accessible at the specified location, if it exists
+     * @return the <code>Accessible</code> at the specified location,
+     *    if it exists; otherwise <code>null</code>
      */
     public static Accessible getAccessibleAt(Component c, Point p) {
         if (c instanceof Container) {
@@ -1261,33 +1318,33 @@ public class SwingUtilities implements SwingConstants
     }
 
     /**
-     * Return the child component which has focus, if any.  The HotJava
-     * SecurityManager forbids applet access to getFocusOwner(), so if the
-     * component is an applet, we check whether a JComponent has focus.
-     * Non-Swing components in an applet on HotJava are out-of-luck,
-     * unfortunately.
+     * Return the child <code>Component</code> of the specified
+     * <code>Component</code> that is the focus owner, if any.
+     *
+     * @param comp the root of the <code>Component</code> hierarchy to
+     *        search for the focus owner
+     * @return the focus owner, or <code>null</code> if there is no focus
+     *         owner, or if the focus owner is not <code>comp</code>, or a
+     *         descendant of <code>comp</code>
+     *
+     * @see java.awt.KeyboardFocusManager#getFocusOwner
+     * @deprecated As of 1.4, replaced by
+     *   <code>KeyboardFocusManager.getFocusOwner()</code>.
      */
     public static Component findFocusOwner(Component c) {
-        if (c instanceof Window) {
-            return ((Window)c).getFocusOwner();
-        }
+	Component focusOwner = KeyboardFocusManager.
+	    getCurrentKeyboardFocusManager().getFocusOwner();
 
-        if (c instanceof JComponent && ((JComponent)c).hasFocus()) {
-            return c;
-        }
-        if (c instanceof Container) {
-            int n = ((Container)c).getComponentCount();
-            for (int i = 0; i < n; i++) {
-                Component focusOwner =
-                    findFocusOwner(((Container)c).getComponent(i));
-                if (focusOwner != null) {
-                    return focusOwner;
-                }
-            }
-            return null;
-        } else {
-            return null;  // Component doesn't have hasFocus().
-        }
+	// verify focusOwner is a descendant of c
+	for (Component temp = focusOwner; temp != null;
+	     temp = (temp instanceof Window) ? null : temp.getParent())
+	{
+	    if (temp == c) {
+		return focusOwner;
+	    }
+	}
+
+	return null;
     }
 
     /**
@@ -1323,6 +1380,72 @@ public class SwingUtilities implements SwingConstants
             }
         }
         return applet;
+    }
+
+    /**
+     * Process the key bindings for the <code>Component</code> associated with
+     * <code>event</code>. This method is only useful if
+     * <code>event.getComponent()</code> does not descend from
+     * <code>JComponent</code>, or your are not invoking
+     * <code>super.processKeyEvent</code> from within your
+     * <code>JComponent</code> subclass. <code>JComponent</code>
+     * automatically processes bindings from within its
+     * <code>processKeyEvent</code> method, hence you rarely need
+     * to directly invoke this method.
+     *
+     * @param event KeyEvent used to identify which bindings to process, as
+     *              well as which Component has focus.
+     * @return true if a binding has found and processed
+     * @since 1.4
+     */
+    public static boolean processKeyBindings(KeyEvent event) {
+        if (event != null) {
+            if (event.isConsumed()) {
+                return false;
+            }
+
+            Component component = event.getComponent();
+            Component last = component;
+            boolean pressed = (event.getID() == KeyEvent.KEY_PRESSED);
+
+            if (!isValidKeyEventForKeyBindings(event)) {
+                return false;
+            }
+            // Find the first JComponent in the ancestor hierarchy, and
+            // invoke processKeyBindings on it
+            while (component != null) {
+                if (component instanceof JComponent) {
+                    return ((JComponent)component).processKeyBindings(
+                                                   event, pressed);
+                }
+                last = component;
+                component = component.getParent();
+            }
+            // No JComponents, if Window or Applet parent, process
+            // WHEN_IN_FOCUSED_WINDOW bindings.
+            if ((last instanceof Applet) || (last instanceof Window)) {
+                return JComponent.processKeyBindingsForAllComponents(
+                                  event, (Container)last, pressed);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if the <code>e</code> is a valid KeyEvent to use in
+     * processing the key bindings associated with JComponents.
+     */
+    static boolean isValidKeyEventForKeyBindings(KeyEvent e) {
+        if (e.getID() == KeyEvent.KEY_TYPED) {
+            int mod = e.getModifiers();
+            if (((mod & ActionEvent.ALT_MASK) != 0) &&
+                ((mod & ActionEvent.CTRL_MASK) == 0)) {
+                // filter out typed "alt-?" keys, but not those created
+                // with AltGr, and not control characters
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -1377,7 +1500,8 @@ public class SwingUtilities implements SwingConstants
 	    command = null;
 	}
 	action.actionPerformed(new ActionEvent(sender,
-			ActionEvent.ACTION_PERFORMED, command, modifiers));
+			ActionEvent.ACTION_PERFORMED, command, event.getWhen(),
+                        modifiers));
 	return true;
     }
 
@@ -1474,8 +1598,11 @@ public class SwingUtilities implements SwingConstants
      * Returns a toolkit-private, shared, invisible Frame
      * to be the owner for JDialogs and JWindows created with
      * null owners.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    static Frame getSharedOwnerFrame() {
+    static Frame getSharedOwnerFrame() throws HeadlessException {
         Frame sharedOwnerFrame =
             (Frame)SwingUtilities.appContextGet(sharedOwnerFrameKey);
         if (sharedOwnerFrame == null) {
@@ -1502,22 +1629,25 @@ public class SwingUtilities implements SwingConstants
      * since AppContext is in sun.awt in 1.2, we shouldn't expose it
      * even indirectly with a public API.
      */
+    // REMIND(aim): phase out use of 4 methods below since they
+    // are just private covers for AWT methods (?)
 
     static Object appContextGet(Object key) {
-        return sun.awt.AppContext.getAppContext().get(key);
+        return AppContext.getAppContext().get(key);
     }
 
     static void appContextPut(Object key, Object value) {
-        sun.awt.AppContext.getAppContext().put(key, value);
+        AppContext.getAppContext().put(key, value);
     }
 
     static void appContextRemove(Object key) {
-        sun.awt.AppContext.getAppContext().remove(key);
+        AppContext.getAppContext().remove(key);
     }
 
 
     static Class loadSystemClass(String className) throws ClassNotFoundException {
-	return Class.forName(className, true, ClassLoader.getSystemClassLoader());
+	return Class.forName(className, true, Thread.currentThread().
+                             getContextClassLoader());
     }
 
 
@@ -1552,5 +1682,71 @@ public class SwingUtilities implements SwingConstants
 	Image iconImage = (icon != null && (icon instanceof ImageIcon)) ?
 	                   ((ImageIcon)icon).getImage() : null;
 	return (iconImage == image);
+    }
+
+    /**
+     * Returns index of the first occurrence of <code>mnemonic</code>
+     * within string <code>text</code>. Matching algorithm is not
+     * case-sensitive.
+     *
+     * @param text The text to search through, may be null
+     * @param mnemonic The mnemonic to find the character for.
+     * @return index into the string if exists, otherwise -1
+     */
+    static int findDisplayedMnemonicIndex(String text, int mnemonic) {
+        if (text == null || mnemonic == '\0') {
+            return -1;
+        }
+
+        char uc = Character.toUpperCase((char)mnemonic);
+        char lc = Character.toLowerCase((char)mnemonic);
+
+        int uci = text.indexOf(uc);
+        int lci = text.indexOf(lc);
+
+        if (uci == -1) {
+            return lci;
+        } else if(lci == -1) {
+            return uci;
+        } else {
+            return (lci < uci) ? lci : uci;
+        }
+    }
+
+    /**
+     * Stores the position and size of
+     * the inner painting area of the specified component
+     * in <code>r</code> and returns <code>r</code>.
+     * The position and size specify the bounds of the component,
+     * adjusted so as not to include the border area (the insets).
+     * This method is useful for classes 
+     * that implement painting code.
+     *
+     * @param c  the JComponent in question; if null, this method returns null
+     * @param r  the Rectangle instance to be modified;
+     *           may be null
+     * @return null if the Component is null;
+     *         otherwise, returns the passed-in rectangle (if non-null)
+     *         or a new rectangle specifying position and size information
+     *
+     * @since 1.4
+     */
+    public static Rectangle calculateInnerArea(JComponent c, Rectangle r) {
+        if (c == null) {
+            return null;
+        }
+        Rectangle rect = r;
+        Insets insets = c.getInsets();
+
+        if (rect == null) {
+            rect = new Rectangle();
+        }
+
+        rect.x = insets.left;
+        rect.y = insets.top;
+        rect.width = c.getWidth() - insets.left - insets.right;
+        rect.height = c.getHeight() - insets.top - insets.bottom;
+
+        return rect;
     }
 }

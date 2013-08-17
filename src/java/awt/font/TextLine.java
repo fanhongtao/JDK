@@ -1,4 +1,6 @@
 /*
+ * @(#)TextLine.java	1.45 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,7 +15,6 @@ package java.awt.font;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Shape;
-import java.awt.Toolkit;
 
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
@@ -24,20 +25,17 @@ import java.awt.im.InputMethodHighlight;
 import java.text.CharacterIterator;
 import java.text.AttributedCharacterIterator;
 import java.text.Annotation;
+import java.text.Bidi;
 
 import java.util.Map;
 import java.util.Hashtable;
 
-import sun.awt.font.Bidi;
-import sun.awt.font.ExtendedTextLabel;
-import sun.awt.font.ExtendedTextLabelComponent;
+import sun.awt.font.BidiUtils;
+import sun.awt.font.Decoration;
+import sun.awt.font.FontResolver;
 import sun.awt.font.GraphicComponent;
 import sun.awt.font.TextLabelFactory;
 import sun.awt.font.TextLineComponent;
-
-import sun.java2d.SunGraphicsEnvironment;
-
-// TO DO:  get rid of FontSource - use something else or go back to ACI
 
 final class TextLine {
 
@@ -250,20 +248,20 @@ final class TextLine {
     public int visualToLogical(int visualIndex) {
 
         if (fCharLogicalOrder == null) {
-            return visualIndex;
-        }
+	    return visualIndex;
+	}
 
-        if (fCharVisualOrder == null) {
-            fCharVisualOrder = Bidi.getInverseOrder(fCharLogicalOrder);
-        }
-
+	if (fCharVisualOrder == null) {
+	    fCharVisualOrder = BidiUtils.createInverseMap(fCharLogicalOrder);
+	}
+ 
         return fCharVisualOrder[visualIndex];
     }
 
     public int logicalToVisual(int logicalIndex) {
 
         return (fCharLogicalOrder == null)?
-                        logicalIndex : fCharLogicalOrder[logicalIndex];
+            logicalIndex : fCharLogicalOrder[logicalIndex];
     }
 
     public byte getCharLevel(int logicalIndex) {
@@ -576,9 +574,7 @@ final class TextLine {
      * attributes
      */
     public static TextLine fastCreateTextLine(FontRenderContext frc,
-                                              char[] text,
-                                              int start,
-                                              int limit,
+                                              char[] chars,
                                               Font font,
                                               LineMetrics lm,
                                               Map attributes) {
@@ -587,17 +583,8 @@ final class TextLine {
         byte[] levels = null;
         int[] charsLtoV = null;
         Bidi bidi = null;
-        char[] chars;
-        int characterCount = limit - start;
+        int characterCount = chars.length;
 
-        if (start != 0) {
-            chars = new char[characterCount];
-            System.arraycopy(text, start, chars, 0, characterCount);
-        }
-        else {
-            chars = text;
-        }
-        
         boolean requiresBidi = false;
         boolean directionKnown = false;
         byte[] embs = null;
@@ -617,7 +604,7 @@ final class TextLine {
             Integer embeddingLevel = (Integer)attributes.get(TextAttribute.BIDI_EMBEDDING);
             if (embeddingLevel != null) {
               int intLevel = embeddingLevel.intValue();
-              if (intLevel >= -15 && intLevel < 16) {
+              if (intLevel >= -61 && intLevel < 62) {
                 byte level = (byte)intLevel;
                 requiresBidi = true;
                 embs = new byte[characterCount];
@@ -632,143 +619,65 @@ final class TextLine {
         }
 
         if (!requiresBidi) {
-          for (int i = 0; i < chars.length; i++) {
-            if (Bidi.requiresBidi(chars[i])) {
-              requiresBidi = true;
-              break;
-            }
-          }
+	    requiresBidi = Bidi.requiresBidi(chars, 0, chars.length);
         }
 
         if (requiresBidi) {
-          if (!directionKnown) {
-            isDirectionLTR = Bidi.defaultIsLTR(chars, 0, characterCount);
+	  int bidiflags = Bidi.DIRECTION_DEFAULT_LEFT_TO_RIGHT;
+          if (directionKnown) {
+	      if (isDirectionLTR) {
+		  bidiflags = Bidi.DIRECTION_LEFT_TO_RIGHT;
+	      } else {
+		  bidiflags = Bidi.DIRECTION_RIGHT_TO_LEFT;
+	      }
           }
-          if (embs == null) {
-            embs = Bidi.getEmbeddingArray(chars, isDirectionLTR);
-          }
-          bidi = new Bidi(chars, embs, isDirectionLTR);
-          levels = bidi.getLevels();
-          charsLtoV = bidi.getLogicalToVisualMap();
+
+          bidi = new Bidi(chars, 0, embs, 0, chars.length, bidiflags);
+	  if (!bidi.isLeftToRight()) {
+	      levels = BidiUtils.getLevels(bidi);
+	      int[] charsVtoL = BidiUtils.createVisualToLogicalMap(levels);
+	      charsLtoV = BidiUtils.createInverseMap(charsVtoL);
+	      isDirectionLTR = bidi.baseIsLeftToRight();
+	  }
         }
 
+        Decoration decorator;
         if (attributes != null) {
-            attributes = addInputMethodAttrs(attributes);
+            decorator = Decoration.getDecoration(StyledParagraph.addInputMethodAttrs(attributes));
         }
-
-        TextLabelFactory factory = new TextLabelFactory(frc, chars, bidi);
-
-        TextLineComponent[] components;
-
-        // one component per level
-        if (bidi == null || bidi.getLevelLimit(0) == characterCount) {
-          components = new TextLineComponent[1];
-
-          ExtendedTextLabel label =
-            factory.createExtended(font, lm, 0, characterCount);
-
-          components[0] = new ExtendedTextLabelComponent(label, attributes);
-        } else {
-          int count = 0;
-          int pos = 0;
-          while (pos < characterCount) {
-            pos = bidi.getLevelLimit(pos);
-            ++count;
-          }
-          components = new TextLineComponent[count];
-
-          count = 0;
-          pos = 0;
-          while (pos < characterCount) {
-            int newpos = bidi.getLevelLimit(pos);
-            ExtendedTextLabel label = factory.createExtended(font, lm, pos, newpos);
-            components[count] = new ExtendedTextLabelComponent(label, attributes);
-            ++count;
-            pos = newpos;
-          }
+        else {
+            decorator = Decoration.getPlainDecoration();
         }
+	int layoutFlags = 0; // no extra info yet, bidi determines run and line direction
+        TextLabelFactory factory = new TextLabelFactory(frc, chars, bidi, layoutFlags);
 
+        TextLineComponent[] components = new TextLineComponent[1];
+        
+        components = createComponentsOnRun(0, chars.length,
+                                           chars,
+                                           charsLtoV, levels,
+                                           factory, font, lm,
+                                           frc,
+                                           decorator,
+                                           components,
+                                           0);
+                                           
+        int numComponents = components.length;
+        while (components[numComponents-1] == null) {
+            numComponents -= 1;
+        }
+        
+        if (numComponents != components.length) {
+            TextLineComponent[] temp = new TextLineComponent[numComponents];
+            System.arraycopy(components, 0, temp, 0, numComponents);
+            components = temp;
+        }
+        
         return new TextLine(components, lm.getBaselineOffsets(),
-                            text, start, limit, charsLtoV, levels, isDirectionLTR);
+                            chars, 0, chars.length, charsLtoV, levels, isDirectionLTR);
     }
 
-    static abstract class FontSource {
-
-        // 0-based
-        abstract int getLength();
-
-        abstract int getRunLimit(int pos);
-
-        /**
-         * Return graphic at position.  Null if no graphic.
-         */
-        abstract GraphicAttribute graphicAt(int pos);
-
-        /**
-         * Return font at position.  Does not try to substitute
-         * another font.  Null if no font explicitly on the text.
-         */
-        abstract Font fontAt(int pos);
-
-        /**
-         * Compute best font for text.  Should use
-         * SunGraphicsEnvironment.getBestFontFor.
-         */
-        abstract Font getBestFontAt(int pos);
-
-        /**
-         * Get attributes.
-         */
-        abstract Map attributesAt(int pos);
-    }
-
-    static class ACIFontSource extends FontSource {
-
-        private AttributedCharacterIterator fIter;
-        private int fIterStart;
-
-        public ACIFontSource(AttributedCharacterIterator iter) {
-
-            fIter = iter;
-            fIterStart = iter.getBeginIndex();
-        }
-
-        int getLength() {
-            return fIter.getEndIndex() - fIterStart;
-        }
-
-        int getRunLimit(int pos) {
-            fIter.setIndex(pos + fIterStart);
-            return fIter.getRunLimit() - fIterStart;
-        }
-
-        GraphicAttribute graphicAt(int pos) {
-            fIter.setIndex(pos + fIterStart);
-            return (GraphicAttribute)
-                    fIter.getAttribute(TextAttribute.CHAR_REPLACEMENT);
-        }
-
-        Font fontAt(int pos) {
-            fIter.setIndex(pos + fIterStart);
-            return (Font) fIter.getAttribute(TextAttribute.FONT);
-        }
-
-
-        Font getBestFontAt(int pos) {
-            int iterPos = pos + fIterStart;
-            fIter.setIndex(iterPos);
-            return SunGraphicsEnvironment.getBestFontFor(
-                                        fIter, iterPos, fIter.getRunLimit());
-        }
-
-        Map attributesAt(int pos) {
-            fIter.setIndex(pos + fIterStart);
-            return fIter.getAttributes();
-        }
-    }
-
-    // for getComponents() use - pretty specialized
-    private static TextLineComponent[] expandArrays(TextLineComponent[] orig) {
+    private static TextLineComponent[] expandArray(TextLineComponent[] orig) {
 
         TextLineComponent[] newComponents = new TextLineComponent[orig.length + 8];
         System.arraycopy(orig, 0, newComponents, 0, orig.length);
@@ -776,53 +685,70 @@ final class TextLine {
         return newComponents;
     }
 
-    private static Map addInputMethodAttrs(Map oldStyles) {
+    /**
+     * Returns an array in logical order of the TextLineComponents on
+     * the text in the given range, with the given attributes.
+     */
+    public static TextLineComponent[] createComponentsOnRun(int runStart,
+                                                            int runLimit,
+                                                            char[] chars,
+                                                            int[] charsLtoV,
+                                                            byte[] levels,
+                                                            TextLabelFactory factory,
+                                                            Font font,
+                                                            LineMetrics lm,
+                                                            FontRenderContext frc,
+                                                            Decoration decorator,
+                                                            TextLineComponent[] components,
+                                                            int numComponents) {
 
-        Object value = oldStyles.get(TextAttribute.INPUT_METHOD_HIGHLIGHT);
-
-        try {
-            if (value != null) {
-                if (value instanceof Annotation) {
-                    value = ((Annotation)value).getValue();
-                }
-
-                InputMethodHighlight hl;
-                hl = (InputMethodHighlight) value;
-                
-                Map imStyles = null;
-                try {
-                    imStyles = hl.getStyle();
-                } catch (NoSuchMethodError e) {
-                }
-                
-                if (imStyles == null) {
-                    Toolkit tk = Toolkit.getDefaultToolkit();
-                    imStyles = tk.mapInputMethodHighlight(hl);
-                }
-
-                if (imStyles != null) {
-                    Hashtable newStyles = new Hashtable(5, (float)0.9);
-                    newStyles.putAll(oldStyles);
-
-                    newStyles.putAll(imStyles);
-
-                    return newStyles;
-                }
+        int pos = runStart;
+        if (lm != null) {
+            if (lm.getNumChars() != (runLimit-runStart)) {
+                throw new IllegalArgumentException("Invalid LineMetrics");
             }
         }
-        catch(ClassCastException e) {
-        }
+        
+        do {
+            int chunkLimit = firstVisualChunk(charsLtoV, levels, pos, runLimit); // <= displayLimit
 
-        return oldStyles;
+            do {
+                int startPos = pos;
+                LineMetrics lineMetrics;
+                int lmCount;
+                
+                if (lm == null) {
+                    lineMetrics = font.getLineMetrics(chars, startPos, chunkLimit, frc);
+                    lmCount = lineMetrics.getNumChars();
+                }
+                else {
+                    lineMetrics = lm;
+                    lmCount = (chunkLimit-startPos);
+                }
+                
+                TextLineComponent nextComponent =
+                    factory.createExtended(font, lineMetrics, decorator, startPos, startPos + lmCount);
+
+                ++numComponents;
+                if (numComponents >= components.length) {
+                    components = expandArray(components);
+                }
+
+                components[numComponents-1] = nextComponent;
+                
+                pos += lmCount;
+            } while (pos < chunkLimit);
+
+        } while (pos < runLimit);
+        
+        return components;
     }
 
     /**
-     * Returns an array (in logical order) of the glyphsets representing
-     * the text.  The glyphsets are both logically and visually contiguous.
-     * If varBaselines is not null, then the array of baselines for the
-     * TextLineComponents is returned in varBaselines[0].
+     * Returns an array (in logical order) of the TextLineComponents representing
+     * the text.  The components are both logically and visually contiguous.
      */
-    public static TextLineComponent[] getComponents(FontSource fontSource,
+    public static TextLineComponent[] getComponents(StyledParagraph styledParagraph,
                                                     char[] chars,
                                                     int textStart,
                                                     int textLimit,
@@ -833,38 +759,30 @@ final class TextLine {
         FontRenderContext frc = factory.getFontRenderContext();
 
         int numComponents = 0;
-        TextLineComponent[] tempComponents = new TextLineComponent[8];
+        TextLineComponent[] tempComponents = new TextLineComponent[1];
 
-        /*
-         * text may be inside some larger text, be sure to adjust before
-         * accessing arrays, which map zero to the start of the text.
-         *
-         */
         int pos = textStart;
         do {
-            //text.setIndex(pos);
-            int runLimit = fontSource.getRunLimit(pos); // <= textLimit
-            if (runLimit > textLimit) {
-                runLimit = textLimit;
-            }
+            int runLimit = Math.min(styledParagraph.getRunLimit(pos), textLimit);
+            
+            Decoration decorator = styledParagraph.getDecorationAt(pos);
 
-            GraphicAttribute graphicAttribute = fontSource.graphicAt(pos);
+            Object graphicOrFont = styledParagraph.getFontOrGraphicAt(pos);
 
-            if (graphicAttribute != null) {
-
+            if (graphicOrFont instanceof GraphicAttribute) {
+                
+                GraphicAttribute graphicAttribute = (GraphicAttribute) graphicOrFont;
                 do {
-                    int chunkLimit =
-                        textStart + firstVisualChunk(charsLtoV, levels,
-                                    pos - textStart, runLimit - textStart);
+                    int chunkLimit = firstVisualChunk(charsLtoV, levels,
+                                    pos, runLimit);
 
-                    Map attrs = fontSource.attributesAt(pos);
                     GraphicComponent nextGraphic =
-                            new GraphicComponent(graphicAttribute, attrs, charsLtoV, levels, pos-textStart, chunkLimit-textStart);
+                            new GraphicComponent(graphicAttribute, decorator, charsLtoV, levels, pos, chunkLimit);
                     pos = chunkLimit;
 
                     ++numComponents;
                     if (numComponents >= tempComponents.length) {
-                        tempComponents = expandArrays(tempComponents);
+                        tempComponents = expandArray(tempComponents);
                     }
 
                     tempComponents[numComponents-1] = nextGraphic;
@@ -872,58 +790,21 @@ final class TextLine {
                 } while(pos < runLimit);
             }
             else {
-                do {
-                    /*
-                     * If the client has indicated a font, they're responsible for
-                     * ensuring that it can display all the text to which it is
-                     * applied.  We won't do anything to handle it.
-                     */
-                    int displayLimit = runLimit; // default
+                Font font = (Font) graphicOrFont;
 
-                    Font font = fontSource.fontAt(pos);
-
-                    if (font == null) {
-                        font = fontSource.getBestFontAt(pos);
-                        // !!! REMIND dlf 081498
-                        // this can cause the same char with the same style to use different fonts
-                        // if the limit is less than the entire run.
-                        displayLimit = font.canDisplayUpTo(chars, pos, runLimit);
-                        if (displayLimit == pos) {
-                          ++displayLimit;
-                        }
-                    }
-
-                    do {
-                        int chunkLimit = textStart + firstVisualChunk(charsLtoV,
-                                     levels, pos - textStart,
-                                     displayLimit - textStart); // <= displayLimit
-
-                        do {
-                            Map attrs = fontSource.attributesAt(pos);
-                            int startPos = pos;
-                            LineMetrics lm = font.getLineMetrics(chars, pos, chunkLimit, frc);
-                            pos += lm.getNumChars();
-
-                            ExtendedTextLabel ga =
-                                    factory.createExtended(font, lm, startPos, pos);
-
-                            attrs = addInputMethodAttrs(attrs);
-
-                            TextLineComponent nextComponent =
-                                    new ExtendedTextLabelComponent(ga, attrs);
-
-                            ++numComponents;
-                            if (numComponents >= tempComponents.length) {
-                                tempComponents = expandArrays(tempComponents);
-                            }
-
-                            tempComponents[numComponents-1] = nextComponent;
-
-                        } while (pos < chunkLimit);
-
-                    } while (pos < displayLimit);
-
-                } while (pos < runLimit);
+                tempComponents = createComponentsOnRun(pos, runLimit,
+                                                        chars,
+                                                        charsLtoV, levels,
+                                                        factory, font, null,
+                                                        frc,
+                                                        decorator,
+                                                        tempComponents,
+                                                        numComponents);
+                pos = runLimit;
+                numComponents = tempComponents.length;
+                while (tempComponents[numComponents-1] == null) {
+                    numComponents -= 1;
+                }
             }
 
         } while (pos < textLimit);
@@ -942,33 +823,32 @@ final class TextLine {
 
     /**
      * Create a TextLine from the Font and character data over the
-     * range.  The range is relative to both the FontSource and the
+     * range.  The range is relative to both the StyledParagraph and the
      * character array.
      */
     public static TextLine createLineFromText(char[] chars,
-                                              int start,
-                                              int limit,
-                                              FontSource fontSource,
+                                              StyledParagraph styledParagraph,
                                               TextLabelFactory factory,
                                               boolean isDirectionLTR,
                                               float[] baselineOffsets) {
 
-        factory.setLineContext(start, limit);
+        factory.setLineContext(0, chars.length);
 
         Bidi lineBidi = factory.getLineBidi();
         int[] charsLtoV = null;
         byte[] levels = null;
 
         if (lineBidi != null) {
-            charsLtoV = lineBidi.getLogicalToVisualMap();
-            levels = lineBidi.getLevels();
+            levels = BidiUtils.getLevels(lineBidi);
+	    int[] charsVtoL = BidiUtils.createVisualToLogicalMap(levels);
+            charsLtoV = BidiUtils.createInverseMap(charsVtoL);
         }
 
         TextLineComponent[] components =
-            getComponents(fontSource, chars, start, limit, charsLtoV, levels, factory);
+            getComponents(styledParagraph, chars, 0, chars.length, charsLtoV, levels, factory);
 
         return new TextLine(components, baselineOffsets,
-                            chars, start, limit, charsLtoV, levels, isDirectionLTR);
+                            chars, 0, chars.length, charsLtoV, levels, isDirectionLTR);
     }
 
     /**
@@ -977,7 +857,7 @@ final class TextLine {
      */
     private static int[] computeComponentOrder(TextLineComponent[] components,
                                                int[] charsLtoV) {
-        
+
         /*
          * Create a visual ordering for the glyph sets.  The important thing
          * here is that the values have the proper rank with respect to
@@ -996,123 +876,12 @@ final class TextLine {
                 gStart += components[i].getNumCharacters();
             }
 
-            componentOrder = Bidi.getContiguousOrder(componentOrder);
-            componentOrder = Bidi.getInverseOrder(componentOrder);
+            componentOrder = BidiUtils.createContiguousOrder(componentOrder);
+            componentOrder = BidiUtils.createInverseMap(componentOrder);
         }
         return componentOrder;
     }
 
-    /**
-     * Create a Bidi for the paragraph in <tt>text</tt>.  If <tt>chars</tt>
-     * is not null it must be the characters in the paragraph.
-     */
-    // should this live in Bidi??
-    static Bidi createBidiOnParagraph(AttributedCharacterIterator text,
-                                      char[] chars) {
-    
-        final int begin = text.getBeginIndex();
-        final int end = text.getEndIndex();
-        final int length = end - begin;
-        
-        if (chars == null) {
-            int n = 0;
-            chars = new char[length];
-            for (char c = text.first(); c != text.DONE; c = text.next()) {
-                chars[n++] = c;
-            }
-        }
-        else {
-            if (chars.length != length) {
-                throw new IllegalArgumentException("chars length is not iter length");
-            }
-        }
-        
-        boolean isDirectionLTR = true;
-        Bidi bidi = null;
-
-        boolean requiresBidi = false;
-        boolean directionKnown = false;
-        byte[] embs = null;
-
-        text.first();
-        try {
-          Boolean runDirection = (Boolean)text.getAttribute(TextAttribute.RUN_DIRECTION);
-          if (runDirection != null) {
-            directionKnown = true;
-            isDirectionLTR = TextAttribute.RUN_DIRECTION_LTR.equals(runDirection);
-            requiresBidi = !isDirectionLTR;
-          }
-        }
-        catch (ClassCastException e) {
-        }
-
-        int pos = begin;
-        byte level = 0;
-        byte baselevel = (byte)((directionKnown && !isDirectionLTR) ? 1 : 0);
-        do {
-          text.setIndex(pos);
-          Object embeddingLevel = text.getAttribute(TextAttribute.BIDI_EMBEDDING);
-          int newpos = text.getRunLimit(TextAttribute.BIDI_EMBEDDING);
-
-          if (embeddingLevel != null) {
-            try {
-              int intLevel = ((Integer)embeddingLevel).intValue();
-              if (intLevel >= -15 && intLevel < 16) {
-                level = (byte)intLevel;
-                if (embs == null) {
-                  embs = new byte[length];
-                  requiresBidi = true;
-                  if (!directionKnown) {
-                    directionKnown = true;
-                    isDirectionLTR = Bidi.defaultIsLTR(chars, 0, length);
-                    baselevel = (byte)(isDirectionLTR ? 0 : 1);
-                  }
-                  if (!isDirectionLTR) {
-                    for (int i = 0; i < pos - begin; ++i) {
-                      embs[i] = baselevel; // set initial level if rtl, already 0 so ok if ltr
-                    }
-                  }
-                }
-              }
-            }
-            catch (ClassCastException e) {
-            }
-          } else {
-            if (embs != null) {
-              level = baselevel;
-            }
-          }
-          if (embs != null && level != 0) {
-            for (int i = pos - begin; i < newpos - begin; ++i) {
-              embs[i] = level;
-            }
-          }
-
-          pos = newpos;
-        } while (pos < end);
-
-        if (!requiresBidi) {
-          for (int i = 0; i < length; i++) {
-            if (Bidi.requiresBidi(chars[i])) {
-              requiresBidi = true;
-              break;
-            }
-          }
-        }
-
-        if (requiresBidi) {
-          if (!directionKnown) {
-            isDirectionLTR = Bidi.defaultIsLTR(chars, 0, length);
-          }
-          if (embs == null) {
-            embs = Bidi.getEmbeddingArray(chars, isDirectionLTR);
-          }
-
-          bidi = new Bidi(chars, embs, isDirectionLTR);
-        }
-
-        return bidi;        
-    }
 
     /**
      * Create a TextLine from the text.  chars is just the text in the iterator.
@@ -1122,16 +891,19 @@ final class TextLine {
                                                   char[] chars,
                                                   float[] baselineOffsets) {
 
-        FontSource fontSource = new ACIFontSource(text);
-        Bidi bidi = createBidiOnParagraph(text, chars);
-        
-        TextLabelFactory factory = new TextLabelFactory(frc, chars, bidi);
+        StyledParagraph styledParagraph = new StyledParagraph(text, chars);
+        Bidi bidi = new Bidi(text);
+	if (bidi.isLeftToRight()) {
+	    bidi = null;
+	}
+        int layoutFlags = 0; // no extra info yet, bidi determines run and line direction
+        TextLabelFactory factory = new TextLabelFactory(frc, chars, bidi, layoutFlags);
 
         boolean isDirectionLTR = true;
         if (bidi != null) {
-            isDirectionLTR = bidi.isDirectionLTR();
+            isDirectionLTR = bidi.baseIsLeftToRight();
         }
-        return createLineFromText(chars, 0, chars.length, fontSource, factory, isDirectionLTR, baselineOffsets);
+        return createLineFromText(chars, styledParagraph, factory, isDirectionLTR, baselineOffsets);
     }
 
 
@@ -1168,6 +940,72 @@ final class TextLine {
         return limit;
     }
      */
+    
+    /**
+     * When this returns, the ACI's current position will be at the start of the
+     * first run which does NOT contain a GraphicAttribute.  If no such run exists
+     * the ACI's position will be at the end, and this method will return false.
+     */
+    static boolean advanceToFirstFont(AttributedCharacterIterator aci) {
+        
+        for (char ch = aci.first(); ch != aci.DONE; ch = aci.setIndex(aci.getRunLimit())) {
+
+            if (aci.getAttribute(TextAttribute.CHAR_REPLACEMENT) == null) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    static float[] getNormalizedOffsets(float[] baselineOffsets, byte baseline) {
+        
+        if (baselineOffsets[baseline] != 0) {
+            float base = baselineOffsets[baseline];
+            float[] temp = new float[baselineOffsets.length];
+            for (int i = 0; i < temp.length; i++)
+                temp[i] = baselineOffsets[i] - base;
+            baselineOffsets = temp;
+        }
+        return baselineOffsets;
+    }
+    
+    static Font getFontAtCurrentPos(AttributedCharacterIterator aci) {
+        
+        char ch = aci.current();
+        Object value = aci.getAttribute(TextAttribute.FONT);
+        if (value != null) {
+            return (Font) value;
+        }
+        if (aci.getAttribute(TextAttribute.FAMILY) != null) {
+            return Font.getFont(aci.getAttributes());
+        }
+        
+        FontResolver resolver = FontResolver.getInstance();
+        return resolver.getFont(resolver.getFontIndex(ch), aci.getAttributes());
+    }
+    
+    /**
+     * Utility method for getting justification ratio from attributes.
+     */
+    static float getJustifyRatio(Map attributes) {
+        
+        Object value = attributes.get(TextAttribute.JUSTIFICATION);
+        
+        if (value == null) {
+            return 1;
+        }
+        
+        float justifyRatio = ((Float)value).floatValue();
+        if (justifyRatio < 0) {
+            justifyRatio = 0;
+        }
+        else if (justifyRatio > 1) {
+            justifyRatio = 1;
+        }
+        
+        return justifyRatio;
+    }
 
   /*
    * The new version requires that chunks be at the same level.
@@ -1184,7 +1022,7 @@ final class TextLine {
     }
 
   /*
-   * create a new line with characters between charStart and charLimit 
+   * create a new line with characters between charStart and charLimit
    * justified using the provided width and ratio.
    */
     public TextLine getJustifiedLine(float justificationWidth, float justifyRatio, int justStart, int justLimit) {
@@ -1201,7 +1039,7 @@ final class TextLine {
 
             // all characters outside the justification range must be in the base direction
             // of the layout, otherwise justification makes no sense.
-              
+
             float justifyAdvance = getAdvanceBetween(newComponents, justStart, justLimit);
 
             // get the actual justification delta
@@ -1248,7 +1086,7 @@ final class TextLine {
             while (infoLimit > infoStart && infos[infoLimit - 1] == null) {
                 --infoLimit;
             }
-                  
+
             // invoke justifier on the records
             TextJustifier justifier = new TextJustifier(infos, infoStart, infoLimit);
 
@@ -1280,8 +1118,8 @@ final class TextLine {
             rejustify = wantRejustify && !rejustify; // only make two passes
         } while (rejustify);
 
-        return new TextLine(newComponents, fBaselineOffsets, fChars, fCharsStart, 
-                            fCharsLimit, fCharLogicalOrder, fCharLevels, 
+        return new TextLine(newComponents, fBaselineOffsets, fChars, fCharsStart,
+                            fCharsLimit, fCharLogicalOrder, fCharLevels,
                             fIsDirectionLTR);
     }
 

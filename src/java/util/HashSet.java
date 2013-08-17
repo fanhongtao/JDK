@@ -1,4 +1,6 @@
 /*
+ * @(#)HashSet.java	1.25 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,7 +20,7 @@ package java.util;
  * buckets.  Iterating over this set requires time proportional to the sum of
  * the <tt>HashSet</tt> instance's size (the number of elements) plus the
  * "capacity" of the backing <tt>HashMap</tt> instance (the number of
- * buckets).  Thus, it's very important not to set the intial capacity too
+ * buckets).  Thus, it's very important not to set the initial capacity too
  * high (or the load factor too low) if iteration performance is important.<p>
  *
  * <b>Note that this implementation is not synchronized.</b> If multiple
@@ -42,19 +44,29 @@ package java.util;
  * and cleanly, rather than risking arbitrary, non-deterministic behavior at
  * an undetermined time in the future.
  * 
+ * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
+ * as it is, generally speaking, impossible to make any hard guarantees in the
+ * presence of unsynchronized concurrent modification.  Fail-fast iterators
+ * throw <tt>ConcurrentModificationException</tt> on a best-effort basis. 
+ * Therefore, it would be wrong to write a program that depended on this
+ * exception for its correctness: <i>the fail-fast behavior of iterators
+ * should be used only to detect bugs.</i>
+ *
  * @author  Josh Bloch
- * @version 1.20, 02/06/02
+ * @version 1.25, 12/03/01
  * @see	    Collection
  * @see	    Set
  * @see	    TreeSet
  * @see	    Collections#synchronizedSet(Set)
  * @see	    HashMap
- * @since 1.2
+ * @since   1.2
  */
 
 public class HashSet extends AbstractSet
 		     implements Set, Cloneable, java.io.Serializable
 {
+    static final long serialVersionUID = -5024744406713321676L;
+
     private transient HashMap map;
 
     // Dummy value to associate with an Object in the backing Map
@@ -62,7 +74,7 @@ public class HashSet extends AbstractSet
 
     /**
      * Constructs a new, empty set; the backing <tt>HashMap</tt> instance has
-     * default capacity and load factor, which is <tt>0.75</tt>.
+     * default initial capacity (16) and load factor (0.75).
      */
     public HashSet() {
 	map = new HashMap();
@@ -70,14 +82,15 @@ public class HashSet extends AbstractSet
 
     /**
      * Constructs a new set containing the elements in the specified
-     * collection.  The capacity of the backing <tt>HashMap</tt> instance is
-     * twice the size of the specified collection or eleven (whichever is
-     * greater), and the default load factor (which is <tt>0.75</tt>) is used.
+     * collection.  The <tt>HashMap</tt> is created with default load factor
+     * (0.75) and an initial capacity sufficient to contain the elements in
+     * the specified collection.
      *
      * @param c the collection whose elements are to be placed into this set.
+     * @throws NullPointerException   if the specified collection is null.
      */
     public HashSet(Collection c) {
-	map = new HashMap(Math.max(2*c.size(), 11));
+	map = new HashMap(Math.max((int) (c.size()/.75f) + 1, 16));
 	addAll(c);
     }
 
@@ -105,6 +118,23 @@ public class HashSet extends AbstractSet
      */
     public HashSet(int initialCapacity) {
 	map = new HashMap(initialCapacity);
+    }
+
+    /**
+     * Constructs a new, empty linked hash set.  (This package private
+     * constructor is only used by LinkedHashSet.) The backing 
+     * HashMap instance is a LinkedHashMap with the specified initial
+     * capacity and the specified load factor.
+     *
+     * @param      initialCapacity   the initial capacity of the hash map.
+     * @param      loadFactor        the load factor of the hash map.
+     * @param      dummy             ignored (distinguishes this
+     *             constructor from other int, float constructor.)
+     * @throws     IllegalArgumentException if the initial capacity is less
+     *             than zero, or if the load factor is nonpositive.
+     */
+    HashSet(int initialCapacity, float loadFactor, boolean dummy) {
+	map = new LinkedHashMap(initialCapacity, loadFactor);
     }
 
     /**
@@ -159,7 +189,7 @@ public class HashSet extends AbstractSet
     }
 
     /**
-     * Removes the given element from this set if it is present.
+     * Removes the specified element from this set if it is present.
      *
      * @param o object to be removed from this set, if present.
      * @return <tt>true</tt> if the set contained the specified element.
@@ -230,7 +260,9 @@ public class HashSet extends AbstractSet
         // Read in HashMap capacity and load factor and create backing HashMap
         int capacity = s.readInt();
         float loadFactor = s.readFloat();
-        map = new HashMap(capacity, loadFactor);
+        map = (this instanceof LinkedHashSet ?
+               new LinkedHashMap(capacity, loadFactor) :
+               new HashMap(capacity, loadFactor));
 
         // Read in size
         int size = s.readInt();

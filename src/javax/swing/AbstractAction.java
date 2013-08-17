@@ -1,4 +1,6 @@
 /*
+ * @(#)AbstractAction.java	1.46 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -23,13 +25,15 @@ import javax.swing.event.SwingPropertyChangeSupport;
  * define the <code>actionPerformed</code> method. 
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.42 02/06/02
+ * @version 1.46 12/03/01
  * @author Georges Saab
  * @see Action
  */
@@ -128,9 +132,12 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
      */
     public void setEnabled(boolean newValue) {
 	boolean oldValue = this.enabled;
-	this.enabled = newValue;
-	firePropertyChange("enabled", 
-			   new Boolean(oldValue), new Boolean(newValue));
+
+	if (oldValue != newValue) {
+	    this.enabled = newValue;
+	    firePropertyChange("enabled", 
+			       new Boolean(oldValue), new Boolean(newValue));
+	}
     }
 
 
@@ -164,7 +171,8 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
      * <code>PropertyChangeListeners</code>.
      */
     protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
-        if (changeSupport == null) {
+        if (changeSupport == null || 
+	    (oldValue != null && newValue != null && oldValue.equals(newValue))) {
             return;
         }
         changeSupport.firePropertyChange(propertyName, oldValue, newValue);
@@ -210,6 +218,23 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
         changeSupport.removePropertyChangeListener(listener);
     }
 
+
+    /**
+     * Returns an array of all the <code>PropertyChangeListener</code>s added
+     * to this AbstractAction with addPropertyChangeListener().
+     *
+     * @return all of the <code>PropertyChangeListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public synchronized PropertyChangeListener[] getPropertyChangeListeners() {
+        if (changeSupport == null) {
+            return new PropertyChangeListener[0];
+        }
+        return changeSupport.getPropertyChangeListeners();
+    }
+
+
     /**
      * Clones the abstract action. This gives the clone
      * its own copy of the key/value list,
@@ -230,35 +255,8 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
 	// Store the default fields
         s.defaultWriteObject();
 
-	// Store the arrayTable values:
-	Object[] keys = getKeys();
-	int validCount = 0;
-
-	// How many key values are Serializable?
-	if (keys!=null) {
-	    for(int counter = 0; counter < keys.length; counter++) {
-		Object value = getValue((String)keys[counter]);
-		if (value instanceof Serializable) {
-		    validCount++;
-		}
-		else {
-		    keys[counter] = null;
-		}
-	    }
-	}
-	// Record how many pairs will follow
-	s.writeInt(validCount);	
-
-	// Store the Serializable pairs
-	int counter = 0;
-	while (validCount > 0) {
-	    if (keys[counter] != null) {
-		s.writeObject(keys[counter]);
-		s.writeObject(getValue((String)keys[counter]));
-		validCount--;
-	    }
-	    counter++;
-	}
+        // And the keys
+        ArrayTable.writeArrayTable(s, arrayTable);
     }
 
     private void readObject(ObjectInputStream s) throws ClassNotFoundException,
@@ -521,5 +519,52 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
 	    }
 	    table = array;	
 	}
+
+
+        /**
+         * Writes the passed in ArrayTable to the passed in ObjectOutputStream.
+         * The data is saved as an integer indicating how many key/value
+         * pairs are being archived, followed by the the key/value pairs. If
+         * <code>table</code> is null, 0 will be written to <code>s</code>.
+         * <p>
+         * This is a convenience method that ActionMap/InputMap and
+         * AbstractAction use to avoid having the same code in each class.
+         */
+        static void writeArrayTable(ObjectOutputStream s, ArrayTable table) throws IOException {
+            Object keys[];
+
+            if (table == null || (keys = table.getKeys(null)) == null) {
+                s.writeInt(0);
+            }
+            else {
+                // Determine how many keys have Serializable values, when
+                // done all non-null values in keys identify the Serializable
+                // values.
+                int validCount = 0;
+
+                for (int counter = 0; counter < keys.length; counter++) {
+                    if ((keys[counter] instanceof Serializable) &&
+                        (table.get(keys[counter]) instanceof Serializable)) {
+                        validCount++;
+                    }
+                    else {
+                        keys[counter] = null;
+                    }
+                }
+                // Write ou the Serializable key/value pairs.
+                s.writeInt(validCount);
+                if (validCount > 0) {
+                    for (int counter = 0; counter < keys.length; counter++) {
+                        if (keys[counter] != null) {
+                            s.writeObject(keys[counter]);
+                            s.writeObject(table.get(keys[counter]));
+                            if (--validCount == 0) {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

@@ -1,4 +1,6 @@
 /*
+ * @(#)PaintEvent.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,7 +21,7 @@ import java.awt.Rectangle;
  * render themselves properly.
  *
  * @author Amy Fowler
- * @version 1.15, 02/06/02
+ * @version 1.16, 12/03/01
  * @since 1.1
  */
 public class PaintEvent extends ComponentEvent {
@@ -62,8 +64,11 @@ public class PaintEvent extends ComponentEvent {
     private static final long serialVersionUID = 1267492026433337593L;
 
     /**
-     * Constructs a PaintEvent object with the specified source component
-     * and type.
+     * Constructs a <code>PaintEvent</code> object with the specified
+     * source component and type.
+     * <p>Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior.
+     *
      * @param source     the object where the event originated
      * @param id         the event type
      * @param updateRect the rectangle area which needs to be repainted

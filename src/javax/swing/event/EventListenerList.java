@@ -1,4 +1,6 @@
 /*
+ * @(#)EventListenerList.java	1.33 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -64,13 +66,15 @@ import java.lang.reflect.Array;
  * notification method in the FooListener interface.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.29 02/06/02
+ * @version 1.33 12/03/01
  * @author Georges Saab
  * @author Hans Muller
  * @author James Gosling
@@ -103,15 +107,16 @@ public class EventListenerList implements Serializable {
     }
 
     /**
-     * Return an array of all the listeners of the given type.
-     * 
-     * @returns all of the listeners of the specified type. 
+     * Return an array of all the listeners of the given type. 
+     * @return all of the listeners of the specified type. 
+     * @exception  ClassCastException if the supplied class
+     *		is not assignable to EventListener
      * 
      * @since 1.3
      */
     public EventListener[] getListeners(Class t) { 
 	Object[] lList = listenerList; 
-	int n = getListenerCount(t); 
+	int n = getListenerCount(lList, t); 
         EventListener[] result = (EventListener[])Array.newInstance(t, n); 
 	int j = 0; 
 	for (int i = lList.length-2; i>=0; i-=2) {
@@ -134,14 +139,19 @@ public class EventListenerList implements Serializable {
      * for this listener list.
      */
     public int getListenerCount(Class t) {
-	int count = 0;
 	Object[] lList = listenerList;
-	for (int i = 0; i < lList.length; i+=2) {
-	    if (t == (Class)lList[i])
+        return getListenerCount(lList, t);
+    }
+
+    private int getListenerCount(Object[] list, Class t) {
+        int count = 0;
+	for (int i = 0; i < list.length; i+=2) {
+	    if (t == (Class)list[i])
 		count++;
 	}
 	return count;
     }
+
     /**
      * Adds the listener as a listener of the specified type.
      * @param t the type of the listener to be added
@@ -241,8 +251,7 @@ public class EventListenerList implements Serializable {
 	Object listenerTypeOrNull;
 	
 	while (null != (listenerTypeOrNull = s.readObject())) {
-	    //backported from Merlin - Bug #4249035
-	    ClassLoader cl = Thread.currentThread().getContextClassLoader();
+            ClassLoader cl = Thread.currentThread().getContextClassLoader();
 	    EventListener l = (EventListener)s.readObject();
 	    add(Class.forName((String)listenerTypeOrNull, true, cl), l);
 	}	    

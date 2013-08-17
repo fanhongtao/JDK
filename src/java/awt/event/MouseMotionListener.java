@@ -1,4 +1,6 @@
 /*
+ * @(#)MouseMotionListener.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,7 +11,7 @@ import java.util.EventListener;
 
 /**
  * The listener interface for receiving mouse motion events on a component.
- * (For clicks and other mouse events, use the MouseListener.)
+ * (For clicks and other mouse events, use the <code>MouseListener</code>.)
  * <P>
  * The class that is interested in processing a mouse motion event
  * either implements this interface (and all the methods it
@@ -24,7 +26,7 @@ import java.util.EventListener;
  * the <code>MouseEvent</code> is passed to it.
  *
  * @author Amy Fowler
- * @version 1.10 02/06/02
+ * @version 1.12, 12/03/01
  *
  * @see MouseMotionAdapter
  * @see MouseEvent
@@ -37,16 +39,20 @@ public interface MouseMotionListener extends EventListener {
 
     /**
      * Invoked when a mouse button is pressed on a component and then 
-     * dragged.  Mouse drag events will continue to be delivered to
-     * the component where the first originated until the mouse button is
-     * released (regardless of whether the mouse position is within the
-     * bounds of the component).
+     * dragged.  <code>MOUSE_DRAGGED</code> events will continue to be 
+     * delivered to the component where the drag originated until the 
+     * mouse button is released (regardless of whether the mouse position 
+     * is within the bounds of the component).
+     * <p> 
+     * Due to platform-dependent Drag&Drop implementations, 
+     * <code>MOUSE_DRAGGED</code> events may not be delivered during a native 
+     * Drag&Drop operation.  
      */
     public void mouseDragged(MouseEvent e);
 
     /**
      * Invoked when the mouse button has been moved on a component
-     * (with no buttons no down).
+     * (with no buttons down).
      */
     public void mouseMoved(MouseEvent e);
 

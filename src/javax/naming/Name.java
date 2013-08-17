@@ -1,4 +1,6 @@
 /*
+ * @(#)Name.java	1.6 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -32,7 +34,7 @@ import java.util.Enumeration;
  * @author Rosanna Lee
  * @author Scott Seligman
  * @author R. Vasudevan
- * @version 1.6 02/02/06
+ * @version 1.6 01/12/03
  * @since 1.3
  */
 

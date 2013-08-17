@@ -1,4 +1,6 @@
 /*
+ * @(#)JWindow.java	1.52 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,9 +23,8 @@ import javax.accessibility.*;
  * on it.
  * <p>
  * The <code>JWindow</code> component contains a <code>JRootPane</code>
- * as it's only child.
- * The <code>contentPane</code> should be the parent of any children of the
- * <code>JWindow</code>.
+ * as its only child.  The <code>contentPane</code> should be the parent
+ * of any children of the <code>JWindow</code>.
  * From the older <code>java.awt.Window</code> object you would normally do
  * something like this:
  * <pre>
@@ -51,14 +52,16 @@ import javax.accessibility.*;
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JWindow">JWindow</a> key assignments.
+ * <a href="doc-files/Key-Index.html#JWindow"><code>JWindow</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @see JRootPane
  *
@@ -67,7 +70,7 @@ import javax.accessibility.*;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window which has no system border or controls.
  *
- * @version 1.38 02/06/02
+ * @version 1.52 12/03/01
  * @author David Kloba
  */
 public class JWindow extends Window implements Accessible, RootPaneContainer 
@@ -92,9 +95,18 @@ public class JWindow extends Window implements Accessible, RootPaneContainer
      */
     protected boolean rootPaneCheckingEnabled = false;
 
-
     /**
-     * Creates a window with no specified owner.
+     * Creates a window with no specified owner. This window will not be
+     * focusable.
+     * <p>
+     * This constructor sets the component's locale property to the value
+     * returned by <code>JComponent.getDefaultLocale</code>.     
+     *
+     * @throws HeadlessException if
+     *         <code>GraphicsEnvironment.isHeadless()</code> returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see #isFocusableWindow
+     * @see JComponent#getDefaultLocale
      */
     public JWindow() {
         this((Frame)null);
@@ -102,59 +114,113 @@ public class JWindow extends Window implements Accessible, RootPaneContainer
 
     /**
      * Creates a window with the specified <code>GraphicsConfiguration</code>
-     * of a screen device.
+     * of a screen device. This window will not be focusable.
+     * <p>
+     * This constructor sets the component's locale property to the value
+     * returned by <code>JComponent.getDefaultLocale</code>.     
      * 
      * @param gc the <code>GraphicsConfiguration</code> that is used
      * 		to construct the new window with; if gc is <code>null</code>,
      * 		the system default <code>GraphicsConfiguration</code>
      *		is assumed
+     * @throws HeadlessException If
+     *         <code>GraphicsEnvironment.isHeadless()</code> returns true.
+     * @throws IllegalArgumentException if <code>gc</code> is not from
+     * 	       a screen device.
      *
-     * @exception IllegalArgumentException if <code>gc</code> is not from
-     * 				a screen device.
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see #isFocusableWindow
+     * @see JComponent#getDefaultLocale
      *
      * @since  1.3
      */
     public JWindow(GraphicsConfiguration gc) {
-        this((Frame)null, gc);
+        this(null, gc);
+        super.setFocusableWindowState(false);
     }
     
     /**
      * Creates a window with the specified owner frame.
      * If <code>owner</code> is <code>null</code>, the shared owner
-     * will be used.
+     * will be used and this window will not be focusable. Also, 
+     * this window will not be focusable unless its owner is showing
+     * on the screen.
+     * <p>
+     * This constructor sets the component's locale property to the value
+     * returned by <code>JComponent.getDefaultLocale</code>.     
      *
      * @param owner the frame from which the window is displayed
+     * @throws HeadlessException if GraphicsEnvironment.isHeadless()
+     *            returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see #isFocusableWindow
+     * @see JComponent#getDefaultLocale
      */
     public JWindow(Frame owner) {
         super(owner == null? SwingUtilities.getSharedOwnerFrame() : owner);
         windowInit();
-
     }
 
     /**
-     * Creates a window with the owner and the specified
-     * <code>GraphicsConfiguration</code> of a screen device.
-     * @param     owner   the window to act as owner
-     * @param gc the <code>GraphicsConfiguration</code> that is used
-     * 		to construct the new <code>Window</code>;
-     *		if <code>gc</code> is <code>null</code>, the system
-     * 		default <code>GraphicsConfiguration</code> is assumed
-     * @exception IllegalArgumentException if <code>gc</code> is not from
-     * 		a screen device.
-     * @exception IllegalArgumentException if owner is <code>null</code>
-     * @since     1.3
+     * Creates a window with the specified owner window. This window
+     * will not be focusable unless its owner is showing on the screen.
+     * If <code>owner</code> is <code>null</code>, the shared owner
+     * will be used and this window will not be focusable.
+     * <p>
+     * This constructor sets the component's locale property to the value
+     * returned by <code>JComponent.getDefaultLocale</code>.     
+     *
+     * @param owner the window from which the window is displayed
+     * @throws HeadlessException if
+     *         <code>GraphicsEnvironment.isHeadless()</code> returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see #isFocusableWindow
+     * @see JComponent#getDefaultLocale
      */
     public JWindow(Window owner) {
-        super(owner);     
-        windowInit();
-    }
-    public JWindow(Window owner, GraphicsConfiguration gc) {
-        super(owner, gc);     
+        super(owner == null ? (Window)SwingUtilities.getSharedOwnerFrame() :
+              owner);
         windowInit();
     }
 
-    /** Called by the constructors to init the <code>JWindow</code> properly. */
+    /**
+     * Creates a window with the specified owner window and
+     * <code>GraphicsConfiguration</code> of a screen device. If
+     * <code>owner</code> is <code>null</code>, the shared owner will be used
+     * and this window will not be focusable.
+     * <p>
+     * This constructor sets the component's locale property to the value
+     * returned by <code>JComponent.getDefaultLocale</code>.     
+     * 
+     * @param owner the window from which the window is displayed
+     * @param gc the <code>GraphicsConfiguration</code> that is used
+     * 		to construct the new window with; if gc is <code>null</code>,
+     * 		the system default <code>GraphicsConfiguration</code>
+     *		is assumed, unless <code>owner</code> is also null, in which
+     *          case the <code>GraphicsConfiguration</code> from the
+     *          shared owner frame will be used.
+     * @throws HeadlessException if
+     *         <code>GraphicsEnvironment.isHeadless()</code> returns true.
+     * @throws IllegalArgumentException if <code>gc</code> is not from
+     * 	       a screen device.
+     *
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see #isFocusableWindow
+     * @see JComponent#getDefaultLocale
+     *
+     * @since  1.3
+     */
+    public JWindow(Window owner, GraphicsConfiguration gc) {
+        super(owner == null ? (Window)SwingUtilities.getSharedOwnerFrame() :
+              owner, gc);
+        windowInit();
+    }
+
+    /**
+     * Called by the constructors to init the <code>JWindow</code> properly.
+     */
     protected void windowInit() {
+        setLocale( JComponent.getDefaultLocale() );
         setRootPane(createRootPane());
         setRootPaneCheckingEnabled(true);
     }
@@ -182,6 +248,16 @@ public class JWindow extends Window implements Accessible, RootPaneContainer
         return rootPaneCheckingEnabled;
     }
 
+
+    /** 
+     * Calls <code>paint(g)</code>.  This method was overridden to 
+     * prevent an unnecessary call to clear the background.
+     *
+     * @param g  the <code>Graphics</code> context in which to paint
+     */
+    public void update(Graphics g) {
+        paint(g);
+    }
 
     /**
      * Determines whether calls to <code>add</code> and 
@@ -269,7 +345,7 @@ public class JWindow extends Window implements Accessible, RootPaneContainer
      * the layout of its contentPane should be set instead.  
      * For example:
      * <pre>
-     * thisComponent.getContentPane().setLayout(new BorderLayout())
+     * thisComponent.getContentPane().setLayout(new GridLayout(1, 2))
      * </pre>
      * An attempt to set the layout of this component will cause an
      * runtime exception to be thrown.  Subclasses can disable this
@@ -419,7 +495,6 @@ public class JWindow extends Window implements Accessible, RootPaneContainer
         getRootPane().setGlassPane(glassPane);
     }
 
-
     /**
      * Returns a string representation of this <code>JWindow</code>.
      * This method 
@@ -472,5 +547,5 @@ public class JWindow extends Window implements Accessible, RootPaneContainer
     protected class AccessibleJWindow extends AccessibleAWTWindow {
         // everything is in the new parent, AccessibleAWTWindow
     }
-}
 
+}

@@ -1,4 +1,6 @@
 /*
+ * @(#)ICC_ColorSpace.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,7 +22,8 @@ import sun.awt.color.ICC_Transform;
 
 /**
  *  
- * An implementation of the abstract ColorSpace class.  This representation of
+ * The ICC_ColorSpace class is an implementation of the abstract 
+ * ColorSpace class.  This representation of
  * device independent and device dependent color spaces is based on the
  * International Color Consortium Specification ICC.1:1998-09, File Format for
  * Color Profiles, September 1998, and the addendum ICC.1A:1999-04, April 1999,
@@ -65,7 +68,14 @@ import sun.awt.color.ICC_Transform;
 
 public class ICC_ColorSpace extends ColorSpace {
 
+    static final long serialVersionUID = 3455889114070431483L;
+
     private ICC_Profile    thisProfile;
+    private float[] minVal;
+    private float[] maxVal;
+    private float[] diffMinMax;
+    private float[] invDiffMinMax;
+    private boolean needScaleInit = true;
 
     // {to,from}{RGB,CIEXYZ} methods create and cache these when needed
     private transient ICC_Transform this2srgb;
@@ -76,6 +86,7 @@ public class ICC_ColorSpace extends ColorSpace {
 
     /**
     * Constructs a new ICC_ColorSpace from an ICC_Profile object.
+    * @param profile the specified ICC_Profile object
     * @exception IllegalArgumentException if profile is inappropriate for
     *            representing a ColorSpace.
     */
@@ -94,10 +105,12 @@ public class ICC_ColorSpace extends ColorSpace {
         }
 
         thisProfile = profile;
+        setMinMax();
     }
 
     /**
     * Returns the ICC_Profile for this ICC_ColorSpace.
+    * @return the ICC_Profile for this ICC_ColorSpace.
     */
     public ICC_Profile getProfile() {
         return thisProfile;
@@ -119,51 +132,38 @@ public class ICC_ColorSpace extends ColorSpace {
      * {@link #fromCIEXYZ(float[]) fromCIEXYZ} for further information.
      * <p>
      * @param colorvalue a float array with length of at least the number
-           of components in this ColorSpace.
+     *      of components in this ColorSpace.
      * @return a float array of length 3.
+     * @throws ArrayIndexOutOfBoundsException if array length is not
+     * at least the number of components in this ColorSpace.
      */
     public float[]    toRGB (float[] colorvalue) {
-    ICC_Transform[]    transformList;
-    float[]        result;
-    ICC_ColorSpace    srgbCS;
     
         if (this2srgb == null) {
-            transformList = new ICC_Transform [2];
-            
-            srgbCS = (ICC_ColorSpace) ColorSpace.getInstance (CS_sRGB);
-            
+            ICC_Transform[] transformList = new ICC_Transform [2];
+            ICC_ColorSpace srgbCS =
+                (ICC_ColorSpace) ColorSpace.getInstance (CS_sRGB);
             transformList[0] = new ICC_Transform (
                 thisProfile, ICC_Transform.Any, ICC_Transform.In);
             transformList[1] = new ICC_Transform (
                 srgbCS.getProfile(), ICC_Transform.Any, ICC_Transform.Out);
-
             this2srgb = new ICC_Transform (transformList);
+            if (needScaleInit) {
+                setComponentScaling();
+            }
         }
 
-        float[] tmp;
-        if (ColorSpace.isCS_CIEXYZ(this)) {
-            // Fix for 4267139.  We do a specific fix here for the fact that the
-            // ICC encoding for CIEXYZ maps to a range of 0.0 to 2.0, rather than
-            // 0.0 to 1.0 to allow for X and Z values greater than 1.0 (Y values
-            // should never be greater than 1.0).  What this means is that the
-            // Y values passed to xyz2this.colorConvert (1, tmp, result)
-            // should range from 0.0 to 0.5, so they need to be halved here.
-            // REMIND: The only encoding we can know about right now that
-            // requires this fix (given our interfaces to the underlying CMM)
-            // is CIEXYZ, but this probably needs a more general long-term fix.
-            tmp = new float[3];
-            float ALMOST_ONE_HALF = 1.0f / (1.0f + (32767.0f / 32768.0f));
-            tmp[0] = colorvalue[0] * ALMOST_ONE_HALF;
-            tmp[1] = colorvalue[1] * ALMOST_ONE_HALF;
-            tmp[2] = colorvalue[2] * ALMOST_ONE_HALF;
-        } else {
-            tmp = colorvalue;
+        int nc = this.getNumComponents();
+        short tmp[] = new short[nc];
+        for (int i = 0; i < nc; i++) {
+            tmp[i] = (short)
+                ((colorvalue[i] - minVal[i]) * invDiffMinMax[i] + 0.5f);
         }
-
-        result = new float [3];
-
-        this2srgb.colorConvert (1, tmp, result);
-        
+        tmp = this2srgb.colorConvert(tmp, null);
+        float[] result = new float [3];
+        for (int i = 0; i < 3; i++) {
+            result[i] = ((float) (tmp[i] & 0xffff)) / 65535.0f;
+        }
         return result;
     }
 
@@ -184,47 +184,37 @@ public class ICC_ColorSpace extends ColorSpace {
      * <p>
      * @param rgbvalue a float array with length of at least 3.
      * @return a float array with length equal to the number of
-            components in this ColorSpace.
+     *       components in this ColorSpace.
+     * @throws ArrayIndexOutOfBoundsException if array length is not
+     * at least 3.
      */
     public float[]    fromRGB(float[] rgbvalue) {
-    ICC_Transform[]    transformList;
-    float[]        result;
-    ICC_ColorSpace    srgbCS;
     
         if (srgb2this == null) {
-            transformList = new ICC_Transform [2];
-            
-            srgbCS = (ICC_ColorSpace) ColorSpace.getInstance (CS_sRGB);
-            
+            ICC_Transform[] transformList = new ICC_Transform [2];
+            ICC_ColorSpace srgbCS =
+                (ICC_ColorSpace) ColorSpace.getInstance (CS_sRGB);
             transformList[0] = new ICC_Transform (
                 srgbCS.getProfile(), ICC_Transform.Any, ICC_Transform.In);
             transformList[1] = new ICC_Transform (
                 thisProfile, ICC_Transform.Any, ICC_Transform.Out);
-
             srgb2this = new ICC_Transform (transformList);
+            if (needScaleInit) {
+                setComponentScaling();
+            }
         }
 
-        result = new float [this.getNumComponents()];
-
-        srgb2this.colorConvert (1, rgbvalue, result);
-        
-        if (ColorSpace.isCS_CIEXYZ(this)) {
-            // Fix for 4267139.  We do a specific fix here for the fact that the
-            // ICC encoding for CIEXYZ maps to a range of 0.0 to 2.0, rather than
-            // 0.0 to 1.0 to allow for X and Z values greater than 1.0 (Y values
-            // should never be greater than 1.0).  What this means is that the
-            // result Y values returned from this2xyz.colorConvert(1,colorvalue,
-            // result) will range from 0.0 to 0.5, so they need to be doubled
-            // here.
-            // REMIND:  The only encoding we can know about right now that
-            // requires this fix (given our interfaces to the underlying CMM)
-            // is CIEXYZ, but this probably needs a more general long-term fix.
-            float ALMOST_TWO = 1.0f + (32767.0f / 32768.0f);
-            result[0] *= ALMOST_TWO;
-            result[1] *= ALMOST_TWO;
-            result[2] *= ALMOST_TWO;
+        short tmp[] = new short[3];
+        for (int i = 0; i < 3; i++) {
+            tmp[i] = (short) ((rgbvalue[i] * 65535.0f) + 0.5f);
         }
-
+        tmp = srgb2this.colorConvert(tmp, null);
+        int nc = this.getNumComponents();
+        float[] result = new float [nc];
+        for (int i = 0; i < nc; i++) {
+            result[i] = (((float) (tmp[i] & 0xffff)) / 65535.0f) *
+                        diffMinMax[i] + minVal[i];
+        }
         return result;
     }
 
@@ -329,17 +319,15 @@ public class ICC_ColorSpace extends ColorSpace {
      * @param colorvalue a float array with length of at least the number
      *        of components in this ColorSpace.
      * @return a float array of length 3.
+     * @throws ArrayIndexOutOfBoundsException if array length is not
+     * at least the number of components in this ColorSpace.
      */
     public float[]    toCIEXYZ(float[] colorvalue) {
-    ICC_Transform[]    transformList;
-    float[]        result;
-    ICC_ColorSpace    xyzCS;
     
         if (this2xyz == null) {
-            transformList = new ICC_Transform [2];
-            
-            xyzCS = (ICC_ColorSpace) ColorSpace.getInstance (CS_CIEXYZ);
-            
+            ICC_Transform[] transformList = new ICC_Transform [2];
+            ICC_ColorSpace xyzCS =
+                (ICC_ColorSpace) ColorSpace.getInstance (CS_CIEXYZ);
             try {
                 transformList[0] = new ICC_Transform (thisProfile,
                     ICC_Profile.icRelativeColorimetric, ICC_Transform.In);
@@ -349,28 +337,25 @@ public class ICC_ColorSpace extends ColorSpace {
             }
             transformList[1] = new ICC_Transform (xyzCS.getProfile(),
                 ICC_Transform.Any, ICC_Transform.Out);
-
             this2xyz = new ICC_Transform (transformList);
+            if (needScaleInit) {
+                setComponentScaling();
+            }
         }
 
-        result = new float [3];
-
-        this2xyz.colorConvert (1, colorvalue, result);
-
-        // Fix for 4267139.  We do a specific fix here for the fact that the
-        // ICC encoding for CIEXYZ maps to a range of 0.0 to 2.0, rather than
-        // 0.0 to 1.0 to allow for X and Z values greater than 1.0 (Y values
-        // should never be greater than 1.0).  What this means is that the
-        // result Y values returned from this2xyz.colorConvert (1, colorvalue,
-        // result) will range from 0.0 to 0.5, so they need to be doubled here.
-        // REMIND:  The only encoding we can know about right now that requires
-        // this fix (given our interfaces to the underlying CMM) is CIEXYZ,
-        // but this probably needs a more general long-term fix.
+        int nc = this.getNumComponents();
+        short tmp[] = new short[nc];
+        for (int i = 0; i < nc; i++) {
+            tmp[i] = (short)
+                ((colorvalue[i] - minVal[i]) * invDiffMinMax[i] + 0.5f);
+        }
+        tmp = this2xyz.colorConvert(tmp, null);
         float ALMOST_TWO = 1.0f + (32767.0f / 32768.0f);
-        result[0] *= ALMOST_TWO;
-        result[1] *= ALMOST_TWO;
-        result[2] *= ALMOST_TWO;
-        
+        // For CIEXYZ, min = 0.0, max = ALMOST_TWO for all components
+        float[] result = new float [3];
+        for (int i = 0; i < 3; i++) {
+            result[i] = (((float) (tmp[i] & 0xffff)) / 65535.0f) * ALMOST_TWO;
+        }
         return result;
     }
 
@@ -477,17 +462,15 @@ public class ICC_ColorSpace extends ColorSpace {
      * @param colorvalue a float array with length of at least 3.
      * @return a float array with length equal to the number of
      *         components in this ColorSpace.
+     * @throws ArrayIndexOutOfBoundsException if array length is not
+     * at least 3.
      */
     public float[]    fromCIEXYZ(float[] colorvalue) {
-    ICC_Transform[]    transformList;
-    float[]        result;
-    ICC_ColorSpace    xyzCS;
     
         if (xyz2this == null) {
-            transformList = new ICC_Transform [2];
-            
-            xyzCS = (ICC_ColorSpace) ColorSpace.getInstance (CS_CIEXYZ);
-            
+            ICC_Transform[] transformList = new ICC_Transform [2];
+            ICC_ColorSpace xyzCS =
+                (ICC_ColorSpace) ColorSpace.getInstance (CS_CIEXYZ);
             transformList[0] = new ICC_Transform (xyzCS.getProfile(),
                 ICC_Transform.Any, ICC_Transform.In);
             try {
@@ -497,29 +480,112 @@ public class ICC_ColorSpace extends ColorSpace {
                 transformList[1] = new ICC_Transform (thisProfile,
                     ICC_Transform.Any, ICC_Transform.Out);
             }
-
             xyz2this = new ICC_Transform (transformList);
+            if (needScaleInit) {
+                setComponentScaling();
+            }
         }
 
-        // Fix for 4267139.  We do a specific fix here for the fact that the
-        // ICC encoding for CIEXYZ maps to a range of 0.0 to 2.0, rather than
-        // 0.0 to 1.0 to allow for X and Z values greater than 1.0 (Y values
-        // should never be greater than 1.0).  What this means is that the
-        // Y values passed to xyz2this.colorConvert (1, tmp, result)
-        // should range from 0.0 to 0.5, so they need to be halved here.
-        // REMIND: The only encoding we can know about right now that requires
-        // this fix (given our interfaces to the underlying CMM) is CIEXYZ,
-        // but this probably needs a more general long-term fix.
-        float tmp[] = new float[3];
-        float ALMOST_ONE_HALF = 1.0f / (1.0f + (32767.0f / 32768.0f));
-        tmp[0] = colorvalue[0] * ALMOST_ONE_HALF;
-        tmp[1] = colorvalue[1] * ALMOST_ONE_HALF;
-        tmp[2] = colorvalue[2] * ALMOST_ONE_HALF;
-
-        result = new float [this.getNumComponents()];
-
-        xyz2this.colorConvert (1, tmp, result);
-        
+        short tmp[] = new short[3];
+        float ALMOST_TWO = 1.0f + (32767.0f / 32768.0f);
+        float factor = 65535.0f / ALMOST_TWO;
+        // For CIEXYZ, min = 0.0, max = ALMOST_TWO for all components
+        for (int i = 0; i < 3; i++) {
+            tmp[i] = (short) ((colorvalue[i] * factor) + 0.5f);
+        }
+        tmp = xyz2this.colorConvert(tmp, null);
+        int nc = this.getNumComponents();
+        float[] result = new float [nc];
+        for (int i = 0; i < nc; i++) {
+            result[i] = (((float) (tmp[i] & 0xffff)) / 65535.0f) *
+                        diffMinMax[i] + minVal[i];
+        }
         return result;
     }
+
+    /**
+     * Returns the minimum normalized color component value for the
+     * specified component.  For TYPE_XYZ spaces, this method returns
+     * minimum values of 0.0 for all components.  For TYPE_Lab spaces,
+     * this method returns 0.0 for L and -128.0 for a and b components.
+     * This is consistent with the encoding of the XYZ and Lab Profile
+     * Connection Spaces in the ICC specification.  For all other types, this
+     * method returns 0.0 for all components.  When using an ICC_ColorSpace
+     * with a profile that requires different minimum component values,
+     * it is necessary to subclass this class and override this method.
+     * @param component The component index.
+     * @return The minimum normalized component value.
+     * @throws IllegalArgumentException if component is less than 0 or
+     *         greater than numComponents - 1.
+     * @since 1.4
+     */
+    public float getMinValue(int component) {
+        if ((component < 0) || (component > this.getNumComponents() - 1)) {
+            throw new IllegalArgumentException(
+                "Component index out of range: + component");
+        }
+        return minVal[component];
+    }
+
+    /**
+     * Returns the maximum normalized color component value for the
+     * specified component.  For TYPE_XYZ spaces, this method returns
+     * maximum values of 1.0 + (32767.0 / 32768.0) for all components.
+     * For TYPE_Lab spaces,
+     * this method returns 100.0 for L and 127.0 for a and b components.
+     * This is consistent with the encoding of the XYZ and Lab Profile
+     * Connection Spaces in the ICC specification.  For all other types, this
+     * method returns 1.0 for all components.  When using an ICC_ColorSpace
+     * with a profile that requires different maximum component values,
+     * it is necessary to subclass this class and override this method.
+     * @param component The component index.
+     * @return The maximum normalized component value.
+     * @throws IllegalArgumentException if component is less than 0 or
+     *         greater than numComponents - 1.
+     * @since 1.4
+     */
+    public float getMaxValue(int component) {
+        if ((component < 0) || (component > this.getNumComponents() - 1)) {
+            throw new IllegalArgumentException(
+                "Component index out of range: + component");
+        }
+        return maxVal[component];
+    }
+
+    private void setMinMax() {
+        int nc = this.getNumComponents();
+        int type = this.getType();
+        minVal = new float[nc];
+        maxVal = new float[nc];
+        if (type == ColorSpace.TYPE_Lab) {
+            minVal[0] = 0.0f;    // L
+            maxVal[0] = 100.0f;
+            minVal[1] = -128.0f; // a
+            maxVal[1] = 127.0f;
+            minVal[2] = -128.0f; // b
+            maxVal[2] = 127.0f;
+        } else if (type == ColorSpace.TYPE_XYZ) {
+            minVal[0] = minVal[1] = minVal[2] = 0.0f; // X, Y, Z
+            maxVal[0] = maxVal[1] = maxVal[2] = 1.0f + (32767.0f/ 32768.0f);
+        } else {
+            for (int i = 0; i < nc; i++) {
+                minVal[i] = 0.0f;
+                maxVal[i] = 1.0f;
+            }
+        }
+    }
+
+    private void setComponentScaling() {
+        int nc = this.getNumComponents();
+        diffMinMax = new float[nc];
+        invDiffMinMax = new float[nc];
+        for (int i = 0; i < nc; i++) {
+            minVal[i] = this.getMinValue(i); // in case getMinVal is overridden
+            maxVal[i] = this.getMaxValue(i); // in case getMaxVal is overridden
+            diffMinMax[i] = maxVal[i] - minVal[i];
+            invDiffMinMax[i] = 65535.0f / diffMinMax[i];
+        }
+        needScaleInit = false;
+    }
+
 }

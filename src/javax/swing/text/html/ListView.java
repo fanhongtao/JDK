@@ -1,4 +1,6 @@
 /*
+ * @(#)ListView.java	1.26 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -12,7 +14,7 @@ import javax.swing.text.*;
  * A view implementation to display an html list
  *
  * @author  Timothy Prinzing
- * @version 1.26 02/06/02
+ * @version 1.26 12/03/01
  */
 public class ListView extends BlockView  {
 

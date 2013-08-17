@@ -1,4 +1,6 @@
 /*
+ * @(#)Box.java	1.37 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -39,18 +41,20 @@ import javax.accessibility.*;
  * get it by invoking <code>createRigidArea</code>.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @see BoxLayout
  *
  * @author  Timothy Prinzing
- * @version 1.37 02/06/02
+ * @version 1.37 12/03/01
  */
-public class Box extends Container implements Accessible {
+public class Box extends JComponent implements Accessible {
 
     /**
      * Creates a <code>Box</code> that displays its components
@@ -171,7 +175,7 @@ public class Box extends Container implements Accessible {
      * a horizontal box that contains two fixed-size components.
      * If the box gets extra space,
      * the fixed-size components won't become larger,
-     * so where does the extra space go?
+    * so where does the extra space go?
      * Without glue,
      * the extra space goes to the right of the second component.
      * If you put glue between the fixed-size components,
@@ -245,12 +249,14 @@ public class Box extends Container implements Accessible {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
-    public static class Filler extends Component implements Accessible {
+    public static class Filler extends JComponent implements Accessible {
 
 	/**
 	 * Constructor to create shape with the given size ranges.
@@ -346,7 +352,6 @@ public class Box extends Container implements Accessible {
          * <code>Box.Filler</code> class.
          */
 	protected class AccessibleBoxFiller extends AccessibleAWTComponent {
-
             // AccessibleContext methods
             //
             /**
@@ -359,7 +364,6 @@ public class Box extends Container implements Accessible {
             public AccessibleRole getAccessibleRole() {
                 return AccessibleRole.FILLER;
             }
-
         }
     }
 
@@ -393,7 +397,6 @@ public class Box extends Container implements Accessible {
      * <code>Box</code> class.
      */
     protected class AccessibleBox extends AccessibleAWTContainer {
-
         // AccessibleContext methods
         //
         /**
@@ -406,6 +409,5 @@ public class Box extends Container implements Accessible {
         public AccessibleRole getAccessibleRole() {
             return AccessibleRole.FILLER;
         }
-
     } // inner class AccessibleBox
 }

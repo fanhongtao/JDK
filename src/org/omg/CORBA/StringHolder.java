@@ -1,4 +1,6 @@
 /*
+ * @(#)StringHolder.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,6 +12,9 @@ import org.omg.CORBA.portable.InputStream;
 import org.omg.CORBA.portable.OutputStream;
 
 /**
+ * The Holder for <tt>String</tt>.  For more information on 
+ * Holder files, see <a href="doc-files/generatedfiles.html#holder">
+ * "Generated Files: Holder Files"</a>.<P>
  * A Holder class for a <code>String</code>
  * that is used to store "out" and "inout" parameters in IDL operations.
  * If an IDL operation signature has an IDL <code>string</code> as an "out"
@@ -75,7 +80,7 @@ public final class StringHolder implements Streamable {
     }
 
     /**
-     * Retreives the <code>TypeCode</code> object that corresponds to
+     * Retrieves the <code>TypeCode</code> object that corresponds to
      * the value held in this <code>StringHolder</code> object.
      *
      * @return    the type code of the value held in this <code>StringHolder</code>

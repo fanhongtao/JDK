@@ -1,4 +1,6 @@
 /*
+ * @(#)VetoableChangeSupport.java	1.39 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,6 +11,10 @@ import java.io.Serializable;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 
 /**
@@ -45,27 +51,78 @@ public class VetoableChangeSupport implements java.io.Serializable {
 
     public synchronized void addVetoableChangeListener(
 					VetoableChangeListener listener) {
-	if (listeners == null) {
-	    listeners = new java.util.Vector();
-	}
-	listeners.addElement(listener);
+        if (listener instanceof VetoableChangeListenerProxy) {
+            VetoableChangeListenerProxy proxy =
+                    (VetoableChangeListenerProxy)listener;
+            // Call two argument add method.
+            addVetoableChangeListener(proxy.getPropertyName(),
+                    (VetoableChangeListener)proxy.getListener());
+        } else {
+            if (listeners == null) {
+                listeners = new java.util.Vector();
+            }
+        }
+        listeners.addElement(listener);
     }
 
     /**
      * Remove a VetoableChangeListener from the listener list.
-     * This removes a PropertyChangeListener that was registered
+     * This removes a VetoableChangeListener that was registered
      * for all properties.
      *
      * @param listener  The VetoableChangeListener to be removed
      */
     public synchronized void removeVetoableChangeListener(
 					VetoableChangeListener listener) {
-	if (listeners == null) {
-	    return;
-	}
-	listeners.removeElement(listener);
+        if (listener instanceof VetoableChangeListenerProxy) {
+            VetoableChangeListenerProxy proxy =
+                    (VetoableChangeListenerProxy)listener;
+            // Call two argument remove method.
+            removeVetoableChangeListener(proxy.getPropertyName(),
+                    (VetoableChangeListener)proxy.getListener());
+        } else {
+            if (listeners == null) {
+                return;
+            }
+            listeners.removeElement(listener);
+        }
     }
 
+    /**
+     * Returns the list of VetoableChangeListeners. If named vetoable change listeners
+     * were added, then VetoableChangeListenerProxy wrappers will returned
+     * <p>
+     * @return List of VetoableChangeListeners and VetoableChangeListenerProxys
+     *         if named property change listeners were added.
+     * @since 1.4
+     */
+    public synchronized VetoableChangeListener[] getVetoableChangeListeners(){
+        List returnList = new ArrayList();
+
+        // Add all the VetoableChangeListeners
+        if (listeners != null) {
+            returnList.addAll(listeners);
+        }
+
+        // Add all the VetoableChangeListenerProxys
+        if (children != null) {
+            Iterator iterator = children.keySet().iterator();
+            while (iterator.hasNext()) {
+                String key = (String)iterator.next();
+                VetoableChangeSupport child =
+                        (VetoableChangeSupport)children.get(key);
+                VetoableChangeListener[] childListeners =
+                    child.getVetoableChangeListeners();
+                for (int index = childListeners.length - 1; index >= 0;
+                        index--) {
+                    returnList.add(new VetoableChangeListenerProxy(
+                            key, childListeners[index]));
+                }
+            }
+        }
+	return (VetoableChangeListener[])(returnList.toArray(
+                new VetoableChangeListener[0]));
+    }
 
     /**
      * Add a VetoableChangeListener for a specific property.  The listener
@@ -110,6 +167,29 @@ public class VetoableChangeSupport implements java.io.Serializable {
 	child.removeVetoableChangeListener(listener);
     }
 
+    /**
+     * Returns an array of all the listeners which have been associated 
+     * with the named property.
+     *
+     * @return all the <code>VetoableChangeListeners</code> associated with
+     *         the named property or an empty array if no listeners have 
+     *         been added.
+     */
+    public synchronized VetoableChangeListener[] getVetoableChangeListeners(
+            String propertyName) {
+        List returnList = new ArrayList();
+
+        if (children != null) {
+            VetoableChangeSupport support =
+                    (VetoableChangeSupport)children.get(propertyName);
+            if (support != null) {
+                returnList.addAll(
+                        Arrays.asList(support.getVetoableChangeListeners()));
+            }
+        }
+        return (VetoableChangeListener[])(returnList.toArray(new
+                VetoableChangeListener[0]));
+    }
 
     /**
      * Report a vetoable property update to any registered listeners.  If

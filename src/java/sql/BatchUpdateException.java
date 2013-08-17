@@ -1,4 +1,6 @@
 /*
+ * @(#)BatchUpdateException.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -25,9 +27,9 @@ package java.sql;
  * elements for the commands that executed successfully before 
  * the error.  In the case where the driver continues processing
  * commands, the array element for any command
- * that failed is <code>-3</code>.
+ * that failed is <code>Statement.EXECUTE_FAILED</code>.
  * <P>
- * This class is new in the JDBC 2.0 API.
+ * @since 1.2
  */
 
 public class BatchUpdateException extends SQLException {
@@ -43,7 +45,6 @@ public class BatchUpdateException extends SQLException {
    * indicating the update count for a SQL command that executed 
    * successfully before the exception was thrown
    * @since 1.2
-   * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
    */
   public BatchUpdateException( String reason, String SQLState, int vendorCode, 
 			       int[] updateCounts ) {
@@ -62,7 +63,6 @@ public class BatchUpdateException extends SQLException {
    * indicating the update count for a SQL command that executed
    * successfully before the exception was thrown  
    * @since 1.2
-   * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
    */
   public BatchUpdateException(String reason, String SQLState, 
 			      int[] updateCounts) {
@@ -79,7 +79,6 @@ public class BatchUpdateException extends SQLException {
    * indicating the update count for a SQL command that executed
    * successfully before the exception was thrown
    * @since 1.2
-   * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
    */
   public  BatchUpdateException(String reason, int[] updateCounts) {
     super(reason);
@@ -94,7 +93,6 @@ public class BatchUpdateException extends SQLException {
    * indicating the update count for a SQL command that executed
    * successfully before the exception was thrown
    * @since 1.2
-   * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
    */
   public BatchUpdateException(int[] updateCounts) {
     super();
@@ -106,7 +104,6 @@ public class BatchUpdateException extends SQLException {
    * with the reason, SQLState, and update count initialized to
    * <code>null</code> and the vendor code initialized to 0.
    * @since 1.2
-   * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
    */
   public BatchUpdateException() {
     super();
@@ -136,13 +133,12 @@ public class BatchUpdateException extends SQLException {
    * error, one of the following for every command in the batch:
    * <OL>
    * <LI>an update count
-   * <LI><code>-2</code> to indicate that the command
-   * executed successfully but the number of rows affected is unknown
-   * <LI><code>-3</code> to indicate that the command failed to 
-   * execute successfully
+   *  <LI><code>Statement.SUCCESS_NO_INFO</code> to indicate that the command
+   *     executed successfully but the number of rows affected is unknown
+   *  <LI><code>Statement.EXECUTE_FAILED</code> to indicate that the command 
+   *     failed to execute successfully
    * </OL>
    * @since 1.3
-   * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
    */
   public int[] getUpdateCounts() {
     return updateCounts;
@@ -152,7 +148,6 @@ public class BatchUpdateException extends SQLException {
    * The array that describes the outcome of a batch execution.
    * @serial
    * @since 1.2
-   * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
    */
   private int[] updateCounts;
 }

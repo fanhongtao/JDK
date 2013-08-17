@@ -1,4 +1,6 @@
 /*
+ * @(#)AttributeValue.java	1.6 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,7 +18,7 @@ abstract class AttributeValue {
 
     protected AttributeValue(int value, String[] names) {
         if (dbg.on) {
-	    dbg.assert(value >= 0 && names != null && value < names.length);
+	    dbg.assertion(value >= 0 && names != null && value < names.length);
 	}
         this.value = value;
 	this.names = names;

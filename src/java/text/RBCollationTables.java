@@ -1,4 +1,6 @@
 /*
+ * @(#)RBCollationTables.java	1.6 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,6 +21,8 @@
 package java.text;
 
 import java.util.Vector;
+import sun.text.CompactIntArray;
+import sun.text.IntHashtable;
 
 /**
  * This class contains the static state of a RuleBasedCollator: The various
@@ -56,7 +60,7 @@ final class RBCollationTables {
 
     public RBCollationTables(String rules, int decmp) throws ParseException {
         this.rules = rules;
-        
+
         RBTableBuilder builder = new RBTableBuilder(new BuildAPI());
         builder.build(rules, decmp); // this object is filled in through
                                             // the BuildAPI object
@@ -69,7 +73,7 @@ final class RBCollationTables {
          */
         private BuildAPI() {
         }
-        
+
         /**
          * This function is used by RBTableBuilder to fill in all the members of this
          * object.  (Effectively, the builder class functions as a "friend" of this
@@ -78,6 +82,7 @@ final class RBCollationTables {
          * copies them en masse into the actual tables object once all the construction
          * logic is complete.  This function does that "copying en masse".
          * @param f2ary The value for frenchSec (the French-secondary flag)
+	 * @param swap The value for SE Asian swapping rule
          * @param map The collator's character-mapping table (the value for mapping)
          * @param cTbl The collator's contracting-character table (the value for contractTable)
          * @param eTbl The collator's expanding-character table (the value for expandTable)
@@ -87,6 +92,7 @@ final class RBCollationTables {
          * @param mto The value for maxTerOrder
          */
         void fillInTables(boolean f2ary,
+			  boolean swap,
                           CompactIntArray map,
                           Vector cTbl,
                           Vector eTbl,
@@ -94,6 +100,7 @@ final class RBCollationTables {
                           short mso,
                           short mto) {
             frenchSec = f2ary;
+	    seAsianSwapping = swap;
             mapping = map;
             contractTable = cTbl;
             expandTable = eTbl;
@@ -102,7 +109,7 @@ final class RBCollationTables {
             maxTerOrder = mto;
         }
     }
-    
+
     /**
      * Gets the table-based rules for the collation object.
      * @return returns the collation rules that the table collation object
@@ -117,10 +124,14 @@ final class RBCollationTables {
         return frenchSec;
     }
     
+    public boolean isSEAsianSwapping() {
+        return seAsianSwapping;
+    }
+    
     // ==============================================================      
     // internal (for use by CollationElementIterator)
     // ==============================================================
-    
+
     /**
      *  Get the entry of hash table of the contracting string in the collation
      *  table.
@@ -143,7 +154,7 @@ final class RBCollationTables {
             return null;
         }
     }
-    
+
     /**
      * Returns true if this character appears anywhere in a contracting
      * character sequence.  (Used by CollationElementIterator.setOffset().)
@@ -165,7 +176,7 @@ final class RBCollationTables {
     int getMaxExpansion(int order)
     {
         int result = 1;
-        
+
         if (expandTable != null) {
             // Right now this does a linear search through the entire
             // expandsion table.  If a collator had a large number of expansions,
@@ -174,7 +185,7 @@ final class RBCollationTables {
             for (int i = 0; i < expandTable.size(); i++) {
                 int[] valueList = (int [])expandTable.elementAt(i);
                 int length = valueList.length;
-                
+
                 if (length > result && valueList[length-1] == order) {
                     result = length;
                 }
@@ -183,7 +194,7 @@ final class RBCollationTables {
 
         return result;
     }
-    
+
     /**
      *  Get the entry of hash table of the expanding string in the collation
      *  table.
@@ -201,15 +212,15 @@ final class RBCollationTables {
     {
         return mapping.elementAt(ch);
     }
-    
+
     short getMaxSecOrder() {
         return maxSecOrder;
     }
-    
+
     short getMaxTerOrder() {
         return maxTerOrder;
     }
-    
+
     /**
      * Reverse a string.
      */
@@ -227,7 +238,7 @@ final class RBCollationTables {
             j--;
         }
     }
-    
+
     final static int getEntry(Vector list, String name, boolean fwd) {
         for (int i = 0; i < list.size(); i++) {
             EntryPair pair = (EntryPair)list.elementAt(i);
@@ -237,7 +248,7 @@ final class RBCollationTables {
         }
         return UNMAPPED;
     }
-    
+
     // ==============================================================
     // constants
     // ==============================================================
@@ -252,12 +263,13 @@ final class RBCollationTables {
     final static int SECONDARYDIFFERENCEONLY = 0xffffff00;
     final static int PRIMARYORDERSHIFT = 16;
     final static int SECONDARYORDERSHIFT = 8;
-    
+
     // ==============================================================
     // instance variables
     // ==============================================================
     private String rules = null;
     private boolean frenchSec = false;
+    private boolean seAsianSwapping = false;
 
     private CompactIntArray mapping = null;
     private Vector contractTable = null;

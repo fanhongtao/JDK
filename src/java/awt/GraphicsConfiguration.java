@@ -1,4 +1,6 @@
 /*
+ * @(#)GraphicsConfiguration.java	1.32 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,6 +10,7 @@ package java.awt;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
+import java.awt.image.VolatileImage;
 
 /**
  * The <code>GraphicsConfiguration</code> class describes the
@@ -18,7 +21,7 @@ import java.awt.image.ColorModel;
  * to platform.  For example, on X11 windowing systems,
  * each visual is a different <code>GraphicsConfiguration</code>.  
  * On win32, <code>GraphicsConfiguration</code>s represent PixelFormats 
- * available in the current resolution and color depth. 
+ * available in the current resolution and color depth.
  * <p>
  * In a virtual device multi-screen environment in which the desktop
  * area could span multiple physical screen devices, the bounds of the 
@@ -74,11 +77,15 @@ import java.awt.image.ColorModel;
  * capabilities and checking if the GraphicsConfiguration
  * implements the interface for that capability.
  *
- * @version 1.29, 02/06/02
+ * @version 1.32, 12/03/01
  */
 
 
 public abstract class GraphicsConfiguration {
+
+    private static BufferCapabilities defaultBufferCaps;
+    private static ImageCapabilities defaultImageCaps;
+    
     /**
      * This is an abstract class that cannot be instantiated directly.
      * Instances must be obtained from a suitable factory or query method.
@@ -113,6 +120,45 @@ public abstract class GraphicsConfiguration {
      * model is compatible with this <code>GraphicsConfiguration</code>.
      */
     public abstract BufferedImage createCompatibleImage(int width, int height);
+
+    /**
+     * Returns a {@link VolatileImage} with a data layout and color model
+     * compatible with this <code>GraphicsConfiguration</code>.  
+     * The returned <code>VolatileImage</code> 
+     * may have data that is stored optimally for the underlying graphics 
+     * device and may therefore benefit from platform-specific rendering 
+     * acceleration.
+     * @param width the width of the returned <code>VolatileImage</code>
+     * @param height the height of the returned <code>VolatileImage</code>
+     * @return a <code>VolatileImage</code> whose data layout and color
+     * model is compatible with this <code>GraphicsConfiguration</code>.
+     * @see Component#createVolatileImage(int, int)
+     */
+    public abstract VolatileImage createCompatibleVolatileImage(int width, 
+								int height);
+
+    /** 
+     * Returns a {@link VolatileImage} with a data layout and color model 
+     * compatible with this <code>GraphicsConfiguration</code>, using 
+     * the specified image capabilities. 
+     * The returned <code>VolatileImage</code> has 
+     * a layout and color model that is closest to this native device 
+     * configuration and can therefore be optimally blitted to this 
+     * device. 
+     * @return a <code>VolatileImage</code> whose data layout and color 
+     * model is compatible with this <code>GraphicsConfiguration</code>. 
+     * @param width the width of the returned <code>VolatileImage</code> 
+     * @param height the height of the returned <code>VolatileImage</code> 
+     * @param caps the image capabilities 
+     * @exception AWTException if the supplied image capabilities could not 
+     * be met by this graphics configuration 
+     * @since 1.4 
+     */
+    public VolatileImage createCompatibleVolatileImage(int width, int height,
+        ImageCapabilities caps) throws AWTException {
+        // REMIND : check caps
+        return createCompatibleVolatileImage(width, height);
+    }
 
     /**
      * Returns a <code>BufferedImage</code> that supports the specified
@@ -216,6 +262,40 @@ public abstract class GraphicsConfiguration {
      */
     public abstract Rectangle getBounds();
     
+    private static class DefaultBufferCapabilities extends BufferCapabilities {
+        public DefaultBufferCapabilities(ImageCapabilities imageCaps) {
+            super(imageCaps, imageCaps, null);
+        }
+    }
+    
+    /**
+     * Returns the buffering capabilities of this
+     * <code>GraphicsConfiguration</code>.
+     * @return the buffering capabilities of this graphics
+     * configuration object
+     * @since 1.4
+     */
+    public BufferCapabilities getBufferCapabilities() {
+        if (defaultBufferCaps == null) {
+            defaultBufferCaps = new DefaultBufferCapabilities(
+                getImageCapabilities());
+        }
+        return defaultBufferCaps;
+    }
+    
+    /**
+     * Returns the image capabilities of this
+     * <code>GraphicsConfiguration</code>.
+     * @return the image capabilities of this graphics
+     * configuration object
+     * @since 1.4
+     */
+    public ImageCapabilities getImageCapabilities() {
+        if (defaultImageCaps == null) {
+            defaultImageCaps = new ImageCapabilities(false);
+        }
+        return defaultImageCaps;
+    }
     }
 
 

@@ -1,4 +1,6 @@
 /*
+ * @(#)IllegalMonitorStateException.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,7 @@ package java.lang;
  * monitor without owning the specified monitor. 
  *
  * @author  unascribed
- * @version 1.10, 02/06/02
+ * @version 1.10, 12/03/01
  * @see     java.lang.Object#notify()
  * @see     java.lang.Object#notifyAll()
  * @see     java.lang.Object#wait() 

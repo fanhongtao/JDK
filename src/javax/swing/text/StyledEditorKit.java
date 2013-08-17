@@ -1,4 +1,6 @@
 /*
+ * @(#)StyledEditorKit.java	1.41 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,6 +15,7 @@ import javax.swing.event.*;
 import javax.swing.Action;
 import javax.swing.JEditorPane;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
 
 /**
  * This is the set of things needed by a text component
@@ -22,9 +25,17 @@ import javax.swing.KeyStroke;
  * provides a minimal set of actions for editing styled text.
  *
  * @author  Timothy Prinzing
- * @version 1.34 02/06/02
+ * @version 1.41 12/03/01
  */
 public class StyledEditorKit extends DefaultEditorKit {
+
+    /**
+     * Creates a new EditorKit used for styled documents.
+     */
+    public StyledEditorKit() {
+        createInputAttributeUpdated();
+        createInputAttributes();
+    }
 
     /**
      * Gets the input attributes for the pane.  When
@@ -52,17 +63,6 @@ public class StyledEditorKit extends DefaultEditorKit {
     }
 
     // --- EditorKit methods ---------------------------
-
-    /**
-     * Create a copy of the editor kit.  This
-     * allows an implementation to serve as a prototype
-     * for others, so that they can be quickly created.
-     *
-     * @return the copy
-     */
-    public Object clone() {
-	return new StyledEditorKit();
-    }
 
     /**
      * Fetches the command list for the editor.  This is
@@ -137,6 +137,43 @@ public class StyledEditorKit extends DefaultEditorKit {
 	return defaultFactory;
     }
 
+    /**
+     * Creates a copy of the editor kit.
+     *
+     * @return the copy
+     */
+    public Object clone() {
+	StyledEditorKit o = (StyledEditorKit)super.clone();
+        o.currentRun = o.currentParagraph = null;
+        o.createInputAttributeUpdated();
+        o.createInputAttributes();
+	return o;
+    }
+
+    /**
+     * Creates the AttributeSet used for the selection.
+     */
+    private void createInputAttributes() {
+        inputAttributes = new SimpleAttributeSet() {
+            public AttributeSet getResolveParent() {
+                return (currentParagraph != null) ?
+                           currentParagraph.getAttributes() : null;
+            }
+
+            public Object clone() {
+                return new SimpleAttributeSet(this);
+            }
+        };
+    }
+
+    /**
+     * Creates a new <code>AttributeTracker</code>.
+     */
+    private void createInputAttributeUpdated() {
+        inputAttributeUpdater = new AttributeTracker();
+    }
+
+
     private static final ViewFactory defaultFactory = new StyledViewFactory();
 
     Element currentRun;
@@ -146,15 +183,7 @@ public class StyledEditorKit extends DefaultEditorKit {
      * This is the set of attributes used to store the
      * input attributes.  
      */  
-    MutableAttributeSet inputAttributes = new SimpleAttributeSet() {
-        public AttributeSet getResolveParent() {
-	    return (currentParagraph != null) ? currentParagraph.getAttributes() : null;
-	}
-
-	public Object clone() {
-	    return new SimpleAttributeSet(this);
-	}
-    };
+    MutableAttributeSet inputAttributes;
 
     /**
      * This listener will be attached to the caret of 
@@ -162,7 +191,7 @@ public class StyledEditorKit extends DefaultEditorKit {
      * into.  This should keep the input attributes updated
      * for use by the styled actions.
      */
-    private AttributeTracker inputAttributeUpdater = new AttributeTracker();
+    private AttributeTracker inputAttributeUpdater;
 
     /**
      * Tracks caret movement and keeps the input attributes set 
@@ -296,6 +325,7 @@ public class StyledEditorKit extends DefaultEditorKit {
 	new AlignmentAction("right-justify", StyleConstants.ALIGN_RIGHT),
 	new BoldAction(),
 	new ItalicAction(),
+        new StyledInsertBreakAction(),
 	new UnderlineAction()
     };
 
@@ -317,10 +347,12 @@ public class StyledEditorKit extends DefaultEditorKit {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public abstract static class StyledTextAction extends TextAction {
 
@@ -434,10 +466,12 @@ public class StyledEditorKit extends DefaultEditorKit {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class FontFamilyAction extends StyledTextAction {
 
@@ -472,7 +506,7 @@ public class StyledEditorKit extends DefaultEditorKit {
 		    StyleConstants.setFontFamily(attr, family);
 		    setCharacterAttributes(editor, attr, false);
 		} else {
-		    Toolkit.getDefaultToolkit().beep();
+		    UIManager.getLookAndFeel().provideErrorFeedback(editor);
 		}
 	    }
 	}
@@ -488,10 +522,12 @@ public class StyledEditorKit extends DefaultEditorKit {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class FontSizeAction extends StyledTextAction {
 
@@ -527,7 +563,7 @@ public class StyledEditorKit extends DefaultEditorKit {
 		    StyleConstants.setFontSize(attr, size);
 		    setCharacterAttributes(editor, attr, false);
 		} else {
-		    Toolkit.getDefaultToolkit().beep();
+		    UIManager.getLookAndFeel().provideErrorFeedback(editor);
 		}
 	    }
 	}
@@ -553,10 +589,12 @@ public class StyledEditorKit extends DefaultEditorKit {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class ForegroundAction extends StyledTextAction {
 
@@ -592,7 +630,7 @@ public class StyledEditorKit extends DefaultEditorKit {
 		    StyleConstants.setForeground(attr, fg);
 		    setCharacterAttributes(editor, attr, false);
 		} else {
-		    Toolkit.getDefaultToolkit().beep();
+		    UIManager.getLookAndFeel().provideErrorFeedback(editor);
 		}
 	    }
 	}
@@ -617,10 +655,12 @@ public class StyledEditorKit extends DefaultEditorKit {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class AlignmentAction extends StyledTextAction {
 
@@ -665,10 +705,12 @@ public class StyledEditorKit extends DefaultEditorKit {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class BoldAction extends StyledTextAction {
 
@@ -702,10 +744,12 @@ public class StyledEditorKit extends DefaultEditorKit {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class ItalicAction extends StyledTextAction {
 
@@ -739,10 +783,12 @@ public class StyledEditorKit extends DefaultEditorKit {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class UnderlineAction extends StyledTextAction {
 
@@ -771,4 +817,58 @@ public class StyledEditorKit extends DefaultEditorKit {
 	}
     }
 
+
+    /**
+     * StyledInsertBreakAction has similar behavior to that of
+     * <code>DefaultEditorKit.InsertBreakAction</code>. That is when
+     * its <code>actionPerformed</code> method is invoked, a newline
+     * is inserted. Beyond that, this will reset the input attributes to
+     * what they were before the newline was inserted.
+     */
+    static class StyledInsertBreakAction extends StyledTextAction {
+        private SimpleAttributeSet tempSet;
+
+        StyledInsertBreakAction() {
+            super(insertBreakAction);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            JEditorPane target = getEditor(e);
+
+            if (target != null) {
+		if ((!target.isEditable()) || (!target.isEnabled())) {
+		    UIManager.getLookAndFeel().provideErrorFeedback(target);
+		    return;
+		}
+                StyledEditorKit sek = getStyledEditorKit(target);
+
+                if (tempSet != null) {
+                    tempSet.removeAttributes(tempSet);
+                }
+                else {
+                    tempSet = new SimpleAttributeSet();
+                }
+                tempSet.addAttributes(sek.getInputAttributes());
+                target.replaceSelection("\n");
+
+                MutableAttributeSet ia = sek.getInputAttributes();
+
+                ia.removeAttributes(ia);
+                ia.addAttributes(tempSet);
+                tempSet.removeAttributes(tempSet);
+            }
+            else {
+                // See if we are in a JTextComponent.
+                JTextComponent text = getTextComponent(e);
+
+                if (text != null) {
+                    if ((!text.isEditable()) || (!text.isEnabled())) {
+		        UIManager.getLookAndFeel().provideErrorFeedback(target);
+                        return;
+                    }
+                    text.replaceSelection("\n");
+                }
+            }
+        }
+    }
 }

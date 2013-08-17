@@ -1,5 +1,7 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * @(#)PlainSocketImpl.java	1.56 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,50 +16,32 @@ import java.io.ByteArrayOutputStream;
 
 /**
  * Default Socket Implementation. This implementation does
- * not implement any security checks.  It does support SOCKS version 4.
+ * not implement any security checks.
  * Note this class should <b>NOT</b> be public.
  *
  * @author  Steven B. Byrne
- * @version 1.42, 09/19/01
+ * @version 1.56, 12/03/01
  */
 class PlainSocketImpl extends SocketImpl
 {
-    /* timeout value for connection */
-    static int preferredConnectionTimeout = 0;
-
     /* instance variable for SO_TIMEOUT */
     int timeout;   // timeout in millisec
-
-    /* SOCKS related constants */
-
-    private static final int SOCKS_PROTO_VERS		= 4;
-    private static final int SOCKS_REPLY_VERS		= 4;
-
-    private static final int COMMAND_CONNECT		= 1;
-    private static final int COMMAND_BIND		= 2;
-
-    private static final int REQUEST_GRANTED		= 90;
-    private static final int REQUEST_REJECTED		= 91;
-    private static final int REQUEST_REJECTED_NO_IDENTD  = 92;
-    private static final int REQUEST_REJECTED_DIFF_IDENTS = 93;
-
-    public static final String socksServerProp		= "socksProxyHost";
-    public static final String socksPortProp		= "socksProxyPort";
-
-    public static final String socksDefaultPortStr	= "1080";
+    // traffic class
+    private int trafficClass;
 
     private boolean shut_rd = false;
     private boolean shut_wr = false;
     
     private SocketInputStream socketInputStream = null;
+
     /* number of threads using the FileDescriptor */
     private int fdUseCount = 0;
 
     /* lock when increment/decrementing fdUseCount */
     private Object fdLock = new Object();
-	
+
     /* indicates a close is pending on the file descriptor */
-    private boolean closePending = false;    
+    private boolean closePending = false;
 
     /**
      * Load net library into runtime.
@@ -65,12 +49,19 @@ class PlainSocketImpl extends SocketImpl
     static {
 	java.security.AccessController.doPrivileged(
 		  new sun.security.action.LoadLibraryAction("net"));
-	String s = (String)java.security.AccessController.doPrivileged(
-		  new sun.security.action.GetPropertyAction("java.net.connectiontimeout"));
-	if (s != null) {
-	    preferredConnectionTimeout = Integer.parseInt(s);
-	}
 	initProto();
+    }
+
+    /**
+     * Constructs an empty instance.
+     */
+    PlainSocketImpl() { }
+
+    /**
+     * Constructs an instance with the given file descriptor.
+     */
+    PlainSocketImpl(FileDescriptor fd) {
+	this.fd = fd;
     }
 
     /**
@@ -78,8 +69,12 @@ class PlainSocketImpl extends SocketImpl
      * is a stream socket (true) or an unconnected UDP socket (false).
      */
     protected synchronized void create(boolean stream) throws IOException {
-        fd = new FileDescriptor();
-        socketCreate(stream);
+	fd = new FileDescriptor();
+	socketCreate(stream);
+	if (socket != null)
+	    socket.setCreated();
+	if (serverSocket != null)
+	    serverSocket.setCreated();
     }
 
     /**
@@ -96,7 +91,7 @@ class PlainSocketImpl extends SocketImpl
 	    InetAddress address = InetAddress.getByName(host);
 
 	    try {
-		connectToAddress(address, port);
+		connectToAddress(address, port, timeout);
 		return;
 	    } catch (IOException e) {
 		pending = e;
@@ -121,7 +116,7 @@ class PlainSocketImpl extends SocketImpl
 	this.address = address;
 
 	try {
-	    connectToAddress(address, port);
+	    connectToAddress(address, port, timeout);
 	    return;
 	} catch (IOException e) {
 	    // everything failed
@@ -130,15 +125,47 @@ class PlainSocketImpl extends SocketImpl
 	}
     }
 
-    private void connectToAddress(InetAddress address, int port) throws IOException {
-	if (usingSocks()) {
-	    doSOCKSConnect(address, port);
+    /**
+     * Creates a socket and connects it to the specified address on
+     * the specified port.
+     * @param address the address
+     * @param timeout the timeout value in milliseconds, or zero for no timeout.
+     * @throws IOException if connection fails
+     * @throws  IllegalArgumentException if address is null or is a
+     *          SocketAddress subclass not supported by this socket
+     * @since 1.4
+     */
+    protected void connect(SocketAddress address, int timeout) throws IOException {
+	if (address == null || !(address instanceof InetSocketAddress))
+	    throw new IllegalArgumentException("unsupported address type");
+	InetSocketAddress addr = (InetSocketAddress) address;
+	if (addr.isUnresolved())
+	    throw new UnknownHostException(addr.getHostName());
+	this.port = addr.getPort();
+	this.address = addr.getAddress();
+
+	try {
+	    connectToAddress(this.address, port, timeout);
+	    return;
+	} catch (IOException e) {
+	    // everything failed
+	    close();
+	    throw e;
+	}
+    }
+
+    private void connectToAddress(InetAddress address, int port, int timeout) throws IOException {
+	if (address.isAnyLocalAddress()) {
+	    doConnect(InetAddress.getLocalHost(), port, timeout);
 	} else {
-	    doConnect(address, port);
+	    doConnect(address, port, timeout);
 	}
     }
 
     public void setOption(int opt, Object val) throws SocketException {
+	if (isClosedOrPending()) {
+	    throw new SocketException("Socket Closed");
+	}
 	boolean on = true;
 	switch (opt) {
 	    /* check type safety b4 going native.  These should never
@@ -160,7 +187,13 @@ class PlainSocketImpl extends SocketImpl
 	    if (tmp < 0)
 		throw new IllegalArgumentException("timeout < 0");
 	    timeout = tmp;
-	    return;
+	    break;
+	case IP_TOS:
+	     if (val == null || !(val instanceof Integer)) {
+		 throw new SocketException("bad argument for IP_TOS");
+	     }
+	     trafficClass = ((Integer)val).intValue();
+	     break;
 	case SO_BINDADDR:
 	    throw new SocketException("Cannot re-bind socket");
 	case TCP_NODELAY:
@@ -181,17 +214,29 @@ class PlainSocketImpl extends SocketImpl
 		throw new SocketException("bad parameter for SO_KEEPALIVE");
 	    on = ((Boolean)val).booleanValue();
 	    break;
+	case SO_OOBINLINE:
+	    if (val == null || !(val instanceof Boolean))
+		throw new SocketException("bad parameter for SO_OOBINLINE");
+	    on = ((Boolean)val).booleanValue();
+	    break;
+	case SO_REUSEADDR:
+	    if (val == null || !(val instanceof Boolean)) 
+	        throw new SocketException("bad parameter for SO_REUSEADDR");
+	    on = ((Boolean)val).booleanValue();
+	    break;
 	default:
 	    throw new SocketException("unrecognized TCP option: " + opt);
 	}
 	socketSetOption(opt, on, val);
     }
-
     public Object getOption(int opt) throws SocketException {
+	if (isClosedOrPending()) {
+	    throw new SocketException("Socket Closed");
+	}
 	if (opt == SO_TIMEOUT) {
 	    return new Integer(timeout);
 	}
-	int ret = socketGetOption(opt);
+	int ret = 0;
 	/*
 	 * The native socketGetOption() knows about 3 options.
 	 * The 32 bit value it returns will be interpreted according
@@ -202,17 +247,34 @@ class PlainSocketImpl extends SocketImpl
 
 	switch (opt) {
 	case TCP_NODELAY:
+	    ret = socketGetOption(opt, null);
+	    return (ret == -1) ? new Boolean(false): new Boolean(true);
+	case SO_OOBINLINE:
+	    ret = socketGetOption(opt, null);
 	    return (ret == -1) ? new Boolean(false): new Boolean(true);
 	case SO_LINGER:
+	    ret = socketGetOption(opt, null);
 	    return (ret == -1) ? new Boolean(false): (Object)(new Integer(ret));
+	case SO_REUSEADDR:
+	    ret = socketGetOption(opt, null);
+	    return (ret == -1) ? new Boolean(false): new Boolean(true);
 	case SO_BINDADDR:
-	    InetAddress in = new InetAddress();
-	    in.address = ret;
-	    return in;
+	    InetAddressContainer in = new InetAddressContainer();
+	    ret = socketGetOption(opt, in); 
+	    return in.addr;
 	case SO_SNDBUF:
         case SO_RCVBUF:
+	    ret = socketGetOption(opt, null);
 	    return new Integer(ret);
+	case IP_TOS:
+	    ret = socketGetOption(opt, null);
+	    if (ret == -1) { // ipv6 tos
+		return new Integer(trafficClass);
+	    } else {
+		return new Integer(ret);
+	    }
 	case SO_KEEPALIVE:
+	    ret = socketGetOption(opt, null);
   	    return (ret == -1) ? new Boolean(false): new Boolean(true);
 	// should never get here
 	default:
@@ -221,220 +283,32 @@ class PlainSocketImpl extends SocketImpl
     }
 
     /**
-     * Connect to the SOCKS server using the SOCKS connection protocol.
-     */
-    private void doSOCKSConnect(InetAddress address, int port)
-    throws IOException {
-	connectToSocksServer();
-
-	sendSOCKSCommandPacket(COMMAND_CONNECT, address, port);
-
-	int protoStatus = getSOCKSReply();
-
-	switch (protoStatus) {
-	  case REQUEST_GRANTED:
-	    // connection set up, return control to the socket client
-	    return;
-
-	  case REQUEST_REJECTED:
-	  case REQUEST_REJECTED_NO_IDENTD:
-		throw new SocketException("SOCKS server cannot connect to identd");
-
-	  case REQUEST_REJECTED_DIFF_IDENTS:
-	    throw new SocketException("User name does not match identd name");
-	}
-    }
-
-
-    /**
-     * Read the response from the socks server.  Return the result code.
-     */
-    private int getSOCKSReply() throws IOException {
-     InputStream in = null;
-	byte response[] = new byte[8];
-        int bytesReceived = 0;
-        int len = response.length;
-
-
-
-try {
- 	    in = (InputStream) java.security.AccessController.doPrivileged(
- 		       new java.security.PrivilegedExceptionAction() {
- 			       public Object run() throws IOException {
- 				   return getInputStream();
- 			       }
- 			   });
- 	} catch(java.security.PrivilegedActionException pae) {
- 	    throw (IOException) pae.getException();
- 	}
-
-
-
-
-
-	for (int attempts = 0; bytesReceived<len &&  attempts<3; attempts++) {
-	    int count = in.read(response, bytesReceived, len - bytesReceived);
-	    if (count < 0)
-		throw new SocketException("Malformed reply from SOCKS server");
-	    bytesReceived += count;
-	}
-
- 	if (bytesReceived != len) {
- 	    throw new SocketException("Reply from SOCKS server has bad length: " + bytesReceived);
-  	}
-
-	if (response[0] != 0) { // should be version0 
-	    throw new SocketException("Reply from SOCKS server has bad version " + response[0]);
-	}
-
-	return response[1];	// the response code
-    }
-
-    /**
-     * Just set up a connection to the SOCKS server and return.  The caller
-     * needs to handle the SOCKS initiation protocol with the server after
-     * the connection is established.
-     */
-    private void connectToSocksServer() throws IOException {
-
-	String socksPortString = null;
-
-	final String socksServerString = (String) java.security.AccessController.doPrivileged(
-               new sun.security.action.GetPropertyAction(socksServerProp));
-	socksPortString = (String) java.security.AccessController.doPrivileged(
-               new sun.security.action.GetPropertyAction(socksPortProp,
-							 socksDefaultPortStr));
-
-	if (socksServerString == null) {
-	    // REMIND: this is too trusting of its (internal) callers --
-	    // needs to robustly assert that SOCKS are in fact being used,
-	    // and signal an error (in some manner) if SOCKS are not being
-	    // used.
-	    return;
-	}
-
-	InetAddress socksServer = null; 
-                // InetAddress.getByName(socksServerString);
-try {	
-       socksServer = (InetAddress)java.security.AccessController.doPrivileged(new java.security.PrivilegedExceptionAction() {
-      public Object run() throws UnknownHostException {
-      return InetAddress.getByName(socksServerString);
-       }
- 			});
- 	} catch(java.security.PrivilegedActionException pae) {
- 	    throw (UnknownHostException) pae.getException();
- 	}
-
-	int socksServerPort;
-	try {
-	    socksServerPort = Integer.parseInt(socksPortString);
-	} catch (Exception e) {
-	    throw new SocketException("Bad port number format");
-	}
-
-	doConnect(socksServer, socksServerPort);
-    }
-
-
-    /**
      * The workhorse of the connection operation.  Tries several times to
      * establish a connection to the given <host, port>.  If unsuccessful,
      * throws an IOException indicating what went wrong.
      */
 
-    private void doConnect(InetAddress address, int port) throws IOException {
-	IOException pending = null;
-
-	for (int i = 0 ; i < 3 ; i++) {
+    private synchronized void doConnect(InetAddress address, int port, int timeout) throws IOException {
+        try {
+	    FileDescriptor fd = acquireFD();
 	    try {
-		socketConnect(address, port);
-		return;
-	    } catch (ProtocolException e) {
-		// Try again in case of a protocol exception
-		close();
-		fd = new FileDescriptor();
-		socketCreate(true);
-		pending = e;
-	    } catch (IOException e) {
-		// Let someone else deal with this exception
-		close();
-		throw e;
+	        socketConnect(address, port, timeout);
+		// If we have a ref. to the Socket, then sets the flags
+		// created, bound & connected to true.
+		// This is normally done in Socket.connect() but some
+		// subclasses of Socket may call impl.connect() directly!
+		if (socket != null) {
+		    socket.setBound();
+		    socket.setConnected();
+		}
+	    } finally {
+		releaseFD();
 	    }
+	} catch (IOException e) {	
+	    close();
+	    throw e;
 	}
-
-	// failed to connect -- tell our client the bad news
-	close();
-	throw pending;
     }
-
-
-    /**
-     * Just creates and sends out to the connected socket a SOCKS command
-     * packet.
-     */
-    private void sendSOCKSCommandPacket(int command, InetAddress address,
-					int port) throws IOException {
-
-        byte commandPacket[] = makeCommandPacket(command, address, port);
-
-
-       OutputStream out = null;
- 	try {
- 	    out = (OutputStream) java.security.AccessController.doPrivileged(
- 		       new java.security.PrivilegedExceptionAction() {
- 			       public Object run() throws IOException {
- 				   return getOutputStream();
- 			       }
- 			   });
- 	} catch(java.security.PrivilegedActionException pae) {
- 	    throw (IOException) pae.getException();
- 	}
-
-	out.write(commandPacket);
-    }
-
-    /**
-     * Create and return a SOCKS V4 command packet.
-     */
-    private byte[] makeCommandPacket(int command, InetAddress address,
-					int port) {
-
-	// base packet size = 8, + 1 null byte
-	ByteArrayOutputStream byteStream = new ByteArrayOutputStream(8 + 1);
-
-	byteStream.write(SOCKS_PROTO_VERS);
-	byteStream.write(command);
-
-
-	byteStream.write((port >> 8) & 0xff);
-	byteStream.write((port >> 0) & 0xff);
-
-	byte addressBytes[] = address.getAddress();
-	byteStream.write(addressBytes, 0, addressBytes.length);
-
-	String userName = (String) java.security.AccessController.doPrivileged(
-               new sun.security.action.GetPropertyAction("user.name"));
-
-	byte userNameBytes[] = new byte[userName.length()];
-	userName.getBytes(0, userName.length(), userNameBytes, 0);
-
-	byteStream.write(userNameBytes, 0, userNameBytes.length);
-	byteStream.write(0);	// null termination for user name
-
-	return byteStream.toByteArray();
-    }
-
-    /**
-     * Returns true if implementation should use the SOCKS protocol
-     * (i.e. the user has set the required properties to enable SOCKS to
-     * be used).
-     */
-    private boolean usingSocks() {
-	String ssp = (String) java.security.AccessController.doPrivileged(
-               new sun.security.action.GetPropertyAction(socksServerProp));
-	return (ssp != null);
-    }
-
 
     /**
      * Binds the socket to the specified address of the specified local port.
@@ -445,6 +319,10 @@ try {
 	throws IOException
     {
 	socketBind(address, lport);
+	if (socket != null)
+	    socket.setBound();
+	if (serverSocket != null)
+	    serverSocket.setBound();
     }
 
     /**
@@ -460,7 +338,12 @@ try {
      * @param s the connection
      */
     protected synchronized void accept(SocketImpl s) throws IOException {
-	socketAccept(s);
+	FileDescriptor fd = acquireFD();
+	try {
+	    socketAccept(s);
+	} finally {
+	    releaseFD();
+	}
     }
 
     /**
@@ -477,6 +360,10 @@ try {
 	    socketInputStream = new SocketInputStream(this);
 	}
 	return socketInputStream;
+    }
+
+    void setInputStream(SocketInputStream in) {
+	socketInputStream = in;
     }
 
     /**
@@ -496,8 +383,9 @@ try {
      * Returns the number of bytes that can be read without blocking.
      */
     protected synchronized int available() throws IOException {
-        if (isClosedOrPending())
+	if (isClosedOrPending()) {
             throw new IOException("Stream closed.");
+	}
 	return socketAvailable();
     }
 
@@ -505,81 +393,30 @@ try {
      * Closes the socket.
      */
     protected void close() throws IOException {
-        synchronized(fdLock) {
-            if (fd != null) {
-                if (fdUseCount == 0) {
-                   if (closePending) {
-                       return;
-                   }
-                   closePending = true;
-                   socketClose(false);
-                   fd = null;
-                   return;
-                } else {
+	synchronized(fdLock) {
+	    if (fd != null) {
+		if (fdUseCount == 0) {
+		    closePending = true;
+		    socketClose0(false);
+		    fd = null;
+		    return;
+		} else {
 		    /*
 		     * If a thread has acquired the fd and a close
 		     * isn't pending then use a deferred close.
 		     * Also decrement fdUseCount to signal the last
 		     * thread that releases the fd to close it.
 		     */
-                    if (!closePending) {
-                        closePending = true;
-                        fdUseCount--;
-                        socketClose(true);
-                    }
-                }
-            }
-        }
-    }
-  
-    /*
-     * "Acquires" and returns the FileDescriptor for this impl
-     *
-     * A corresponding releaseFD is required to "release" the
-     * FileDescriptor.
-     */
-    public final FileDescriptor acquireFD() {
-        synchronized (fdLock) {
-            fdUseCount++;
-            return fd;
-        }
+		    if (!closePending) {
+			closePending = true;
+		        fdUseCount--;
+		        socketClose0(true);
+		    }
+		}
+	    }
+	}
     }
 
-    /*
-     * "Release" the FileDescriptor for this impl.
-     *
-     * If the use count goes to -1 then the socket is closed.
-     */
-    public final void releaseFD() {
-        synchronized (fdLock) {
-            fdUseCount--;
-            if (fdUseCount == -1) {
-                if (fd != null) {
-                    try {
-                        socketClose(false);
-                    } catch (IOException e) {
-                    } finally {
-                       fd = null;
-                    }
-                }
-            }
-        }
-    }
-	
-    public boolean isClosedOrPending() {
-        /*
-         * Lock on fdLock to ensure that we wait if a
-         * close is in progress.
-         */
-        synchronized (fdLock) {
-            if (closePending || fd == null) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
- 
 
     /**
      * Shutdown read-half of the socket connection;
@@ -604,6 +441,17 @@ try {
       }
     } 
 
+    protected boolean supportsUrgentData () {
+        return true;
+    }
+
+    protected void sendUrgentData (int data) throws IOException {
+        if (fd == null) {
+            throw new IOException("Socket Closed");
+        }
+        socketSendUrgentData (data);
+    }
+
     /**
      * Cleans up if the user forgets to close it.
      */
@@ -611,8 +459,67 @@ try {
 	close();
     }
 
+
+    /*
+     * "Acquires" and returns the FileDescriptor for this impl
+     *
+     * A corresponding releaseFD is required to "release" the
+     * FileDescriptor.
+     */
+    public final FileDescriptor acquireFD() {
+	synchronized (fdLock) {
+	    fdUseCount++;
+	    return fd;
+	}
+    }
+
+    /*
+     * "Release" the FileDescriptor for this impl. 
+     *
+     * If the use count goes to -1 then the socket is closed.
+     */
+    public final void releaseFD() {
+	synchronized (fdLock) {
+	    fdUseCount--;
+	    if (fdUseCount == -1) {
+		if (fd != null) {
+	            try {
+		        socketClose0(false);
+	            } catch (IOException e) { 
+		    } finally {
+		        fd = null;
+		    }
+		}
+	    }
+	}
+    }
+
+    /*
+     * Return true if already closed or close is pending
+     */
+    public boolean isClosedOrPending() {
+	/*
+	 * Lock on fdLock to ensure that we wait if a
+	 * close is in progress.
+	 */
+	synchronized (fdLock) {
+	    if (closePending || fd == null) {
+		return true;
+	    } else {
+		return false;
+	    }
+	}
+    }
+
+    /*
+     * Return the current value of SO_TIMEOUT
+     */
+    public int getTimeout() {
+	return timeout;
+    }
+
     private native void socketCreate(boolean isServer) throws IOException;
-    private native void socketConnect(InetAddress address, int port)
+    private native void socketConnect(InetAddress address, int port, int timeout)
 	throws IOException;
     private native void socketBind(InetAddress address, int port)
 	throws IOException;
@@ -622,15 +529,21 @@ try {
 	throws IOException;
     private native int socketAvailable()
 	throws IOException;
-    private native void socketClose(boolean useDeferredClose)
+    private native void socketClose0(boolean useDeferredClose)
 	throws IOException;
     private native void socketShutdown(int howto)
 	throws IOException;
     private static native void initProto();
     private native void socketSetOption(int cmd, boolean on, Object value)
 	throws SocketException;
-    private native int socketGetOption(int opt) throws SocketException;
+    private native int socketGetOption(int opt, Object iaContainerObj) throws SocketException;
+    private native void socketSendUrgentData(int data)
+        throws IOException;
 
     public final static int SHUT_RD = 0;
     public final static int SHUT_WR = 1;
+}
+
+class InetAddressContainer {
+    InetAddress addr;
 }

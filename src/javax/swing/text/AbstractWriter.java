@@ -1,4 +1,6 @@
 /*
+ * @(#)AbstractWriter.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,7 +19,7 @@ import java.util.Enumeration;
  * But this value can be set by subclasses.
  *
  * @author Sunita Mani
- * @version 1.15, 02/06/02
+ * @version 1.16, 12/03/01
  */
 
 public abstract class AbstractWriter {
@@ -250,10 +252,10 @@ public abstract class AbstractWriter {
      * leaf element.  Throws a BadLocationException
      * when encountered.
      *
-     * @param     an Element.
+     * @param     an <code>Element</code>
      * @exception BadLocationException if pos represents an invalid
-     *            location within the document.
-     * @returns   the text as a String.
+     *            location within the document
+     * @return    the text as a <code>String</code>
      */
     protected String getText(Element elem) throws BadLocationException {
 	return doc.getText(elem.getStartOffset(),

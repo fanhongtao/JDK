@@ -1,4 +1,6 @@
 /*
+ * @(#)AdjustmentListener.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,7 @@ import java.util.EventListener;
  * The listener interface for receiving adjustment events. 
  *
  * @author Amy Fowler
- * @version 1.12 02/06/02
+ * @version 1.12 12/03/01
  * @since 1.1
  */
 public interface AdjustmentListener extends EventListener {

@@ -1,4 +1,6 @@
 /*
+ * @(#)DefaultTreeCellRenderer.java	1.46 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -39,17 +41,23 @@ import java.util.*;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
- * @version 1.41 02/06/02
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
+ * 
+ * @version 1.46 12/03/01
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
  */
 public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
 {
+    /** Last tree the renderer was painted in. */
+    private JTree tree;
+
     /** Is the value currently selected. */
     protected boolean selected;
     /** True if has focus. */
@@ -80,7 +88,7 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
     /** Color to use for the background when the node isn't selected. */
     protected Color backgroundNonSelectionColor;
 
-    /** Color to use for the background when the node isn't selected. */
+    /** Color to use for the focus indicator when the node has focus. */
     protected Color borderSelectionColor;
 
     /**
@@ -258,6 +266,22 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
     }
 
     /**
+     * Gets the font of this component.
+     * @return this component's font; if a font has not been set
+     * for this component, the font of its parent is returned
+     */
+    public Font getFont() {
+        Font font = super.getFont();
+
+        if (font == null && tree != null) {
+            // Strive to return a non-null value, otherwise the html support
+            // will typically pick up the wrong font in certain situations.
+            font = tree.getFont();
+        }
+        return font;
+    }
+
+    /**
      * Subclassed to map <code>ColorUIResource</code>s to null. If 
      * <code>color</code> is null, or a <code>ColorUIResource</code>, this
      * has the effect of letting the background color of the JTree show
@@ -287,6 +311,7 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
 	String         stringValue = tree.convertValueToText(value, sel,
 					  expanded, leaf, row, hasFocus);
 
+        this.tree = tree;
 	this.hasFocus = hasFocus;
 	setText(stringValue);
 	if(sel)

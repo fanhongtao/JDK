@@ -1,4 +1,6 @@
 /*
+ * @(#)LinkedList.java	1.43 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -45,8 +47,16 @@ package java.util;
  * cleanly, rather than risking arbitrary, non-deterministic behavior at an
  * undetermined time in the future.
  *
+ * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
+ * as it is, generally speaking, impossible to make any hard guarantees in the
+ * presence of unsynchronized concurrent modification.  Fail-fast iterators
+ * throw <tt>ConcurrentModificationException</tt> on a best-effort basis. 
+ * Therefore, it would be wrong to write a program that depended on this
+ * exception for its correctness:   <i>the fail-fast behavior of iterators
+ * should be used only to detect bugs.</i>
+ *
  * @author  Josh Bloch
- * @version 1.33, 02/06/02
+ * @version 1.43, 12/03/01 
  * @see	    List
  * @see	    ArrayList
  * @see	    Vector
@@ -72,7 +82,8 @@ public class LinkedList extends AbstractSequentialList
      * collection, in the order they are returned by the collection's
      * iterator.
      *
-     * @param c the collection whose elements are to be placed into this list.
+     * @param  c the collection whose elements are to be placed into this list.
+     * @throws NullPointerException if the specified collection is null.
      */
      public LinkedList(Collection c) {
 	 this();
@@ -83,6 +94,7 @@ public class LinkedList extends AbstractSequentialList
      * Returns the first element in this list.
      *
      * @return the first element in this list.
+     * @throws    NoSuchElementException if this list is empty.
      */
     public Object getFirst() {
 	if (size==0)
@@ -219,9 +231,8 @@ public class LinkedList extends AbstractSequentialList
      * the specified Collection is this list, and this list is nonempty.)
      *
      * @param c the elements to be inserted into this list.
-     * 
-     * @throws IndexOutOfBoundsException if the specified index is out of
-     *         range (<tt>index &lt; 0 || index &gt; size()</tt>).
+     * @return <tt>true</tt> if this list changed as a result of the call.
+     * @throws NullPointerException if the specified collection is null.
      */
     public boolean addAll(Collection c) {
         return addAll(size, c);
@@ -238,8 +249,10 @@ public class LinkedList extends AbstractSequentialList
      * @param index index at which to insert first element
      *		    from the specified collection.
      * @param c elements to be inserted into this list.
+     * @return <tt>true</tt> if this list changed as a result of the call.
      * @throws IndexOutOfBoundsException if the specified index is out of
      *            range (<tt>index &lt; 0 || index &gt; size()</tt>).
+     * @throws NullPointerException if the specified collection is null.
      */
     public boolean addAll(int index, Collection c) {
 	int numNew = c.size();
@@ -343,7 +356,7 @@ public class LinkedList extends AbstractSequentialList
             throw new IndexOutOfBoundsException("Index: "+index+
                                                 ", Size: "+size);
         Entry e = header;
-        if (index < size/2) {
+        if (index < (size >> 1)) {
             for (int i = 0; i <= index; i++)
                 e = e.next;
         } else {
@@ -452,7 +465,7 @@ public class LinkedList extends AbstractSequentialList
 	    if (index < 0 || index > size)
 		throw new IndexOutOfBoundsException("Index: "+index+
 						    ", Size: "+size);
-	    if (index < size/2) {
+	    if (index < (size >> 1)) {
 		next = header.next;
 		for (nextIndex=0; nextIndex<index; nextIndex++)
 		    next = next.next;
@@ -501,7 +514,12 @@ public class LinkedList extends AbstractSequentialList
 	}
 
 	public void remove() {
-	    LinkedList.this.remove(lastReturned);
+            checkForComodification();
+            try {
+                LinkedList.this.remove(lastReturned);
+            } catch (NoSuchElementException e) {
+                throw new IllegalStateException();
+            }
 	    if (next==lastReturned)
                 next = lastReturned.next;
             else
@@ -606,7 +624,7 @@ public class LinkedList extends AbstractSequentialList
 
     /**
      * Returns an array containing all of the elements in this list in
-     * the correct order.  The runtime type of the returned array is that of
+     * the correct order; the runtime type of the returned array is that of
      * the specified array.  If the list fits in the specified array, it
      * is returned therein.  Otherwise, a new array is allocated with the
      * runtime type of the specified array and the size of this list.<p>
@@ -624,6 +642,7 @@ public class LinkedList extends AbstractSequentialList
      * @return an array containing the elements of the list.
      * @throws ArrayStoreException if the runtime type of a is not a
      *         supertype of the runtime type of every element in this list.
+     * @throws NullPointerException if the specified array is null.
      */
     public Object[] toArray(Object a[]) {
         if (a.length < size)
@@ -647,7 +666,8 @@ public class LinkedList extends AbstractSequentialList
      *
      * @serialData The size of the list (the number of elements it
      *		   contains) is emitted (int), followed by all of its
-     * elements (each an Object) in the proper order.  */
+     * elements (each an Object) in the proper order.  
+     */
     private synchronized void writeObject(java.io.ObjectOutputStream s)
         throws java.io.IOException {
 	// Write out any hidden serialization magic

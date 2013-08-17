@@ -1,4 +1,6 @@
 /*
+ * @(#)ListSelectionEvent.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,12 +20,14 @@ import javax.swing.*;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.16 02/06/02
+ * @version 1.18 12/03/01
  * @author Hans Muller
  * @author Ray Ryan
  * @see ListSelectionModel
@@ -35,15 +39,16 @@ public class ListSelectionEvent extends EventObject
     private boolean isAdjusting;
 
     /** 
-     * Represents a change in selection status between firstIndex
-     * and lastIndex inclusive (firstIndex is less than or equal to 
-     * lastIndex).  Atleast one of the rows within the range will
-     * have changed, a good ListSelectionModel implementation will
+     * Represents a change in selection status between <code>firstIndex</code>
+     * and <code>lastIndex</code> inclusive
+     * (</code>firstIndex</code> is less than or equal to 
+     * <code>lastIndex</code>).  At least one of the rows within the range will
+     * have changed, a good <code>ListSelectionModel</code> implementation will
      * keep the range as small as possible.
      * 
-     * @param firstIndex The first index that changed.
-     * @param lastIndex The last index that changed, lastIndex >= firstIndex.
-     * @param isAdjusting An indication that this is one of rapid a series of events
+     * @param firstIndex the first index that changed
+     * @param lastIndex the last index that changed, lastIndex >= firstIndex
+     * @param isAdjusting an indication that this is one of rapid a series of events
      */
     public ListSelectionEvent(Object source, int firstIndex, int lastIndex,
 			      boolean isAdjusting)
@@ -56,14 +61,14 @@ public class ListSelectionEvent extends EventObject
 
     /**
      * Returns the index of the first row whose selection may have changed.
-     * @return The first row whose selection value may have changed,
+     * @return the first row whose selection value may have changed,
      *         where zero is the first row
      */
     public int getFirstIndex() { return firstIndex; }
 
     /**
      * Returns the index of the last row whose selection may have changed.
-     * @return The last row whose selection value may have changed,
+     * @return the last row whose selection value may have changed,
      *         where zero is the first row
      */
     public int getLastIndex() { return lastIndex; }

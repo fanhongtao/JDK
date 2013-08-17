@@ -1,4 +1,6 @@
 /*
+ * @(#)ViewFactory.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -12,7 +14,7 @@ import java.awt.Container;
  * mapped over a document model. 
  *
  * @author  Timothy Prinzing
- * @version 1.16 02/06/02
+ * @version 1.16 12/03/01
  */
 public interface ViewFactory {
 

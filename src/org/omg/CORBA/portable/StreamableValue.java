@@ -1,4 +1,6 @@
 /*
+ * @(#)StreamableValue.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,7 +17,7 @@ package org.omg.CORBA.portable;
  * StreamableValue or CustomValue interface.
  *
  * @author OMG
- * @version 1.9 02/06/02
+ * @version 1.10 12/03/01
  */
 public interface StreamableValue extends Streamable, ValueBase {
 

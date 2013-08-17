@@ -1,4 +1,6 @@
 /*
+ * @(#)TreeModelEvent.java	1.30 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,12 +21,14 @@ import javax.swing.tree.TreePath;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.27 02/06/02
+ * @version 1.30 12/03/01
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -42,7 +46,7 @@ public class TreeModelEvent extends EventObject {
      * removed, identifying the path to the parent of the modified items as
      * an array of Objects. All of the modified objects are siblings which are
      * direct descendents (not grandchildren) of the specified parent.
-     * The positions at which the inserts, deletes, or changes occured are
+     * The positions at which the inserts, deletes, or changes occurred are
      * specified by an array of <code>int</code>. The indexes in that array
      * must be in order, from lowest to highest.
      * <p>
@@ -277,7 +281,7 @@ public class TreeModelEvent extends EventObject {
 	if(path != null)
 	    retBuffer.append(" path " + path);
 	if(childIndices != null) {
-	    retBuffer.append(" indicices [ ");
+	    retBuffer.append(" indices [ ");
 	    for(int counter = 0; counter < childIndices.length; counter++)
 		retBuffer.append(Integer.toString(childIndices[counter])+ " ");
 	    retBuffer.append("]");

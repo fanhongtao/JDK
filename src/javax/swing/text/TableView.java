@@ -1,4 +1,6 @@
 /*
+ * @(#)TableView.java	1.30 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -45,7 +47,7 @@ import javax.swing.text.html.HTML;
  * spans if desired).
  * 
  * @author  Timothy Prinzing
- * @version 1.29 02/06/02
+ * @version 1.30 12/03/01
  * @see     View
  */
 public abstract class TableView extends BoxView {
@@ -277,8 +279,8 @@ public abstract class TableView extends BoxView {
      *  each column.
      * @param offsets the return value of the offset from the
      *  origin for each column.
-     * @returns the offset from the origin and the span for each column 
-     *  in the offsets and spans parameters.
+     * @return the offset from the origin and the span for each column 
+     *  in the offsets and spans parameters
      */
     protected void layoutColumns(int targetSpan, int[] offsets, int[] spans, 
 				 SizeRequirements[] reqs) {
@@ -308,8 +310,8 @@ public abstract class TableView extends BoxView {
      *  filled in by the implementation of this method.
      * @param spans the span of each child view.  This is a return
      *  value and is filled in by the implementation of this method.
-     * @returns the offset and span for each child view in the
-     *  offsets and spans parameters.
+     * @return the offset and span for each child view in the
+     *  offsets and spans parameters
      */
     protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
 	// make grid is properly represented
@@ -529,8 +531,8 @@ public abstract class TableView extends BoxView {
      * @param pos  the search position >= 0
      * @param a  the allocation to the table on entry, and the
      *   allocation of the view containing the position on exit
-     * @returns  the view representing the given position, or 
-     *   null if there isn't one
+     * @return  the view representing the given position, or 
+     *   <code>null</code> if there isn't one
      */
     protected View getViewAtPosition(int pos, Rectangle a) {
         int n = getViewCount();
@@ -647,8 +649,8 @@ public abstract class TableView extends BoxView {
 	 *  filled in by the implementation of this method.
 	 * @param spans the span of each child view.  This is a return
 	 *  value and is filled in by the implementation of this method.
-	 * @returns the offset and span for each child view in the
-	 *  offsets and spans parameters.
+	 * @return the offset and span for each child view in the
+	 *  offsets and spans parameters
 	 */
         protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
 	    int col = 0;
@@ -693,8 +695,8 @@ public abstract class TableView extends BoxView {
 	 *  filled in by the implementation of this method.
 	 * @param spans the span of each child view.  This is a return
 	 *  value and is filled in by the implementation of this method.
-	 * @returns the offset and span for each child view in the
-	 *  offsets and spans parameters.
+	 * @return the offset and span for each child view in the
+	 *  offsets and spans parameters
 	 */
         protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
 	    super.layoutMinorAxis(targetSpan, axis, offsets, spans);
@@ -745,8 +747,8 @@ public abstract class TableView extends BoxView {
 	 * @param pos  the search position >= 0
 	 * @param a  the allocation to the table on entry, and the
 	 *   allocation of the view containing the position on exit
-	 * @returns  the view representing the given position, or 
-	 *   null if there isn't one
+	 * @return  the view representing the given position, or 
+	 *   <code>null</code> if there isn't one
 	 */
         protected View getViewAtPosition(int pos, Rectangle a) {
 	    int n = getViewCount();

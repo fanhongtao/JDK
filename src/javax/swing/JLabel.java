@@ -1,4 +1,6 @@
 /*
+ * @(#)JLabel.java	1.110 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -64,17 +66,19 @@ import java.util.*;
  * for further documentation.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @beaninfo
  *   attribute: isContainer false
  * description: A component that displays a short string and an icon.
  * 
- * @version 1.103 03/28/02
+ * @version 1.110 12/03/01
  * @author Hans Muller
  */
 public class JLabel extends JComponent implements SwingConstants, Accessible
@@ -86,6 +90,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
     private static final String uiClassID = "LabelUI";
 
     private int mnemonic = '\0';
+    private int mnemonicIndex = -1;
 
     private String text = "";         // "" rather than null, for BeanBox
     private Icon defaultIcon = null;
@@ -224,8 +229,10 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      * @param ui  the LabelUI L&F object
      * @see UIDefaults#getUI
      * @beaninfo
-     *      expert: true
-     *  description: The L&F object that renders this component.
+     *        bound: true
+     *       hidden: true
+     *    attribute: visualUpdate true
+     *  description: The UI object that implements the Component's LookAndFeel. 
      */
     public void setUI(LabelUI ui) {
         super.setUI(ui);
@@ -233,8 +240,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 
 
     /**
-     * Notification from the UIFactory that the L&F
-     * has changed. 
+     * Resets the UI property to a value from the current look and feel.
      *
      * @see JComponent#updateUI
      */
@@ -295,6 +301,10 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
         String oldValue = this.text;
         this.text = text;
         firePropertyChange("text", oldValue, text);
+
+        setDisplayedMnemonicIndex(
+                      SwingUtilities.findDisplayedMnemonicIndex(
+                                          text, getDisplayedMnemonic()));
 
         if ((accessibleContext != null) 
             && (accessibleContext.getAccessibleName() != oldAccessibleName)) {
@@ -425,7 +435,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
     public void setDisabledIcon(Icon disabledIcon) {
         Icon oldValue = this.disabledIcon;
         this.disabledIcon = disabledIcon;
-        disabledIconSet = true;
+        disabledIconSet = (disabledIcon != null);
         firePropertyChange("disabledIcon", oldValue, disabledIcon);
         if (disabledIcon != oldValue) {
             if (disabledIcon == null || oldValue == null ||
@@ -458,6 +468,10 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
         int oldKey = mnemonic;
         mnemonic = key;
         firePropertyChange("displayedMnemonic", oldKey, mnemonic);
+
+        setDisplayedMnemonicIndex(
+            SwingUtilities.findDisplayedMnemonicIndex(getText(), mnemonic));
+
         if (key != oldKey) {
             revalidate();
             repaint();
@@ -495,6 +509,64 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
         return mnemonic;
     }
 
+    /**
+     * Provides a hint to the look and feel as to which character in the
+     * text should be decorated to represent the mnemonic. Not all look and
+     * feels may support this. A value of -1 indicates either there is no
+     * mnemonic, the mnemonic character is not contained in the string, or
+     * the developer does not wish the mnemonic to be displayed.
+     * <p>
+     * The value of this is updated as the properties relating to the
+     * mnemonic change (such as the mnemonic itself, the text...).
+     * You should only ever have to call this if
+     * you do not wish the default character to be underlined. For example, if
+     * the text was 'Save As', with a mnemonic of 'a', and you wanted the 'A'
+     * to be decorated, as 'Save <u>A</u>s', you would have to invoke
+     * <code>setDisplayedMnemonicIndex(5)</code> after invoking
+     * <code>setMnemonic(KeyEvent.VK_A)</code>.
+     *
+     * @since 1.4
+     * @param index Index into the String to underline
+     * @exception IllegalArgumentException will be thrown if <code>index</code
+     *            is >= length of the text, or < -1
+     *
+     * @beaninfo
+     *        bound: true
+     *    attribute: visualUpdate true
+     *  description: the index into the String to draw the keyboard character
+     *               mnemonic at
+     */
+    public void setDisplayedMnemonicIndex(int index)
+                                             throws IllegalArgumentException {
+        int oldValue = mnemonicIndex;
+        if (index == -1) {
+            mnemonicIndex = -1;
+        } else {
+            String text = getText();
+            int textLength = (text == null) ? 0 : text.length();
+            if (index < -1 || index >= textLength) {  // index out of range
+                throw new IllegalArgumentException("index == " + index);
+            }
+        }
+        mnemonicIndex = index;
+        firePropertyChange("displayedMnemonicIndex", oldValue, index);
+        if (index != oldValue) {
+            revalidate();
+            repaint();
+        }
+    }
+
+    /**
+     * Returns the character, as an index, that the look and feel should
+     * provide decoration for as representing the mnemonic character.
+     *
+     * @since 1.4
+     * @return index representing mnemonic character
+     * @see #setDisplayedMnemonicIndex
+     */
+    public int getDisplayedMnemonicIndex() {
+        return mnemonicIndex;
+    }
 
     /**
      * Verify that key is a legal value for the horizontalAlignment properties.
@@ -790,7 +862,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 
 
     /**
-     * This is overriden to return false if the current Icon's Image is
+     * This is overridden to return false if the current Icon's Image is
      * not equal to the passed in Image <code>img</code>.
      *
      * @see     java.awt.image.ImageObserver
@@ -798,8 +870,9 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      */
     public boolean imageUpdate(Image img, int infoflags,
 			       int x, int y, int w, int h) {
-	if (!isShowing() ||
-	    !SwingUtilities.doesIconReferenceImage(getIcon(), img) &&
+        // Don't use getDisabledIcon, will trigger creation of icon if icon
+        // not set.
+	if (!SwingUtilities.doesIconReferenceImage(getIcon(), img) &&
 	    !SwingUtilities.doesIconReferenceImage(disabledIcon, img)) {
 	    return false;
 	}
@@ -813,8 +886,12 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-        if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-            ui.installUI(this);
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
         }
     }
 
@@ -854,6 +931,10 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
             horizontalAlignmentString = "CENTER";
         } else if (horizontalAlignment == RIGHT) {
             horizontalAlignmentString = "RIGHT";
+        } else if (horizontalAlignment == LEADING) {
+            horizontalAlignmentString = "LEADING";
+        } else if (horizontalAlignment == TRAILING) {
+            horizontalAlignmentString = "TRAILING";
         } else horizontalAlignmentString = "";
         String verticalTextPositionString;
         if (verticalTextPosition == TOP) {
@@ -870,6 +951,10 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
             horizontalTextPositionString = "CENTER";
         } else if (horizontalTextPosition == RIGHT) {
             horizontalTextPositionString = "RIGHT";
+        } else if (horizontalTextPosition == LEADING) {
+            horizontalTextPositionString = "LEADING";
+        } else if (horizontalTextPosition == TRAILING) {
+            horizontalTextPositionString = "TRAILING";
         } else horizontalTextPositionString = "";
 
 	return super.paramString() +
@@ -954,13 +1039,15 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJLabel extends AccessibleJComponent
-        implements AccessibleText {
+        implements AccessibleText, AccessibleExtendedComponent {
 
         /**
          * Get the accessible name of this object.  
@@ -1149,7 +1236,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
             case AccessibleText.WORD:
                 try {
                     String s = getText(0, getCharCount());
-                    BreakIterator words = BreakIterator.getWordInstance();
+                    BreakIterator words = BreakIterator.getWordInstance(getLocale());
                     words.setText(s);
                     int end = words.following(index);
                     return s.substring(words.previous(), end);
@@ -1160,7 +1247,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
                 try {
                     String s = getText(0, getCharCount());
                     BreakIterator sentence = 
-			BreakIterator.getSentenceInstance();
+			BreakIterator.getSentenceInstance(getLocale());
                     sentence.setText(s);
                     int end = sentence.following(index);
                     return s.substring(sentence.previous(), end);
@@ -1198,7 +1285,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
             case AccessibleText.WORD:
                 try {
                     String s = getText(0, getCharCount());
-                    BreakIterator words = BreakIterator.getWordInstance();
+                    BreakIterator words = BreakIterator.getWordInstance(getLocale());
                     words.setText(s);
                     int start = words.following(index);
 		    if (start == BreakIterator.DONE || start >= s.length()) {
@@ -1216,7 +1303,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
                 try {
                     String s = getText(0, getCharCount());
                     BreakIterator sentence = 
-			BreakIterator.getSentenceInstance();
+			BreakIterator.getSentenceInstance(getLocale());
                     sentence.setText(s);
                     int start = sentence.following(index);
 		    if (start == BreakIterator.DONE || start >= s.length()) {
@@ -1261,7 +1348,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
             case AccessibleText.WORD:
                 try {
                     String s = getText(0, getCharCount());
-                    BreakIterator words = BreakIterator.getWordInstance();
+                    BreakIterator words = BreakIterator.getWordInstance(getLocale());
                     words.setText(s);
                     int end = words.following(index);
                     end = words.previous();
@@ -1277,7 +1364,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
                 try {
                     String s = getText(0, getCharCount());
                     BreakIterator sentence = 
-			BreakIterator.getSentenceInstance();
+			BreakIterator.getSentenceInstance(getLocale());
                     sentence.setText(s);
                     int end = sentence.following(index);
                     end = sentence.previous();
@@ -1409,6 +1496,101 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 		JLabel.this.getIconTextGap());
 
 	    return paintTextR;
+	}
+
+        // ----- AccessibleExtendedComponent
+
+	/**
+	 * Returns the AccessibleExtendedComponent
+	 *
+	 * @return the AccessibleExtendedComponent
+	 */
+	AccessibleExtendedComponent getAccessibleExtendedComponent() {
+	    return this;
+	}
+
+	/**
+	 * Returns the tool tip text
+	 *
+	 * @return the tool tip text, if supported, of the object; 
+	 * otherwise, null
+	 */
+	public String getToolTipText() {
+	    return JLabel.this.getToolTipText();
+	}
+	
+	/**
+	 * Returns the titled border text
+	 *
+	 * @return the titled border text, if supported, of the object; 
+	 * otherwise, null
+	 */
+	public String getTitledBorderText() {
+	    return super.getTitledBorderText();
+	}
+	    
+	/**
+	 * Returns key bindings associated with this object
+	 *
+	 * @return the key bindings, if supported, of the object; 
+	 * otherwise, null
+	 * @see AccessibleKeyBinding
+	 */
+	public AccessibleKeyBinding getAccessibleKeyBinding() {
+	    int mnemonic = JLabel.this.getDisplayedMnemonic();
+	    if (mnemonic == 0) {
+		return null;
+	    }
+	    return new LabelKeyBinding(mnemonic);
+	}
+
+	class LabelKeyBinding implements AccessibleKeyBinding {
+	    int mnemonic;
+
+	    LabelKeyBinding(int mnemonic) {
+		this.mnemonic = mnemonic;
+	    }
+
+	    /**
+	     * Returns the number of key bindings for this object
+	     *
+	     * @return the zero-based number of key bindings for this object
+	     */
+	    public int getAccessibleKeyBindingCount() {
+		return 1;
+	    }
+	    
+	    /**
+	     * Returns a key binding for this object.  The value returned is an
+	     * java.lang.Object which must be cast to appropriate type depending
+	     * on the underlying implementation of the key.  For example, if the
+	     * Object returned is a javax.swing.KeyStroke, the user of this
+	     * method should do the following:
+	     * <nf><code>
+	     * Component c = <get the component that has the key bindings>
+	     * AccessibleContext ac = c.getAccessibleContext();
+	     * AccessibleKeyBinding akb = ac.getAccessibleKeyBinding();
+	     * for (int i = 0; i < akb.getAccessibleKeyBindingCount(); i++) {
+	     *     Object o = akb.getAccessibleKeyBinding(i);
+	     *     if (o instanceof javax.swing.KeyStroke) {
+	     *         javax.swing.KeyStroke keyStroke = (javax.swing.KeyStroke)o;
+	     *         <do something with the key binding>
+	     *     }
+	     * }
+	     * </code></nf>
+	     *
+	     * @param i zero-based index of the key bindings
+	     * @return a javax.lang.Object which specifies the key binding
+	     * @exception IllegalArgumentException if the index is
+	     * out of bounds
+	     * @see #getAccessibleKeyBindingCount
+	     */
+	    public java.lang.Object getAccessibleKeyBinding(int i) {
+		if (i != 0) {
+		    throw new IllegalArgumentException();
+		}
+		return KeyStroke.getKeyStroke(mnemonic, 0);
+	    }
 	}
 	
     }  // AccessibleJComponent

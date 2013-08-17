@@ -1,4 +1,6 @@
 /*
+ * @(#)AncestorEvent.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,12 +16,14 @@ import javax.swing.*;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version %I% %G%
+ * @version 1.17 12/03/01
  * @author Dave Moore
  */
 public class AncestorEvent extends AWTEvent {
@@ -58,14 +62,14 @@ public class AncestorEvent extends AWTEvent {
     }
 
     /**
-     * Returns the ancestor that the event actually occured on.
+     * Returns the ancestor that the event actually occurred on.
      */
     public Container getAncestor() {
         return ancestor;
     }
 
     /**
-     * Returns the parent of the ancestor the event actually occured on.
+     * Returns the parent of the ancestor the event actually occurred on.
      * This is most interesting in an ANCESTOR_REMOVED event, as
      * the ancestor may no longer be in the component hierarchy.
      */

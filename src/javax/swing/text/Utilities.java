@@ -1,27 +1,33 @@
 /*
+ * @(#)Utilities.java	1.38 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
 import java.lang.reflect.Method;
+
 import java.awt.Rectangle;
 import java.awt.Graphics;
 import java.awt.FontMetrics;
+import java.awt.Shape;
 import java.awt.Toolkit;
-import java.text.*;
 import java.awt.Graphics2D;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
 import java.awt.font.TextAttribute;
-import java.text.AttributedString;
+
+import java.text.*;
+import javax.swing.SwingConstants;
+
 
 /**
  * A collection of methods to deal with various text
  * related activities.
  * 
  * @author  Timothy Prinzing
- * @version 1.32 02/06/02
+ * @version 1.38 12/03/01
  */
 public class Utilities {
 
@@ -38,7 +44,7 @@ public class Utilities {
      * @param e  how to expand the tabs.  If this value is null, 
      *   tabs will be expanded as a space character.
      * @param startOffset starting offset of the text in the document >= 0
-     * @returns  the X location at the end of the rendered text
+     * @return  the X location at the end of the rendered text
      */
     public static final int drawTabbedText(Segment s, int x, int y, Graphics g, 
 					   TabExpander e, int startOffset) {
@@ -91,7 +97,7 @@ public class Utilities {
      * @param e  how to expand the tabs.  If this value is null, 
      *   tabs will be expanded as a space character.
      * @param startOffset starting offset of the text in the document >= 0
-     * @returns  the width of the text
+     * @return  the width of the text
      */
     public static final int getTabbedTextWidth(Segment s, FontMetrics metrics, int x, 
 					       TabExpander e, int startOffset) {
@@ -131,7 +137,7 @@ public class Utilities {
      * @param e  how to expand the tabs.  If this value is null, 
      *   tabs will be expanded as a space character.
      * @param startOffset starting offset of the text in the document >= 0
-     * @returns  the offset into the text >= 0
+     * @return  the offset into the text >= 0
      */
     public static final int getTabbedTextOffset(Segment s, FontMetrics metrics, 
 					     int x0, int x, TabExpander e,
@@ -144,6 +150,10 @@ public class Utilities {
 						int x0, int x, TabExpander e,
 						int startOffset, 
 						boolean round) {
+        if (x0 >= x) {
+            // x before x0, return.
+            return 0;
+        }
 	int currX = x0;
 	int nextX = currX;
 	// s may be a shared segment, so it is copied prior to calling
@@ -191,7 +201,7 @@ public class Utilities {
      * @param e  how to expand the tabs.  If this value is null, 
      *   tabs will be expanded as a space character.
      * @param startOffset starting offset in the document of the text
-     * @returns  the offset into the given text.
+     * @return  the offset into the given text
      */
     public static final int getBreakLocation(Segment s, FontMetrics metrics,
 					     int x0, int x, TabExpander e,
@@ -350,7 +360,7 @@ public class Utilities {
      * 
      * @param c the editor
      * @param offs the offset in the document >= 0
-     * @returns the location in the model of the word start >= 0.
+     * @return the location in the model of the word start >= 0
      * @exception BadLocationException if the offset is out of range
      */
     public static final int getWordStart(JTextComponent c, int offs) throws BadLocationException {
@@ -364,7 +374,7 @@ public class Utilities {
 	
 	String s = doc.getText(lineStart, lineEnd - lineStart);
 	if(s != null && s.length() > 0) {
-	    BreakIterator words = BreakIterator.getWordInstance();
+	    BreakIterator words = BreakIterator.getWordInstance(c.getLocale());
 	    words.setText(s);
 	    int wordPosition = offs - lineStart;
 	    if(wordPosition >= words.last()) {
@@ -382,7 +392,7 @@ public class Utilities {
      * 
      * @param c the editor
      * @param offs the offset in the document >= 0
-     * @returns the location in the model of the word end >= 0.
+     * @return the location in the model of the word end >= 0
      * @exception BadLocationException if the offset is out of range
      */
     public static final int getWordEnd(JTextComponent c, int offs) throws BadLocationException {
@@ -396,7 +406,7 @@ public class Utilities {
 	
 	String s = doc.getText(lineStart, lineEnd - lineStart);
 	if(s != null && s.length() > 0) {
-	    BreakIterator words = BreakIterator.getWordInstance();
+            BreakIterator words = BreakIterator.getWordInstance(c.getLocale());
 	    words.setText(s);
 	    int wordPosition = offs - lineStart;
 	    if(wordPosition >= words.last()) {
@@ -413,15 +423,15 @@ public class Utilities {
      * 
      * @param c the editor
      * @param offs the offset in the document >= 0
-     * @returns the location in the model of the word start >= 0.
+     * @return the location in the model of the word start >= 0
      * @exception BadLocationException if the offset is out of range
      */
     public static final int getNextWord(JTextComponent c, int offs) throws BadLocationException {
 	int nextWord;
 	Element line = getParagraphElement(c, offs);
-	for (nextWord = getNextWordInParagraph(line, offs, false);
+	for (nextWord = getNextWordInParagraph(c, line, offs, false);
 	     nextWord == BreakIterator.DONE; 
-	     nextWord = getNextWordInParagraph(line, offs, true)) {
+	     nextWord = getNextWordInParagraph(c, line, offs, true)) {
 
 	    // didn't find in this line, try the next line
 	    offs = line.getEndOffset();
@@ -437,7 +447,7 @@ public class Utilities {
      * Returns the offset of the next word, or BreakIterator.DONE
      * if there are no more words in the element.
      */
-    static int getNextWordInParagraph(Element line, int offs, boolean first) throws BadLocationException {
+    static int getNextWordInParagraph(JTextComponent c, Element line, int offs, boolean first) throws BadLocationException {
 	if (line == null) {
 	    throw new BadLocationException("No more words", offs);
 	}
@@ -448,7 +458,7 @@ public class Utilities {
 	    throw new BadLocationException("No more words", offs);
 	}
 	String s = doc.getText(lineStart, lineEnd - lineStart);
-	BreakIterator words = BreakIterator.getWordInstance();
+        BreakIterator words = BreakIterator.getWordInstance(c.getLocale());
 	words.setText(s);
 	if ((first && (words.first() == (offs - lineStart))) &&	
 	    (! Character.isWhitespace(s.charAt(words.first())))) {
@@ -489,15 +499,15 @@ public class Utilities {
      * 
      * @param c the editor
      * @param offs the offset in the document >= 0
-     * @returns the location in the model of the word start >= 0.
+     * @return the location in the model of the word start >= 0
      * @exception BadLocationException if the offset is out of range
      */
     public static final int getPreviousWord(JTextComponent c, int offs) throws BadLocationException {
 	int prevWord;
 	Element line = getParagraphElement(c, offs);
-	for (prevWord = getPrevWordInParagraph(line, offs);
+	for (prevWord = getPrevWordInParagraph(c, line, offs);
 	     prevWord == BreakIterator.DONE; 
-	     prevWord = getPrevWordInParagraph(line, offs)) {
+	     prevWord = getPrevWordInParagraph(c, line, offs)) {
 
 	    // didn't find in this line, try the prev line
 	    offs = line.getStartOffset() - 1;
@@ -513,7 +523,7 @@ public class Utilities {
      * Returns the offset of the next word, or BreakIterator.DONE
      * if there are no more words in the element.
      */
-    static int getPrevWordInParagraph(Element line, int offs) throws BadLocationException {
+    static int getPrevWordInParagraph(JTextComponent c, Element line, int offs) throws BadLocationException {
 	if (line == null) {
 	    throw new BadLocationException("No more words", offs);
 	}
@@ -524,7 +534,7 @@ public class Utilities {
 	    throw new BadLocationException("No more words", offs);
 	}
 	String s = doc.getText(lineStart, lineEnd - lineStart);
-	BreakIterator words = BreakIterator.getWordInstance();
+        BreakIterator words = BreakIterator.getWordInstance(c.getLocale());
 	words.setText(s);
 	if (words.following(offs - lineStart) == BreakIterator.DONE) {
 	    words.last();
@@ -596,7 +606,7 @@ public class Utilities {
      * @param y  the Y origin
      * @param p0 starting offset in the composed text to be rendered
      * @param p1 ending offset in the composed text to be rendered
-     * @returns  the new insertion position
+     * @return  the new insertion position
      */
     static int drawComposedText(AttributeSet attr, Graphics g, int x, int y,
     				int p0, int p1) throws BadLocationException {
@@ -671,4 +681,124 @@ public class Utilities {
         return c.getComponentOrientation().isLeftToRight();
     }
 
+
+    /**
+     * Provides a way to determine the next visually represented model 
+     * location that one might place a caret.  Some views may not be visible,
+     * they might not be in the same order found in the model, or they just
+     * might not allow access to some of the locations in the model.
+     * <p>
+     * This implementation assumes the views are layed out in a logical
+     * manner. That is, that the view at index x + 1 is visually after
+     * the View at index x, and that the View at index x - 1 is visually
+     * before the View at x. There is support for reversing this behavior
+     * only if the passed in <code>View</code> is an instance of
+     * <code>CompositeView</code>. The <code>CompositeView</code>
+     * must then override the <code>flipEastAndWestAtEnds</code> method.
+     *
+     * @param v View to query
+     * @param pos the position to convert >= 0
+     * @param a the allocated region to render into
+     * @param direction the direction from the current position that can
+     *  be thought of as the arrow keys typically found on a keyboard;
+     *  this may be one of the following: 
+     *  <ul>
+     *  <li><code>SwingConstants.WEST</code>
+     *  <li><code>SwingConstants.EAST</code> 
+     *  <li><code>SwingConstants.NORTH</code>
+     *  <li><code>SwingConstants.SOUTH</code>  
+     *  </ul>
+     * @param biasRet an array contain the bias that was checked
+     * @return the location within the model that best represents the next
+     *  location visual position
+     * @exception BadLocationException
+     * @exception IllegalArgumentException if <code>direction</code> is invalid
+     */
+    static int getNextVisualPositionFrom(View v, int pos, Position.Bias b,
+                                          Shape alloc, int direction,
+                                          Position.Bias[] biasRet)
+                             throws BadLocationException {
+        if (v.getViewCount() == 0) {
+            // Nothing to do.
+            return pos;
+        }
+        boolean top = (direction == SwingConstants.NORTH ||
+                       direction == SwingConstants.WEST);
+        int retValue;
+        if (pos == -1) {
+            // Start from the first View.
+            int childIndex = (top) ? v.getViewCount() - 1 : 0;
+            View child = v.getView(childIndex);
+            Shape childBounds = v.getChildAllocation(childIndex, alloc);
+            retValue = child.getNextVisualPositionFrom(pos, b, childBounds,
+                                                       direction, biasRet);
+	    if (retValue == -1 && !top && v.getViewCount() > 1) {
+		// Special case that should ONLY happen if first view
+		// isn't valid (can happen when end position is put at
+		// beginning of line.
+		child = v.getView(1);
+                childBounds = v.getChildAllocation(1, alloc);
+		retValue = child.getNextVisualPositionFrom(-1, biasRet[0],
+                                                           childBounds,
+                                                           direction, biasRet);
+	    }
+        }
+        else {
+            int increment = (top) ? -1 : 1;
+            int childIndex;
+            if (b == Position.Bias.Backward && pos > 0) {
+                childIndex = v.getViewIndex(pos - 1, Position.Bias.Forward);
+            }
+            else {
+                childIndex = v.getViewIndex(pos, Position.Bias.Forward);
+            }
+            View child = v.getView(childIndex);
+            Shape childBounds = v.getChildAllocation(childIndex, alloc);
+            retValue = child.getNextVisualPositionFrom(pos, b, childBounds,
+                                                       direction, biasRet);
+            if ((direction == SwingConstants.EAST ||
+                 direction == SwingConstants.WEST) &&
+                (v instanceof CompositeView) &&
+                ((CompositeView)v).flipEastAndWestAtEnds(pos, b)) {
+                increment *= -1;
+            }
+            childIndex += increment;
+            if (retValue == -1 && childIndex >= 0 &&
+                                  childIndex < v.getViewCount()) {
+                child = v.getView(childIndex);
+                childBounds = v.getChildAllocation(childIndex, alloc);
+                retValue = child.getNextVisualPositionFrom(
+                                     -1, b, childBounds, direction, biasRet);
+                // If there is a bias change, it is a fake position
+                // and we should skip it. This is usually the result
+                // of two elements side be side flowing the same way.
+                if (retValue == pos && biasRet[0] != b) {
+                    return getNextVisualPositionFrom(v, pos, biasRet[0],
+                                                     alloc, direction,
+                                                     biasRet);
+                }
+            }
+            else if (retValue != -1 && biasRet[0] != b &&
+                     ((increment == 1 && child.getEndOffset() == retValue) ||
+                      (increment == -1 &&
+                       child.getStartOffset() == retValue)) &&
+                     childIndex >= 0 && childIndex < v.getViewCount()) {
+                // Reached the end of a view, make sure the next view
+                // is a different direction.
+                child = v.getView(childIndex);
+                childBounds = v.getChildAllocation(childIndex, alloc);
+                Position.Bias originalBias = biasRet[0];
+                int nextPos = child.getNextVisualPositionFrom(
+                                    -1, b, childBounds, direction, biasRet);
+                if (biasRet[0] == b) {
+                    retValue = nextPos;
+                }
+                else {
+                    biasRet[0] = originalBias;
+                }
+            }
+        }
+        return retValue;
+    }
+    
 }

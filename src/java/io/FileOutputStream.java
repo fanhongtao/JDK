@@ -1,9 +1,14 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)FileOutputStream.java	1.53 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
+
+import java.nio.channels.FileChannel;
+import sun.nio.ch.FileChannelImpl;
 
 
 /**
@@ -15,8 +20,12 @@ package java.io;
  * file-writing object) at a time.  In such situations the constructors in
  * this class will fail if the file involved is already open.
  *
+ * <p><code>FileOutputStream</code> is meant for writing streams of raw bytes
+ * such as image data. For writing streams of characters, consider using
+ * <code>FileWriter</code>.
+ *
  * @author  Arthur van Hoff
- * @version 1.42, 12/02/02
+ * @version 1.53, 12/03/01
  * @see     java.io.File
  * @see     java.io.FileDescriptor
  * @see     java.io.FileInputStream
@@ -31,6 +40,10 @@ class FileOutputStream extends OutputStream
      * the default value 0 indicates that the file is not open.
      */
     private FileDescriptor fd;
+
+    private FileChannel channel= null;
+
+    private boolean append = false;
 
     /**
      * Creates an output file stream to write to the file with the 
@@ -86,7 +99,7 @@ class FileOutputStream extends OutputStream
     public FileOutputStream(String name, boolean append)
         throws FileNotFoundException
     {
-       this(new File(name), append);
+        this(new File(name), append);
     }
 
     /**
@@ -115,25 +128,53 @@ class FileOutputStream extends OutputStream
      * @see        java.lang.SecurityManager#checkWrite(java.lang.String)
      */
     public FileOutputStream(File file) throws FileNotFoundException {
-       this(file, false);
+	this(file, false);
     }
 
-    /* 
-     * The following is an API since JDK 1.4, but not before. So this is private.
+    /**
+     * Creates a file output stream to write to the file represented by 
+     * the specified <code>File</code> object. If the second argument is
+     * <code>true</code>, then bytes will be written to the end of the file
+     * rather than the beginning. A new <code>FileDescriptor</code> object is
+     * created to represent this file connection.
+     * <p>
+     * First, if there is a security manager, its <code>checkWrite</code> 
+     * method is called with the path represented by the <code>file</code> 
+     * argument as its argument.
+     * <p>
+     * If the file exists but is a directory rather than a regular file, does
+     * not exist but cannot be created, or cannot be opened for any other
+     * reason then a <code>FileNotFoundException</code> is thrown.
+     *
+     * @param      file               the file to be opened for writing.
+     * @param     append      if <code>true</code>, then bytes will be written
+     *                   to the end of the file rather than the beginning
+     * @exception  FileNotFoundException  if the file exists but is a directory
+     *                   rather than a regular file, does not exist but cannot
+     *                   be created, or cannot be opened for any other reason
+     * @exception  SecurityException  if a security manager exists and its
+     *               <code>checkWrite</code> method denies write access
+     *               to the file.
+     * @see        java.io.File#getPath()
+     * @see        java.lang.SecurityException
+     * @see        java.lang.SecurityManager#checkWrite(java.lang.String)
+     * @since 1.4
      */
-
-    private FileOutputStream(File file, boolean append) throws FileNotFoundException {
+    public FileOutputStream(File file, boolean append)
+        throws FileNotFoundException
+    {
         String name = file.getPath();
-        SecurityManager security = System.getSecurityManager();
-        if (security != null) {
-            security.checkWrite(name);
-        }
-        fd = new FileDescriptor();
-        if (append) {
-            openAppend(name);
-        } else {
-            open(name);
-        }
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkWrite(name);
+	}
+	fd = new FileDescriptor();
+        this.append = append;
+	if (append) {
+	    openAppend(name);
+	} else {
+	    open(name);
+	}
     }
 
     /**
@@ -145,10 +186,10 @@ class FileOutputStream extends OutputStream
      * method is called with the file descriptor <code>fdObj</code> 
      * argument as its argument.
      *
-     * @param      fdObj   the file descriptor to be opened for writing.
+     * @param      fdObj   the file descriptor to be opened for writing
      * @exception  SecurityException  if a security manager exists and its
      *               <code>checkWrite</code> method denies
-     *               write access to the file descriptor.
+     *               write access to the file descriptor
      * @see        java.lang.SecurityManager#checkWrite(java.io.FileDescriptor)
      */
     public FileOutputStream(FileDescriptor fdObj) {
@@ -221,9 +262,19 @@ class FileOutputStream extends OutputStream
      * associated with this stream. This file output stream may no longer 
      * be used for writing bytes. 
      *
+     * <p> If this stream has an associated channel then the channel is closed
+     * as well.
+     *
      * @exception  IOException  if an I/O error occurs.
+     *
+     * @revised 1.4
+     * @spec JSR-51
      */
-     public native void close() throws IOException;
+    public void close() throws IOException {
+        if (channel != null)
+            channel.close();
+        close0();
+    }
 
     /**
      * Returns the file descriptor associated with this stream.
@@ -241,6 +292,31 @@ class FileOutputStream extends OutputStream
      }
     
     /**
+     * Returns the unique {@link java.nio.channels.FileChannel FileChannel}
+     * object associated with this file output stream. </p>
+     *
+     * <p> The initial {@link java.nio.channels.FileChannel#position()
+     * </code>position<code>} of the returned channel will be equal to the
+     * number of bytes written to the file so far unless this stream is in
+     * append mode, in which case it will be equal to the size of the file.
+     * Writing bytes to this stream will increment the channel's position
+     * accordingly.  Changing the channel's position, either explicitly or by
+     * writing, will change this stream's file position.
+     *
+     * @return  the file channel associated with this file output stream
+     *
+     * @since 1.4
+     * @spec JSR-51
+     */
+    public FileChannel getChannel() {
+	synchronized (this) {
+	    if (channel == null)
+		channel = FileChannelImpl.open(fd, false, true, this, append);
+	    return channel;
+	}
+    }
+
+    /**
      * Cleans up the connection to the file, and ensures that the 
      * <code>close</code> method of this file output stream is
      * called when there are no more references to this stream. 
@@ -257,6 +333,8 @@ class FileOutputStream extends OutputStream
  	    }
  	}
     }
+
+    private native void close0() throws IOException;
 
     private static native void initIDs();
     

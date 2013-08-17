@@ -1,4 +1,6 @@
 /*
+ * @(#)DTD.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -22,19 +24,17 @@ import java.util.Properties;
 import java.net.URL;
 
 /**
- * The representation of an SGML DTD. This is produced by the DTDParser.
- * The resulting DTD object describes a document syntax and is needed
- * to parser HTML documents using the Parser. It contains a list of
- * elements and their attributes as well as a list of entities defined
- * in the DTD.
+ * The representation of an SGML DTD.  DTD describes a document
+ * syntax and is used in parsing of HTML documents.  It contains
+ * a list of elements and their attributes as well as a list of
+ * entities defined in the DTD.
  *
  * @see Element
  * @see AttributeList
  * @see ContentModel
- * @see DTDParser
  * @see Parser
  * @author Arthur van Hoff
- * @version 1.11 02/06/02
+ * @version 1.14 12/03/01
  */
 public
 class DTD implements DTDConstants {
@@ -59,7 +59,8 @@ class DTD implements DTDConstants {
     public static int FILE_VERSION = 1;
 
     /**
-     * Create a new DTD.
+     * Creates a new DTD with the specified name.
+     * @param name the name, as a <code>String</code> of the new DTD
      */
     protected DTD(String name) {
 	this.name = name;
@@ -70,29 +71,38 @@ class DTD implements DTDConstants {
     }
 
     /**
-     * Get the name of the DTD.
+     * Gets the name of the DTD.
+     * @return the name of the DTD
      */
     public String getName() {
 	return name;
     }
 
     /**
-     * Get an entity by name.
+     * Gets an entity by name.
+     * @return the <code>Entity</code> corresponding to the 
+     *   <code>name</code> <code>String</code>
      */
     public Entity getEntity(String name) {
 	return (Entity)entityHash.get(name);
     }
 
     /**
-     * Get a character entity.
+     * Gets a character entity.
+     * @return the <code>Entity</code> corresponding to the
+     *    <code>ch</code> character
      */
     public Entity getEntity(int ch) {
 	return (Entity)entityHash.get(new Integer(ch));
     }
 
     /**
-     * Return true if the element is part of the dtd
-     * else false.
+     * Returns <code>true</code> if the element is part of the DTD,
+     * otherwise returns <code>false</code>.
+     *
+     * @param  name the requested <code>String</code>
+     * @return <code>true</code> if <code>name</code> exists as
+     *   part of the DTD, otherwise returns <code>false</code>
      */
     boolean elementExists(String name) {
 	Element e = (Element)elementHash.get(name);
@@ -100,8 +110,12 @@ class DTD implements DTDConstants {
     }
 
     /**
-     * Get an element by name. A new element is
+     * Gets an element by name. A new element is
      * created if the element doesn't exist.
+     *
+     * @param name the requested <code>String</code>
+     * @return the <code>Element</code> corresponding to
+     *   <code>name</code>, which may be newly created
      */
     public Element getElement(String name) {
 	Element e = (Element)elementHash.get(name);
@@ -114,14 +128,27 @@ class DTD implements DTDConstants {
     }
 
     /**
-     * Get an element by index.
+     * Gets an element by index.
+     *
+     * @param index the requested index
+     * @return the <code>Element</code> corresponding to
+     *   <code>index</code>
      */
     public Element getElement(int index) {
 	return (Element)elements.elementAt(index);
     }
 
     /**
-     * Define an entity.
+     * Defines an entity.  If the <code>Entity</code> specified
+     * by <code>name</code>, <code>type</code>, and <code>data</code>
+     * exists, it is returned; otherwise a new <code>Entity</code>
+     * is created and is returned.
+     *
+     * @param name the name of the <code>Entity</code> as a <code>String</code>
+     * @param type the type of the <code>Entity</code>
+     * @param data the <code>Entity</code>'s data
+     * @return the <code>Entity</code> requested or a new <code>Entity</code>
+     *   if not found
      */
     public Entity defineEntity(String name, int type, char data[]) {
 	Entity ent = (Entity)entityHash.get(name);
@@ -141,7 +168,18 @@ class DTD implements DTDConstants {
     }
 
     /**
-     * Define an element.
+     * Returns the <code>Element</code> which matches the
+     * specified parameters.  If one doesn't exist, a new
+     * one is created and returned.
+     *
+     * @param name the name of the <code>Element</code>
+     * @param type the type of the <code>Element</code>
+     * @param omitStart <code>true</code if start should be omitted
+     * @param omitEnd  <code>true</code> if end should be omitted
+     * @param content  the <code>ContentModel</code>
+     * @param atts the <code>AttributeList</code> specifying the 
+     *    <code>Element</code>
+     * @return the <code>Element</code> specified
      */
     public Element defineElement(String name, int type,
 		       boolean omitStart, boolean omitEnd, ContentModel content,
@@ -158,7 +196,14 @@ class DTD implements DTDConstants {
     }
 
     /**
-     * Define the attributes of an element.
+     * Returns the <code>Element</code> which matches the
+     * specified <code>AttributeList</code>. 
+     * If one doesn't exist, a new one is created and returned.
+     *
+     * @param name the name of the <code>Element</code>
+     * @param atts the <code>AttributeList</code> specifying the 
+     *    <code>Element</code>
+     * @return the <code>Element</code> specified
      */
     public void defineAttributes(String name, AttributeList atts) {
 	Element e = getElement(name);
@@ -166,7 +211,9 @@ class DTD implements DTDConstants {
     }
 
     /**
-     * Define a character entity.
+     * Creates and returns a character <code>Entity</code>.
+     * @param name the entity's name
+     * @return the new character <code>Entity</code>
      */
     public Entity defEntity(String name, int type, int ch) {
 	char data[] = {(char)ch};
@@ -174,7 +221,9 @@ class DTD implements DTDConstants {
     }
 
     /**
-     * Define an entity.
+     * Creates and returns an <code>Entity</code>.
+     * @param name the entity's name
+     * @return the new <code>Entity</code>
      */
     protected Entity defEntity(String name, int type, String str) {
 	int len = str.length();
@@ -184,7 +233,9 @@ class DTD implements DTDConstants {
     }
 
     /**
-     * Define an element.
+     * Creates and returns an <code>Element</code>.
+     * @param the element's name
+     * @return the new <code>Element</code>
      */
     protected Element defElement(String name, int type,
 		       boolean omitStart, boolean omitEnd, ContentModel content,
@@ -213,7 +264,9 @@ class DTD implements DTDConstants {
     }
 
     /**
-     * Define an attribute list
+     * Creates and returns an <code>AttributeList</code>.
+     * @param name the attribute list's name
+     * @return the new <code>AttributeList</code>
      */
     protected AttributeList defAttributeList(String name, int type, int modifier, String value, String values, AttributeList atts) {
 	Vector vals = null;
@@ -230,14 +283,17 @@ class DTD implements DTDConstants {
     }
 
     /**
-     * Define a content model
+     * Creates and returns a new content model.
+     * @param type the type of the new content model
+     * @return the new <code>ContentModel</code>
      */
     protected ContentModel defContentModel(int type, Object obj, ContentModel next) {
 	return new ContentModel(type, obj, next);
     }
 
     /**
-     * Return a string representation.
+     * Returns a string representation of this DTD.
+     * @return the string representation of this DTD
      */
     public String toString() {
 	return name;
@@ -252,7 +308,13 @@ class DTD implements DTDConstants {
     dtdHash.put(name, dtd);
   }
     /**
-     * Get a DTD.
+     * Returns a DTD with the specified <code>name</code>.  If
+     * a DTD with that name doesn't exist, one is created
+     * and returned.  Any uppercase characters in the name
+     * are converted to lowercase.
+     *
+     * @param the name of the DTD
+     * @return the DTD which corresponds to <code>name</code>
      */
     public static DTD getDTD(String name) throws IOException {
 	name = name.toLowerCase();
@@ -263,6 +325,10 @@ class DTD implements DTDConstants {
 	return dtd;
     }
 
+    /**
+     * Recreates a DTD from an archived format.
+     * @param in  the <code>DataInputStream</code> to read from
+     */
     public void read(DataInputStream in) throws IOException {
 	if (in.readInt() != FILE_VERSION) {
 	}

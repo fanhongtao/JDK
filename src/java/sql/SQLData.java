@@ -1,4 +1,6 @@
 /*
+ * @(#)SQLData.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,15 +8,40 @@
 package java.sql;
 
 /**
- * The interface used for the custom mapping of SQL user-defined types.
- * This interface must be implemented by any Java class that is
- * registered in a type mapping.  It is expected that this interface
- * will normally be implemented by a tool.  The methods in this interface
- * are called by the driver and are never called by a programmer
- * directly.
+ * The interface used for the custom mapping of an SQL user-defined type (UDT) to
+ * a class in the Java programming language. The class object for a class
+ * implementing the <code>SQLData</code> interface will be entered in the
+ * appropriate <code>Connection</code> object's type map along with the SQL
+ * name of the UDT for which it is a custom mapping.
+ * <P>
+ * Typically, a <code>SQLData</code> implementation
+ * will define a field for each attribute of an SQL structured type or a
+ * single field for an SQL <code>DISTINCT</code> type. When the UDT is
+ * retrieved from a data source with the <code>ResultSet.getObject</code>
+ * method, it will be mapped as an instance of this class.  A programmer
+ * can operate on this class instance just as on any other object in the
+ * Java programming language and then store any changes made to it by
+ * calling the <code>PreparedStatement.setObject</code> method,
+ * which will map it back to the SQL type.
+ * <p>
+ * It is expected that the implementation of the class for a custom
+ * mapping will be done by a tool.  In a typical implementation, the
+ * programmer would simply supply the name of the SQL UDT, the name of
+ * the class to which it is being mapped, and the names of the fields to
+ * which each of the attributes of the UDT is to be mapped.  The tool will use
+ * this information to implement the <code>SQLData.readSQL</code> and
+ * <code>SQLData.writeSQL</code> methods.  The <code>readSQL</code> method
+ * calls the appropriate <code>SQLInput</code> methods to read
+ * each attribute from an <code>SQLInput</code> object, and the
+ * <code>writeSQL</code> method calls <code>SQLOutput</code> methods
+ * to write each attribute back to the data source via an
+ * <code>SQLOutput</code> object.
+ * <P>
+ * An application programmer will not normally call <code>SQLData</code> methods
+ * directly, and the <code>SQLInput</code> and <code>SQLOutput</code> methods
+ * are called internally by <code>SQLData</code> methods, not by application code.
+ * 
  * @since 1.2
- * @see <a href="package-summary.html#2.0 API">What Is in the JDBC
- *      2.0 API</a>
  */
 public interface SQLData {
 
@@ -29,8 +56,6 @@ public interface SQLData {
   *            when this object was constructed and populated
   * @exception SQLException if there is a database access error
   * @since 1.2
-  * @see <a href="package-summary.html#2.0 API">What Is in the JDBC
-  *      2.0 API</a>
   */
   String getSQLTypeName() throws SQLException;
 
@@ -46,14 +71,15 @@ public interface SQLData {
   * <LI>The method <code>readSQL</code> then
   * assigns the data to appropriate fields or 
   * elements (of this or other objects).
-  * Specifically, it must call the appropriate <code>SQLInput.readXXX</code> 
-  * method(s) to do the following:
+  * Specifically, it must call the appropriate <i>reader</i> method 
+  * (<code>SQLInput.readString</code>, <code>SQLInput.readBigDecimal</code>,
+  * and so on) method(s) to do the following:
   * for a distinct type, read its single data element;
   * for a structured type, read a value for each attribute of the SQL type.
   * </UL>  
   * The JDBC driver initializes the input stream with a type map
   * before calling this method, which is used by the appropriate
-  * <code>SQLInput.readXXX</code> method on the stream.
+  * <code>SQLInput</code> reader method on the stream.
   *
   * @param stream the <code>SQLInput</code> object from which to read the data for
   * the value that is being custom mapped
@@ -71,9 +97,9 @@ public interface SQLData {
   * to the given output stream.  This is done by calling a 
   * method of the output stream to write each item, in the order that 
   * they appear in the SQL definition of the type.
-  * Specifically, it must call the appropriate <code>SQLOutput.writeXXX</code> 
-  * method(s) to do the following:
-  * for a Distinct Type, write its single data element;
+  * Specifically, it must call the appropriate <code>SQLOutput</code> writer
+  * method(s) (<code>writeInt</code>, <code>writeString</code>, and so on)
+  * to do the following: for a Distinct Type, write its single data element;
   * for a Structured Type, write a value for each attribute of the SQL type.
   *
   * @param stream the <code>SQLOutput</code> object to which to write the data for
@@ -81,8 +107,6 @@ public interface SQLData {
   * @exception SQLException if there is a database access error
   * @see SQLOutput
   * @since 1.2
-  * @see <a href="package-summary.html#2.0 API">What Is in the JDBC
-  *      2.0 API</a>
   */
   void writeSQL (SQLOutput stream) throws SQLException;
 }

@@ -1,4 +1,6 @@
 /*
+ * @(#)LdapReferralException.java	1.8 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -26,7 +28,7 @@ import java.util.Hashtable;
  * @author Rosanna Lee
  * @author Scott Seligman
  * @author Vincent Ryan
- * @version 1.9 02/02/06
+ * @version 1.8 01/12/03
  * @since 1.3
  */
 

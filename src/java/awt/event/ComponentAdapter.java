@@ -1,4 +1,6 @@
 /*
+ * @(#)ComponentAdapter.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -28,7 +30,7 @@ package java.awt.event;
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  * 
  * @author Carl Quinn
- * @version 1.14 02/06/02
+ * @version 1.14 12/03/01
  * @since 1.1
  */
 public abstract class ComponentAdapter implements ComponentListener {

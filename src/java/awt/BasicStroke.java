@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicStroke.java	1.37 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,7 +20,7 @@ import sun.dc.pr.Rasterizer;
  * The <code>BasicStroke</code> class defines a basic set of rendering
  * attributes for the outlines of graphics primitives, which are rendered
  * with a {@link Graphics2D} object that has its Stroke attribute set to 
- * this <code>BasicStroke</code>.    
+ * this <code>BasicStroke</code>.
  * The rendering attributes defined by <code>BasicStroke</code> describe 
  * the shape of the mark made by a pen drawn along the outline of a 
  * {@link Shape} and the decorations applied at the ends and joins of 
@@ -94,7 +96,7 @@ import sun.dc.pr.Rasterizer;
  * For more information on the user space coordinate system and the 
  * rendering process, see the <code>Graphics2D</code> class comments.
  * @see Graphics2D
- * @version 1.38, 02/06/02
+ * @version 1.37, 12/03/01
  * @author Jim Graham
  */
 public class BasicStroke implements Stroke {
@@ -148,7 +150,7 @@ public class BasicStroke implements Stroke {
 
     /**
      * Constructs a new <code>BasicStroke</code> with the specified
-     * attributes.  
+     * attributes.
      * @param width the width of this <code>BasicStroke</code>.  The
      *         width must be greater than or equal to 0.0f.  If width is
      *         set to 0.0f, the stroke is rendered as the thinnest

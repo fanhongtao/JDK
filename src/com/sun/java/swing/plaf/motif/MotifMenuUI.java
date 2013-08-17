@@ -1,4 +1,6 @@
 /*
+ * @(#)MotifMenuUI.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,7 +22,7 @@ import javax.swing.plaf.basic.BasicGraphicsUtils;
  * A Motif L&F implementation of MenuUI.  
  * <p>
  *
- * @version 1.28 02/06/02
+ * @version 1.29 12/03/01
  * @author Georges Saab
  * @author Rich Schiavi
  */
@@ -109,11 +111,12 @@ public class MotifMenuUI extends BasicMenuUI
 		}
 		
 		MenuElement path[] = getPath();
-		MenuElement newPath[] = new MenuElement[path.length+1];
-		System.arraycopy(path,0,newPath,0,path.length);
-		newPath[path.length] = menu.getPopupMenu();
-		manager.setSelectedPath(newPath);
-		
+                if (path.length > 0) {
+                    MenuElement newPath[] = new MenuElement[path.length+1];
+                    System.arraycopy(path,0,newPath,0,path.length);
+                    newPath[path.length] = menu.getPopupMenu();
+                    manager.setSelectedPath(newPath);		
+                }
 	    }
 	}
 

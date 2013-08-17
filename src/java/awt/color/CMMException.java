@@ -1,4 +1,6 @@
 /*
+ * @(#)CMMException.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -32,6 +34,7 @@ public class CMMException extends java.lang.RuntimeException {
 
     /**
      *  Constructs a CMMException with the specified detail message.
+     *  @param s the specified detail message
      */
     public CMMException (String s) {
         super (s);

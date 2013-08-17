@@ -1,5 +1,7 @@
 /*
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * @(#)UIDefaults.java	1.51 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +13,14 @@ import javax.swing.border.*;
 import javax.swing.event.SwingPropertyChangeSupport;
 
 import java.lang.reflect.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.ResourceBundle;
+import java.util.Locale;
+import java.util.Vector;
+import java.util.MissingResourceException;
 import java.awt.Font;
 import java.awt.Color;
 import java.awt.Insets;
@@ -19,11 +28,7 @@ import java.awt.Dimension;
 import java.lang.reflect.Method;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
-import java.security.AccessController;
-import java.security.AccessControlContext;
-import java.security.PrivilegedAction;
 
-import sun.misc.reflect.MethodUtil;
 
 /**
  * A table of defaults for Swing components.  Applications can set/get
@@ -31,13 +36,15 @@ import sun.misc.reflect.MethodUtil;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @see UIManager
- * @version 1.44 05/09/05
+ * @version 1.51 12/03/01
  * @author Hans Muller
  */
 public class UIDefaults extends Hashtable
@@ -46,12 +53,24 @@ public class UIDefaults extends Hashtable
 
     private SwingPropertyChangeSupport changeSupport;
 
+    private Vector resourceBundles;
+
+    private Locale defaultLocale = Locale.getDefault();
+
+    /**
+     * Maps from a Locale to a cached Map of the ResourceBundle. This is done
+     * so as to avoid an exception being thrown when a value is asked for.
+     * Access to this should be done while holding a lock on the
+     * UIDefaults, eg synchronized(this).
+     */
+    private Map resourceCache;
 
     /**
      * Create an empty defaults table.
      */
     public UIDefaults() {
         super();
+        resourceCache = new HashMap();
     }
 
 
@@ -87,14 +106,32 @@ public class UIDefaults extends Hashtable
      * with <code>ActiveValue.createValue()</code> for each
      * <code>get()</code> call.
      *
+     * If the key is not found in the table then it is searched for in the list
+     * of resource bundles maintained by this object.  The resource bundles are
+     * searched most recently added first using the locale returned by
+     * <code>getDefaultLocale</code>.  <code>LazyValues</code> and
+     * <code>ActiveValues</code> are not supported in the resource bundles.
+
+     *
      * @param key the desired key
      * @return the value for <code>key</code>
      * @see LazyValue
      * @see ActiveValue
      * @see java.util.Hashtable#get
+     * @see #getDefaultLocale
+     * @see #addResourceBundle
+     * @since 1.4
      */
-    public Object get(Object key)
-    {
+    public Object get(Object key) {
+        Object value = getFromHashtable( key );
+        return (value != null) ? value : getFromResourceBundle(key, null);
+    }
+
+    /**
+     * Looks up up the given key in our Hashtable and resolves LazyValues
+     * or ActiveValues.
+     */
+    private Object getFromHashtable(Object key) {
         /* Quickly handle the common case, without grabbing
          * a lock.
          */
@@ -164,7 +201,93 @@ public class UIDefaults extends Hashtable
 
 
     /**
-     * Sets the value of <code>key</code> to <code>value</code>.
+     * Returns the value for key associated with the given locale.
+     * If the value is a <code>UIDefaults.LazyValue</code> then the real
+     * value is computed with <code>LazyValue.createValue()</code>,
+     * the table entry is replaced, and the real value is returned.
+     * If the value is an <code>UIDefaults.ActiveValue</code>
+     * the table entry is not replaced - the value is computed
+     * with <code>ActiveValue.createValue()</code> for each
+     * <code>get()</code> call.
+     *
+     * If the key is not found in the table then it is searched for in the list
+     * of resource bundles maintained by this object.  The resource bundles are
+     * searched most recently added first using the given locale.
+     * <code>LazyValues</code> and <code>ActiveValues</code> are not supported
+     * in the resource bundles.
+     *
+     * @param key the desired key
+     * @param l the desired <code>locale</code>
+     * @return the value for <code>key</code>
+     * @see LazyValue
+     * @see ActiveValue
+     * @see java.util.Hashtable#get
+     * @see #addResourceBundle
+     * @since 1.4
+     */
+    public Object get(Object key, Locale l) {
+        Object value = getFromHashtable( key );
+        return (value != null) ? value : getFromResourceBundle(key, l);
+    }
+
+    /**
+     * Looks up given key in our resource bundles.
+     */
+    private Object getFromResourceBundle(Object key, Locale l) {
+
+        if( resourceBundles == null ||
+            resourceBundles.isEmpty() ||
+            !(key instanceof String) ) {
+            return null;
+        }
+
+        // A null locale means use the default locale.
+        if( l == null ) {
+            if( defaultLocale == null )
+                return null;
+            else
+                l = (Locale)defaultLocale;
+        }
+
+        synchronized(this) {
+            return getResourceCache(l).get((String)key);
+        }
+    }
+
+    /**
+     * Returns a Map of the known resources for the given locale.
+     */
+    private Map getResourceCache(Locale l) {
+        Map values = (Map)resourceCache.get(l);
+
+        if (values == null) {
+            values = new HashMap();
+            for (int i=resourceBundles.size()-1; i >= 0; i--) {
+                String bundleName = (String)resourceBundles.get(i);
+                try {
+                    ResourceBundle b = ResourceBundle.getBundle(bundleName, l);
+                    Enumeration keys = b.getKeys();
+
+                    while (keys.hasMoreElements()) {
+                        String key = (String)keys.nextElement();
+
+                        if (values.get(key) == null) {
+                            Object value = b.getObject(key);
+
+                            values.put(key, value);
+                        }
+                    }
+                } catch( MissingResourceException mre ) {
+                    // Keep looking
+                }
+            }
+            resourceCache.put(l, values);
+        }
+        return values;
+    }
+
+    /**
+     * Sets the value of <code>key</code> to <code>value</code> for all locales.
      * If <code>key</code> is a string and the new value isn't
      * equal to the old one, fire a <code>PropertyChangeEvent</code>.
      * If value is <code>null</code>, the key is removed from the table.
@@ -190,7 +313,8 @@ public class UIDefaults extends Hashtable
      * Puts all of the key/value pairs in the database and
      * unconditionally generates one <code>PropertyChangeEvent</code>.
      * The events oldValue and newValue will be <code>null</code> and its
-     * <code>propertyName</code> will be "UIDefaults".
+     * <code>propertyName</code> will be "UIDefaults".  The key/value pairs are
+     * added for all locales.
      *
      * @param keyValueList  an array of key/value pairs
      * @see #put
@@ -223,6 +347,23 @@ public class UIDefaults extends Hashtable
         return (value instanceof Font) ? (Font)value : null;
     }
 
+
+    /**
+     * If the value of <code>key</code> for the given <code>Locale</code>
+     * is a <code>Font</code> return it, otherwise return <code>null</code>.
+     * @param key the desired key
+     * @param l the desired locale      
+     * @return if the value for <code>key</code> and <code>Locale</code>
+     *          is a <code>Font</code>,
+     * 		return the <code>Font</code> object; otherwise return
+     *		<code>null</code>
+     * @since 1.4
+     */
+    public Font getFont(Object key, Locale l) {
+        Object value = get(key,l);
+        return (value instanceof Font) ? (Font)value : null;
+    }
+
     /**
      * If the value of <code>key</code> is a <code>Color</code> return it,
      * otherwise return <code>null</code>.
@@ -233,6 +374,23 @@ public class UIDefaults extends Hashtable
      */
     public Color getColor(Object key) {
         Object value = get(key);
+        return (value instanceof Color) ? (Color)value : null;
+    }
+
+
+    /**
+     * If the value of <code>key</code> for the given <code>Locale</code>
+     * is a <code>Color</code> return it, otherwise return <code>null</code>.
+     * @param key the desired key
+     * @param l the desired locale      
+     * @return if the value for <code>key</code> and <code>Locale</code>
+     *          is a <code>Color</code>,
+     *		return the <code>Color</code> object; otherwise return
+     *		<code>null</code>
+     * @since 1.4
+     */
+    public Color getColor(Object key, Locale l) {
+        Object value = get(key,l);
         return (value instanceof Color) ? (Color)value : null;
     }
 
@@ -252,6 +410,23 @@ public class UIDefaults extends Hashtable
 
 
     /**
+     * If the value of <code>key</code> for the given <code>Locale</code>
+     * is an <code>Icon</code> return it, otherwise return <code>null</code>.
+     * @param key the desired key
+     * @param l the desired locale      
+     * @return if the value for <code>key</code> and <code>Locale</code>
+     *          is an <code>Icon</code>,
+     *		return the <code>Icon</code> object; otherwise return
+     *		<code>null</code>
+     * @since 1.4
+     */
+    public Icon getIcon(Object key, Locale l) {
+        Object value = get(key,l);
+        return (value instanceof Icon) ? (Icon)value : null;
+    }
+
+
+    /**
      * If the value of <code>key</code> is a <code>Border</code> return it,
      * otherwise return <code>null</code>.
      * @param key the desired key
@@ -261,6 +436,23 @@ public class UIDefaults extends Hashtable
      */
     public Border getBorder(Object key) {
         Object value = get(key);
+        return (value instanceof Border) ? (Border)value : null;
+    }
+
+
+    /**
+     * If the value of <code>key</code> for the given <code>Locale</code>
+     * is a <code>Border</code> return it, otherwise return <code>null</code>.
+     * @param key the desired key
+     * @param l the desired locale      
+     * @return if the value for <code>key</code> and <code>Locale</code>
+     *          is a <code>Border</code>,
+     *		return the <code>Border</code> object; otherwise return
+     *		<code>null</code>
+     * @since 1.4
+     */
+    public Border getBorder(Object key, Locale l)  {
+        Object value = get(key,l);
         return (value instanceof Border) ? (Border)value : null;
     }
 
@@ -279,6 +471,22 @@ public class UIDefaults extends Hashtable
     }
 
     /**
+     * If the value of <code>key</code> for the given <code>Locale</code>
+     * is a <code>String</code> return it, otherwise return <code>null</code>.
+     * @param key the desired key
+     * @param l the desired <code>Locale</code>
+     * @return if the value for <code>key</code> for the given
+     *          <code>Locale</code> is a <code>String</code>,
+     *		return the <code>String</code> object; otherwise return
+     *		<code>null</code>
+     * @since 1.4
+     */
+    public String getString(Object key, Locale l) {
+        Object value = get(key,l);
+        return (value instanceof String) ? (String)value : null;
+    }
+
+    /**
      * If the value of <code>key</code> is an <code>Integer</code> return its
      * integer value, otherwise return 0.
      * @param key the desired key
@@ -289,6 +497,55 @@ public class UIDefaults extends Hashtable
         Object value = get(key);
         return (value instanceof Integer) ? ((Integer)value).intValue() : 0;
     }
+
+
+    /**
+     * If the value of <code>key</code> for the given <code>Locale</code>
+     * is an <code>Integer</code> return its integer value, otherwise return 0.
+     * @param key the desired key
+     * @param l the desired locale      
+     * @return if the value for <code>key</code> and <code>Locale</code>
+     *          is an <code>Integer</code>,
+     *		return its value, otherwise return 0
+     * @since 1.4
+     */
+    public int getInt(Object key, Locale l) {
+        Object value = get(key,l);
+        return (value instanceof Integer) ? ((Integer)value).intValue() : 0;
+    }
+
+
+    /**
+     * If the value of <code>key</code> is boolean, return the
+     * boolean value, otherwise return false.
+     *
+     * @param key an <code>Object</code> specifying the key for the desired boolean value
+     * @return if the value of <code>key</code> is boolean, return the
+     *         boolean value, otherwise return false.
+     * @since 1.4
+     */
+    public boolean getBoolean(Object key) {
+        Object value = get(key);
+        return (value instanceof Boolean) ? ((Boolean)value).booleanValue() : false;
+    }
+
+
+    /**
+     * If the value of <code>key</code> for the given <code>Locale</code>
+     * is boolean, return the boolean value, otherwise return false.
+     *
+     * @param key an <code>Object</code> specifying the key for the desired boolean value
+     * @param l the desired locale      
+     * @return if the value for <code>key</code> and <code>Locale</code>
+     *         is boolean, return the
+     *         boolean value, otherwise return false.
+     * @since 1.4
+     */
+    public boolean getBoolean(Object key, Locale l) {
+        Object value = get(key,l);
+        return (value instanceof Boolean) ? ((Boolean)value).booleanValue() : false;
+    }
+
 
     /**
      * If the value of <code>key</code> is an <code>Insets</code> return it,
@@ -303,6 +560,24 @@ public class UIDefaults extends Hashtable
         return (value instanceof Insets) ? (Insets)value : null;
     }
 
+
+    /**
+     * If the value of <code>key</code> for the given <code>Locale</code>
+     * is an <code>Insets</code> return it, otherwise return <code>null</code>.
+     * @param key the desired key
+     * @param l the desired locale      
+     * @return if the value for <code>key</code> and <code>Locale</code>
+     *          is an <code>Insets</code>,
+     *		return the <code>Insets</code> object; otherwise return
+     *		<code>null</code>
+     * @since 1.4
+     */
+    public Insets getInsets(Object key, Locale l) {
+        Object value = get(key,l);
+        return (value instanceof Insets) ? (Insets)value : null;
+    }
+
+
     /**
      * If the value of <code>key</code> is a <code>Dimension</code> return it,
      * otherwise return <code>null</code>.
@@ -313,6 +588,23 @@ public class UIDefaults extends Hashtable
      */
     public Dimension getDimension(Object key) {
         Object value = get(key);
+        return (value instanceof Dimension) ? (Dimension)value : null;
+    }
+
+
+    /**
+     * If the value of <code>key</code> for the given <code>Locale</code>
+     * is a <code>Dimension</code> return it, otherwise return <code>null</code>.
+     * @param key the desired key
+     * @param l the desired locale      
+     * @return if the value for <code>key</code> and <code>Locale</code>
+     *          is a <code>Dimension</code>,
+     *		return the <code>Dimension</code> object; otherwise return
+     *		<code>null</code>
+     * @since 1.4
+     */
+    public Dimension getDimension(Object key, Locale l) {
+        Object value = get(key,l);
         return (value instanceof Dimension) ? (Dimension)value : null;
     }
 
@@ -330,7 +622,7 @@ public class UIDefaults extends Hashtable
      * class can't be found, return <code>null</code>.
      * <p>
      * This method is used by <code>getUI</code>, it's usually
-     * not neccessary to call it directly.
+     * not necessary to call it directly.
      *
      * @param uiClassID  a string containing the class ID
      * @param uiClassLoader the object which will load the class
@@ -341,20 +633,22 @@ public class UIDefaults extends Hashtable
     {
         try {
             String className = (String)get(uiClassID);
-            Class cls = (Class)get(className);
-            if (cls == null) {
-		if (uiClassLoader == null) {
-		    cls = SwingUtilities.loadSystemClass(className);
-		}
-		else {
-		    cls = uiClassLoader.loadClass(className);
-		}
-                if (cls != null) {
-                    // Save lookup for future use, as forName is slow.
-                    put(className, cls);
+            if (className != null) {
+                Class cls = (Class)get(className);
+                if (cls == null) {
+                    if (uiClassLoader == null) {
+                        cls = SwingUtilities.loadSystemClass(className);
+                    }
+                    else {
+                        cls = uiClassLoader.loadClass(className);
+                    }
+                    if (cls != null) {
+                        // Save lookup for future use, as forName is slow.
+                        put(className, cls);
+                    }
                 }
+                return cls;
             }
-            return cls;
         } 
 	catch (ClassNotFoundException e) {
             return null;
@@ -362,6 +656,7 @@ public class UIDefaults extends Hashtable
 	catch (ClassCastException e) {
             return null;
         }
+        return null;
     }
 
 
@@ -409,8 +704,8 @@ public class UIDefaults extends Hashtable
      * @param target  the <code>JComponent</code> which needs a UI
      * @return the <code>ComponentUI</code> object
      */
-    public ComponentUI getUI(JComponent target)
-    {
+    public ComponentUI getUI(JComponent target) {
+
         Object cl = get("ClassLoader");
 	ClassLoader uiClassLoader = 
 	    (cl != null) ? (ClassLoader)cl : target.getClass().getClassLoader();
@@ -428,7 +723,7 @@ public class UIDefaults extends Hashtable
 		    m = uiClass.getMethod("createUI", new Class[]{acClass});
 		    put(uiClass, m);
 		}
-		uiObject = MethodUtil.invoke(m, null, new Object[]{target});
+		uiObject = m.invoke(null, new Object[]{target});
             }
             catch (NoSuchMethodException e) {
                 getUIError("static createUI() method not found in " + uiClass);
@@ -475,6 +770,22 @@ public class UIDefaults extends Hashtable
 
 
     /**
+     * Returns an array of all the <code>PropertyChangeListener</code>s added
+     * to this UIDefaults with addPropertyChangeListener().
+     *
+     * @return all of the <code>PropertyChangeListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public synchronized PropertyChangeListener[] getPropertyChangeListeners() {
+        if (changeSupport == null) {
+            return new PropertyChangeListener[0];
+        }
+        return changeSupport.getPropertyChangeListeners();
+    }
+
+
+    /**
      * Support for reporting bound property changes.  If oldValue and
      * newValue are not equal and the <code>PropertyChangeEvent</code>x
      * listener list isn't empty, then fire a 
@@ -492,6 +803,81 @@ public class UIDefaults extends Hashtable
         }
     }
 
+
+    /**
+     * Adds a resource bundle to the list of resource bundles that are
+     * searched for localized values.  Resource bundles are searched in the
+     * reverse order they were added.  In other words, the most recently added
+     * bundle is searched first.
+     *
+     * @param bundleName  the base name of the resource bundle to be added
+     * @see java.util.ResourceBundle
+     * @see #removeResourceBundle
+     * @since 1.4
+     */
+    public synchronized void addResourceBundle( String bundleName ) {
+        if( bundleName == null ) {
+            return;
+        }
+        if( resourceBundles == null ) {
+            resourceBundles = new Vector(5);
+        }
+        resourceBundles.add( bundleName );
+        resourceCache.clear();
+    }
+
+
+    /**
+     * Removes a resource bundle from the list of resource bundles that are
+     * searched for localized defaults.
+     *
+     * @param bundleName  the base name of the resource bundle to be removed
+     * @see java.util.ResourceBundle
+     * @see #addResourceBundle
+     * @since 1.4
+     */
+    public synchronized void removeResourceBundle( String bundleName ) {
+        if( resourceBundles != null ) {
+            resourceBundles.remove( bundleName );
+        }
+        resourceCache.clear();
+    }
+
+    /**
+     * Sets the default locale.  The default locale is used in retrieving
+     * localized values via <code>get</code> methods that do not take a
+     * locale argument.  As of release 1.4, Swing UI objects should retrieve
+     * localized values using the locale of their component rather than the
+     * default locale.  The default locale exists to provide compatibility with
+     * pre 1.4 behaviour.
+     *
+     * @param the new default locale
+     * @see #getDefaultLocale
+     * @see #get(Object)
+     * @see #get(Object,Locale)
+     * @since 1.4
+     */
+    public void setDefaultLocale( Locale l ) {
+        defaultLocale = l;
+    }
+
+    /**
+     * Returns the default locale.  The default locale is used in retrieving
+     * localized values via <code>get</code> methods that do not take a
+     * locale argument.  As of release 1.4, Swing UI objects should retrieve
+     * localized values using the locale of their component rather than the
+     * default locale.  The default locale exists to provide compatibility with
+     * pre 1.4 behaviour.
+     *
+     * @returns the default locale
+     * @see #setDefaultLocale
+     * @see #get(Object)
+     * @see #get(Object,Locale)
+     * @since 1.4
+     */
+    public Locale getDefaultLocale() {
+        return defaultLocale;
+    }
 
     /**
      * This class enables one to store an entry in the defaults
@@ -574,7 +960,6 @@ public class UIDefaults extends Hashtable
      * (since Reflection APIs are used).
      */
     public static class ProxyLazyValue implements LazyValue {
-	private AccessControlContext acc;
 	private String className;
 	private String methodName;
 	private Object[] args;
@@ -587,7 +972,7 @@ public class UIDefaults extends Hashtable
 	 *             of the instance to be created on demand
 	 */
 	public ProxyLazyValue(String c) {
-	    className = c;
+            this(c, (String)null);
 	}
 	/**
 	 * Creates a <code>LazyValue</code> which will construct an instance
@@ -601,8 +986,7 @@ public class UIDefaults extends Hashtable
          *		method to be called on class c
 	 */
 	public ProxyLazyValue(String c, String m) {
-	    className = c;
-	    methodName = m;
+            this(c, m, null);
 	}
 	/**
 	 * Creates a <code>LazyValue</code> which will construct an instance
@@ -614,8 +998,7 @@ public class UIDefaults extends Hashtable
          *		paramaters to the constructor in class c
 	 */
 	public ProxyLazyValue(String c, Object[] o) {
-	    className = c;
-	    args = o;
+            this(c, null, o);
 	}
 	/**
 	 * Creates a <code>LazyValue</code> which will construct an instance
@@ -631,12 +1014,9 @@ public class UIDefaults extends Hashtable
          *		paramaters to the static method in class c
 	 */
 	public ProxyLazyValue(String c, String m, Object[] o) {
-	    acc = AccessController.getContext();
 	    className = c;
 	    methodName = m;
-	    if (o != null) {
-		args = (Object[])o.clone();
-	    }
+	    args = o;
 	}
 
         /**
@@ -646,40 +1026,51 @@ public class UIDefaults extends Hashtable
          * @param table  a <code>UIDefaults</code> table
          * @return the created <code>Object</code>
          */
-	public Object createValue(final UIDefaults table) {
-	    // In order to pick up the security policy in effect at the
-            // time of creation we use a doPrivileged with the
-            // AccessControlContext that was in place when this was created.
-	    return AccessController.doPrivileged(new PrivilegedAction() {
-		public Object run() {
-		    try {
-			Class c = Class.forName(className, true, ClassLoader.getSystemClassLoader());
-			if (methodName !=null) {
-		    	    Class[] types = getClassArray(args);
-		    	    Method m = c.getMethod(methodName, types);
-		    	    return  MethodUtil.invoke(m, c, args);
-			} else {
-		    	    Class[] types = getClassArray(args);
-		    	    try {
-			        Constructor constructor = c.getConstructor(types);
-			        return constructor.newInstance(args);
-		            } catch(Exception e) {
-			        System.out.println("Problem with constructor " + className + 
-					   " and args " + printArgs(args) + " : " + 
-					   " and types " + printArgs(types) + " : " + e);
-			        Thread.dumpStack();
-		            }
-		        }
-	            } catch(Exception e) {
-		        System.out.println("Problem creating " + className + 
-				   " with method " + methodName + 
-				   " and args " + printArgs(args) + " : " + e);
-		        Thread.dumpStack();
-	            }	    
-	            return null;
-	        }
-	    }, acc);
+	public Object createValue(UIDefaults table) {
+	    Object instance = null;
+	    try {
+                Class c;
+                Object cl;
+
+                // See if we should use a separate ClassLoader
+                if (table != null && ((cl = table.get("ClassLoader"))
+                                      instanceof ClassLoader)) {
+                    c = Class.forName(className, true, (ClassLoader)cl);
+                }
+                else {
+                    // NOTE: A better way to do this would probably be
+                    // to snapshot the ClassLoader at construction time.
+                    // But since it is very rare that these ClassLoaders will
+                    // differ, and it would cost us another field, I'm
+                    // going to leave it like this.
+                    c = Class.forName(className, true, Thread.currentThread().
+                                      getContextClassLoader());
+                }
+		if (methodName !=null) {
+		    Class[] types = getClassArray(args);
+		    Method m = c.getMethod(methodName, types);
+		    instance = m.invoke(c, args);
+		} else {
+		    Class[] types = getClassArray(args);
+                    Constructor constructor = c.getConstructor(types);
+                    instance = constructor.newInstance(args);
+		}
+	    } catch(Exception e) {
+                // Ideally we would throw an exception, unfortunately often
+                // times there are errors as an initial look and feel is
+                // loaded before one can be switched. Perhaps a
+                // flag should be added for debugging, so that if true
+                // the exception would be thrown.
+/*
+                throw new RuntimeException(
+                    "ProxyLazyValue: unable to create instance: " +
+                    className + " method: " + methodName + " args: " +
+                    printArgs(args));
+*/
+	    }	    
+	    return instance;
 	}
+
 	/* 
 	 * Coerce the array of class types provided into one which
 	 * looks the way the Reflection APIs expect.  This is done
@@ -725,7 +1116,7 @@ public class UIDefaults extends Hashtable
 		}
 		s = s.concat(array[array.length-1] + "}");
 	    } else {
-		s.concat("}");
+		s = s.concat("}");
 	    }
 	    return s;
 	}

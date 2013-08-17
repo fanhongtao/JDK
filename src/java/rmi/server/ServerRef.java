@@ -1,4 +1,6 @@
 /*
+ * @(#)ServerRef.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,7 @@ import java.rmi.*;
  * A ServerRef represents the server-side handle for a remote object
  * implementation.
  *
- * @version 1.14, 02/06/02
+ * @version 1.14, 12/03/01
  * @author  Ann Wollrath
  * @since   JDK1.1
  */

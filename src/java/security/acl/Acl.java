@@ -1,4 +1,6 @@
 /*
+ * @(#)Acl.java	1.20 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -65,7 +67,7 @@ import java.security.Principal;
  * @see java.security.acl.Owner
  * @see java.security.acl.Acl#getPermissions
  * 
- * @version 1.19, 02/02/06
+ * @version 1.20, 01/12/03
  * @author Satish Dharmaraj 
  */
 
@@ -81,6 +83,8 @@ public interface Acl extends Owner {
      *
      * @exception NotOwnerException if the caller principal
      * is not an owner of this ACL.  
+     *
+     * @see #getName
      */
     public void setName(Principal caller, String name)
       throws NotOwnerException;
@@ -89,6 +93,8 @@ public interface Acl extends Owner {
      * Returns the name of this ACL. 
      *
      * @return the name of this ACL.
+     *
+     * @see #setName
      */
     public String getName();
 

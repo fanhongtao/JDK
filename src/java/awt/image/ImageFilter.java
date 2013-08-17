@@ -1,4 +1,6 @@
 /*
+ * @(#)ImageFilter.java	1.25 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,7 +22,7 @@ import java.util.Hashtable;
  * @see FilteredImageSource
  * @see ImageConsumer
  *
- * @version	1.24 02/06/02
+ * @version	1.25 12/03/01
  * @author 	Jim Graham
  */
 public class ImageFilter implements ImageConsumer, Cloneable {
@@ -46,6 +48,9 @@ public class ImageFilter implements ImageConsumer, Cloneable {
      * this class to filter pixels from an image should avoid calling
      * this method directly since that operation could interfere
      * with the filtering operation.
+     * @param ic the specified <code>ImageConsumer</code>
+     * @return an <code>ImageFilter</code> used to perform the 
+     *         filtering for the specified <code>ImageConsumer</code>.
      */
     public ImageFilter getFilterInstance(ImageConsumer ic) {
 	ImageFilter instance = (ImageFilter) clone();

@@ -1,9 +1,13 @@
 /*
+ * @(#)Menu.java	1.68 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.Vector;
 import java.util.Enumeration;
 import java.awt.peer.MenuPeer;
@@ -27,7 +31,7 @@ import javax.accessibility.*;
  * (an instance of <code>Menu</code>), or a check box (an instance of
  * <code>CheckboxMenuItem</code>).
  *
- * @version 1.62, 02/06/02
+ * @version 1.68, 12/03/01
  * @author Sami Shaio
  * @see     java.awt.MenuItem
  * @see     java.awt.CheckboxMenuItem
@@ -38,7 +42,9 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
     static {
         /* ensure that the necessary native libraries are loaded */
 	Toolkit.loadLibraries();
-        initIDs();
+        if (!GraphicsEnvironment.isHeadless()) {
+            initIDs();
+        }
     }
 
     /**
@@ -84,9 +90,12 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
     /**
      * Constructs a new menu with an empty label. This menu is not
      * a tear-off menu.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      * @since      JDK1.1
      */
-    public Menu() {
+    public Menu() throws HeadlessException {
 	this("", false);
     }
 
@@ -95,8 +104,11 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
      * a tear-off menu.
      * @param       label the menu's label in the menu bar, or in
      *                   another menu of which this menu is a submenu.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public Menu(String label) {
+    public Menu(String label) throws HeadlessException {
 	this(label, false);
     }
 
@@ -111,9 +123,12 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
      *                   another menu of which this menu is a submenu.
      * @param       tearOff   if <code>true</code>, the menu
      *                   is a tear-off menu.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      * @since       JDK1.0.
      */
-    public Menu(String label, boolean tearOff) {
+    public Menu(String label, boolean tearOff) throws HeadlessException {
 	super(label);
 	this.tearOff = tearOff;
     }
@@ -216,10 +231,11 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
 
     /**
      * Adds the specified menu item to this menu. If the
-     * menu item has been part of another menu, remove it
+     * menu item has been part of another menu, removes it
      * from that menu.
-     * @param       mi   the menu item to be added.
-     * @return      the menu item added.
+     *
+     * @param       mi   the menu item to be added
+     * @return      the menu item added
      * @see         java.awt.Menu#insert(java.lang.String, int)
      * @see         java.awt.Menu#insert(java.awt.MenuItem, int)
      */
@@ -241,7 +257,8 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
 
     /**
      * Adds an item with the specified label to this menu.
-     * @param       label   the text on the item.
+     *
+     * @param       label   the text on the item
      * @see         java.awt.Menu#insert(java.lang.String, int)
      * @see         java.awt.Menu#insert(java.awt.MenuItem, int)
      */
@@ -252,13 +269,14 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
     /**
      * Inserts a menu item into this menu
      * at the specified position.
+     *
      * @param         menuitem  the menu item to be inserted.
      * @param         index     the position at which the menu
      *                          item should be inserted.
      * @see           java.awt.Menu#add(java.lang.String)
      * @see           java.awt.Menu#add(java.awt.MenuItem)
      * @exception     IllegalArgumentException if the value of
-     *                    <code>index</code> is less than zero.
+     *                    <code>index</code> is less than zero
      * @since         JDK1.1
      */
 
@@ -293,12 +311,16 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
 
     /**
      * Inserts a menu item with the specified label into this menu
-     * at the specified position.
-     * @param       label the text on the item.
+     * at the specified position.  This is a convenience method for
+     * <code>insert(menuItem, index)</code>.
+     *
+     * @param       label the text on the item
      * @param       index the position at which the menu item
-     *                      should be inserted.
+     *                      should be inserted
      * @see         java.awt.Menu#add(java.lang.String)
      * @see         java.awt.Menu#add(java.awt.MenuItem)
+     * @exception     IllegalArgumentException if the value of
+     *                    <code>index</code> is less than zero
      * @since       JDK1.1
      */
 
@@ -467,40 +489,33 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
     private int menuSerializedDataVersion = 1;
 
     /**
-     * Writes default serializable fields to stream.  Writes
-     * a list of serializable ItemListener(s) as optional data.
-     * The non-serializable ItemListner(s) are detected and
-     * no attempt is made to serialize them.
+     * Writes default serializable fields to stream.
      *
-     * @serialData Null terminated sequence of 0 or more pairs.
-     *             The pair consists of a String and Object.
-     *             The String indicates the type of object and
-     *             is one of the following :
-     *             itemListenerK indicating and ItemListener object.
-     *
+     * @param s the <code>ObjectOutputStream</code> to write
      * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-     * @see java.awt.Component.itemListenerK
+     * @see #readObject
      */
     private void writeObject(java.io.ObjectOutputStream s)
-      throws java.lang.ClassNotFoundException,
-	     java.io.IOException
+      throws java.io.IOException
     {
       s.defaultWriteObject();
     }
 
     /**
-     * Read the ObjectInputStream and if it isnt null
-     * add a listener to receive item events fired
-     * by the Menu.
-     * Unrecognised keys or values will be Ignored.
+     * Reads the <code>ObjectInputStream</code>.
+     * Unrecognized keys or values will be ignored.
      *
-     * @see removeActionListener()
-     * @see addActionListener()
+     * @param s the <code>ObjectInputStream</code> to read
+     * @exception HeadlessException if
+     *   <code>GraphicsEnvironment.isHeadless</code> returns
+     *   <code>true</code>
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see #writeObject
      */
-    private void readObject(java.io.ObjectInputStream s)
-      throws java.lang.ClassNotFoundException,
-	     java.io.IOException
+    private void readObject(ObjectInputStream s)
+      throws IOException, ClassNotFoundException, HeadlessException
     {
+      // HeadlessException will be thrown from MenuComponent's readObject
       s.defaultReadObject();
       for(int i = 0; i < items.size(); i++) {
 	MenuItem item = (MenuItem)items.elementAt(i);
@@ -509,9 +524,13 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
     }
 
     /**
-     * Gets the parameter string representing the state of this menu.
-     * This string is useful for debugging.
-     * @since      JDK1.0nu.
+     * Returns a string representing the state of this <code>Menu</code>.
+     * This method is intended to be used only for debugging purposes, and the 
+     * content and format of the returned string may vary between 
+     * implementations. The returned string may be empty but may not be 
+     * <code>null</code>.
+     * 
+     * @return the parameter string of this menu
      */
     public String paramString() {
         String str = ",tearOff=" + tearOff+",isHelpMenu=" + isHelpMenu;

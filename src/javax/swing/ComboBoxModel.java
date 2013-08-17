@@ -1,25 +1,39 @@
 /*
+ * @(#)ComboBoxModel.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
 /**
- * A data model for JComboBox
+ * A data model for a combo box. This interface extends <code>ListDataModel</code>
+ * and adds the concept of a <i>selected item</i>. The selected item is generally
+ * the item which is visible in the combo box display area.
+ * <p>
+ * The selected item may not necessarily be managed by the underlying 
+ * <code>ListModel</code>. This disjoint behavior allows for the temporary 
+ * storage and retrieval of a selected item in the model.
  *
- * @version 1.10 02/06/02
+ * @version 1.13 12/03/01
  * @author Arnaud Weber
  */
-
-/** ComboBoxDataModel is a ListDataModel with a selected item
-  * This selected item is in the model since it is not
-  * always in the item list.
-  */
 public interface ComboBoxModel extends ListModel {
-  /** Set the selected item **/
+
+  /** 
+   * Set the selected item. The implementation of this  method should notify 
+   * all registered <code>ListDataListener</code>s that the contents 
+   * have changed. 
+   * 
+   * @param anItem the list object to select or <code>null</code> 
+   *        to clear the selection
+   */
   void setSelectedItem(Object anItem);
 
-  /** Return the selected item **/
+  /** 
+   * Returns the selected item 
+   * @return The selected item or <code>null</code> if there is no selection
+   */
   Object getSelectedItem();
 }
 

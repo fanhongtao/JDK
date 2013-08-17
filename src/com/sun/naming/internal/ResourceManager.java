@@ -1,4 +1,6 @@
 /*
+ * @(#)ResourceManager.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,7 +18,8 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
-import java.util.Vector;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.WeakHashMap;
 
 import javax.naming.*;
@@ -26,7 +29,7 @@ import javax.naming.*;
   * 
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.7 01/06/18
+  * @version 1.11 01/12/03
   */
 
 public final class ResourceManager {
@@ -74,7 +77,7 @@ public final class ResourceManager {
      * A cache of factory objects (ObjectFactory, StateFactory, ControlFactory).
      *
      * A two-level cache keyed first on context class loader and then
-     * on propValue.  Value is a Vector of class or factory objects,
+     * on propValue.  Value is a list of class or factory objects,
      * weakly referenced so as not to prevent GC of the class loader.
      * Used in getFactories().
      */
@@ -197,7 +200,7 @@ public final class ResourceManager {
     }
 
     /**
-     * Retreives an enumeration of factory classes/object specified by a
+     * Retrieves an enumeration of factory classes/object specified by a
      * property.
      * 
      * The property is gotten from the environment and the provider
@@ -205,24 +208,24 @@ public final class ResourceManager {
      * See getProperty(). The resulting property value is a list of class names.
      *<p>
      * This method then loads each class using the current thread's context
-     * class loader and keeps them in a vector. Any class that cannot be loaded
-     * is ignored. The resulting vector is then cached in a two-level
+     * class loader and keeps them in a list. Any class that cannot be loaded
+     * is ignored. The resulting list is then cached in a two-level
      * hash table, keyed first by the context class loader and then by
      * the property's value.
      * The next time threads of the same context class loader call this 
-     * method, they can use the cached vector.
+     * method, they can use the cached list.
      *<p>
-     * After obtaining the vector either from the cache or by creating one from
+     * After obtaining the list either from the cache or by creating one from
      * the property value, this method then creates and returns a 
-     * FactoryEnumeration using the vector. As the FactoryEnumeration is 
-     * traversed, the cached Class object in the vector is instantiated and 
+     * FactoryEnumeration using the list. As the FactoryEnumeration is 
+     * traversed, the cached Class object in the list is instantiated and 
      * replaced by an instance of the factory object itself.  Both class
      * objects and factories are wrapped in weak references so as not to
      * prevent GC of the class loader.
      *<p>
-     * Note that multiple threads can be accessing the same cached vector
-     * via FactoryEnumeration, which locks the vector during each next().
-     * The size of the vector will not change,
+     * Note that multiple threads can be accessing the same cached list
+     * via FactoryEnumeration, which locks the list during each next().
+     * The size of the list will not change,
      * but a cached Class object might be replaced by an instantiated factory
      * object.
      *
@@ -258,28 +261,29 @@ public final class ResourceManager {
 	}
 
 	synchronized (perLoaderCache) {
-	    Vector v = (Vector) perLoaderCache.get(facProp);
-	    if (v != null) {
-		// Cached vector
-		return v.size() == 0 ? null : new FactoryEnumeration(v, loader);
+	    List factories = (List) perLoaderCache.get(facProp);
+	    if (factories != null) {
+		// Cached list
+		return factories.size() == 0 ? null 
+		    : new FactoryEnumeration(factories, loader);
 	    } else {
-		// Populate Vector with classes named in facProp; skipping
+		// Populate list with classes named in facProp; skipping
 		// those that we cannot load
 		StringTokenizer parser = new StringTokenizer(facProp, ":");
-		v = new Vector(5);
+		factories = new ArrayList(5);
 		while (parser.hasMoreTokens()) {
 		    try {
 			// System.out.println("loading");
 			String className = parser.nextToken();
 			Class c = helper.loadClass(className, loader);
-			v.addElement(new NamedWeakReference(c, className));
+			factories.add(new NamedWeakReference(c, className));
 		    } catch (Exception e) {
 			// ignore ClassNotFoundException, IllegalArgumentException
 		    }
 		}
-		// System.out.println("adding to cache: " + v);
-		perLoaderCache.put(facProp, v);
-		return new FactoryEnumeration(v, loader);
+		// System.out.println("adding to cache: " + factories);
+		perLoaderCache.put(facProp, factories);
+		return new FactoryEnumeration(factories, loader);
 	    }
 	}
     }

@@ -1,4 +1,6 @@
 /*
+ * @(#)PublicKey.java	1.30 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,10 +23,14 @@ package java.security;
  * @see java.security.interfaces.DSAPublicKey
  * @see java.security.interfaces.RSAPublicKey
  *
- * @version 1.29 02/02/06
+ * @version 1.30 01/12/03
  */
 
 public interface PublicKey extends Key {
     // Declare serialVersionUID to be compatible with JDK1.1
+    /** 
+     * The class fingerprint that is set to indicate serialization
+     * compatibility with a previous version of the class.
+     */
     static final long serialVersionUID = 7187392471159151072L;
 }

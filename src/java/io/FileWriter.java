@@ -1,4 +1,6 @@
 /*
+ * @(#)FileWriter.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -12,10 +14,20 @@ package java.io;
  * size are acceptable.  To specify these values yourself, construct an
  * OutputStreamWriter on a FileOutputStream.
  *
+ * <p>Whether or not a file is available or may be created depends upon the
+ * underlying platform.  Some platforms, in particular, allow a file to be
+ * opened for writing by only one <tt>FileWriter</tt> (or other file-writing
+ * object) at a time.  In such situations the constructors in this class
+ * will fail if the file involved is already open.
+ *
+ * <p><code>FileWriter</code> is meant for writing streams of characters.
+ * For writing streams of raw bytes, consider using a
+ * <code>FileOutputStream</code>.
+ *
  * @see OutputStreamWriter
  * @see FileOutputStream
  *
- * @version 	1.12, 02/02/06
+ * @version 	1.15, 01/12/03
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -56,6 +68,22 @@ public class FileWriter extends OutputStreamWriter {
      */
     public FileWriter(File file) throws IOException {
 	super(new FileOutputStream(file));
+    }
+
+    /**
+     * Constructs a FileWriter object given a File object. If the second
+     * argument is <code>true</code>, then bytes will be written to the end
+     * of the file rather than the beginning.
+     *
+     * @param file  a File object to write to
+     * @param     append    if <code>true</code>, then bytes will be written
+     *                      to the end of the file rather than the beginning
+     * @throws IOException if the specified file is not found or if some other
+     *                     I/O error occurs
+     * @since 1.4
+     */
+    public FileWriter(File file, boolean append) throws IOException {
+        super(new FileOutputStream(file, append));
     }
 
     /**

@@ -1,4 +1,6 @@
 /*
+ * @(#)DirectColorModel.java	1.76 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,6 +16,11 @@ import java.awt.Transparency;
  * color and alpha information as separate samples and that pack all
  * samples for a single pixel into a single int, short, or byte quantity.
  * This class can be used only with ColorSpaces of type ColorSpace.TYPE_RGB.
+ * In addition, for each component of the ColorSpace, the minimum
+ * normalized component value obtained via the <code>getMinValue()</code>
+ * method of ColorSpace must be 0.0, and the maximum value obtained via
+ * the <code>getMaxValue()</code> method must be 1.0 (these min/max
+ * values are typical for RGB spaces).
  * There must be three color samples in the pixel values and there can
  * be a single alpha sample.  For those methods that use a primitive array
  * pixel representation of type <code>transferType</code>, the array 
@@ -95,6 +102,11 @@ public class DirectColorModel extends PackedColorModel {
     private int green_scale;
     private int blue_scale;
     private int alpha_scale;
+    private boolean is_LinearRGB;
+    private int lRGBprecision;
+    private byte[] tosRGB8LUT;
+    private byte[] fromsRGB8LUT8;
+    private short[] fromsRGB8LUT16;
     
     /**
      * Constructs a <code>DirectColorModel</code> from the specified masks 
@@ -160,7 +172,9 @@ public class DirectColorModel extends PackedColorModel {
     /**
      * Constructs a <code>DirectColorModel</code> from the specified
      * parameters.  Color components are in the specified 
-     * <code>ColorSpace</code>, which must be of type ColorSpace.TYPE_RGB.
+     * <code>ColorSpace</code>, which must be of type ColorSpace.TYPE_RGB
+     * and have minimum normalized component values which are all 0.0
+     * and maximum values which are all 1.0.
      * The masks specify which bits in an <code>int</code> pixel 
      * representation contain the red, green and blue color samples and
      * the alpha sample, if present.  If <code>amask</code> is 0, pixel
@@ -192,6 +206,9 @@ public class DirectColorModel extends PackedColorModel {
      * @param isAlphaPremultiplied <code>true</code> if color samples are
      *        premultiplied by the alpha sample; <code>false</code> otherwise
      * @param transferType the type of array used to represent pixel values
+     * @throws IllegalArgumentException if <code>space</code> is not a
+     *         TYPE_RGB space or if the min/max normalized component
+     *         values are not 0.0/1.0.
      */
     public DirectColorModel(ColorSpace space, int bits, int rmask,
                             int gmask, int bmask, int amask,
@@ -201,6 +218,28 @@ public class DirectColorModel extends PackedColorModel {
                isAlphaPremultiplied,
                amask == 0 ? Transparency.OPAQUE : Transparency.TRANSLUCENT,
                transferType);  
+        if (ColorModel.isLinearRGBspace(colorSpace)) {
+            is_LinearRGB = true;
+            if (maxBits <= 8) {
+                lRGBprecision = 8;
+                tosRGB8LUT = ColorModel.getLinearRGB8TosRGB8LUT();
+                fromsRGB8LUT8 = ColorModel.getsRGB8ToLinearRGB8LUT();
+            } else {
+                lRGBprecision = 16;
+                tosRGB8LUT = ColorModel.getLinearRGB16TosRGB8LUT();
+                fromsRGB8LUT16 = ColorModel.getsRGB8ToLinearRGB16LUT();
+            }
+        } else if (!is_sRGB) {
+            for (int i = 0; i < 3; i++) {
+                // super constructor checks that space is TYPE_RGB
+                // check here that min/max are all 0.0/1.0
+                if ((space.getMinValue(i) != 0.0f) ||
+                    (space.getMaxValue(i) != 1.0f)) {
+                    throw new IllegalArgumentException(
+                        "Illegal min/max RGB component value");
+                }
+            }
+        }
         setFields();
     }
 
@@ -262,6 +301,40 @@ public class DirectColorModel extends PackedColorModel {
     }
 
 
+    private int getsRGBComponentFromsRGB(int pixel, int idx) {
+	int c = ((pixel & maskArray[idx]) >>> maskOffsets[idx]);
+        if (isAlphaPremultiplied) {
+            int a = ((pixel & maskArray[3]) >>> maskOffsets[3]);
+            c = (a == 0) ? 0 :
+                         (int) (((c * scaleFactors[idx]) * 255.0f /
+                                 (a * scaleFactors[3])) + 0.5f);
+        } else if (scaleFactors[idx] != 1.0f) {
+	    c = (int) ((c * scaleFactors[idx]) + 0.5f);
+        }
+	return c;
+    }
+
+
+    private int getsRGBComponentFromLinearRGB(int pixel, int idx) {
+	int c = ((pixel & maskArray[idx]) >>> maskOffsets[idx]);
+        if (isAlphaPremultiplied) {
+            float factor = (float) ((1 << lRGBprecision) - 1);
+            int a = ((pixel & maskArray[3]) >>> maskOffsets[3]);
+            c = (a == 0) ? 0 :
+                         (int) (((c * scaleFactors[idx]) * factor /
+                                 (a * scaleFactors[3])) + 0.5f);
+        } else if (nBits[idx] != lRGBprecision) {
+            if (lRGBprecision == 16) {
+                c = (int) ((c * scaleFactors[idx] * 257.0f) + 0.5f);
+            } else {
+	        c = (int) ((c * scaleFactors[idx]) + 0.5f);
+            }
+        }
+        // now range of c is 0-255 or 0-65535, depending on lRGBprecision
+	return tosRGB8LUT[c] & 0xff;
+    }
+
+
     /**
      * Returns the red color component for the specified pixel, scaled
      * from 0 to 255 in the default RGB <code>ColorSpace</code>, sRGB.  A 
@@ -276,22 +349,13 @@ public class DirectColorModel extends PackedColorModel {
      *         0 to 255 in the sRGB <code>ColorSpace</code>.
      */
     final public int getRed(int pixel) {
-        if (!is_sRGB) {
-            float rgb[] = getDefaultRGBComponents(pixel);
-            return (int) (rgb[0] * 255.0f);
+        if (is_sRGB) {
+            return getsRGBComponentFromsRGB(pixel, 0);
+        } else if (is_LinearRGB) {
+            return getsRGBComponentFromLinearRGB(pixel, 0);
         }
-	int r = ((pixel & maskArray[0]) >>> maskOffsets[0]);
-	if (scaleFactors[0] != 1.) {
-	    r = (int)(r * scaleFactors[0]);
-	}
-        if (isAlphaPremultiplied) {
-            int a = getAlpha(pixel);
-            r = (a == 0) ? 0 : (r * 255/a);
-            if (r > 255) {
-                r = 255;
-            }
-        }
-	return r;
+        float rgb[] = getDefaultRGBComponents(pixel);
+        return (int) (rgb[0] * 255.0f + 0.5f);
     }
 
     /**
@@ -308,23 +372,13 @@ public class DirectColorModel extends PackedColorModel {
      *         0 to 255 in the sRGB <code>ColorSpace</code>.
      */
     final public int getGreen(int pixel) {
-        if (!is_sRGB) {
-            float rgb[] = getDefaultRGBComponents(pixel);
-            return (int) (rgb[1] * 255.0f);
+        if (is_sRGB) {
+            return getsRGBComponentFromsRGB(pixel, 1);
+        } else if (is_LinearRGB) {
+            return getsRGBComponentFromLinearRGB(pixel, 1);
         }
-	int g = ((pixel & maskArray[1]) >>> maskOffsets[1]);
-	if (scaleFactors[1] != 1.) {
-	    g = (int) (g * scaleFactors[1]);
-	}
-
-        if (isAlphaPremultiplied) {
-            int a = getAlpha(pixel);
-            g = (a == 0) ? 0 : (g * 255/a);
-            if (g > 255) {
-                g = 255;
-            }
-        }
-	return g;
+        float rgb[] = getDefaultRGBComponents(pixel);
+        return (int) (rgb[1] * 255.0f + 0.5f);
     }
 
     /**
@@ -341,23 +395,13 @@ public class DirectColorModel extends PackedColorModel {
      *         0 to 255 in the sRGB <code>ColorSpace</code>.
      */
     final public int getBlue(int pixel) {
-        if (!is_sRGB) {
-            float rgb[] = getDefaultRGBComponents(pixel);
-            return (int) (rgb[2] * 255.0f);
+        if (is_sRGB) {
+            return getsRGBComponentFromsRGB(pixel, 2);
+        } else if (is_LinearRGB) {
+            return getsRGBComponentFromLinearRGB(pixel, 2);
         }
-	int b = ((pixel & maskArray[2]) >>> maskOffsets[2]);
-	if (scaleFactors[2] != 1.) {
-	    b = (int)(b * scaleFactors[2]);
-	}
-
-        if (isAlphaPremultiplied) {
-            int a = getAlpha(pixel);
-            b = (a == 0) ? 0 : (b * 255/a);
-            if (b > 255) {
-                b = 255;
-            }
-        }
-	return b;
+        float rgb[] = getDefaultRGBComponents(pixel);
+        return (int) (rgb[2] * 255.0f + 0.5f);
     }
 
     /**
@@ -370,8 +414,8 @@ public class DirectColorModel extends PackedColorModel {
     final public int getAlpha(int pixel) {
 	if (!supportsAlpha) return 255;
 	int a = ((pixel & maskArray[3]) >>> maskOffsets[3]);
-	if (scaleFactors[3] != 1.) {
-	    a = (int)(a * scaleFactors[3]);
+	if (scaleFactors[3] != 1.0f) {
+	    a = (int)(a * scaleFactors[3] + 0.5f);
 	}
 	return a;
     }
@@ -390,17 +434,17 @@ public class DirectColorModel extends PackedColorModel {
      * @see ColorModel#getRGBdefault
      */
     final public int getRGB(int pixel) {
-        if (!is_sRGB) {
-            float rgb[] = getDefaultRGBComponents(pixel);
-            return (getAlpha(pixel) << 24)
-                | (((int) (rgb[0] * 255.0f)) << 16)
-                | (((int) (rgb[1] * 255.0f)) << 8)
-                | (((int) (rgb[2] * 255.0f)) << 0);
+        if (is_sRGB || is_LinearRGB) {
+	    return (getAlpha(pixel) << 24)
+	        | (getRed(pixel) << 16)
+	        | (getGreen(pixel) << 8)
+	        | (getBlue(pixel) << 0);
         }
-	return (getAlpha(pixel) << 24)
-	    | (getRed(pixel) << 16)
-	    | (getGreen(pixel) << 8)
-	    | (getBlue(pixel) << 0);
+        float rgb[] = getDefaultRGBComponents(pixel);
+        return (getAlpha(pixel) << 24)
+            | (((int) (rgb[0] * 255.0f + 0.5f)) << 16)
+            | (((int) (rgb[1] * 255.0f + 0.5f)) << 8)
+            | (((int) (rgb[2] * 255.0f + 0.5f)) << 0);
     }
     
     /**
@@ -697,11 +741,11 @@ public class DirectColorModel extends PackedColorModel {
     public Object getDataElements(int rgb, Object pixel) {
         //REMIND: maybe more efficient not to use int array for
         //DataBuffer.TYPE_USHORT and DataBuffer.TYPE_INT
-        int i;
         int intpixel[] = null;
         if (transferType == DataBuffer.TYPE_INT &&
             pixel != null) {
-           intpixel = (int[])pixel;
+            intpixel = (int[])pixel;
+            intpixel[0] = 0;
         } else {
             intpixel = new int[1];
         }
@@ -709,45 +753,110 @@ public class DirectColorModel extends PackedColorModel {
         ColorModel defaultCM = ColorModel.getRGBdefault();
         if (this == defaultCM || equals(defaultCM)) {
             intpixel[0] = rgb;
-        } else if (is_sRGB) {
-            double normAlpha = 1.;
-            int c;
-            if (supportsAlpha && isAlphaPremultiplied) {
-                normAlpha = ((rgb>>24)&0xff)/255.;
-            }
+            return intpixel;
+        }
 
-            int[] shifts = {16, 8, 0, 24};
-
-            intpixel[0] = 0;
-            for (i=0; i < 3; i++) {
-                c = (int)(((rgb>>shifts[i])&0xff)*normAlpha/scaleFactors[i]);
-                intpixel[0] |= (c << maskOffsets[i]) & maskArray[i];
+        int red, grn, blu, alp;
+        red = (rgb>>16) & 0xff;
+        grn = (rgb>>8) & 0xff;
+        blu = rgb & 0xff;
+        if (is_sRGB || is_LinearRGB) {
+            int precision;
+            float factor;
+            if (is_LinearRGB) {
+                if (lRGBprecision == 8) {
+                    red = fromsRGB8LUT8[red] & 0xff;
+                    grn = fromsRGB8LUT8[grn] & 0xff;
+                    blu = fromsRGB8LUT8[blu] & 0xff;
+                    precision = 8;
+                    factor = 1.0f / 255.0f;
+                } else {
+                    red = fromsRGB8LUT16[red] & 0xffff;
+                    grn = fromsRGB8LUT16[grn] & 0xffff;
+                    blu = fromsRGB8LUT16[blu] & 0xffff;
+                    precision = 16;
+                    factor = 1.0f / 65535.0f;
+                }
+            } else {
+                precision = 8;
+                factor = 1.0f / 255.0f;
             }
             if (supportsAlpha) {
-                c = (int) (((rgb>>shifts[3])&0xff) / scaleFactors[3]);
-                intpixel[0] |= (c << maskOffsets[3]) & maskArray[3];
+                alp = (rgb>>24) & 0xff;
+                if (isAlphaPremultiplied) {
+                    factor *= (alp * (1.0f / 255.0f));
+                    precision = -1;  // force component calculations below
+                }
+                if (nBits[3] != 8) {
+                    alp = (int)
+                        ((alp * (1.0f / 255.0f) * ((1<<nBits[3]) - 1)) + 0.5f);
+                    if (alp > ((1<<nBits[3]) - 1)) {
+                        // fix 4412670 - see comment below
+                        alp = (1<<nBits[3]) - 1;
+                    }
+                }
+                intpixel[0] = alp << maskOffsets[3];
+            }
+            if (nBits[0] != precision) {
+                red = (int) ((red * factor * ((1<<nBits[0]) - 1)) + 0.5f);
+            }
+            if (nBits[1] != precision) {
+                grn = (int) ((grn * factor * ((1<<nBits[1]) - 1)) + 0.5f);
+            }
+            if (nBits[2] != precision) {
+                blu = (int) ((blu * factor * ((1<<nBits[2]) - 1)) + 0.5f);
             }
         } else {
-            int components[] = defaultCM.getComponents(rgb, null, 0);
-            float norm[] = defaultCM.getNormalizedComponents(components, 0,
-                                                             null, 0);
-            float rgbf[] = colorSpace.fromRGB(norm);
-            double normAlpha = 1.;
-            int c;
-            if (supportsAlpha && isAlphaPremultiplied) {
-                normAlpha = ((rgb>>24)&0xff)/255.;
-            }
-
-            intpixel[0] = 0;
-            for (i=0; i < 3; i++) {
-                c = (int) ((rgbf[i] * 255.0)*normAlpha/scaleFactors[i]);
-                intpixel[0] |= (c << maskOffsets[i]) & maskArray[i];
-            }
+            // Need to convert the color
+            float[] norm = new float[3];
+            float factor = 1.0f / 255.0f;
+            norm[0] = red * factor;
+            norm[1] = grn * factor;
+            norm[2] = blu * factor;
+            norm = colorSpace.fromRGB(norm);
             if (supportsAlpha) {
-                c = (int) (((rgb>>24)&0xff) / scaleFactors[3]);
-                intpixel[0] |= (c << maskOffsets[3]) & maskArray[3];
+                alp = (rgb>>24) & 0xff;
+                if (isAlphaPremultiplied) {
+                    factor *= alp;
+                    for (int i = 0; i < 3; i++) {
+                        norm[i] *= factor;
+                    }
+                }
+                if (nBits[3] != 8) {
+                    alp = (int)
+                        ((alp * (1.0f / 255.0f) * ((1<<nBits[3]) - 1)) + 0.5f);
+                    if (alp > ((1<<nBits[3]) - 1)) {
+                        // fix 4412670 - see comment below
+                        alp = (1<<nBits[3]) - 1;
+                    }
+                }
+                intpixel[0] = alp << maskOffsets[3];
+            }
+            red = (int) ((norm[0] * ((1<<nBits[0]) - 1)) + 0.5f);
+            grn = (int) ((norm[1] * ((1<<nBits[1]) - 1)) + 0.5f);
+            blu = (int) ((norm[2] * ((1<<nBits[2]) - 1)) + 0.5f);
+        }
+
+        if (maxBits > 23) {
+            // fix 4412670 - for components of 24 or more bits
+            // some calculations done above with float precision
+            // may lose enough precision that the integer result
+            // overflows nBits, so we need to clamp.
+            if (red > ((1<<nBits[0]) - 1)) {
+                red = (1<<nBits[0]) - 1;
+            }
+            if (grn > ((1<<nBits[1]) - 1)) {
+                grn = (1<<nBits[1]) - 1;
+            }
+            if (blu > ((1<<nBits[2]) - 1)) {
+                blu = (1<<nBits[2]) - 1;
             }
         }
+
+        intpixel[0] |= (red << maskOffsets[0]) |
+                       (grn << maskOffsets[1]) |
+                       (blu << maskOffsets[2]);
+
         switch (transferType) {
             case DataBuffer.TYPE_BYTE: {
                byte bdata[];
@@ -835,6 +944,8 @@ public class DirectColorModel extends PackedColorModel {
      *        components of the specified pixel
      * @param offset the offset into the <code>components</code> array at
      *        which to start storing the color and alpha components
+     * @return an array containing the color and alpha components of the
+     * specified pixel starting at the specified offset.
      * @exception ClassCastException if <code>pixel</code> 
      *  is not a primitive array of type <code>transferType</code>
      * @exception ArrayIndexOutOfBoundsException if
@@ -884,6 +995,10 @@ public class DirectColorModel extends PackedColorModel {
      */
     final public WritableRaster createCompatibleWritableRaster (int w,
                                                                 int h) {
+        if ((w <= 0) || (h <= 0)) {
+            throw new IllegalArgumentException("Width (" + w + ") and height (" + h + 
+                                               ") cannot be <= 0");
+        }
         int[] bandmasks;
         if (supportsAlpha) {
             bandmasks = new int[4];
@@ -1053,12 +1168,13 @@ public class DirectColorModel extends PackedColorModel {
         int h = raster.getHeight();
         int aIdx = numColorComponents;
         float normAlpha;
-        int alphaScale = (1 << nBits[aIdx]) - 1;
+        float alphaScale = 1.0f / ((float) ((1 << nBits[aIdx]) - 1));
 
         int rminX = raster.getMinX();
         int rY = raster.getMinY();
         int rX;
         int pixel[] = null;
+        int zpixel[] = null;
 
         if (isAlphaPremultiplied) {
             // Must mean that we are currently not premultiplied so
@@ -1069,12 +1185,19 @@ public class DirectColorModel extends PackedColorModel {
                         rX = rminX;
                         for (int x = 0; x < w; x++, rX++) {
                             pixel = raster.getPixel(rX, rY, pixel);
-                            normAlpha = pixel[aIdx]/alphaScale;
+                            normAlpha = pixel[aIdx] * alphaScale;
                             if (normAlpha != 0.f) {
                                 for (int c=0; c < aIdx; c++) {
-                                    pixel[c] = (int)(pixel[c]*normAlpha);
+                                    pixel[c] = (int) (pixel[c] * normAlpha +
+                                                      0.5f);
                                 }
                                 raster.setPixel(rX, rY, pixel);
+                            } else {
+                                if (zpixel == null) {
+                                    zpixel = new int[numComponents];
+                                    java.util.Arrays.fill(zpixel, 0);
+                                }
+                                raster.setPixel(rX, rY, zpixel);
                             }
                         }
                     }
@@ -1085,12 +1208,19 @@ public class DirectColorModel extends PackedColorModel {
                         rX = rminX;
                         for (int x = 0; x < w; x++, rX++) {
                             pixel = raster.getPixel(rX, rY, pixel);
-                            normAlpha = pixel[aIdx]/alphaScale;
+                            normAlpha = pixel[aIdx] * alphaScale;
                             if (normAlpha != 0.f) {
                                 for (int c=0; c < aIdx; c++) {
-                                    pixel[c] = (int)(pixel[c]*normAlpha);
+                                    pixel[c] = (int) (pixel[c] * normAlpha +
+                                                      0.5f);
                                 }
                                 raster.setPixel(rX, rY, pixel);
+                            } else {
+                                if (zpixel == null) {
+                                    zpixel = new int[numComponents];
+                                    java.util.Arrays.fill(zpixel, 0);
+                                }
+                                raster.setPixel(rX, rY, zpixel);
                             }
                         }
                     }
@@ -1101,12 +1231,19 @@ public class DirectColorModel extends PackedColorModel {
                         rX = rminX;
                         for (int x = 0; x < w; x++, rX++) {
                             pixel = raster.getPixel(rX, rY, pixel);
-                            normAlpha = pixel[aIdx]/alphaScale;
+                            normAlpha = pixel[aIdx] * alphaScale;
                             if (normAlpha != 0.f) {
                                 for (int c=0; c < aIdx; c++) {
-                                    pixel[c] = (int)(pixel[c]*normAlpha);
+                                    pixel[c] = (int) (pixel[c] * normAlpha +
+                                                      0.5f);
                                 }
                                 raster.setPixel(rX, rY, pixel);
+                            } else {
+                                if (zpixel == null) {
+                                    zpixel = new int[numComponents];
+                                    java.util.Arrays.fill(zpixel, 0);
+                                }
+                                raster.setPixel(rX, rY, zpixel);
                             }
                         }
                     }
@@ -1125,13 +1262,15 @@ public class DirectColorModel extends PackedColorModel {
                         rX = rminX;
                         for (int x = 0; x < w; x++, rX++) {
                             pixel = raster.getPixel(rX, rY, pixel);
-                            normAlpha = pixel[aIdx]/alphaScale;
-                            if (normAlpha != 0) {
+                            normAlpha = pixel[aIdx] * alphaScale;
+                            if (normAlpha != 0.0f) {
+                                float invAlpha = 1.0f / normAlpha;
                                 for (int c=0; c < aIdx; c++) {
-                                    pixel[c] /= normAlpha;
+                                    pixel[c] = (int) (pixel[c] * invAlpha +
+                                                      0.5f);
                                 }
+                                raster.setPixel(rX, rY, pixel);
                             }
-                            raster.setPixel(rX, rY, pixel);
                         }
                     }
                 }
@@ -1141,13 +1280,15 @@ public class DirectColorModel extends PackedColorModel {
                         rX = rminX;
                         for (int x = 0; x < w; x++, rX++) {
                             pixel = raster.getPixel(rX, rY, pixel);
-                            normAlpha = pixel[aIdx]/alphaScale;
+                            normAlpha = pixel[aIdx] * alphaScale;
                             if (normAlpha != 0) {
+                                float invAlpha = 1.0f / normAlpha;
                                 for (int c=0; c < aIdx; c++) {
-                                    pixel[c] /= normAlpha;
+                                    pixel[c] = (int) (pixel[c] * invAlpha +
+                                                      0.5f);
                                 }
+                                raster.setPixel(rX, rY, pixel);
                             }
-                            raster.setPixel(rX, rY, pixel);
                         }
                     }
                 }
@@ -1157,13 +1298,15 @@ public class DirectColorModel extends PackedColorModel {
                         rX = rminX;
                         for (int x = 0; x < w; x++, rX++) {
                             pixel = raster.getPixel(rX, rY, pixel);
-                            normAlpha = pixel[aIdx]/alphaScale;
+                            normAlpha = pixel[aIdx] * alphaScale;
                             if (normAlpha != 0) {
+                                float invAlpha = 1.0f / normAlpha;
                                 for (int c=0; c < aIdx; c++) {
-                                    pixel[c] /= normAlpha;
+                                    pixel[c] = (int) (pixel[c] * invAlpha +
+                                                      0.5f);
                                 }
+                                raster.setPixel(rX, rY, pixel);
                             }
-                            raster.setPixel(rX, rY, pixel);
                         }
                     }
                 }

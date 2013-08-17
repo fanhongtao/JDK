@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicColorChooserUI.java	1.36 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -22,7 +24,7 @@ import java.io.Serializable;
 /**
  * Provides the basic look and feel for a JColorChooser.
  * <p>
- * @version 1.26 02/06/02
+ * @version 1.36 12/03/01
  * @author Tom Santos
  * @author Steve Wilson
  */
@@ -37,6 +39,7 @@ public class BasicColorChooserUI extends ColorChooserUI
     JPanel previewPanelHolder;
     JComponent previewPanel;
     boolean isMultiPanel = false;
+    private static TransferHandler defaultTransferHandler = new ColorTransferHandler();
 
     protected AbstractColorChooserPanel[] defaultChoosers;
 
@@ -76,6 +79,7 @@ public class BasicColorChooserUI extends ColorChooserUI
 
 
 	installPreviewPanel();
+	chooser.applyComponentOrientation(c.getComponentOrientation());
 
     }
 
@@ -93,7 +97,8 @@ public class BasicColorChooserUI extends ColorChooserUI
 
     protected void installPreviewPanel() {
 	previewPanelHolder = new JPanel(new CenterLayout());
-	String previewString = UIManager.getString("ColorChooser.previewText");
+	String previewString = UIManager.getString("ColorChooser.previewText",
+                                                   chooser.getLocale());
 	previewPanelHolder.setBorder(new TitledBorder(previewString));
 
 	previewPanel = chooser.getPreviewPanel();
@@ -103,15 +108,32 @@ public class BasicColorChooserUI extends ColorChooserUI
 	previewPanel.setForeground(chooser.getColor());
 	previewPanelHolder.add(previewPanel);
 	chooser.add(previewPanelHolder, BorderLayout.SOUTH);
+
+	MouseListener ml = new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                if (chooser.getDragEnabled()) {
+                    TransferHandler th = chooser.getTransferHandler();
+                    th.exportAsDrag(chooser, e, TransferHandler.COPY);
+                }
+	    }
+	};
+	previewPanel.addMouseListener(ml);
     }
 
     protected void installDefaults() {
         LookAndFeel.installColorsAndFont(chooser, "ColorChooser.background", 
                                               "ColorChooser.foreground",
                                               "ColorChooser.font");
+	TransferHandler th = chooser.getTransferHandler();
+	if (th == null || th instanceof UIResource) {
+	    chooser.setTransferHandler(defaultTransferHandler);
+	}
     }
 
     protected void uninstallDefaults() {
+	if (chooser.getTransferHandler() instanceof UIResource) {
+	    chooser.setTransferHandler(null);
+	}
     }
 
     
@@ -187,14 +209,22 @@ public class BasicColorChooserUI extends ColorChooserUI
 
 		    for (int i = 0; i < newPanels.length; i++) {	    
 		        JPanel centerWrapper = new JPanel( new CenterLayout() );
+                        String name = newPanels[i].getDisplayName();
+                        int mnemonic = newPanels[i].getMnemonic();
 			centerWrapper.add(newPanels[i]);
-			tabbedPane.addTab(newPanels[i].getDisplayName(), centerWrapper);
+			tabbedPane.addTab(name, centerWrapper);
+                        if (mnemonic > 0) {
+                            tabbedPane.setMnemonicAt(i, mnemonic);
+                            tabbedPane.setDisplayedMnemonicIndexAt(
+                                  i, newPanels[i].getDisplayedMnemonicIndex());
+                        }
 		    }
 		    
 		  
 
 		}
 
+		chooser.applyComponentOrientation(chooser.getComponentOrientation());
 		for (int i = 0; i < newPanels.length; i++) {
 		    newPanels[i].installChooserPanel(chooser);
 		}
@@ -205,16 +235,31 @@ public class BasicColorChooserUI extends ColorChooserUI
 	    }
 
 	    if ( e.getPropertyName().equals( JColorChooser.PREVIEW_PANEL_PROPERTY ) ) {
-	        JComponent oldPanel = (JComponent) e.getOldValue();
-		JComponent newPanel = (JComponent) e.getNewValue();
-		if (oldPanel != null) {  // fix for 4166059
-		    chooser.remove(oldPanel);
+            JComponent oldPanel = (JComponent) e.getOldValue();
+                JComponent newPanel = (JComponent) e.getNewValue();
+                if (oldPanel != null) {  // fix for 4166059
+                    chooser.remove(oldPanel);
+                }
+                chooser.add(newPanel, BorderLayout.SOUTH);
+                previewPanel = newPanel;
+            }
+	    if (e.getPropertyName().equals("componentOrientation")) {
+		ComponentOrientation o = (ComponentOrientation)e.getNewValue();
+		JColorChooser cc = (JColorChooser)e.getSource();
+		if (o != (ComponentOrientation)e.getOldValue()) {
+		    cc.applyComponentOrientation(o);
+		    cc.updateUI();
 		}
-		chooser.add(newPanel, BorderLayout.SOUTH);
 	    }
-	}
+        }
     }
 
+    static class ColorTransferHandler extends TransferHandler implements UIResource {
+
+	ColorTransferHandler() {
+	    super("color");
+	}
+    }
     
 }
 

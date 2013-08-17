@@ -1,4 +1,6 @@
 /*
+ * @(#)RBTableBuilder.java	1.7 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,6 +21,11 @@
 package java.text;
 
 import java.util.Vector;
+import sun.text.CompactIntArray;
+import sun.text.IntHashtable;
+import sun.text.Normalizer;
+import sun.text.ComposedCharIter;
+import sun.text.NormalizerUtilities;
 
 /**
  * This class contains all the code to parse a RuleBasedCollator pattern
@@ -36,7 +43,7 @@ import java.util.Vector;
  * builder to have its own source file.
  */
 final class RBTableBuilder {
-    
+
     public RBTableBuilder(RBCollationTables.BuildAPI tables) {
         this.tables = tables;
     }
@@ -68,7 +75,8 @@ final class RBTableBuilder {
         // When there are multiple combining characters attached to a base character,
         // the combining characters must be in their canonical order
         //
-        pattern = Normalizer.decompose(pattern, decmp);
+        Normalizer.Mode mode = NormalizerUtilities.toNormalizerMode(decmp);
+        pattern = Normalizer.normalize(pattern, mode, 0);
 
         // Build the merged collation entries
         // Since rules can be specified in any order in the string
@@ -86,10 +94,17 @@ final class RBTableBuilder {
             PatternEntry entry = mPattern.getItemAt(i);
             if (entry != null) {
                 groupChars = entry.getChars();
-                if ((groupChars.length() > 1) &&
-                    (groupChars.charAt(groupChars.length()-1) == '@')) {
-                    frenchSec = true;
-                    groupChars = groupChars.substring(0, groupChars.length()-1);
+                if (groupChars.length() > 1) {
+		    switch(groupChars.charAt(groupChars.length()-1)) {
+		    case '@':
+			frenchSec = true;
+			groupChars = groupChars.substring(0, groupChars.length()-1);
+			break;
+		    case '!':
+			seAsianSwapping = true;
+			groupChars = groupChars.substring(0, groupChars.length()-1);
+			break;
+		    }
                 }
 
                 order = increment(entry.getStrength(), order);
@@ -111,7 +126,7 @@ final class RBTableBuilder {
         commit();
         mapping.compact();
 
-        tables.fillInTables(frenchSec, mapping, contractTable, expandTable,
+        tables.fillInTables(frenchSec, seAsianSwapping, mapping, contractTable, expandTable,
                     contractFlags, maxSecOrder, maxTerOrder);
     }
 
@@ -122,8 +137,7 @@ final class RBTableBuilder {
         StringBuffer buf = new StringBuffer(1);
 
         // Iterate through all of the pre-composed characters in Unicode
-        Normalizer.DecompIterator iter =
-                        Normalizer.getDecompositions(Collator.CANONICAL_DECOMPOSITION);
+        ComposedCharIter iter = new ComposedCharIter(false, Normalizer.IGNORE_HANGUL);
 
         while (iter.hasNext()) {
             char c = iter.next();
@@ -304,7 +318,7 @@ final class RBTableBuilder {
             pair.value = anOrder;
         } else {
             EntryPair pair = (EntryPair)entryTable.lastElement();
-            
+
             // NOTE:  This little bit of logic is here to speed CollationElementIterator
             // .nextContractChar().  This code ensures that the longest sequence in
             // this list is always the _last_ one in the list.  This keeps
@@ -474,6 +488,7 @@ final class RBTableBuilder {
     // (the values in these variables are copied back into RBCollationTables
     // at the end of the build process)
     private boolean frenchSec = false;
+    private boolean seAsianSwapping = false;
 
     private CompactIntArray mapping = null;
     private Vector   contractTable = null;

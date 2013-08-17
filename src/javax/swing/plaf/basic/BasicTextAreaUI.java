@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicTextAreaUI.java	1.65 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,13 +22,15 @@ import javax.swing.plaf.*;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.61 02/06/02
+ * @version 1.65 12/03/01
  */
 public class BasicTextAreaUI extends BasicTextUI {
 
@@ -74,17 +78,6 @@ public class BasicTextAreaUI extends BasicTextUI {
 	    // rebuild the view
 	    modelChanged();
 	}
-
-        // I18N views need to update themselves when the font changes.  
-        // This is a brute force way of doing that.  A better way would be to
-        // notify the views that the font has changed and let them react
-        // accordingly.
-        if ("font".equals(evt.getPropertyName())) {
-            Document doc = editor.getDocument();
-            Object flag = doc.getProperty("i18n"/*AbstractDocument.I18NProperty*/);
-            if( Boolean.TRUE.equals(flag) )
-                modelChanged();
-        }
     }
 
     /**
@@ -142,7 +135,9 @@ public class BasicTextAreaUI extends BasicTextUI {
 
         public void setParent(View parent) {
             super.setParent(parent);
-            setPropertiesFromAttributes();
+            if (parent != null) {
+                setPropertiesFromAttributes();
+            }
         }
 
         protected void setPropertiesFromAttributes() {
@@ -182,6 +177,12 @@ public class BasicTextAreaUI extends BasicTextUI {
 		} else {
                     req.minimum = 0;
                     req.preferred = getWidth();
+                    if (req.preferred == Short.MAX_VALUE) {
+                        // We have been initially set to MAX_VALUE, but we
+                        // don't want this as our preferred. Short is used
+                        // here as FlowView returns it as the max size.
+                        req.preferred = 100;
+                    }
                 }
 	    }
 	    return req;

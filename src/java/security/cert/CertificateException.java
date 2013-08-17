@@ -1,4 +1,6 @@
 /*
+ * @(#)CertificateException.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,12 +13,12 @@ import java.security.GeneralSecurityException;
  * This exception indicates one of a variety of certificate problems.
  *
  * @author Hemma Prafullchandra
- * @version 1.28
+ * @version 1.29
  * @see Certificate
  */
 public class CertificateException extends GeneralSecurityException {
 
-    /*
+    /**
      * Constructs a certificate exception with no detail message. A detail
      * message is a String that describes this particular exception. 
      */

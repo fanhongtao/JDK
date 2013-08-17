@@ -1,4 +1,6 @@
 /*
+ * @(#)DropTargetEvent.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -23,12 +25,14 @@ import java.awt.dnd.DropTargetContext;
  * Drop operations, in particular the current 
  * <code>DropTargetContext</code>.
  *
- * @version 	1.15, 02/06/02
+ * @version 	1.16, 12/03/01
  * @since 1.2
  *
  */
 
 public class DropTargetEvent extends java.util.EventObject {
+
+    private static final long serialVersionUID = 2821229066521922993L;
 
     /**
      * Construct a <code>DropTargetEvent</code> with 
@@ -55,8 +59,10 @@ public class DropTargetEvent extends java.util.EventObject {
     }
 
     /**
-     * The <code>DropTargetConext</code> associated with this
+     * The <code>DropTargetContext</code> associated with this
      * <code>DropTargetEvent</code>.
+     *
+     * @serial
      */
     protected DropTargetContext   context;
 }

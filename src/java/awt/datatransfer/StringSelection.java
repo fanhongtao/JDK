@@ -1,4 +1,6 @@
 /*
+ * @(#)StringSelection.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,13 +10,15 @@ package java.awt.datatransfer;
 import java.io.*;
 
 /**
- * A Transferable which implements the capability required to transfer a
- * String.
+ * A <code>Transferable</code> which implements the capability required
+ * to transfer a <code>String</code>.
  *
- * This Transferable properly supports <code>DataFlavor.stringFlavor</code>
- * and all equivalent flavors. Support for <code>DataFlavor.plainTextFlavor
- * </code> and all equivalent flavors is <b>deprecated</b>. No other
- * DataFlavors are supported.
+ * This <code>Transferable</code> properly supports
+ * <code>DataFlavor.stringFlavor</code>
+ * and all equivalent flavors. Support for
+ * <code>DataFlavor.plainTextFlavor</code>
+ * and all equivalent flavors is <b>deprecated</b>. No other
+ * <code>DataFlavor</code>s are supported.
  *
  * @see java.awt.datatransfer.DataFlavor.stringFlavor
  * @see java.awt.datatransfer.DataFlavor.plainTextFlavor
@@ -32,20 +36,22 @@ public class StringSelection implements Transferable, ClipboardOwner {
     private String data;
 						   
     /**
-     * Creates a Transferable capable of transferring the specified String.
+     * Creates a <code>Transferable</code> capable of transferring
+     * the specified <code>String</code>.
      */
     public StringSelection(String data) {
         this.data = data;
     }
 
     /**
-     * Returns an array of flavors in which this Transferable can provide
-     * the data. <code>DataFlavor.stringFlavor</code> is properly supported.
+     * Returns an array of flavors in which this <code>Transferable</code>
+     * can provide the data. <code>DataFlavor.stringFlavor</code>
+     * is properly supported.
      * Support for <code>DataFlavor.plainTextFlavor</code> is
      * <b>deprecated</b>.
      *
      * @return an array of length two, whose elements are <code>DataFlavor.
-     *         stringFlavor</code> and <code>DataFlavor.plainTextFlavor</code>.
+     *         stringFlavor</code> and <code>DataFlavor.plainTextFlavor</code>
      */
     public DataFlavor[] getTransferDataFlavors() {
         // returning flavors itself would allow client code to modify
@@ -54,7 +60,8 @@ public class StringSelection implements Transferable, ClipboardOwner {
     }
 
     /**
-     * Returns whether the requested flavor is supported by this Transferable.
+     * Returns whether the requested flavor is supported by this
+     * <code>Transferable</code>.
      *
      * @param flavor the requested flavor for the data
      * @return true if <code>flavor</code> is equal to
@@ -74,20 +81,22 @@ public class StringSelection implements Transferable, ClipboardOwner {
     }
 
     /**
-     * Returns the Transferable's data in the requested DataFlavor if
-     * possible. If the desired flavor is <code>DataFlavor.stringFlavor</code>,
-     * or an equivalent flavor, the String representing the selection is
+     * Returns the <code>Transferable</code>'s data in the requested
+     * <code>DataFlavor</code> if possible. If the desired flavor is
+     * <code>DataFlavor.stringFlavor</code>, or an equivalent flavor,
+     * the <code>String</code> representing the selection is
      * returned. If the desired flavor is </code>DataFlavor.plainTextFlavor
-     * </code>, or an equivalent flavor, a Reader is returned. <b>Note:<b>
-     * The behavior of this method for </code>DataFlavor.plainTextFlavor</code>
-     * and equivalent DataFlavors is inconsistent with the definition of
-     * <code>DataFlavor.plainTextFlavor</code>.
+     * </code>, or an equivalent flavor, a <code>Reader</code> is returned.
+     * <b>Note:<b> The behavior of this method for
+     * </code>DataFlavor.plainTextFlavor</code>
+     * and equivalent <code>DataFlavor</code>s is inconsistent with the
+     * definition of <code>DataFlavor.plainTextFlavor</code>.
      *
      * @param flavor the requested flavor for the data
-     * @return the data in the requested flavor, as outlined above.
+     * @return the data in the requested flavor, as outlined above
      * @throws UnsupportedFlavorException if the requested data flavor is
      *         not equivalent to either <code>DataFlavor.stringFlavor</code>
-     *         or <code>DataFlavor.plainTextFlavor</code>.
+     *         or <code>DataFlavor.plainTextFlavor</code>
      * @throws IOException if an IOException occurs while retrieving the data.
      *         By default, StringSelection never throws this exception, but a
      *         subclass may.

@@ -1,5 +1,7 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * @(#)BasicLabelUI.java	1.76 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,19 +30,12 @@ import java.beans.PropertyChangeListener;
  * is completely static, i.e. there's only one UIView implementation 
  * that's shared by all JLabel objects.
  *
- * @version 1.71 07/19/06
+ * @version 1.76 12/03/01
  * @author Hans Muller
  */
 public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
 {
-    /**
-     * The default <code>BasicLabelUI</code> instance. This field might
-     * not be used. To change the default instance use a subclass which
-     * overrides the <code>createUI</code> method, and place that class
-     * name in defaults table under the key "LabelUI".
-     */
     protected static BasicLabelUI labelUI = new BasicLabelUI();
-    private final static BasicLabelUI SAFE_BASIC_LABEL_UI = new BasicLabelUI();
 
     /**
      * Forwards the call to SwingUtilities.layoutCompoundLabel().
@@ -81,9 +76,10 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
      */
     protected void paintEnabledText(JLabel l, Graphics g, String s, int textX, int textY)
     {
-        int accChar = l.getDisplayedMnemonic();
+        int mnemIndex = l.getDisplayedMnemonicIndex();
         g.setColor(l.getForeground());
-        BasicGraphicsUtils.drawString(g, s, accChar, textX, textY);
+        BasicGraphicsUtils.drawStringUnderlineCharAt(g, s, mnemIndex,
+                                                     textX, textY);
     }
 
 
@@ -96,12 +92,14 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
      */
     protected void paintDisabledText(JLabel l, Graphics g, String s, int textX, int textY)
     {
-        int accChar = l.getDisplayedMnemonic();
+        int accChar = l.getDisplayedMnemonicIndex();
         Color background = l.getBackground();
         g.setColor(background.brighter());
-        BasicGraphicsUtils.drawString(g, s, accChar, textX + 1, textY + 1);
+        BasicGraphicsUtils.drawStringUnderlineCharAt(g, s, accChar,
+                                                   textX + 1, textY + 1);
         g.setColor(background.darker());
-        BasicGraphicsUtils.drawString(g, s, accChar, textX, textY);
+        BasicGraphicsUtils.drawStringUnderlineCharAt(g, s, accChar,
+                                                   textX, textY);
     }
 
 
@@ -137,12 +135,12 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
         }
 
         FontMetrics fm = g.getFontMetrics();
-        paintViewInsets = c.getInsets(paintViewInsets);
+        Insets insets = c.getInsets(paintViewInsets);
 
-        paintViewR.x = paintViewInsets.left;
-        paintViewR.y = paintViewInsets.top;
-        paintViewR.width = c.getWidth() - (paintViewInsets.left + paintViewInsets.right);
-        paintViewR.height = c.getHeight() - (paintViewInsets.top + paintViewInsets.bottom);
+        paintViewR.x = insets.left;
+        paintViewR.y = insets.top;
+        paintViewR.width = c.getWidth() - (insets.left + insets.right);
+        paintViewR.height = c.getHeight() - (insets.top + insets.bottom);
 
         paintIconR.x = paintIconR.y = paintIconR.width = paintIconR.height = 0;
         paintTextR.x = paintTextR.y = paintTextR.width = paintTextR.height = 0;
@@ -187,7 +185,8 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
     {
         JLabel label = (JLabel)c;
         String text = label.getText();
-        Icon icon = label.getIcon();
+        Icon icon = (label.isEnabled()) ? label.getIcon() :
+                                          label.getDisabledIcon();
         Insets insets = label.getInsets(viewInsets);
         Font font = label.getFont();
 
@@ -320,7 +319,8 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
 		map = createActionMap();
 		if (map != null) {
 		    SwingUtilities.replaceUIActionMap(l, map);
-		    UIManager.put("Label.actionMap", map);
+		    UIManager.getLookAndFeelDefaults().put("Label.actionMap",
+                                                           map);
 		}
 	    }
 	    InputMap inputMap = SwingUtilities.getUIInputMap
@@ -369,16 +369,13 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
     }
 
     public static ComponentUI createUI(JComponent c) {
-        if (System.getSecurityManager() != null) {
-            return SAFE_BASIC_LABEL_UI;
-        } else {
-            return labelUI;
-        }
+        return labelUI;
     }
 
     public void propertyChange(PropertyChangeEvent e) {
 	String name = e.getPropertyName();
-	if (name.equals("text")) {
+	if (name.equals("text") || "font".equals(name) ||
+            "foreground".equals(name)) {
 	    // remove the old html view client property if one
 	    // existed, and install a new one if the text installed
 	    // into the JLabel is html source.

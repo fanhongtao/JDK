@@ -1,5 +1,7 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * @(#)TimerQueue.java	1.34 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,7 +12,6 @@ package javax.swing;
 
 
 import java.util.*;
-import sun.awt.AppContext;
 
 
 
@@ -19,7 +20,7 @@ import sun.awt.AppContext;
  * TimerQueue manages a queue of Timers. The Timers are chained
  * together in a linked list sorted by the order in which they will expire.
  *
- * @version 1.33 08/18/06
+ * @version 1.34 12/03/01
  * @author Dave Moore
  */
 class TimerQueue implements Runnable
@@ -69,16 +70,15 @@ class TimerQueue implements Runnable
                                        "that is already running");
         }
         else {
-            final ThreadGroup threadGroup = 
-                AppContext.getAppContext().getThreadGroup();
-            Thread timerThread = new Thread(threadGroup, this, "TimerQueue");
-            try {
-                timerThread.setDaemon(true);
-            }
-            catch (SecurityException e) {
-            }
-	    timerThread.setPriority(Thread.NORM_PRIORITY);
-            timerThread.start();
+            SwingUtilities.doPrivileged(new Runnable() {
+                public void run() {
+                    Thread timerThread = new Thread(TimerQueue.this,
+                                                    "TimerQueue");
+                    timerThread.setDaemon(true);
+                    timerThread.setPriority(Thread.NORM_PRIORITY);
+                    timerThread.start();
+                }
+            });
             running = true;
         }
     }
@@ -203,17 +203,17 @@ class TimerQueue implements Runnable
                 if (timer.isRepeats()) {
                     addTimer(timer, currentTime + timer.getDelay());
                 }
-            }
 
-            // Allow other threads to call addTimer() and removeTimer()
-            // even when we are posting Timers like mad.  Since the wait()
-            // releases the lock, be sure not to maintain any state
-            // between iterations of the loop.
+                // Allow other threads to call addTimer() and removeTimer()
+                // even when we are posting Timers like mad.  Since the wait()
+                // releases the lock, be sure not to maintain any state
+                // between iterations of the loop.
 
-            try {
-                wait(1);
-            }
-            catch (InterruptedException e) {
+                try {
+                    wait(1);
+                }
+                catch (InterruptedException e) {
+                }
             }
         } while (timeToWait <= 0);
 
@@ -239,7 +239,7 @@ class TimerQueue implements Runnable
             // Mark all the timers we contain as not being queued.
             Timer timer = firstTimer;
             while (timer != null) {
-                timer.eventQueued = false;
+                timer.cancelEvent();
                 timer = timer.nextTimer;
             }
             SystemEventQueueUtilities.restartTimerQueueThread();

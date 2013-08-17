@@ -1,4 +1,6 @@
 /*
+ * @(#)ParagraphView.java	1.82 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -22,13 +24,13 @@ import javax.swing.SizeRequirements;
  *
  * @author  Timothy Prinzing
  * @author  Scott Violet
- * @version 1.77 02/06/02
+ * @version 1.82 12/03/01
  * @see     View
  */
 public class ParagraphView extends FlowView implements TabExpander {
 
     /**
-     * Constructs a ParagraphView for the given element.
+     * Constructs a <code>ParagraphView</code> for the given element.
      *
      * @param elem the element that this view is responsible for
      */
@@ -61,14 +63,21 @@ public class ParagraphView extends FlowView implements TabExpander {
     }
 
     /**
-     * Set the type of justification.
+     * Sets the type of justification.
+     *
+     * @param j one of the following values:
+     * <ul>
+     * <li><code>StyleConstants.ALIGN_LEFT</code>
+     * <li><code>StyleConstants.ALIGN_CENTER</code>
+     * <li><code>StyleConstants.ALIGN_RIGHT</code>
+     * </ul>
      */
     protected void setJustification(int j) {
 	justification = j;
     }
 
     /**
-     * Set the line spacing.
+     * Sets the line spacing.
      *
      * @param ls the value in points
      */
@@ -77,14 +86,17 @@ public class ParagraphView extends FlowView implements TabExpander {
     }
 
     /**
-     * Set the indent on the first line
+     * Sets the indent on the first line.
      *
-     * @param ls the value in points
+     * @param fi the value in points
      */
     protected void setFirstLineIndent(float fi) {
 	firstLineIndent = (int) fi;
     }
 
+    /**
+     * Set the cached properties from the attributes.
+     */
     protected void setPropertiesFromAttributes() {
 	AttributeSet attr = getAttributes();
 	if (attr != null) {
@@ -96,25 +108,34 @@ public class ParagraphView extends FlowView implements TabExpander {
     }
 
     /**
+     * Returns the number of views that this view is
+     * responsible for.
      * The child views of the paragraph are rows which
-     * have been used to arrange pieces of the Views that
-     * represent the child elements.  This is the number 
+     * have been used to arrange pieces of the <code>View</code>s
+     * that represent the child elements.  This is the number 
      * of views that have been tiled in two dimensions,
      * and should be equivalent to the number of child elements
      * to the element this view is responsible for.
+     *
+     * @return the number of views that this <code>ParagraphView</code>
+     *		is responsible for
      */
     protected int getLayoutViewCount() {
 	return layoutPool.getViewCount();
     }
 
     /**
+     * Returns the view at a given <code>index</code>.
      * The child views of the paragraph are rows which
-     * have been used to arrange pieces of the Views that
-     * represent the child elements.  This methods returns
+     * have been used to arrange pieces of the <code>Views</code>
+     * that represent the child elements.  This methods returns
      * the view responsible for the child element index
      * (prior to breaking).  These are the Views that were
      * produced from a factory (to represent the child
      * elements) and used for layout.
+     *
+     * @param index the <code>index</code> of the desired view
+     * @return the view at <code>index</code>
      */
     protected View getLayoutView(int index) {
 	return layoutPool.getView(index);
@@ -126,17 +147,31 @@ public class ParagraphView extends FlowView implements TabExpander {
      * highest break weight possible nearest the end of
      * the row.  If a forced break is encountered, the
      * break will be positioned there.
+     * <p>
+     * This is meant for internal usage, and should not be used directly.
      * 
      * @param r the row to adjust to the current layout
-     *  span.
+     *  	span
      * @param desiredSpan the current layout span >= 0
-     * @param x the location r starts at.
+     * @param x the location r starts at
      */
     protected void adjustRow(Row r, int desiredSpan, int x) {
     }
 
     /**
-     * Overriden from CompositeView.
+     * Returns the next visual position for the cursor, in 
+     * either the east or west direction.
+     * Overridden from <code>CompositeView</code>.
+     * @param pos position into the model
+     * @param bias either <code>Position.Bias.Forward</code> or
+     *          <code>Position.Bias.Backward</code>
+     * @param a the allocated region to render into
+     * @param direction either <code>SwingConstants.NORTH</code>
+     *		or <code>SwingConstants.SOUTH</code>
+     * @param biasRet an array containing the bias that were checked
+     *	in this method
+     * @return the location in the model that represents the
+     *	next location visual position
      */
     protected int getNextNorthSouthVisualPositionFrom(int pos, Position.Bias b,
 						      Shape a, int direction,
@@ -189,6 +224,18 @@ public class ParagraphView extends FlowView implements TabExpander {
      * Returns the closest model position to <code>x</code>.
      * <code>rowIndex</code> gives the index of the view that corresponds
      * that should be looked in.
+     * @param pos  position into the model
+     * @param a the allocated region to render into
+     * @param direction one of the following values:
+     * <ul>
+     * <li><code>SwingConstants.NORTH</code>
+     * <li><code>SwingConstants.SOUTH</code>
+     * </ul>
+     * @param biasRet an array containing the bias that were checked
+     *	in this method
+     * @param rowIndex the index of the view
+     * @param x the x coordinate of interest
+     * @return the closest model position to <code>x</code>
      */
     // NOTE: This will not properly work if ParagraphView contains
     // other ParagraphViews. It won't raise, but this does not message
@@ -235,6 +282,30 @@ public class ParagraphView extends FlowView implements TabExpander {
 	return lastPos;
     }
 
+    /**
+     * Determines in which direction the next view lays.
+     * Consider the <code>View</code> at index n.
+     * Typically the <code>View</code>s are layed out
+     * from left to right, so that the <code>View</code>
+     * to the EAST will be at index n + 1, and the
+     * <code>View</code> to the WEST will be at index n - 1.
+     * In certain situations, such as with bidirectional text,
+     * it is possible that the <code>View</code> to EAST is not
+     * at index n + 1, but rather at index n - 1,
+     * or that the <code>View</code> to the WEST is not at
+     * index n - 1, but index n + 1.  In this case this method
+     * would return true, indicating the <code>View</code>s are
+     * layed out in descending order.
+     * <p>
+     * This will return true if the text is layed out right
+     * to left at position, otherwise false.
+     *
+     * @param position position into the model
+     * @param bias either <code>Position.Bias.Forward</code> or
+     *          <code>Position.Bias.Backward</code>
+     * @return true if the text is layed out right to left at
+     *         position, otherwise false.
+     */
     protected boolean flipEastAndWestAtEnds(int position,
 					    Position.Bias bias) {
 	Document doc = getDocument();
@@ -249,8 +320,11 @@ public class ParagraphView extends FlowView implements TabExpander {
     // --- FlowView methods ---------------------------------------------
 
     /**
-     * Fetch the constraining span to flow against for
+     * Fetches the constraining span to flow against for
      * the given child index.
+     * @param index the index of the view being queried
+     * @return the constraining span for the given view at
+     *	<code>index</code>
      */
     public int getFlowSpan(int index) {
 	View child = getView(index);
@@ -264,8 +338,11 @@ public class ParagraphView extends FlowView implements TabExpander {
     }
 
     /**
-     * Fetch the location along the flow axis that the
+     * Fetches the location along the flow axis that the
      * flow span will start at.
+     * @param index the index of the view being queried
+     * @return the location for the given view at
+     *	<code>index</code>
      */
     public int getFlowStart(int index) {
 	View child = getView(index);
@@ -278,8 +355,9 @@ public class ParagraphView extends FlowView implements TabExpander {
     }
 
     /**
-     * Create a View that should be used to hold a 
-     * a rows worth of children in a flow.
+     * Create a <code>View</code> that should be used to hold a 
+     * a row's worth of children in a flow.
+     * @return the new <code>View</code>
      */
     protected View createRow() {
 	Element elem = getElement();
@@ -319,7 +397,7 @@ public class ParagraphView extends FlowView implements TabExpander {
      *
      * @param x the X reference position
      * @param tabOffset the position within the text stream
-     *   that the tab occurred at >= 0.
+     *   that the tab occurred at >= 0
      * @return the trailing end of the tab expansion >= 0
      * @see TabSet
      * @see TabStop
@@ -381,20 +459,23 @@ public class ParagraphView extends FlowView implements TabExpander {
     }
 
     /**
-     * Gets the Tabset to be used in calculating tabs.
+     * Gets the <code>Tabset</code> to be used in calculating tabs.
      *
-     * @return the TabSet
+     * @return the <code>TabSet</code>
      */
     protected TabSet getTabSet() {
 	return StyleConstants.getTabSet(getElement().getAttributes());
     }
 
     /**
-     * Returns the size used by the views between <code>startOffset</code>
-     * and <code>endOffset</code>. This uses getPartialView to calculate the
-     * size if the child view implements the TabableView interface. If a 
-     * size is needed and a View does not implement the TabableView
-     * interface, the preferredSpan will be used.
+     * Returns the size used by the views between
+     * <code>startOffset</code> and <code>endOffset</code>.
+     * This uses <code>getPartialView</code> to calculate the
+     * size if the child view implements the 
+     * <code>TabableView</code> interface. If a 
+     * size is needed and a <code>View</code> does not implement
+     * the <code>TabableView</code> interface,
+     * the <code>preferredSpan</code> will be used.
      *
      * @param startOffset the starting document offset >= 0
      * @param endOffset the ending document offset >= startOffset
@@ -437,7 +518,7 @@ public class ParagraphView extends FlowView implements TabExpander {
      *
      * @param string the string of characters
      * @param start where to start in the model >= 0
-     * @return the document offset or -1
+     * @return the document offset, or -1 if no characters found
      */
     protected int findOffsetToCharactersInString(char[] string,
                                                  int start) {
@@ -463,7 +544,8 @@ public class ParagraphView extends FlowView implements TabExpander {
     }
 
     /**
-     * @return where tabs are calculated from.
+     * Returns where the tabs are calculated from.
+     * @return where tabs are calculated from
      */
     protected float getTabBase() {
 	return (float)tabBase;
@@ -492,8 +574,9 @@ public class ParagraphView extends FlowView implements TabExpander {
      * center of the first row along the y axis, and the default
      * along the x axis.
      *
-     * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns the desired alignment.  This should be a value
+     * @param axis may be either <code>View.X_AXIS</code> or
+     *	 <code>View.Y_AXIS</code>
+     * @return the desired alignment.  This should be a value
      *   between 0.0 and 1.0 inclusive, where 0 indicates alignment at the
      *   origin and 1.0 indicates alignment to the full span
      *   away from the origin.  An alignment of 0.5 would be the
@@ -518,18 +601,21 @@ public class ParagraphView extends FlowView implements TabExpander {
     }
 
     /**
-     * Breaks this view on the given axis at the given length.<p>
-     * ParagraphView instances are breakable along the Y_AXIS only, and only if
+     * Breaks this view on the given axis at the given length.
+     * <p>
+     * <code>ParagraphView</code> instances are breakable
+     * along the <code>Y_AXIS</code> only, and only if
      * <code>len</code> is after the first line.
      *
-     * @param axis may be either View.X_AXIS or View.Y_AXIS
+     * @param axis may be either <code>View.X_AXIS</code>
+     *  or <code>View.Y_AXIS</code>
      * @param len specifies where a potential break is desired
      *  along the given axis >= 0
      * @param a the current allocation of the view
      * @return the fragment of the view that represents the
-     *  given span, if the view can be broken.  If the view
+     *  given span, if the view can be broken; if the view
      *  doesn't support breaking behavior, the view itself is
-     *  returned.
+     *  returned
      * @see View#breakView
      */
     public View breakView(int axis, float len, Shape a) {
@@ -548,13 +634,18 @@ public class ParagraphView extends FlowView implements TabExpander {
 
     /**
      * Gets the break weight for a given location.
-     * ParagraphView instances are breakable along the Y_AXIS only, and 
-     * only if <code>len</code> is after the first row.  If the length
-     * is less than one row, a value of BadBreakWeight is returned.
+     * <p>
+     * <code>ParagraphView</code> instances are breakable
+     * along the <code>Y_AXIS</code> only, and only if 
+     * <code>len</code> is after the first row.  If the length
+     * is less than one row, a value of <code>BadBreakWeight</code>
+     * is returned.
      *
-     * @param axis may be either View.X_AXIS or View.Y_AXIS
+     * @param axis may be either <code>View.X_AXIS</code>
+     *  or <code>View.Y_AXIS</code>
      * @param len specifies where a potential break is desired >= 0
-     * @return a value indicating the attractiveness of breaking here
+     * @return a value indicating the attractiveness of breaking here;
+     *	either <code>GoodBreakWeight</code> or <code>BadBreakWeight</code>
      * @see View#getBreakWeight
      */
     public int getBreakWeight(int axis, float len) {
@@ -573,7 +664,8 @@ public class ParagraphView extends FlowView implements TabExpander {
      * Gives notification from the document that attributes were changed
      * in a location that this view is responsible for.
      *
-     * @param changes the change information from the associated document
+     * @param changes the change information from the 
+     *	associated document
      * @param a the current allocation of the view
      * @param f the factory to use to rebuild if the view has children
      * @see View#changedUpdate
@@ -738,8 +830,8 @@ public class ParagraphView extends FlowView implements TabExpander {
 	 *  filled in by the implementation of this method.
 	 * @param spans the span of each child view.  This is a return
 	 *  value and is filled in by the implementation of this method.
-	 * @returns the offset and span for each child view in the
-	 *  offsets and spans parameters.
+	 * @return the offset and span for each child view in the
+	 *  offsets and spans parameters
 	 */
         protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
 	    baselineLayout(targetSpan, axis, offsets, spans);
@@ -755,7 +847,7 @@ public class ParagraphView extends FlowView implements TabExpander {
 	 * the model.
 	 *
 	 * @param pos the position >= 0
-	 * @returns  index of the view representing the given position, or 
+	 * @return  index of the view representing the given position, or 
 	 *   -1 if no view represents that position
 	 */
 	protected int getViewIndexAtPosition(int pos) {

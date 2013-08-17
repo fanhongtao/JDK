@@ -1,4 +1,6 @@
 /*
+ * @(#)MotifInternalFrameUI.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -27,7 +29,7 @@ import javax.swing.plaf.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.19 02/06/02
+ * @version 1.21 12/03/01
  * @author Tom Ball
  */
 public class MotifInternalFrameUI extends BasicInternalFrameUI {
@@ -66,6 +68,7 @@ public class MotifInternalFrameUI extends BasicInternalFrameUI {
 
     protected void installDefaults() {
 	Border frameBorder = frame.getBorder();
+        frame.setLayout(internalFrameLayout = createLayoutManager());
         if (frameBorder == null || frameBorder instanceof UIResource) {
             frame.setBorder(new MotifBorders.InternalFrameBorder(frame));
         }	
@@ -82,6 +85,8 @@ public class MotifInternalFrameUI extends BasicInternalFrameUI {
 
     protected void uninstallDefaults() {
         LookAndFeel.uninstallBorder(frame);
+        frame.setLayout(null);
+        internalFrameLayout = null;
     }
 
     private JInternalFrame getFrame(){
@@ -189,9 +194,9 @@ public class MotifInternalFrameUI extends BasicInternalFrameUI {
 
     void setColors(JInternalFrame frame) {
         if (frame.isSelected()) {
-            color = UIManager.getColor("activeCaptionBorder");
+            color = UIManager.getColor("InternalFrame.activeTitleBackground");
         } else {
-            color = UIManager.getColor("inactiveCaptionBorder");
+            color = UIManager.getColor("InternalFrame.inactiveTitleBackground");
         }
         highlight = color.brighter();
         shadow = color.darker().darker();

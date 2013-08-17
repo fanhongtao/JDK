@@ -1,4 +1,6 @@
 /*
+ * @(#)PhantomReference.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -26,7 +28,7 @@ package java.lang.ref;
  * object that is reachable via phantom references will remain so until all
  * such references are cleared or themselves become unreachable.
  *
- * @version  1.13, 02/06/02
+ * @version  1.14, 12/03/01
  * @author   Mark Reinhold
  * @since    1.2
  */
@@ -48,6 +50,8 @@ public class PhantomReference extends Reference {
      * Creates a new phantom reference that refers to the given object and
      * is registered with the given queue.
      *
+     * @param referent the object the new phantom reference will refer to
+     * @param q queue the phantom reference is registered with
      * @throws  NullPointerException  If the <code>queue</code> argument
      *                                is <code>null</code>
      */

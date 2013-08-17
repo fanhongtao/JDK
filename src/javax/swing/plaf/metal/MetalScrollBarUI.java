@@ -1,4 +1,6 @@
 /*
+ * @(#)MetalScrollBarUI.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -69,8 +71,6 @@ public class MetalScrollBarUI extends BasicScrollBarUI
 
     protected void installDefaults() {
 	scrollBarWidth = ((Integer)(UIManager.get( "ScrollBar.width" ))).intValue();
-	if (scrollbar.getBackground() == null || scrollbar.getBackground() instanceof UIResource)
-	    scrollbar.setBackground(UIManager.getColor("ScrollBar.background"));
 	super.installDefaults();
 	bumps = new MetalBumps( 10, 10, thumbHighlightColor, thumbShadow, thumbColor );    
     }
@@ -86,6 +86,7 @@ public class MetalScrollBarUI extends BasicScrollBarUI
 
     protected void configureScrollBarColors()
     {
+        super.configureScrollBarColors();
         shadowColor         = UIManager.getColor("ScrollBar.shadow");
         highlightColor      = UIManager.getColor("ScrollBar.highlight");
         darkShadowColor     = UIManager.getColor("ScrollBar.darkShadow");

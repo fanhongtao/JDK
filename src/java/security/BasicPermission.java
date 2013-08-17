@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicPermission.java	1.32 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,10 +22,10 @@ import java.io.IOException;
  * (for example, "exit",
  * "setFactory", "print.queueJob", etc). The naming
  * convention follows the  hierarchical property naming convention.
- * An asterisk
- * may appear at the end of the name, following a ".", or by itself, to
- * signify a wildcard match. For example: "java.*" or "*" is valid,
- * "*java" or "a*b" is not valid.
+ * An asterisk may appear by itself, or if immediately preceded by a "."
+ * may appear at the end of the name, to signify a wildcard match.
+ * For example, "*" and "java.*" are valid, while "*java", "a*b",
+ * and "java*" are not valid.
  * <P>
  * The action string (inherited from Permission) is unused.
  * Thus, BasicPermission is commonly used as the base class for
@@ -44,12 +46,10 @@ import java.io.IOException;
  * @see java.net.NetPermission
  * @see java.lang.SecurityManager
  *
- * @version 1.27 02/02/06
+ * @version 1.32 01/12/03
  *
  * @author Marianne Mueller
  * @author Roland Schemers
- *
- * @serial exclude
  */
 
 public abstract class BasicPermission extends Permission
@@ -92,9 +92,7 @@ implements java.io.Serializable
      * Creates a new BasicPermission with the specified name.
      * Name is the symbolic name of the permission, such as
      * "setFactory",
-     * "print.queueJob", or "topLevelWindow", etc. An asterisk
-     * may appear at the end of the name, following a ".", or by itself, to
-     * signify a wildcard match.
+     * "print.queueJob", or "topLevelWindow", etc.
      *
      * @param name the name of the BasicPermission.
      *
@@ -264,7 +262,7 @@ implements java.io.Serializable
  * @see java.security.Permissions
  * @see java.security.PermissionsImpl
  *
- * @version 1.27 02/06/02
+ * @version 1.32 12/03/01
  *
  * @author Roland Schemers
  *
@@ -276,11 +274,34 @@ extends PermissionCollection
 implements java.io.Serializable
 {
 
-    private Hashtable permissions;
-    private boolean all_allowed; // true if "*" is in the collection
+    static final long serialVersionUID = 739301742472979399L;
 
     /**
-     * Create an empty BasicPermissions object.
+     * The BasicPermissions in this BasicPermissionCollection.
+     * All BasicPermissions in the collection must belong to the same class.
+     *
+     * @serial the Hashtable is indexed by the BasicPermission name
+     */
+    private Hashtable permissions;
+
+    /**
+     * This is set to <code>true</code> if this BasicPermissionCollection
+     * contains a BasicPermission with '*' as its permission name.
+     *
+     * @serial
+     */
+    private boolean all_allowed; 
+
+    /**
+     * The class to which all BasicPermissions in this
+     * BasicPermissionCollection belongs.
+     *
+     * @serial
+     */
+    private Class permClass;
+
+    /**
+     * Create an empty BasicPermissionCollection object.
      *
      */
 
@@ -296,7 +317,10 @@ implements java.io.Serializable
      * @param permission the Permission object to add.
      *
      * @exception IllegalArgumentException - if the permission is not a
-     *                                       BasicPermission
+     *                                       BasicPermission, or if
+     *					     the permission is not of the
+     *					     same Class as the other
+     *					     permissions in this collection.
      *
      * @exception SecurityException - if this BasicPermissionCollection object
      *                                has been marked readonly
@@ -311,6 +335,16 @@ implements java.io.Serializable
 	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
 
 	BasicPermission bp = (BasicPermission) permission;
+
+	if (permissions.size() == 0) {
+	    // adding first permission
+	    permClass = bp.getClass();
+	} else {
+	    // make sure we only add new BasicPermissions of the same class
+	    if (bp.getClass() != permClass)
+		throw new IllegalArgumentException("invalid permission: " +
+						permission);
+	}
 
 	permissions.put(bp.getName(), permission);
         if (!all_allowed) {
@@ -335,6 +369,10 @@ implements java.io.Serializable
    		return false;
 
 	BasicPermission bp = (BasicPermission) permission;
+
+	// random subclasses of BasicPermission do not imply each other
+	if (bp.getClass() != permClass)
+	    return false;
 
 	// short circuit if the "*" Permission was added
 	if (all_allowed)
@@ -386,5 +424,24 @@ implements java.io.Serializable
     public Enumeration elements()
     {
 	return permissions.elements();
+    }
+
+    /**
+     * readObject is called to restore the state of the
+     * BasicPermissionCollection from a stream.
+     */
+    private synchronized void readObject(java.io.ObjectInputStream s)
+	 throws IOException, ClassNotFoundException
+    {
+	s.defaultReadObject();
+
+	if (permClass == null) {
+	    // set permClass
+	    Enumeration e = permissions.elements();
+	    if (e.hasMoreElements()) {
+		Permission p = (Permission)e.nextElement();
+		permClass = p.getClass();
+	    }
+	}
     }
 }

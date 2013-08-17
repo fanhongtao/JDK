@@ -1,4 +1,6 @@
 /*
+ * @(#)JarFile.java	1.44 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,7 +22,7 @@ import sun.security.util.ManifestEntryVerifier;
  * JAR file and its entries.
  *
  * @author  David Connelly
- * @version 1.42, 02/06/02
+ * @version 1.44, 12/03/01
  * @see	    Manifest
  * @see     java.util.zip.ZipFile
  * @see     java.util.jar.JarEntry
@@ -45,8 +47,9 @@ class JarFile extends ZipFile {
      * file <code>name</code>. The <code>JarFile</code> will be verified if
      * it is signed.
      * @param name the name of the JAR file to be opened for reading
-     * @exception FileNotFoundException if the file could not be found
      * @exception IOException if an I/O error has occurred
+     * @exception SecurityException if access to the file is denied
+     *            by the SecurityManager
      */
     public JarFile(String name) throws IOException {
 	this(new File(name), true, ZipFile.OPEN_READ);
@@ -58,8 +61,9 @@ class JarFile extends ZipFile {
      * @param name the name of the JAR file to be opened for reading
      * @param verify whether or not to verify the JarFile if
      * it is signed.
-     * @exception FileNotFoundException if the file could not be found
      * @exception IOException if an I/O error has occurred
+     * @exception SecurityException if access to the file is denied
+     *            by the SecurityManager 
      */
     public JarFile(String name, boolean verify) throws IOException {
         this(new File(name), verify, ZipFile.OPEN_READ);
@@ -70,8 +74,9 @@ class JarFile extends ZipFile {
      * <code>File</code> object. The <code>JarFile</code> will be verified if
      * it is signed.
      * @param file the JAR file to be opened for reading
-     * @exception FileNotFoundException if the file could not be found
      * @exception IOException if an I/O error has occurred
+     * @exception SecurityException if access to the file is denied
+     *            by the SecurityManager
      */
     public JarFile(File file) throws IOException {
 	this(file, true, ZipFile.OPEN_READ);
@@ -84,8 +89,9 @@ class JarFile extends ZipFile {
      * @param file the JAR file to be opened for reading
      * @param verify whether or not to verify the JarFile if
      * it is signed.
-     * @exception FileNotFoundException if the file could not be found
      * @exception IOException if an I/O error has occurred
+     * @exception SecurityException if access to the file is denied
+     *            by the SecurityManager.
      */
     public JarFile(File file, boolean verify) throws IOException {
 	this(file, verify, ZipFile.OPEN_READ);
@@ -101,10 +107,11 @@ class JarFile extends ZipFile {
      * @param verify whether or not to verify the JarFile if
      * it is signed.
      * @param mode the mode in which the file is to be opened
-     * @exception FileNotFoundException if the file could not be found
      * @exception IOException if an I/O error has occurred
      * @exception IllegalArgumentException
      *            If the <tt>mode</tt> argument is invalid
+     * @exception SecurityException if access to the file is denied
+     *            by the SecurityManager
      */
     public JarFile(File file, boolean verify, int mode) throws IOException {
 	super(file, mode);

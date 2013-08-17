@@ -1,4 +1,6 @@
 /*
+ * @(#)AbstractSet.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -22,7 +24,7 @@ package java.util;
  * for <tt>equals</tt> and <tt>hashCode</tt>.
  *
  * @author  Josh Bloch
- * @version 1.15, 02/06/02
+ * @version 1.17, 12/03/01
  * @see Collection
  * @see AbstractCollection
  * @see Set
@@ -65,7 +67,13 @@ public abstract class AbstractSet extends AbstractCollection implements Set {
 	Collection c = (Collection) o;
 	if (c.size() != size())
 	    return false;
-	return containsAll(c);
+        try {
+            return containsAll(c);
+        } catch(ClassCastException unused)   {
+            return false;
+        } catch(NullPointerException unused) {
+            return false;
+        }
     }
 
     /**
@@ -118,6 +126,7 @@ public abstract class AbstractSet extends AbstractCollection implements Set {
      *
      * @throws    UnsupportedOperationException removeAll is not supported
      *            by this set.
+     * @throws    NullPointerException if the specified collection is null.
      * @see #remove(Object)
      * @see #contains(Object)
      */

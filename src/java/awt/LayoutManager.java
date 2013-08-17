@@ -1,23 +1,29 @@
 /*
+ * @(#)LayoutManager.java	1.23 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
 /** 
- * Defines the interface for classes that know how to layout Containers.
+ * Defines the interface for classes that know how to lay out 
+ * <code>Container</code>s.
  *
  * @see Container
  *
- * @version	1.22, 02/06/02
+ * @version	1.23, 12/03/01
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  */
 public interface LayoutManager {
     /**
-     * Adds the specified component with the specified name to
-     * the layout.
-     * @param name the component name
+     * If the layout manager uses a per-component string,
+     * adds the component <code>comp</code> to the layout,
+     * associating it 
+     * with the string specified by <code>name</code>.
+     * 
+     * @param name the string to be associated with the component
      * @param comp the component to be added
      */
     void addLayoutComponent(String name, Component comp);
@@ -30,8 +36,8 @@ public interface LayoutManager {
 
     /**
      * Calculates the preferred size dimensions for the specified 
-     * panel given the components in the specified parent container.
-     * @param parent the component to be laid out
+     * container, given the components it contains.
+     * @param parent the container to be laid out
      *  
      * @see #minimumLayoutSize
      */
@@ -39,15 +45,15 @@ public interface LayoutManager {
 
     /** 
      * Calculates the minimum size dimensions for the specified 
-     * panel given the components in the specified parent container.
+     * container, given the components it contains.
      * @param parent the component to be laid out
      * @see #preferredLayoutSize
      */
     Dimension minimumLayoutSize(Container parent);
 
     /** 
-     * Lays out the container in the specified panel.
-     * @param parent the component which needs to be laid out 
+     * Lays out the specified container.
+     * @param parent the container to be laid out 
      */
     void layoutContainer(Container parent);
 }

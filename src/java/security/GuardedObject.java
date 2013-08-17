@@ -1,4 +1,6 @@
 /*
+ * @(#)GuardedObject.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -22,7 +24,7 @@ package java.security;
  * @see Guard
  * @see Permission
  *
- * @version 1.12 02/02/06
+ * @version 1.12 01/12/03
  * @author Roland Schemers
  * @author Li Gong
  */

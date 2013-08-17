@@ -1,4 +1,6 @@
 /*
+ * @(#)UnsupportedEncodingException.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,7 +10,7 @@ package java.io;
  * The Character Encoding is not supported.
  *
  * @author  Asmus Freytag
- * @version 1.14, 02/06/02
+ * @version 1.14, 12/03/01
  * @since   JDK1.1
  */
 public class UnsupportedEncodingException

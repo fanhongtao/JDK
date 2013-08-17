@@ -1,5 +1,7 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * @(#)MetalLabelUI.java	1.9 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,21 +20,17 @@ import java.awt.*;
  * is completely static, i.e. there's only one UIView implementation 
  * that's shared by all JLabel objects.
  *
- * @version 1.10 06/06/06
+ * @version 1.9 12/03/01
  * @author Hans Muller
  */
 
 public class MetalLabelUI extends BasicLabelUI
 {
     protected static MetalLabelUI metalLabelUI = new MetalLabelUI();
-    private final static MetalLabelUI SAFE_METAL_LABEL_UI = new MetalLabelUI();
+
 
     public static ComponentUI createUI(JComponent c) {
-        if (System.getSecurityManager() != null) {
-            return SAFE_METAL_LABEL_UI;
-        } else {
 	return metalLabelUI;
-        }
     }
 
     /**
@@ -44,9 +42,10 @@ public class MetalLabelUI extends BasicLabelUI
      */
     protected void paintDisabledText(JLabel l, Graphics g, String s, int textX, int textY)
     {
-	int accChar = l.getDisplayedMnemonic();
+	int mnemIndex = l.getDisplayedMnemonicIndex();
 	g.setColor(UIManager.getColor("Label.disabledForeground"));
-	BasicGraphicsUtils.drawString(g, s, accChar, textX, textY);
+	BasicGraphicsUtils.drawStringUnderlineCharAt(g, s, mnemIndex,
+                                                   textX, textY);
     }
 }
 

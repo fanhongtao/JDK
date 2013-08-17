@@ -1,4 +1,6 @@
 /*
+ * @(#)NO_RESPONSE.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,9 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>NO_RESPONSE</code> exception, which is thrown
- * when a response to the request is not yet available.
+ * This exception is raised if a client attempts to retrieve the result 
+ * of a deferred synchronous call, but the response for the request is 
+ * not yet available.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

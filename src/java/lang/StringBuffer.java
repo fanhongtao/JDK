@@ -1,4 +1,6 @@
 /*
+ * @(#)StringBuffer.java	1.70 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -60,13 +62,15 @@ package java.lang;
  * automatically made larger. 
  *
  * @author	Arthur van Hoff
- * @version 	1.63, 02/06/02
+ * @version 	1.70, 12/03/01
  * @see     java.io.ByteArrayOutputStream
  * @see     java.lang.String
  * @since   JDK1.0
  */
  
-public final class StringBuffer implements java.io.Serializable {
+public final class StringBuffer
+    implements java.io.Serializable, CharSequence
+{
     /**
      * The value is used for character storage.
      * 
@@ -132,7 +136,7 @@ public final class StringBuffer implements java.io.Serializable {
      * @return  the length of the sequence of characters currently 
      *          represented by this string buffer.
      */
-    public int length() {
+    public synchronized int length() {
 	return count;
     }
 
@@ -143,7 +147,7 @@ public final class StringBuffer implements java.io.Serializable {
      *
      * @return  the current capacity of this string buffer.
      */
-    public int capacity() {
+    public synchronized int capacity() {
 	return value.length;
     }
 
@@ -400,6 +404,49 @@ public final class StringBuffer implements java.io.Serializable {
     }
 
     /**
+     * Appends the specified <tt>StringBuffer</tt> to this
+     * <tt>StringBuffer</tt>.
+     * <p>
+     * The characters of the <tt>StringBuffer</tt> argument are appended, 
+     * in order, to the contents of this <tt>StringBuffer</tt>, increasing the 
+     * length of this <tt>StringBuffer</tt> by the length of the argument. 
+     * If <tt>sb</tt> is <tt>null</tt>, then the four characters 
+     * <tt>"null"</tt> are appended to this <tt>StringBuffer</tt>.
+     * <p>
+     * Let <i>n</i> be the length of the old character sequence, the one 
+     * contained in the <tt>StringBuffer</tt> just prior to execution of the 
+     * <tt>append</tt> method. Then the character at index <i>k</i> in 
+     * the new character sequence is equal to the character at index <i>k</i> 
+     * in the old character sequence, if <i>k</i> is less than <i>n</i>; 
+     * otherwise, it is equal to the character at index <i>k-n</i> in the 
+     * argument <code>sb</code>.
+     * <p>
+     * The method <tt>ensureCapacity</tt> is first called on this
+     * <tt>StringBuffer</tt> with the new buffer length as its argument.
+     * (This ensures that the storage of this <tt>StringBuffer</tt> is
+     * adequate to contain the additional characters being appended.)
+     *
+     * @param   sb         the <tt>StringBuffer</tt> to append.
+     * @return  a reference to this <tt>StringBuffer</tt>.
+     * @since 1.4
+     */
+    public synchronized StringBuffer append(StringBuffer sb) {
+	if (sb == null) {
+	    sb = NULL;
+	}
+
+	int len = sb.length();
+	int newcount = count + len;
+	if (newcount > value.length)
+	    expandCapacity(newcount);
+	sb.getChars(0, len, value, count);
+	count = newcount;
+	return this;
+    }
+
+    private static final StringBuffer NULL =  new StringBuffer("null");
+
+    /**
      * Appends the string representation of the <code>char</code> array 
      * argument to this string buffer. 
      * <p>
@@ -519,7 +566,7 @@ public final class StringBuffer implements java.io.Serializable {
      * string are then appended to this string buffer. 
      *
      * @param   l   a <code>long</code>.
-     * @return  a referenct to this <code>StringBuffer</code> object.
+     * @return  a reference to this <code>StringBuffer</code> object.
      * @see     java.lang.String#valueOf(long)
      * @see     java.lang.StringBuffer#append(java.lang.String)
      */
@@ -670,8 +717,40 @@ public final class StringBuffer implements java.io.Serializable {
      *             <code>StringBuffer</code>.
      * @since      1.2
      */
-    public String substring(int start) {
+    public synchronized String substring(int start) {
         return substring(start, count);
+    }
+
+    /**
+     * Returns a new character sequence that is a subsequence of this sequence.
+     *
+     * <p> An invocation of this method of the form
+     *
+     * <blockquote><pre>
+     * sb.subSequence(begin,&nbsp;end)</pre></blockquote>
+     *
+     * behaves in exactly the same way as the invocation
+     *
+     * <blockquote><pre>
+     * sb.substring(begin,&nbsp;end)</pre></blockquote>
+     *
+     * This method is provided so that the <tt>StringBuffer</tt> class can
+     * implement the {@link CharSequence} interface. </p>
+     *
+     * @param      start   the start index, inclusive.
+     * @param      end     the end index, exclusive.
+     * @return     the specified subsequence.
+     *
+     * @throws  IndexOutOfBoundsException
+     *          if <tt>start</tt> or <tt>end</tt> are negative,
+     *          if <tt>end</tt> is greater than <tt>length()</tt>,
+     *          or if <tt>start</tt> is greater than <tt>end</tt>
+     *
+     * @since 1.4
+     * @spec JSR-51
+     */
+    public CharSequence subSequence(int start, int end) {
+        return this.substring(start, end);
     }
 
     /**
@@ -1017,6 +1096,97 @@ public final class StringBuffer implements java.io.Serializable {
     }
 
     /**
+     * Returns the index within this string of the first occurrence of the
+     * specified substring. The integer returned is the smallest value 
+     * <i>k</i> such that:
+     * <blockquote><pre>
+     * this.toString().startsWith(str, <i>k</i>)
+     * </pre></blockquote>
+     * is <code>true</code>.
+     *
+     * @param   str   any string.
+     * @return  if the string argument occurs as a substring within this
+     *          object, then the index of the first character of the first
+     *          such substring is returned; if it does not occur as a
+     *          substring, <code>-1</code> is returned.
+     * @exception java.lang.NullPointerException if <code>str</code> is 
+     *          <code>null</code>.
+     * @since   1.4
+     */
+    public int indexOf(String str) {
+	return indexOf(str, 0);
+    }
+
+    /**
+     * Returns the index within this string of the first occurrence of the
+     * specified substring, starting at the specified index.  The integer
+     * returned is the smallest value <tt>k</tt> for which:
+     * <blockquote><pre>
+     *     k >= Math.min(fromIndex, str.length()) &&
+     *                   this.toString().startsWith(str, k)
+     * </pre></blockquote>
+     * If no such value of <i>k</i> exists, then -1 is returned.
+     *
+     * @param   str         the substring for which to search.
+     * @param   fromIndex   the index from which to start the search.
+     * @return  the index within this string of the first occurrence of the
+     *          specified substring, starting at the specified index.
+     * @exception java.lang.NullPointerException if <code>str</code> is
+     *            <code>null</code>.
+     * @since   1.4
+     */
+    public synchronized int indexOf(String str, int fromIndex) {
+        return String.indexOf(value, 0, count,
+                              str.toCharArray(), 0, str.length(), fromIndex);
+    }
+
+    /**
+     * Returns the index within this string of the rightmost occurrence
+     * of the specified substring.  The rightmost empty string "" is
+     * considered to occur at the index value <code>this.length()</code>. 
+     * The returned index is the largest value <i>k</i> such that 
+     * <blockquote><pre>
+     * this.toString().startsWith(str, k)
+     * </pre></blockquote>
+     * is true.
+     *
+     * @param   str   the substring to search for.
+     * @return  if the string argument occurs one or more times as a substring
+     *          within this object, then the index of the first character of
+     *          the last such substring is returned. If it does not occur as
+     *          a substring, <code>-1</code> is returned.
+     * @exception java.lang.NullPointerException  if <code>str</code> is 
+     *          <code>null</code>.
+     * @since   1.4
+     */
+    public synchronized int lastIndexOf(String str) {
+        return lastIndexOf(str, count);
+    }
+
+    /**
+     * Returns the index within this string of the last occurrence of the
+     * specified substring. The integer returned is the largest value <i>k</i>
+     * such that:
+     * <blockquote><pre>
+     *     k <= Math.min(fromIndex, str.length()) &&
+     *                   this.toString().startsWith(str, k)
+     * </pre></blockquote>
+     * If no such value of <i>k</i> exists, then -1 is returned.
+     * 
+     * @param   str         the substring to search for.
+     * @param   fromIndex   the index to start the search from.
+     * @return  the index within this string of the last occurrence of the
+     *          specified substring.
+     * @exception java.lang.NullPointerException if <code>str</code> is 
+     *          <code>null</code>.
+     * @since   1.4
+     */
+    public synchronized int lastIndexOf(String str, int fromIndex) {
+        return String.lastIndexOf(value, 0, count,
+                              str.toCharArray(), 0, str.length(), fromIndex);
+    }
+
+    /**
      * The character sequence contained in this string buffer is 
      * replaced by the reverse of the sequence. 
      * <p>
@@ -1026,7 +1196,7 @@ public final class StringBuffer implements java.io.Serializable {
      * the new character sequence is equal to the character at index 
      * <i>n-k-1</i> in the old character sequence.
      *
-     * @return  a reference to this <codeStringBuffer</code> object..
+     * @return  a reference to this <code>StringBuffer</code> object.
      * @since   JDK1.0.2
      */
     public synchronized StringBuffer reverse() {

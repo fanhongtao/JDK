@@ -1,4 +1,6 @@
 /*
+ * @(#)Robot.java	1.20 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,6 +11,7 @@ import java.awt.peer.*;
 import java.awt.image.*;
 import java.awt.event.*;
 import java.lang.reflect.InvocationTargetException;
+import sun.awt.ComponentFactory;
 import sun.awt.SunToolkit;
 
 /**
@@ -34,14 +37,13 @@ import sun.awt.SunToolkit;
  * Applications that use Robot for purposes other than self-testing should 
  * handle these error conditions gracefully.
  *
- * @version 	1.14, 02/06/02
+ * @version 	1.20, 12/03/01
  * @author 	Robi Khan
  * @since   	1.3
  */
 public class Robot {
     private static final int MAX_DELAY = 60000;
     private RobotPeer peer;
-    private SunToolkit sunToolkit;
     private boolean isAutoWaitForIdle = false;
     private int	autoDelay = 0;
     private static AWTPermission readDisplayPixelsPermission = null;
@@ -57,16 +59,20 @@ public class Robot {
      * Constructs a Robot object in the coordinate system of the primary screen.
      * <p>
      * 
-     * @throws 	AWTException if the platform configuration does not allow low-level input control
+     * @throws 	AWTException if the platform configuration does not allow
+     * low-level input control.  This exception is always thrown when
+     * GraphicsEnvironment.isHeadless() returns true
      * @throws 	SecurityException if <code>createRobot</code> permission is not granted
+     * @see     java.awt.GraphicsEnvironment#isHeadless
      * @see     SecurityManager#checkPermission
      * @see 	AWTPermission
      */
     public Robot() throws AWTException {
-	checkRobotAllowed();
-	this.sunToolkit = (SunToolkit)Toolkit.getDefaultToolkit();
-	this.peer = sunToolkit.createRobot(this, 
-			GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice());
+        if (GraphicsEnvironment.isHeadless()) {
+            throw new AWTException("headless environment");
+        }
+        init(GraphicsEnvironment.getLocalGraphicsEnvironment()
+            .getDefaultScreenDevice());
     }
 
     /**
@@ -86,19 +92,28 @@ public class Robot {
      *
      * @param screen	A screen GraphicsDevice indicating the coordinate
      *			system the Robot will operate in.
-     * @throws 	AWTException if the platform configuration does not allow low-level input control
+     * @throws 	AWTException if the platform configuration does not allow
+     * low-level input control.  This exception is always thrown when
+     * GraphicsEnvironment.isHeadless() returns true.
      * @throws  IllegalArgumentException if <code>screen</code> is not a screen
      *		GraphicsDevice.
      * @throws 	SecurityException if <code>createRobot</code> permission is not granted
+     * @see     java.awt.GraphicsEnvironment#isHeadless
      * @see     GraphicsDevice
      * @see     SecurityManager#checkPermission
      * @see 	AWTPermission
      */
     public Robot(GraphicsDevice screen) throws AWTException {
 	checkIsScreenDevice(screen);
-	checkRobotAllowed();
-	this.sunToolkit = (SunToolkit)Toolkit.getDefaultToolkit();
-	this.peer = sunToolkit.createRobot(this, screen);
+        init(screen);
+    }
+
+    private void init(GraphicsDevice screen) throws AWTException {
+        checkRobotAllowed();
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+        if (toolkit instanceof ComponentFactory) {
+            peer = ((ComponentFactory)toolkit).createRobot(this, screen);
+        }
     }
 
     /* determine if the security policy allows Robot's to be created */
@@ -136,8 +151,15 @@ public class Robot {
     /**
      * Presses one or more mouse buttons. 
      *
-     * @param buttons	Button mask (combination of <code>InputEvent.BUTTON1/2/3_MASK</code>)
-     * @throws 	IllegalArgumentException if the button mask is not a valid combination
+     * @param buttons	the Button mask; a combination of one or more
+     * of these flags:
+     * <ul>
+     * <li><code>InputEvent.BUTTON1_MASK</code>
+     * <li><code>InputEvent.BUTTON2_MASK</code>
+     * <li><code>InputEvent.BUTTON3_MASK</code>
+     * </ul>
+     * @throws 	IllegalArgumentException if the button mask is not a
+     *		valid combination
      */
     public synchronized void mousePress(int buttons) {
 	checkButtonsArgument(buttons);
@@ -148,8 +170,15 @@ public class Robot {
     /**
      * Releases one or more mouse buttons. 
      *
-     * @param buttons	Button mask (combination of <code>InputEvent.BUTTON1/2/3_MASK</code>)
-     * @throws 	IllegalArgumentException if the button mask is not a valid combination
+     * @param buttons	the Button mask; a combination of one or more
+     * of these flags:
+     * <ul>
+     * <li><code>InputEvent.BUTTON1_MASK</code>
+     * <li><code>InputEvent.BUTTON2_MASK</code>
+     * <li><code>InputEvent.BUTTON3_MASK</code>
+     * </ul>
+     * @throws 	IllegalArgumentException if the button mask is not a valid
+     *		combination
      */
     public synchronized void mouseRelease(int buttons) {
 	checkButtonsArgument(buttons);
@@ -164,6 +193,20 @@ public class Robot {
     }
 
     /**
+     * Rotates the scroll wheel on wheel-equipped mice.
+     * 
+     * @param wheelAmt  number of "notches" to move the mouse wheel
+     *                  Negative values indicate movement up/away from the user,
+     *                  positive values indicate movement down/towards the user.
+     *
+     * @since 1.4
+     */
+    public synchronized void mouseWheel(int wheelAmt) {
+        peer.mouseWheel(wheelAmt);
+        afterEvent();
+    }
+
+    /**
      * Presses a given key.
      * <p>
      * Key codes that have more than one physical key associated with them 
@@ -172,6 +215,7 @@ public class Robot {
      *
      * @param	keyCode	Key to press (e.g. <code>KeyEvent.VK_A</code>)
      * @throws 	IllegalArgumentException if <code>keycode</code> is not a valid key
+     * @see     java.awt.event.KeyEvent
      */
     public synchronized void keyPress(int keycode) {
 	checkKeycodeArgument(keycode);
@@ -188,6 +232,7 @@ public class Robot {
      *
      * @param	keyCode	Key to release (e.g. <code>KeyEvent.VK_A</code>)
      * @throws 	IllegalArgumentException if <code>keycode</code> is not a valid key
+     * @see     java.awt.event.KeyEvent
      */
     public synchronized void keyRelease(int keycode) {
 	checkKeycodeArgument(keycode);
@@ -342,8 +387,11 @@ public class Robot {
 
     /**
      * Sleeps for the specified time.
-     * @param	ms	Time to sleep in milliseconds
-     * @throws 	IllegalArgumentException If <code>ms</code> is not between 0 and 60,000 milliseconds inclusive
+     * To catch any <code>InterruptedException</code>s that occur,
+     * <code>Thread.sleep()</code> may be used instead.
+     * @param	ms	time to sleep in milliseconds
+     * @throws 	IllegalArgumentException if <code>ms</code> is not between 0 and 60,000 milliseconds inclusive
+     * @see     java.lang.Thread#sleep()
      */
     public synchronized void delay(int ms) {
 	checkDelayArgument(ms);
@@ -369,7 +417,7 @@ public class Robot {
 	// post a dummy event to the queue so we know when
 	// all the events before it have been processed
 	try {
-	    sunToolkit.flushPendingEvents();
+            SunToolkit.flushPendingEvents();
 	    EventQueue.invokeAndWait( new Runnable() { 
 					    public void run() {
 						// dummy implementation

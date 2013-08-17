@@ -1,10 +1,14 @@
 /*
+ * @(#)Label.java	1.52 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
 import java.awt.peer.LabelPeer;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import javax.accessibility.*;
 
 /**
@@ -26,7 +30,7 @@ import javax.accessibility.*;
  * <img src="doc-files/Label-1.gif"
  * ALIGN=center HSPACE=10 VSPACE=7>
  *
- * @version	1.48, 02/06/02
+ * @version	1.52, 12/03/01
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -35,7 +39,9 @@ public class Label extends Component implements Accessible {
     static {
         /* ensure that the necessary native libraries are loaded */
 	Toolkit.loadLibraries();
-        initIDs();
+        if (!GraphicsEnvironment.isHeadless()) {
+            initIDs();
+        }
     }
 
     /**
@@ -86,8 +92,11 @@ public class Label extends Component implements Accessible {
     /**
      * Constructs an empty label.
      * The text of the label is the empty string <code>""</code>.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public Label() {
+    public Label() throws HeadlessException {
 	this("", LEFT);
     }
 
@@ -98,8 +107,11 @@ public class Label extends Component implements Accessible {
      *        A <code>null</code> value
      *        will be accepted without causing a NullPointerException
      *        to be thrown.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public Label(String text) {
+    public Label(String text) throws HeadlessException {
         this(text, LEFT);
     }
 
@@ -113,10 +125,29 @@ public class Label extends Component implements Accessible {
      *        will be accepted without causing a NullPointerException
      *        to be thrown.
      * @param     alignment   the alignment value.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public Label(String text, int alignment) {
+    public Label(String text, int alignment) throws HeadlessException {
+        GraphicsEnvironment.checkHeadless();
 	this.text = text;
 	setAlignment(alignment);
+    }
+
+    /**
+     * Read a label from an object input stream.
+     * @exception HeadlessException if
+     * <code>GraphicsEnvironment.isHeadless()</code> returns
+     * <code>true</code>
+     * @serial
+     * @since 1.4
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     */
+    private void readObject(ObjectInputStream s)
+        throws ClassNotFoundException, IOException, HeadlessException {
+        GraphicsEnvironment.checkHeadless();
+        s.defaultReadObject();
     }
 
     /**
@@ -216,9 +247,13 @@ public class Label extends Component implements Accessible {
     }
 
     /**
-     * Returns the parameter string representing the state of this
-     * label. This string is useful for debugging.
-     * @return     the parameter string of this label.
+     * Returns a string representing the state of this <code>Label</code>.
+     * This method is intended to be used only for debugging purposes, and the 
+     * content and format of the returned string may vary between 
+     * implementations. The returned string may be empty but may not be 
+     * <code>null</code>.
+     *
+     * @return     the parameter string of this label
      */
     protected String paramString() {
 	String str = ",align=";

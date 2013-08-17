@@ -1,4 +1,6 @@
 /*
+ * @(#)Collections.java	1.59 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,9 +12,12 @@ import java.io.Serializable;
  * This class consists exclusively of static methods that operate on or return
  * collections.  It contains polymorphic algorithms that operate on
  * collections, "wrappers", which return a new collection backed by a
- * specified collection, and a few other odds and ends.<p>
+ * specified collection, and a few other odds and ends.
  *
- * The documentation for the polymorphic algorithms contained in this class
+ * <p>The methods of this class all throw a <tt>NullPointerException</tt>
+ * if the collections provided to them are null.
+ *
+ * <p>The documentation for the polymorphic algorithms contained in this class
  * generally includes a brief description of the <i>implementation</i>.  Such
  * descriptions should be regarded as <i>implementation notes</i>, rather than
  * parts of the <i>specification</i>.  Implementors should feel free to
@@ -20,13 +25,22 @@ import java.io.Serializable;
  * to.  (For example, the algorithm used by <tt>sort</tt> does not have to be
  * a mergesort, but it does have to be <i>stable</i>.)
  *
+ * <p>The "destructive" algorithms contained in this class, that is, the
+ * algorithms that modify the collection on which they operate, are specified
+ * to throw <tt>UnsupportedOperationException</tt> if the collection does not
+ * support the appropriate mutation primitive(s), such as the <tt>set</tt>
+ * method.  These algorithms may, but are not required to, throw this
+ * exception if an invocation would have no effect on the collection.  For
+ * example, invoking the <tt>sort</tt> method on an unmodifiable list that is
+ * already sorted may or may not throw <tt>UnsupportedOperationException</tt>.
+ *
  * @author  Josh Bloch
- * @version 1.47, 02/06/02
+ * @version 1.59, 12/03/01
  * @see	    Collection
  * @see	    Set
  * @see	    List
  * @see	    Map
- * @since 1.2
+ * @since   1.2
  */
 
 public class Collections {
@@ -35,6 +49,29 @@ public class Collections {
     }
 
     // Algorithms
+
+    /*
+     * Tuning parameters for algorithms - Many of the List algorithms have
+     * two implementations, one of which is appropriate for RandomAccess
+     * lists, the other for "sequential."  Often, the random access variant
+     * yields better performance on small sequential access lists.  The
+     * tuning  parameters below determine the cutoff point for what constitutes
+     * a "small" sequential access list for each algorithm.  The values below
+     * were empirically determined to work well for LinkedList. Hopefully
+     * they should be reasonable for other sequential access List
+     * implementations.  Those doing performance work on this code would
+     * do well to validate the values of these parameters from time to time.
+     * (The first word of each tuning parameter name is the algorithm to which
+     * it applies.)
+     */
+    private static final int BINARYSEARCH_THRESHOLD   = 5000;
+    private static final int REVERSE_THRESHOLD        =   18;
+    private static final int SHUFFLE_THRESHOLD        =    5;
+    private static final int FILL_THRESHOLD           =   25;
+    private static final int ROTATE_THRESHOLD         =  100;
+    private static final int COPY_THRESHOLD           =   10;
+    private static final int REPLACEALL_THRESHOLD     =   11;
+    private static final int INDEXOFSUBLIST_THRESHOLD =   35;
 
     /**
      * Sorts the specified list into ascending order, according to the
@@ -132,14 +169,10 @@ public class Collections {
      * will be found.<p>
      *
      * This method runs in log(n) time for a "random access" list (which
-     * provides near-constant-time positional access).  It may
-     * run in n log(n) time if it is called on a "sequential access" list
-     * (which provides linear-time positional access).</p>
-     *
-     * If the specified list implements the <tt>AbstracSequentialList</tt>
-     * interface, this method will do a sequential search instead of a binary
-     * search; this offers linear performance instead of n log(n) performance
-     * if this method is called on a <tt>LinkedList</tt> object.
+     * provides near-constant-time positional access).  If the specified list
+     * does not implement the {@link RandomAccess} and is large, this method
+     * will do an iterator-based binary search that performs O(n) link
+     * traversals and O(log n) element comparisons.
      *
      * @param  list the list to be searched.
      * @param  key the key to be searched for.
@@ -159,25 +192,18 @@ public class Collections {
      * @see #sort(List)
      */
     public static int binarySearch(List list, Object key) {
-	// Do a sequential search if appropriate
-	if (list instanceof AbstractSequentialList) {
-	    ListIterator i = list.listIterator();
-	    while (i.hasNext()) {
-		int cmp = ((Comparable)(i.next())).compareTo(key);
-		if (cmp == 0)
-		    return i.previousIndex();
-		else if (cmp > 0)
-		    return -i.nextIndex();  // key not found.
-	    }
-	    return -i.nextIndex()-1;  // key not found, list exhausted
-	}
+        if (list instanceof RandomAccess || list.size()<BINARYSEARCH_THRESHOLD)
+            return indexedBinarySearch(list, key);
+        else
+            return iteratorBinarySearch(list, key);
+    }
 
-	// Otherwise, do a binary search
+    private static int indexedBinarySearch(List list, Object key) {
 	int low = 0;
 	int high = list.size()-1;
 
 	while (low <= high) {
-	    int mid =(low + high)/2;
+	    int mid = (low + high) >> 1;
 	    Object midVal = list.get(mid);
 	    int cmp = ((Comparable)midVal).compareTo(key);
 
@@ -191,6 +217,45 @@ public class Collections {
 	return -(low + 1);  // key not found
     }
 
+    private static int iteratorBinarySearch(List list, Object key) {
+	int low = 0;
+	int high = list.size()-1;
+        ListIterator i = list.listIterator();
+
+        while (low <= high) {
+            int mid = (low + high) >> 1;
+            Object midVal = get(i, mid);
+            int cmp = ((Comparable)midVal).compareTo(key);
+
+            if (cmp < 0)
+                low = mid + 1;
+            else if (cmp > 0)
+                high = mid - 1;
+            else
+                return mid; // key found
+        }
+        return -(low + 1);  // key not found
+    }
+
+    /**
+     * Gets the ith element from the given list by repositioning the specified
+     * list listIterator.
+     */
+    private static Object get(ListIterator i, int index) {
+        Object obj = null;
+        int pos = i.nextIndex();
+        if (pos <= index) {
+            do {
+                obj = i.next();
+            } while (pos++ < index);
+        } else {
+            do {
+                obj = i.previous();
+            } while (--pos > index);
+        }
+        return obj;
+    }
+
     /**
      * Searches the specified list for the specified object using the binary
      * search algorithm.  The list must be sorted into ascending order
@@ -201,14 +266,10 @@ public class Collections {
      * will be found.<p>
      *
      * This method runs in log(n) time for a "random access" list (which
-     * provides near-constant-time positional access).  It may
-     * run in n log(n) time if it is called on a "sequential access" list
-     * (which provides linear-time positional access).</p>
-     *
-     * If the specified list implements the <tt>AbstracSequentialList</tt>
-     * interface, this method will do a sequential search instead of a binary
-     * search; this offers linear performance instead of n log(n) performance
-     * if this method is called on a <tt>LinkedList</tt> object.
+     * provides near-constant-time positional access).  If the specified list
+     * does not implement the {@link RandomAccess} and is large, this
+     * this method will do an iterator-based binary search that performs
+     * O(n) link traversals and O(log n) element comparisons.
      *
      * @param  list the list to be searched.
      * @param  key the key to be searched for.
@@ -234,26 +295,19 @@ public class Collections {
         if (c==null)
             return binarySearch(list, key);
 
-	// Do a sequential search if appropriate
-	if (list instanceof AbstractSequentialList) {
-	    ListIterator i = list.listIterator();
-	    while (i.hasNext()) {
-		int cmp = c.compare(i.next(), key);
-		if (cmp == 0)
-		    return i.previousIndex();
-		else if (cmp > 0)
-		    return -i.nextIndex();  // key not found.
-	    }
-	    return -i.nextIndex()-1;  // key not found, list exhausted
-	}
+        if (list instanceof RandomAccess || list.size()<BINARYSEARCH_THRESHOLD)
+            return indexedBinarySearch(list, key, c);
+        else
+            return iteratorBinarySearch(list, key, c);
+    }
 
-	// Otherwise, do a binary search
+    private static int indexedBinarySearch(List l, Object key, Comparator c) {
 	int low = 0;
-	int high = list.size()-1;
+	int high = l.size()-1;
 
 	while (low <= high) {
-	    int mid =(low + high)/2;
-	    Object midVal = list.get(mid);
+	    int mid = (low + high) >> 1;
+	    Object midVal = l.get(mid);
 	    int cmp = c.compare(midVal, key);
 
 	    if (cmp < 0)
@@ -266,21 +320,48 @@ public class Collections {
 	return -(low + 1);  // key not found
     }
 
+    private static int iteratorBinarySearch(List l, Object key, Comparator c) {
+	int low = 0;
+	int high = l.size()-1;
+        ListIterator i = l.listIterator();
+
+        while (low <= high) {
+            int mid = (low + high) >> 1;
+            Object midVal = get(i, mid);
+            int cmp = c.compare(midVal, key);
+
+            if (cmp < 0)
+                low = mid + 1;
+            else if (cmp > 0)
+                high = mid - 1;
+            else
+                return mid; // key found
+        }
+        return -(low + 1);  // key not found
+    }
+
     /**
      * Reverses the order of the elements in the specified list.<p>
      *
      * This method runs in linear time.
      *
-     * @param  l the list whose elements are to be reversed.
-     * @throws UnsupportedOperationException if the specified list's
-     *	       list-iterator does not support the <tt>set</tt> operation.
+     * @param  list the list whose elements are to be reversed.
+     * @throws UnsupportedOperationException if the specified list or
+     *         its list-iterator does not support the <tt>set</tt> method.
      */
-    public static void reverse(List l) {
-        ListIterator fwd = l.listIterator(), rev = l.listIterator(l.size());
-        for (int i=0, n=l.size()/2; i<n; i++) {
-            Object tmp = fwd.next();
-            fwd.set(rev.previous());
-            rev.set(tmp);
+    public static void reverse(List list) {
+        int size = list.size();
+        if (size < REVERSE_THRESHOLD || list instanceof RandomAccess) {
+            for (int i=0, mid=size>>1, j=size-1; i<mid; i++, j--)
+                swap(list, i, j);
+        } else {
+            ListIterator fwd = list.listIterator();
+            ListIterator rev = list.listIterator(size);
+            for (int i=0, mid=list.size()>>1; i<mid; i++) {
+                Object tmp = fwd.next();
+                fwd.set(rev.previous());
+                rev.set(tmp);
+            }
         }
     }
 
@@ -301,13 +382,16 @@ public class Collections {
      * portion of the list that runs from the first element to the current
      * position, inclusive.<p>
      *
-     * This method runs in linear time for a "random access" list (which
-     * provides near-constant-time positional access).  It may require
-     * quadratic time for a "sequential access" list.
+     * This method runs in linear time.  If the specified list does not
+     * implement the {@link RandomAccess} interface and is large, this
+     * implementation dumps the specified list into an array before shuffling
+     * it, and dumps the shuffled array back into the list.  This avoids the
+     * quadratic behavior that would result from shuffling a "sequential
+     * access" list in place.
      *
      * @param  list the list to be shuffled.
-     * @throws UnsupportedOperationException if the specified list's
-     *         list-iterator does not support the <tt>set</tt> operation.
+     * @throws UnsupportedOperationException if the specified list or
+     *         its list-iterator does not support the <tt>set</tt> method.
      */
     public static void shuffle(List list) {
         shuffle(list, r);
@@ -325,27 +409,63 @@ public class Collections {
      * portion of the list that runs from the first element to the current
      * position, inclusive.<p>
      *
-     * This method runs in linear time for a "random access" list (which
-     * provides near-constant-time positional access).  It may require
-     * quadratic time for a "sequential access" list.
+     * This method runs in linear time.  If the specified list does not
+     * implement the {@link RandomAccess} interface and is large, this
+     * implementation dumps the specified list into an array before shuffling
+     * it, and dumps the shuffled array back into the list.  This avoids the
+     * quadratic behavior that would result from shuffling a "sequential
+     * access" list in place.
      *
      * @param  list the list to be shuffled.
      * @param  rnd the source of randomness to use to shuffle the list.
-     * @throws UnsupportedOperationException if the specified list's
+     * @throws UnsupportedOperationException if the specified list or its
      *         list-iterator does not support the <tt>set</tt> operation.
      */
     public static void shuffle(List list, Random rnd) {
-        for (int i=list.size(); i>1; i--)
-            swap(list, i-1, rnd.nextInt(i));
+        int size = list.size();
+        if (size < SHUFFLE_THRESHOLD || list instanceof RandomAccess) {
+            for (int i=size; i>1; i--)
+                swap(list, i-1, rnd.nextInt(i));
+        } else {
+            Object arr[] = list.toArray();
+
+            // Shuffle array
+            for (int i=size; i>1; i--)
+                swap(arr, i-1, rnd.nextInt(i));
+
+            // Dump array back into list
+            ListIterator it = list.listIterator();
+            for (int i=0; i<arr.length; i++) {
+                it.next();
+                it.set(arr[i]);
+            }
+        }
     }
 
     /**
-     * Swaps the two specified elements in the specified list.
+     * Swaps the elements at the specified positions in the specified list.
+     * (If the specified positions are equal, invoking this method leaves
+     * the list unchanged.)
+     *
+     * @param list The list in which to swap elements.
+     * @param i the index of one element to be swapped.
+     * @param j the index of the other element to be swapped.
+     * @throws IndexOutOfBoundsException if either <tt>i</tt> or <tt>j</tt>
+     *         is out of range (i &lt; 0 || i &gt;= list.size()
+     *         || j &lt; 0 || j &gt;= list.size()).
+     * @since 1.4
      */
-    private static void swap(List a, int i, int j) {
-        Object tmp = a.get(i);
-        a.set(i, a.get(j));
-        a.set(j, tmp);
+    public static void swap(List list, int i, int j) {
+        list.set(i, list.set(j, list.get(i)));
+    }
+
+    /**
+     * Swaps the two specified elements in the specified array.
+     */
+    private static void swap(Object[] arr, int i, int j) {
+        Object tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
     }
 
     /**
@@ -355,14 +475,22 @@ public class Collections {
      * This method runs in linear time.
      *
      * @param  list the list to be filled with the specified element.
-     * @param  o The element with which to fill the specified list.
-     * @throws UnsupportedOperationException if the specified list's
+     * @param  obj The element with which to fill the specified list.
+     * @throws UnsupportedOperationException if the specified list or its
      *	       list-iterator does not support the <tt>set</tt> operation.
      */
-    public static void fill(List list, Object o) {
-        for (ListIterator i = list.listIterator(); i.hasNext(); ) {
-            i.next();
-            i.set(o);
+    public static void fill(List list, Object obj) {
+        int size = list.size();
+
+        if (size < FILL_THRESHOLD || list instanceof RandomAccess) {
+            for (int i=0; i<size; i++)
+                list.set(i, obj);
+        } else {
+            ListIterator itr = list.listIterator();
+            for (int i=0; i<size; i++) {
+                itr.next();
+                itr.set(obj);
+            }
         }
     }
 
@@ -382,15 +510,21 @@ public class Collections {
      * @throws UnsupportedOperationException if the destination list's
      *         list-iterator does not support the <tt>set</tt> operation.
      */
-    public static void copy (List dest, List src) {
-        try {
-	    for (ListIterator di=dest.listIterator(), si=src.listIterator();
-		 si.hasNext(); ) {
+    public static void copy(List dest, List src) {
+        int srcSize = src.size();
+        if (srcSize > dest.size())
+            throw new IndexOutOfBoundsException("Source does not fit in dest");
+
+        if (srcSize < COPY_THRESHOLD ||
+            (src instanceof RandomAccess && dest instanceof RandomAccess)) {
+            for (int i=0; i<srcSize; i++)
+                dest.set(i, src.get(i));
+        } else {
+            ListIterator di=dest.listIterator(), si=src.listIterator();
+            for (int i=0; i<srcSize; i++) {
                 di.next();
                 di.set(si.next());
             }
-	} catch(NoSuchElementException e) {
-           throw new IndexOutOfBoundsException("Source does not fit in dest.");
         }
     }
 
@@ -418,7 +552,8 @@ public class Collections {
     public static Object min(Collection coll) {
 	Iterator i = coll.iterator();
 	Comparable candidate = (Comparable)(i.next());
-	while (i.hasNext()) {
+
+        while(i.hasNext()) {
 	    Comparable next = (Comparable)(i.next());
 	    if (next.compareTo(candidate) < 0)
 		candidate = next;
@@ -454,7 +589,8 @@ public class Collections {
 
 	Iterator i = coll.iterator();
 	Object candidate = i.next();
-	while (i.hasNext()) {
+
+        while(i.hasNext()) {
 	    Object next = i.next();
 	    if (comp.compare(next, candidate) < 0)
 		candidate = next;
@@ -486,7 +622,8 @@ public class Collections {
     public static Object max(Collection coll) {
 	Iterator i = coll.iterator();
 	Comparable candidate = (Comparable)(i.next());
-	while (i.hasNext()) {
+
+        while(i.hasNext()) {
 	    Comparable next = (Comparable)(i.next());
 	    if (next.compareTo(candidate) > 0)
 		candidate = next;
@@ -522,12 +659,281 @@ public class Collections {
 
 	Iterator i = coll.iterator();
 	Object candidate = i.next();
-	while (i.hasNext()) {
+
+        while(i.hasNext()) {
 	    Object next = i.next();
 	    if (comp.compare(next, candidate) > 0)
 		candidate = next;
 	}
 	return candidate;
+    }
+
+    /**
+     * Rotates the elements in the specified list by the specified distance.
+     * After calling this method, the element at index <tt>i</tt> will be
+     * the element previously at index <tt>(i - distance)</tt> mod
+     * <tt>list.size()</tt>, for all values of <tt>i</tt> between <tt>0</tt>
+     * and <tt>list.size()-1</tt>, inclusive.  (This method has no effect on
+     * the size of the list.)
+     *
+     * <p>For example, suppose <tt>list</tt> comprises<tt> [t, a, n, k, s]</tt>.
+     * After invoking <tt>Collections.rotate(list, 1)</tt> (or
+     * <tt>Collections.rotate(list, -4)</tt>), <tt>list</tt> will comprise
+     * <tt>[s, t, a, n, k]</tt>.
+     *
+     * <p>Note that this method can usefully be applied to sublists to
+     * move one or more elements within a list while preserving the
+     * order of the remaining elements.  For example, the following idiom
+     * moves the element at index <tt>j</tt> forward to position
+     * <tt>k</tt> (which must be greater than or equal to <tt>j</tt>):
+     * <pre>
+     *     Collections.rotate(list.subList(j, k+1), -1);
+     * </pre>
+     * To make this concrete, suppose <tt>list</tt> comprises
+     * <tt>[a, b, c, d, e]</tt>.  To move the element at index <tt>1</tt>
+     * (<tt>b</tt>) forward two positions, perform the following invocation:
+     * <pre>
+     *     Collections.rotate(l.subList(1, 4), -1);
+     * </pre>
+     * The resulting list is <tt>[a, c, d, b, e]</tt>.
+     * 
+     * <p>To move more than one element forward, increase the absolute value
+     * of the rotation distance.  To move elements backward, use a positive
+     * shift distance.
+     *
+     * <p>If the specified list is small or implements the {@link
+     * RandomAccess} interface, this implementation exchanges the first
+     * element into the location it should go, and then repeatedly exchanges
+     * the displaced element into the location it should go until a displaced
+     * element is swapped into the first element.  If necessary, the process
+     * is repeated on the second and successive elements, until the rotation
+     * is complete.  If the specified list is large and doesn't implement the
+     * <tt>RandomAccess</tt> interface, this implementation breaks the
+     * list into two sublist views around index <tt>-distance mod size</tt>.
+     * Then the {@link #reverse(List)} method is invoked on each sublist view,
+     * and finally it is invoked on the entire list.  For a more complete
+     * description of both algorithms, see Section 2.3 of Jon Bentley's
+     * <i>Programming Pearls</i> (Addison-Wesley, 1986).
+     *
+     * @param list the list to be rotated.
+     * @param distance the distance to rotate the list.  There are no
+     *        constraints on this value; it may be zero, negative, or
+     *        greater than <tt>list.size()</tt>.
+     * @throws UnsupportedOperationException if the specified list or
+     *         its list-iterator does not support the <tt>set</tt> method.
+     * @since 1.4
+     */
+    public static void rotate(List list, int distance) {
+        if (list instanceof RandomAccess || list.size() < ROTATE_THRESHOLD)
+            rotate1(list, distance);
+        else
+            rotate2(list, distance);
+    }
+
+    private static void rotate1(List list, int distance) {
+        int size = list.size();
+        if (size == 0)
+            return;
+        distance = distance % size;
+        if (distance < 0)
+            distance += size;
+        if (distance == 0)
+            return;
+
+        for (int cycleStart = 0, nMoved = 0; nMoved != size; cycleStart++) {
+            Object displaced = list.get(cycleStart);
+            int i = cycleStart;
+            do {
+                i += distance;
+                if (i >= size)
+                    i -= size;
+                displaced = list.set(i, displaced);
+                nMoved ++;
+            } while(i != cycleStart);
+        }
+    }
+
+    private static void rotate2(List list, int distance) {
+        int size = list.size();
+        if (size == 0)
+            return; 
+        int mid =  -distance % size;
+        if (mid < 0)
+            mid += size;
+        if (mid == 0)
+            return;
+
+        Collections.reverse(list.subList(0, mid));
+        Collections.reverse(list.subList(mid, size));
+        Collections.reverse(list);
+    }
+
+    /**
+     * Replaces all occurrences of one specified value in a list with another.
+     * More formally, replaces with <tt>newVal</tt> each element <tt>e</tt>
+     * in <tt>list</tt> such that
+     * <tt>(oldVal==null ? e==null : oldVal.equals(e))</tt>.
+     * (This method has no effect on the size of the list.)
+     *
+     * @param list the list in which replacement is to occur.
+     * @param oldVal the old value to be replaced.
+     * @param newVal the new value with which <tt>oldVal</tt> is to be
+     *        replaced.
+     * @return <tt>true</tt> if <tt>list</tt> contained one or more elements
+     *         <tt>e</tt> such that
+     *         <tt>(oldVal==null ?  e==null : oldVal.equals(e))</tt>.
+     * @throws UnsupportedOperationException if the specified list or
+     *         its list-iterator does not support the <tt>set</tt> method.
+     * @since  1.4
+     */
+    public static boolean replaceAll(List list, Object oldVal, Object newVal) {
+        boolean result = false;
+        int size = list.size();
+        if (size < REPLACEALL_THRESHOLD || list instanceof RandomAccess) {
+            if (oldVal==null) {
+                for (int i=0; i<size; i++) {
+                    if (list.get(i)==null) {
+                        list.set(i, newVal);
+                        result = true;
+                    }
+                }
+            } else {
+                for (int i=0; i<size; i++) {
+                    if (oldVal.equals(list.get(i))) {
+                        list.set(i, newVal);
+                        result = true;
+                    }
+                }
+            }
+        } else {
+            ListIterator itr=list.listIterator();
+            if (oldVal==null) {
+                for (int i=0; i<size; i++) {
+                    if (itr.next()==null) {
+                        itr.set(newVal);
+                        result = true;
+                    }
+                }
+            } else {
+                for (int i=0; i<size; i++) {
+                    if (oldVal.equals(itr.next())) {
+                        itr.set(newVal);
+                        result = true;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns the starting position of the first occurrence of the specified
+     * target list within the specified source list, or -1 if there is no
+     * such occurrence.  More formally, returns the the lowest index <tt>i</tt>
+     * such that <tt>source.subList(i, i+target.size()).equals(target)</tt>,
+     * or -1 if there is no such index.  (Returns -1 if
+     * <tt>target.size() > source.size()</tt>.)
+     *
+     * <p>This implementation uses the "brute force" technique of scanning
+     * over the source list, looking for a match with the target at each
+     * location in turn.
+     *
+     * @param source the list in which to search for the first occurrence
+     *        of <tt>target</tt>.
+     * @param target the list to search for as a subList of <tt>source</tt>.
+     * @return the starting position of the first occurrence of the specified
+     *         target list within the specified source list, or -1 if there
+     *         is no such occurrence.
+     * @since  1.4
+     */
+    public static int indexOfSubList(List source, List target) {
+        int sourceSize = source.size();
+        int targetSize = target.size();
+        int maxCandidate = sourceSize - targetSize;
+
+        if (sourceSize < INDEXOFSUBLIST_THRESHOLD ||
+            (source instanceof RandomAccess&&target instanceof RandomAccess)) {
+        nextCand:
+            for (int candidate = 0; candidate <= maxCandidate; candidate++) {
+                for (int i=0, j=candidate; i<targetSize; i++, j++)
+                    if (!eq(target.get(i), source.get(j)))
+                        continue nextCand;  // Element mismatch, try next cand
+                return candidate;  // All elements of candidate matched target
+            }
+        } else {  // Iterator version of above algorithm
+            ListIterator si = source.listIterator();
+        nextCand:
+            for (int candidate = 0; candidate <= maxCandidate; candidate++) {
+                ListIterator ti = target.listIterator();
+                for (int i=0; i<targetSize; i++) {
+                    if (!eq(ti.next(), si.next())) {
+                        // Back up source iterator to next candidate
+                        for (int j=0; j<i; j++)
+                            si.previous();
+                        continue nextCand;
+                    }
+                }
+                return candidate;
+            }
+        }
+        return -1;  // No candidate matched the target
+    }
+
+    /**
+     * Returns the starting position of the last occurrence of the specified
+     * target list within the specified source list, or -1 if there is no such
+     * occurrence.  More formally, returns the the highest index <tt>i</tt>
+     * such that <tt>source.subList(i, i+target.size()).equals(target)</tt>,
+     * or -1 if there is no such index.  (Returns -1 if
+     * <tt>target.size() > source.size()</tt>.)
+     *
+     * <p>This implementation uses the "brute force" technique of iterating
+     * over the source list, looking for a match with the target at each
+     * location in turn.
+     *
+     * @param source the list in which to search for the last occurrence
+     *        of <tt>target</tt>.
+     * @param target the list to search for as a subList of <tt>source</tt>.
+     * @return the starting position of the last occurrence of the specified
+     *         target list within the specified source list, or -1 if there
+     *         is no such occurrence.
+     * @since  1.4
+     */
+    public static int lastIndexOfSubList(List source, List target) {
+        int sourceSize = source.size();
+        int targetSize = target.size();
+        int maxCandidate = sourceSize - targetSize;
+
+        if (sourceSize < INDEXOFSUBLIST_THRESHOLD ||
+            source instanceof RandomAccess) {   // Index access version
+        nextCand:
+            for (int candidate = maxCandidate; candidate >= 0; candidate--) {
+                for (int i=0, j=candidate; i<targetSize; i++, j++)
+                    if (!eq(target.get(i), source.get(j)))
+                        continue nextCand;  // Element mismatch, try next cand
+                return candidate;  // All elements of candidate matched target
+            }
+        } else {  // Iterator version of above algorithm
+            if (maxCandidate < 0)
+                return -1;
+            ListIterator si = source.listIterator(maxCandidate);
+        nextCand:
+            for (int candidate = maxCandidate; candidate >= 0; candidate--) {
+                ListIterator ti = target.listIterator();
+                for (int i=0; i<targetSize; i++) {
+                    if (!eq(ti.next(), si.next())) {
+                        if (candidate != 0) {
+                            // Back up source iterator to next candidate
+                            for (int j=0; j<=i+1; j++)
+                                si.previous();
+                        }
+                        continue nextCand;
+                    }
+                }
+                return candidate;
+            }
+        }
+        return -1;  // No candidate matched the target
     }
 
 
@@ -699,13 +1105,17 @@ public class Collections {
      * <tt>UnsupportedOperationException</tt>.<p>
      *
      * The returned list will be serializable if the specified list
-     * is serializable. 
+     * is serializable. Similarly, the returned list will implement
+     * {@link RandomAccess} if the specified list does.
+     * the 
      *
      * @param  list the list for which an unmodifiable view is to be returned.
      * @return an unmodifiable view of the specified list.
      */
     public static List unmodifiableList(List list) {
-	return new UnmodifiableList(list);
+	return (list instanceof RandomAccess ?
+                new UnmodifiableRandomAccessList(list) :
+                new UnmodifiableList(list));
     }
 
     /**
@@ -714,7 +1124,7 @@ public class Collections {
     static class UnmodifiableList extends UnmodifiableCollection
     				  implements List {
         static final long serialVersionUID = -283967356065247728L;
-	private List list;
+	List list;
 
 	UnmodifiableList(List list) {
 	    super(list);
@@ -766,6 +1176,22 @@ public class Collections {
 
 	public List subList(int fromIndex, int toIndex) {
             return new UnmodifiableList(list.subList(fromIndex, toIndex));
+        }
+    }
+
+    /**
+     * @serial include
+     */
+    static class UnmodifiableRandomAccessList extends UnmodifiableList
+                                              implements RandomAccess
+    {
+        UnmodifiableRandomAccessList(List list) {
+            super(list);
+        }
+
+	public List subList(int fromIndex, int toIndex) {
+            return new UnmodifiableRandomAccessList(
+                list.subList(fromIndex, toIndex));
         }
     }
 
@@ -1289,11 +1715,15 @@ public class Collections {
      * @return a synchronized view of the specified list.
      */
     public static List synchronizedList(List list) {
-	return new SynchronizedList(list);
+	return (list instanceof RandomAccess ?
+                new SynchronizedRandomAccessList(list) :
+                new SynchronizedList(list));
     }
 
     static List synchronizedList(List list, Object mutex) {
-	return new SynchronizedList(list, mutex);
+	return (list instanceof RandomAccess ?
+                new SynchronizedRandomAccessList(list, mutex) :
+                new SynchronizedList(list, mutex));
     }
 
     /**
@@ -1301,7 +1731,9 @@ public class Collections {
      */
     static class SynchronizedList extends SynchronizedCollection
     			          implements List {
-	private List list;
+        static final long serialVersionUID = -7754090372962971524L;
+
+	List list;
 
 	SynchronizedList(List list) {
 	    super(list);
@@ -1355,6 +1787,28 @@ public class Collections {
 	    synchronized(mutex) {
                 return new SynchronizedList(list.subList(fromIndex, toIndex),
                                             mutex);
+            }
+        }
+    }
+
+    /**
+     * @serial include
+     */
+    static class SynchronizedRandomAccessList extends SynchronizedList
+                                              implements RandomAccess
+    {
+        SynchronizedRandomAccessList(List list) {
+            super(list);
+        }
+
+	SynchronizedRandomAccessList(List list, Object mutex) {
+            super(list, mutex);
+        }
+
+	public List subList(int fromIndex, int toIndex) {
+	    synchronized(mutex) {
+                return new SynchronizedRandomAccessList(
+                    list.subList(fromIndex, toIndex), mutex);
             }
         }
     }
@@ -1616,7 +2070,7 @@ public class Collections {
      * @serial include
      */
     private static class EmptyList extends AbstractList
-                                   implements Serializable {
+                                   implements RandomAccess, Serializable {
 	// use serialVersionUID from JDK 1.2.2 for interoperability
 	private static final long serialVersionUID = 8842843931221139166L;
 
@@ -1721,7 +2175,9 @@ public class Collections {
     }
 
     private static class SingletonList extends AbstractList
-                                       implements Serializable {
+                                       implements RandomAccess, Serializable {
+        static final long serialVersionUID = 3093736618740652951L;
+
         private final Object element;
 
         SingletonList(Object obj)           {element = obj;}
@@ -1850,8 +2306,10 @@ public class Collections {
      * @serial include
      */
     private static class CopiesList extends AbstractList
-                                    implements Serializable
+                                    implements RandomAccess, Serializable
     {
+        static final long serialVersionUID = 2739099268398711800L;
+
         int n;
         Object element;
 
@@ -1924,6 +2382,7 @@ public class Collections {
      *
      * @param c the collection for which an enumeration is to be returned.
      * @return an enumeration over the specified collection.
+     * @see Enumeration
      */
     public static Enumeration enumeration(final Collection c) {
 	return new Enumeration() {
@@ -1937,6 +2396,28 @@ public class Collections {
 		return i.next();
 	    }
         };
+    }
+
+    /**
+     * Returns an array list containing the elements returned by the
+     * specified enumeration in the order they are returned by the
+     * enumeration.  This method provides interoperatbility between
+     * legacy APIs that return enumerations and new APIs that require
+     * collections.
+     *
+     * @param e enumeration providing elements for the returned
+     *          array list
+     * @return an array list containing the elements returned
+     *         by the specified enumeration.
+     * @since 1.4
+     * @see Enumeration
+     * @see ArrayList
+     */
+    public static ArrayList list(Enumeration e) {
+        ArrayList l = new ArrayList();
+        while (e.hasMoreElements())
+            l.add(e.nextElement());
+        return l;
     }
 
     /**

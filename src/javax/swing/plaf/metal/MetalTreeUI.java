@@ -1,4 +1,6 @@
 /*
+ * @(#)MetalTreeUI.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -7,7 +9,6 @@ package javax.swing.plaf.metal;
 
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.text.DefaultTextUI;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
@@ -19,26 +20,33 @@ import javax.swing.tree.*;
 import javax.swing.plaf.basic.*;
 
 /**
- * MetalTreeUI supports the client property "value-add" system of customization
- * It uses it to determine what style of line to draw.  There are three choices.
- * The default choice is to draw no lines.
- * Also available is a more variant with angled legs running from parent to child.
- * Lastly you can choose an option with horizonl lines be lines at all.  
- * Here is some code to turn on angled legs.
- * 
- * 	tree.putClientProperty("JTree.lineStyle", "Angled");
+ * The metal look and feel implementation of <code>TreeUI</code>.
+ * <p>
+ * <code>MetalTreeUI</code> allows for configuring how to
+ * visually render the spacing and delineation between nodes. The following
+ * hints are supported:
+ * <table>
+ *   <tr><td>Angled
+ *       <td>A line is drawn connecting the child to the parent. For handling
+ *           of the root node refer to
+ *           {@link javax.swing.JTree#setRootVisible} and
+ *           {@link javax.swing.JTree#setShowsRootHandles}.
+ *   <tr><td>Horizontal
+ *       <td>A horizontal line is drawn dividing the children of the root node.
+ *   <tr><td>None
+ *       <td>Do not draw any visual indication between nodes.
+ * </table>
+ * <p>
+ * As it is typically impratical to obtain the <code>TreeUI</code> from
+ * the <code>JTree</code> and cast to an instance of <code>MetalTreeUI</code>
+ * you enable this property via the client property
+ * <code>JTree.lineStyle</code>. For example, to switch to
+ * <code>Horizontal</code> style you would do:
+ * <code>tree.putClientProperty("JTree.lineStyle", "Horizontal");</code>
+ * <p>
+ * The default is <code>Angled</code>.
  *
- * Here is some code to turn on horizontal lines between root nodes.
- * 
- * 	tree.putClientProperty("JTree.lineStyle", "Horizontal");
- *
- *
- * Here is some code to turn off lines all together (which is the default).
- * 
- * 	tree.putClientProperty("JTree.lineStyle", "None");
- *
- *
- * @version 1.17 02/06/02
+ * @version 1.19 12/03/01
  * @author Tom Santos
  * @author Steve Wilson (value add stuff)
  */
@@ -56,7 +64,7 @@ public class MetalTreeUI extends BasicTreeUI {
     private static final int HORIZ_LINE_STYLE = 1;
     private static final int NO_LINE_STYLE = 0;
 
-    private int lineStyle = HORIZ_LINE_STYLE;
+    private int lineStyle = LEG_LINE_STYLE;
     private PropertyChangeListener lineStyleListener = new LineListener();
 
     // Boilerplate
@@ -94,11 +102,12 @@ public class MetalTreeUI extends BasicTreeUI {
       *
       */
     protected void decodeLineStyle(Object lineStyleFlag) {
-      if ( lineStyleFlag == null || lineStyleFlag.equals(NO_STYLE_STRING) ){
-	lineStyle = NO_LINE_STYLE; // default case
+      if ( lineStyleFlag == null ||
+                    lineStyleFlag.equals(LEG_LINE_STYLE_STRING)){
+	lineStyle = LEG_LINE_STYLE; // default case
       } else {
-	  if ( lineStyleFlag.equals(LEG_LINE_STYLE_STRING) ) {
-	      lineStyle = LEG_LINE_STYLE;
+	  if ( lineStyleFlag.equals(NO_STYLE_STRING) ) {
+	      lineStyle = NO_LINE_STYLE;
 	  } else if ( lineStyleFlag.equals(HORIZ_STYLE_STRING) ) {
 	      lineStyle = HORIZ_LINE_STYLE;
 	  }

@@ -1,4 +1,6 @@
 /*
+ * @(#)ServiceInformation.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,19 +8,32 @@
 package org.omg.CORBA;
 
 
-/** ServiceInformation is an IDL struct in the CORBA module.
- *  It stores information about a CORBA service available in the
- *  ORB implementation. It is obtained from the ORB.get_service_information
+/** An IDL struct in the CORBA module that
+ *  stores information about a CORBA service available in the
+ *  ORB implementation and is obtained from the <tt>ORB.get_service_information</tt>
  *  method.
  */
-
 public final class ServiceInformation implements org.omg.CORBA.portable.IDLEntity
 {
+    /** Array of ints representing service options.
+    */
     public int[] service_options;
+
+    /** Array of ServiceDetails giving more details about the service.
+    */
     public org.omg.CORBA.ServiceDetail[] service_details;
 
+    /** Constructs a ServiceInformation object with empty service_options
+    * and service_details.
+    */
     public ServiceInformation() { }
 
+    /** Constructs a ServiceInformation object with the given service_options
+    * and service_details.
+    * @param __service_options An array of ints describing the service options.
+    * @param __service_details An array of ServiceDetails describing the service
+    * details.
+    */
     public ServiceInformation(int[] __service_options,
 			      org.omg.CORBA.ServiceDetail[] __service_details)
     {

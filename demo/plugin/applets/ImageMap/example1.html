@@ -1,0 +1,119 @@
+<html>
+  <head>
+    <title>Live Feedback ImageMap (example 1)</title>
+  </head>
+  <body>
+      <h1>Live Feedback ImageMap (example 1)</h1>
+      The image below contains seven different active areas which trigger nine
+      total actions.  You can find them on your own or look in this
+      <a href=imagemapcheat.html>cheat sheet</a> to see where they are.
+      <hr>
+      
+      <!--"CONVERTED_APPLET"-->
+<!-- HTML CONVERTER -->
+<OBJECT 
+    classid="clsid:CAFEEFAC-0014-0000-0000-ABCDEFFEDCBA"
+    WIDTH = 522 HEIGHT = 486  
+    codebase="http://java.sun.com/products/plugin/autodl/jinstall-1_4_0-win.cab#Version=1,4,0,0">
+    <PARAM NAME = CODE VALUE = ImageMap.class >
+
+    <PARAM NAME="type" VALUE="application/x-java-applet;jpi-version=1.4">
+    <PARAM NAME="scriptable" VALUE="false">
+    <PARAM NAME = img VALUE ="images/jim.graham.gif">
+    <PARAM NAME = highlight VALUE ="brighter30">
+    <PARAM NAME = area1 VALUE ="SoundArea,260,180,120,60,audio/hi.au">
+    <PARAM NAME = area2 VALUE ="NameArea,260,180,120,60,Hi!">
+    <PARAM NAME = area3 VALUE ="HighlightArea,260,180,120,60">
+    <PARAM NAME = area4 VALUE ="NameArea,265,125,45,20,That is my right eye">
+    <PARAM NAME = area5 VALUE ="HighlightArea,265,125,45,20">
+    <PARAM NAME = area6 VALUE ="NameArea,335,130,45,20,That is my left eye">
+    <PARAM NAME = area7 VALUE ="HighlightArea,335,130,45,20">
+    <PARAM NAME = area8 VALUE ="HrefButtonArea,200,7,210,300,http://java.sun.com">
+    <PARAM NAME = area9 VALUE ="RoundHrefButtonArea,60,0,100,120,example2.html">
+    <PARAM NAME = area10 VALUE ="SoundArea,425,98,27,27,audio/chirp1.au">
+    <PARAM NAME = area11 VALUE ="NameArea,425,98,27,27,Chirp!">
+    <PARAM NAME = area12 VALUE ="HighlightArea,425,98,27,27">
+    <PARAM NAME = area13 VALUE ="ClickArea,0,0,522,486">
+
+    <COMMENT>
+	<EMBED 
+            type="application/x-java-applet;jpi-version=1.4" 
+            CODE = ImageMap.class
+            WIDTH = 522
+            HEIGHT = 486 
+            img = "images/jim.graham.gif"
+            highlight = "brighter30"
+            area1 = "SoundArea,260,180,120,60,audio/hi.au"
+            area2 = "NameArea,260,180,120,60,Hi!"
+            area3 = "HighlightArea,260,180,120,60"
+            area4 = "NameArea,265,125,45,20,That is my right eye"
+            area5 = "HighlightArea,265,125,45,20"
+            area6 = "NameArea,335,130,45,20,That is my left eye"
+            area7 = "HighlightArea,335,130,45,20"
+            area8 = "HrefButtonArea,200,7,210,300,http://java.sun.com"
+            area9 = "RoundHrefButtonArea,60,0,100,120,example2.html"
+            area10 = "SoundArea,425,98,27,27,audio/chirp1.au"
+            area11 = "NameArea,425,98,27,27,Chirp!"
+            area12 = "HighlightArea,425,98,27,27"
+            area13 = "ClickArea,0,0,522,486" 
+	    scriptable=false 
+	    pluginspage="http://java.sun.com/products/plugin/index.html#download">
+	        <NOEMBED>
+		alt="Your browser understands the &lt;APPLET&gt; tag but isn't running the applet, for some reason."
+        Your browser is completely ignoring the &lt;APPLET&gt; tag!
+		</NOEMBED>
+	</EMBED>
+    </COMMENT>
+</OBJECT>
+
+<!--
+<APPLET CODE = ImageMap.class WIDTH = 522 HEIGHT = 486>
+<PARAM NAME = img VALUE ="images/jim.graham.gif">
+<PARAM NAME = highlight VALUE ="brighter30">
+<PARAM NAME = area1 VALUE ="SoundArea,260,180,120,60,audio/hi.au">
+<PARAM NAME = area2 VALUE ="NameArea,260,180,120,60,Hi!">
+<PARAM NAME = area3 VALUE ="HighlightArea,260,180,120,60">
+<PARAM NAME = area4 VALUE ="NameArea,265,125,45,20,That is my right eye">
+<PARAM NAME = area5 VALUE ="HighlightArea,265,125,45,20">
+<PARAM NAME = area6 VALUE ="NameArea,335,130,45,20,That is my left eye">
+<PARAM NAME = area7 VALUE ="HighlightArea,335,130,45,20">
+<PARAM NAME = area8 VALUE ="HrefButtonArea,200,7,210,300,http://java.sun.com">
+<PARAM NAME = area9 VALUE ="RoundHrefButtonArea,60,0,100,120,example2.html">
+<PARAM NAME = area10 VALUE ="SoundArea,425,98,27,27,audio/chirp1.au">
+<PARAM NAME = area11 VALUE ="NameArea,425,98,27,27,Chirp!">
+<PARAM NAME = area12 VALUE ="HighlightArea,425,98,27,27">
+<PARAM NAME = area13 VALUE ="ClickArea,0,0,522,486">
+alt="Your browser understands the &lt;APPLET&gt; tag but isn't running the applet, for some reason."
+        Your browser is completely ignoring the &lt;APPLET&gt; tag!
+
+</APPLET>
+-->
+
+
+<!--"END_CONVERTED_APPLET"-->
+
+      <hr>
+      Here are the source files:
+      <ul>
+	<li>Applet source: <a href="ImageMap.java">ImageMap.java</a>
+	<li>Image area superclass: <a href=ImageMapArea.java>ImageMapArea.java</a>
+	<li>Assorted ImageMapArea subclasses:
+	  <ul>
+	    <li> <a href=AniArea.java>AniArea.java</a>
+	    <li> <a href=ClickArea.java>ClickArea.java</a>
+	    <li> <a href=DelayedSoundArea.java>DelayedSoundArea.java</a>
+	    <li> <a href=HighlightArea.java>HighlightArea.java</a>
+	    <li> <a href=HrefButtonArea.java>HrefButtonArea.java</a>
+	    <li> <a href=LinkArea.java>LinkArea.java</a>
+	    <li> <a href=NameArea.java>NameArea.java</a>
+	    <li> <a href=RoundHrefButtonArea.java>RoundHrefButtonArea.java</a>
+	    <li> <a href=SoundArea.java>SoundArea.java</a>
+	  </ul>
+	<li>Assorted image filters: 
+	  <ul>
+	    <li> <a href=ButtonFilter.java>ButtonFilter.java</a>
+	    <li> <a href=HighlightFilter.java>HighlightFilter.java</a>
+	    <li> <a href=RoundButtonFilter.java>RoundButtonFilter.java</a>
+	  </ul>  
+  </body>
+</html>

@@ -1,4 +1,6 @@
 /*
+ * @(#)IconView.java	1.26 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,7 +20,7 @@ import javax.swing.event.*;
  * factory.
  *
  * @author Timothy Prinzing
- * @version 1.24 02/06/02
+ * @version 1.26 12/03/01
  */
 public class IconView extends View  {
 
@@ -58,7 +60,7 @@ public class IconView extends View  {
      * axis.
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the span the view would like to be rendered into.
+     * @return  the span the view would like to be rendered into
      *           Typically the view is told to render into the span
      *           that is returned, although there is no guarantee.
      *           The parent may choose to resize or break the view.
@@ -82,7 +84,7 @@ public class IconView extends View  {
      * along the x axis.
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns the desired alignment >= 0.0f && <= 1.0f.  This should be
+     * @return the desired alignment >= 0.0f && <= 1.0f.  This should be
      *   a value between 0.0 and 1.0 where 0 indicates alignment at the
      *   origin and 1.0 indicates alignment to the full span
      *   away from the origin.  An alignment of 0.5 would be the
@@ -141,17 +143,6 @@ public class IconView extends View  {
 	}
 	bias[0] = Position.Bias.Backward;
 	return getEndOffset();
-    }
-
-    /**
-     * Sets the size of the view.  Since Icon doesn't
-     * support this functionality, there is nothing
-     * we can do.
-     *
-     * @param width the width
-     * @param height the height
-     */
-    public void setSize(float width, float height) {
     }
 
     // --- member variables ------------------------------------------------

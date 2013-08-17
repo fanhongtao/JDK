@@ -1,6 +1,11 @@
 /*
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * @(#)BitSieve.java	1.7 00/04/06
+ *
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.math;
@@ -21,7 +26,7 @@ package java.math;
  * index of a bit in the sieve array.
  *
  * @see     BigInteger
- * @version 1.7, 02/06/02
+ * @version 1.7, 04/06/00
  * @author  Michael McCloskey
  * @since   1.3
  */
@@ -183,7 +188,7 @@ class BitSieve {
                 if ((nextLong & 1) == 1) {
                     BigInteger candidate = initValue.add(
                                            BigInteger.valueOf(offset));
-                    if (candidate.isProbablePrime(certainty))
+                    if (candidate.primeToCertainty(certainty))
                         return candidate;
                 }
                 nextLong >>>= 1;

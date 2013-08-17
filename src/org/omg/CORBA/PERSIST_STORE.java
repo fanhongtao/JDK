@@ -1,4 +1,6 @@
 /*
+ * @(#)PERSIST_STORE.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,9 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>PERSIST_STORE</code> exception, which is thrown
- * when there is an error with the persistent storage on the server.
+ * This exception indicates a persistent storage failure, for example, 
+ * failure to establish a database connection or corruption of a 
+ * database.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

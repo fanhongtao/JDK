@@ -1,4 +1,6 @@
 /*
+ * @(#)InputContext.java	1.31 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -12,11 +14,15 @@ import java.lang.Character.Subset;
 import sun.awt.im.InputMethodContext;
 
 /**
- * An InputContext object manages the communication between text editing
- * components and input methods. It dispatches events between them, and
- * forwards requests for information from the input method to the text
- * editing component. It also lets text editing components select input
- * methods by locale.
+ * Provides methods to control text input facilities such as input
+ * methods and keyboard layouts.
+ * Two methods handle both input methods and keyboard layouts: selectInputMethod
+ * lets a client component select an input method or keyboard layout by locale,
+ * getLocale lets a client component obtain the locale of the current input method
+ * or keyboard layout.
+ * The other methods more specifically support interaction with input methods:
+ * They let client components control the behavior of input methods, and
+ * dispatch events from the client component to the input method.
  *
  * <p>
  * By default, one InputContext instance is created per Window instance,
@@ -32,7 +38,8 @@ import sun.awt.im.InputMethodContext;
  * programming language, using the interfaces in the {@link java.awt.im.spi} package,
  * and installed into a Java 2 runtime environment as extensions. Implementations
  * may also support using the native input methods of the platforms they run on;
- * however, not all platforms and locales provide input methods.
+ * however, not all platforms and locales provide input methods. Keyboard layouts
+ * are provided by the host platform.
  *
  * <p>
  * Input methods are <em>unavailable</em> if (a) no input method written
@@ -43,7 +50,7 @@ import sun.awt.im.InputMethodContext;
  *
  * @see java.awt.Component#getInputContext
  * @see java.awt.Component#enableInputMethods
- * @version 	1.29, 02/06/02
+ * @version 	1.31, 12/03/01
  * @author JavaSoft Asia/Pacific
  * @since 1.2
  */
@@ -68,15 +75,45 @@ public class InputContext {
     }
 
     /**
-     * Selects an input method that supports the given locale.
-     * If the currently selected input method supports the desired locale
-     * or if there's no input method available that supports the desired
-     * locale, the current input method remains active. Otherwise, an input
-     * method is selected that supports text input for the desired locale.
-     * Before switching to a different input method, any currently uncommitted
-     * text is committed.
-     * If no input method supporting the desired locale is available,
-     * then false is returned.
+     * Attempts to select an input method or keyboard layout that
+     * supports the given locale, and returns a value indicating whether such
+     * an input method or keyboard layout has been successfully selected. The
+     * following steps are taken until an input method has been selected:
+     *
+     * <p>
+     * <ul>
+     * <li>
+     * If the currently selected input method or keyboard layout supports the
+     * requested locale, it remains selected.</li>
+     *
+     * <li>
+     * If there is no input method or keyboard layout available that supports
+     * the requested locale, the current input method or keyboard layout remains
+     * selected.</li>
+     *
+     * <li>
+     * If the user has previously selected an input method or keyboard layout
+     * for the requested locale from the user interface, then the most recently
+     * selected such input method or keyboard layout is reselected.</li>
+     *
+     * <li>
+     * Otherwise, an input method or keyboard layout that supports the requested
+     * locale is selected in an implementation dependent way.</li>
+     *
+     * <p>
+     * </ul>
+     * Before switching away from an input method, any currently uncommitted text
+     * is committed. If no input method or keyboard layout supporting the requested
+     * locale is available, then false is returned.
+     *
+     * <p>
+     * Not all host operating systems provide API to determine the locale of
+     * the currently selected native input method or keyboard layout, and to
+     * select a native input method or keyboard layout by locale.
+     * For host operating systems that don't provide such API,
+     * <code>selectInputMethod</code> assumes that native input methods or
+     * keyboard layouts provided by the host operating system support only the
+     * system's default locale.
      *
      * <p>
      * A text editing component may call this method, for example, when
@@ -84,8 +121,8 @@ public class InputContext {
      * immediately continue typing in the language of the surrounding text.
      *
      * @param locale The desired new locale.
-     * @return Whether the input method that's active after this call
-     *         supports the desired locale.
+     * @return true if the input method or keyboard layout that's active after
+     *         this call supports the desired locale.
      * @exception NullPointerException if <code>locale</code> is null
      */
     public boolean selectInputMethod(Locale locale) {
@@ -94,12 +131,21 @@ public class InputContext {
     }
 
     /**
-     * Returns the current locale of the current input method.
-     * Returns null if the input context does not have a current
-     * input method or the input method's
-     * {@link java.awt.im.spi.InputMethod#getLocale()} returns null.
+     * Returns the current locale of the current input method or keyboard
+     * layout.
+     * Returns null if the input context does not have a current input method
+     * or keyboard layout or if the current input method's
+     * {@link java.awt.im.spi.InputMethod#getLocale()} method returns null.
      *
-     * @return the current locale of the current input method
+     * <p>
+     * Not all host operating systems provide API to determine the locale of
+     * the currently selected native input method or keyboard layout.
+     * For host operating systems that don't provide such API,
+     * <code>getLocale</code> assumes that the current locale of all native
+     * input methods or keyboard layouts provided by the host operating system
+     * is the system's default locale.
+     *
+     * @return the current locale of the current input method or keyboard layout
      * @since 1.3
      */
     public Locale getLocale() {

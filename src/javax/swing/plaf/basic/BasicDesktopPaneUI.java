@@ -1,5 +1,7 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * @(#)BasicDesktopPaneUI.java	1.44 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,20 +16,18 @@ import java.awt.event.*;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Graphics;
+import java.awt.KeyboardFocusManager;
 import java.awt.*;
 import java.util.Vector;
-import sun.awt.AppContext;
 
 /**
  * Basic L&F for a desktop.
  *
- * @version 1.39 06/06/06
+ * @version 1.44 12/03/01
  * @author Steve Wilson
  */
 public class BasicDesktopPaneUI extends DesktopPaneUI
 {
-    private static final Object FRAMES_CACHE_KEY =
-               new StringBuffer("BASIC_DESKTOP_PANE_UI.FRAMES_CACHE");
     private static Dimension minSize = new Dimension(0,0);
     private static Dimension maxSize = new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
 
@@ -40,7 +40,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
      * Key bindings are now defined by the LookAndFeel, please refer to
      * the key bindings specification for further details.
      *
-     * @deprecated As of JDK version 1.3.
+     * @deprecated As of 1.3.
      */
     protected KeyStroke minimizeKey;
     /**
@@ -49,7 +49,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
      * Key bindings are now defined by the LookAndFeel, please refer to
      * the key bindings specification for further details.
      *
-     * @deprecated As of JDK version 1.3.
+     * @deprecated As of 1.3.
      */
     protected KeyStroke maximizeKey;
     /**
@@ -58,7 +58,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
      * Key bindings are now defined by the LookAndFeel, please refer to
      * the key bindings specification for further details.
      *
-     * @deprecated As of JDK version 1.3.
+     * @deprecated As of 1.3.
      */
     protected KeyStroke closeKey;
     /**
@@ -67,7 +67,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
      * Key bindings are now defined by the LookAndFeel, please refer to
      * the key bindings specification for further details.
      *
-     * @deprecated As of JDK version 1.3.
+     * @deprecated As of 1.3.
      */
     protected KeyStroke navigateKey;
     /**
@@ -76,7 +76,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
      * Key bindings are now defined by the LookAndFeel, please refer to
      * the key bindings specification for further details.
      *
-     * @deprecated As of JDK version 1.3.
+     * @deprecated As of 1.3.
      */
     protected KeyStroke navigateKey2;
 
@@ -87,24 +87,11 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
     public BasicDesktopPaneUI() {
     }
 
-    private static Vector getCurrentFramesCache() {
-        synchronized (BasicDesktopPaneUI.class) {
-            AppContext appContext = AppContext.getAppContext();
-            Vector framesCache = (Vector) appContext.get(FRAMES_CACHE_KEY);
-            if(framesCache == null) {
-                framesCache = new Vector();
-                appContext.put(FRAMES_CACHE_KEY,framesCache);
-            }
-            return framesCache;
-        }
-    }
-
     public void installUI(JComponent c)   {
 	desktop = (JDesktopPane)c;
 	installDefaults();
 	installDesktopManager();
 	installKeyboardActions();
-	
     }
 
     public void uninstallUI(JComponent c) {
@@ -194,14 +181,20 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
 	map.put("move", new MoveResizeAction("move"));
 	map.put("resize", new MoveResizeAction("resize"));
 	map.put("left", new MoveResizeAction("left"));
+	map.put("shrinkLeft", new MoveResizeAction("shrinkLeft"));
 	map.put("right", new MoveResizeAction("right"));
+	map.put("shrinkRight", new MoveResizeAction("shrinkRight"));
 	map.put("up", new MoveResizeAction("up"));
+	map.put("shrinkUp", new MoveResizeAction("shrinkUp"));
 	map.put("down", new MoveResizeAction("down"));
+	map.put("shrinkDown", new MoveResizeAction("shrinkDown"));
 	map.put("escape", new MoveResizeAction("escape"));
 	map.put("minimize", new MinimizeAction());
 	map.put("maximize", new MaximizeAction());
 	map.put("selectNextFrame", nextAction = new NavigateAction());
 	map.put("selectPreviousFrame", new PreviousAction());
+        map.put("navigateNext", new NavigateOutAction(true));
+        map.put("navigatePrevious", new NavigateOutAction(false));
 	return map;
     }
 
@@ -228,7 +221,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
     /*
      * Key binding for accessibility -----------------
      */
-    private static int selectedIndex;
+    private static Vector framesCache;
     private NavigateAction nextAction;
     private boolean moving = false;
     private boolean resizing = false;
@@ -239,33 +232,17 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
      */
     protected class OpenAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
-            Vector framesCache = getCurrentFramesCache();
 	    // restore the selected minimized or maximized frame
-	    verifyFramesCache();
-	    JComponent c = 
-		(JComponent)framesCache.elementAt(selectedIndex);
-	    if (c instanceof JInternalFrame) {
-		JInternalFrame f = (JInternalFrame)c;
-		try {
-		    if (f.isIcon()) {
-			f.setIcon(false);
-		    } else if (f.isMaximum()) {
-			f.setMaximum(false);
-		    }
-		    f.setSelected(true);
-		    desktopManager.activateFrame(f);
-		} catch (PropertyVetoException pve) {
-		}
-	    } else if (c instanceof JInternalFrame.JDesktopIcon) {
-		JInternalFrame.JDesktopIcon icon = 
-		    (JInternalFrame.JDesktopIcon)c;
-		JInternalFrame f = (JInternalFrame)icon.getInternalFrame();
-		try {
-		    f.setIcon(false);
-		    f.setSelected(true);
-		    desktopManager.activateFrame(f);
-		} catch (PropertyVetoException pve) {
-		}
+	    JInternalFrame f = desktop.getSelectedFrame();
+	    if (f == null) return;
+	    try {
+	      if (f.isIcon()) {
+		f.setIcon(false);
+	      } else if (f.isMaximum()) {
+		f.setMaximum(false);
+	      }
+	      f.setSelected(true);
+	    } catch (PropertyVetoException pve) {
 	    }
 	}
 	public boolean isEnabled() { 
@@ -278,31 +255,13 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
      */
     protected class CloseAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
-            Vector framesCache = getCurrentFramesCache();
-	    verifyFramesCache();
-	    JComponent c = 
-		(JComponent)framesCache.elementAt(selectedIndex);
-	    if (c instanceof JInternalFrame) {
-		JInternalFrame f = (JInternalFrame)c;
-		if (f.isClosable()) {
-		    try {
-			f.setClosed(true);
-			nextAction.actionPerformed(e);
-		    } catch (PropertyVetoException pve) {
-		    }
-		}
-	    }
-	    else if (c instanceof JInternalFrame.JDesktopIcon) {
-		JInternalFrame.JDesktopIcon icon = 
-		    (JInternalFrame.JDesktopIcon)c;
-		JInternalFrame f = (JInternalFrame)icon.getInternalFrame();
-		if (f.isClosable()) {
-		    try {
-			f.setClosed(true);
-			nextAction.actionPerformed(e);
-		    } catch (PropertyVetoException pve) {
-		    }
-		}
+	    JInternalFrame f = desktop.getSelectedFrame();
+	    if (f == null) return;
+	    if (f.isClosable()) {
+	      try {
+		f.setClosed(true);
+	      } catch (PropertyVetoException pve) {
+	      }
 	    }
 	}
 	public boolean isEnabled() { 
@@ -321,6 +280,10 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
 	}
 
 	public void actionPerformed(ActionEvent e) {
+	    JInternalFrame c = desktop.getSelectedFrame(); 
+	    if (c == null) {
+		return;
+	    }
 	    if ("move".equals(command)) {
 		moving = true;
 		resizing = false;
@@ -337,11 +300,8 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
 		return;
 	    }
 
-	    JComponent c = desktop.getSelectedFrame(); 
-	    if ((c == null) || (!(c instanceof JInternalFrame))) {
-		return;
-	    }
 	    Dimension size = c.getSize();
+            Dimension minSize = c.getMinimumSize();
 	    Point loc = c.getLocation();
 
 	    if ("left".equals(command)) {
@@ -372,7 +332,37 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
 		    c.setLocation(loc.x, loc.y);
 		    c.setSize(size.width, size.height + MOVE_RESIZE_INCREMENT);
 		}
-	    }
+	    } else if ("shrinkLeft".equals(command) && resizing) {
+                if (minSize.width < (size.width - MOVE_RESIZE_INCREMENT)) {
+                    c.setLocation(loc.x, loc.y);
+                    c.setSize(size.width - MOVE_RESIZE_INCREMENT, size.height);
+                } else {
+                    c.setSize(minSize.width, size.height);
+                }
+	    } else if ("shrinkRight".equals(command) && resizing) {
+                if (minSize.width < (size.width - MOVE_RESIZE_INCREMENT)) {
+                    c.setLocation(loc.x + MOVE_RESIZE_INCREMENT, loc.y);
+                    c.setSize(size.width - MOVE_RESIZE_INCREMENT, size.height);
+                } else {
+                    c.setLocation(loc.x - minSize.width + size.width , loc.y);
+                    c.setSize(minSize.width, size.height);
+                }
+	    } else if ("shrinkUp".equals(command) && resizing) {
+                if (minSize.height < (size.height - MOVE_RESIZE_INCREMENT)) {
+                    c.setLocation(loc.x, loc.y);
+                    c.setSize(size.width, size.height - MOVE_RESIZE_INCREMENT);
+                } else {
+                    c.setSize(size.width, minSize.height);
+                }
+	    } else if ("shrinkDown".equals(command) && resizing) {
+                if (minSize.height < (size.height - MOVE_RESIZE_INCREMENT)) {
+                    c.setLocation(loc.x, loc.y + MOVE_RESIZE_INCREMENT);
+                    c.setSize(size.width, size.height - MOVE_RESIZE_INCREMENT);
+                } else {
+                    c.setLocation(loc.x, loc.y - minSize.height + size.height);
+                    c.setSize(size.width, minSize.height);
+                }
+            }
 	}
 	public boolean isEnabled() { 
 	    return true;
@@ -384,20 +374,14 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
      */
     protected class MinimizeAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
-            Vector framesCache = getCurrentFramesCache();
 	    // minimize the selected frame
-	    verifyFramesCache();
-	    JComponent c = 
-		(JComponent)framesCache.elementAt(selectedIndex);
-	    if (c instanceof JInternalFrame) {
-		JInternalFrame f = (JInternalFrame)c;
-		if (f.isIconifiable()) {
-		    try {
-			f.setIcon(true);
-			nextAction.actionPerformed(e);
-		    } catch (PropertyVetoException pve) {
-		    }
-		}
+	    JInternalFrame f = desktop.getSelectedFrame();
+	    if (f == null) return;
+	    if (f.isIconifiable() && ! f.isIcon()) {
+	      try {
+		f.setIcon(true);
+	      } catch (PropertyVetoException pve) {
+	      }
 	    }
 	}
 	public boolean isEnabled() { 
@@ -410,30 +394,19 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
      */
     protected class MaximizeAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
-            Vector framesCache = getCurrentFramesCache();
 	    // maximize the selected frame
-	    verifyFramesCache();
-	    JComponent c = 
-		(JComponent)framesCache.elementAt(selectedIndex);
-	    if (c instanceof JInternalFrame) {
-		JInternalFrame f = (JInternalFrame)c;
-		if (f.isMaximizable()) {
-		    try {
-			f.setMaximum(true);
-		    } catch (PropertyVetoException pve) {
-		    }
-		}
-	    }
-	    else if (c instanceof JInternalFrame.JDesktopIcon) {
-		JInternalFrame.JDesktopIcon icon = 
-		    (JInternalFrame.JDesktopIcon)c;
-		JInternalFrame f = (JInternalFrame)icon.getInternalFrame();
-		if (f.isMaximizable()) {
-		    try {
-			f.setIcon(false);
-			f.setMaximum(true);
-		    } catch (PropertyVetoException pve) {
-		    }
+	    JInternalFrame f = desktop.getSelectedFrame();
+	    if (f == null) return;
+	    if (f.isMaximizable() && !f.isMaximum()) {
+	      if (f.isIcon()) {
+		try {
+		  f.setIcon(false);
+		  f.setMaximum(true);
+		} catch (PropertyVetoException pve) {}
+	      } else
+		try {
+		  f.setMaximum(true);
+		} catch (PropertyVetoException pve) {
 		}
 	    }
 	}
@@ -449,31 +422,37 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
     protected class NavigateAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
 	    // navigate to the next frame
-            Vector framesCache = getCurrentFramesCache(); 
+	    int i = 0;
 	    verifyFramesCache();
-	    selectedIndex++;
-	    if (selectedIndex >= framesCache.size()) {
-		selectedIndex = 0;
+	    if (framesCache.size() == 0) return;
+	    JInternalFrame f = desktop.getSelectedFrame();
+	    if (f != null) i = framesCache.indexOf(f);
+	    if (i == -1) {
+	      /* if the frame is not there, its icon may be */
+	      i = framesCache.indexOf(f.getDesktopIcon());
+	      if (i == -1) {
+		/* error */ return;
+	      }
 	    }
-	    JComponent c = 
-		(JComponent)framesCache.elementAt(selectedIndex);
+	    if (++i == framesCache.size()) /* wrap */ i = 0;
+	    JComponent c = (JComponent) framesCache.elementAt(i);
 	    if (c instanceof JInternalFrame) {
-		JInternalFrame f = (JInternalFrame)c;
-		try {
-		    f.setSelected(true);
-		    desktopManager.activateFrame(f);
-		} catch (PropertyVetoException pve) {
-		}
-	    }
-	    else if (c instanceof JInternalFrame.JDesktopIcon) {
-		JInternalFrame.JDesktopIcon icon = 
-		    (JInternalFrame.JDesktopIcon)c;
-		JInternalFrame f = (JInternalFrame)icon.getInternalFrame();
-		try {
-		    f.setSelected(true);
-		    desktopManager.activateFrame(f);
-		} catch (PropertyVetoException pve) {
-		}
+	      try {
+		((JInternalFrame) c).setSelected(true);
+		desktopManager.activateFrame((JInternalFrame) c);
+	      }
+	      catch (PropertyVetoException pve) {}
+	    } else {
+	      /* it had better be an icon! */
+	      if (!(c instanceof JInternalFrame.JDesktopIcon)){
+		/* error */
+		return;
+	      }
+	      try {
+		((JInternalFrame)((JInternalFrame.JDesktopIcon) c).getInternalFrame()).setSelected(true);
+		desktopManager.activateFrame(((JInternalFrame.JDesktopIcon) c).getInternalFrame());
+	      }
+	      catch (PropertyVetoException pve) {}
 	    }
 	}
 	public boolean isEnabled() { 
@@ -487,31 +466,35 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
     private class PreviousAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
 	    // navigate to the previous internal frame
-            Vector framesCache = getCurrentFramesCache();
+            int i = 0;
 	    verifyFramesCache();
-	    selectedIndex--;
-	    if (selectedIndex < 0) {
-		selectedIndex = framesCache.size() - 1;
+	    if (framesCache.size() == 0) return;
+	    JInternalFrame f = desktop.getSelectedFrame();
+	    if (f != null) i = framesCache.indexOf(f);
+	    if (i == -1) {
+	      /* if the frame is not there, its icon may be */
+	      i = framesCache.indexOf(f.getDesktopIcon());
+	      if (i == -1) {
+		/* error */ return;
+	      }
 	    }
-	    JComponent c = 
-		(JComponent)framesCache.elementAt(selectedIndex);
+	    if (--i == -1) /* wrap */ i = framesCache.size() - 1;
+	    JComponent c = (JComponent) framesCache.elementAt(i);
 	    if (c instanceof JInternalFrame) {
-		JInternalFrame f = (JInternalFrame)c;
-		try {
-		    f.setSelected(true);
-		    desktopManager.activateFrame(f);
-		} catch (PropertyVetoException pve) {
-		}
-	    }
-	    else if (c instanceof JInternalFrame.JDesktopIcon) {
-		JInternalFrame.JDesktopIcon icon = 
-		    (JInternalFrame.JDesktopIcon)c;
-		JInternalFrame f = (JInternalFrame)icon.getInternalFrame();
-		try {
-		    f.setSelected(true);
-		    desktopManager.activateFrame(f);
-		} catch (PropertyVetoException pve) {
-		}
+	      try {
+		((JInternalFrame) c).setSelected(true);
+	      }
+	      catch (PropertyVetoException pve) {}
+	    } else {
+	      /* it had better be an icon! */
+	      if (!(c instanceof JInternalFrame.JDesktopIcon)){
+		/* error */
+		return;
+	      }
+	      try {
+		((JInternalFrame)((JInternalFrame.JDesktopIcon) c).getInternalFrame()).setSelected(true);
+	      }
+	      catch (PropertyVetoException pve) {}
 	    }
 	}
 	public boolean isEnabled() { 
@@ -519,22 +502,63 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
 	}
     }
 
+    /**
+     * Handles navigating to the component before or after the desktop.
+     */
+    private class NavigateOutAction extends AbstractAction {
+        private boolean moveForward;
+
+        public NavigateOutAction(boolean moveForward) {
+            this.moveForward = moveForward;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            Container cycleRoot = desktop.getFocusCycleRootAncestor();
+
+            if (cycleRoot != null) {
+                FocusTraversalPolicy policy =
+                        cycleRoot.getFocusTraversalPolicy();
+                if (policy != null && policy instanceof
+                        SortingFocusTraversalPolicy) {
+                    SortingFocusTraversalPolicy sPolicy =
+                            (SortingFocusTraversalPolicy)policy;
+                    boolean idc = sPolicy.getImplicitDownCycleTraversal();
+                    try {
+                        sPolicy.setImplicitDownCycleTraversal(false);
+                        if (moveForward) {
+                            KeyboardFocusManager.
+                                getCurrentKeyboardFocusManager().
+                                focusNextComponent(desktop);
+                        } else {
+                            KeyboardFocusManager.
+                                getCurrentKeyboardFocusManager().
+                                focusPreviousComponent(desktop);
+                        }
+                    } finally {
+                        sPolicy.setImplicitDownCycleTraversal(idc);
+                    }
+                }
+            }
+        }
+
+        public boolean isEnabled() {
+            return true;
+        }
+    }
+
     /*
      * Verifies the internal frames cache is up to date.
      */
     private void verifyFramesCache() {
 
-        Vector framesCache = getCurrentFramesCache();
-
 	// Need to initialize?
-	boolean shouldSetSelection = false;
 	if (framesCache == null) {
-	    shouldSetSelection = true;
+	    framesCache = new Vector();
 	}
 
 	// Check whether any internal frames have closed in
 	// which case we have to refresh the frames cache.
-	boolean framesHaveClosed = false;
+       	boolean framesHaveClosed = false;
 	int len = framesCache.size();
 	for (int i = 0; i < len; i++) {
 	    JComponent c = 
@@ -555,31 +579,22 @@ public class BasicDesktopPaneUI extends DesktopPaneUI
 		    break;
 		}
 	    }
-	}
-
-	JInternalFrame [] allFrames = desktop.getAllFrames();
-	if (framesHaveClosed || allFrames.length != framesCache.size()) {
+	} 
+       	JInternalFrame [] allFrames = desktop.getAllFrames();
+       	if (framesHaveClosed || allFrames.length != framesCache.size()) {
 	    // Cache frames starting at the lowest layer.
 	    framesCache.clear();
 	    int low = desktop.lowestLayer();
 	    int high = desktop.highestLayer();
-	    int index = 0;
 	    for (int i = high; i >= low; i--) {
 		Component [] comp = desktop.getComponentsInLayer(i);
 		if (comp.length > 0) {
 		    for (int j = 0; j < comp.length; j++) {
 			framesCache.addElement(comp[j]);
-			if (shouldSetSelection && 
-			    comp[j] instanceof JInternalFrame) {
-			    if (((JInternalFrame)comp[j]).isSelected()) {
-				selectedIndex = index;
-			    }
-			}
-			index++;
 		    }
 		}
 	    }
-	}
+       	}
     }
     // End of accessibility keybindings
 }

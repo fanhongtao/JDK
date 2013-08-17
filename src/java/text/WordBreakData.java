@@ -1,4 +1,6 @@
 /*
+ * @(#)WordBreakData.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -149,7 +151,7 @@ final class WordBreakData extends TextBoundaryData
         // 2 - This state eats letters, advances to state 3 for numbers, and
         // goes to state 7 for mid-word punctuation.
         SI_STOP,       (byte)(SI+2),  (byte)(SI+3),  (byte)(SI+7),  (byte)(SI+7),
-        SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,
+        SI_STOP,       SI_STOP,       SI_STOP,       (byte)(SI+7),  SI_STOP,
         SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,       SI_STOP,
         SI_STOP,       (byte)(2),     SI_STOP,
 
@@ -262,7 +264,7 @@ final class WordBreakData extends TextBoundaryData
 
         // 2
         STOP,          (byte)(SI+2), (byte)(SI+3),   (byte)(4),     (byte)(4),
-        STOP,          STOP,          STOP,          STOP,          STOP,
+        STOP,          STOP,          STOP,          (byte)(4),     STOP,
         STOP,          STOP,          STOP,          STOP,          STOP,
         STOP,          (byte)(2),     STOP,
 
@@ -457,7 +459,7 @@ final class WordBreakData extends TextBoundaryData
         //  P       Q       R       S       T       U       V       W
             letter, letter, letter, letter, letter, letter, letter, letter,
         //  X       Y       Z       [       \       ]       ^       _
-            letter, letter, letter, BREAK,  BREAK,  BREAK,  BREAK,  midLetter,
+            letter, letter, letter, BREAK,  BREAK,  BREAK,  BREAK,  BREAK,
         //  `       a       b       c       d       e       f       g
             BREAK,  letter, letter, letter, letter, letter, letter, letter,
         //  h       i       j       k       l       m       n       o

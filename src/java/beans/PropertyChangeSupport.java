@@ -1,4 +1,6 @@
 /*
+ * @(#)PropertyChangeSupport.java	1.37 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,6 +11,10 @@ import java.io.Serializable;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 
 /**
@@ -43,13 +49,21 @@ public class PropertyChangeSupport implements java.io.Serializable {
      *
      * @param listener  The PropertyChangeListener to be added
      */
-
     public synchronized void addPropertyChangeListener(
 				PropertyChangeListener listener) {
-	if (listeners == null) {
-	    listeners = new java.util.Vector();
+	
+	if (listener instanceof PropertyChangeListenerProxy) {
+	    PropertyChangeListenerProxy proxy =
+                   (PropertyChangeListenerProxy)listener;
+	    // Call two argument add method.
+	    addPropertyChangeListener(proxy.getPropertyName(),
+                    (PropertyChangeListener)proxy.getListener());
+	} else {
+	    if (listeners == null) {
+		listeners = new java.util.Vector();
+	    }
+	    listeners.addElement(listener);
 	}
-	listeners.addElement(listener);
     }
 
     /**
@@ -59,13 +73,80 @@ public class PropertyChangeSupport implements java.io.Serializable {
      *
      * @param listener  The PropertyChangeListener to be removed
      */
-
     public synchronized void removePropertyChangeListener(
 				PropertyChangeListener listener) {
-	if (listeners == null) {
-	    return;
+	
+	if (listener instanceof PropertyChangeListenerProxy) {
+	    PropertyChangeListenerProxy proxy =
+                    (PropertyChangeListenerProxy)listener;
+	    // Call two argument remove method.
+	    removePropertyChangeListener(proxy.getPropertyName(),
+                   (PropertyChangeListener)proxy.getListener());
+	} else {
+	    if (listeners == null) {
+		return;
+	    }
+	    listeners.removeElement(listener);
 	}
-	listeners.removeElement(listener);
+    }
+
+    /**
+     * Returns an array of all the listeners that were added to the
+     * PropertyChangeSupport object with addPropertyChangeListener().
+     * <p>
+     * If some listeners have been added with a named property, then
+     * the returned array will be a mixture of PropertyChangeListeners
+     * and <code>PropertyChangeListenerProxy</code>s. If the calling
+     * method is interested in distinguishing the listeners then it must
+     * test each element to see if it's a
+     * <code>PropertyChangeListenerProxy</code>, perform the cast, and examine
+     * the parameter.
+     * 
+     * <pre>
+     * PropertyChangeListener[] listeners = bean.getPropertyChangeListeners();
+     * for (int i = 0; i < listeners.length; i++) {
+     *	 if (listeners[i] instanceof PropertyChangeListenerProxy) {
+     *     PropertyChangeListenerProxy proxy = 
+     *                    (PropertyChangeListenerProxy)listeners[i];
+     *     if (proxy.getPropertyName().equals("foo")) {
+     *       // proxy is a PropertyChangeListener which was associated
+     *       // with the property named "foo"
+     *     }
+     *   }
+     * }
+     *</pre>
+     *
+     * @see PropertyChangeListenerProxy
+     * @return all of the <code>PropertyChangeListeners</code> added or an 
+     *         empty array if no listeners have been added
+     * @since 1.4
+     */
+    public synchronized PropertyChangeListener[] getPropertyChangeListeners() {
+	List returnList = new ArrayList();
+     
+	// Add all the PropertyChangeListeners 
+	if (listeners != null) {
+	    returnList.addAll(listeners);
+	}
+	 
+	// Add all the PropertyChangeListenerProxys
+	if (children != null) {
+	    Iterator iterator = children.keySet().iterator();
+	    while (iterator.hasNext()) {
+		String key = (String)iterator.next();
+		PropertyChangeSupport child =
+                        (PropertyChangeSupport)children.get(key);
+		PropertyChangeListener[] childListeners =
+                        child.getPropertyChangeListeners();
+		for (int index = childListeners.length - 1; index >= 0;
+                        index--) {
+		    returnList.add(new PropertyChangeListenerProxy(
+                            key, childListeners[index]));
+		}
+	    }
+	}
+	return (PropertyChangeListener[])(returnList.toArray(
+                new PropertyChangeListener[0]));
     }
 
     /**
@@ -109,6 +190,30 @@ public class PropertyChangeSupport implements java.io.Serializable {
 	    return;
 	}
 	child.removePropertyChangeListener(listener);
+    }
+
+    /**
+     * Returns an array of all the listeners which have been associated 
+     * with the named property.
+     *
+     * @return all of the <code>PropertyChangeListeners</code> associated with
+     *         the named property or an empty array if no listeners have 
+     *         been added
+     */
+    public synchronized PropertyChangeListener[] getPropertyChangeListeners(
+            String propertyName) {
+        ArrayList returnList = new ArrayList();
+
+        if (children != null) {
+            PropertyChangeSupport support =
+                    (PropertyChangeSupport)children.get(propertyName);
+            if (support != null) {
+                returnList.addAll(
+                        Arrays.asList(support.getPropertyChangeListeners()));
+            }
+        }
+        return (PropertyChangeListener[])(returnList.toArray(
+                new PropertyChangeListener[0]));
     }
 
     /**

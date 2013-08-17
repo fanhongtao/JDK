@@ -1,15 +1,20 @@
 /*
+ * @(#)EventDispatchThread.java	1.42 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
 
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.ActionEvent;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import sun.security.action.GetPropertyAction;
 import sun.awt.DebugHelper;
-import java.awt.event.InputEvent;
+import sun.awt.AWTAutoShutdown;
 
 
 /**
@@ -29,7 +34,7 @@ import java.awt.event.InputEvent;
  * @author Fred Ecks
  * @author David Mendenhall
  * 
- * @version 1.37, 02/06/02
+ * @version 1.42, 12/03/01
  * @since 1.1
  */
 class EventDispatchThread extends Thread {
@@ -37,35 +42,47 @@ class EventDispatchThread extends Thread {
 
     private EventQueue theQueue;
     private boolean doDispatch = true;
+    private static final int ANY_EVENT = -1;
 
-    EventDispatchThread(String name, EventQueue queue) {
-	super(name);
+    EventDispatchThread(ThreadGroup group, String name, EventQueue queue) {
+        super(group, name);
         theQueue = queue;
     }
 
-    public void stopDispatching() {
+    void stopDispatchingImpl(boolean wait) {
 	// Note: We stop dispatching via a flag rather than using
 	// Thread.interrupt() because we can't guarantee that the wait()
 	// we interrupt will be EventQueue.getNextEvent()'s.  -fredx 8-11-98
 
         doDispatch = false;
 
-	// fix 4122683, 4128923
-	// Post an empty event to ensure getNextEvent is unblocked
-	//
-        // We have to use postEventPrivate instead of postEvent because
-        // EventQueue.pop calls EventDispatchThread.stopDispatching.
-        // Calling SunToolkit.flushPendingEvents in this case could
-        // lead to deadlock.
-	theQueue.postEventPrivate(new EmptyEvent());
-
 	// wait for the dispatcher to complete
 	if (Thread.currentThread() != this) {
-	    try {
-		join();
-	    } catch(InterruptedException e) {
-	    }
+
+            // fix 4122683, 4128923
+            // Post an empty event to ensure getNextEvent is unblocked
+            //
+            // We have to use postEventPrivate instead of postEvent because
+            // EventQueue.pop calls EventDispatchThread.stopDispatching.
+            // Calling SunToolkit.flushPendingEvents in this case could
+            // lead to deadlock.
+            theQueue.postEventPrivate(new EmptyEvent());
+                
+            if (wait) {
+                try {
+                    join();
+                } catch(InterruptedException e) {
+                }
+            }
 	}
+    }
+
+    public void stopDispatching() {
+        stopDispatchingImpl(true);
+    }
+
+    public void stopDispatchingLater() {
+        stopDispatchingImpl(false);
     }
 
     class EmptyEvent extends AWTEvent implements ActiveEvent {
@@ -77,52 +94,99 @@ class EventDispatchThread extends Thread {
     }
 
     public void run() {
-        pumpEvents(new Conditional() {
-            public boolean evaluate() {
-                return true;
-            }
-        });
+	try {
+	    pumpEvents(new Conditional() {
+		public boolean evaluate() {
+		    return true;
+		}
+	    });	    
+	} finally {
+	    /*
+	     * This synchronized block is to secure that the event dispatch 
+	     * thread won't die in the middle of posting a new event to the
+	     * associated event queue. It is important because we notify
+	     * that the event dispatch thread is busy after posting a new event
+	     * to its queue, so the EventQueue.dispatchThread reference must
+	     * be valid at that point.
+	     */
+	    synchronized (theQueue) {
+		theQueue.detachDispatchThread();
+                /*
+                 * Event dispatch thread dies in case of an uncaught exception. 
+                 * A new event dispatch thread for this queue will be started
+                 * only if a new event is posted to it. In case if no more
+                 * events are posted after this thread died all events that 
+                 * currently are in the queue will never be dispatched.
+                 */
+                if (theQueue.peekEvent() != null) {
+                    theQueue.initDispatchThread();
+                }
+		AWTAutoShutdown.getInstance().notifyThreadFree(this);
+	    }
+	}
     }
 
     void pumpEvents(Conditional cond) {
-	pumpEventsForHierarchy(cond, null);
+	pumpEvents(ANY_EVENT, cond);
     }
 
     void pumpEventsForHierarchy(Conditional cond, Component modalComponent) {
+        pumpEventsForHierarchy(ANY_EVENT, cond, modalComponent);
+    }
+
+    void pumpEvents(int id, Conditional cond) {
+        pumpEventsForHierarchy(id, cond, null);
+    }
+
+    void pumpEventsForHierarchy(int id, Conditional cond, Component modalComponent)
+    {
         while (doDispatch && cond.evaluate()) {
-            if (isInterrupted() || !pumpOneEventForHierarchy(modalComponent)) {
+            if (isInterrupted() || !pumpOneEventForHierarchy(id, modalComponent)) {
                 doDispatch = false;
             }
         }
     }
 
-    boolean pumpOneEventForHierarchy(Component modalComponent) {
+    boolean pumpOneEventForHierarchy(int id, Component modalComponent) {
         try {
-            AWTEvent event = theQueue.getNextEvent();
-	    if (modalComponent != null) {
-		/*
-		 * filter out InputEvent that's not belong to
-		 * the specified modal component.
-		 * this can be caused by the following case:
-	         * a button, click once to open up a modal dialog
-		 * but use click on it twice really fast. 
-		 * before the modal dialog comes up, the second 
-		 * mouse click already comes in.
-		 * see also the comment in Dialog.show
-		 */
-		while  (event instanceof InputEvent) {
-		    Component c = (Component)event.getSource();
-		    // check if c's modalComponent's child
-		    if (modalComponent instanceof Container)
-		        while (c != modalComponent && c != null)
-			    c = c.getParent();
-		    if (c != modalComponent)
-			event = theQueue.getNextEvent();
-		    else
-			break;
-		}
- 	    }		 
+            AWTEvent event;
+            boolean eventOK;
+            do {
+	        event = (id == ANY_EVENT)
+		    ? theQueue.getNextEvent()
+		    : theQueue.getNextEvent(id);
+
+                eventOK = true;
+                if (modalComponent != null) {
+                    /*
+                     * filter out MouseEvent and ActionEvent that's outside
+                     * the modalComponent hierarchy.
+                     * KeyEvent is handled by using enqueueKeyEvent
+                     * in Dialog.show
+                     */
+                    int eventID = event.getID();
+                    if ((eventID >= MouseEvent.MOUSE_FIRST &&
+                         eventID <= MouseEvent.MOUSE_LAST)      ||
+                        (eventID >= ActionEvent.ACTION_FIRST &&
+                         eventID <= ActionEvent.ACTION_LAST)) {
+                        Object o = event.getSource();
+                        if (o instanceof Component) {
+                            Component c = (Component) o;
+                            if (modalComponent instanceof Container) {
+                                while (c != modalComponent && c != null) {
+                                    c = c.getParent();
+                                }
+                            }
+                            if (c != modalComponent) {
+                                eventOK = false;
+                            }
+                        }
+                    }
+                }
+            } while (eventOK == false);
+                      
 	    if ( dbg.on ) dbg.println("Dispatching: "+event);
+
             theQueue.dispatchEvent(event);
             return true;
         } catch (ThreadDeath death) {
@@ -132,13 +196,35 @@ class EventDispatchThread extends Thread {
             return false; // AppContext.dispose() interrupts all
                           // Threads in the AppContext
 
-        } catch (Throwable e) {
-	    if (!handleException(e)) {
-		System.err.println(
-                "Exception occurred during event dispatching:");
-		e.printStackTrace();
-	    }
-            return true;
+	    // Can get and throw only unchecked exceptions
+        } catch (RuntimeException e) {
+            processException(e, modalComponent != null);
+        } catch (Error e) {
+            processException(e, modalComponent != null);
+        }
+        return true;
+    }
+
+    private void processException(Throwable e, boolean isModal) {
+        if (!handleException(e)) {
+            // See bug ID 4499199.
+            // If we are in a modal dialog, we cannot throw
+            // an exception for the ThreadGroup to handle (as added
+            // in RFE 4063022).  If we did, the message pump of
+            // the modal dialog would be interrupted.
+            // We instead choose to handle the exception ourselves.
+            // It may be useful to add either a runtime flag or API
+            // later if someone would like to instead dispose the
+            // dialog and allow the thread group to handle it.
+            if (isModal) {
+                System.err.println(
+                    "Exception occurred during event dispatching:");
+                e.printStackTrace();
+            } else if (e instanceof RuntimeException) {
+                throw (RuntimeException)e;
+            } else if (e instanceof Error) {
+                throw (Error)e;
+            }
         }
     }
 
@@ -179,8 +265,8 @@ class EventDispatchThread extends Thread {
      * @param  thrown  The Throwable that was thrown in the event-dispatch
      *                 thread
      *
-     * @returns  <tt>false</tt> if any of the above steps failed, otherwise
-     *           <tt>true</tt>.
+     * @return  <tt>false</tt> if any of the above steps failed, otherwise
+     *          <tt>true</tt>
      */
     private boolean handleException(Throwable thrown) {
 

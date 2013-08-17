@@ -1,4 +1,6 @@
 /*
+ * @(#)ChoiceFormat.java	1.31 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,10 +19,11 @@
  */
 
 package java.text;
-import java.text.Utility;
-import java.io.ObjectInputStream;
+
 import java.io.InvalidObjectException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import sun.text.Utility;
 
 /**
  * A <code>ChoiceFormat</code> allows you to attach a format to a range of numbers.
@@ -35,7 +38,7 @@ import java.io.IOException;
  * If there is no match, then either the first or last index is used, depending
  * on whether the number (X) is too low or too high.  If the limit array is not
  * in ascending order, the results of formatting will be incorrect.  ChoiceFormat
- * also accepts <code>\\u221E</code> as equivalent to infinity(INF).
+ * also accepts <code>&#92;u221E</code> as equivalent to infinity(INF).
  *
  * <p>
  * <strong>Note:</strong>
@@ -129,92 +132,110 @@ import java.io.IOException;
  *   Format with +INF : is more than 2.
  * </pre>
  * </blockquote>
+ *
+ * <h4><a name="synchronization">Synchronization</a></h4>
+ *
+ * <p>
+ * Choice formats are not synchronized.
+ * It is recommended to create separate format instances for each thread.
+ * If multiple threads access a format concurrently, it must be synchronized
+ * externally.
+ *
+ *
  * @see          DecimalFormat
  * @see          MessageFormat
  * @version      1.22 09/21/98
  * @author       Mark Davis
  */
 public class ChoiceFormat extends NumberFormat {
+
     /**
      * Sets the pattern.
      * @param newPattern See the class description.
      */
     public void applyPattern(String newPattern) {
-            StringBuffer[] segments = new StringBuffer[2];
-            for (int i = 0; i < segments.length; ++i) {
-                segments[i] = new StringBuffer();       // later, use single
-            }
-            double[] newChoiceLimits = new double[30];  // current limit
-            String[] newChoiceFormats = new String[30];   // later, use Vectors
-            int count = 0;
-            int part = 0;
-            double startValue = 0;
-            double oldStartValue = Double.NaN;
-            boolean inQuote = false;
-            for (int i = 0; i < newPattern.length(); ++i) {
-                char ch = newPattern.charAt(i);
-                if (ch=='\'') {
-                    // Check for "''" indicating a literal quote
-                    if ((i+1)<newPattern.length() && newPattern.charAt(i+1)==ch) {
-                        segments[part].append(ch);
-                        ++i;
-                    }
-                    else inQuote = !inQuote;
-                }
-                else if (inQuote) {
+        StringBuffer[] segments = new StringBuffer[2];
+        for (int i = 0; i < segments.length; ++i) {
+            segments[i] = new StringBuffer();
+        }
+        double[] newChoiceLimits = new double[30];
+        String[] newChoiceFormats = new String[30];
+        int count = 0;
+        int part = 0;
+        double startValue = 0;
+        double oldStartValue = Double.NaN;
+        boolean inQuote = false;
+        for (int i = 0; i < newPattern.length(); ++i) {
+            char ch = newPattern.charAt(i);
+            if (ch=='\'') {
+                // Check for "''" indicating a literal quote
+                if ((i+1)<newPattern.length() && newPattern.charAt(i+1)==ch) {
                     segments[part].append(ch);
-                }
-                else if (ch == '<' || ch == '#' || ch == '\u2264') {
-                    if (segments[0].equals("")) {
-                        throw new IllegalArgumentException();
-                    }
-                    try {
-                        String tempBuffer = segments[0].toString();
-                        if (tempBuffer.equals("\u221E")) {
-                            startValue = Double.POSITIVE_INFINITY;
-                        } else if (tempBuffer.equals("-\u221E")) {
-                            startValue = Double.NEGATIVE_INFINITY;
-                        } else {
-                            startValue = Double.valueOf(segments[0].toString()).doubleValue();
-                        }
-                    } catch (Exception e) {
-                        throw new IllegalArgumentException();
-                    }
-                    if (ch == '<' && startValue != Double.POSITIVE_INFINITY &&
-                        startValue != Double.NEGATIVE_INFINITY) {
-                        startValue = nextDouble(startValue);
-                    }
-                    if (startValue <= oldStartValue) {
-                        throw new IllegalArgumentException();
-                    }
-                    segments[0].setLength(0);
-                    part = 1;
-                } else if (ch == '|') {
-                    newChoiceLimits[count] = startValue;
-                    newChoiceFormats[count] = segments[1].toString();
-                    ++count;
-                    oldStartValue = startValue;
-                    segments[1].setLength(0);
-                    part = 0;
+                    ++i;
                 } else {
-                    segments[part].append(ch);
+                    inQuote = !inQuote;
                 }
-            }
-            // clean up last one
-            if (part == 1) {
+            } else if (inQuote) {
+                segments[part].append(ch);
+            } else if (ch == '<' || ch == '#' || ch == '\u2264') {
+                if (segments[0].equals("")) {
+                    throw new IllegalArgumentException();
+                }
+                try {
+                    String tempBuffer = segments[0].toString();
+                    if (tempBuffer.equals("\u221E")) {
+                        startValue = Double.POSITIVE_INFINITY;
+                    } else if (tempBuffer.equals("-\u221E")) {
+                        startValue = Double.NEGATIVE_INFINITY;
+                    } else {
+                        startValue = Double.valueOf(segments[0].toString()).doubleValue();
+                    }
+                } catch (Exception e) {
+                    throw new IllegalArgumentException();
+                }
+                if (ch == '<' && startValue != Double.POSITIVE_INFINITY &&
+                        startValue != Double.NEGATIVE_INFINITY) {
+                    startValue = nextDouble(startValue);
+                }
+                if (startValue <= oldStartValue) {
+                    throw new IllegalArgumentException();
+                }
+                segments[0].setLength(0);
+                part = 1;
+            } else if (ch == '|') {
+                if (count == newChoiceLimits.length) {
+                    newChoiceLimits = doubleArraySize(newChoiceLimits);
+                    newChoiceFormats = doubleArraySize(newChoiceFormats);
+                }
                 newChoiceLimits[count] = startValue;
                 newChoiceFormats[count] = segments[1].toString();
                 ++count;
+                oldStartValue = startValue;
+                segments[1].setLength(0);
+                part = 0;
+            } else {
+                segments[part].append(ch);
             }
-            choiceLimits = new double[count];
-            System.arraycopy(newChoiceLimits, 0, choiceLimits, 0, count);
-            choiceFormats = new String[count];
-            System.arraycopy(newChoiceFormats, 0, choiceFormats, 0, count);
+        }
+        // clean up last one
+        if (part == 1) {
+            if (count == newChoiceLimits.length) {
+                newChoiceLimits = doubleArraySize(newChoiceLimits);
+                newChoiceFormats = doubleArraySize(newChoiceFormats);
+            }
+            newChoiceLimits[count] = startValue;
+            newChoiceFormats[count] = segments[1].toString();
+            ++count;
+        }
+        choiceLimits = new double[count];
+        System.arraycopy(newChoiceLimits, 0, choiceLimits, 0, count);
+        choiceFormats = new String[count];
+        System.arraycopy(newChoiceFormats, 0, choiceFormats, 0, count);
     }
+
     /**
      * Gets the pattern.
      */
-
     public String toPattern() {
         StringBuffer result = new StringBuffer();
         for (int i = 0; i < choiceLimits.length; ++i) {
@@ -264,6 +285,7 @@ public class ChoiceFormat extends NumberFormat {
 
     /**
      * Constructs with limits and corresponding formats based on the pattern.
+     * @see #applyPattern
      */
     public ChoiceFormat(String newPattern)  {
         applyPattern(newPattern);
@@ -359,7 +381,7 @@ public class ChoiceFormat extends NumberFormat {
      * status.index field indicates the first character of the
      * source text that should be parsed.  On exit, if no error
      * occured, status.index is set to the first unparsed character
-     * in the source text.  On exit, if an error did occur, 
+     * in the source text.  On exit, if an error did occur,
      * status.index is unchanged and status.errorIndex is set to the
      * first index of the character that caused the parse to fail.
      * @return A Number representing the value of the number parsed.
@@ -455,7 +477,7 @@ public class ChoiceFormat extends NumberFormat {
         in.defaultReadObject();
         if (choiceLimits.length != choiceFormats.length) {
             throw new InvalidObjectException(
-            	    "limits and format arrays of different length.");
+                    "limits and format arrays of different length.");
         }
     }
 
@@ -558,6 +580,20 @@ public class ChoiceFormat extends NumberFormat {
         /* restore sign bit and return */
         long signbit = bits & SIGN;
         return Double.longBitsToDouble (magnitude | signbit);
+    }
+
+    private static double[] doubleArraySize(double[] array) {
+        int oldSize = array.length;
+        double[] newArray = new double[oldSize * 2];
+        System.arraycopy(array, 0, newArray, 0, oldSize);
+        return newArray;
+    }
+    
+    private String[] doubleArraySize(String[] array) {
+        int oldSize = array.length;
+        String[] newArray = new String[oldSize * 2];
+        System.arraycopy(array, 0, newArray, 0, oldSize);
+        return newArray;
     }
 
 }

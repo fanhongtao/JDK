@@ -1,4 +1,6 @@
 /*
+ * @(#)DefaultTableColumnModel.java	1.43 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,12 +22,14 @@ import java.io.Serializable;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.36 02/06/02
+ * @version 1.43 12/03/01
  * @author Alan Chung
  * @author Philip Milne
  * @see JTable
@@ -122,8 +126,9 @@ public class DefaultTableColumnModel implements TableColumnModel,
 
 	if (columnIndex != -1) {
 	    // Adjust for the selection
-	    if (selectionModel != null)
+	    if (selectionModel != null) {
 		selectionModel.removeIndexInterval(columnIndex,columnIndex);
+	    }
 
 	    column.removePropertyChangeListener(this);
 	    tableColumns.removeElementAt(columnIndex);
@@ -132,7 +137,7 @@ public class DefaultTableColumnModel implements TableColumnModel,
 	    // Post columnAdded event notification.  (JTable and JTableHeader
 	    // listens so they can adjust size and redraw)
 	    fireColumnRemoved(new TableColumnModelEvent(this,
-					   getColumnCount() - 1, 0));
+					   columnIndex, 0));
 	}
     }
 
@@ -170,18 +175,19 @@ public class DefaultTableColumnModel implements TableColumnModel,
 	}
 	aColumn = (TableColumn)tableColumns.elementAt(columnIndex);
 
-	boolean reselect = false;
-	if (selectionModel.isSelectedIndex(columnIndex)) {
-	    selectionModel.removeSelectionInterval(columnIndex,columnIndex);
-	    reselect = true;
-	}
 	tableColumns.removeElementAt(columnIndex);
+	boolean selected = selectionModel.isSelectedIndex(columnIndex); 
+	selectionModel.removeIndexInterval(columnIndex,columnIndex);
+
 	tableColumns.insertElementAt(aColumn, newIndex);
-	if (reselect) {
-	    selectionModel.addSelectionInterval(newIndex, newIndex);
+	selectionModel.insertIndexInterval(newIndex, 1, true); 
+	if (selected) { 
+	    selectionModel.addSelectionInterval(newIndex, newIndex); 
+	} 
+	else { 
+	    selectionModel.removeSelectionInterval(newIndex, newIndex); 
 	}
-	// Post columnMoved event notification.  (JTable and JTableHeader
-	// listens so they can adjust size and redraw)
+
 	fireColumnMoved(new TableColumnModelEvent(this, columnIndex,
 							       newIndex));
     }
@@ -286,8 +292,23 @@ public class DefaultTableColumnModel implements TableColumnModel,
      * Returns the index of the column that lies at position <code>x</code>,
      * or -1 if no column covers this point.
      *
+     * In keeping with Swing's separable model architecture, a
+     * TableColumnModel does not know how the table columns actually appear on
+     * screen.  The visual presentation of the columns is the responsibility
+     * of the view/controller object using this model (typically JTable).  The
+     * view/controller need not display the columns sequentially from left to
+     * right.  For example, columns could be displayed from right to left to
+     * accomodate a locale preference or some columns might be hidden at the
+     * request of the user.  Because the model does not know how the columns
+     * are laid out on screen, the given <code>xPosition</code> should not be
+     * considered to be a coordinate in 2D graphics space.  Instead, it should
+     * be considered to be a width from the start of the first column in the
+     * model.  If the column index for a given X coordinate in 2D space is
+     * required, <code>JTable.columnAtPoint</code> can be used instead.
+     *
      * @param  x  the horizontal location of interest
      * @return	the index of the column or -1 if no column is found
+     * @see javax.swing.JTable#columnAtPoint
      */
     public int getColumnIndexAtX(int x) {
 	if (x < 0) { 
@@ -455,6 +476,24 @@ public class DefaultTableColumnModel implements TableColumnModel,
 	listenerList.remove(TableColumnModelListener.class, x);
     }
 
+    /**
+     * Returns an array of all the column model listeners
+     * registered on this model.
+     *
+     * @return all of this default table column model's <code>ColumnModelListener</code>s 
+     *         or an empty
+     *         array if no column model listeners are currently registered
+     *
+     * @see #addColumnModelListener
+     * @see #removeColumnModelListener
+     *
+     * @since 1.4
+     */
+    public TableColumnModelListener[] getColumnModelListeners() {
+        return (TableColumnModelListener[])listenerList.getListeners(
+                TableColumnModelListener.class);
+    }
+
 //
 //   Event firing methods
 //
@@ -580,13 +619,38 @@ public class DefaultTableColumnModel implements TableColumnModel,
     }
 
     /**
-     * Returns an array of all the listeners of the given type that 
-     * were added to this model. 
+     * Returns an array of all the objects currently registered
+     * as <code><em>Foo</em>Listener</code>s
+     * upon this model.
+     * <code><em>Foo</em>Listener</code>s are registered using the
+     * <code>add<em>Foo</em>Listener</code> method.
      *
-     * @param listenerType  the listener class to match
-     * @return  all of the objects receiving <code>listenerType</code>
-     *		notifications from this model
+     * <p>
+     *
+     * You can specify the <code>listenerType</code> argument
+     * with a class literal,
+     * such as
+     * <code><em>Foo</em>Listener.class</code>.
+     * For example, you can query a
+     * <code>DefaultTableColumnModel</code> <code>m</code>
+     * for its column model listeners with the following code:
+     *
+     * <pre>ColumnModelListener[] cmls = (ColumnModelListener[])(m.getListeners(ColumnModelListener.class));</pre>
+     *
+     * If no such listeners exist, this method returns an empty array.
+     *
+     * @param listenerType the type of listeners requested; this parameter
+     *          should specify an interface that descends from
+     *          <code>java.util.EventListener</code>
+     * @return an array of all objects registered as
+     *          <code><em>Foo</em>Listener</code>s on this model,
+     *          or an empty array if no such
+     *          listeners have been added
+     * @exception ClassCastException if <code>listenerType</code>
+     *          doesn't specify a class or interface that implements
+     *          <code>java.util.EventListener</code>
      * 
+     * @see #getColumnModelListeners
      * @since 1.3
      */
     public EventListener[] getListeners(Class listenerType) { 

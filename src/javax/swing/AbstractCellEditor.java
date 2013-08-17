@@ -1,4 +1,6 @@
 /*
+ * @(#)AbstractCellEditor.java	1.8 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,7 +12,7 @@ import java.util.EventObject;
 import java.io.Serializable;
 
 /**
- * @version 1.5 02/06/02 
+ * @version 1.8 12/03/01 
  * 
  * A base class for <code>CellEditors</code>, providing default
  * implementations for the methods in the <code>CellEditor</code>
@@ -20,11 +22,13 @@ import java.io.Serializable;
  *
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  * 
  * @author Philip Milne
  */
@@ -87,11 +91,24 @@ public abstract class AbstractCellEditor implements CellEditor, Serializable {
 	listenerList.remove(CellEditorListener.class, l);
     }
 
-    /*
+    /**
+     * Returns an array of all the <code>CellEditorListener</code>s added
+     * to this AbstractCellEditor with addCellEditorListener().
+     *
+     * @return all of the <code>CellEditorListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public CellEditorListener[] getCellEditorListeners() {
+        return (CellEditorListener[])listenerList.getListeners(
+                CellEditorListener.class);
+    }
+
+    /**
      * Notifies all listeners that have registered interest for
      * notification on this event type.  The event instance 
-     * is lazily created using the parameters passed into 
-     * the fire method.
+     * is created lazily.
+     *
      * @see EventListenerList
      */
     protected void fireEditingStopped() {
@@ -109,11 +126,11 @@ public abstract class AbstractCellEditor implements CellEditor, Serializable {
 	}
     }
 
-    /*
+    /**
      * Notifies all listeners that have registered interest for
      * notification on this event type.  The event instance 
-     * is lazily created using the parameters passed into 
-     * the fire method.
+     * is created lazily.
+     *
      * @see EventListenerList
      */
     protected void fireEditingCanceled() {

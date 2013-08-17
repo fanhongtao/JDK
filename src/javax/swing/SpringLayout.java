@@ -1,0 +1,1075 @@
+/*
+ * @(#)SpringLayout.java	1.10 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+package javax.swing;
+
+import java.awt.*;
+import java.util.*;
+
+/**
+ * A <code>SpringLayout</code> lays out the children of its associated container
+ * according to a set of constraints.
+ * See <a href="http://java.sun.com/docs/books/tutorial/uiswing/layout/spring.html">How to Use SpringLayout</a>
+ * in <em>The Java Tutorial</em> for examples of using
+ * <code>SpringLayout</code>.
+ *
+ * <p>
+ * Each constraint,
+ * represented by a <code>Spring</code> object,
+ * controls the vertical or horizontal distance
+ * between two component edges.
+ * The edges can belong to
+ * any child of the container,
+ * or to the container itself.
+ * For example,
+ * the allowable width of a component
+ * can be expressed using a constraint
+ * that controls the distance between the west (left) and east (right) 
+ * edges of the component.
+ * The allowable <em>y</em> coordinates for a component
+ * can be expressed by constraining the distance between
+ * the north (top) edge of the component
+ * and the north edge of its container.
+ *
+ * <P>
+ * Every child of a <code>SpringLayout</code>-controlled container,
+ * as well as the container itself,
+ * has exactly one set of constraints
+ * associated with it.
+ * These constraints are represented by
+ * a <code>SpringLayout.Constraints</code> object.
+ * By default,
+ * <code>SpringLayout</code> creates constraints
+ * that make their associated component
+ * have the minimum, preferred, and maximum sizes
+ * returned by the component's
+ * {@link java.awt.Component#getMinimumSize},
+ * {@link java.awt.Component#getPreferredSize}, and
+ * {@link java.awt.Component#getMaximumSize}
+ * methods. The <em>x</em> and <em>y</em> positions are initially not
+ * constrained, so that until you constrain them the <code>Component</code>
+ * will be positioned at 0,0 relative to the <code>Insets</code> of the
+ * parent <code>Container</code>.
+ * 
+ * <p>
+ * You can change 
+ * a component's constraints in several ways.
+ * You can 
+ * use one of the 
+ * {@link #putConstraint putConstraint}
+ * methods
+ * to establish a spring
+ * linking the edges of two components within the same container.
+ * Or you can get the appropriate <code>SpringLayout.Constraints</code>
+ * object using 
+ * {@link #getConstraints getConstraints}
+ * and then modify one or more of its springs.
+ * Or you can get the spring for a particular edge of a component
+ * using {@link #getConstraint getConstraint},
+ * and modify it.
+ * You can also associate
+ * your own <code>SpringLayout.Constraints</code> object 
+ * with a component by specifying the constraints object
+ * when you add the component to its container
+ * (using 
+ * {@link Container#add(Component, Object)}).
+ *
+ * <p>
+ * The <code>Spring</code> object representing each constraint 
+ * has a minimum, preferred, maximum, and current value.
+ * The current value of the spring 
+ * is somewhere between the minimum and maximum values,
+ * according to the formula given in the
+ * {@link Spring#sum} method description.
+ * When the minimum, preferred, and maximum values are the same,
+ * the current value is always equal to them;
+ * this inflexible spring is called a <em>strut</em>.
+ * You can create struts using the factory method
+ * {@link Spring#constant(int)}.
+ * The <code>Spring</code> class also provides factory methods
+ * for creating other kinds of springs,
+ * including springs that depend on other springs.
+ *
+ * <p>
+ * In a <code>SpringLayout</code>, the position of each edge is dependent on
+ * the position of just one other edge. If a constraint is subsequently added
+ * to create a new binding for an edge, the previous binding is discarded
+ * and the edge remains dependent on a single edge. 
+ * Springs should only be attached
+ * between edges of the container and its immediate children; the behavior
+ * of the <code>SpringLayout</code> when presented with constraints linking
+ * the edges of components from different containers (either internal or
+ * external) is undefined.
+ *
+ * <h3>
+ * SpringLayout vs. Other Layout Managers
+ * </h3>
+ *
+ * <blockquote>
+ * <hr>
+ * <strong>Note:</strong>
+ * Unlike many layout managers,
+ * <code>SpringLayout</code> doesn't automatically set the location of
+ * the components it manages.
+ * If you hand-code a GUI that uses <code>SpringLayout</code>, 
+ * remember to initialize component locations by constraining the west/east
+ * and north/south locations.
+ * <p>
+ * Depending on the constraints you use,
+ * you may also need to set the size of the container explicitly.
+ * <hr>
+ * </blockquote>
+ *
+ * <p>
+ * Despite the simplicity of <code>SpringLayout</code>,
+ * it can emulate the behavior of most other layout managers.
+ * For some features,
+ * such as the line breaking provided by <code>FlowLayout</code>, 
+ * you'll need to 
+ * create a special-purpose subclass of the <code>Spring</code> class.
+ *
+ * <p>
+ * <code>SpringLayout</code> also provides a way to solve
+ * many of the difficult layout
+ * problems that cannot be solved by nesting combinations
+ * of <code>Box</code>es. That said, <code>SpringLayout</code> honors the
+ * <code>LayoutManager2</code> contract correctly and so can be nested with
+ * other layout managers -- a technique that can be preferable to
+ * creating the constraints implied by the other layout managers.
+ * <p>
+ * The asymptotic complexity of the layout operation of a <code>SpringLayout</code>
+ * is linear in the number of constraints (and/or components).
+ *
+ * @see Spring
+ * @see SpringLayout.Constraints
+ *
+ * @version  1.10 12/03/01
+ * @author 	Philip Milne
+ * @author 	Joe Winchester
+ * @since       1.4
+ */
+public class SpringLayout implements LayoutManager2 {
+    private Map componentConstraints = new HashMap();
+
+    private Set cyclicSprings;
+    private Set acyclicSprings;
+
+
+    /**
+     * Specifies the top edge of a component's bounding rectangle.
+     */
+    public static final String NORTH  = "North";
+
+    /**
+     * Specifies the bottom edge of a component's bounding rectangle.
+     */
+    public static final String SOUTH  = "South";
+
+    /**
+     * Specifies the right edge of a component's bounding rectangle.
+     */
+    public static final String EAST   = "East";
+
+    /**
+     * Specifies the left edge of a component's bounding rectangle.
+     */
+    public static final String WEST   = "West";
+
+    private static class WidthSpring extends Spring.AbstractSpring {
+        private Component c;
+
+        public WidthSpring(Component c) {
+            this.c = c;
+        }
+
+        public int getMinimumValue() {
+            return c.getMinimumSize().width;
+        }
+
+        public int getPreferredValue() {
+            return c.getPreferredSize().width;
+        }
+
+        public int getMaximumValue() {
+            // We will be doing arithmetic with the results of this call,
+            // so if a returned value is Integer.MAX_VALUE we will get
+            // arithmetic overflow. Truncate such values.
+            return Math.min(Short.MAX_VALUE, c.getMaximumSize().width);
+        }
+    }
+
+     private static class HeightSpring extends Spring.AbstractSpring {
+        private Component c;
+
+        public HeightSpring(Component c) {
+            this.c = c;
+        }
+
+        public int getMinimumValue() {
+            return c.getMinimumSize().height;
+        }
+
+        public int getPreferredValue() {
+            return c.getPreferredSize().height;
+        }
+
+        public int getMaximumValue() {
+            return Math.min(Short.MAX_VALUE, c.getMaximumSize().height);
+        }
+    }
+
+    /**
+     * A <code>Constraints</code> object holds the
+     * constraints that govern the way a component's size and position
+     * change in a container controlled by a <code>SpringLayout</code>.
+     * A <code>Constraints</code> object is
+     * like a <code>Rectangle</code>, in that it
+     * has <code>x</code>, <code>y</code>,
+     * <code>width</code>, and <code>height</code> properties.
+     * In the <code>Constraints</code> object, however,
+     * these properties have
+     * <code>Spring</code> values instead of integers.
+     * In addition,
+     * a <code>Constraints</code> object
+     * can be manipulated as four edges
+     * -- north, south, east, and west --
+     * using the <code>constraint</code> property.
+     * 
+     * <p>
+     * The following formulas are always true
+     * for a <code>Constraints</code> object:
+     *
+     * <pre>
+     *       west = x
+     *      north = y
+     *       east = x + width
+     *      south = y + height</pre>
+     *
+     * <b>Note</b>: In this document,
+     * operators represent methods 
+     * in the <code>Spring</code> class.
+     * For example, "a + b" is equal to
+     * <code>Spring.sum(a, b)</code>,
+     * and "a - b" is equal to
+     * <code>Spring.sum(a, Spring.minus(b))</code>.
+     * See the 
+     * {@link Spring Spring</code> API documentation<code>}
+     * for further details
+     * of spring arithmetic.
+     *
+     * <p>
+     * 
+     * Because a <code>Constraints</code> object's properties --
+     * representing its edges, size, and location -- can all be set
+     * independently and yet are interrelated,
+     * the object can become <em>over-constrained</em>.
+     * For example,
+     * if both the <code>x</code> and <code>width</code>
+     * properties are set
+     * and then the east edge is set,
+     * the object is over-constrained horizontally.
+     * When this happens, one of the values 
+     * (in this case, the <code>x</code> property)
+     * automatically changes so
+     * that the formulas still hold. 
+     *
+     * <p>
+     * The following table shows which value changes
+     * when a <code>Constraints</code> object
+     * is over-constrained horizontally.
+     *
+     * <p>
+     * <table border=1>
+     * <tr>
+     * <td valign=top>
+     * <b>Value Being Set</b>
+     * <br>
+     * (method used)
+     * <td valign=top>
+     * <b>Result When Over-Constrained Horizontally</b>
+     * <br>
+     * (<code>x</code>, <code>width</code>, and the east edge
+     * are all non-<code>null</code>)
+     * <tr>
+     * <td>
+     * <code>x</code> or the west edge
+     * <br>
+     * (<code>setX</code> or <code>setConstraint</code>)
+     * <td>
+     * <code>width</code> value is automatically set to <code>east - x</code>.
+     *
+     * <tr>
+     * <td>
+     * <code>width</code>
+     * <br>
+     * (<code>setWidth</code>)
+     * <td>
+     * east edge's value is automatically set to <code>x + width</code>.
+     *
+     * <tr>
+     * <td>
+     * east edge
+     * <br>
+     * (<code>setConstraint</code>)
+     * <td>
+     * <code>x</code> value is automatically set to
+     * <code>east - width</code>.
+     * </table>
+     *
+     * <p>
+     * The rules for the vertical properties are similar:
+     * <p>
+     * <table border=1>
+     * <tr>
+     * <td valign=top>
+     * <b>Value Being Set</b>
+     * <br>
+     * (method used)
+     * <td valign=top>
+     * <b>Result When Over-Constrained Vertically</b>
+     * <br>
+     * (<code>y</code>, <code>height</code>, and the south edge
+     * are all non-<code>null</code>)
+     * <tr>
+     * <td>
+     * <code>y</code> or the north edge
+     * <br>
+     * (<code>setY</code> or <code>setConstraint</code>)
+     * <td>
+     * <code>height</code> value is automatically set to <code>south - y</code>.
+     *
+     * <tr>
+     * <td>
+     * <code>height</code>
+     * <br>
+     * (<code>setHeight</code>)
+     * <td>
+     * south edge's value is automatically set to <code>y + height</code>.
+     *
+     * <tr>
+     * <td>
+     * south edge
+     * <br>
+     * (<code>setConstraint</code>)
+     * <td>
+     * <code>y</code> value is automatically set to
+     * <code>south - height</code>.
+     * </table>
+     *
+     */
+   public static class Constraints {
+       private Spring x;
+       private Spring y;
+       private Spring width;
+       private Spring height;
+       private Spring east;
+       private Spring south;
+
+       private Spring verticalDerived = null; 
+       private Spring horizontalDerived = null; 
+       
+       /**
+        * Creates an empty <code>Constraints</code> object.
+        */
+       public Constraints() {
+           this(null, null, null, null);
+       }
+
+       /**
+        * Creates a <code>Constraints</code> object with the
+	* specified values for its
+        * <code>x</code> and <code>y</code> properties.
+        * The <code>height</code> and <code>width</code> springs
+	* have <code>null</code> values.
+        *
+        * @param x  the spring controlling the component's <em>x</em> value
+        * @param y  the spring controlling the component's <em>y</em> value
+        */
+       public Constraints(Spring x, Spring y) {
+           this(x, y, null, null);
+       }
+
+       /**
+        * Creates a <code>Constraints</code> object with the 
+	* specified values for its
+        * <code>x</code>, <code>y</code>, <code>width</code>,
+	* and <code>height</code> properties.
+        * Note: If the <code>SpringLayout</code> class
+	* encounters <code>null</code> values in the
+	* <code>Constraints</code> object of a given component,
+	* it replaces them with suitable defaults.
+        *
+        * @param x  the spring value for the <code>x</code> property
+        * @param y  the spring value for the <code>y</code> property
+        * @param width  the spring value for the <code>width</code> property
+        * @param height  the spring value for the <code>height</code> property
+        */
+       public Constraints(Spring x, Spring y, Spring width, Spring height) {
+           this.x = x;
+           this.y = y;
+           this.width = width;
+           this.height = height;
+       }
+
+       private boolean overConstrainedHorizontally() { 
+           return (x != null) && (width != null) && (east != null); 
+       }
+       
+       private boolean overConstrainedVertically() { 
+           return (y != null) && (height != null) && (south != null); 
+       }
+       
+       private Spring sum(Spring s1, Spring s2) { 
+           return (s1 == null || s2 == null) ? null : Spring.sum(s1, s2); 
+       }
+        
+       private Spring difference(Spring s1, Spring s2) { 
+           return (s1 == null || s2 == null) ? null : Spring.difference(s1, s2); 
+       }
+        
+       /**
+        * Sets the <code>x</code> property,
+	* which controls the <code>x</code> value
+	* of a component's location.
+        *
+        * @param x the spring controlling the <code>x</code> value
+	*          of a component's location
+        *
+        * @see #getX
+        * @see SpringLayout.Constraints
+        */
+       public void setX(Spring x) {
+           this.x = x;
+           horizontalDerived = null; 
+           if (overConstrainedHorizontally()) { 
+               width = null; 
+           }
+       }
+
+       /**
+        * Returns the value of the <code>x</code> property.
+        *
+        * @return the spring controlling the <code>x</code> value
+	*         of a component's location
+        *
+        * @see #setX
+        * @see SpringLayout.Constraints
+        */
+       public Spring getX() {
+           if (x != null) { 
+               return x; 
+           }
+           if (horizontalDerived == null) { 
+               horizontalDerived = difference(east, width); 
+           } 
+           return horizontalDerived; 
+       }
+
+       /**
+        * Sets the <code>y</code> property,
+	* which controls the <code>y</code> value
+	* of a component's location.
+        *
+        * @param y the spring controlling the <code>y</code> value
+	*          of a component's location
+        *
+        * @see #getY
+        * @see SpringLayout.Constraints
+        */
+       public void setY(Spring y) {
+           this.y = y;
+           verticalDerived = null; 
+           if (overConstrainedVertically()) { 
+               height = null; 
+           }
+       }
+
+       /**
+        * Returns the value of the <code>y</code> property.
+        *
+        * @return the spring controlling the <code>y</code> value
+	*         of a component's location
+        *
+        * @see #setY
+        * @see SpringLayout.Constraints
+        */
+       public Spring getY() {
+           if (y != null) { 
+               return y; 
+           }
+           if (verticalDerived == null) { 
+               verticalDerived = difference(south, height); 
+           } 
+           return verticalDerived; 
+       }
+
+       /**
+        * Sets the <code>width</code> property,
+	* which controls the width of a component.
+        *
+        * @param width the spring controlling the width of this
+	* <code>Constraints</code> object
+        *
+        * @see #getWidth
+        * @see SpringLayout.Constraints
+        */
+       public void setWidth(Spring width) {
+           this.width = width;
+           horizontalDerived = null; 
+           if (overConstrainedHorizontally()) { 
+               east = null; 
+           }
+       }
+
+       /**
+        * Returns the value of the <code>width</code> property.
+        *
+        * @return the spring controlling the width of a component
+        *
+        * @see #setWidth
+        * @see SpringLayout.Constraints
+        */
+       public Spring getWidth() {
+           if (width != null) { 
+               return width; 
+           }
+           if (horizontalDerived == null) { 
+               if (x == null) {
+                   return east;
+               }
+               horizontalDerived = difference(east, x); 
+           } 
+           return horizontalDerived; 
+       }
+
+       /**
+        * Sets the <code>height</code> property,
+	* which controls the height of a component.
+        *
+        * @param height the spring controlling the height of this <code>Constraints</code>
+	* object
+        *
+        * @see #getHeight
+        * @see SpringLayout.Constraints
+        */
+       public void setHeight(Spring height) {
+           this.height = height;
+           verticalDerived = null; 
+           if (overConstrainedVertically()) { 
+               south = null; 
+           }
+       }
+
+       /**
+        * Returns the value of the <code>height</code> property.
+        *
+        * @return the spring controlling the height of a component
+        *
+        * @see #setHeight
+        * @see SpringLayout.Constraints
+        */
+       public Spring getHeight() {
+           if (height != null) { 
+               return height; 
+           }
+           if (verticalDerived == null) { 
+               if (y == null) {
+                   return south;
+               }
+               verticalDerived = difference(south, y); 
+           } 
+           return verticalDerived; 
+       }
+
+       private void setEast(Spring east) {
+           this.east = east;
+           horizontalDerived = null; 
+           if (overConstrainedHorizontally()) { 
+               x = null; 
+           }
+       }
+
+       private Spring getEast() {
+           if (east != null) { 
+               return east; 
+           }
+           if (horizontalDerived == null) { 
+               if (x == null) {
+                   return width;
+               }
+               horizontalDerived = sum(x, width); 
+           } 
+           return horizontalDerived; 
+       }
+
+       private void setSouth(Spring south) {
+           this.south = south;
+           verticalDerived = null; 
+           if (overConstrainedVertically()) { 
+               y = null; 
+           }
+       }
+
+       private Spring getSouth() {
+           if (south != null) { 
+               return south; 
+           }
+           if (verticalDerived == null) { 
+               if (y == null) {
+                   return height;
+               }
+               verticalDerived = sum(y, height); 
+           } 
+           return verticalDerived; 
+       }
+
+       /**
+        * Sets the spring controlling the specified edge.
+        * The edge must have one of the following values:
+        * <code>SpringLayout.NORTH</code>, <code>SpringLayout.SOUTH</code>,
+	* <code>SpringLayout.EAST</code>, <code>SpringLayout.WEST</code>.
+        *
+        * @param edgeName the edge to be set
+        * @param s the spring controlling the specified edge
+        *
+        * @see #getConstraint
+	* @see #NORTH
+	* @see #SOUTH
+	* @see #EAST
+	* @see #WEST
+        * @see SpringLayout.Constraints
+        */
+       public void setConstraint(String edgeName, Spring s) {
+           edgeName = edgeName.intern();
+           if (edgeName == "West") {
+               setX(s);
+           }
+           else if (edgeName == "North") {
+               setY(s);
+           }
+           else if (edgeName == "East") {
+               setEast(s);
+           }
+           else if (edgeName == "South") {
+               setSouth(s);
+           }
+       }
+
+       /**
+        * Returns the value of the specified edge.
+        * The edge must have one of the following values:
+        * <code>SpringLayout.NORTH</code>, <code>SpringLayout.SOUTH</code>,
+	* <code>SpringLayout.EAST</code>, <code>SpringLayout.WEST</code>.
+        *
+        * @param edgeName the edge whose value
+	*                 is to be returned
+        *
+        * @return the spring controlling the specified edge
+        *
+        * @see #setConstraint
+	* @see #NORTH
+	* @see #SOUTH
+	* @see #EAST
+	* @see #WEST
+        * @see SpringLayout.Constraints
+        */
+       public Spring getConstraint(String edgeName) {
+           edgeName = edgeName.intern();
+           return (edgeName == "West")  ? getX() :
+                  (edgeName == "North") ? getY() :
+                  (edgeName == "East")  ? getEast() :
+                  (edgeName == "South") ? getSouth() :
+                  null;
+       }
+
+       /*pp*/ void reset() {
+           if (x != null) x.setValue(Spring.UNSET);
+           if (y != null) y.setValue(Spring.UNSET);
+           if (width != null) width.setValue(Spring.UNSET);
+           if (height != null) height.setValue(Spring.UNSET);
+           if (east != null) east.setValue(Spring.UNSET);
+           if (south != null) south.setValue(Spring.UNSET);
+           if (horizontalDerived != null) horizontalDerived.setValue(Spring.UNSET);
+           if (verticalDerived != null) verticalDerived.setValue(Spring.UNSET);
+       }
+   }
+
+   private static class SpringProxy extends Spring {
+       private String edgeName;
+       private Component c;
+       private SpringLayout l;
+
+       public SpringProxy(String edgeName, Component c, SpringLayout l) {
+           this.edgeName = edgeName;
+           this.c = c;
+           this.l = l;
+       }
+
+       private Spring getConstraint() { 
+           return l.getConstraints(c).getConstraint(edgeName);
+       }
+
+       public int getMinimumValue() {
+           return getConstraint().getMinimumValue();
+       }
+
+       public int getPreferredValue() {
+           return getConstraint().getPreferredValue();
+       }
+
+       public int getMaximumValue() {
+           return getConstraint().getMaximumValue();
+       }
+
+       public int getValue() {
+           return getConstraint().getValue();
+       }
+
+       public void setValue(int size) {
+           getConstraint().setValue(size);
+       }
+
+       /*pp*/ boolean isCyclic(SpringLayout l) {
+           return l.isCyclic(getConstraint()); 
+       }
+
+       public String toString() {
+           return "SpringProxy for " + edgeName + " edge of " + c.getName() + ".";
+       }
+    }
+
+    /**
+     * Constructs a new <code>SpringLayout</code>.
+     */
+    public SpringLayout() {}
+
+    private void resetCyclicStatuses() { 
+        cyclicSprings = new HashSet();
+        acyclicSprings = new HashSet();
+    }
+
+    private void setParent(Container p) { 
+        resetCyclicStatuses(); 
+        Constraints pc = getConstraints(p);
+        
+        pc.setX(Spring.constant(0));
+        pc.setY(Spring.constant(0));
+        pc.setWidth(null);
+        pc.setHeight(null);
+        if (pc.getEast() == null) { 
+            pc.setEast(Spring.constant(0, 0, Integer.MAX_VALUE));
+        } 
+        if (pc.getSouth() == null) { 
+            pc.setSouth(Spring.constant(0, 0, Integer.MAX_VALUE));
+        } 
+    }
+
+    /*pp*/ boolean isCyclic(Spring s) { 
+        if (s == null) {
+            return false;
+        }
+        if (cyclicSprings.contains(s)) {
+            return true;
+        }
+        if (acyclicSprings.contains(s)) {
+            return false;
+        }
+        cyclicSprings.add(s);
+        boolean result = s.isCyclic(this);
+        if (!result) {
+            acyclicSprings.add(s);
+            cyclicSprings.remove(s);
+        }
+        else {
+            System.err.println(s + " is cyclic. ");
+        }
+        return result;
+    }
+
+    private void setValue(Spring s, int value) { 
+        if (s != null && !isCyclic(s)) {
+            s.setValue(value);
+        }
+    }
+
+    private int getMaximumValue(Spring s) {
+        if (s != null && !isCyclic(s)) {
+            return s.getValue();
+        }
+        return 0;
+    }
+
+    private int getMinimumValue(Spring s) {
+        if (s != null && !isCyclic(s)) {
+            return s.getValue();
+        }
+        return 0;
+    }
+
+    private int getPreferredValue(Spring s) {
+        if (s != null && !isCyclic(s)) {
+            return s.getValue();
+        }
+        return 0;
+    }
+
+    private int getValue(Spring s) {
+        if (s != null && !isCyclic(s)) {
+            return s.getValue();
+        }
+        return 0;
+    }
+
+    // LayoutManager methods.
+
+    /**
+     * Has no effect,
+     * since this layout manager does not
+     * use a per-component string.
+     */
+    public void addLayoutComponent(String name, Component c) {}
+
+    /**
+     * Removes the constraints associated with the specified component.
+     *
+     * @param c the component being removed from the container
+     */
+    public void removeLayoutComponent(Component c) {
+        componentConstraints.remove(c);
+    }
+
+    private static Dimension addInsets(int width, int height, Container p) {
+        Insets i = p.getInsets();
+        return new Dimension(width + i.left + i.right, height + i.top + i.bottom);
+    }
+
+    public Dimension minimumLayoutSize(Container parent) {
+        setParent(parent);
+        Constraints pc = getConstraints(parent); 
+        return addInsets(getMinimumValue(pc.getWidth()),
+                         getMinimumValue(pc.getHeight()), parent);
+    }
+
+    public Dimension preferredLayoutSize(Container parent) {
+        setParent(parent);
+        Constraints pc = getConstraints(parent); 
+        return addInsets(getPreferredValue(pc.getWidth()),
+                         getPreferredValue(pc.getHeight()), parent);
+    }
+
+    // LayoutManager2 methods.
+
+    public Dimension maximumLayoutSize(Container parent) {
+        setParent(parent);
+        Constraints pc = getConstraints(parent); 
+        return addInsets(getMaximumValue(pc.getWidth()),
+                         getMaximumValue(pc.getHeight()), parent);
+    }
+
+    /**
+     * If <code>constraints</code> is an instance of 
+     * <code>SpringLayout.Constraints</code>,
+     * associates the constraints with the specified component.
+     * <p>
+     * @param   component the component being added
+     * @param   constraints the component's constraints
+     *
+     * @see SpringLayout.Constraints
+     */
+    public void addLayoutComponent(Component component, Object constraints) {
+        if (constraints instanceof Constraints) {
+            putConstraints(component, (Constraints)constraints);
+        }
+    }
+
+    /**
+     * Returns 0.5f (centered).
+     */
+    public float getLayoutAlignmentX(Container p) {
+        return 0.5f;
+    }
+
+    /**
+     * Returns 0.5f (centered).
+     */
+    public float getLayoutAlignmentY(Container p) {
+        return 0.5f;
+    }
+
+    public void invalidateLayout(Container p) {}
+
+    // End of LayoutManger2 methods
+
+   /**
+     * Links edge <code>e1</code> of component <code>c1</code> to
+     * edge <code>e2</code> of component <code>c2</code>,
+     * with a fixed distance between the edges. This
+     * constraint will cause the assignment
+     * <pre>
+     *     value(e1, c1) = value(e2, c2) + pad</pre>
+     * to take place during all subsequent layout operations.
+     * <p>
+     * @param   e1 the edge of the dependent
+     * @param   c1 the component of the dependent
+     * @param   pad the fixed distance between dependent and anchor
+     * @param   e2 the edge of the anchor
+     * @param   c2 the component of the anchor
+     *
+     * @see #putConstraint(String, Component, Spring, String, Component)
+     */
+    public void putConstraint(String e1, Component c1, int pad, String e2, Component c2) {
+        putConstraint(e1, c1, Spring.constant(pad), e2, c2);
+    }
+
+    /**
+     * Links edge <code>e1</code> of component <code>c1</code> to
+     * edge <code>e2</code> of component <code>c2</code>. As edge
+     * <code>(e2, c2)</code> changes value, edge <code>(e1, c1)</code> will
+     * be calculated by taking the (spring) sum of <code>(e2, c2)</code>
+     * and <code>s</code>. Each edge must have one of the following values:
+     * <code>SpringLayout.NORTH</code>, <code>SpringLayout.SOUTH</code>,
+     * <code>SpringLayout.EAST</code>, <code>SpringLayout.WEST</code>.
+     * <p>
+     * @param   e1 the edge of the dependent
+     * @param   c1 the component of the dependent
+     * @param   s the spring linking dependent and anchor
+     * @param   e2 the edge of the anchor
+     * @param   c2 the component of the anchor
+     *
+     * @see #putConstraint(String, Component, int, String, Component)
+     * @see #NORTH
+     * @see #SOUTH
+     * @see #EAST
+     * @see #WEST
+     */
+    public void putConstraint(String e1, Component c1, Spring s, String e2, Component c2) {
+        putConstraint(e1, c1, Spring.sum(s, getConstraint(e2, c2)));
+    }
+
+    private void putConstraint(String e, Component c, Spring s) {
+        if (s != null) {
+            getConstraints(c).setConstraint(e, s);
+        }
+     }
+
+    private Constraints applyDefaults(Component c, Constraints constraints) {
+        if (constraints == null) {
+           constraints = new Constraints();
+        }
+        if (constraints.getWidth() == null) {
+            constraints.setWidth(new WidthSpring(c));
+        }
+        if (constraints.getHeight() == null) {
+            constraints.setHeight(new HeightSpring(c));
+        }
+        return constraints;
+    }
+
+    private void putConstraints(Component component, Constraints constraints) {
+        componentConstraints.put(component, applyDefaults(component, constraints));
+    }
+
+    /**
+     * Returns the constraints for the specified component.
+     * Note that,
+     * unlike the <code>GridBagLayout</code>
+     * <code>getConstraints</code> method,
+     * this method does not clone constraints.
+     * If no constraints
+     * have been associated with this component,
+     * this method
+     * returns a default constraints object positioned at
+     * 0,0 relative to the parent's Insets and its width/height
+     * constrained to the minimum, maximum, and preferred sizes of the
+     * component. The size characteristics
+     * are not frozen at the time this method is called;
+     * instead this method returns a constraints object
+     * whose characteristics track the characteristics
+     * of the component as they change.
+     *
+     * @param       c the component whose constraints will be returned
+     *
+     * @return      the constraints for the specified component
+     */
+    public Constraints getConstraints(Component c) {
+       Constraints result = (Constraints)componentConstraints.get(c);
+       if (result == null) {
+           if (c instanceof javax.swing.JComponent) {
+                Object cp = ((javax.swing.JComponent)c).getClientProperty(SpringLayout.class);
+                if (cp instanceof Constraints) {
+                    return applyDefaults(c, (Constraints)cp);
+                }
+            }
+            result = new Constraints();
+            putConstraints(c, result);
+       }
+       return result;
+    }
+
+    /**
+     * Returns the spring controlling the distance between 
+     * the specified edge of
+     * the component and the top or left edge of its parent. This
+     * method, instead of returning the current binding for the
+     * edge, returns a proxy that tracks the characteristics
+     * of the edge even if the edge is subsequently rebound.
+     * Proxies are intended to be used in builder envonments
+     * where it is useful to allow the user to define the
+     * constraints for a layout in any order. Proxies do, however,
+     * provide the means to create cyclic dependencies amongst
+     * the constraints of a layout. Such cycles are detected
+     * internally by <code>SpringLayout</code> so that
+     * the layout operation always terminates.
+     *
+     * @param edgeName must be 
+     *                 <code>SpringLayout.NORTH</code>,
+     *                 <code>SpringLayout.SOUTH</code>,
+     *                 <code>SpringLayout.EAST</code>, or
+     *                 <code>SpringLayout.WEST</code>
+     * @param c the component whose edge spring is desired
+     *
+     * @return a proxy for the spring controlling the distance between the
+     *         specified edge and the top or left edge of its parent
+     * 
+     * @see #NORTH
+     * @see #SOUTH
+     * @see #EAST
+     * @see #WEST
+     */
+    public Spring getConstraint(String edgeName, Component c) {
+        // The interning here is unnecessary; it was added for efficiency.
+        edgeName = edgeName.intern();
+        return new SpringProxy(edgeName, c, this);
+    }
+
+    public void layoutContainer(Container parent) {
+        setParent(parent);
+
+        int n = parent.getComponentCount();
+        getConstraints(parent).reset();
+        for (int i = 0 ; i < n ; i++) {
+            getConstraints(parent.getComponent(i)).reset();
+        }
+
+        Insets insets = parent.getInsets();
+        Constraints pc = getConstraints(parent);
+        setValue(pc.getX(), 0);
+        setValue(pc.getY(), 0);
+        setValue(pc.getWidth(), parent.getWidth() - insets.left -insets.right);
+        setValue(pc.getHeight(), parent.getHeight() - insets.top -
+                 insets.bottom);
+        
+        for (int i = 0 ; i < n ; i++) {
+	    Component c = parent.getComponent(i);
+            Constraints cc = getConstraints(c); 
+            int x = getValue(cc.getX());
+            int y = getValue(cc.getY());
+            int width = getValue(cc.getWidth());
+            int height = getValue(cc.getHeight());
+            c.setBounds(insets.left + x, insets.top + y, width, height);
+	}
+    }
+}

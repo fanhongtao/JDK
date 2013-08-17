@@ -1,4 +1,6 @@
 /*
+ * @(#)HTML.java	1.38 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -7,34 +9,54 @@ package javax.swing.text.html;
 import java.io.*;
 import java.util.Hashtable;
 import javax.swing.text.AttributeSet;
+import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 
 /**
- * Constants used in the HTMLDocument.  These
+ * Constants used in the <code>HTMLDocument</code>.  These
  * are basically tag and attribute definitions.
  *
  * @author  Timothy Prinzing
  * @author  Sunita Mani
  *
- * @version 1.32 02/06/02
+ * @version 1.38 12/03/01
  */
 public class HTML {
 
     /**
-     * Typesafe enumeration for an html tag.  Although the
-     * set of html tags is a closed set, we have let the
+     * Typesafe enumeration for an HTML tag.  Although the
+     * set of HTML tags is a closed set, we have left the
      * set open so that people can add their own tag types
      * to their custom parser and still communicate to the
      * reader.
      */
     public static class Tag {
 
+	/** @since 1.3 */
 	public Tag() {}
 
+        /**
+         * Creates a new <code>Tag</code> with the specified <code>id</code>,
+         * and with <code>causesBreak</code> and <code>isBlock</code>
+         * set to <code>false</code>.
+         *
+         * @param id  the id of the new tag
+         */
         protected Tag(String id) {
 	    this(id, false, false);
 	}
 
+        /**
+         * Creates a new <code>Tag</code> with the specified <code>id</code>;
+         * <code>causesBreak</code> and <code>isBlock</code> are defined
+         * by the user.
+         *
+         * @param id the id of the new tag
+         * @param causesBreak  <code>true</code> if this tag
+         *    causes a break to the flow of data
+         * @param isBlock <code>true</code> if the tag is used
+         *    to add structure to a document
+         */
 	protected Tag(String id, boolean causesBreak, boolean isBlock) {
 	    name = id;
 	    this.breakTag = causesBreak;
@@ -42,28 +64,47 @@ public class HTML {
 	}
 
 	/**
-	 * Block tags are tags that add structure to
-	 * a document.
+         * Returns <code>true</code> if this tag is a block
+         * tag, which is a tag used to add structure to a
+         * document.
+	 * 
+         * @return <code>true</code> if this tag is a block
+         *   tag, otherwise returns <code>false</code>
 	 */
 	public boolean isBlock() {
 	    return blockTag;
 	}
 
 	/**
-	 * If the tag causes a line break, to the flow of
-	 * data, then this method will return true.
+         * Returns <code>true</code> if this tag causes a
+         * line break to the flow of data, otherwise returns
+         * <code>false</code>.
+	 * 
+	 * @return <code>true</code> if this tag causes a
+         *   line break to the flow of data, otherwise returns
+         *   <code>false</code>
 	 */
 	public boolean breaksFlow() {
 	    return breakTag;
 	}
 
+	/**
+	 * Returns <code>true</code> if this tag is pre-formatted,
+         * which is true if the tag is either <code>PRE</code> or
+         * <code>TEXTAREA</code>.
+         *
+         * @return <code>true</code> if this tag is pre-formatted,
+         *   otherwise returns <code>false</code>
+	 */
 	public boolean isPreformatted() {
 	    return (this == PRE || this == TEXTAREA);
 	}
 
 	/**
-	 * Return the string representation of the
+	 * Returns the string representation of the
 	 * tag.
+         *
+         * @return the <code>String</code> representation of the tag
 	 */
         public String toString() {
 	    return name;
@@ -156,7 +197,7 @@ public class HTML {
 	 * If a paragraph didn't exist when content was
 	 * encountered, a paragraph is manufactured.
 	 * <p>
-	 * This is a tag synthesized by the html reader.
+	 * This is a tag synthesized by the HTML reader.
 	 * Since elements are identified by their tag type,
 	 * we create a some fake tag types to mark the elements
 	 * that were manufactured.
@@ -166,7 +207,7 @@ public class HTML {
 	/**
 	 * All text content is labeled with this tag.
 	 * <p>
-	 * This is a tag synthesized by the html reader.
+	 * This is a tag synthesized by the HTML reader.
 	 * Since elements are identified by their tag type,
 	 * we create a some fake tag types to mark the elements
 	 * that were manufactured.
@@ -176,7 +217,7 @@ public class HTML {
 	/**
 	 * All comments are labeled with this tag.
 	 * <p>
-	 * This is a tag synthesized by the html reader.
+	 * This is a tag synthesized by the HTML reader.
 	 * Since elements are identified by their tag type,
 	 * we create a some fake tag types to mark the elements
 	 * that were manufactured.
@@ -205,10 +246,19 @@ public class HTML {
     // Serializable.
     public static class UnknownTag extends Tag implements Serializable {
 	
+        /**
+         * Creates a new <code>UnknownTag</code> with the specified
+         * <code>id</code>.
+         * @param id the id of the new tag
+         */
 	public UnknownTag(String id) {
 	    super(id);
 	}
 
+        /**
+         * Returns the hash code which corresponds to the string
+         * for this tag.
+         */
 	public int hashCode() {
 	    return toString().hashCode();
 	}
@@ -216,11 +266,12 @@ public class HTML {
 	/**
 	 * Compares this object to the specifed object.
 	 * The result is <code>true</code> if and only if the argument is not
-	 * <code>null</code> and is a <code>UnknownTag</code> object with the same
-	 * name.
-	 * @param     obj   the object to compare this tag with.
+	 * <code>null</code> and is an <code>UnknownTag</code> object
+         * with the same name.
+         *
+	 * @param     obj   the object to compare this tag with
 	 * @return    <code>true</code> if the objects are equal;
-	 *            <code>false</code> otherwise.
+	 *            <code>false</code> otherwise
 	 */
         public boolean equals(Object obj) {
 	    if (obj instanceof UnknownTag) {
@@ -249,15 +300,25 @@ public class HTML {
     }
 
     /**
-     * Typesafe enumeration representing an html
+     * Typesafe enumeration representing an HTML
      * attribute.
      */
     public static final class Attribute {
 
+        /**
+         * Creates a new <code>Attribute</code> with the specified
+         * <code>id</code>.
+         *
+         * @param id the id of the new <code>Attribute</code>
+         */
 	Attribute(String id) {
 	    name = id;
 	}
 
+        /**
+         * Returns the string representation of this attribute.
+         * @return the string representation of this attribute
+         */
 	public String toString() {
 	    return name;
 	}
@@ -438,6 +499,9 @@ public class HTML {
     //
     private static final Hashtable tagHashtable = new Hashtable(73);
 
+    /** Maps from StyleConstant key to HTML.Tag. */
+    private static final Hashtable scMapping = new Hashtable(8);
+
     static {
 
 	for (int i = 0; i < Tag.allTags.length; i++ ) {
@@ -451,11 +515,19 @@ public class HTML {
 	    StyleContext.registerStaticAttributeKey(Attribute.
 						    allAttributes[i]);
 	}
+        scMapping.put(StyleConstants.Bold, Tag.B);
+        scMapping.put(StyleConstants.Italic, Tag.I);
+        scMapping.put(StyleConstants.Underline, Tag.U);
+        scMapping.put(StyleConstants.StrikeThrough, Tag.STRIKE);
+        scMapping.put(StyleConstants.Superscript, Tag.SUP);
+        scMapping.put(StyleConstants.Subscript, Tag.SUB);
+        scMapping.put(StyleConstants.FontFamily, Tag.FONT);
+        scMapping.put(StyleConstants.FontSize, Tag.FONT);
     }
 
     /**
-     * This is the set of actual html tags that
-     * are known about the the default html reader.
+     * Returns the set of actual HTML tags that
+     * are recognized by the default HTML reader.
      * This set does not include tags that are
      * manufactured by the reader.
      */
@@ -466,10 +538,23 @@ public class HTML {
     }
 
     /**
-     * Fetch a tag constant for a well-known tag name (i.e. one of
-     * the tags in the set <code>allTags</code>).  If the given
+     * Fetches a tag constant for a well-known tag name (i.e. one of
+     * the tags in the set {A, ADDRESS, APPLET, AREA, B,
+     * BASE, BASEFONT, BIG,
+     * BLOCKQUOTE, BODY, BR, CAPTION, CENTER, CITE, CODE,
+     * DD, DFN, DIR, DIV, DL, DT, EM, FONT, FORM, FRAME,
+     * FRAMESET, H1, H2, H3, H4, H5, H6, HEAD, HR, HTML,
+     * I, IMG, INPUT, ISINDEX, KBD, LI, LINK, MAP, MENU,
+     * META, NOBR, NOFRAMES, OBJECT, OL, OPTION, P, PARAM,
+     * PRE, SAMP, SCRIPT, SELECT, SMALL, SPAN, STRIKE, S,
+     * STRONG, STYLE, SUB, SUP, TABLE, TD, TEXTAREA,
+     * TH, TITLE, TR, TT, U, UL, VAR}.  If the given
      * name does not represent one of the well-known tags, then
-     * null will be returned.
+     * <code>null</code> will be returned.
+     *
+     * @param tagName the <code>String</code> name requested
+     * @return a tag constant corresponding to the <code>tagName</code>,
+     *    or <code>null</code> if not found
      */
     public static Tag getTag(String tagName) {
 
@@ -478,14 +563,28 @@ public class HTML {
     }
 
     /**
-     * Fetch an integer attribute value.  Attribute values
+     * Returns the HTML <code>Tag</code> associated with the
+     * <code>StyleConstants</code> key <code>sc</code>.
+     * If no matching <code>Tag</code> is found, returns
+     * <code>null</code>.
+     *
+     * @param sc the <code>StyleConstants</code> key
+     * @return tag which corresponds to <code>sc</code>, or
+     *   <code>null</code> if not found
+     */
+    static Tag getTagForStyleConstantsKey(StyleConstants sc) {
+        return (Tag)scMapping.get(sc);
+    }
+
+    /**
+     * Fetches an integer attribute value.  Attribute values
      * are stored as a string, and this is a convenience method
      * to convert to an actual integer.
      *
      * @param attr the set of attributes to use to try to fetch a value
-     * @param key the key to use to fetch the value.
+     * @param key the key to use to fetch the value
      * @param def the default value to use if the attribute isn't
-     *  defined or there is an error converting to an integer.
+     *  defined or there is an error converting to an integer
      */
     public static int getIntegerAttributeValue(AttributeSet attr,
 					       Attribute key, int def) {
@@ -517,7 +616,8 @@ public class HTML {
     }
 
     /**
-     * This is the set of html attributes recognized.
+     * Returns the set of HTML attributes recognized.
+     * @return the set of HTML attributes recognized
      */
     public static Attribute[] getAllAttributeKeys() {
 	Attribute[] attributes = new Attribute[Attribute.allAttributes.length];
@@ -527,10 +627,24 @@ public class HTML {
     }
 
     /**
-     * Fetch an attribute constant for a well-known attribute name
-     * (i.e. one of the attributes in the set <code>allAttributes</code>).
+     * Fetches an attribute constant for a well-known attribute name
+     * (i.e. one of the attributes in the set {FACE, COMMENT, SIZE,
+     * COLOR, CLEAR, BACKGROUND, BGCOLOR, TEXT, LINK, VLINK, ALINK,
+     * WIDTH, HEIGHT, ALIGN, NAME, HREF, REL, REV, TITLE, TARGET,
+     * SHAPE, COORDS, ISMAP, NOHREF, ALT, ID, SRC, HSPACE, VSPACE,
+     * USEMAP, LOWSRC, CODEBASE, CODE, ARCHIVE, VALUE, VALUETYPE,
+     * TYPE, CLASS, STYLE, LANG, DIR, DECLARE, CLASSID, DATA, CODETYPE,
+     * STANDBY, BORDER, SHAPES, NOSHADE, COMPACT, START, ACTION, METHOD,
+     * ENCTYPE, CHECKED, MAXLENGTH, MULTIPLE, SELECTED, ROWS, COLS,
+     * DUMMY, CELLSPACING, CELLPADDING, VALIGN, HALIGN, NOWRAP, ROWSPAN,
+     * COLSPAN, PROMPT, HTTPEQUIV, CONTENT, LANGUAGE, VERSION, N,
+     * FRAMEBORDER, MARGINWIDTH, MARGINHEIGHT, SCROLLING, NORESIZE,
+     * MEDIA, ENDTAG}).
      * If the given name does not represent one of the well-known attributes,
-     * then null will be returned.
+     * then <code>null</code> will be returned.
+     *
+     * @param attName the <code>String</code> requested
+     * @return the <code>Attribute</code> corresponding to <code>attName</code>
      */
     public static Attribute getAttributeKey(String attName) {
 	Object a = attHashtable.get(attName);

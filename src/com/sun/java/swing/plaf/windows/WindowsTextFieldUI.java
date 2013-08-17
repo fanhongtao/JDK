@@ -1,4 +1,6 @@
 /*
+ * @(#)WindowsTextFieldUI.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -40,7 +42,7 @@ import javax.swing.plaf.UIResource;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.16 02/06/02
+ * @version 1.17 12/03/01
  */
 public class WindowsTextFieldUI extends BasicTextFieldUI
 {
@@ -80,15 +82,7 @@ public class WindowsTextFieldUI extends BasicTextFieldUI
 	 * a field length if not visible.
 	 */
 	protected void adjustVisibility(Rectangle r) {
-	    JTextField field = (JTextField) getComponent();
-	    BoundedRangeModel vis = field.getHorizontalVisibility();
-	    int x = r.x + vis.getValue();
-	    int quarterSpan = vis.getExtent() / 4;
-	    if (x < vis.getValue()) {
-		vis.setValue(x - quarterSpan);
-	    } else if (x > vis.getValue() + vis.getExtent()) {
-		vis.setValue(x - (3 * quarterSpan));
-	    }
+            SwingUtilities.invokeLater(new SafeScroller(r));
 	}
 
 	/**
@@ -99,6 +93,50 @@ public class WindowsTextFieldUI extends BasicTextFieldUI
 	protected Highlighter.HighlightPainter getSelectionPainter() {
 	    return WindowsTextUI.WindowsPainter;
 	}
+
+
+        private class SafeScroller implements Runnable {
+            SafeScroller(Rectangle r) {
+                this.r = r;
+            }
+
+            public void run() {
+                JTextField field = (JTextField) getComponent();
+                if (field != null) {
+                    TextUI ui = field.getUI();
+                    int dot = getDot();
+                    // PENDING: We need to expose the bias in DefaultCaret.
+                    Position.Bias bias = Position.Bias.Forward;
+                    Rectangle startRect = null;
+                    try {
+                        startRect = ui.modelToView(field, dot, bias);
+                    } catch (BadLocationException ble) {}
+                    BoundedRangeModel vis = field.getHorizontalVisibility();
+                    int x = r.x + vis.getValue();
+                    int quarterSpan = vis.getExtent() / 4;
+                    if (x < vis.getValue()) {
+                        vis.setValue(x - quarterSpan);
+                    } else if (x > vis.getValue() + vis.getExtent()) {
+                        vis.setValue(x - (3 * quarterSpan));
+                    }
+                    // If we scroll, our visual location will have changed,
+                    // but we won't have updated our internal location as
+                    // the model hasn't changed. This checks for the change,
+                    // and if necessary, resets the internal location.
+                    if (startRect != null) {
+                        try {
+                            Rectangle endRect;
+                            endRect = ui.modelToView(field, dot, bias);
+                            if (endRect != null && !endRect.equals(startRect)){
+                                damage(endRect);
+                            }
+                        } catch (BadLocationException ble) {}
+                    }
+                }
+            }
+
+            private Rectangle r;
+        }
     }
 
 }

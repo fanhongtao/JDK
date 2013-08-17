@@ -1,4 +1,6 @@
 /*
+ * @(#)NetPermission.java	1.40 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -73,7 +75,7 @@ that class really didn't come from that location.</td>
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.40 02/02/06
+ * @version 1.40 01/12/03
  *
  * @author Marianne Mueller
  * @author Roland Schemers

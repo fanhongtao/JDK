@@ -1,4 +1,6 @@
 /*
+ * @(#)Point2D.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,7 +16,7 @@ package java.awt.geom;
  * The actual storage representation of the coordinates is left to
  * the subclass.
  *
- * @version 	1.15, 02/06/02
+ * @version 	1.16, 12/03/01
  * @author	Jim Graham
  */
 public abstract class Point2D implements Cloneable {
@@ -222,7 +224,7 @@ public abstract class Point2D implements Cloneable {
 
     /**
      * Sets the location of this <code>Point2D</code> to the 
-     * specified <code>float</code> coordinates.
+     * specified <code>double</code> coordinates.
      * @param x,&nbsp;y the coordinates of this <code>Point2D</code>
      * @since 1.2
      */

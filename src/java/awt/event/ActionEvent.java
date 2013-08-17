@@ -1,4 +1,6 @@
 /*
+ * @(#)ActionEvent.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -27,7 +29,7 @@ import java.awt.Event;
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
  * @author Carl Quinn
- * @version 1.22 02/06/02
+ * @version 1.24 12/03/01
  * @since 1.1
  */
 public class ActionEvent extends AWTEvent {
@@ -79,9 +81,20 @@ public class ActionEvent extends AWTEvent {
      * that fired it.
 
      * @serial
-     * @see getActionCommand()
+     * @see #getActionCommand
      */
     String actionCommand;
+
+    /**
+     * Timestamp of when this event occurred. Because an ActionEvent is a high-
+     * level, semantic event, the timestamp is typically the same as an
+     * underlying InputEvent.
+     *
+     * @serial
+     * @see #getWhen
+     */
+    long when;
+
     /**
      * This represents the key modifier that was selected,
      * and is used to determine the state of the selected key.
@@ -89,7 +102,7 @@ public class ActionEvent extends AWTEvent {
      * zero.
      *
      * @serial
-     * @see getModifiers()
+     * @see #getModifiers
      */
     int modifiers;
 
@@ -100,6 +113,8 @@ public class ActionEvent extends AWTEvent {
 
     /**
      * Constructs an <code>ActionEvent</code> object.
+     * <p>Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior.
      *
      * @param source  the object that originated the event
      * @param id      an integer that identifies the event
@@ -112,6 +127,8 @@ public class ActionEvent extends AWTEvent {
 
     /**
      * Constructs an <code>ActionEvent</code> object with modifier keys.
+     * <p>Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior.
      *
      * @param source    the object that originated the event
      * @param id        an integer that identifies the event
@@ -120,11 +137,33 @@ public class ActionEvent extends AWTEvent {
      * @param modifiers the modifier keys held down during this action
      */
     public ActionEvent(Object source, int id, String command, int modifiers) {
-        super(source, id);
-        this.actionCommand = command;
-        this.modifiers = modifiers;
+        this(source, id, command, 0, modifiers);
     }
 
+    /**
+     * Constructs an <code>ActionEvent</code> object with the specified
+     * modifier keys and timestamp.
+     * <p>
+     * Note that passing in an invalid <code>id</code> results in unspecified
+     * behavior.
+     *
+     * @param source    the object that originated the event
+     * @param id        an integer that identifies the event
+     * @param command   a string that may specify a command (possibly one 
+     *                  of several) associated with the event
+     * @param when      the time the event occurred
+     * @param modifiers the modifier keys held down during this action
+     *
+     * @since 1.4
+     */
+    public ActionEvent(Object source, int id, String command, long when,
+                       int modifiers) {
+        super(source, id);
+        this.actionCommand = command;
+        this.when = when;
+        this.modifiers = modifiers;
+    }
+        
     /**
      * Returns the command string associated with this action.
      * This string allows a "modal" component to specify one of several 
@@ -133,16 +172,28 @@ public class ActionEvent extends AWTEvent {
      * and the event would be the same in each case, but the command string
      * would identify the intended action.
      *
-     *@return the string identifying the command for this event
+     * @return the string identifying the command for this event
      */
     public String getActionCommand() {
         return actionCommand;
     }
 
     /**
+     * Returns the timestamp of when this event occurred. Because an
+     * ActionEvent is a high-level, semantic event, the timestamp is typically
+     * the same as an underlying InputEvent.
+     *
+     * @return this event's timestamp
+     * @since 1.4
+     */
+    public long getWhen() {
+        return when;
+    }
+
+    /**
      * Returns the modifier keys held down during this action event.
      * 
-     * @return the integer sum of the modifier constants
+     * @return the bitwise-or of the modifier constants
      */
     public int getModifiers() {
         return modifiers;
@@ -163,7 +214,7 @@ public class ActionEvent extends AWTEvent {
           default:
               typeStr = "unknown type";
         }
-        return typeStr + ",cmd="+actionCommand;
+        return typeStr + ",cmd="+actionCommand+",when="+when+",modifiers="+
+            KeyEvent.getKeyModifiersText(modifiers);
     }
-
 }

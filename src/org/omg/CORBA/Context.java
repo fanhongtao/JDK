@@ -1,4 +1,6 @@
 /*
+ * @(#)Context.java	1.22 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -155,6 +157,7 @@ public abstract class Context {
        * @param values		an NVList containing the property
        * 				    names and associated values to be set
        *
+       * @see #get_values
        * @see org.omg.CORBA.NamedValue
        * @see org.omg.CORBA.Any
        */
@@ -215,7 +218,8 @@ public abstract class Context {
      *                (in the form of <code>NamedValue</code> objects)
      *                whose associated property name matches the given name or
      *                name pattern
-	 * @see org.omg.CORBA.NamedValue
+     * @see #set_values
+     * @see org.omg.CORBA.NamedValue
      */
 
     abstract public NVList get_values(String start_scope, int op_flags,

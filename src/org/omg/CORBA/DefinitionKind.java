@@ -1,4 +1,6 @@
 /*
+ * @(#)DefinitionKind.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -190,7 +192,13 @@ public class DefinitionKind implements org.omg.CORBA.portable.IDLEntity {
  * Native.
  */
 
-	_dk_Native = 23;
+	_dk_Native = 23,
+
+/**
+ * The constant that indicates that an Interface Repository object
+ * is representing an abstract interface.
+ */
+	_dk_AbstractInterface = 24;
 
 /**
  * The static instance of <code>DefinitionKind</code> indicating that an
@@ -368,6 +376,13 @@ public class DefinitionKind implements org.omg.CORBA.portable.IDLEntity {
     public static final DefinitionKind dk_Native = new DefinitionKind(_dk_Native);
 
 
+/**
+* The static instance of <code>DefinitionKind</code> indicating that an
+* Interface Repository object represents an abstract interface.
+*/
+    public static final DefinitionKind dk_AbstractInterface = new DefinitionKind(_dk_AbstractInterface);
+
+
      /**
      * Returns the <code>int</code> constant identifying the type of an IR object.
      * @return the <code>int</code> constant from the class
@@ -393,7 +408,7 @@ public class DefinitionKind implements org.omg.CORBA.portable.IDLEntity {
          *         <code>DefinitionKind</code>
      */
 
-    public static DefinitionKind from_int(int i)  throws  org.omg.CORBA.BAD_PARAM {
+    public static DefinitionKind from_int(int i) {
 	switch (i) {
 	case _dk_none:
 	    return dk_none;

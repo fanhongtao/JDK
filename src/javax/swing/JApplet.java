@@ -1,4 +1,6 @@
 /*
+ * @(#)JApplet.java	1.53 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -47,21 +49,23 @@ import javax.accessibility.*;
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JApplet">JApplet</a> key assignments.
+ * <a href="doc-files/Key-Index.html#JApplet"><code>JApplet</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @beaninfo
  *      attribute: isContainer true
  *      attribute: containerDelegate getContentPane
  *    description: Swing's Applet subclass.
  *
- * @version 1.45 02/06/02
+ * @version 1.53 12/03/01
  * @author Arnaud Weber
  */
 public class JApplet extends Applet implements Accessible, RootPaneContainer 
@@ -80,8 +84,16 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
 
     /**
      * Creates a swing applet instance.
+     * <p>
+     * This constructor sets the component's locale property to the value
+     * returned by <code>JComponent.getDefaultLocale</code>. 
+     *
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see JComponent#getDefaultLocale
      */
-    public JApplet() {
+    public JApplet() throws HeadlessException {
         super();
 	// Check the timerQ and restart if necessary.
 	TimerQueue q = TimerQueue.sharedInstance();
@@ -101,9 +113,12 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
 	setForeground(Color.black);
 	setBackground(Color.white);
 
+        setLocale( JComponent.getDefaultLocale() );
         setLayout(new BorderLayout());
         setRootPane(createRootPane());
         setRootPaneCheckingEnabled(true);
+
+        enableEvents(AWTEvent.KEY_EVENT_MASK);
     }
 
 
@@ -112,17 +127,9 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
         return new JRootPane();
     }
     
-    protected void processKeyEvent(KeyEvent e) {
-        super.processKeyEvent(e);
-        if(!e.isConsumed()) {
-            JComponent.processKeyBindingsForAllComponents(e,this,e.getID() == KeyEvent.KEY_PRESSED);
-        }
-    }
-
-
     /** 
      * Just calls <code>paint(g)</code>.  This method was overridden to 
-     * prevent an unneccessary call to clear the background.
+     * prevent an unnecessary call to clear the background.
      */
     public void update(Graphics g) {
         paint(g);
@@ -235,7 +242,7 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
      * the layout of its contentPane should be set instead.  
      * For example:
      * <pre>
-     * thiComponent.getContentPane().setLayout(new BorderLayout())
+     * thisComponent.getContentPane().setLayout(new GridLayout(1, 2))
      * </pre>
      * An attempt to set the layout of this component will cause an
      * runtime exception to be thrown.  Subclasses can disable this
@@ -373,7 +380,6 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
     public void setGlassPane(Component glassPane) {
         getRootPane().setGlassPane(glassPane);
     }
-
 
     /**
      * Returns a string representation of this JApplet. This method 

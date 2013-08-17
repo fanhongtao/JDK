@@ -1,9 +1,14 @@
 /*
+ * @(#)Method.java	1.34 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.reflect;
+
+import sun.reflect.MethodAccessor;
+import sun.reflect.Reflection;
 
 /**
  * A <code>Method</code> provides information about, and access to, a single method
@@ -22,6 +27,7 @@ package java.lang.reflect;
  * @see java.lang.Class#getDeclaredMethods()
  * @see java.lang.Class#getDeclaredMethod(String, Class[])
  *
+ * @author Kenneth Russell
  * @author Nakul Saraiya
  */
 public final
@@ -29,16 +35,65 @@ class Method extends AccessibleObject implements Member {
 
     private Class		clazz;
     private int			slot;
+    // This is guaranteed to be interned by the VM in the 1.4
+    // reflection implementation
     private String		name;
     private Class		returnType;
     private Class[]		parameterTypes;
     private Class[]		exceptionTypes;
     private int			modifiers;
+    private volatile MethodAccessor methodAccessor;
+    // For sharing of MethodAccessors. This branching structure is
+    // currently only two levels deep (i.e., one root Method and
+    // potentially many Method objects pointing to it.)
+    private Method              root;
+
+    // More complicated security check cache needed here than for
+    // Class.newInstance() and Constructor.newInstance()
+    private volatile Class      securityCheckTargetClassCache;
 
     /**
-     * Constructor.  Only the Java Virtual Machine may construct a Method.
+     * Package-private constructor used by ReflectAccess to enable
+     * instantiation of these objects in Java code from the java.lang
+     * package via sun.reflect.LangReflectAccess.
      */
-    private Method() {}
+    Method(Class declaringClass,
+           String name,
+           Class[] parameterTypes,
+           Class returnType,
+           Class[] checkedExceptions,
+           int modifiers,
+           int slot)
+    {
+        this.clazz = declaringClass;
+        this.name = name;
+        this.parameterTypes = parameterTypes;
+        this.returnType = returnType;
+        this.exceptionTypes = checkedExceptions;
+        this.modifiers = modifiers;
+        this.slot = slot;
+    }
+
+    /**
+     * Package-private routine (exposed to java.lang.Class via
+     * ReflectAccess) which returns a copy of this Method. The copy's
+     * "root" field points to this Method.
+     */
+    Method copy() {
+        // This routine enables sharing of MethodAccessor objects
+        // among Method objects which refer to the same underlying
+        // method in the VM. (All of this contortion is only necessary
+        // because of the "accessibility" bit in AccessibleObject,
+        // which implicitly requires that new java.lang.reflect
+        // objects be fabricated for each reflective call on Class
+        // objects.)
+        Method res = new Method(clazz, name, parameterTypes, returnType,
+                                exceptionTypes, modifiers, slot);
+        res.root = this;
+        // Might as well eagerly propagate this if already present
+        res.methodAccessor = methodAccessor;
+        return res;
+    }
 
     /**
      * Returns the <code>Class</code> object representing the class or interface
@@ -70,6 +125,8 @@ class Method extends AccessibleObject implements Member {
     /**
      * Returns a <code>Class</code> object that represents the formal return type
      * of the method represented by this <code>Method</code> object.
+     * 
+     * @return the return type for the method this object represents
      */
     public Class getReturnType() {
 	return returnType;
@@ -80,6 +137,9 @@ class Method extends AccessibleObject implements Member {
      * parameter types, in declaration order, of the method
      * represented by this <code>Method</code> object.  Returns an array of length
      * 0 if the underlying method takes no parameters.
+     * 
+     * @return the parameter types for the method this object
+     * represents
      */
     public Class[] getParameterTypes() {
 	return copy(parameterTypes);
@@ -91,6 +151,9 @@ class Method extends AccessibleObject implements Member {
      * by the underlying method
      * represented by this <code>Method</code> object.  Returns an array of length
      * 0 if the method declares no exceptions in its <code>throws</code> clause.
+     * 
+     * @return the exception types declared as being thrown by the
+     * method this object represents
      */
     public Class[] getExceptionTypes() {
 	return copy(exceptionTypes);
@@ -190,57 +253,22 @@ class Method extends AccessibleObject implements Member {
      * object, on the specified object with the specified parameters.
      * Individual parameters are automatically unwrapped to match
      * primitive formal parameters, and both primitive and reference
-     * parameters are subject to widening conversions as
-     * necessary. The value returned by the underlying method is
-     * automatically wrapped in an object if it has a primitive type.
-     *
-     * <p>Method invocation proceeds with the following steps, in order:
+     * parameters are subject to method invocation conversions as
+     * necessary.
      *
      * <p>If the underlying method is static, then the specified <code>obj</code> 
      * argument is ignored. It may be null.
      *
-     * <p>Otherwise, the method is an instance method.  If the specified
-     * object argument is null, the invocation throws a
-     * <code>NullPointerException</code>.  Otherwise, if the specified object
-     * argument is not an instance of the class or interface declaring
-     * the underlying method (or of a subclass or implementor
-     * thereof) the invocation throws an
-     * <code>IllegalArgumentException</code>.
-     *
-     * <p>If this <code>Method</code> object enforces Java language access control and
-     * the underlying method is inaccessible, the invocation throws an
-     * <code>IllegalAccessException</code>.
-     *
-     * <p>If the number of actual parameters supplied via <code>args</code> is
-     * different from the number of formal parameters required by the
-     * underlying method, the invocation throws an
-     * <code>IllegalArgumentException</code>.
-     *
-     * <p>For each actual parameter in the supplied <code>args</code> array:
-     *
-     * <p>If the corresponding formal parameter has a primitive type, an
-     * unwrapping conversion is attempted to convert the object value
-     * to a value of a primitive type.  If this attempt fails, the
-     * invocation throws an <code>IllegalArgumentException</code>.
-     *
-     * <p>If, after possible unwrapping, the parameter value cannot be
-     * converted to the corresponding formal parameter type by a
-     * method invocation conversion, the invocation throws an
-     * <code>IllegalArgumentException</code>.
+     * <p>If the number of formal parameters required by the underlying method is
+     * 0, the supplied <code>args</code> array may be of length 0 or null.
      *
      * <p>If the underlying method is an instance method, it is invoked
      * using dynamic method lookup as documented in The Java Language
-     * Specification, section 15.11.4.4; in particular, overriding
-     * based on the runtime type of the target object will occur.
+     * Specification, Second Edition, section 15.12.4.4; in particular,
+     * overriding based on the runtime type of the target object will occur.
      *
      * <p>If the underlying method is static, the class that declared
      * the method is initialized if it has not already been initialized.
-     * The underlying method is invoked directly.
-     *
-     * <p>Control transfers to the invoked method.  If the method
-     * completes abruptly by throwing an exception, the exception is
-     * placed in an <code>InvocationTargetException</code> and thrown in turn to
-     * the caller of invoke.
      *
      * <p>If the method completes normally, the value it returns is
      * returned to the caller of invoke; if the value has a primitive
@@ -248,20 +276,87 @@ class Method extends AccessibleObject implements Member {
      * underlying method return type is void, the invocation returns
      * null.
      *
-     * @exception IllegalAccessException    if the underlying method
-     *              is inaccessible.
-     * @exception IllegalArgumentException  if the number of actual and formal
-     *              parameters differ, or if an unwrapping conversion fails.
+     * @param obj  the object the underlying method is invoked from
+     * @param args the arguments used for the method call
+     * @return the result of dispatching the method represented by
+     * this object on <code>obj</code> with parameters
+     * <code>args</code>
+     *
+     * @exception IllegalAccessException    if this <code>Method</code> object
+     *              enforces Java language access control and the underlying
+     *              method is inaccessible.
+     * @exception IllegalArgumentException  if the method is an
+     *              instance method and the specified object argument
+     *              is not an instance of the class or interface
+     *              declaring the underlying method (or of a subclass
+     *              or implementor thereof); if the number of actual
+     *              and formal parameters differ; if an unwrapping
+     *              conversion for primitive arguments fails; or if,
+     *              after possible unwrapping, a parameter value
+     *              cannot be converted to the corresponding formal
+     *              parameter type by a method invocation conversion.
      * @exception InvocationTargetException if the underlying method
      *              throws an exception.
      * @exception NullPointerException      if the specified object is null
-     *             and the method is an instance method.
+     *              and the method is an instance method.
      * @exception ExceptionInInitializerError if the initialization
-     *             provoked by this method fails.
+     * provoked by this method fails.
      */
-    public native Object invoke(Object obj, Object[] args)
+    public Object invoke(Object obj, Object[] args)
 	throws IllegalAccessException, IllegalArgumentException,
-	    InvocationTargetException;
+           InvocationTargetException
+    {
+        if (!override) {
+            if (!Reflection.quickCheckMemberAccess(clazz, modifiers)) {
+                Class caller = Reflection.getCallerClass(1);
+                Class targetClass = ((obj == null || !Modifier.isProtected(modifiers))
+                                     ? clazz
+                                     : obj.getClass());
+                if (securityCheckCache != caller ||
+                    targetClass != securityCheckTargetClassCache) {
+                    Reflection.ensureMemberAccess(caller, clazz, obj, modifiers);
+                    securityCheckCache = caller;
+                    securityCheckTargetClassCache = targetClass;
+                }
+            }
+        }
+        if (methodAccessor == null) acquireMethodAccessor();
+        return methodAccessor.invoke(obj, args);
+    }
+
+    // NOTE that there is no synchronization used here. It is correct
+    // (though not efficient) to generate more than one MethodAccessor
+    // for a given Method. However, avoiding synchronization will
+    // probably make the implementation more scalable.
+    private void acquireMethodAccessor() {
+        // First check to see if one has been created yet, and take it
+        // if so
+        MethodAccessor tmp = null;
+        if (root != null) tmp = root.getMethodAccessor();
+        if (tmp != null) {
+            methodAccessor = tmp;
+            return;
+        }
+        // Otherwise fabricate one and propagate it up to the root
+        tmp = reflectionFactory.newMethodAccessor(this);
+        setMethodAccessor(tmp);
+    }
+
+    // Returns MethodAccessor for this Method object, not looking up
+    // the chain to the root
+    MethodAccessor getMethodAccessor() {
+        return methodAccessor;
+    }
+
+    // Sets the MethodAccessor for this Method object and
+    // (recursively) its root
+    void setMethodAccessor(MethodAccessor accessor) {
+        methodAccessor = accessor;
+        // Propagate up
+        if (root != null) {
+            root.setMethodAccessor(accessor);
+        }
+    }
 
     /*
      * Avoid clone()

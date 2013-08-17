@@ -1,4 +1,6 @@
 /*
+ * @(#)Class.java	1.140 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,9 +12,24 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.ref.SoftReference;
 import java.io.InputStream;
 import java.io.ObjectStreamClass;
 import java.io.ObjectStreamField;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.Set;
+import sun.misc.Unsafe;
+import sun.reflect.Reflection;
+import sun.reflect.ReflectionFactory;
+import sun.reflect.SignatureIterator;
 
 
 /**
@@ -41,19 +58,17 @@ import java.io.ObjectStreamField;
  * </pre></blockquote>
  *
  * @author  unascribed
- * @version 1.108, 02/06/02
+ * @version 1.135, 05/25/01
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
  * @since   JDK1.0
  */
 public final
 class Class implements java.io.Serializable {
 
-
     private static native void registerNatives();
     static {
         registerNatives();
     }
-
 
     /*
      * Constructor. Only the Java Virtual Machine creates Class
@@ -152,6 +167,8 @@ class Class implements java.io.Serializable {
      * Note that this method throws errors related to loading, linking or
      * initializing as specified in Sections 12.2, 12.3 and 12.4 of <em>The
      * Java Language Specification</em>.
+     * Note that this method does not check whether the requested class 
+     * is accessible to its caller.
      *
      * <p> If the <code>loader</code> is <code>null</code>, and a security
      * manager is present, and the caller's class loader is not null, then this
@@ -197,7 +214,7 @@ class Class implements java.io.Serializable {
 
     /**
      * Creates a new instance of the class represented by this <tt>Class</tt>
-     * object.  The class is instantiatied as if by a <code>new</code>
+     * object.  The class is instantiated as if by a <code>new</code>
      * expression with an empty argument list.  The class is initialized if it
      * has not already been initialized.
      *
@@ -210,12 +227,12 @@ class Class implements java.io.Serializable {
      *
      * @return     a newly allocated instance of the class represented by this
      *             object.
-     * @exception  IllegalAccessException  if the class or initializer is
-     *               not accessible.
+     * @exception  IllegalAccessException  if the class or its nullary 
+     *               constructor is not accessible.
      * @exception  InstantiationException 
      *               if this <code>Class</code> represents an abstract class,
-     *               an interface, an array class,
-     *               a primitive type, or void;
+     *               an interface, an array class, a primitive type, or void;
+     *               or if the class has no nullary constructor;
      *               or if the instantiation fails for some other reason.
      * @exception  ExceptionInInitializerError if the initialization
      *               provoked by this method fails.
@@ -232,8 +249,59 @@ class Class implements java.io.Serializable {
 	return newInstance0();
     }
 
-    private native Object newInstance0()
-        throws InstantiationException, IllegalAccessException;
+    private Object newInstance0()
+        throws InstantiationException, IllegalAccessException
+    {
+        // NOTE: the following code may not be strictly correct under
+        // the current Java memory model.
+
+        // Constructor lookup
+        if (cachedConstructor == null) {
+            if (this == Class.class) {
+                throw new IllegalAccessException(
+                    "Can not call newInstance() on the Class for java.lang.Class"
+                );
+            }
+            try {
+                final Constructor c =
+                  getConstructor0(new Class[] {}, Member.DECLARED);
+                // Disable accessibility checks on the constructor
+                // since we have to do the security check here anyway
+                // (the stack depth is wrong for the Constructor's
+                // security check to work)
+                java.security.AccessController.doPrivileged
+                    (new java.security.PrivilegedAction() {
+                            public Object run() {
+                                c.setAccessible(true);
+                                return null;
+                            }
+                        });
+                cachedConstructor = c;
+            } catch (NoSuchMethodException e) {
+                throw new InstantiationException(getName());
+            }
+        }
+        Constructor tmpConstructor = cachedConstructor;
+        // Security check (same as in java.lang.reflect.Constructor)
+        int modifiers = tmpConstructor.getModifiers();
+        if (!Reflection.quickCheckMemberAccess(this, modifiers)) {
+            Class caller = Reflection.getCallerClass(3);
+            if (newInstanceCallerCache != caller) {
+                Reflection.ensureMemberAccess(caller, this, null, modifiers);
+                newInstanceCallerCache = caller;
+            }
+        }
+        // Run constructor
+        try {
+            return tmpConstructor.newInstance(null);
+        } catch (InvocationTargetException e) {
+            Unsafe.getUnsafe().throwException(e.getTargetException());
+            // Not reached
+            return null;
+        }
+    }
+    private volatile transient Constructor cachedConstructor;
+    private volatile transient Class       newInstanceCallerCache;
 
 
     /**
@@ -346,30 +414,18 @@ class Class implements java.io.Serializable {
      */
     public native boolean isPrimitive();
 
-
     /**
-     * Returns the fully-qualified name of the entity (class, interface, array
-     * class, primitive type, or void) represented by this <code>Class</code>
-     * object, as a <code>String</code>.
-     *
-     * <p> If this <code>Class</code> object represents a class of arrays, then
-     * the internal form of the name consists of the name of the element type
-     * in Java signature format, preceded by one or more "<tt>[</tt>"
-     * characters representing the depth of array nesting. Thus:
-     *
-     * <blockquote><pre>
-     * (new Object[3]).getClass().getName()
-     * </pre></blockquote>
-     *
-     * returns "<code>[Ljava.lang.Object;</code>" and:
-     *
-     * <blockquote><pre>
-     * (new int[3][4][5][6][7][8][9]).getClass().getName()
-     * </pre></blockquote>
-     *
-     * returns "<code>[[[[[[[I</code>". The encoding of element type names 
+     * Returns the  name of the entity (class, interface,
+     * array class, primitive type, or void) 
+     * represented by this <code>Class</code> object, as a <code>String</code>.
+     * <p>
+     * If this class object represents a reference type that is not an array 
+     * type then the binary name of the class is returned, as specified by 
+     * the Java Language Specification, Second Edition.
+     * If this class object represents a primitive type or void, then the
+     * name returned is the name determined by the following table.
+     * The encoding of element type names 
      * is as follows:
-     *
      * <blockquote><pre>
      * B            byte
      * C            char
@@ -380,12 +436,24 @@ class Class implements java.io.Serializable {
      * L<i>classname;</i>  class or interface
      * S            short
      * Z            boolean
+     * V	    void
      * </pre></blockquote>
+     * If this class object represents a class of arrays, then the internal 
+     * form of the name consists of the name of the element type
+     * as specified above, preceded by one or more "<tt>[</tt>" 
+     * characters representing the depth of array nesting. Thus:
+     * <blockquote><pre>
+     * (new Object[3]).getClass().getName()
+     * </pre></blockquote>
+     * returns "<code>[Ljava.lang.Object;</code>" and:
+     * <blockquote><pre>
+     * (new int[3][4][5][6][7][8][9]).getClass().getName()
+     * </pre></blockquote>
+     * returns "<code>[[[[[[[I</code>".
+     * The class or interface name <tt><i>classname</i></tt> is given in 
+     * fully qualified form as shown in the example above.
      *
-     * The class or interface name <tt><i>classname</i></tt> is given in fully
-     * qualified form as shown in the example above.
-     *
-     * @return  the fully qualified name of the class or interface
+     * @return  the name of the class or interface
      *          represented by this object.
      */
     public native String getName();
@@ -431,8 +499,8 @@ class Class implements java.io.Serializable {
         return cl;
     }
 
-
-    private native ClassLoader getClassLoader0();
+    // Package-private to allow ClassLoader access
+    native ClassLoader getClassLoader0();
 
 
     /**
@@ -538,10 +606,10 @@ class Class implements java.io.Serializable {
      * modifiers are the same as those of its component type.  If this
      * <code>Class</code> represents a primitive type or void, its
      * <code>public</code> modifier is always <code>true</code>, and its
-     * <code>protected</code> and <code>private</code> modifers are always
+     * <code>protected</code> and <code>private</code> modifiers are always
      * <code>false</code>. If this object represents an array class, a
      * primitive type or void, then its <code>final</code> modifier is always
-     * <code>true</code> and its interface modifer is always
+     * <code>true</code> and its interface modifier is always
      * <code>false</code>. The values of its other modifiers are not determined
      * by this specification.
      *
@@ -672,7 +740,7 @@ class Class implements java.io.Serializable {
      * method with the package name as its argument. Either of these calls
      * could result in a SecurityException.
      * 
-     * <p> The implicit length field for array classs is not reflected by this
+     * <p> The implicit length field for array class is not reflected by this
      * method. User code should use the methods of class <code>Array</code> to
      * manipulate arrays.
      *
@@ -691,7 +759,7 @@ class Class implements java.io.Serializable {
 	// checkMemberAccess call for security reasons 
 	// see java.lang.SecurityManager.checkMemberAccess
         checkMemberAccess(Member.PUBLIC, ClassLoader.getCallerClassLoader());
-        return getFields0(Member.PUBLIC);
+        return copyFields(privateGetPublicFields(null));
     }
 
 
@@ -714,7 +782,7 @@ class Class implements java.io.Serializable {
      * method with the package name 
      * as its argument. Either of these calls could result in a SecurityException.
      * 
-     * <p> The class initialization method <code>&lt;clinit></code> is not
+     * <p> The class initialization method <code>&lt;clinit&gt;</code> is not
      * included in the returned array. If the class declares multiple public
      * member methods with the same parameter types, they are all included in
      * the returned array.
@@ -734,7 +802,7 @@ class Class implements java.io.Serializable {
 	// checkMemberAccess call for security reasons 
 	// see java.lang.SecurityManager.checkMemberAccess
         checkMemberAccess(Member.PUBLIC, ClassLoader.getCallerClassLoader());
-        return getMethods0(Member.PUBLIC);
+        return copyMethods(privateGetPublicMethods());
     }
 
 
@@ -767,7 +835,7 @@ class Class implements java.io.Serializable {
 	// checkMemberAccess call for security reasons 
 	// see java.lang.SecurityManager.checkMemberAccess
         checkMemberAccess(Member.PUBLIC, ClassLoader.getCallerClassLoader());
-        return getConstructors0(Member.PUBLIC);
+        return copyConstructors(privateGetDeclaredConstructors(true));
     }
 
 
@@ -840,7 +908,7 @@ class Class implements java.io.Serializable {
      * method with the package name 
      * as its argument. Either of these calls could result in a SecurityException.
      *
-     * <p> If the <code>name</code> is "&lt;init>"or "&lt;clinit>" a
+     * <p> If the <code>name</code> is "&lt;init&gt;"or "&lt;clinit&gt;" a
      * <code>NoSuchMethodException</code> is raised. Otherwise, the method to
      * be reflected is determined by the algorithm that follows.  Let C be the
      * class represented by this object:
@@ -867,7 +935,7 @@ class Class implements java.io.Serializable {
      * @return the <code>Method</code> object that matches the specified
      * <code>name</code> and <code>parameterTypes</code>
      * @exception NoSuchMethodException if a matching method is not found
-     *            or if then name is "&lt;init>"or "&lt;clinit>".
+     *            or if then name is "&lt;init&gt;"or "&lt;clinit&gt;".
      * @exception SecurityException    if access to the information is denied.
      * @see       java.lang.reflect.Method
      * @see       SecurityManager#checkMemberAccess(Class, int)
@@ -990,7 +1058,7 @@ class Class implements java.io.Serializable {
 	// checkMemberAccess call for security reasons 
 	// see java.lang.SecurityManager.checkMemberAccess
         checkMemberAccess(Member.DECLARED, ClassLoader.getCallerClassLoader());
-        return getFields0(Member.DECLARED);
+        return copyFields(privateGetDeclaredFields(false));
     }
 
 
@@ -1031,7 +1099,7 @@ class Class implements java.io.Serializable {
 	// checkMemberAccess call for security reasons 
 	// see java.lang.SecurityManager.checkMemberAccess
         checkMemberAccess(Member.DECLARED, ClassLoader.getCallerClassLoader());
-        return getMethods0(Member.DECLARED);
+        return copyMethods(privateGetDeclaredMethods(false));
     }
 
 
@@ -1069,7 +1137,7 @@ class Class implements java.io.Serializable {
 	// checkMemberAccess call for security reasons 
 	// see java.lang.SecurityManager.checkMemberAccess
         checkMemberAccess(Member.DECLARED, ClassLoader.getCallerClassLoader());
-        return getConstructors0(Member.DECLARED);
+        return copyConstructors(privateGetDeclaredConstructors(false));
     }
 
 
@@ -1120,7 +1188,7 @@ class Class implements java.io.Serializable {
      * parameter types is declared in a class, and one of these methods has a
      * return type that is more specific than any of the others, that method is
      * returned; otherwise one of the methods is chosen arbitrarily.  If the
-     * name is "&lt;init>"or "&lt;clinit>" a <code>NoSuchMethodException</code>
+     * name is "&lt;init&gt;"or "&lt;clinit&gt;" a <code>NoSuchMethodException</code>
      * is raised.
      *
      * <p>If there is a security manager, this method first
@@ -1202,6 +1270,7 @@ class Class implements java.io.Serializable {
      *
      * @param name  name of the desired resource
      * @return      a <code>java.io.InputStream</code> object.
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
      * @see         java.lang.ClassLoader
      * @since JDK1.1
      */
@@ -1266,7 +1335,7 @@ class Class implements java.io.Serializable {
      * @throws SecurityException
      *        if a security manager exists and its 
      *        <code>checkPermission</code> method doesn't allow 
-     *        geting the ProtectionDomain.
+     *        getting the ProtectionDomain.
      *
      * @see java.security.ProtectionDomain
      * @see SecurityManager#checkPermission
@@ -1367,16 +1436,382 @@ class Class implements java.io.Serializable {
         return name;
     }
 
+    /**
+     * Reflection support.
+     */
 
-    private native Field[] getFields0(int which);
-    private native Method[] getMethods0(int which);
-    private native Constructor[] getConstructors0(int which);
-    private native Field getField0(String name, int which);
-    private native Method getMethod0(String name, Class[] parameterTypes,
-        int which);
-    private native Constructor getConstructor0(Class[] parameterTypes,
-        int which);
-    private native Class[] getDeclaredClasses0();
+    // Caches for certain reflective results
+    private static boolean useCaches = true;
+    private volatile transient SoftReference declaredFields;
+    private volatile transient SoftReference publicFields;
+    private volatile transient SoftReference declaredMethods;
+    private volatile transient SoftReference publicMethods;
+    private volatile transient SoftReference declaredConstructors;
+    private volatile transient SoftReference publicConstructors;
+    // Intermediate results for getFields and getMethods
+    private volatile transient SoftReference declaredPublicFields;
+    private volatile transient SoftReference declaredPublicMethods;
+
+    //
+    //
+    // java.lang.reflect.Field handling
+    //
+    //
+
+    // Returns an array of "root" fields. These Field objects must NOT
+    // be propagated to the outside world, but must instead be copied
+    // via ReflectionFactory.copyField.
+    private Field[] privateGetDeclaredFields(boolean publicOnly) {
+        checkInitted();
+        Field[] res = null;
+        if (useCaches) {
+            if (publicOnly) {
+                if (declaredPublicFields != null) {
+                    res = (Field[]) declaredPublicFields.get();
+                }
+            } else {
+                if (declaredFields != null) {
+                    res = (Field[]) declaredFields.get();
+                }
+            }
+            if (res != null) return res;
+        }
+        // No cached value available; request value from VM
+        res = getDeclaredFields0(publicOnly);
+        if (useCaches) {
+            if (publicOnly) {
+                declaredPublicFields = new SoftReference(res);
+            } else {
+                declaredFields = new SoftReference(res);
+            }
+        }
+        return res;
+    }
+
+    // Returns an array of "root" fields. These Field objects must NOT
+    // be propagated to the outside world, but must instead be copied
+    // via ReflectionFactory.copyField.
+    private Field[] privateGetPublicFields(Set traversedInterfaces) {
+        checkInitted();
+        Field[] res = null;
+        if (useCaches) {
+            if (publicFields != null) {
+                res = (Field[]) publicFields.get();
+            }
+            if (res != null) return res;
+        }
+
+        // No cached value available; compute value recursively.
+        // Traverse in correct order for getField().
+        List fields = new ArrayList();
+        if (traversedInterfaces == null) {
+            traversedInterfaces = new HashSet();
+        }
+        
+        // Local fields
+        Field[] tmp = privateGetDeclaredFields(true);
+        addAll(fields, tmp);
+
+        // Direct superinterfaces, recursively
+        Class[] interfaces = getInterfaces();
+        for (int i = 0; i < interfaces.length; i++) {
+            Class c = interfaces[i];
+            if (!traversedInterfaces.contains(c)) {
+                traversedInterfaces.add(c);
+                addAll(fields, c.privateGetPublicFields(traversedInterfaces));
+            }
+        }
+
+        // Direct superclass, recursively
+        if (!isInterface()) {
+            Class c = getSuperclass();
+            if (c != null) {
+                addAll(fields, c.privateGetPublicFields(traversedInterfaces));
+            }
+        }
+
+        res = new Field[fields.size()];
+        fields.toArray(res);
+        if (useCaches) {
+            publicFields = new SoftReference(res);
+        }
+        return res;
+    }
+
+    private static void addAll(Collection c, Field[] o) {
+        for (int i = 0; i < o.length; i++) {
+            c.add(o[i]);
+        }
+    }
+
+
+    //
+    //
+    // java.lang.reflect.Constructor handling
+    //
+    //
+
+    // Returns an array of "root" constructors. These Constructor
+    // objects must NOT be propagated to the outside world, but must
+    // instead be copied via ReflectionFactory.copyConstructor.
+    private Constructor[] privateGetDeclaredConstructors(boolean publicOnly) {
+        checkInitted();
+        Constructor[] res = null;
+        if (useCaches) {
+            if (publicOnly) {
+                if (publicConstructors != null) {
+                    res = (Constructor[]) publicConstructors.get();
+                }
+            } else {
+                if (declaredConstructors != null) {
+                    res = (Constructor[]) declaredConstructors.get();
+                }
+            }
+            if (res != null) return res;
+        }
+        // No cached value available; request value from VM
+        if (isInterface()) {
+            res = new Constructor[0];
+        } else {
+            res = getDeclaredConstructors0(publicOnly);
+        }
+        if (useCaches) {
+            if (publicOnly) {
+                publicConstructors = new SoftReference(res);
+            } else {
+                declaredConstructors = new SoftReference(res);
+            }
+        }
+        return res;
+    }
+
+    //
+    //
+    // java.lang.reflect.Method handling
+    //
+    //
+
+    // Returns an array of "root" methods. These Method objects must NOT
+    // be propagated to the outside world, but must instead be copied
+    // via ReflectionFactory.copyMethod.
+    private Method[] privateGetDeclaredMethods(boolean publicOnly) {
+        checkInitted();
+        Method[] res = null;
+        if (useCaches) {
+            if (publicOnly) {
+                if (declaredPublicMethods != null) {
+                    res = (Method[]) declaredPublicMethods.get();
+                }
+            } else {
+                if (declaredMethods != null) {
+                    res = (Method[]) declaredMethods.get();
+                }
+            }
+            if (res != null) return res;
+        }
+        // No cached value available; request value from VM
+        res = getDeclaredMethods0(publicOnly);
+        if (useCaches) {
+            if (publicOnly) {
+                declaredPublicMethods = new SoftReference(res);
+            } else {
+                declaredMethods = new SoftReference(res);
+            }
+        }
+        return res;
+    }
+
+    // Returns an array of "root" methods. These Method objects must NOT
+    // be propagated to the outside world, but must instead be copied
+    // via ReflectionFactory.copyMethod.
+    private Method[] privateGetPublicMethods() {
+        checkInitted();
+        Method[] res = null;
+        if (useCaches) {
+            if (publicMethods != null) {
+                res = (Method[]) publicMethods.get();
+            }
+            if (res != null) return res;
+        }
+
+        // No cached value available; compute value recursively.
+        // Start by fetching public declared methods
+        List methods = new LinkedList();
+        {
+            Method[] tmp = privateGetDeclaredMethods(true);
+            addAll(methods, tmp);
+        }
+        // Now recur over superclass and direct superinterfaces.
+        // Go over superinterfaces first so we can more easily filter
+        // out concrete implementations inherited from superclasses at
+        // the end.
+        List inheritedMethods = new LinkedList();
+        Class[] interfaces = getInterfaces();
+        for (int i = 0; i < interfaces.length; i++) {
+            addAll(inheritedMethods, interfaces[i].privateGetPublicMethods());
+        }
+        if (!isInterface()) {
+            Class c = getSuperclass();
+            if (c != null) {
+                List superList = new LinkedList();
+                addAll(superList, c.privateGetPublicMethods());
+                // Filter out concrete implementations of any
+                // interface methods
+                for (Iterator iter = superList.iterator(); iter.hasNext(); ) {
+                    Method m = (Method) iter.next();
+                    if (!Modifier.isAbstract(m.getModifiers())) {
+                        removeByNameAndSignature(inheritedMethods, m);
+                    }
+                }
+                // Insert superclass's inherited methods before
+                // superinterfaces' to satisfy getMethod's search
+                // order
+                inheritedMethods.addAll(0, superList);
+            }
+        }
+        // Filter out all local methods from inherited ones
+        for (Iterator iter = methods.iterator(); iter.hasNext(); ) {
+            Method m = (Method) iter.next();
+            removeByNameAndSignature(inheritedMethods, m);
+        }
+        methods.addAll(inheritedMethods);
+        res = new Method[methods.size()];
+        methods.toArray(res);
+        if (useCaches) {
+            publicMethods = new SoftReference(res);
+        }
+        return res;
+    }
+
+    private static void addAll(Collection c, Method[] o) {
+        for (int i = 0; i < o.length; i++) {
+            c.add(o[i]);
+        }
+    }
+
+    private static void removeByNameAndSignature(Collection c, Method toRemove) {
+        for (Iterator iter = c.iterator(); iter.hasNext(); ) {
+            Method m = (Method) iter.next();
+            if (m.getReturnType() == toRemove.getReturnType() &&
+                m.getName().equals(toRemove.getName()) &&
+                arrayContentsEq(m.getParameterTypes(),
+                                toRemove.getParameterTypes())) {
+                iter.remove();
+            }
+        }
+    }
+
+    //
+    // Helpers for fetchers of one field, method, or constructor
+    //
+
+    private Field getField0(String name, int which) throws NoSuchFieldException {
+        Field[] fields = null;
+        if (which == Member.PUBLIC) {
+            fields = privateGetPublicFields(null);
+        } else {
+            fields = privateGetDeclaredFields(false);
+        }
+        String internedName = name.intern();
+        for (int i = 0; i < fields.length; i++) {
+            if (fields[i].getName() == internedName) {
+                return getReflectionFactory().copyField(fields[i]);
+            }
+        }
+        throw new NoSuchFieldException(name);
+    }
+
+    private Method getMethod0(String name,
+                              Class[] parameterTypes,
+                              int which) throws NoSuchMethodException
+    {
+        Method[] methods = null;
+        if (which == Member.PUBLIC) {
+            methods = privateGetPublicMethods();
+        } else {
+            methods = privateGetDeclaredMethods(false);
+        }
+        String internedName = name.intern();
+        for (int i = 0; i < methods.length; i++) {
+            if (methods[i].getName() == internedName &&
+                arrayContentsEq(parameterTypes,
+                                methods[i].getParameterTypes())) {
+                return getReflectionFactory().copyMethod(methods[i]);
+            }
+        }
+        throw new NoSuchMethodException(name);
+    }
+
+    private Constructor getConstructor0(Class[] parameterTypes,
+                                        int which) throws NoSuchMethodException
+    {
+        Constructor[] constructors = privateGetDeclaredConstructors((which == Member.PUBLIC));
+        for (int i = 0; i < constructors.length; i++) {
+            if (arrayContentsEq(parameterTypes,
+                                constructors[i].getParameterTypes())) {
+                return getReflectionFactory().copyConstructor(constructors[i]);
+            }
+        }
+        throw new NoSuchMethodException();
+    }
+
+    //
+    // Other helpers and base implementation
+    //
+
+    private static boolean arrayContentsEq(Object[] a1, Object[] a2) {
+        if (a1 == null) {
+            return a2 == null || a2.length == 0;
+        }
+
+        if (a2 == null) {
+            return a1.length == 0;
+        }
+
+        if (a1.length != a2.length) {
+            return false;
+        }
+
+        for (int i = 0; i < a1.length; i++) {
+            if (a1[i] != a2[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static Field[] copyFields(Field[] arg) {
+        Field[] out = new Field[arg.length];
+        ReflectionFactory fact = getReflectionFactory();
+        for (int i = 0; i < arg.length; i++) {
+            out[i] = fact.copyField(arg[i]);
+        }
+        return out;
+    }
+
+    private static Method[] copyMethods(Method[] arg) {
+        Method[] out = new Method[arg.length];
+        ReflectionFactory fact = getReflectionFactory();
+        for (int i = 0; i < arg.length; i++) {
+            out[i] = fact.copyMethod(arg[i]);
+        }
+        return out;
+    }
+
+    private static Constructor[] copyConstructors(Constructor[] arg) {
+        Constructor[] out = new Constructor[arg.length];
+        ReflectionFactory fact = getReflectionFactory();
+        for (int i = 0; i < arg.length; i++) {
+            out[i] = fact.copyConstructor(arg[i]);
+        }
+        return out;
+    }
+
+    private native Field[]       getDeclaredFields0(boolean publicOnly);
+    private native Method[]      getDeclaredMethods0(boolean publicOnly);
+    private native Constructor[] getDeclaredConstructors0(boolean publicOnly);
+    private native Class[]       getDeclaredClasses0();
 
 
     /** use serialVersionUID from JDK 1.1 for interoperability */
@@ -1401,4 +1836,92 @@ class Class implements java.io.Serializable {
      */
     private static final ObjectStreamField[] serialPersistentFields = 
         ObjectStreamClass.NO_FIELDS;
+
+
+    /**
+     * Returns the assertion status that would be assigned to this
+     * class if it were to be initialized at the time this method is invoked.
+     * If this class has had its assertion status set, the most recent
+     * setting will be returned; otherwise, if any package default assertion
+     * status pertains to this class, the most recent setting for the most
+     * specific pertinent package default assertion status is returned;
+     * otherwise, if this class is not a system class (i.e., it has a
+     * class loader) its class loader's default assertion status is returned;
+     * otherwise, the system class default assertion status is returned.
+     * <p>
+     * Few programmers will have any need for this method; it is provided
+     * for the benefit of the JRE itself.  (It allows a class to determine at
+     * the time that it is initialized whether assertions should be enabled.)
+     * Note that this method is not guaranteed to return the actual
+     * assertion status that was (or will be) associated with the specified
+     * class when it was (or will be) initialized.
+     *
+     * @return the desired assertion status of the specified class.
+     * @see    java.lang.ClassLoader#setClassAssertionStatus
+     * @see    java.lang.ClassLoader#setPackageAssertionStatus
+     * @see    java.lang.ClassLoader#setDefaultAssertionStatus
+     * @since  1.4
+     */
+    public boolean desiredAssertionStatus() {
+        ClassLoader loader = getClassLoader();
+        // If the loader is null this is a system class, so ask the VM
+        if (loader == null)
+            return desiredAssertionStatus0(this);
+
+        synchronized(loader) {
+            // If the classloader has been initialized with
+            // the assertion directives, ask it. Otherwise,
+            // ask the VM.
+            return (loader.classAssertionStatus == null ?
+                    desiredAssertionStatus0(this) :
+                    loader.desiredAssertionStatus(getName()));
+        }
+    }
+
+    // Retrieves the desired assertion status of this class from the VM
+    private static native boolean desiredAssertionStatus0(Class clazz);
+
+    // Fetches the factory for reflective objects
+    private static ReflectionFactory getReflectionFactory() {
+        if (reflectionFactory == null) {
+            reflectionFactory =  (ReflectionFactory)
+                java.security.AccessController.doPrivileged
+                    (new sun.reflect.ReflectionFactory.GetReflectionFactoryAction());
+        }
+        return reflectionFactory;
+    }
+    private static ReflectionFactory reflectionFactory;
+
+    // To be able to query system properties as soon as they're available
+    private static boolean initted = false;
+    private static void checkInitted() {
+        if (initted) return;
+        AccessController.doPrivileged(new PrivilegedAction() {
+                public Object run() {
+                    // Tests to ensure the system properties table is fully
+                    // initialized. This is needed because reflection code is
+                    // called very early in the initialization process (before
+                    // command-line arguments have been parsed and therefore
+                    // these user-settable properties installed.) We assume that
+                    // if System.out is non-null then the System class has been
+                    // fully initialized and that the bulk of the startup code
+                    // has been run.
+
+                    if (System.out == null) {
+                        // java.lang.System not yet fully initialized
+                        return null;
+                    }
+
+                    String val =
+                        System.getProperty("sun.reflect.noCaches");
+                    if (val != null && val.equals("true")) {
+                        useCaches = false;
+                    }
+          
+                    initted = true;
+                    return null;
+                }
+            });
+    }
+
 }

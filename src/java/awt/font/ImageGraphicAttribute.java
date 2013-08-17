@@ -1,4 +1,6 @@
 /*
+ * @(#)ImageGraphicAttribute.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -97,7 +99,7 @@ public final class ImageGraphicAttribute extends GraphicAttribute {
     }
 
     /**
-     * Returns the descent of this <code>ImageGraphicAttribute</code..
+     * Returns the descent of this <code>ImageGraphicAttribute</code>.
      * The descent of an <code>ImageGraphicAttribute</code> is the
      * distance from the origin to the bottom of the image.
      * @return the descent of this <code>ImageGraphicAttribute</code>.
@@ -137,7 +139,8 @@ public final class ImageGraphicAttribute extends GraphicAttribute {
      * Renders the graphic at the specified location.
      * @param graphics the {@link Graphics2D} into which to render the
      * graphic
-     * @param x the user-space coordinates where the graphic is rendered
+     * @param x,&nbsp;y the user-space coordinates where the graphic is 
+     * rendered
      */
     public void draw(Graphics2D graphics, float x, float y) {
 

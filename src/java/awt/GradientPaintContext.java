@@ -1,4 +1,6 @@
 /*
+ * @(#)GradientPaintContext.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,10 +15,52 @@ import java.awt.image.DirectColorModel;
 import java.awt.geom.Point2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
+import java.lang.ref.WeakReference;
 
 class GradientPaintContext implements PaintContext {
     static ColorModel xrgbmodel =
 	new DirectColorModel(24, 0x00ff0000, 0x0000ff00, 0x000000ff);
+    static ColorModel xbgrmodel =
+	new DirectColorModel(24, 0x000000ff, 0x0000ff00, 0x00ff0000);
+
+    static ColorModel cachedModel;
+    static WeakReference cached;
+
+    static synchronized Raster getCachedRaster(ColorModel cm, int w, int h) {
+	if (cm == cachedModel) {
+	    if (cached != null) {
+		Raster ras = (Raster) cached.get();
+		if (ras != null &&
+		    ras.getWidth() >= w &&
+		    ras.getHeight() >= h)
+		{
+		    cached = null;
+		    return ras;
+		}
+	    }
+	}
+	return cm.createCompatibleWritableRaster(w, h);
+    }
+
+    static synchronized void putCachedRaster(ColorModel cm, Raster ras) {
+	if (cached != null) {
+	    Raster cras = (Raster) cached.get();
+	    if (cras != null) {
+		int cw = cras.getWidth();
+		int ch = cras.getHeight();
+		int iw = ras.getWidth();
+		int ih = ras.getHeight();
+		if (cw >= iw && ch >= ih) {
+		    return;
+		}
+		if (cw * ch >= iw * ih) {
+		    return;
+		}
+	    }
+	}
+	cachedModel = cm;
+	cached = new WeakReference(ras);
+    }
 
     double x1;
     double y1;
@@ -27,7 +71,8 @@ class GradientPaintContext implements PaintContext {
     Raster saved;
     ColorModel model;
 
-    public GradientPaintContext(Point2D p1, Point2D p2, AffineTransform xform,
+    public GradientPaintContext(ColorModel cm,
+				Point2D p1, Point2D p2, AffineTransform xform,
 				Color c1, Color c2, boolean cyclic) {
 	// First calculate the distance moved in user space when
 	// we move a single unit along the X & Y axes in device space.
@@ -105,8 +150,21 @@ class GradientPaintContext implements PaintContext {
 	int dr = ((rgb2 >> 16) & 0xff) - r1;
 	int dg = ((rgb2 >>  8) & 0xff) - g1;
 	int db = ((rgb2      ) & 0xff) - b1;
-	if (((rgb1 & rgb2) >>> 24) == 0xff) {
+	if (a1 == 0xff && da == 0) {
 	    model = xrgbmodel;
+	    if (cm instanceof DirectColorModel) {
+		DirectColorModel dcm = (DirectColorModel) cm;
+		int tmp = dcm.getAlphaMask();
+		if ((tmp == 0 || tmp == 0xff) &&
+		    dcm.getRedMask() == 0xff &&
+		    dcm.getGreenMask() == 0xff00 &&
+		    dcm.getBlueMask() == 0xff0000)
+		{
+		    model = xbgrmodel;
+		    tmp = r1; r1 = b1; b1 = tmp;
+		    tmp = dr; dr = db; db = tmp;
+		}
+	    }
 	} else {
 	    model = ColorModel.getRGBdefault();
 	}
@@ -129,7 +187,10 @@ class GradientPaintContext implements PaintContext {
      * Release the resources allocated for the operation.
      */
     public void dispose() {
-	saved = null;
+	if (saved != null) {
+	    putCachedRaster(model, saved);
+	    saved = null;
+	}
     }
 
     /**
@@ -150,7 +211,7 @@ class GradientPaintContext implements PaintContext {
 
 	Raster rast = saved;
 	if (rast == null || rast.getWidth() < w || rast.getHeight() < h) {
-	    rast = getColorModel().createCompatibleWritableRaster(w, h);
+	    rast = getCachedRaster(model, w, h);
 	    saved = rast;
 	}
 	IntegerComponentRaster irast = (IntegerComponentRaster) rast;

@@ -1,4 +1,6 @@
 /*
+ * @(#)BitSet.java	1.54 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -24,10 +26,17 @@ import java.io.*;
  * related to the implementation of a bit set, so it may change with
  * implementation. The length of a bit set relates to logical length
  * of a bit set and is defined independently of implementation.
+ * <p>
+ * Unless otherwise noted, passing a null parameter to any of the
+ * methods in a <code>BitSet</code> will result in a
+ * <code>NullPointerException</code>.
+ *
+ * A <code>BitSet</code> is not safe for multithreaded use without
+ * external synchronization.
  *
  * @author  Arthur van Hoff
  * @author  Michael McCloskey
- * @version 1.47, 02/06/02
+ * @version 1.54, 12/03/01
  * @since   JDK1.0
  */
 public class BitSet implements Cloneable, java.io.Serializable {
@@ -39,6 +48,9 @@ public class BitSet implements Cloneable, java.io.Serializable {
     private final static int ADDRESS_BITS_PER_UNIT = 6;
     private final static int BITS_PER_UNIT = 1 << ADDRESS_BITS_PER_UNIT;
     private final static int BIT_INDEX_MASK = BITS_PER_UNIT - 1;
+
+    /* Used to shift left or right for a partial word mask */
+    private static final long WORD_MASK = 0xffffffffffffffffL;
 
     /**
      * The bits in this BitSet.  The ith bit is stored in bits[i/64] at
@@ -80,13 +92,13 @@ public class BitSet implements Cloneable, java.io.Serializable {
      * in use is less than or equal to the current value of unitsInUse!
      */
     private void recalculateUnitsInUse() {
-        /* Traverse the bitset until a used unit is found */
+        // Traverse the bitset until a used unit is found
         int i;
         for (i = unitsInUse-1; i >= 0; i--)
 	    if(bits[i] != 0)
-		break; //this unit is in use!
+		break;
 
-        unitsInUse = i+1; //the new logical size
+        unitsInUse = i+1; // The new logical size
     }
 
     /**
@@ -106,9 +118,9 @@ public class BitSet implements Cloneable, java.io.Serializable {
      *               is negative.
      */
     public BitSet(int nbits) {
-	/* nbits can't be negative; size 0 is OK */
+	// nbits can't be negative; size 0 is OK
 	if (nbits < 0)
-	    throw new NegativeArraySizeException(Integer.toString(nbits));
+	    throw new NegativeArraySizeException("nbits < 0: " + nbits);
 
 	bits = new long[(unitIndex(nbits-1) + 1)];
     }
@@ -119,7 +131,7 @@ public class BitSet implements Cloneable, java.io.Serializable {
      */
     private void ensureCapacity(int unitsRequired) {
 	if (bits.length < unitsRequired) {
-	    /* Allocate larger of doubled size or required size */
+	    // Allocate larger of doubled size or required size
 	    int request = Math.max(2 * bits.length, unitsRequired);
 	    long newBits[] = new long[request];
 	    System.arraycopy(bits, 0, newBits, 0, unitsInUse);
@@ -128,28 +140,111 @@ public class BitSet implements Cloneable, java.io.Serializable {
     }
 
     /**
-     * Returns the "logical size" of this <code>BitSet</code>: the index of
-     * the highest set bit in the <code>BitSet</code> plus one. Returns zero
-     * if the <code>BitSet</code> contains no set bits.
-     *
-     * @return  the logical size of this <code>BitSet</code>.
-     * @since   1.2
+     * Sets the bit at the specified index to to the complement of its
+     * current value.
+     * 
+     * @param   bitIndex the index of the bit to flip.
+     * @exception IndexOutOfBoundsException if the specified index is negative.
+     * @since   1.4
      */
-    public int length() {
-        if (unitsInUse == 0)
-            return 0;
+    public void flip(int bitIndex) {
+	if (bitIndex < 0)
+	    throw new IndexOutOfBoundsException("bitIndex < 0: " + bitIndex);
+        
+	int unitIndex = unitIndex(bitIndex);
+        int unitsRequired = unitIndex+1;
 
-        int highestBit = (unitsInUse - 1) * 64;
-	long highestUnit = bits[unitsInUse - 1];
-	do {
-            highestUnit = highestUnit >>> 1;
-            highestBit++;
-        } while(highestUnit > 0);
-        return highestBit;
+        if (unitsInUse < unitsRequired) {
+            ensureCapacity(unitsRequired);
+            bits[unitIndex] ^= bit(bitIndex);
+            unitsInUse = unitsRequired;
+        } else {
+            bits[unitIndex] ^= bit(bitIndex);
+            if (bits[unitsInUse-1] == 0)
+                recalculateUnitsInUse();
+        }
     }
 
     /**
-     * Sets the bit specified by the index to <code>true</code>.
+     * Sets each bit from the specified fromIndex(inclusive) to the
+     * specified toIndex(exclusive) to the complement of its current
+     * value.
+     * 
+     * @param     fromIndex   index of the first bit to flip.
+     * @param     toIndex index after the last bit to flip.
+     * @exception IndexOutOfBoundsException if <tt>fromIndex</tt> is negative,
+     *            or <tt>toIndex</tt> is negative, or <tt>fromIndex</tt> is
+     *            larger than <tt>toIndex</tt>.
+     * @since   1.4
+     */
+    public void flip(int fromIndex, int toIndex) {
+	if (fromIndex < 0)
+	    throw new IndexOutOfBoundsException("fromIndex < 0: " + fromIndex);
+        if (toIndex < 0)
+	    throw new IndexOutOfBoundsException("toIndex < 0: " + toIndex);
+        if (fromIndex > toIndex)
+	    throw new IndexOutOfBoundsException("fromIndex: " + fromIndex +
+                                                " > toIndex: " + toIndex);
+        
+        // Increase capacity if necessary
+        int endUnitIndex = unitIndex(toIndex);
+        int unitsRequired = endUnitIndex + 1;
+
+        if (unitsInUse < unitsRequired) {
+            ensureCapacity(unitsRequired);
+            unitsInUse = unitsRequired;
+        }
+
+        int startUnitIndex = unitIndex(fromIndex);
+        long bitMask = 0;
+        if (startUnitIndex == endUnitIndex) {
+            // Case 1: One word
+            bitMask = (1L << (toIndex & BIT_INDEX_MASK)) -
+                      (1L << (fromIndex & BIT_INDEX_MASK));
+            bits[startUnitIndex] ^= bitMask;
+            if (bits[unitsInUse-1] == 0)
+                recalculateUnitsInUse();
+            return;
+        }
+        
+        // Case 2: Multiple words
+        // Handle first word
+        bitMask = bitsLeftOf(fromIndex & BIT_INDEX_MASK);
+        bits[startUnitIndex] ^= bitMask;
+
+        // Handle intermediate words, if any
+        if (endUnitIndex - startUnitIndex > 1) {
+            for(int i=startUnitIndex+1; i<endUnitIndex; i++)
+                bits[i] ^= WORD_MASK;
+        }
+
+        // Handle last word
+        bitMask = bitsRightOf(toIndex & BIT_INDEX_MASK);
+        bits[endUnitIndex] ^= bitMask;
+
+        // Check to see if we reduced size
+        if (bits[unitsInUse-1] == 0)
+            recalculateUnitsInUse();
+    }
+
+    /**
+     * Returns a long that has all bits that are less significant
+     * than the specified index set to 1. All other bits are 0.
+     */
+    private static long bitsRightOf(int x) {
+        return (x==0 ? 0 : WORD_MASK >>> (64-x));
+    }
+
+    /**
+     * Returns a long that has all the bits that are more significant
+     * than or equal to the specified index set to 1. All other bits are 0.
+     */
+    private static long bitsLeftOf(int x) {
+        return WORD_MASK << x;
+    }
+
+    /**
+     * Sets the bit at the specified index to <code>true</code>.
      *
      * @param     bitIndex   a bit index.
      * @exception IndexOutOfBoundsException if the specified index is negative.
@@ -157,10 +252,10 @@ public class BitSet implements Cloneable, java.io.Serializable {
      */
     public void set(int bitIndex) {
 	if (bitIndex < 0)
-	    throw new IndexOutOfBoundsException(Integer.toString(bitIndex));
+	    throw new IndexOutOfBoundsException("bitIndex < 0: " + bitIndex);
 
         int unitIndex = unitIndex(bitIndex);
-        int unitsRequired = unitIndex+1;
+        int unitsRequired = unitIndex + 1;
 
         if (unitsInUse < unitsRequired) {
             ensureCapacity(unitsRequired);
@@ -172,6 +267,95 @@ public class BitSet implements Cloneable, java.io.Serializable {
     }
 
     /**
+     * Sets the bit at the specified index to the specified value.
+     *
+     * @param     bitIndex   a bit index.
+     * @param     value a boolean value to set.
+     * @exception IndexOutOfBoundsException if the specified index is negative.
+     * @since     1.4
+     */
+    public void set(int bitIndex, boolean value) {
+        if (value)
+            set(bitIndex);
+        else
+            clear(bitIndex);
+    }
+
+    /**
+     * Sets the bits from the specified fromIndex(inclusive) to the
+     * specified toIndex(exclusive) to <code>true</code>.
+     *
+     * @param     fromIndex   index of the first bit to be set.
+     * @param     toIndex index after the last bit to be set.
+     * @exception IndexOutOfBoundsException if <tt>fromIndex</tt> is negative,
+     *            or <tt>toIndex</tt> is negative, or <tt>fromIndex</tt> is
+     *            larger than <tt>toIndex</tt>.
+     * @since     1.4
+     */
+    public void set(int fromIndex, int toIndex) {
+	if (fromIndex < 0)
+	    throw new IndexOutOfBoundsException("fromIndex < 0: " + fromIndex);
+        if (toIndex < 0)
+	    throw new IndexOutOfBoundsException("toIndex < 0: " + toIndex);
+        if (fromIndex > toIndex)
+	    throw new IndexOutOfBoundsException("fromIndex: " + fromIndex +
+                                                " > toIndex: " + toIndex);
+
+        // Increase capacity if necessary
+        int endUnitIndex = unitIndex(toIndex);
+        int unitsRequired = endUnitIndex + 1;
+
+        if (unitsInUse < unitsRequired) {
+            ensureCapacity(unitsRequired);
+            unitsInUse = unitsRequired;
+        }
+
+        int startUnitIndex = unitIndex(fromIndex);
+        long bitMask = 0;
+        if (startUnitIndex == endUnitIndex) {
+            // Case 1: One word
+            bitMask = (1L << (toIndex & BIT_INDEX_MASK)) -
+                      (1L << (fromIndex & BIT_INDEX_MASK));
+            bits[startUnitIndex] |= bitMask;
+            return;
+        }
+        
+        // Case 2: Multiple words
+        // Handle first word
+        bitMask = bitsLeftOf(fromIndex & BIT_INDEX_MASK);
+        bits[startUnitIndex] |= bitMask;
+
+        // Handle intermediate words, if any
+        if (endUnitIndex - startUnitIndex > 1) {
+            for(int i=startUnitIndex+1; i<endUnitIndex; i++)
+                bits[i] |= WORD_MASK;
+        }
+
+        // Handle last word
+        bitMask = bitsRightOf(toIndex & BIT_INDEX_MASK);
+        bits[endUnitIndex] |= bitMask;
+    }
+
+    /**
+     * Sets the bits from the specified fromIndex(inclusive) to the
+     * specified toIndex(exclusive) to the specified value.
+     *
+     * @param     fromIndex   index of the first bit to be set.
+     * @param     toIndex index after the last bit to be set
+     * @param     value value to set the selected bits to
+     * @exception IndexOutOfBoundsException if <tt>fromIndex</tt> is negative,
+     *            or <tt>toIndex</tt> is negative, or <tt>fromIndex</tt> is
+     *            larger than <tt>toIndex</tt>.
+     * @since     1.4
+     */
+    public void set(int fromIndex, int toIndex, boolean value) {
+	if (value)
+            set(fromIndex, toIndex);
+        else
+            clear(fromIndex, toIndex);
+    }
+
+    /**
      * Sets the bit specified by the index to <code>false</code>.
      *
      * @param     bitIndex   the index of the bit to be cleared.
@@ -180,7 +364,8 @@ public class BitSet implements Cloneable, java.io.Serializable {
      */
     public void clear(int bitIndex) {
 	if (bitIndex < 0)
-	    throw new IndexOutOfBoundsException(Integer.toString(bitIndex));
+	    throw new IndexOutOfBoundsException("bitIndex < 0: " + bitIndex);
+
 	int unitIndex = unitIndex(bitIndex);
 	if (unitIndex >= unitsInUse)
 	    return;
@@ -191,22 +376,72 @@ public class BitSet implements Cloneable, java.io.Serializable {
     }
 
     /**
-     * Clears all of the bits in this <code>BitSet</code> whose corresponding
-     * bit is set in the specified <code>BitSet</code>.
+     * Sets the bits from the specified fromIndex(inclusive) to the
+     * specified toIndex(exclusive) to <code>false</code>.
      *
-     * @param     set the <code>BitSet</code> with which to mask this
-     *            <code>BitSet</code>.
-     * @since     1.2
+     * @param     fromIndex   index of the first bit to be cleared.
+     * @param     toIndex index after the last bit to be cleared. 
+     * @exception IndexOutOfBoundsException if <tt>fromIndex</tt> is negative,
+     *            or <tt>toIndex</tt> is negative, or <tt>fromIndex</tt> is
+     *            larger than <tt>toIndex</tt>.
+     * @since     1.4
      */
-    public void andNot(BitSet set) {
-        int unitsInCommon = Math.min(unitsInUse, set.unitsInUse);
+    public void clear(int fromIndex, int toIndex) {
+	if (fromIndex < 0)
+	    throw new IndexOutOfBoundsException("fromIndex < 0: " + fromIndex);
+        if (toIndex < 0)
+	    throw new IndexOutOfBoundsException("toIndex < 0: " + toIndex);
+        if (fromIndex > toIndex)
+	    throw new IndexOutOfBoundsException("fromIndex: " + fromIndex +
+                                                " > toIndex: " + toIndex);
 
-	// perform logical (a & !b) on bits in common
-        for (int i=0; i<unitsInCommon; i++) {
-	    bits[i] &= ~set.bits[i];
+        int startUnitIndex = unitIndex(fromIndex);
+	if (startUnitIndex >= unitsInUse)
+	    return;
+        int endUnitIndex = unitIndex(toIndex);
+
+        long bitMask = 0;
+        if (startUnitIndex == endUnitIndex) {
+            // Case 1: One word
+            bitMask = (1L << (toIndex & BIT_INDEX_MASK)) -
+                      (1L << (fromIndex & BIT_INDEX_MASK));
+            bits[startUnitIndex] &= ~bitMask;
+            if (bits[unitsInUse-1] == 0)
+                recalculateUnitsInUse();
+            return;
         }
 
-        recalculateUnitsInUse();
+        // Case 2: Multiple words
+        // Handle first word
+        bitMask = bitsLeftOf(fromIndex & BIT_INDEX_MASK);
+        bits[startUnitIndex] &= ~bitMask;
+
+        // Handle intermediate words, if any
+        if (endUnitIndex - startUnitIndex > 1) {
+            for(int i=startUnitIndex+1; i<endUnitIndex; i++) {
+                if (i < unitsInUse)
+                    bits[i] = 0;
+            }
+        }
+
+        // Handle last word
+        if (endUnitIndex < unitsInUse) {
+            bitMask = bitsRightOf(toIndex & BIT_INDEX_MASK);
+            bits[endUnitIndex] &= ~bitMask;
+        }
+
+        if (bits[unitsInUse-1] == 0)
+            recalculateUnitsInUse();
+    }
+
+    /**
+     * Sets all of the bits in this BitSet to <code>false</code>.
+     *
+     * @since   1.4
+     */
+    public void clear() {
+        while (unitsInUse > 0)
+            bits[--unitsInUse] = 0;
     }
 
     /**
@@ -221,7 +456,7 @@ public class BitSet implements Cloneable, java.io.Serializable {
      */
     public boolean get(int bitIndex) {
 	if (bitIndex < 0)
-	    throw new IndexOutOfBoundsException(Integer.toString(bitIndex));
+	    throw new IndexOutOfBoundsException("bitIndex < 0: " + bitIndex);
 
 	boolean result = false;
 	int unitIndex = unitIndex(bitIndex);
@@ -229,6 +464,301 @@ public class BitSet implements Cloneable, java.io.Serializable {
 	    result = ((bits[unitIndex] & bit(bitIndex)) != 0);
 
 	return result;
+    }
+
+    /**
+     * Returns a new <tt>BitSet</tt> composed of bits from this <tt>BitSet</tt>
+     * from <tt>fromIndex</tt>(inclusive) to <tt>toIndex</tt>(exclusive).
+     *
+     * @param     fromIndex   index of the first bit to include.
+     * @param     toIndex     index after the last bit to include.
+     * @return    a new <tt>BitSet</tt> from a range of this <tt>BitSet</tt>.
+     * @exception IndexOutOfBoundsException if <tt>fromIndex</tt> is negative,
+     *            or <tt>toIndex</tt> is negative, or <tt>fromIndex</tt> is
+     *            larger than <tt>toIndex</tt>.
+     * @since   1.4
+     */
+    public BitSet get(int fromIndex, int toIndex) {
+	if (fromIndex < 0)
+	    throw new IndexOutOfBoundsException("fromIndex < 0: " + fromIndex);
+        if (toIndex < 0)
+	    throw new IndexOutOfBoundsException("toIndex < 0: " + toIndex);
+        if (fromIndex > toIndex)
+	    throw new IndexOutOfBoundsException("fromIndex: " + fromIndex +
+                                                " > toIndex: " + toIndex);
+
+        // If no set bits in range return empty bitset
+        if (length() <= fromIndex || fromIndex == toIndex)
+            return new BitSet(0);
+
+        // An optimization
+        if (length() < toIndex)
+            toIndex = length();
+
+        BitSet result = new BitSet(toIndex - fromIndex);
+        int startBitIndex = fromIndex & BIT_INDEX_MASK;
+        int endBitIndex = toIndex & BIT_INDEX_MASK;
+        int targetWords = (toIndex - fromIndex + 63)/64;
+        int sourceWords = unitIndex(toIndex) - unitIndex(fromIndex) + 1;
+        int inverseIndex = 64 - startBitIndex;
+        int targetIndex = 0;
+        int sourceIndex = unitIndex(fromIndex);
+
+        // Process all words but the last word
+        while (targetIndex < targetWords - 1)
+            result.bits[targetIndex++] =
+               (bits[sourceIndex++] >>> startBitIndex) |
+               ((inverseIndex==64) ? 0 : bits[sourceIndex] << inverseIndex);
+
+        // Process the last word
+        result.bits[targetIndex] = (sourceWords == targetWords ?
+           (bits[sourceIndex] & bitsRightOf(endBitIndex)) >>> startBitIndex :
+           (bits[sourceIndex++] >>> startBitIndex) | ((inverseIndex==64) ? 0 :
+           (getBits(sourceIndex) & bitsRightOf(endBitIndex)) << inverseIndex));
+
+        // Set unitsInUse correctly
+        result.unitsInUse = targetWords;
+        result.recalculateUnitsInUse();
+	return result;
+    }
+
+    /**
+     * Returns the unit of this bitset at index j as if this bitset had an
+     * infinite amount of storage.
+     */
+    private long getBits(int j) {
+        return (j < unitsInUse) ? bits[j] : 0;
+    }
+
+    /**
+     * Returns the index of the first bit that is set to <code>true</code>
+     * that occurs on or after the specified starting index. If no such
+     * bit exists then -1 is returned.
+     *
+     * To iterate over the <code>true</code> bits in a <code>BitSet</code>,
+     * use the following loop:
+     *
+     * for(int i=bs.nextSetBit(0); i>=0; i=bs.nextSetBit(i+1)) {
+     *     // operate on index i here
+     * }
+     * 
+     * @param   fromIndex the index to start checking from (inclusive).
+     * @return  the index of the next set bit.
+     * @throws  IndexOutOfBoundsException if the specified index is negative.
+     * @since   1.4
+     */
+    public int nextSetBit(int fromIndex) {
+	if (fromIndex < 0)
+	    throw new IndexOutOfBoundsException("fromIndex < 0: " + fromIndex);
+        int u = unitIndex(fromIndex);
+        if (u >= unitsInUse)
+            return -1;
+        int testIndex = (fromIndex & BIT_INDEX_MASK);
+        long unit = bits[u] >> testIndex;
+
+        if (unit == 0)
+            testIndex = 0;
+
+        while((unit==0) && (u < unitsInUse-1))
+            unit = bits[++u];
+
+        if (unit == 0)
+            return -1;
+
+        testIndex  += trailingZeroCnt(unit);
+        return ((u * BITS_PER_UNIT) + testIndex);
+    }
+
+    private static int trailingZeroCnt(long val) {
+        // Loop unrolled for performance
+        int byteVal = (int)val & 0xff;
+        if (byteVal != 0)
+            return trailingZeroTable[byteVal];
+
+        byteVal = (int)(val >>> 8) & 0xff;
+        if (byteVal != 0)
+            return trailingZeroTable[byteVal] + 8;
+
+        byteVal = (int)(val >>> 16) & 0xff;
+        if (byteVal != 0)
+            return trailingZeroTable[byteVal] + 16;
+
+        byteVal = (int)(val >>> 24) & 0xff;
+        if (byteVal != 0)
+            return trailingZeroTable[byteVal] + 24;
+
+        byteVal = (int)(val >>> 32) & 0xff;
+        if (byteVal != 0)
+            return trailingZeroTable[byteVal] + 32;
+
+        byteVal = (int)(val >>> 40) & 0xff;
+        if (byteVal != 0)
+            return trailingZeroTable[byteVal] + 40;
+
+        byteVal = (int)(val >>> 48) & 0xff;
+        if (byteVal != 0)
+            return trailingZeroTable[byteVal] + 48;
+
+        byteVal = (int)(val >>> 56) & 0xff;
+        return trailingZeroTable[byteVal] + 56;
+    }
+
+    /*
+     * trailingZeroTable[i] is the number of trailing zero bits in the binary
+     * representaion of i.
+     */
+    private final static byte trailingZeroTable[] = {
+      -25, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+	4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+	5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+	4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+	6, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+	4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+	5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+	4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+	7, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+	4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+	5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+	4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+	6, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+	4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+	5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,
+	4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0};
+
+    /**
+     * Returns the index of the first bit that is set to <code>false</code>
+     * that occurs on or after the specified starting index.
+     * 
+     * @param   fromIndex the index to start checking from (inclusive).
+     * @return  the index of the next clear bit.
+     * @throws  IndexOutOfBoundsException if the specified index is negative.
+     * @since   1.4
+     */
+    public int nextClearBit(int fromIndex) {
+	if (fromIndex < 0)
+	    throw new IndexOutOfBoundsException("fromIndex < 0: " + fromIndex);
+
+        int u = unitIndex(fromIndex);
+        if (u >= unitsInUse)
+            return fromIndex;
+        int testIndex = (fromIndex & BIT_INDEX_MASK);
+        long unit = bits[u] >> testIndex;
+
+        if (unit == (WORD_MASK >> testIndex))
+            testIndex = 0;
+
+        while((unit==WORD_MASK) && (u < unitsInUse-1))
+            unit = bits[++u];
+
+        if (unit == WORD_MASK)
+            return length();
+        
+        if (unit == 0)
+            return u * BITS_PER_UNIT + testIndex;
+
+        testIndex += trailingZeroCnt(~unit);
+        return ((u * BITS_PER_UNIT) + testIndex);
+    }
+
+    /**
+     * Returns the "logical size" of this <code>BitSet</code>: the index of
+     * the highest set bit in the <code>BitSet</code> plus one. Returns zero
+     * if the <code>BitSet</code> contains no set bits.
+     *
+     * @return  the logical size of this <code>BitSet</code>.
+     * @since   1.2
+     */
+    public int length() {
+        if (unitsInUse == 0)
+            return 0;
+
+	long highestUnit = bits[unitsInUse - 1];
+	int highPart = (int)(highestUnit >>> 32);
+        return 64 * (unitsInUse - 1) +
+               (highPart == 0 ? bitLen((int)highestUnit)
+                              : 32 + bitLen((int)highPart));
+    }
+
+    /**
+     * bitLen(val) is the number of bits in val.
+     */
+    private static int bitLen(int w) {
+        // Binary search - decision tree (5 tests, rarely 6)
+        return
+         (w < 1<<15 ?
+          (w < 1<<7 ?
+           (w < 1<<3 ?
+            (w < 1<<1 ? (w < 1<<0 ? (w<0 ? 32 : 0) : 1) : (w < 1<<2 ? 2 : 3)) :
+            (w < 1<<5 ? (w < 1<<4 ? 4 : 5) : (w < 1<<6 ? 6 : 7))) :
+           (w < 1<<11 ?
+            (w < 1<<9 ? (w < 1<<8 ? 8 : 9) : (w < 1<<10 ? 10 : 11)) :
+            (w < 1<<13 ? (w < 1<<12 ? 12 : 13) : (w < 1<<14 ? 14 : 15)))) :
+          (w < 1<<23 ?
+           (w < 1<<19 ?
+            (w < 1<<17 ? (w < 1<<16 ? 16 : 17) : (w < 1<<18 ? 18 : 19)) :
+            (w < 1<<21 ? (w < 1<<20 ? 20 : 21) : (w < 1<<22 ? 22 : 23))) :
+           (w < 1<<27 ?
+            (w < 1<<25 ? (w < 1<<24 ? 24 : 25) : (w < 1<<26 ? 26 : 27)) :
+            (w < 1<<29 ? (w < 1<<28 ? 28 : 29) : (w < 1<<30 ? 30 : 31)))));
+    }
+
+    /**
+     * Returns true if this <code>BitSet</code> contains no bits that are set
+     * to <code>true</code>.
+     *
+     * @return    boolean indicating whether this <code>BitSet</code> is empty.
+     * @since     1.4
+     */
+    public boolean isEmpty() {
+        return (unitsInUse == 0);
+    }
+
+    /**
+     * Returns true if the specified <code>BitSet</code> has any bits set to
+     * <code>true</code> that are also set to <code>true</code> in this
+     * <code>BitSet</code>.
+     *
+     * @param	set <code>BitSet</code> to intersect with
+     * @return  boolean indicating whether this <code>BitSet</code> intersects
+     *          the specified <code>BitSet</code>.
+     * @since   1.4
+     */
+    public boolean intersects(BitSet set) {
+        for(int i = Math.min(unitsInUse, set.unitsInUse)-1; i>=0; i--)
+            if ((bits[i] & set.bits[i]) != 0)
+                return true;
+        return false;
+    }
+
+    /**
+     * Returns the number of bits set to <tt>true</tt> in this
+     * <code>BitSet</code>.
+     *
+     * @return  the number of bits set to <tt>true</tt> in this
+     *          <code>BitSet</code>.
+     * @since   1.4
+     */
+    public int cardinality() {
+        int sum = 0;
+        for (int i=0; i<unitsInUse; i++)
+            sum += bitCount(bits[i]);
+        return sum;
+    }
+
+    /**
+     * Returns the number of bits set in val.
+     * For a derivation of this algorithm, see
+     * "Algorithms and data structures with applications to 
+     *  graphics and geometry", by Jurg Nievergelt and Klaus Hinrichs,
+     *  Prentice Hall, 1993.
+     */
+    private static int bitCount(long val) {
+        val -= (val & 0xaaaaaaaaaaaaaaaaL) >>> 1;
+        val =  (val & 0x3333333333333333L) + ((val >>> 2) & 0x3333333333333333L);
+        val =  (val + (val >>> 4)) & 0x0f0f0f0f0f0f0f0fL;
+        val += val >>> 8;     
+        val += val >>> 16;    
+        return ((int)(val) + (int)(val >>> 32)) & 0xff;
     }
 
     /**
@@ -244,14 +774,14 @@ public class BitSet implements Cloneable, java.io.Serializable {
 	if (this == set)
 	    return;
 
-	// perform logical AND on bits in common
+	// Perform logical AND on bits in common
 	int oldUnitsInUse = unitsInUse;
 	unitsInUse = Math.min(unitsInUse, set.unitsInUse);
         int i;
 	for(i=0; i<unitsInUse; i++)
 	    bits[i] &= set.bits[i];
 
-	// clear out units no longer used
+	// Clear out units no longer used
 	for( ; i < oldUnitsInUse; i++)
 	    bits[i] = 0;
 
@@ -275,13 +805,13 @@ public class BitSet implements Cloneable, java.io.Serializable {
 
 	ensureCapacity(set.unitsInUse);
 
-	// perform logical OR on bits in common
+	// Perform logical OR on bits in common
 	int unitsInCommon = Math.min(unitsInUse, set.unitsInUse);
         int i;
 	for(i=0; i<unitsInCommon; i++)
 	    bits[i] |= set.bits[i];
 
-	// copy any remaining bits
+	// Copy any remaining bits
 	for(; i<set.unitsInUse; i++)
 	    bits[i] = set.bits[i];
 
@@ -310,20 +840,38 @@ public class BitSet implements Cloneable, java.io.Serializable {
             unitsInCommon = set.unitsInUse;
         } else {
             unitsInCommon = unitsInUse;
-
             int newUnitsInUse = set.unitsInUse;
             ensureCapacity(newUnitsInUse);
             unitsInUse = newUnitsInUse;
         }
 
-	// perform logical XOR on bits in common
+	// Perform logical XOR on bits in common
         int i;
         for (i=0; i<unitsInCommon; i++)
 	    bits[i] ^= set.bits[i];
 
-	// copy any remaining bits
+	// Copy any remaining bits
         for ( ; i<set.unitsInUse; i++)
             bits[i] = set.bits[i];
+
+        recalculateUnitsInUse();
+    }
+
+    /**
+     * Clears all of the bits in this <code>BitSet</code> whose corresponding
+     * bit is set in the specified <code>BitSet</code>.
+     *
+     * @param     set the <code>BitSet</code> with which to mask this
+     *            <code>BitSet</code>.
+     * @since     JDK1.2
+     */
+    public void andNot(BitSet set) {
+        int unitsInCommon = Math.min(unitsInUse, set.unitsInUse);
+
+	// Perform logical (a & !b) on bits in common
+        for (int i=0; i<unitsInCommon; i++) {
+	    bits[i] &= ~set.bits[i];
+        }
 
         recalculateUnitsInUse();
     }
@@ -342,7 +890,7 @@ public class BitSet implements Cloneable, java.io.Serializable {
      * is true. Then the following definition of the <code>hashCode</code> 
      * method would be a correct implementation of the actual algorithm:
      * <pre>
-     * public synchronized int hashCode() {
+     * public int hashCode() {
      *      long h = 1234;
      *      for (int i = bits.length; --i &gt;= 0; ) {
      *           h ^= bits[i] * (i + 1);
@@ -448,9 +996,9 @@ public class BitSet implements Cloneable, java.io.Serializable {
         throws IOException, ClassNotFoundException {
         
         in.defaultReadObject();
-        //assume maximum length then find real length
-        //because recalculateUnitsInUse assumes maintenance
-        //or reduction in logical size
+        // Assume maximum length then find real length
+        // because recalculateUnitsInUse assumes maintenance
+        // or reduction in logical size
         unitsInUse = bits.length;
         recalculateUnitsInUse();
     }
@@ -459,8 +1007,8 @@ public class BitSet implements Cloneable, java.io.Serializable {
      * Returns a string representation of this bit set. For every index 
      * for which this <code>BitSet</code> contains a bit in the set 
      * state, the decimal representation of that index is included in 
-     * the result. Such indeces aer listed in order from lowest to 
-     * highest, separated by ",$nbsp;" (a comma and a space) and 
+     * the result. Such indices are listed in order from lowest to 
+     * highest, separated by ",&nbsp;" (a comma and a space) and 
      * surrounded by braces, resulting in the usual mathematical 
      * notation for a set of integers.<p>
      * Overrides the <code>toString</code> method of <code>Object</code>.

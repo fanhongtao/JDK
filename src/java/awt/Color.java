@@ -1,4 +1,6 @@
 /*
+ * @(#)Color.java	1.70 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -43,7 +45,12 @@ public class Color implements Paint, java.io.Serializable {
     /**
      * The color white.  In the default sRGB space.
      */
-    public final static Color white 	= new Color(255, 255, 255);
+    public final static Color white     = new Color(255, 255, 255);
+
+    /**
+     * The color white.  In the default sRGB space.
+     */
+    public final static Color WHITE = white;
 
     /**
      * The color light gray.  In the default sRGB space.
@@ -51,14 +58,29 @@ public class Color implements Paint, java.io.Serializable {
     public final static Color lightGray = new Color(192, 192, 192);
 
     /**
+     * The color light gray.  In the default sRGB space.
+     */
+    public final static Color LIGHT_GRAY = lightGray;
+
+    /**
      * The color gray.  In the default sRGB space.
      */
-    public final static Color gray 	= new Color(128, 128, 128);
+    public final static Color gray      = new Color(128, 128, 128);
+
+    /**
+     * The color gray.  In the default sRGB space.
+     */
+    public final static Color GRAY = gray;
 
     /**
      * The color dark gray.  In the default sRGB space.
      */
-    public final static Color darkGray 	= new Color(64, 64, 64);
+    public final static Color darkGray  = new Color(64, 64, 64);
+
+    /**
+     * The color dark gray.  In the default sRGB space.
+     */
+    public final static Color DARK_GRAY = darkGray;
 
     /**
      * The color black.  In the default sRGB space.
@@ -66,14 +88,29 @@ public class Color implements Paint, java.io.Serializable {
     public final static Color black 	= new Color(0, 0, 0);
     
     /**
+     * The color black.  In the default sRGB space.
+     */
+    public final static Color BLACK = black;
+    
+    /**
      * The color red.  In the default sRGB space.
      */
-    public final static Color red 	= new Color(255, 0, 0);
+    public final static Color red       = new Color(255, 0, 0);
+
+    /**
+     * The color red.  In the default sRGB space.
+     */
+    public final static Color RED = red;
 
     /**
      * The color pink.  In the default sRGB space.
      */
-    public final static Color pink 	= new Color(255, 175, 175);
+    public final static Color pink      = new Color(255, 175, 175);
+
+    /**
+     * The color pink.  In the default sRGB space.
+     */
+    public final static Color PINK = pink;
 
     /**
      * The color orange.  In the default sRGB space.
@@ -81,9 +118,19 @@ public class Color implements Paint, java.io.Serializable {
     public final static Color orange 	= new Color(255, 200, 0);
 
     /**
+     * The color orange.  In the default sRGB space.
+     */
+    public final static Color ORANGE = orange;
+
+    /**
      * The color yellow.  In the default sRGB space.
      */
     public final static Color yellow 	= new Color(255, 255, 0);
+
+    /**
+     * The color yellow.  In the default sRGB space.
+     */
+    public final static Color YELLOW = yellow;
 
     /**
      * The color green.  In the default sRGB space.
@@ -91,9 +138,19 @@ public class Color implements Paint, java.io.Serializable {
     public final static Color green 	= new Color(0, 255, 0);
 
     /**
+     * The color green.  In the default sRGB space.
+     */
+    public final static Color GREEN = green;
+
+    /**
      * The color magenta.  In the default sRGB space.
      */
     public final static Color magenta	= new Color(255, 0, 255);
+
+    /**
+     * The color magenta.  In the default sRGB space.
+     */
+    public final static Color MAGENTA = magenta;
 
     /**
      * The color cyan.  In the default sRGB space.
@@ -101,9 +158,19 @@ public class Color implements Paint, java.io.Serializable {
     public final static Color cyan 	= new Color(0, 255, 255);
 
     /**
+     * The color cyan.  In the default sRGB space.
+     */
+    public final static Color CYAN = cyan;
+
+    /**
      * The color blue.  In the default sRGB space.
      */
     public final static Color blue 	= new Color(0, 0, 255);
+
+    /**
+     * The color blue.  In the default sRGB space.
+     */
+    public final static Color BLUE = blue;
 
     /**
      * Private data.
@@ -181,7 +248,9 @@ public class Color implements Paint, java.io.Serializable {
 
         /* ensure that the necessary native libraries are loaded */
 	Toolkit.loadLibraries();
-        initIDs();
+        if (!GraphicsEnvironment.isHeadless()) {
+            initIDs();
+        }
     }
 
     /**
@@ -1065,12 +1134,11 @@ public class Color implements Paint, java.io.Serializable {
     }
 
     // REMIND: this should really be a Ref!
-       /**
-	* The paint context used to generate a solid color pattern.
-	* @serial
-	* @see createContext()
-	*/
-    private PaintContext theContext;
+    /**
+     * The paint context used to generate a solid color pattern.
+     * @see createContext()
+     */
+    transient private PaintContext theContext;
 
     /**
      * Creates and returns a {@link PaintContext} used to generate a solid

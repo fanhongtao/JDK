@@ -1,4 +1,6 @@
 /*
+ * @(#)ParserDelegator.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,6 +8,7 @@
 package javax.swing.text.html.parser;
 
 import javax.swing.text.html.HTMLEditorKit;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.DataInputStream;
@@ -20,7 +23,7 @@ import java.lang.reflect.Method;
  * reference to the dtd.
  *
  * @author  Sunita Mani
- * @version 1.9, 02/06/02
+ * @version 1.12, 12/03/01
  */
 
 public class ParserDelegator extends HTMLEditorKit.Parser implements Serializable {
@@ -29,15 +32,21 @@ public class ParserDelegator extends HTMLEditorKit.Parser implements Serializabl
 
     protected static void setDefaultDTD() {
         if (dtd == null) {
-	    // (PENDING) Hate having to hard code!
-	    String nm = "html32";
-            try {
-                dtd = DTD.getDTD(nm);
-            } catch (IOException e) {
-		// (PENDING) UGLY!
-		System.out.println("Throw an exception: could not get default dtd: " + nm);
+            synchronized(ParserDelegator.class) {
+                if (dtd == null) {
+                    DTD _dtd = null;
+                    // (PENDING) Hate having to hard code!
+                    String nm = "html32";
+                    try {
+                        _dtd = DTD.getDTD(nm);
+                    } catch (IOException e) {
+                        // (PENDING) UGLY!
+                        System.out.println("Throw an exception: could not get default dtd: " + nm);
+                    }
+                    _dtd = createDTD(_dtd, nm);
+                    dtd = _dtd;
+                }
             }
-            dtd = createDTD(dtd, nm);
         }
     }
 
@@ -49,7 +58,7 @@ public class ParserDelegator extends HTMLEditorKit.Parser implements Serializabl
 	    String path = name + ".bdtd";
 	    in = getResourceAsStream(path);
             if (in != null) {
-                dtd.read(new DataInputStream(in));
+                dtd.read(new DataInputStream(new BufferedInputStream(in)));
                 dtd.putDTDHash(name, dtd);
 	    }
         } catch (Exception e) {
@@ -81,17 +90,7 @@ public class ParserDelegator extends HTMLEditorKit.Parser implements Serializabl
      */
     static InputStream getResourceAsStream(String name) {
 	try {
-	    Class klass;
-	    ClassLoader loader = ParserDelegator.class.getClassLoader();
-	    if (loader != null) {
-		klass = loader.loadClass("javax.swing.text.html.parser.ResourceLoader");
-	    } else {
-		klass = Class.forName("javax.swing.text.html.parser.ResourceLoader");
-	    }
-	    Class[] parameterTypes = { String.class };
-	    Method loadMethod = klass.getMethod("getResourceAsStream", parameterTypes);
-	    String[] args = { name };
-	    return (InputStream) loadMethod.invoke(null, args);
+            return ResourceLoader.getResourceAsStream(name);
 	} catch (Throwable e) {
 	    // If the class doesn't exist or we have some other 
 	    // problem we just try to call getResourceAsStream directly.

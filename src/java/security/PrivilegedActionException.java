@@ -1,13 +1,11 @@
 /*
+ * @(#)PrivilegedActionException.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security;
-
-import java.io.PrintWriter;
-import java.io.PrintStream;
-
 
 /**
  * This exception is thrown by
@@ -20,12 +18,18 @@ import java.io.PrintStream;
  * <code>PrivilegedActionException</code> is a "wrapper"
  * for an exception thrown by a privileged action.
  *
+ * <p>As of release 1.4, this exception has been retrofitted to conform to
+ * the general purpose exception-chaining mechanism.  The "exception thrown
+ * by the privileged computation" that is provided at construction time and
+ * accessed via the {@link #getException()} method is now known as the
+ * <i>cause</i>, and may be accessed via the {@link Throwable#getCause()}
+ * method, as well as the aforementioned "legacy method."
+ *
  * @see PrivilegedExceptionAction
  * @see AccessController#doPrivileged(PrivilegedExceptionAction)
  * @see AccessController#doPrivileged(PrivilegedExceptionAction,AccessControlContext)
  */
-public
-class PrivilegedActionException extends Exception {
+public class PrivilegedActionException extends Exception {
     // use serialVersionUID from JDK 1.2.2 for interoperability
     private static final long serialVersionUID = 4724086851538908602L;
 
@@ -41,12 +45,17 @@ class PrivilegedActionException extends Exception {
      * @param exception The exception thrown
      */
     public PrivilegedActionException(Exception exception) {
-	this.exception = exception;
+	super((Throwable)null);  // Disallow initCause
+        this.exception = exception;
     }
 
     /**
      * Returns the exception thrown by the privileged computation that
      * resulted in this <code>PrivilegedActionException</code>.
+     *
+     * <p>This method predates the general-purpose exception chaining facility.
+     * The {@link Throwable#getCause()} method is now the preferred means of
+     * obtaining this information.
      *
      * @return the exception thrown by the privileged computation that
      *         resulted in this <code>PrivilegedActionException</code>.
@@ -60,52 +69,19 @@ class PrivilegedActionException extends Exception {
     }
 
     /**
-     * Prints the stack trace of the exception that occurred.
+     * Returns the the cause of this exception (the exception thrown by
+     * the privileged computation that resulted in this
+     * <code>PrivilegedActionException</code>).
      *
-     * @see     java.lang.System#err
+     * @return  the cause of this exception.
+     * @since   1.4
      */
-    public void printStackTrace() {
-	printStackTrace(System.err);
+    public Throwable getCause() {
+        return exception;
     }
 
-    /**
-     * Prints the stack trace of the exception that occurred to the
-     * specified print stream.
-     */
-    public void printStackTrace(PrintStream ps) {
-	synchronized (ps) {
-	    if (exception != null) {
-		ps.print("java.security.PrivilegedActionException: ");
-		exception.printStackTrace(ps);
-	    } else {
-		super.printStackTrace(ps);
-	    }
-	}
-    }
-
-    /**
-     * Prints the stack trace of the exception that occurred to the
-     * specified print writer.
-     */
-    public void printStackTrace(PrintWriter pw) {
-	synchronized (pw) {
-	    if (exception != null) {
-		pw.print("java.security.PrivilegedActionException: ");
-		exception.printStackTrace(pw);
-	    } else {
-		super.printStackTrace(pw);
-	    }
-	}
-    }
-
-    /**
-     * Returns a string describing this exception, including a description
-     * of the exception it wraps.
-     *
-     * @return a string representation of this
-     * <code>PrivilegedActionException</code>
-     */
     public String toString() {
-	return getClass().getName() + " <<" + this.exception.toString() + ">>";
+        String s = getClass().getName();
+        return (exception != null) ? (s + ": " + exception.toString()) : s;
     }
 }

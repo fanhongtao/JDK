@@ -1,5 +1,7 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * @(#)RuntimePermission.java	1.40 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -91,7 +93,10 @@ import java.util.StringTokenizer;
  *   <td>exitVM</td>
  *   <td>Halting of the Java Virtual Machine</td>
  *   <td>This allows an attacker to mount a denial-of-service attack
- * by automatically forcing the virtual machine to halt.</td>
+ * by automatically forcing the virtual machine to halt.
+ * Note: The "exitVM" permission is automatically granted to all code
+ * loaded from the application class path, thus enabling applications
+ * to terminate themselves.</td>
  * </tr>
  *
  * <tr>
@@ -163,16 +168,17 @@ import java.util.StringTokenizer;
  *   <td>readFileDescriptor</td>
  *   <td>Reading of file descriptors</td>
  *   <td>This would allow code to read the particular file associated
-with the file descriptor read. This is dangerous if the file contains
-confidential data.</td>
+ *       with the file descriptor read. This is dangerous if the file
+ *       contains confidential data.</td>
  * </tr>
  *
  * <tr>
  *   <td>writeFileDescriptor</td>
  *   <td>Writing to file descriptors</td>
  *   <td>This allows code to write to a particular file associated
-with the descriptor. This is dangerous because it may allow malicous
-code to plant viruses or at the very least, fill up your entire disk.</td>
+ *       with the descriptor. This is dangerous because it may allow
+ *       malicious code to plant viruses or at the very least, fill up
+ *       your entire disk.</td>
  * </tr>
  *
  * <tr>
@@ -239,7 +245,7 @@ code to plant viruses or at the very least, fill up your entire disk.</td>
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.38 02/02/06
+ * @version 1.40 01/12/03
  *
  * @author Marianne Mueller
  * @author Roland Schemers

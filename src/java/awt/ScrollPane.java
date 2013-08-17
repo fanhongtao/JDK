@@ -1,14 +1,21 @@
 /*
+ * @(#)ScrollPane.java	1.88 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
+import java.awt.peer.LightweightPeer;
 import java.awt.peer.ScrollPanePeer;
 import java.awt.event.*;
-import java.io.Serializable;
 import javax.accessibility.*;
+import sun.awt.ScrollPaneWheelScroller;
 
+import java.io.Serializable;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.IOException;
 
 /**
  * A container class which implements automatic horizontal and/or
@@ -21,10 +28,11 @@ import javax.accessibility.*;
  * </OL>
  * <P>
  * The state of the horizontal and vertical scrollbars is represented
- * by two objects (one for each dimension) which implement the
- * Adjustable interface.  The API provides methods to access those
- * objects such that the attributes on the Adjustable object (such as unitIncrement,
- * value, etc.) can be manipulated.
+ * by two <code>ScrollPaneAdjustable</code> objects (one for each
+ * dimension) which implement the <code>Adjustable</code> interface.
+ * The API provides methods to access those objects such that the
+ * attributes on the Adjustable object (such as unitIncrement, value,
+ * etc.) can be manipulated.
  * <P>
  * Certain adjustable properties (minimum, maximum, blockIncrement,
  * and visibleAmount) are set internally by the scrollpane in accordance
@@ -43,6 +51,11 @@ import javax.accessibility.*;
  * The initial size of this container is set to 100x100, but can
  * be reset using setSize().
  * <P>
+ * Scrolling with the wheel on a wheel-equipped mouse is enabled by default.
+ * This can be disabled using setWheelScrollingEnabled().  Wheel scrolling can
+ * be customized by setting the block and unit increment of the horizontal and
+ * vertical Adjustables.
+ * <P>
  * Insets are used to define any space used by scrollbars and any
  * borders created by the scroll pane. getInsets() can be used
  * to get the current value for the insets.  If the value of
@@ -50,7 +63,7 @@ import javax.accessibility.*;
  * will change dynamically depending on whether the scrollbars are
  * currently visible or not.
  *
- * @version     1.76 02/06/02
+ * @version     1.88 12/03/01
  * @author      Tom Ball
  * @author      Amy Fowler
  * @author      Tim Prinzing
@@ -66,7 +79,9 @@ public class ScrollPane extends Container implements Accessible {
     static {
         /* ensure that the necessary native libraries are loaded */
 	Toolkit.loadLibraries();
-        initIDs();
+        if (!GraphicsEnvironment.isHeadless()) {
+            initIDs();
+        }
     }
 
     /**
@@ -87,57 +102,82 @@ public class ScrollPane extends Container implements Accessible {
      * regardless of the respective sizes of the scrollpane and child.
      */
     public static final int SCROLLBARS_NEVER = 2;
+
     /**
      * There are 3 ways in which a scroll bar can be displayed.
      * This integer will represent one of these 3 displays -
      * (SCROLLBARS_ALWAYS, SCROLLBARS_AS_NEEDED, SCROLLBARS_NEVER)
      *
      * @serial
-     * @see getScrollbarDisplayPolicy()
+     * @see #getScrollbarDisplayPolicy
      */
     private int scrollbarDisplayPolicy;
+
     /**
-     * An adjustable Vertical Scrollbar.
-     * It is important to not that you must NOT call 3 Adjustable methods
-     * ie : setMinimum(), setMaximum(), setVisibleAmount().
+     * An adjustable vertical scrollbar.
+     * It is important to note that you must <em>NOT</em> call 3
+     * <code>Adjustable</code> methods, namely:
+     * <code>setMinimum()</code>, <code>setMaximum()</code>,
+     * <code>setVisibleAmount()</code>.
      *
      * @serial
-     * @see getVAdjustable()
-     * @see java.awt.Adjustable
+     * @see #getVAdjustable
      */
     private ScrollPaneAdjustable vAdjustable;
+
     /**
-     * An adjustable Horizontal Scrollbar.
-     * It is important to not that you must NOT call 3 Adjustable method 
-     * ie : setMinimum(), setMaximum(), setVisibleAmount().
+     * An adjustable horizontal scrollbar.
+     * It is important to note that you must <em>NOT</em> call 3
+     * <code>Adjustable</code> methods, namely:
+     * <code>setMinimum()</code>, <code>setMaximum()</code>,
+     * <code>setVisibleAmount()</code>.
      *
      * @serial
-     * @see getHAdjustable()
-     * @see java.awt.Adjustable
+     * @see #getHAdjustable
      */
     private ScrollPaneAdjustable hAdjustable;
 
     private static final String base = "scrollpane";
     private static int nameCounter = 0;
 
+    private static final boolean defaultWheelScroll = true;
+
+    /**
+     * Indicates whether or not scrolling should take place when a 
+     * MouseWheelEvent is received.
+     *
+     * @serial
+     * @since 1.4
+     */
+    private boolean wheelScrollingEnabled = defaultWheelScroll;
+
     /*
      * JDK 1.1 serialVersionUID
      */
-     private static final long serialVersionUID = 7956609840827222915L;
+    private static final long serialVersionUID = 7956609840827222915L;
 
     /**
-     * Create a new scrollpane container with a scrollbar display policy of
-     * "as needed".
+     * Create a new scrollpane container with a scrollbar display
+     * policy of "as needed".
+     * @throws HeadlessException if GraphicsEnvironment.isHeadless()
+     *     returns true
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public ScrollPane() {
+    public ScrollPane() throws HeadlessException {
 	this(SCROLLBARS_AS_NEEDED);
     }
 
     /**
      * Create a new scrollpane container.
      * @param scrollbarDisplayPolicy policy for when scrollbars should be shown
+     * @throws IllegalArgumentException if the specified scrollbar
+     *     display policy is invalid
+     * @throws HeadlessException if GraphicsEnvironment.isHeadless()
+     *     returns true
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public ScrollPane(int scrollbarDisplayPolicy) {
+    public ScrollPane(int scrollbarDisplayPolicy) throws HeadlessException {
+        GraphicsEnvironment.checkHeadless();
 	this.layoutMgr = null;
 	this.width = 100;
 	this.height = 100;
@@ -155,6 +195,7 @@ public class ScrollPane extends Container implements Accessible {
 					       Adjustable.VERTICAL);
 	hAdjustable = new ScrollPaneAdjustable(this, new PeerFixer(this),
 					       Adjustable.HORIZONTAL);
+	setWheelScrollingEnabled(defaultWheelScroll);
     }
 
     /**
@@ -241,16 +282,22 @@ public class ScrollPane extends Container implements Accessible {
     }
 
     /**
-     * Returns the Adjustable object which represents the state of
-     * the vertical scrollbar.
+     * Returns the <code>ScrollPaneAdjustable</code> object which
+     * represents the state of the vertical scrollbar.
+     * The declared return type of this method is
+     * <code>Adjustable</code> to maintain backward compatibility.
+     * @see java.awt.ScrollPaneAdjustable
      */
     public Adjustable getVAdjustable() {
         return vAdjustable;
     }
 
     /**
-     * Returns the Adjustable object which represents the state of
-     * the horizontal scrollbar.
+     * Returns the <code>ScrollPaneAdjustable</code> object which
+     * represents the state of the horizontal scrollbar.
+     * The declared return type of this method is
+     * <code>Adjustable</code> to maintain backward compatibility.
+     * @see java.awt.ScrollPaneAdjustable
      */
     public Adjustable getHAdjustable() {
         return hAdjustable;
@@ -268,6 +315,8 @@ public class ScrollPane extends Container implements Accessible {
      * objects which represent the state of the scrollbars.
      * @param x the x position to scroll to
      * @param y the y position to scroll to
+     * @throws NullPointerException if the scrollpane does not contain
+     *     a child
      */
     public void setScrollPosition(int x, int y) {
     	synchronized (getTreeLock()) {
@@ -279,7 +328,7 @@ public class ScrollPane extends Container implements Accessible {
 	}
     }
 
-   /**
+    /**
      * Scrolls to the specified position within the child component.
      * A call to this method is only valid if the scroll pane contains
      * a child and the specified position is within legal scrolling bounds
@@ -302,6 +351,8 @@ public class ScrollPane extends Container implements Accessible {
      * This is a convenience method which interfaces with the adjustable
      * objects which represent the state of the scrollbars.
      * @return the coordinate position for the current scroll position
+     * @throws NullPointerException if the scrollpane does not contain
+     *     a child
      */
     public Point getScrollPosition() {
 	if (ncomponents <= 0) {
@@ -453,7 +504,7 @@ public class ScrollPane extends Container implements Accessible {
 
             // Bug 4124460. Save the current adjustable values,
             // so they can be restored after addnotify. Set the
-            // adjustibles to 0, to prevent crashes for possible
+            // adjustables to 0, to prevent crashes for possible
             // negative values.
             if (getComponentCount() > 0) {
                 vAdjustableValue = vAdjustable.getValue();
@@ -474,7 +525,7 @@ public class ScrollPane extends Container implements Accessible {
 
 	    if (getComponentCount() > 0) {
 	        Component comp = getComponent(0);
-		if (comp.peer instanceof java.awt.peer.LightweightPeer) {
+		if (comp.peer instanceof LightweightPeer) {
 		    // The scrollpane won't work with a windowless child... it assumes
 		    // it is moving a child window around so the windowless child is
 		    // wrapped with a window.
@@ -488,6 +539,16 @@ public class ScrollPane extends Container implements Accessible {
 	}
     }
 
+    /**
+     * Returns a string representing the state of this
+     * <code>ScrollPane</code>. This 
+     * method is intended to be used only for debugging purposes, and the 
+     * content and format of the returned string may vary between 
+     * implementations. The returned string may be empty but may not be 
+     * <code>null</code>.
+     *
+     * @return the parameter string of this scroll pane
+     */
     public String paramString() {
 	String sdpStr;
 	switch (scrollbarDisplayPolicy) {
@@ -507,7 +568,120 @@ public class ScrollPane extends Container implements Accessible {
 	Insets i = getInsets();
 	return super.paramString()+",ScrollPosition=("+p.x+","+p.y+")"+
 	    ",Insets=("+i.top+","+i.left+","+i.bottom+","+i.right+")"+
-	    ",ScrollbarDisplayPolicy="+sdpStr;
+	    ",ScrollbarDisplayPolicy="+sdpStr+
+        ",wheelScrollingEnabled="+isWheelScrollingEnabled();
+    }
+
+    void autoProcessMouseWheel(MouseWheelEvent e) {
+        processMouseWheelEvent(e);
+    }
+
+    /**
+     * Process mouse wheel events that are delivered to this
+     * <code>ScrollPane</code> by scrolling an appropriate amount.
+     * <p>Note that if the event parameter is <code>null</code>
+     * the behavior is unspecified and may result in an
+     * exception.
+     *
+     * @param e  the mouse wheel event
+     * @since 1.4
+     */
+    protected void processMouseWheelEvent(MouseWheelEvent e) {
+        if (isWheelScrollingEnabled()) {
+            ScrollPaneWheelScroller.handleWheelScrolling(this, e);
+            e.consume();
+        }
+        super.processMouseWheelEvent(e);
+    }
+
+    /**
+     * If wheel scrolling is enabled, we return true for MouseWheelEvents
+     * @since 1.4
+     */
+    protected boolean eventTypeEnabled(int type) {
+        if (type == MouseEvent.MOUSE_WHEEL && isWheelScrollingEnabled()) {
+            return true;
+        }
+        else {
+            return super.eventTypeEnabled(type);
+        }
+    }
+
+    /**
+     * Enables/disables scrolling in response to movement of the mouse wheel.
+     * Wheel scrolling is enabled by default.
+     *
+     * @param handleWheel   <code>true</code> if scrolling should be done
+     *                      automatically for a MouseWheelEvent,
+     *                      <code>false</code> otherwise.
+     * @see #isWheelScrollingEnabled
+     * @see java.awt.event.MouseWheelEvent
+     * @see java.awt.event.MouseWheelListener
+     * @since 1.4
+     */
+    public void setWheelScrollingEnabled(boolean handleWheel) {
+        wheelScrollingEnabled = handleWheel;
+    }
+
+    /**
+     * Indicates whether or not scrolling will take place in response to
+     * the mouse wheel.  Wheel scrolling is enabled by default.
+     *
+     * @see #setWheelScrollingEnabled(boolean)
+     * @since 1.4
+     */
+    public boolean isWheelScrollingEnabled() {
+        return wheelScrollingEnabled;
+    }
+
+
+    /**
+     * Writes default serializable fields to stream.
+     */
+    private void writeObject(ObjectOutputStream s) throws IOException {
+	// 4352819: We only need this degenerate writeObject to make
+	// it safe for future versions of this class to write optional
+	// data to the stream.
+	s.defaultWriteObject();
+    }
+
+    /**
+     * Reads default serializable fields to stream.
+     * @exception HeadlessException if
+     * <code>GraphicsEnvironment.isHeadless()</code> returns
+     * <code>true</code>
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     */
+    private void readObject(ObjectInputStream s)
+	throws ClassNotFoundException, IOException, HeadlessException
+    {
+        GraphicsEnvironment.checkHeadless();
+	// 4352819: Gotcha!  Cannot use s.defaultReadObject here and
+	// then continue with reading optional data.  Use GetField instead.
+	ObjectInputStream.GetField f = s.readFields();
+
+	// Old fields
+	scrollbarDisplayPolicy = f.get("scrollbarDisplayPolicy",
+				       SCROLLBARS_AS_NEEDED);
+	hAdjustable = (ScrollPaneAdjustable)f.get("hAdjustable", null);
+	vAdjustable = (ScrollPaneAdjustable)f.get("vAdjustable", null);
+
+	// Since 1.4
+	wheelScrollingEnabled = f.get("wheelScrollingEnabled",
+				      defaultWheelScroll);
+
+//	// Note to future maintainers
+//	if (f.defaulted("wheelScrollingEnabled")) {
+//	    // We are reading pre-1.4 stream that doesn't have
+//	    // optional data, not even the TC_ENDBLOCKDATA marker.
+//	    // Reading anything after this point is unsafe as we will
+//	    // read unrelated objects further down the stream (4352819).
+//	}
+//	else {
+//	    // Reading data from 1.4 or later, it's ok to try to read
+//	    // optional data as OptionalDataException with eof == true
+//	    // will be correctly reported
+//	}
     }
 
     class PeerFixer implements AdjustmentListener, java.io.Serializable {
@@ -629,174 +803,4 @@ class PeerFixer implements AdjustmentListener, java.io.Serializable {
     }
 
     private ScrollPane scroller;
-}
-
-
-
-class ScrollPaneAdjustable implements Adjustable, java.io.Serializable {
-
-    private ScrollPane sp;
-    private int orientation;
-    private int minimum;
-    private int maximum;
-    private int visibleAmount;
-    private int unitIncrement = 1;
-    private int blockIncrement = 1;
-    private int value;
-    private AdjustmentListener adjustmentListener;
-
-    private static final String SCROLLPANE_ONLY =
-        "Can be set by scrollpane only";
-
-    /**
-     * Initialize JNI field and method ids
-     */
-    private static native void initIDs();
-
-    static {
-        Toolkit.loadLibraries();
-        initIDs();
-    }
-
-    /*
-     * JDK 1.1 serialVersionUID
-     */
-    private static final long serialVersionUID = -3359745691033257079L;
-
-    public ScrollPaneAdjustable(ScrollPane sp, AdjustmentListener l, int orientation) {
-        this.sp = sp;
-        this.orientation = orientation;
-	addAdjustmentListener(l);
-    }
-
-    /**
-     * This is called by the scrollpane itself to update the
-     * min,max,visible values.  The scrollpane is the only one
-     * that should be changing these since it is the source of
-     * these values.
-     */
-    void setSpan(int min, int max, int visible) {
-	// adjust the values to be reasonable
-	minimum = min;
-	maximum = Math.max(max, minimum + 1);
-	visibleAmount = Math.min(visible, maximum - minimum);
-	visibleAmount = Math.max(visibleAmount, 1);
-        blockIncrement = Math.max((int)(visible * .90), 1);
-	setValue(value);
-    }
-
-    public int getOrientation() {
-        return orientation;
-    }
-
-    public void setMinimum(int min) {
-	throw new AWTError(SCROLLPANE_ONLY);
-    }
-
-    public int getMinimum() {
-        return 0;
-    }
-
-    public void setMaximum(int max) {
-	throw new AWTError(SCROLLPANE_ONLY);
-    }
-
-    public int getMaximum() {
-        return maximum;
-    }
-
-    public synchronized void setUnitIncrement(int u) {
-	if (u != unitIncrement) {
-	    unitIncrement = u;
-	    if (sp.peer != null) {
-		ScrollPanePeer peer = (ScrollPanePeer) sp.peer;
-		peer.setUnitIncrement(this, u);
-	    }
-	}
-    }
-
-    public int getUnitIncrement() {
-        return unitIncrement;
-    }
-
-    public synchronized void setBlockIncrement(int b) {
-        blockIncrement = b;
-    }
-
-    public int getBlockIncrement() {
-        return blockIncrement;
-    }
-
-    public void setVisibleAmount(int v) {
-	throw new AWTError(SCROLLPANE_ONLY);
-    }
-
-    public int getVisibleAmount() {
-        return visibleAmount;
-    }
-
-    public void setValue(int v) {
-	// bounds check
-	v = Math.max(v, minimum);
-	v = Math.min(v, maximum - visibleAmount);
-
-        if (v != value) {
-	    value = v;
-	    // Synchronously notify the listeners so that they are
-	    // guaranteed to be up-to-date with the Adjustable before
-	    // it is mutated again.
-	    AdjustmentEvent e =
-		new AdjustmentEvent(this, AdjustmentEvent.ADJUSTMENT_VALUE_CHANGED,
-				    AdjustmentEvent.TRACK, value);
-	    adjustmentListener.adjustmentValueChanged(e);
-	}
-    }
-
-    public int getValue() {
-        return value;
-    }
-
-    /**
-     * Adds the specified adjustment listener to receive adjustment events 
-     * from this ScrollPane.
-     * If l is null, no exception is thrown and no action is performed.
-     *
-     * @param    l   the adjustment listener.
-     * @see      java.awt.event.AdjustmentListener
-     * @see      java.awt.ScrollPane#removeAdjustmentListener
-     */
-    public synchronized void addAdjustmentListener(AdjustmentListener l) {
-	if (l == null) {
-	    return;
-	}
-	adjustmentListener = AWTEventMulticaster.add(adjustmentListener, l);
-    }
-
-    /**
-     * Removes the specified adjustment listener so that it no longer
-     * receives adjustment events from this button. 
-     * If l is null, no exception is thrown and no action is performed.
-     *
-     * @param         l     the adjustment listener.
-     * @see           java.awt.event.AdjustmentListener
-     * @see           java.awt.Button#addAdjustmentListener
-     * @since         JDK1.1
-     */
-    public synchronized void removeAdjustmentListener(AdjustmentListener l){
-	if (l == null) {
-	    return;
-	}
-	adjustmentListener = AWTEventMulticaster.remove(adjustmentListener, l);
-    }
-
-    public String toString() {
-	return getClass().getName() + "[" + paramString() + "]";
-    }
-
-    public String paramString() {
-        return ((orientation==Adjustable.VERTICAL?"vertical,":"horizontal,")+
-	      "[0.."+maximum+"],"+"val="+value+",vis="+visibleAmount+
-                ",unit="+unitIncrement+",block="+blockIncrement);
-    }
-
 }

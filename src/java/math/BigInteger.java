@@ -1,6 +1,11 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * @(#)BigInteger.java	1.49 01/09/12
+ *
+ * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * 
+ * This software is the proprietary information of Sun Microsystems, Inc.  
+ * Use is subject to license terms.
+ * 
  */
 
 package java.math;
@@ -61,9 +66,13 @@ import java.io.*;
  * "<tt>true</tt> if and only if the BigInteger <tt>i</tt> represents the same
  * value as the the BigInteger <tt>j</tt>."  Other pseudo-code expressions are
  * interpreted similarly.
+ * <p>
+ * All methods and constructors in this class throw
+ * <CODE>NullPointerException</CODE> when passed
+ * a null object reference for any input parameter.
  *
  * @see     BigDecimal
- * @version 1.46, 06/27/03
+ * @version 1.49, 09/12/01
  * @author  Josh Bloch
  * @author  Michael McCloskey
  * @since JDK1.1
@@ -89,17 +98,7 @@ public class BigInteger extends Number implements Comparable {
      * value.  Note that this implies that the BigInteger zero has a
      * zero-length mag array.
      */
-    transient int[] mag;
-
-    /**
-     * This field is required for historical reasons. The magnitude of a
-     * BigInteger used to be in a byte representation, and is still serialized
-     * that way. The mag field is used in all real computations but the
-     * magnitude field is required for storage.
-     *
-     * @serial
-     */
-    private byte[] magnitude;
+    int[] mag;
 
     // These "redundant fields" are initialized with recognizable nonsense
     // values, and cached the first time they are needed (or never, if they
@@ -148,7 +147,7 @@ public class BigInteger extends Number implements Comparable {
      * least significant int has int-number 0, the next int in order of
      * increasing significance has int-number 1, and so forth.
      */
-    private transient int firstNonzeroIntNum = -2;
+    private int firstNonzeroIntNum = -2;
 
     /**
      * This mask is used to obtain the value of an int as if it were unsigned.
@@ -276,14 +275,19 @@ public class BigInteger extends Number implements Comparable {
 	if (val.length() == 0)
 	    throw new NumberFormatException("Zero length BigInteger");
 
-	// Check for leading minus sign
+	// Check for minus sign
 	signum = 1;
-	if (val.charAt(0) == '-') {
-	    if (val.length() == 1)
-		throw new NumberFormatException("Zero length BigInteger");
-	    signum = -1;
-	    cursor = 1;
-	}
+        int index = val.indexOf('-');
+        if (index != -1) {
+            if (index == 0) {
+                if (val.length() == 1)
+                    throw new NumberFormatException("Zero length BigInteger");
+                signum = -1;
+                cursor = 1;
+            } else {
+                throw new NumberFormatException("Illegal embedded minus sign");
+            }
+        }
 
         // Skip leading zeros and compute number of digits in magnitude
 	while (cursor < len &&
@@ -309,8 +313,8 @@ public class BigInteger extends Number implements Comparable {
 	    firstGroupLen = digitsPerInt[radix];
 	String group = val.substring(cursor, cursor += firstGroupLen);
         mag[mag.length - 1] = Integer.parseInt(group, radix);
-        if (mag[mag.length - 1] < 0)
-            throw new NumberFormatException("Illegal digit");
+	if (mag[mag.length - 1] < 0)
+	    throw new NumberFormatException("Illegal digit");
         
 	// Process remaining digit groups
         int superRadix = intRadix[radix];
@@ -318,8 +322,8 @@ public class BigInteger extends Number implements Comparable {
 	while (cursor < val.length()) {
 	    group = val.substring(cursor, cursor += digitsPerInt[radix]);
 	    groupVal = Integer.parseInt(group, radix);
-            if (groupVal < 0)
-                throw new NumberFormatException("Illegal digit");
+	    if (groupVal < 0)
+		throw new NumberFormatException("Illegal digit");
             destructiveMulAdd(mag, superRadix, groupVal);
 	}
         // Required for cases where the array was overallocated.
@@ -507,6 +511,10 @@ public class BigInteger extends Number implements Comparable {
 	mag = prime.mag;
     }
 
+    // Minimum size in bits that the requested prime number has
+    // before we use the large prime number generating algorithms
+    private static final int SMALL_PRIME_THRESHOLD = 95;
+
     /**
      * Returns a positive BigInteger that is probably prime, with the
      * specified bitLength. The probability that a BigInteger returned
@@ -515,16 +523,18 @@ public class BigInteger extends Number implements Comparable {
      * @param  bitLength bitLength of the returned BigInteger.
      * @param  rnd source of random bits used to select candidates to be
      *	       tested for primality.
+     * @return a BigInteger of <tt>bitLength</tt> bits that is probably prime
      * @throws ArithmeticException <tt>bitLength &lt; 2</tt>.
      * @see    #bitLength
      */
-    private static BigInteger probablePrime(int bitLength, Random rnd) {
+    public static BigInteger probablePrime(int bitLength, Random rnd) {
 	if (bitLength < 2)
 	    throw new ArithmeticException("bitLength < 2");
 
         // The cutoff of 95 was chosen empirically for best performance
-        return (bitLength < 95 ? smallPrime(bitLength, 100, rnd)
-                               : largePrime(bitLength, 100, rnd));
+        return (bitLength < SMALL_PRIME_THRESHOLD ?
+                smallPrime(bitLength, 100, rnd) :
+                largePrime(bitLength, 100, rnd));
     }
 
     /**
@@ -570,7 +580,7 @@ public class BigInteger extends Number implements Comparable {
     }
 
     private static final BigInteger SMALL_PRIME_PRODUCT
-                       = valueOf(3*5*7*11*13*17*19*23*29*31*37*41);
+                       = valueOf(3L*5*7*11*13*17*19*23*29*31*37*41);
 
     /**
      * Find a random number of the specified bitLength that is probably prime.
@@ -1254,13 +1264,16 @@ public class BigInteger extends Number implements Comparable {
         int[] result = {1};
 
 	while (exponent != 0) {
-	    if ((exponent & 1)==1)
+	    if ((exponent & 1)==1) {
 		result = multiplyToLen(result, result.length, 
                                        baseToPow2, baseToPow2.length, null);
-	    if ((exponent >>>= 1) != 0)
+		result = trustedStripLeadingZeroInts(result);
+	    }
+	    if ((exponent >>>= 1) != 0) {
                 baseToPow2 = squareToLen(baseToPow2, baseToPow2.length, null);
+		baseToPow2 = trustedStripLeadingZeroInts(baseToPow2);
+	    }
 	}
-        result = trustedStripLeadingZeroInts(result);
 	return new BigInteger(result, newSign);
     }
 
@@ -2622,10 +2635,10 @@ public class BigInteger extends Number implements Comparable {
     }
 
     /**
-     * Converts this BigInteger to an int.  Standard <i>narrowing primitive
-     * conversion</i> as defined in <i>The Java Language Specification</i>:
-     * if this BigInteger is too big to fit in an int, only the low-order
-     * 32 bits are returned.
+     * Converts this BigInteger to an int.  This is standard <i>narrowing
+     * primitive conversion</i> as defined in <i>The Java Language
+     * Specification</i>: if this BigInteger is too big to fit in an int,
+     * only the low-order 32 bits are returned.
      *
      * @return this BigInteger converted to an int.
      */
@@ -2636,10 +2649,10 @@ public class BigInteger extends Number implements Comparable {
     }
 
     /**
-     * Converts this BigInteger to a long.  Standard <i>narrowing primitive
-     * conversion</i> as defined in <i>The Java Language Specification</i>:
-     * if this BigInteger is too big to fit in a long, only the low-order
-     * 64 bits are returned.
+     * Converts this BigInteger to a long.  This is standard <i>narrowing
+     * primitive conversion</i> as defined in <i>The Java Language
+     * Specification</i>: if this BigInteger is too big to fit in a long,
+     * only the low-order 64 bits are returned.
      *
      * @return this BigInteger converted to a long.
      */
@@ -2940,6 +2953,30 @@ public class BigInteger extends Number implements Comparable {
     private static final long serialVersionUID = -8287574255936472291L;
 
     /**
+     * Serializable fields for BigInteger.
+     * 
+     * @serialField signum  int
+     *              signum of this BigInteger.
+     * @serialField magnitude int[]
+     *              magnitude array of this BigInteger.
+     * @serialField bitCount  int
+     *              number of bits in this BigInteger
+     * @serialField bitLength int
+     *              the number of bits in the minimal two's-complement
+     *              representation of this BigInteger
+     * @serialField lowestSetBit int
+     *              lowest set bit in the twos complement representation
+     */
+    private static final ObjectStreamField[] serialPersistentFields = { 
+        new ObjectStreamField("signum", Integer.TYPE), 
+        new ObjectStreamField("magnitude", byte[].class),
+        new ObjectStreamField("bitCount", Integer.TYPE),
+        new ObjectStreamField("bitLength", Integer.TYPE),
+        new ObjectStreamField("firstNonzeroByteNum", Integer.TYPE),
+        new ObjectStreamField("lowestSetBit", Integer.TYPE)
+        };
+
+    /**
      * Reconstitute the <tt>BigInteger</tt> instance from a stream (that is,
      * deserialize it). The magnitude is read in as an array of bytes
      * for historical reasons, but it is converted to an array of ints
@@ -2955,37 +2992,56 @@ public class BigInteger extends Number implements Comparable {
          * transient but are serialized for compatibility reasons.
          */
 
-        // Read in all fields
-	s.defaultReadObject();
+        // prepare to read the alternate persistent fields
+        ObjectInputStream.GetField fields = s.readFields();
+            
+        // Read the alternate persistent fields that we care about
+        signum = (int)fields.get("signum", -2);
+        byte[] magnitude = (byte[])fields.get("magnitude", null);
 
         // Validate signum
-	if (signum < -1 || signum > 1)
-	    throw new java.io.StreamCorruptedException(
-                        "BigInteger: Invalid signum value");
-	if ((magnitude.length==0) != (signum==0))
-	    throw new java.io.StreamCorruptedException(
-                        "BigInteger: signum-magnitude mismatch");
+	if (signum < -1 || signum > 1) {
+            String message = "BigInteger: Invalid signum value";
+            if (fields.defaulted("signum"))
+                message = "BigInteger: Signum not present in stream";
+	    throw new java.io.StreamCorruptedException(message);
+        }
+	if ((magnitude.length==0) != (signum==0)) {
+            String message = "BigInteger: signum-magnitude mismatch";
+            if (fields.defaulted("magnitude"))
+                message = "BigInteger: Magnitude not present in stream";
+	    throw new java.io.StreamCorruptedException(message);
+        }
 
         // Set "cached computation" fields to their initial values
         bitCount = bitLength = -1;
-        lowestSetBit = firstNonzeroByteNum = firstNonzeroIntNum = -2;
+        lowestSetBit = -2;
 
         // Calculate mag field from magnitude and discard magnitude
 	mag = stripLeadingZeroBytes(magnitude);
-        magnitude = null;
     }
 
     /**
-     * Ensure that magnitude (the obsolete byte array representation)
-     * is set prior to serializaing this BigInteger.  This provides a
-     * serialized form that is compatible with older (pre-1.3) versions.
+     * Save the <tt>BigInteger</tt> instance to a stream.
+     * The magnitude of a BigInteger is serialized as a byte array for
+     * historical reasons.
+     * 
+     * @serialData two necessary fields are written as well as obsolete
+     *             fields for compatibility with older versions.
      */
-    private synchronized Object writeReplace() {
-	if (magnitude == null)
-	    magnitude = magSerializedForm();
-
-	return this;
-    }
+    private void writeObject(ObjectOutputStream s) throws IOException {
+        // set the values of the Serializable fields
+        ObjectOutputStream.PutField fields = s.putFields();
+        fields.put("signum", signum);
+        fields.put("magnitude", magSerializedForm());
+        fields.put("bitCount", -1);
+        fields.put("bitLength", -1);
+        fields.put("lowestSetBit", -2);
+        fields.put("firstNonzeroByteNum", -2);
+            
+        // save them
+        s.writeFields();
+}
 
     /**
      * Returns the mag array as an array of bytes.

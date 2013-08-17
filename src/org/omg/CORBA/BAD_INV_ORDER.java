@@ -1,4 +1,6 @@
 /*
+ * @(#)BAD_INV_ORDER.java	1.31 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,10 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>BAD_INV_ORDER</code> exception, which is thrown
- * when methods are called out of order.
+ * This exception indicates that the caller has invoked operations in 
+ * the wrong order. For example, it can be raised by an ORB if an 
+ * application makes an ORB-related call without having correctly 
+ * initialized the ORB first.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

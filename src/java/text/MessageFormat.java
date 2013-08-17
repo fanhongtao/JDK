@@ -1,4 +1,6 @@
 /*
+ * @(#)MessageFormat.java	1.47 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,13 +20,15 @@
 
 package java.text;
 
-import java.util.Date;
-import java.util.Locale;
-import java.text.DecimalFormat;
-import java.text.Utility;
-import java.io.ObjectInputStream;
-import java.io.IOException;
 import java.io.InvalidObjectException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import sun.text.Utility;
 
 
 /**
@@ -42,9 +46,167 @@ import java.io.InvalidObjectException;
  * classes in that you create a <code>MessageFormat</code> object with one
  * of its constructors (not with a <code>getInstance</code> style factory
  * method). The factory methods aren't necessary because <code>MessageFormat</code>
- * doesn't require any complex setup for a given locale. In fact,
- * <code>MessageFormat</code> doesn't implement any locale specific behavior
- * at all. It just needs to be set up on a sentence by sentence basis.
+ * itself doesn't implement locale specific behavior. Any locale specific
+ * behavior is defined by the pattern that you provide as well as the
+ * subformats used for inserted arguments.
+ *
+ * <h4><a name="patterns">Patterns and Their Interpretation</a></h4>
+ *
+ * <code>MessageFormat</code> uses patterns of the following form:
+ * <blockquote><pre>
+ * <i>MessageFormatPattern:</i>
+ *         <i>String</i>
+ *         <i>MessageFormatPattern</i> <i>FormatElement</i> <i>String</i>
+ *
+ * <i>FormatElement:</i>
+ *         { <i>ArgumentIndex</i> }
+ *         { <i>ArgumentIndex</i> , <i>FormatType</i> }
+ *         { <i>ArgumentIndex</i> , <i>FormatType</i> , <i>FormatStyle</i> }
+ *
+ * <i>FormatType: one of </i>
+ *         number date time choice
+ *
+ * <i>FormatStyle:</i>
+ *         short
+ *         medium
+ *         long
+ *         full
+ *         integer
+ *         currency
+ *         percent
+ *         <i>SubformatPattern</i>
+ *
+ * <i>String:</i>
+ *         <i>StringPart<sub>opt</sub></i>
+ *         <i>String</i> <i>StringPart</i>
+ *
+ * <i>StringPart:</i>
+ *         ''
+ *         ' <i>QuotedString</i> '
+ *         <i>UnquotedString</i>
+ *
+ * <i>SubformatPattern:</i>
+ *         <i>SubformatPatternPart<sub>opt</sub></i>
+ *         <i>SubformatPattern</i> <i>SubformatPatternPart</i>
+ *
+ * <i>SubFormatPatternPart:</i>
+ *         ' <i>QuotedPattern</i> '
+ *         <i>UnquotedPattern</i>
+ * </pre></blockquote>
+ *
+ * <p>
+ * Within a <i>String</i>, <code>"''"</code> represents a single
+ * quote. A <i>QuotedString</i> can contain arbitrary characters
+ * except single quotes; the surrounding single quotes are removed.
+ * An <i>UnquotedString</i> can contain arbitrary characters
+ * except single quotes and left curly brackets. Thus, a string that
+ * should result in the formatted message "'{0}'" can be written as
+ * <code>"'''{'0}''"</code> or <code>"'''{0}'''"</code>.
+ * <p>
+ * Within a <i>SubformatPattern</i>, different rules apply.
+ * A <i>QuotedPattern</i> can contain arbitrary characters
+ * except single quotes; but the surrounding single quotes are
+ * <strong>not</strong> removed, so they may be interpreted by the
+ * subformat. For example, <code>"{1,number,$'#',##}"</code> will
+ * produce a number format with the pound-sign quoted, with a result
+ * such as: "$#31,45".
+ * An <i>UnquotedPattern</i> can contain arbitrary characters
+ * except single quotes, but curly braces within it must be balanced.
+ * For example, <code>"ab {0} de"</code> and <code>"ab '}' de"</code>
+ * are valid subformat patterns, but <code>"ab {0'}' de"</code> and
+ * <code>"ab } de"</code> are not.
+ * <p>
+ * <dl><dt><b>Warning:</b><dd>The rules for using quotes within message
+ * format patterns unfortunately have shown to be somewhat confusing.
+ * In particular, it isn't always obvious to localizers whether single
+ * quotes need to be doubled or not. Make sure to inform localizers about
+ * the rules, and tell them (for example, by using comments in resource
+ * bundle source files) which strings will be processed by MessageFormat.
+ * Note that localizers may need to use single quotes in translated
+ * strings where the original version doesn't have them.
+ * </dl>
+ * <p>
+ * The <i>ArgumentIndex</i> value is a non-negative integer written
+ * using the digits '0' through '9', and represents an index into the
+ * <code>arguments</code> array passed to the <code>format</code> methods
+ * or the result array returned by the <code>parse</code> methods.
+ * <p>
+ * The <i>FormatType</i> and <i>FormatStyle</i> values are used to create
+ * a <code>Format</code> instance for the format element. The following
+ * table shows how the values map to Format instances. Combinations not
+ * shown in the table are illegal. A <i>SubformatPattern</i> must
+ * be a valid pattern string for the Format subclass used.
+ * <p>
+ * <table border=1>
+ *    <tr>
+ *       <th>Format Type
+ *       <th>Format Style
+ *       <th>Subformat Created
+ *    <tr>
+ *       <td colspan=2><i>(none)</i>
+ *       <td><code>null</code>
+ *    <tr>
+ *       <td rowspan=5><code>number</code>
+ *       <td><i>(none)</i>
+ *       <td><code>NumberFormat.getInstance(getLocale())</code>
+ *    <tr>
+ *       <td><code>integer</code>
+ *       <td><code>NumberFormat.getIntegerInstance(getLocale())</code>
+ *    <tr>
+ *       <td><code>currency</code>
+ *       <td><code>NumberFormat.getCurrencyInstance(getLocale())</code>
+ *    <tr>
+ *       <td><code>percent</code>
+ *       <td><code>NumberFormat.getPercentInstance(getLocale())</code>
+ *    <tr>
+ *       <td><i>SubformatPattern</i>
+ *       <td><code>new DecimalFormat(subformatPattern, new DecimalFormatSymbols(getLocale()))</code>
+ *    <tr>
+ *       <td rowspan=6><code>date</code>
+ *       <td><i>(none)</i>
+ *       <td><code>DateFormat.getDateInstance(DateFormat.DEFAULT, getLocale())</code>
+ *    <tr>
+ *       <td><code>short</code>
+ *       <td><code>DateFormat.getDateInstance(DateFormat.SHORT, getLocale())</code>
+ *    <tr>
+ *       <td><code>medium</code>
+ *       <td><code>DateFormat.getDateInstance(DateFormat.DEFAULT, getLocale())</code>
+ *    <tr>
+ *       <td><code>long</code>
+ *       <td><code>DateFormat.getDateInstance(DateFormat.LONG, getLocale())</code>
+ *    <tr>
+ *       <td><code>full</code>
+ *       <td><code>DateFormat.getDateInstance(DateFormat.FULL, getLocale())</code>
+ *    <tr>
+ *       <td><i>SubformatPattern</i>
+ *       <td><code>new SimpleDateFormat(subformatPattern, getLocale())
+ *    <tr>
+ *       <td rowspan=6><code>time</code>
+ *       <td><i>(none)</i>
+ *       <td><code>DateFormat.getTimeInstance(DateFormat.DEFAULT, getLocale())</code>
+ *    <tr>
+ *       <td><code>short</code>
+ *       <td><code>DateFormat.getTimeInstance(DateFormat.SHORT, getLocale())</code>
+ *    <tr>
+ *       <td><code>medium</code>
+ *       <td><code>DateFormat.getTimeInstance(DateFormat.DEFAULT, getLocale())</code>
+ *    <tr>
+ *       <td><code>long</code>
+ *       <td><code>DateFormat.getTimeInstance(DateFormat.LONG, getLocale())</code>
+ *    <tr>
+ *       <td><code>full</code>
+ *       <td><code>DateFormat.getTimeInstance(DateFormat.FULL, getLocale())</code>
+ *    <tr>
+ *       <td><i>SubformatPattern</i>
+ *       <td><code>new SimpleDateFormat(subformatPattern, getLocale())
+ *    <tr>
+ *       <td><code>choice</code>
+ *       <td><i>SubformatPattern</i>
+ *       <td><code>new ChoiceFormat(subformatPattern)</code>
+ * </table>
+ * <p>
+ *
+ * <h4>Usage Information</h4>
  *
  * <p>
  * Here are some examples of usage:
@@ -87,69 +249,6 @@ import java.io.InvalidObjectException;
  * </blockquote>
  *
  * <p>
- * The pattern is of the form:
- * <blockquote>
- * <pre>
- * messageFormatPattern := string ( "{" messageFormatElement "}" string )*
- *
- * messageFormatElement := argument { "," elementFormat }
- *
- * elementFormat := "time" { "," datetimeStyle }
- *                | "date" { "," datetimeStyle }
- *                | "number" { "," numberStyle }
- *                | "choice" { "," choiceStyle }
- *
- * datetimeStyle := "short"
- *                  | "medium"
- *                  | "long"
- *                  | "full"
- *                  | dateFormatPattern
- *
- * numberStyle := "currency"
- *               | "percent"
- *               | "integer"
- *               | numberFormatPattern
- *
- * choiceStyle := choiceFormatPattern
- * </pre>
- * </blockquote>
- * If there is no <code>elementFormat</code>,
- * then the argument must be a string, which is substituted. If there is
- * no <code>dateTimeStyle</code> or <code>numberStyle</code>, then the
- * default format is used (for example, <code>NumberFormat.getInstance</code>,
- * <code>DateFormat.getTimeInstance</code>, or <code>DateFormat.getInstance</code>).
- *
- * <p>
- * In strings, single quotes can be used to quote the "{"
- * (curly brace) if necessary. A real single quote is represented by ''.
- * Inside a <code>messageFormatElement</code>, quotes are <strong>not</strong>
- * removed. For example, {1,number,$'#',##} will produce a number format
- * with the pound-sign quoted, with a result such as: "$#31,45".
- *
- * <p>
- * If a pattern is used, then unquoted braces in the pattern, if any, must match:
- * that is, "ab {0} de" and "ab '}' de" are ok, but "ab {0'}' de" and "ab } de" are
- * not.
- *
- * <p>
- * The argument is a number from 0 to 9, which corresponds to the
- * arguments presented in an array to be formatted.
- *
- * <p>
- * It is ok to have unused arguments in the array.
- * With missing arguments or arguments that are not of the right class for
- * the specified format, a <code>ParseException</code> is thrown.
- * First, <code>format</code> checks to see if a <code>Format</code> object has been
- * specified for the argument with the <code>setFormats</code> method.
- * If so, then <code>format</code> uses that <code>Format</code> object to format the
- * argument. Otherwise, the argument is formatted based on the object's
- * type. If the argument is a <code>Number</code>, then <code>format</code>
- * uses <code>NumberFormat.getInstance</code> to format the argument; if the
- * argument is a <code>Date</code>, then <code>format</code> uses
- * <code>DateFormat.getDateTimeInstance</code> to format the argument.
- * Otherwise, it uses the <code>toString</code> method.
- *
- * <p>
  * For more sophisticated patterns, you can use a <code>ChoiceFormat</code> to get
  * output such as:
  * <blockquote>
@@ -158,7 +257,7 @@ import java.io.InvalidObjectException;
  * double[] filelimits = {0,1,2};
  * String[] filepart = {"no files","one file","{0,number} files"};
  * ChoiceFormat fileform = new ChoiceFormat(filelimits, filepart);
- * form.setFormat(1,fileform); // NOT zero, see below
+ * form.setFormatByArgumentIndex(0, fileform);
  *
  * Object[] testArgs = {new Long(12373), "MyDisk"};
  *
@@ -177,7 +276,7 @@ import java.io.InvalidObjectException;
  * <blockquote>
  * <pre>
  * form.applyPattern(
- *    "There {0,choice,0#are no files|1#is one file|1#are {0,number,integer} files}.");
+ *    "There {0,choice,0#are no files|1#is one file|1&lt;are {0,number,integer} files}.");
  * </pre>
  * </blockquote>
  * <p>
@@ -187,17 +286,6 @@ import java.io.InvalidObjectException;
  * If you create both a <code>MessageFormat</code> and <code>ChoiceFormat</code>
  * programmatically (instead of using the string patterns), then be careful not to
  * produce a format that recurses on itself, which will cause an infinite loop.
- * <p>
- * <strong>Note:</strong> formats are numbered by order of
- * variable in the string.
- * This is <strong>not</strong> the same as the argument numbering!
- * For example: with "abc{2}def{3}ghi{0}...",
- * <ul>
- * <li>format0 affects the first variable {2}
- * <li>format1 affects the second variable {3}
- * <li>format2 affects the second variable {0}
- * <li>and so on.
- * </ul>
  * <p>
  * When a single argument is parsed more than once in the string, the last match
  * will be the final result of the parsing.  For example,
@@ -220,40 +308,79 @@ import java.io.InvalidObjectException;
  * Object[] objs = mf.parse(forParsing, new ParsePosition(0));
  * // result now equals {new String("z")}
  * </pre>
+ *
+ * <h4><a name="synchronization">Synchronization</a></h4>
+ *
  * <p>
- * You can use <code>setLocale</code> followed by <code>applyPattern</code>
- * (and then possibly <code>setFormat</code>) to re-initialize a
- * <code>MessageFormat</code> with a different locale.
+ * Message formats are not synchronized.
+ * It is recommended to create separate format instances for each thread.
+ * If multiple threads access a format concurrently, it must be synchronized
+ * externally.
  *
  * @see          java.util.Locale
  * @see          Format
  * @see          NumberFormat
  * @see          DecimalFormat
  * @see          ChoiceFormat
- * @version      1.39, 02/06/02
+ * @version      1.47, 12/03/01
  * @author       Mark Davis
  */
 
 public class MessageFormat extends Format {
+
+    private static final long serialVersionUID = 6479157306784022952L;
+
     /**
-     * Constructs with the specified pattern.
-     * @see MessageFormat#applyPattern
+     * Constructs a MessageFormat for the default locale and the
+     * specified pattern.
+     * The constructor first sets the locale, then parses the pattern and
+     * creates a list of subformats for the format elements contained in it.
+     * Patterns and their interpretation are specified in the
+     * <a href="#patterns">class description</a>.
+     *
+     * @param pattern the pattern for this message format
+     * @exception IllegalArgumentException if the pattern is invalid
      */
     public MessageFormat(String pattern) {
+        this.locale = Locale.getDefault();
         applyPattern(pattern);
     }
 
     /**
-     * Constructs with the specified pattern and formats for the
-     * arguments in that pattern.
+     * Constructs a MessageFormat for the specified locale and
+     * pattern.
+     * The constructor first sets the locale, then parses the pattern and
+     * creates a list of subformats for the format elements contained in it.
+     * Patterns and their interpretation are specified in the
+     * <a href="#patterns">class description</a>.
+     *
+     * @param pattern the pattern for this message format
+     * @param locale the locale for this message format
+     * @exception IllegalArgumentException if the pattern is invalid
+     * @since 1.4
      */
-    public void setLocale(Locale theLocale) {
-        locale = theLocale;
+    public MessageFormat(String pattern, Locale locale) {
+        this.locale = locale;
+        applyPattern(pattern);
     }
 
     /**
-     * Gets the locale. This locale is used for fetching default number or date
-     * format information.
+     * Sets the locale to be used when creating or comparing subformats.
+     * This affects subsequent calls to the {@link #applyPattern applyPattern}
+     * and {@link #toPattern toPattern} methods as well as to the
+     * <code>format</code> and
+     * {@link #formatToCharacterIterator formatToCharacterIterator} methods.
+     *
+     * @param locale the locale to be used when creating or comparing subformats
+     */
+    public void setLocale(Locale locale) {
+        this.locale = locale;
+    }
+
+    /**
+     * Gets the locale that's used when creating or comparing subformats.
+     *
+     * @return the locale used when creating or comparing subformats
      */
     public Locale getLocale() {
         return locale;
@@ -261,10 +388,16 @@ public class MessageFormat extends Format {
 
 
     /**
-     * Sets the pattern. See the class description.
+     * Sets the pattern used by this message format.
+     * The method parses the pattern and creates a list of subformats
+     * for the format elements contained in it.
+     * Patterns and their interpretation are specified in the
+     * <a href="#patterns">class description</a>.
+     * 
+     * @param pattern the pattern for this message format
+     * @exception IllegalArgumentException if the pattern is invalid
      */
-
-    public void applyPattern(String newPattern) {
+    public void applyPattern(String pattern) {
             StringBuffer[] segments = new StringBuffer[4];
             for (int i = 0; i < segments.length; ++i) {
                 segments[i] = new StringBuffer();
@@ -274,12 +407,12 @@ public class MessageFormat extends Format {
             boolean inQuote = false;
             int braceStack = 0;
             maxOffset = -1;
-            for (int i = 0; i < newPattern.length(); ++i) {
-                char ch = newPattern.charAt(i);
+            for (int i = 0; i < pattern.length(); ++i) {
+                char ch = pattern.charAt(i);
                 if (part == 0) {
                     if (ch == '\'') {
-                        if (i + 1 < newPattern.length()
-                            && newPattern.charAt(i+1) == '\'') {
+                        if (i + 1 < pattern.length()
+                            && pattern.charAt(i+1) == '\'') {
                             segments[part].append(ch);  // handle doubles
                             ++i;
                         } else {
@@ -330,14 +463,17 @@ public class MessageFormat extends Format {
                 maxOffset = -1;
                 throw new IllegalArgumentException("Unmatched braces in the pattern.");
             }
-            pattern = segments[0].toString();
+            this.pattern = segments[0].toString();
     }
 
 
     /**
-     * Gets the pattern. See the class description.
+     * Returns a pattern representing the current state of the message format.
+     * The string is constructed from internal information and therefore
+     * does not necessarily equal the previously applied pattern. 
+     *
+     * @return a pattern representing the current state of the message format
      */
-
     public String toPattern() {
         // later, make this more extensible
         int lastOffset = 0;
@@ -352,13 +488,11 @@ public class MessageFormat extends Format {
             } else if (formats[i] instanceof DecimalFormat) {
                 if (formats[i].equals(NumberFormat.getInstance(locale))) {
                     result.append(",number");
-                } else if (formats[i].equals(
-                                             NumberFormat.getCurrencyInstance(locale))) {
+                } else if (formats[i].equals(NumberFormat.getCurrencyInstance(locale))) {
                     result.append(",number,currency");
-                } else if (formats[i].equals(
-                                             NumberFormat.getPercentInstance(locale))) {
+                } else if (formats[i].equals(NumberFormat.getPercentInstance(locale))) {
                     result.append(",number,percent");
-                } else if (formats[i].equals(getIntegerFormat(locale))) {
+                } else if (formats[i].equals(NumberFormat.getIntegerInstance(locale))) {
                     result.append(",number,integer");
                 } else {
                     result.append(",number," +
@@ -412,78 +546,334 @@ public class MessageFormat extends Format {
     }
 
     /**
-     * Sets formats to use on parameters.
-     * See the class description about format numbering.
+     * Sets the formats to use for the values passed into
+     * <code>format</code> methods or returned from <code>parse</code>
+     * methods. The indices of elements in <code>newFormats</code>
+     * correspond to the argument indices used in the previously set
+     * pattern string.
+     * The order of formats in <code>newFormats</code> thus corresponds to
+     * the order of elements in the <code>arguments</code> array passed
+     * to the <code>format</code> methods or the result array returned
+     * by the <code>parse</code> methods.
+     * <p>
+     * If an argument index is used for more than one format element
+     * in the pattern string, then the corresponding new format is used
+     * for all such format elements. If an argument index is not used
+     * for any format element in the pattern string, then the
+     * corresponding new format is ignored. If fewer formats are provided
+     * than needed, then only the formats for argument indices less
+     * than <code>newFormats.length</code> are replaced.
+     *
+     * @param newFormats the new formats to use
+     * @exception NullPointerException if <code>newFormats</code> is null
+     * @since 1.4
+     */
+    public void setFormatsByArgumentIndex(Format[] newFormats) {
+        for (int i = 0; i <= maxOffset; i++) {
+            int j = argumentNumbers[i];
+            if (j < newFormats.length) {
+                formats[i] = newFormats[j];
+            }
+        }
+    }
+
+    /**
+     * Sets the formats to use for the format elements in the
+     * previously set pattern string.
+     * The order of formats in <code>newFormats</code> corresponds to
+     * the order of format elements in the pattern string.
+     * <p>
+     * If more formats are provided than needed by the pattern string,
+     * the remaining ones are ignored. If fewer formats are provided
+     * than needed, then only the first <code>newFormats.length</code>
+     * formats are replaced.
+     * <p>
+     * Since the order of format elements in a pattern string often
+     * changes during localization, it is generally better to use the
+     * {@link #setFormatsByArgumentIndex setFormatsByArgumentIndex}
+     * method, which assumes an order of formats corresponding to the
+     * order of elements in the <code>arguments</code> array passed to
+     * the <code>format</code> methods or the result array returned by
+     * the <code>parse</code> methods.
+     *
+     * @param newFormats the new formats to use
+     * @exception NullPointerException if <code>newFormats</code> is null
      */
     public void setFormats(Format[] newFormats) {
-        try {
-            formats = (Format[]) newFormats.clone();
-        } catch (Exception e) {
-            return; // should never occur!
+        int runsToCopy = newFormats.length;
+        if (runsToCopy > maxOffset + 1) {
+            runsToCopy = maxOffset + 1;
+        }
+        for (int i = 0; i < runsToCopy; i++) {
+            formats[i] = newFormats[i];
         }
     }
 
     /**
-     * Set a format to be used on a variable in the pattern.
-     * @param variable the zero-based number of the variable in the format.
-     * This is <em>not</em> the argument number. If <code>variable</code>
-     * is out of range, an <code>ArrayIndexOutOfBoundsException</code> is
-     * thrown.
-     * @param newFormat the format to use for the specified variable
+     * Sets the format to use for the format elements within the
+     * previously set pattern string that use the given argument
+     * index.
+     * The argument index is part of the format element definition and
+     * represents an index into the <code>arguments</code> array passed
+     * to the <code>format</code> methods or the result array returned
+     * by the <code>parse</code> methods.
+     * <p>
+     * If the argument index is used for more than one format element
+     * in the pattern string, then the new format is used for all such
+     * format elements. If the argument index is not used for any format
+     * element in the pattern string, then the new format is ignored.
+     *
+     * @param argumentIndex the argument index for which to use the new format
+     * @param newFormat the new format to use
+     * @since 1.4
      */
-    public void setFormat(int variable, Format newFormat) {
-        formats[variable] = newFormat;
+    public void setFormatByArgumentIndex(int argumentIndex, Format newFormat) {
+        for (int j = 0; j <= maxOffset; j++) {
+            if (argumentNumbers[j] == argumentIndex) {
+                formats[j] = newFormat;
+            }
+        }
     }
 
     /**
-     * Gets formats that were set with setFormats.
-     * See the class description about format numbering.
+     * Sets the format to use for the format element with the given
+     * format element index within the previously set pattern string.
+     * The format element index is the zero-based number of the format
+     * element counting from the start of the pattern string.
+     * <p>
+     * Since the order of format elements in a pattern string often
+     * changes during localization, it is generally better to use the
+     * {@link #setFormatByArgumentIndex setFormatByArgumentIndex}
+     * method, which accesses format elements based on the argument
+     * index they specify.
+     *
+     * @param formatElementIndex the index of a format element within the pattern
+     * @param newFormat the format to use for the specified format element
+     * @exception ArrayIndexOutOfBoundsException if formatElementIndex is equal to or
+     *            larger than the number of format elements in the pattern string
+     */
+    public void setFormat(int formatElementIndex, Format newFormat) {
+        formats[formatElementIndex] = newFormat;
+    }
+
+    /**
+     * Gets the formats used for the values passed into
+     * <code>format</code> methods or returned from <code>parse</code>
+     * methods. The indices of elements in the returned array
+     * correspond to the argument indices used in the previously set
+     * pattern string.
+     * The order of formats in the returned array thus corresponds to
+     * the order of elements in the <code>arguments</code> array passed
+     * to the <code>format</code> methods or the result array returned
+     * by the <code>parse</code> methods.
+     * <p>
+     * If an argument index is used for more than one format element
+     * in the pattern string, then the format used for the last such
+     * format element is returned in the array. If an argument index
+     * is not used for any format element in the pattern string, then
+     * null is returned in the array.
+     *
+     * @return the formats used for the arguments within the pattern
+     * @since 1.4
+     */
+    public Format[] getFormatsByArgumentIndex() {
+        int maximumArgumentNumber = -1;
+        for (int i = 0; i <= maxOffset; i++) {
+            if (argumentNumbers[i] > maximumArgumentNumber) {
+                maximumArgumentNumber = argumentNumbers[i];
+            }
+        }
+        Format[] resultArray = new Format[maximumArgumentNumber + 1];
+        for (int i = 0; i <= maxOffset; i++) {
+            resultArray[argumentNumbers[i]] = formats[i];
+        }
+        return resultArray;
+    }
+
+    /**
+     * Gets the formats used for the format elements in the
+     * previously set pattern string.
+     * The order of formats in the returned array corresponds to
+     * the order of format elements in the pattern string.
+     * <p>
+     * Since the order of format elements in a pattern string often
+     * changes during localization, it's generally better to use the
+     * {@link #getFormatsByArgumentIndex getFormatsByArgumentIndex}
+     * method, which assumes an order of formats corresponding to the
+     * order of elements in the <code>arguments</code> array passed to
+     * the <code>format</code> methods or the result array returned by
+     * the <code>parse</code> methods.
+     *
+     * @return the formats used for the format elements in the pattern
      */
     public Format[] getFormats() {
-        try {
-            return (Format[]) formats.clone();
-        } catch (Exception e) {
-            return formats; // should never occur!
-        }
+        Format[] resultArray = new Format[maxOffset + 1];
+        System.arraycopy(formats, 0, resultArray, 0, maxOffset + 1);
+        return resultArray;
     }
 
     /**
-     * Returns pattern with formatted objects.  If source is null, the
-     * original pattern is returned, if source contains null objects, the
-     * formatted result will substitute each argument with the string "null".
-     * @param source an array of objects to be formatted & substituted.
+     * Formats an array of objects and appends the <code>MessageFormat</code>'s
+     * pattern, with format elements replaced by the formatted objects, to the
+     * provided <code>StringBuffer</code>.
+     * <p>
+     * The text substituted for the individual format elements is derived from
+     * the current subformat of the format element and the
+     * <code>arguments</code> element at the format element's argument index
+     * as indicated by the first matching line of the following table. An
+     * argument is <i>unavailable</i> if <code>arguments</code> is
+     * <code>null</code> or has fewer than argumentIndex+1 elements.
+     * <p>
+     * <table border=1>
+     *    <tr>
+     *       <th>Subformat
+     *       <th>Argument
+     *       <th>Formatted Text
+     *    <tr>
+     *       <td><i>any</i>
+     *       <td><i>unavailable</i>
+     *       <td><code>"{" + argumentIndex + "}"</code>
+     *    <tr>
+     *       <td><i>any</i>
+     *       <td><code>null</code>
+     *       <td><code>"null"</code>
+     *    <tr>
+     *       <td><code>instanceof ChoiceFormat</code>
+     *       <td><i>any</i>
+     *       <td><code>subformat.format(argument).indexOf('{') >= 0 ?<br>
+     *           (new MessageFormat(subformat.format(argument), getLocale())).format(argument) :
+     *           subformat.format(argument)</code>
+     *    <tr>
+     *       <td><code>!= null</code>
+     *       <td><i>any</i>
+     *       <td><code>subformat.format(argument)</code>
+     *    <tr>
+     *       <td><code>null</code>
+     *       <td><code>instanceof Number</code>
+     *       <td><code>NumberFormat.getInstance(getLocale()).format(argument)</code>
+     *    <tr>
+     *       <td><code>null</code>
+     *       <td><code>instanceof Date</code>
+     *       <td><code>DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, getLocale()).format(argument)</code>
+     *    <tr>
+     *       <td><code>null</code>
+     *       <td><code>instanceof String</code>
+     *       <td><code>argument</code>
+     *    <tr>
+     *       <td><code>null</code>
+     *       <td><i>any</i>
+     *       <td><code>argument.toString()</code>
+     * </table>
+     * <p>
+     * If <code>pos</code> is non-null, and refers to
+     * <code>Field.ARGUMENT</code>, the location of the first formatted
+     * string will be returned.
+     *
+     * @param arguments an array of objects to be formatted and substituted.
      * @param result where text is appended.
-     * @param ignore no useful status is returned.
+     * @param pos On input: an alignment field, if desired.
+     *            On output: the offsets of the alignment field.
+     * @exception IllegalArgumentException if an argument in the
+     *            <code>arguments</code> array is not of the type
+     *            expected by the format element(s) that use it.
      */
-    public final StringBuffer format(Object[] source, StringBuffer result,
-                                     FieldPosition ignore)
+    public final StringBuffer format(Object[] arguments, StringBuffer result,
+                                     FieldPosition pos)
     {
-        return format(source,result,ignore, 0);
+        return subformat(arguments, result, pos, null);
     }
 
     /**
-     * Convenience routine.
-     * Avoids explicit creation of MessageFormat,
-     * but doesn't allow future optimizations.
+     * Creates a MessageFormat with the given pattern and uses it
+     * to format the given arguments. This is equivalent to
+     * <blockquote>
+     *     <code>(new {@link #MessageFormat(String) MessageFormat}(pattern)).{@link #format(java.lang.Object[], java.lang.StringBuffer, java.text.FieldPosition) format}(arguments, new StringBuffer(), null).toString()</code>
+     * </blockquote>
+     *
+     * @exception IllegalArgumentException if the pattern is invalid,
+     *            or if an argument in the <code>arguments</code> array
+     *            is not of the type expected by the format element(s)
+     *            that use it.
      */
     public static String format(String pattern, Object[] arguments) {
-            MessageFormat temp = new MessageFormat(pattern);
-            return temp.format(arguments);
+        MessageFormat temp = new MessageFormat(pattern);
+        return temp.format(arguments);
     }
 
     // Overrides
     /**
-     * Returns pattern with formatted objects.  If source is null, the
-     * original pattern is returned, if source contains null objects, the
-     * formatted result will substitute each argument with the string "null".
-     * @param source an array of objects to be formatted & substituted.
+     * Formats an array of objects and appends the <code>MessageFormat</code>'s
+     * pattern, with format elements replaced by the formatted objects, to the
+     * provided <code>StringBuffer</code>.
+     * This is equivalent to
+     * <blockquote>
+     *     <code>{@link #format(java.lang.Object[], java.lang.StringBuffer, java.text.FieldPosition) format}((Object[]) arguments, result, pos)</code>
+     * </blockquote>
+     *
+     * @param arguments an array of objects to be formatted and substituted.
      * @param result where text is appended.
-     * @param ignore no useful status is returned.
+     * @param pos On input: an alignment field, if desired.
+     *            On output: the offsets of the alignment field.
+     * @exception IllegalArgumentException if an argument in the
+     *            <code>arguments</code> array is not of the type
+     *            expected by the format element(s) that use it.
      */
-    public final StringBuffer format(Object source, StringBuffer result,
-                                     FieldPosition ignore)
+    public final StringBuffer format(Object arguments, StringBuffer result,
+                                     FieldPosition pos)
     {
-        return format((Object[])source, result,ignore, 0);
+        return subformat((Object[]) arguments, result, pos, null);
+    }
+
+    /**
+     * Formats an array of objects and inserts them into the
+     * <code>MessageFormat</code>'s pattern, producing an
+     * <code>AttributedCharacterIterator</code>.
+     * You can use the returned <code>AttributedCharacterIterator</code>
+     * to build the resulting String, as well as to determine information
+     * about the resulting String.
+     * <p>
+     * The text of the returned <code>AttributedCharacterIterator</code> is
+     * the same that would be returned by
+     * <blockquote>
+     *     <code>{@link #format(java.lang.Object[], java.lang.StringBuffer, java.text.FieldPosition) format}(arguments, new StringBuffer(), null).toString()</code>
+     * </blockquote>
+     * <p>
+     * In addition, the <code>AttributedCharacterIterator</code> contains at
+     * least attributes indicating where text was generated from an
+     * argument in the <code>arguments</code> array. The keys of these attributes are of
+     * type <code>MessageFormat.Field</code>, their values are
+     * <code>Integer</code> objects indicating the index in the <code>arguments</code>
+     * array of the argument from which the text was generated.
+     * <p>
+     * The attributes/value from the underlying <code>Format</code>
+     * instances that <code>MessageFormat</code> uses will also be
+     * placed in the resulting <code>AttributedCharacterIterator</code>.
+     * This allows you to not only find where an argument is placed in the
+     * resulting String, but also which fields it contains in turn.
+     *
+     * @param arguments an array of objects to be formatted and substituted.
+     * @return AttributedCharacterIterator describing the formatted value.
+     * @exception NullPointerException if <code>arguments</code> is null.
+     * @exception IllegalArgumentException if an argument in the
+     *            <code>arguments</code> array is not of the type
+     *            expected by the format element(s) that use it.
+     * @since 1.4
+     */
+    public AttributedCharacterIterator formatToCharacterIterator(Object arguments) {
+        StringBuffer result = new StringBuffer();
+        ArrayList iterators = new ArrayList();
+
+        if (arguments == null) {
+            throw new NullPointerException(
+                   "formatToCharacterIterator must be passed non-null object");
+        }
+        subformat((Object[]) arguments, result, null, iterators);
+        if (iterators.size() == 0) {
+            return createAttributedCharacterIterator("");
+        }
+        return createAttributedCharacterIterator(
+                     (AttributedCharacterIterator[])iterators.toArray(
+                     new AttributedCharacterIterator[iterators.size()]));
     }
 
     /**
@@ -511,14 +901,24 @@ public class MessageFormat extends Format {
      * is comparing with.  For example, if the parsing string "AAA {0} BBB"
      * is comparing against the pattern "AAD {0} BBB", the error index is
      * 0. When an error occurs, the call to this method will return null.
-     * If the soruce is null, return an empty array.
+     * If the source is null, return an empty array.
      */
-    public Object[] parse(String source, ParsePosition status) {
-        Object[] empty = {};
-        if (source == null) return empty;
-        Object[] resultArray = new Object[10];
+    public Object[] parse(String source, ParsePosition pos) {
+        if (source == null) {
+            Object[] empty = {};
+            return empty;
+        }
+
+        int maximumArgumentNumber = -1;
+        for (int i = 0; i <= maxOffset; i++) {
+            if (argumentNumbers[i] > maximumArgumentNumber) {
+                maximumArgumentNumber = argumentNumbers[i];
+            }
+        }
+        Object[] resultArray = new Object[maximumArgumentNumber + 1];
+
         int patternOffset = 0;
-        int sourceOffset = status.index;
+        int sourceOffset = pos.index;
         ParsePosition tempStatus = new ParsePosition(0);
         for (int i = 0; i <= maxOffset; ++i) {
             // match up to format
@@ -528,7 +928,7 @@ public class MessageFormat extends Format {
                 sourceOffset += len;
                 patternOffset += len;
             } else {
-                status.errorIndex = sourceOffset;
+                pos.errorIndex = sourceOffset;
                 return null; // leave index as is to signal error
             }
 
@@ -547,7 +947,7 @@ public class MessageFormat extends Format {
                 }
 
                 if (next < 0) {
-                    status.errorIndex = sourceOffset;
+                    pos.errorIndex = sourceOffset;
                     return null; // leave index as is to signal error
                 } else {
                     String strValue= source.substring(sourceOffset,next);
@@ -561,7 +961,7 @@ public class MessageFormat extends Format {
                 resultArray[argumentNumbers[i]]
                     = formats[i].parseObject(source,tempStatus);
                 if (tempStatus.index == sourceOffset) {
-                    status.errorIndex = sourceOffset;
+                    pos.errorIndex = sourceOffset;
                     return null; // leave index as is to signal error
                 }
                 sourceOffset = tempStatus.index; // update
@@ -570,41 +970,70 @@ public class MessageFormat extends Format {
         int len = pattern.length() - patternOffset;
         if (len == 0 || pattern.regionMatches(patternOffset,
                                               source, sourceOffset, len)) {
-            status.index = sourceOffset + len;
+            pos.index = sourceOffset + len;
         } else {
-            status.errorIndex = sourceOffset;
+            pos.errorIndex = sourceOffset;
             return null; // leave index as is to signal error
         }
         return resultArray;
     }
 
     /**
-     * Parses the string. Does not yet handle recursion (where
-     * the substituted strings contain {n} references.)
-     * @exception ParseException if the string can't be parsed.
+     * Parses text from the beginning of the given string to produce an object
+     * array.
+     * The method may not use the entire text of the given string.
+     * <p>
+     * See the {@link #parse(String, ParsePosition)} method for more information
+     * on message parsing.
+     *
+     * @param source A <code>String</code> whose beginning should be parsed.
+     * @return An <code>Object</code> array parsed from the string.
+     * @exception ParseException if the beginning of the specified string
+     *            cannot be parsed.
      */
     public Object[] parse(String source) throws ParseException {
-        ParsePosition status  = new ParsePosition(0);
-        Object[] result = parse(source, status);
-        if (status.index == 0)  // unchanged, returned object is null
-            throw new ParseException("MessageFormat parse error!", status.errorIndex);
+        ParsePosition pos  = new ParsePosition(0);
+        Object[] result = parse(source, pos);
+        if (pos.index == 0)  // unchanged, returned object is null
+            throw new ParseException("MessageFormat parse error!", pos.errorIndex);
 
         return result;
     }
 
     /**
-     * Parses the string. Does not yet handle recursion (where
-     * the substituted strings contain %n references.)
+     * Parses text from a string to produce an object array.
+     * <p>
+     * The method attempts to parse text starting at the index given by
+     * <code>pos</code>.
+     * If parsing succeeds, then the index of <code>pos</code> is updated
+     * to the index after the last character used (parsing does not necessarily
+     * use all characters up to the end of the string), and the parsed
+     * object array is returned. The updated <code>pos</code> can be used to
+     * indicate the starting point for the next call to this method.
+     * If an error occurs, then the index of <code>pos</code> is not
+     * changed, the error index of <code>pos</code> is set to the index of
+     * the character where the error occurred, and null is returned.
+     * <p>
+     * See the {@link #parse(String, ParsePosition)} method for more information
+     * on message parsing.
+     *
+     * @param source A <code>String</code>, part of which should be parsed.
+     * @param pos A <code>ParsePosition</code> object with index and error
+     *            index information as described above.
+     * @return An <code>Object</code> array parsed from the string. In case of
+     *         error, returns null.
+     * @exception NullPointerException if <code>pos</code> is null.
      */
-    public Object parseObject (String text, ParsePosition status) {
-        return parse(text, status);
+    public Object parseObject(String source, ParsePosition pos) {
+        return parse(source, pos);
     }
 
     /**
-     * Overrides Cloneable
+     * Creates and returns a copy of this object.
+     *
+     * @return a clone of this instance.
      */
-    public Object clone()
-    {
+    public Object clone() {
         MessageFormat other = (MessageFormat) super.clone();
 
         // clone arrays. Can't do with utility because of bug in Cloneable
@@ -621,7 +1050,7 @@ public class MessageFormat extends Format {
     }
 
     /**
-     * Equality comparision between two message format objects
+     * Equality comparison between two message format objects
      */
     public boolean equals(Object obj) {
         if (this == obj)                      // quick check
@@ -645,13 +1074,60 @@ public class MessageFormat extends Format {
     }
 
 
+    /**
+     * Defines constants that are used as attribute keys in the
+     * <code>AttributedCharacterIterator</code> returned
+     * from <code>MessageFormat.formatToCharacterIterator</code>.
+     *
+     * @since 1.4
+     */
+    public static class Field extends Format.Field {
+        /**
+         * Creates a Field with the specified name.
+         *
+         * @param name Name of the attribute
+         */
+        protected Field(String name) {
+            super(name);
+        }
+
+        /**
+         * Resolves instances being deserialized to the predefined constants.
+         *
+         * @throws InvalidObjectException if the constant could not be
+         *         resolved.
+         * @return resolved MessageFormat.Field constant
+         */
+        protected Object readResolve() throws InvalidObjectException {
+            if (this.getClass() != MessageFormat.Field.class) {
+                throw new InvalidObjectException("subclass didn't correctly implement readResolve");
+            }
+
+            return ARGUMENT;
+        }
+
+        //
+        // The constants
+        //
+
+        /**
+         * Constant identifying a portion of a message that was generated
+         * from an argument passed into <code>formatToCharacterIterator</code>.
+         * The value associated with the key will be an <code>Integer</code>
+         * indicating the index in the <code>arguments</code> array of the
+         * argument from which the text was generated.
+         */
+        public final static Field ARGUMENT =
+                           new Field("message argument field");
+    }
+
     // ===========================privates============================
 
     /**
      * The locale to use for formatting numbers and dates.
      * @serial
      */
-    private Locale locale = Locale.getDefault();
+    private Locale locale;
 
     /**
      * The string that the formatted values are to be plugged into.  In other words, this
@@ -660,22 +1136,21 @@ public class MessageFormat extends Format {
      */
     private String pattern = "";
 
-    /** The maximum number of arguments in the format */
-    private static final int MAX_ARGUMENTS = 10;
+    /** The initially expected number of subformats in the format */
+    private static final int INITIAL_FORMATS = 10;
 
     /**
-     * An array of ten formatters, which are used to format the first ten arguments.
+     * An array of formatters, which are used to format the arguments.
      * @serial
      */
-    // later, allow more than ten items
-    private Format[] formats = new Format[MAX_ARGUMENTS];
+    private Format[] formats = new Format[INITIAL_FORMATS];
 
     /**
      * The positions where the results of formatting each argument are to be inserted
      * into the pattern.
      * @serial
      */
-    private int[] offsets = new int[MAX_ARGUMENTS];
+    private int[] offsets = new int[INITIAL_FORMATS];
 
     /**
      * The argument numbers corresponding to each formatter.  (The formatters are stored
@@ -683,7 +1158,7 @@ public class MessageFormat extends Format {
      * are specified.)
      * @serial
      */
-    private int[] argumentNumbers = new int[MAX_ARGUMENTS];
+    private int[] argumentNumbers = new int[INITIAL_FORMATS];
 
     /**
      * One less than the number of entries in <code>offsets</code>.  Can also be thought of
@@ -695,26 +1170,23 @@ public class MessageFormat extends Format {
     private int maxOffset = -1;
 
     /**
-     * Constructs with the specified pattern.
-     * @see MessageFormat#applyPattern
+     * Internal routine used by format. If <code>characterIterators</code> is
+     * non-null, AttributedCharacterIterator will be created from the
+     * subformats as necessary. If <code>characterIterators</code> is null
+     * and <code>fp</code> is non-null and identifies
+     * <code>Field.MESSAGE_ARGUMENT</code>, the location of
+     * the first replaced argument will be set in it.
+     *
+     * @exception IllegalArgumentException if an argument in the
+     *            <code>arguments</code> array is not of the type
+     *            expected by the format element(s) that use it.
      */
-    private MessageFormat(String pattern, Locale loc) {
-        locale = (Locale)loc.clone();
-        applyPattern(pattern);
-    }
-
-    /**
-     * Internal routine used by format.
-     * @param recursionProtection Initially zero. Bits 0..9 are used to indicate
-     * that a parameter has already been seen, to avoid recursion.  Currently
-     * unused.
-     */
-
-    private StringBuffer format(Object[] arguments, StringBuffer result,
-                                FieldPosition status, int recursionProtection) {
+    private StringBuffer subformat(Object[] arguments, StringBuffer result,
+                                   FieldPosition fp, List characterIterators) {
         // note: this implementation assumes a fast substring & index.
         // if this is not true, would be better to append chars one by one.
         int lastOffset = 0;
+        int last = result.length();
         for (int i = 0; i <= maxOffset; ++i) {
             result.append(pattern.substring(lastOffset, offsets[i]));
             lastOffset = offsets[i];
@@ -729,21 +1201,27 @@ public class MessageFormat extends Format {
                 result.append('\uFFFD');
             } else {
                 Object obj = arguments[argumentNumber];
-                String arg;
-                boolean tryRecursion = false;
+                String arg = null;
+                Format subFormatter = null;
                 if (obj == null) {
                     arg = "null";
                 } else if (formats[i] != null) {
-                    arg = formats[i].format(obj);
-                    tryRecursion = formats[i] instanceof ChoiceFormat;
+                    subFormatter = formats[i];
+                    if (subFormatter instanceof ChoiceFormat) {
+                        arg = formats[i].format(obj);
+                        if (arg.indexOf('{') >= 0) {
+                            subFormatter = new MessageFormat(arg, locale);
+                            obj = arguments;
+                            arg = null;
+                        }
+                    }
                 } else if (obj instanceof Number) {
                     // format number if can
-                    arg = NumberFormat.getInstance(locale).format(obj); // fix
+                    subFormatter = NumberFormat.getInstance(locale);
                 } else if (obj instanceof Date) {
                     // format a Date if can
-                    arg = DateFormat.getDateTimeInstance(DateFormat.SHORT,
-                                                       DateFormat.SHORT,
-                                                       locale).format(obj);//fix
+                    subFormatter = DateFormat.getDateTimeInstance(
+                             DateFormat.SHORT, DateFormat.SHORT, locale);//fix
                 } else if (obj instanceof String) {
                     arg = (String) obj;
 
@@ -752,18 +1230,80 @@ public class MessageFormat extends Format {
                     if (arg == null) arg = "null";
                 }
 
-                // recurse if necessary
-                if (tryRecursion && arg.indexOf('{') >= 0) {
-                    MessageFormat temp = new MessageFormat(arg, locale);
-                    temp.format(arguments,result,status,recursionProtection);
-                } else {
+                // At this point we are in two states, either subFormatter
+                // is non-null indicating we should format obj using it,
+                // or arg is non-null and we should use it as the value.
+
+                if (characterIterators != null) {
+                    // If characterIterators is non-null, it indicates we need
+                    // to get the CharacterIterator from the child formatter.
+                    if (last != result.length()) {
+                        characterIterators.add(
+                            createAttributedCharacterIterator(result.substring
+                                                              (last)));
+                        last = result.length();
+                    }
+                    if (subFormatter != null) {
+                        AttributedCharacterIterator subIterator =
+                                   subFormatter.formatToCharacterIterator(obj);
+
+                        append(result, subIterator);
+                        if (last != result.length()) {
+                            characterIterators.add(
+                                         createAttributedCharacterIterator(
+                                         subIterator, Field.ARGUMENT,
+                                         new Integer(argumentNumber)));
+                            last = result.length();
+                        }
+                        arg = null;
+                    }
+                    if (arg != null && arg.length() > 0) {
+                        result.append(arg);
+                        characterIterators.add(
+                                 createAttributedCharacterIterator(
+                                 arg, Field.ARGUMENT,
+                                 new Integer(argumentNumber)));
+                        last = result.length();
+                    }
+                }
+                else {
+                    if (subFormatter != null) {
+                        arg = subFormatter.format(obj);
+                    }
+                    last = result.length();
                     result.append(arg);
+                    if (i == 0 && fp != null && Field.ARGUMENT.equals(
+                                  fp.getFieldAttribute())) {
+                        fp.setBeginIndex(last);
+                        fp.setEndIndex(result.length());
+                    }
+                    last = result.length();
                 }
             }
         }
         result.append(pattern.substring(lastOffset, pattern.length()));
+        if (characterIterators != null && last != result.length()) {
+            characterIterators.add(createAttributedCharacterIterator(
+                                   result.substring(last)));
+        }
         return result;
     }
+
+    /**
+     * Convenience method to append all the characters in
+     * <code>iterator</code> to the StringBuffer <code>result</code>.
+     */
+    private void append(StringBuffer result, CharacterIterator iterator) {
+        if (iterator.first() != CharacterIterator.DONE) {
+            char aChar;
+
+            result.append(iterator.first());
+            while ((aChar = iterator.next()) != CharacterIterator.DONE) {
+                result.append(aChar);
+            }
+        }
+    }
+
     private static final String[] typeList =
     {"", "", "number", "", "date", "", "time", "", "choice"};
     private static final String[] modifierList =
@@ -774,21 +1314,34 @@ public class MessageFormat extends Format {
     private void makeFormat(int position, int offsetNumber,
                             StringBuffer[] segments)
     {
-
-        // get the number
+        // get the argument number
         int argumentNumber;
-        int oldMaxOffset = maxOffset;
         try {
             argumentNumber = Integer.parseInt(segments[1].toString()); // always unlocalized!
-            if (argumentNumber < 0 || argumentNumber > 9) {
-                throw new NumberFormatException();
-            }
-            maxOffset = offsetNumber;
-            offsets[offsetNumber] = segments[0].length();
-            argumentNumbers[offsetNumber] = argumentNumber;
-        } catch (Exception e) {
-            throw new IllegalArgumentException("argument number too large at ");
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("can't parse argument number " + segments[1]);
         }
+        if (argumentNumber < 0) {
+            throw new IllegalArgumentException("negative argument number " + argumentNumber);
+        }
+
+        // resize format information arrays if necessary
+        if (offsetNumber >= formats.length) {
+            int newLength = formats.length * 2;
+            Format[] newFormats = new Format[newLength];
+            int[] newOffsets = new int[newLength];
+            int[] newArgumentNumbers = new int[newLength];
+            System.arraycopy(formats, 0, newFormats, 0, maxOffset + 1);
+            System.arraycopy(offsets, 0, newOffsets, 0, maxOffset + 1);
+            System.arraycopy(argumentNumbers, 0, newArgumentNumbers, 0, maxOffset + 1);
+            formats = newFormats;
+            offsets = newOffsets;
+            argumentNumbers = newArgumentNumbers;
+        }
+        int oldMaxOffset = maxOffset;
+        maxOffset = offsetNumber;
+        offsets[offsetNumber] = segments[0].length();
+        argumentNumbers[offsetNumber] = argumentNumber;
 
         // now get the format
         Format newFormat = null;
@@ -807,17 +1360,10 @@ public class MessageFormat extends Format {
                 newFormat = NumberFormat.getPercentInstance(locale);
                 break;
             case 5: case 6:// integer
-                newFormat = getIntegerFormat(locale);
+                newFormat = NumberFormat.getIntegerInstance(locale);
                 break;
             default: // pattern
-                newFormat = NumberFormat.getInstance(locale);
-                try {
-                    ((DecimalFormat)newFormat).applyPattern(segments[3].toString());
-                } catch (Exception e) {
-                    maxOffset = oldMaxOffset;
-                    throw new IllegalArgumentException(
-                                             "Pattern incorrect or locale does not support formats, error at ");
-                }
+                newFormat = new DecimalFormat(segments[3].toString(), new DecimalFormatSymbols(locale));
                 break;
             }
             break;
@@ -839,14 +1385,7 @@ public class MessageFormat extends Format {
                 newFormat = DateFormat.getDateInstance(DateFormat.FULL, locale);
                 break;
             default:
-                newFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, locale);
-                try {
-                    ((SimpleDateFormat)newFormat).applyPattern(segments[3].toString());
-                } catch (Exception e) {
-                    maxOffset = oldMaxOffset;
-                    throw new IllegalArgumentException(
-                                             "Pattern incorrect or locale does not support formats, error at ");
-                }
+                newFormat = new SimpleDateFormat(segments[3].toString(), locale);
                 break;
             }
             break;
@@ -868,14 +1407,7 @@ public class MessageFormat extends Format {
                 newFormat = DateFormat.getTimeInstance(DateFormat.FULL, locale);
                 break;
             default:
-                newFormat = DateFormat.getTimeInstance(DateFormat.DEFAULT, locale);
-                try {
-                    ((SimpleDateFormat)newFormat).applyPattern(segments[3].toString());
-                } catch (Exception e) {
-                    maxOffset = oldMaxOffset;
-                    throw new IllegalArgumentException(
-                                             "Pattern incorrect or locale does not support formats, error at ");
-                }
+                newFormat = new SimpleDateFormat(segments[3].toString(), locale);
                 break;
             }
             break;
@@ -885,7 +1417,7 @@ public class MessageFormat extends Format {
             } catch (Exception e) {
                 maxOffset = oldMaxOffset;
                 throw new IllegalArgumentException(
-                                         "Choice Pattern incorrect, error at ");
+                                         "Choice Pattern incorrect");
             }
             break;
         default:
@@ -905,20 +1437,6 @@ public class MessageFormat extends Format {
                 return i;
         }
         return -1;
-    }
-
-    /**
-     * Convenience method that ought to be in NumberFormat
-     */
-    NumberFormat getIntegerFormat(Locale locale) {
-        NumberFormat temp = NumberFormat.getInstance(locale);
-        if (temp instanceof DecimalFormat) {
-            DecimalFormat temp2 = (DecimalFormat) temp;
-            temp2.setMaximumFractionDigits(0);
-            temp2.setDecimalSeparatorAlwaysShown(false);
-            temp2.setParseIntegerOnly(true);
-        }
-        return temp;
     }
 
     private static final void copyAndFixQuotes(
@@ -945,10 +1463,9 @@ public class MessageFormat extends Format {
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         boolean isValid = maxOffset >= -1
-                && maxOffset < MAX_ARGUMENTS
-                && formats.length == MAX_ARGUMENTS
-                && offsets.length == MAX_ARGUMENTS
-                && argumentNumbers.length == MAX_ARGUMENTS;
+                && formats.length > maxOffset
+                && offsets.length > maxOffset
+                && argumentNumbers.length > maxOffset;
         if (isValid) {
             int lastOffset = pattern.length() + 1;
             for (int i = maxOffset; i >= 0; --i) {

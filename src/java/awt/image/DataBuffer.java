@@ -1,4 +1,6 @@
 /*
+ * @(#)DataBuffer.java	1.27 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -34,8 +36,8 @@ package java.awt.image;
  * the future.  Generally, an object of class DataBuffer will be cast down
  * to one of its data type specific subclasses to access data type specific
  * methods for improved performance.  Currently, the Java 2D(tm) API 
- * image classes use only TYPE_BYTE, TYPE_USHORT, and TYPE_INT DataBuffers 
- * to store image data.
+ * image classes use TYPE_BYTE, TYPE_USHORT, TYPE_INT, TYPE_SHORT,
+ * TYPE_FLOAT, and TYPE_DOUBLE DataBuffers to store image data.
  * @see java.awt.image.Raster
  * @see java.awt.image.SampleModel
  */
@@ -61,7 +63,7 @@ public abstract class DataBuffer
     /** Tag for double data.  Placeholder for future use. */
     public static final int TYPE_DOUBLE  = 5;
 
-    /** Tag for undefined data */
+    /** Tag for undefined data. */
     public static final int TYPE_UNDEFINED = 32;
  
     /** The data type of this DataBuffer. */
@@ -89,7 +91,7 @@ public abstract class DataBuffer
       *         zero or greater than {@link #TYPE_DOUBLE}
       */
     public static int getDataTypeSize(int type) {
-        if (type < 0 || type > TYPE_DOUBLE) {
+        if (type < TYPE_BYTE || type > TYPE_DOUBLE) {
             throw new IllegalArgumentException("Unknown data type "+type);
         }
         return dataTypeSize[type];
@@ -170,27 +172,37 @@ public abstract class DataBuffer
         this.offsets = (int[])offsets.clone();
     }
  
-    /**  Returns the data type of this DataBuffer.  */
+    /**  Returns the data type of this DataBuffer.
+     *   @return the data type of this <code>DataBuffer</code>.
+     */
     public int getDataType() {
         return dataType;
     }
   
-    /**  Returns the size (in array elements) of all banks. */
+    /**  Returns the size (in array elements) of all banks.
+     *   @return the size of all banks.
+     */
     public int getSize() {
         return size;
     }
 
-    /** Returns the offset of the default bank in array elements.  */
+    /** Returns the offset of the default bank in array elements.
+     *  @return the offset of the default bank.
+     */
     public int getOffset() {
         return offset;
     }
  
-    /** Returns the offsets (in array elements) of all the banks. */
+    /** Returns the offsets (in array elements) of all the banks.
+     *  @return the offsets of all banks.
+     */
     public int[] getOffsets() {
         return (int[])offsets.clone();
     }
 
-    /** Returns the number of banks in this DataBuffer. */
+    /** Returns the number of banks in this DataBuffer. 
+     *  @return the number of banks.
+     */
     public int getNumBanks() {
         return banks;
     }
@@ -198,6 +210,10 @@ public abstract class DataBuffer
     /**
      * Returns the requested data array element from the first (default) bank
      * as an integer.
+     * @param i the index of the requested data array element
+     * @return the data array element at the specified index.
+     * @see #setElem(int, int)
+     * @see #setElem(int, int, int)
      */
     public int getElem(int i) {
         return getElem(0,i);
@@ -206,12 +222,23 @@ public abstract class DataBuffer
     /**
      * Returns the requested data array element from the specified bank
      * as an integer.
+     * @param bank the specified bank
+     * @param i the index of the requested data array element
+     * @return the data array element at the specified index from the
+     *         specified bank at the specified index.
+     * @see #setElem(int, int)
+     * @see #setElem(int, int, int)
      */
     public abstract int getElem(int bank, int i);
 
     /**
      * Sets the requested data array element in the first (default) bank
      * from the given integer.
+     * @param i the specified index into the data array
+     * @param val the data to set the element at the specified index in
+     * the data array
+     * @see #getElem(int)
+     * @see #getElem(int, int)
      */
     public void  setElem(int i, int val) {
         setElem(0,i,val);
@@ -220,6 +247,12 @@ public abstract class DataBuffer
     /**
      * Sets the requested data array element in the specified bank
      * from the given integer.
+     * @param bank the specified bank
+     * @param i the specified index into the data array
+     * @param val  the data to set the element in the specified bank
+     * at the specified index in the data array
+     * @see #getElem(int)
+     * @see #getElem(int, int)
      */
     public abstract void setElem(int bank, int i, int val);
 
@@ -228,6 +261,11 @@ public abstract class DataBuffer
      * as a float.  The implementation in this class is to cast getElem(i)
      * to a float.  Subclasses may override this method if another
      * implementation is needed.
+     * @param i the index of the requested data array element
+     * @return a float value representing the data array element at the
+     *  specified index.
+     * @see #setElemFloat(int, float)
+     * @see #setElemFloat(int, int, float)
      */
     public float getElemFloat(int i) {
         return (float)getElem(i);
@@ -235,9 +273,16 @@ public abstract class DataBuffer
 
     /**
      * Returns the requested data array element from the specified bank
-     * as a float.  The implementation in this class is to cast getElem(bank, i)
-     * to a float.  Subclasses may override this method if another 
+     * as a float.  The implementation in this class is to cast 
+     * {@link #getElem(int, int)}
+     * to a float.  Subclasses can override this method if another 
      * implementation is needed.
+     * @param bank the specified bank
+     * @param i the index of the requested data array element
+     * @return a float value representing the data array element from the
+     * specified bank at the specified index.
+     * @see #setElemFloat(int, float)
+     * @see #setElemFloat(int, int, float)
      */
     public float getElemFloat(int bank, int i) {
         return (float)getElem(bank,i);
@@ -246,8 +291,13 @@ public abstract class DataBuffer
     /**
      * Sets the requested data array element in the first (default) bank
      * from the given float.  The implementation in this class is to cast
-     * val to an int and call setElem.  Subclasses may override this method
-     * if another implementation is needed.
+     * val to an int and call {@link #setElem(int, int)}.  Subclasses 
+     * can override this method if another implementation is needed.
+     * @param i the specified index
+     * @param val the value to set the element at the specified index in
+     * the data array
+     * @see #getElemFloat(int)
+     * @see #getElemFloat(int, int)
      */ 
     public void setElemFloat(int i, float val) {
         setElem(i,(int)val);
@@ -255,8 +305,15 @@ public abstract class DataBuffer
 
     /**
      * Sets the requested data array element in the specified bank
-     * from the given float.  The implementation in this class is to cast            * val to an int and call setElem.  Subclasses may override this method 
-     * if another implementation is needed.
+     * from the given float.  The implementation in this class is to cast            
+     * val to an int and call {@link #setElem(int, int)}.  Subclasses can
+     * override this method if another implementation is needed.
+     * @param bank the specified bank
+     * @param i the specified index  
+     * @param val the value to set the element in the specified bank at
+     * the specified index in the data array
+     * @see #getElemFloat(int)
+     * @see #getElemFloat(int, int)
      */
     public void setElemFloat(int bank, int i, float val) {
         setElem(bank,i,(int)val);
@@ -264,9 +321,15 @@ public abstract class DataBuffer
 
     /**
      * Returns the requested data array element from the first (default) bank
-     * as a double.  The implementation in this class is to cast getElem(i)
-     * to a double.  Subclasses may override this method if another 
+     * as a double.  The implementation in this class is to cast 
+     * {@link #getElem(int)}
+     * to a double.  Subclasses can override this method if another 
      * implementation is needed.
+     * @param i the specified index
+     * @return a double value representing the element at the specified
+     * index in the data array.
+     * @see #setElemDouble(int, double)
+     * @see #setElemDouble(int, int, double)
      */
     public double getElemDouble(int i) {
         return (double)getElem(i);
@@ -277,6 +340,12 @@ public abstract class DataBuffer
      * a double.  The implementation in this class is to cast getElem(bank, i)
      * to a double.  Subclasses may override this method if another
      * implementation is needed.
+     * @param bank the specified bank
+     * @param i the specified index
+     * @return a double value representing the element from the specified
+     * bank at the specified index in the data array.
+     * @see #setElemDouble(int, double)
+     * @see #setElemDouble(int, int, double)
      */
     public double getElemDouble(int bank, int i) {
         return (double)getElem(bank,i);
@@ -285,8 +354,13 @@ public abstract class DataBuffer
     /**
      * Sets the requested data array element in the first (default) bank
      * from the given double.  The implementation in this class is to cast
-     * val to an int and call setElem.  Subclasses may override this method
-     * if another implementation is needed.
+     * val to an int and call {@link #setElem(int, int)}.  Subclasses can
+     * override this method if another implementation is needed.
+     * @param i the specified index
+     * @param val the value to set the element at the specified index
+     * in the data array
+     * @see #getElemDouble(int)
+     * @see #getElemDouble(int, int)
      */
     public void setElemDouble(int i, double val) {
         setElem(i,(int)val);
@@ -295,8 +369,14 @@ public abstract class DataBuffer
     /**
      * Sets the requested data array element in the specified bank
      * from the given double.  The implementation in this class is to cast
-     * val to an int and call setElem.  Subclasses may override this method
-     * if another implementation is needed.
+     * val to an int and call {@link #setElem(int, int)}.  Subclasses can
+     * override this method if another implementation is needed.
+     * @param bank the specified bank
+     * @param i the specified index
+     * @param val the value to set the element in the specified bank
+     * at the specified index of the data array
+     * @see #getElemDouble(int)
+     * @see #getElemDouble(int, int)
      */
     public void setElemDouble(int bank, int i, double val) {
         setElem(bank,i,(int)val);

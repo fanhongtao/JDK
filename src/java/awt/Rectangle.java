@@ -1,4 +1,6 @@
 /*
+ * @(#)Rectangle.java	1.63 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -32,7 +34,7 @@ import java.awt.geom.Rectangle2D;
  * <code>intersects</code>, <code>intersection</code>, and 
  * <code>union</code>. 
  *
- * @version 	1.54, 02/06/02
+ * @version 	1.63, 12/03/01
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -89,7 +91,9 @@ public class Rectangle extends Rectangle2D
     static {
         /* ensure that the necessary native libraries are loaded */
         Toolkit.loadLibraries();
-        initIDs();
+        if (!GraphicsEnvironment.isHeadless()) {
+            initIDs();
+        }
     }
 
     /**
@@ -103,7 +107,7 @@ public class Rectangle extends Rectangle2D
 
     /**
      * Constructs a new <code>Rectangle</code>, initialized to match 
-     * the values of the specificed <code>Rectangle</code>.
+     * the values of the specified <code>Rectangle</code>.
      * @param r  the <code>Rectangle</code> from which to copy initial values
      *           to a newly constructed <code>Rectangle</code>
      * @since JDK1.1
@@ -218,6 +222,8 @@ public class Rectangle extends Rectangle2D
      * @return    a new <code>Rectangle</code>, equal to the 
      * bounding <code>Rectangle</code> for this <code>Rectangle</code>.
      * @see       java.awt.Component#getBounds
+     * @see       #setBounds(Rectangle)
+     * @see       #setBounds(int, int, int, int)
      * @since     JDK1.1
      */
     public Rectangle getBounds() {
@@ -239,7 +245,8 @@ public class Rectangle extends Rectangle2D
      * This method is included for completeness, to parallel the
      * <code>setBounds</code> method of <code>Component</code>.
      * @param r the specified <code>Rectangle</code>
-     * @see       java.awt.Component#setBounds(java.awt.Rectangle)
+     * @see       #getBounds
+     * @see	  java.awt.Component#setBounds(java.awt.Rectangle)
      * @since     JDK1.1
      */
     public void setBounds(Rectangle r) {
@@ -258,6 +265,7 @@ public class Rectangle extends Rectangle2D
      *                    corner of this <code>Rectangle</code>
      * @param width the new width for this <code>Rectangle</code>
      * @param height the new height for this <code>Rectangle</code>
+     * @see       #getBounds
      * @see       java.awt.Component#setBounds(int, int, int, int)
      * @since     JDK1.1
      */
@@ -271,6 +279,8 @@ public class Rectangle extends Rectangle2D
      * and <code>height</code>.
      * This method is included for completeness, to parallel the
      * <code>setBounds</code> method of <code>Component</code>.
+     * @param x,&nbsp;y the coordinates of the upper-left corner of 
+     *                  the specified rectangle
      * @param width the new width for the <code>Dimension</code> object
      * @param height  the new height for the <code>Dimension</code> object
      */
@@ -283,6 +293,15 @@ public class Rectangle extends Rectangle2D
     }	
 
     /**
+     * Sets the bounding <code>Rectangle</code> of this 
+     * <code>Rectangle</code> to the specified 
+     * <code>x</code>, <code>y</code>, <code>width</code>, 
+     * and <code>height</code>.
+     * <p>
+     * @param x,&nbsp;y the new coordinates for the top-left
+     *                    corner of this <code>Rectangle</code>
+     * @param width the new width for this <code>Rectangle</code>
+     * @param height the new height for this <code>Rectangle</code>
      * @deprecated As of JDK version 1.1,
      * replaced by <code>setBounds(int, int, int, int)</code>.
      */
@@ -301,6 +320,8 @@ public class Rectangle extends Rectangle2D
      * @return the <code>Point</code> that is the top-left corner of
      *			this <code>Rectangle</code>. 
      * @see       java.awt.Component#getLocation
+     * @see       #setLocation(Point)
+     * @see       #setLocation(int, int)
      * @since     JDK1.1
      */
     public Point getLocation() {
@@ -315,6 +336,7 @@ public class Rectangle extends Rectangle2D
      * @param p the <code>Point</code> specifying the new location
      *                for this <code>Rectangle</code>
      * @see       java.awt.Component#setLocation(java.awt.Point)
+     * @see       #getLocation
      * @since     JDK1.1
      */
     public void setLocation(Point p) {
@@ -327,7 +349,8 @@ public class Rectangle extends Rectangle2D
      * This method is included for completeness, to parallel the
      * <code>setLocation</code> method of <code>Component</code>.
      * @param x,&nbsp;y the coordinates of the new location
-     * @see       java.awt.Component#setLocation(int, int)
+     * @see       #getLocation
+     * @see	  java.awt.Component#setLocation(int, int)
      * @since     JDK1.1
      */
     public void setLocation(int x, int y) {
@@ -335,6 +358,9 @@ public class Rectangle extends Rectangle2D
     }	
 
     /**
+     * Moves this <code>Rectangle</code> to the specified location.
+     * <p>
+     * @param x,&nbsp;y the coordinates of the new location
      * @deprecated As of JDK version 1.1,
      * replaced by <code>setLocation(int, int)</code>.
      */
@@ -347,9 +373,9 @@ public class Rectangle extends Rectangle2D
      * Translates this <code>Rectangle</code> the indicated distance,
      * to the right along the x coordinate axis, and 
      * downward along the y coordinate axis.
-     * @param dx the distance to move this <code>Rectangle</code> 
+     * @param x the distance to move this <code>Rectangle</code> 
      *                 along the x axis
-     * @param dy the distance to move this <code>Rectangle</code> 
+     * @param y the distance to move this <code>Rectangle</code> 
      *                 along the y axis
      * @see       java.awt.Rectangle#setLocation(int, int)
      * @see       java.awt.Rectangle#setLocation(java.awt.Point)
@@ -368,6 +394,8 @@ public class Rectangle extends Rectangle2D
      * @return a <code>Dimension</code>, representing the size of
      *            this <code>Rectangle</code>.
      * @see       java.awt.Component#getSize
+     * @see       #setSize(Dimension)
+     * @see       #setSize(int, int)
      * @since     JDK1.1
      */
     public Dimension getSize() {
@@ -382,6 +410,7 @@ public class Rectangle extends Rectangle2D
      * <code>setSize</code> method of <code>Component</code>.
      * @param d the new size for the <code>Dimension</code> object
      * @see       java.awt.Component#setSize(java.awt.Dimension)
+     * @see       #getSize
      * @since     JDK1.1
      */
     public void setSize(Dimension d) {
@@ -397,6 +426,7 @@ public class Rectangle extends Rectangle2D
      * @param width the new width for this <code>Rectangle</code>
      * @param height the new height for this <code>Rectangle</code>
      * @see       java.awt.Component#setSize(int, int)
+     * @see       #getSize
      * @since     JDK1.1
      */
     public void setSize(int width, int height) {
@@ -404,6 +434,11 @@ public class Rectangle extends Rectangle2D
     }	
 
     /**
+     * Sets the size of this <code>Rectangle</code> to the specified 
+     * width and height.
+     * <p>
+     * @param width the new width for this <code>Rectangle</code>
+     * @param height the new height for this <code>Rectangle</code>
      * @deprecated As of JDK version 1.1,
      * replaced by <code>setSize(int, int)</code>.
      */
@@ -459,7 +494,7 @@ public class Rectangle extends Rectangle2D
      * the <code>Rectangle</code>
      * at the specified location (<i>X</i>,&nbsp;<i>Y</i>) with the
      * specified dimensions (<i>W</i>,&nbsp;<i>H</i>).
-     * @param     x,&nbsp;y  the specified coordinates
+     * @param     X,&nbsp;Y  the specified coordinates
      * @param     W   the width of the <code>Rectangle</code>
      * @param     H   the height of the <code>Rectangle</code>
      * @return    <code>true</code> if the <code>Rectangle</code> specified by
@@ -469,72 +504,140 @@ public class Rectangle extends Rectangle2D
      * @since     JDK1.1
      */
     public boolean contains(int X, int Y, int W, int H) {
-	int width = this.width;
-	int height = this.height;
-	if (width <= 0 || height <= 0 || W <= 0 || H <= 0) {
+	int w = this.width;
+	int h = this.height;
+	if ((w | h | W | H) < 0) {
+	    // At least one of the dimensions is negative...
 	    return false;
 	}
+	// Note: if any dimension is zero, tests below must return false...
 	int x = this.x;
 	int y = this.y;
-	return (X >= x &&
-		Y >= y &&
-		X + W <= x + width &&
-		Y + H <= y + height);
+	if (X < x || Y < y) {
+	    return false;
+	}
+	w += x;
+	W += X;
+	if (W <= X) {
+	    // X+W overflowed or W was zero, return false if...
+	    // either original w or W was zero or
+	    // x+w did not overflow or
+	    // the overflowed x+w is smaller than the overflowed X+W
+	    if (w >= x || W > w) return false;
+	} else {
+	    // X+W did not overflow and W was not zero, return false if...
+	    // original w was zero or
+	    // x+w did not overflow and x+w is smaller than X+W
+	    if (w >= x && W > w) return false;
+	}
+	h += y;
+	H += Y;
+	if (H <= Y) {
+	    if (h >= y || H > h) return false;
+	} else {
+	    if (h >= y && H > h) return false;
+	}
+	return true;
     }
 
     /**
+     * Checks whether or not this <code>Rectangle</code> contains the 
+     * point at the specified location
+     * (<i>X</i>,&nbsp;<i>Y</i>).
+     * @param  X,&nbsp;Y  the specified coordinates
+     * @return    <code>true</code> if the point 
+     *            (<i>X</i>,&nbsp;<i>Y</i>) is inside this 
+     *		  <code>Rectangle</code>; 
+     *            <code>false</code> otherwise.
      * @deprecated As of JDK version 1.1,
      * replaced by <code>contains(int, int)</code>.
      */
-    public boolean inside(int x, int y) {
-	return (x >= this.x) && ((x - this.x) < this.width) && (y >= this.y) && ((y-this.y) < this.height);
+    public boolean inside(int X, int Y) {
+	int w = this.width;
+	int h = this.height;
+	if ((w | h) < 0) {
+	    // At least one of the dimensions is negative...
+	    return false;
+	}
+	// Note: if either dimension is zero, tests below must return false...
+	int x = this.x;
+	int y = this.y;
+	if (X < x || Y < y) {
+	    return false;
+	}
+	w += x;
+	h += y;
+	//    overflow || intersect
+	return ((w < x || w > X) &&
+		(h < y || h > Y));
     }
 
     /**
      * Determines whether or not this <code>Rectangle</code> and the specified 
      * <code>Rectangle</code> intersect. Two rectangles intersect if 
      * their intersection is nonempty. 
+     *
      * @param r the specified <code>Rectangle</code>
      * @return    <code>true</code> if the specified <code>Rectangle</code> 
-     *            and this <code>Rectangle</code> insersect; 
+     *            and this <code>Rectangle</code> intersect; 
      *            <code>false</code> otherwise.
      */
     public boolean intersects(Rectangle r) {
-	return !((r.x + r.width <= x) ||
-		 (r.y + r.height <= y) ||
-		 (r.x >= x + width) ||
-		 (r.y >= y + height));
+	int tw = this.width;
+	int th = this.height;
+	int rw = r.width;
+	int rh = r.height;
+	if (rw <= 0 || rh <= 0 || tw <= 0 || th <= 0) {
+	    return false;
+	}
+	int tx = this.x;
+	int ty = this.y;
+	int rx = r.x;
+	int ry = r.y;
+	rw += rx;
+	rh += ry;
+	tw += tx;
+	th += ty;
+	//      overflow || intersect
+	return ((rw < rx || rw > tx) &&
+		(rh < ry || rh > ty) &&
+		(tw < tx || tw > rx) &&
+		(th < ty || th > ry));
     }
 
     /**
      * Computes the intersection of this <code>Rectangle</code> with the 
      * specified <code>Rectangle</code>. Returns a new <code>Rectangle</code> 
      * that represents the intersection of the two rectangles.
+     * If the two rectangles do not intersect, the result will be
+     * an empty rectangle.
+     *
      * @param     r   the specified <code>Rectangle</code>
      * @return    the largest <code>Rectangle</code> contained in both the 
      *            specified <code>Rectangle</code> and in 
-     *		  this<code>Rectangle</code>.
+     *		  this <code>Rectangle</code>; or if the rectangles
+     *            do not intersect, an empty rectangle.
      */
     public Rectangle intersection(Rectangle r) {
-    int tx1 = this.x;
-    int ty1 = this.y;
-    int rx1 = r.x;
-    int ry1 = r.y;
-    long tx2 = tx1; tx2 += this.width;
-    long ty2 = ty1; ty2 += this.height;
-    long rx2 = rx1; rx2 += r.width;
-    long ry2 = ry1; ry2 += r.height;
-    if (tx1 < rx1) tx1 = rx1;
-    if (ty1 < ry1) ty1 = ry1;
-    if (tx2 > rx2) tx2 = rx2;
-    if (ty2 > ry2) ty2 = ry2;
-    tx2 -= tx1;
-    ty2 -= ty1;
-    // tx2,ty2 will never overflow (they will never be
-    // larger than the smallest of the two source w,h)
-    // they might underflow, though...
-    if (tx2 < Integer.MIN_VALUE) tx2 = Integer.MIN_VALUE;
-    if (ty2 < Integer.MIN_VALUE) ty2 = Integer.MIN_VALUE;
+	int tx1 = this.x;
+	int ty1 = this.y;
+	int rx1 = r.x;
+	int ry1 = r.y;
+	long tx2 = tx1; tx2 += this.width;
+	long ty2 = ty1; ty2 += this.height;
+	long rx2 = rx1; rx2 += r.width;
+	long ry2 = ry1; ry2 += r.height;
+	if (tx1 < rx1) tx1 = rx1;
+	if (ty1 < ry1) ty1 = ry1;
+	if (tx2 > rx2) tx2 = rx2;
+	if (ty2 > ry2) ty2 = ry2;
+	tx2 -= tx1;
+	ty2 -= ty1;
+	// tx2,ty2 will never overflow (they will never be
+	// larger than the smallest of the two source w,h)
+	// they might underflow, though...
+	if (tx2 < Integer.MIN_VALUE) tx2 = Integer.MIN_VALUE;
+	if (ty2 < Integer.MIN_VALUE) ty2 = Integer.MIN_VALUE;
 	return new Rectangle(tx1, ty1, (int) tx2, (int) ty2);
     }
 
@@ -680,19 +783,28 @@ public class Rectangle extends Rectangle2D
      * @since 1.2
      */
     public int outcode(double x, double y) {
+	/*
+	 * Note on casts to double below.  If the arithmetic of
+	 * x+w or y+h is done in int, then we may get integer
+	 * overflow. By converting to double before the addition
+	 * we force the addition to be carried out in double to
+	 * avoid overflow in the comparison.
+	 *
+	 * See bug 4320890 for problems that this can cause.
+	 */
 	int out = 0;
 	if (this.width <= 0) {
 	    out |= OUT_LEFT | OUT_RIGHT;
 	} else if (x < this.x) {
 	    out |= OUT_LEFT;
-	} else if (x > this.x + this.width) {
+	} else if (x > this.x + (double) this.width) {
 	    out |= OUT_RIGHT;
 	}
 	if (this.height <= 0) {
 	    out |= OUT_TOP | OUT_BOTTOM;
 	} else if (y < this.y) {
 	    out |= OUT_TOP;
-	} else if (y > this.y + this.height) {
+	} else if (y > this.y + (double) this.height) {
 	    out |= OUT_BOTTOM;
 	}
 	return out;

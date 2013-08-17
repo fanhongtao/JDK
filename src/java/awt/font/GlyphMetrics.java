@@ -1,4 +1,6 @@
 /*
+ * @(#)GlyphMetrics.java	1.38 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -42,22 +44,31 @@ import java.awt.geom.Rectangle2D;
  * </ul>
  * <p>
  * Other metrics available through <code>GlyphMetrics</code> are the
- * advance, bounds, and left and right side bearings.  
+ * components of the advance, the visual bounds, and the left and right
+ * side bearings.
+ * <p>
+ * Glyphs for a rotated font, or obtained from a <code>GlyphVector</code>
+ * which has applied a rotation to the glyph, can have advances that
+ * contain both X and Y components.  Usually the advance only has one
+ * component.
  * <p>
  * The advance of a glyph is the distance from the glyph's origin to the
- * origin of the next glyph.  Note that, in a <code>GlyphVector</code>, 
+ * origin of the next glyph along the baseline, which is either vertical
+ * or horizontal.  Note that, in a <code>GlyphVector</code>, 
  * the distance from a glyph to its following glyph might not be the 
- * glyph's advance.  
+ * glyph's advance, because of kerning or other positioning adjustments.  
  * <p>
  * The bounds is the smallest rectangle that completely contains the
- * visible portion of the glyph.  The bounds rectangle is relative to the
+ * outline of the glyph.  The bounds rectangle is relative to the
  * glyph's origin.  The left-side bearing is the distance from the glyph
  * origin to the left of its bounds rectangle. If the left-side bearing is
  * negative, part of the glyph is drawn to the left of its origin.  The
  * right-side bearing is the distance from the right side of the bounds
  * rectangle to the next glyph origin (the origin plus the advance).  If
  * negative, part of the glyph is drawn to the right of the next glyph's
- * origin.
+ * origin.  Note that the bounds does not necessarily enclose all the pixels
+ * affected when rendering the glyph, because of rasterization and pixel
+ * adjustment effects.
  * <p>
  * Although instances of <code>GlyphMetrics</code> can be directly
  * constructed, they are almost always obtained from a 
@@ -72,28 +83,35 @@ import java.awt.geom.Rectangle2D;
  * GlyphMetrics metrics = GlyphVector.getGlyphMetrics(glyphIndex);
  * int isStandard = metrics.isStandard();
  * float glyphAdvance = metrics.getAdvance();
- * </blockquote></pre>
+ * </pre></blockquote>
  * @see java.awt.Font
  * @see GlyphVector
  */
 
 public final class GlyphMetrics {
-    /**
-     * The advance (horizontal or vertical) of the associated glyph.
+    /** 
+     * Indicates whether the metrics are for a horizontal or vertical baseline.
      */
-    // please please don't change the name of this field!  Some JNI code uses it
-    private float advance;
+    private boolean horizontal;
+
+    /**
+     * The x-component of the advance. 
+     */
+    private float advanceX;
+
+    /** 
+     * The y-component of the advance. 
+     */
+    private float advanceY;
 
     /**
      * The bounds of the associated glyph.
      */
-    // please please don't change the name of this field!  Some JNI code uses it
     private Rectangle2D.Float bounds;
 
     /**
      * Additional information about the glyph encoded as a byte.
      */
-    // please please don't change the name of this field!  Some JNI code uses it
     private byte glyphType;
 
     /**
@@ -128,7 +146,6 @@ public final class GlyphMetrics {
      */
     public static final byte COMPONENT = 3;
 
-
     /**
      * Indicates a glyph with no visual representation. It can
      * be added to the other code values to indicate an invisible glyph.
@@ -137,27 +154,68 @@ public final class GlyphMetrics {
 
     /**
      * Constructs a <code>GlyphMetrics</code> object.
-     * @param advance the advance width or height of the glyph
+     * @param advance the advance width of the glyph
      * @param bounds the black box bounds of the glyph
      * @param glyphType the type of the glyph
      */
     public GlyphMetrics(float advance, Rectangle2D bounds, byte glyphType) {
-        this.advance = advance;
+	this.horizontal = true;
+        this.advanceX = advance;
+	this.advanceY = 0;
         this.bounds = new Rectangle2D.Float();
         this.bounds.setRect(bounds);
         this.glyphType = glyphType;
     }
 
     /**
-     * Returns the advance width or height of the glyph.
-     * @return the advance of the glyph.
+     * Constructs a <code>GlyphMetrics</code> object.
+     * @param horizontal if true, metrics are for a horizontal baseline, 
+     *   otherwise they are for a vertical baseline
+     * @param advanceX the X-component of the glyph's advance
+     * @param advanceY the Y-component of the glyph's advance
+     * @param bounds the visual bounds of the glyph
+     * @param glyphType the type of the glyph
      */
-    public float getAdvance() {
-        return advance;
+    public GlyphMetrics(boolean horizontal, float advanceX, float advanceY,
+			Rectangle2D bounds, byte glyphType) {
+	
+	this.horizontal = horizontal;
+        this.advanceX = advanceX;
+	this.advanceY = advanceY;
+        this.bounds = new Rectangle2D.Float();
+        this.bounds.setRect(bounds);
+        this.glyphType = glyphType;
     }
 
     /**
-     * Returns the black box bounds of the glyph.
+     * Returns the advance of the glyph along the baseline (either 
+     * horizontal or vertical).
+     * @return the advance of the glyph
+     */
+    public float getAdvance() {
+        return horizontal ? advanceX : advanceY;
+    }
+
+    /**
+     * Returns the x-component of the advance of the glyph.
+     * @return the x-component of the advance of the glyph
+     */
+    public float getAdvanceX() {
+        return advanceX;
+    }
+
+    /**
+     * Returns the y-component of the advance of the glyph.
+     * @return the y-component of the advance of the glyph
+     */
+    public float getAdvanceY() {
+        return advanceY;
+    }
+
+    /**
+     * Returns the bounds of the glyph. This is the bounding box of the glyph outline.
+     * Because of rasterization and pixel alignment effects, it does not necessarily
+     * enclose the pixels that are affected when rendering the glyph.
      * @return a {@link Rectangle2D} that is the bounds of the glyph.
      */
     public Rectangle2D getBounds2D() {
@@ -173,7 +231,7 @@ public final class GlyphMetrics {
      * @return the left side bearing of the glyph.
      */
     public float getLSB() {
-        return bounds.x;
+        return horizontal ? bounds.x : bounds.y;
     }
 
     /**
@@ -185,7 +243,9 @@ public final class GlyphMetrics {
      * @return the right side bearing of the glyph.
      */
     public float getRSB() {
-        return advance - bounds.x - bounds.width;
+        return horizontal ?
+	    advanceX - bounds.x - bounds.width :
+	    advanceY - bounds.y - bounds.height;
     }
 
     /**

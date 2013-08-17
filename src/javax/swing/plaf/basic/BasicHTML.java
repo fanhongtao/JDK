@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicHTML.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,7 +21,7 @@ import javax.swing.text.html.*;
  * layout semantics.
  *
  * @author  Timothy Prinzing
- * @version 1.12 02/06/02
+ * @version 1.16 12/03/01
  */
 public class BasicHTML {
 
@@ -28,10 +30,10 @@ public class BasicHTML {
      * string of html.
      */
     public static View createHTMLView(JComponent c, String html) {
-	HTMLEditorKit kit = getFactory();
-	Document doc = kit.createDefaultDocument();
+	BasicEditorKit kit = getFactory();
+	Document doc = kit.createDefaultDocument(c.getFont(),
+                                                 c.getForeground());
 	Object base = c.getClientProperty(documentBaseKey);
-	((BasicDocument)doc).setHost(c);
 	if (base instanceof URL) {
 	    ((HTMLDocument)doc).setBase((URL)base);
 	}
@@ -98,8 +100,9 @@ public class BasicHTML {
      */
     public static final String documentBaseKey = "html.base";
 
-    static HTMLEditorKit getFactory() {
+    static BasicEditorKit getFactory() {
 	if (basicHTMLFactory == null) {
+            basicHTMLViewFactory = new BasicHTMLViewFactory();
 	    basicHTMLFactory = new BasicEditorKit();
 	}
 	return basicHTMLFactory;
@@ -108,7 +111,12 @@ public class BasicHTML {
     /**
      * The source of the html renderers
      */
-    private static HTMLEditorKit basicHTMLFactory;
+    private static BasicEditorKit basicHTMLFactory;
+
+    /**
+     * Creates the Views that visually represent the model.
+     */
+    private static ViewFactory basicHTMLViewFactory;
 
     /**
      * Overrides to the default stylesheet.  Should consider
@@ -147,11 +155,6 @@ public class BasicHTML {
 		    // don't want to die in static initialization... 
 		    // just display things wrong.
 		}
-		Style bodyStyle = defaultStyles.getStyle("body");
-		if (bodyStyle != null) {
-		    StyleConstants.setForeground(bodyStyle,
-						 new TaggedColor(0, 0, 0));
-		}
 		r.close();
 		defaultStyles.addStyleSheet(super.getStyleSheet());
 	    }
@@ -162,53 +165,107 @@ public class BasicHTML {
 	 * Sets the async policy to flush everything in one chunk, and
 	 * to not display unknown tags.
 	 */
-        public Document createDefaultDocument() {
+        public Document createDefaultDocument(Font defaultFont,
+                                              Color foreground) {
 	    StyleSheet styles = getStyleSheet();
 	    StyleSheet ss = new StyleSheet();
 	    ss.addStyleSheet(styles);
-	    BasicDocument doc = new BasicDocument(ss);
+	    BasicDocument doc = new BasicDocument(ss, defaultFont, foreground);
 	    doc.setAsynchronousLoadPriority(Integer.MAX_VALUE);
 	    doc.setPreservesUnknownTags(false);
 	    return doc;
 	}
+
+        /**
+         * Returns the ViewFactory that is used to make sure the Views don't
+         * load in the background.
+         */
+        public ViewFactory getViewFactory() {
+            return basicHTMLViewFactory;
+        }
     }
 
 
     /**
-     * A tagged color is used by BasicDocument to indicate the color should
-     * come from the foreground of the Component.
+     * BasicHTMLViewFactory extends HTMLFactory to force images to be loaded
+     * synchronously.
      */
-    static class TaggedColor extends Color {
-	TaggedColor(int r, int g, int b) {
-	    super(r, g, b);
-	}
+    static class BasicHTMLViewFactory extends HTMLEditorKit.HTMLFactory {
+        public View create(Element elem) {
+            View view = super.create(elem);
+
+            if (view instanceof ImageView) {
+                ((ImageView)view).setLoadsSynchronously(true);
+            }
+            return view;
+        }
     }
 
 
     /**
      * The subclass of HTMLDocument that is used as the model. getForeground
-     * is overriden to return the foreground property from the Component this
+     * is overridden to return the foreground property from the Component this
      * was created for.
      */
     static class BasicDocument extends HTMLDocument {
 	/** The host, that is where we are rendering. */
-	private JComponent host;
+	// private JComponent host;
 
-	BasicDocument(StyleSheet s) {
+	BasicDocument(StyleSheet s, Font defaultFont, Color foreground) {
 	    super(s);
 	    setPreservesUnknownTags(false);
+            setFontAndColor(defaultFont, foreground);
 	}
 
-	public Color getForeground(AttributeSet attr) {
-	    Color color = super.getForeground(attr);
-	    if (color instanceof TaggedColor && host != null) {
-		return host.getForeground();
-	    }
-	    return color;
-	}
+        /**
+         * Sets the default font and default color. These are set by
+         * adding a rule for the body that specifies the font and color.
+         * This allows the html to override these should it wish to have
+         * a custom font or color.
+         */
+	private void setFontAndColor(Font font, Color fg) {
+            StringBuffer rule = null;
 
-	void setHost(JComponent host) {
-	    this.host = host;
+            if (font != null) {
+                rule = new StringBuffer("body { font-family: ");
+                rule.append(font.getFamily());
+                rule.append(";");
+                rule.append(" font-size: ");
+                rule.append(font.getSize());
+                rule.append("pt");
+                if (font.isBold()) {
+                    rule.append("; font-weight: 700");
+                }
+                if (font.isItalic()) {
+                    rule.append("; font-style: italic");
+                }
+            }
+            if (fg != null) {
+                if (rule == null) {
+                    rule = new StringBuffer("body { color: #");
+                }
+                else {
+                    rule.append("; color: #");
+                }
+                if (fg.getRed() < 16) {
+                    rule.append('0');
+                }
+                rule.append(Integer.toHexString(fg.getRed()));
+                if (fg.getGreen() < 16) {
+                    rule.append('0');
+                }
+                rule.append(Integer.toHexString(fg.getGreen()));
+                if (fg.getBlue() < 16) {
+                    rule.append('0');
+                }
+                rule.append(Integer.toHexString(fg.getBlue()));
+            }
+            if (rule != null) {
+                rule.append(" }");
+                try {
+                    getStyleSheet().addRule(rule.toString());
+                } catch (RuntimeException re) {}
+            }
 	}
     }
 

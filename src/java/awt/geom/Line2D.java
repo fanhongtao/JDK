@@ -1,4 +1,6 @@
 /*
+ * @(#)Line2D.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,20 +11,20 @@ import java.awt.Shape;
 import java.awt.Rectangle;
 
 /**
- * This <code>Line2D</code> class represents a line segment in (x,&nbsp;y)
+ * This <code>Line2D</code> represents a line segment in (x,&nbsp;y)
  * coordinate space.  This class, like all of the Java 2D API, uses a
  * default coordinate system called <i>user space</i> in which the y-axis
  * values increase downward and x-axis values increase to the right.  For
  * more information on the user space coordinate system, see the 
  * <a href="http://java.sun.com/j2se/1.3/docs/guide/2d/spec/j2d-intro.fm2.html#61857">
- * Coordinate Systems</a> section of the Java 2D Programmer's Guide.
+ * Coordinate Systems</a> section of the Java 2D Programmer's Guide.  
  * <p>
  * This class is only the abstract superclass for all objects that
  * store a 2D line segment.
  * The actual storage representation of the coordinates is left to
  * the subclass.
  *
- * @version 	1.26, 02/06/02
+ * @version 	1.24, 12/03/01
  * @author	Jim Graham
  */
 public abstract class Line2D implements Shape, Cloneable {

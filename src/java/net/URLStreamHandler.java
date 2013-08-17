@@ -1,5 +1,7 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)URLStreamHandler.java	1.55 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,6 +12,7 @@ import java.io.InputStream;
 import java.io.File;
 import java.io.OutputStream;
 import java.util.Hashtable;
+import sun.net.www.ParseUtil;
 
 /**
  * The abstract class <code>URLStreamHandler</code> is the common
@@ -25,7 +28,7 @@ import java.util.Hashtable;
  * automatically loaded.
  *
  * @author  James Gosling
- * @version 1.46, 10/14/03
+ * @version 1.55, 12/03/01
  * @see     java.net.URL#URL(java.lang.String, java.lang.String, int, java.lang.String)
  * @since   JDK1.0
  */
@@ -82,13 +85,11 @@ public abstract class URLStreamHandler {
         String userInfo = u.getUserInfo();
         String host = u.getHost();
         int port = u.getPort();
-        String file = u.getFile();
+        String path = u.getPath();
+	String query = u.getQuery();
 
         // This field has already been parsed
         String ref = u.getRef();
-
-        // These fields will not inherit context content
-        String query = null;
 
 	boolean isRelPath = false;
 	boolean queryOnly = false;
@@ -98,7 +99,7 @@ public abstract class URLStreamHandler {
 	if (start < limit) {
             int queryStart = spec.indexOf('?');
             queryOnly = queryStart == start;
-            if ( (queryStart != -1) && (queryStart < limit) ) {
+            if ((queryStart != -1) && (queryStart < limit)) {
                 query = spec.substring(queryStart+1, limit);
                 if (limit > queryStart)
                     limit = queryStart;
@@ -124,80 +125,125 @@ public abstract class URLStreamHandler {
                 userInfo = authority.substring(0, ind);
                 host = authority.substring(ind+1);
 	    }
-            ind = host.indexOf(':');
-	    port = -1;
-	    if (ind >= 0) {
-		// port can be null according to RFC2396
-		if (host.length() > (ind + 1)) {
-		    port = Integer.parseInt(host.substring(ind + 1));
-		}
-		host = host.substring(0, ind);
-	    }
+	    if (host != null) {
+		// If the host is surrounded by [ and ] then its an IPv6 
+		// literal address as specified in RFC2732
+		if (host.length()>0 && (host.charAt(0) == '[')) {
+		    if ((ind = host.indexOf(']')) > 2) {
+		    
+			String nhost = host ;
+			host = nhost.substring(0,ind+1);
+			if (Inet6Address.
+			    textToNumericFormat(host.substring(1, ind)) == null) {
+			    throw new IllegalArgumentException(
+				"Invalid host: "+ host);
+			}
 
+			port = -1 ;
+			if (nhost.length() > ind+1) {
+			    if (nhost.charAt(ind+1) == ':') {
+				++ind ;
+				// port can be null according to RFC2396
+				if (nhost.length() > (ind + 1)) {
+				    port = Integer.parseInt(nhost.substring(ind+1));
+				}
+			    } else {
+				throw new IllegalArgumentException(
+				    "Invalid authority field: " + authority);
+			    }
+			}
+		    } else {
+			throw new IllegalArgumentException(
+			    "Invalid authority field: " + authority);
+		    }
+		} else {
+		    ind = host.indexOf(':');
+		    port = -1;
+		    if (ind >= 0) {
+			// port can be null according to RFC2396
+			if (host.length() > (ind + 1)) {
+			    port = Integer.parseInt(host.substring(ind + 1));
+			}
+			host = host.substring(0, ind);
+		    }
+		}
+	    } else {
+		host = "";
+	    }
+	    if (port < -1)
+		throw new IllegalArgumentException("Invalid port number :" +
+						   port);
 	    start = i;
 	    // If the authority is defined then the path is defined by the
             // spec only; See RFC 2396 Section 5.2.4.
             if (authority != null && authority.length() > 0)
-                file = "";
+                path = "";
 	} 
-        if (host == null) {
-	    host = "";
-	}
+
+ 	if (host == null) {
+ 	    host = "";
+ 	}
 
         // Parse the file path if any
 	if (start < limit) {
 	    if (spec.charAt(start) == '/') {
-		file = spec.substring(start, limit);
-	    } else if (file != null && file.length() > 0) {
+		path = spec.substring(start, limit);
+	    } else if (path != null && path.length() > 0) {
 		isRelPath = true;
-		int ind = file.lastIndexOf('/');
+		int ind = path.lastIndexOf('/');
 		String seperator = "";
 		if (ind == -1 && authority != null)
 		    seperator = "/";
-		file = file.substring(0, ind + 1) + seperator +
+		path = path.substring(0, ind + 1) + seperator +
 		         spec.substring(start, limit);
 					
 	    } else {
 		String seperator = (authority != null) ? "/" : "";
-		file = seperator + spec.substring(start, limit);
+		path = seperator + spec.substring(start, limit);
 	    }
-	} else if (queryOnly && file != null) {
-            int ind = file.lastIndexOf('/');
+	} else if (queryOnly && path != null) {
+            int ind = path.lastIndexOf('/');
             if (ind < 0)
                 ind = 0;
-            file = file.substring(0, ind) + "/";
+            path = path.substring(0, ind) + "/";
         }
-	if (file == null)
-	    file = "";
+	if (path == null)
+	    path = "";
 
 	if (isRelPath) {
             // Remove embedded /./
-            while ((i = file.indexOf("/./")) >= 0) {
-	        file = file.substring(0, i) + file.substring(i + 2);
+            while ((i = path.indexOf("/./")) >= 0) {
+	        path = path.substring(0, i) + path.substring(i + 2);
 	    }
-            // Remove embedded /../
-	    while ((i = file.indexOf("/../")) >= 0) {
-	        if ((limit = file.lastIndexOf('/', i - 1)) >= 0) {
-		    file = file.substring(0, limit) + file.substring(i + 3);
+            // Remove embedded /../ if possible
+	    i = 0;
+	    while ((i = path.indexOf("/../", i)) > 0) {
+	        if ((limit = path.lastIndexOf('/', i - 1)) >= 0) {
+		    path = path.substring(0, limit) + path.substring(i + 3);
+		    i = 0;
 	        } else {
-		    file = file.substring(i + 3);
-	        }
+		    i = i + 3;
+		}
 	    }
-            // Remove trailing ..
-            while (file.endsWith("/..")) {
-                i = file.indexOf("/..");
-	        if ((limit = file.lastIndexOf('/', i - 1)) >= 0) {
-		    file = file.substring(0, limit+1);
+            // Remove trailing .. if possible
+            while (path.endsWith("/..")) {
+                i = path.indexOf("/..");
+	        if ((limit = path.lastIndexOf('/', i - 1)) >= 0) {
+		    path = path.substring(0, limit+1);
 	        } else {
-		    file = file.substring(0, i);
-	        }
+		    break;
+		}
 	    }
+	    // Remove starting .
+            if (path.startsWith("./") && path.length() > 2)
+                path = path.substring(2);
+
             // Remove trailing .
-            if (file.endsWith("/."))
-                file = file.substring(0, file.length() -1);
+            if (path.endsWith("/."))
+                path = path.substring(0, path.length() -1);
 	}
 
-	setURL(u, protocol, host, port, authority, userInfo, file, query, ref);
+	setURL(u, protocol, host, port, authority, userInfo, path, query, ref);
     }
 
     /**
@@ -214,6 +260,8 @@ public abstract class URLStreamHandler {
      * for other protocols that have different requirements for equals().
      * This method requires that none of its arguments is null. This is 
      * guaranteed by the fact that it is only called by java.net.URL class.
+     * @param u1 a URL object
+     * @param u2 a URL object
      * @return <tt>true</tt> if the two urls are 
      * considered equal, ie. they refer to the same 
      * fragment in the same file.
@@ -230,6 +278,7 @@ public abstract class URLStreamHandler {
      * Provides the default hash calculation. May be overidden by handlers for
      * other protocols that have different requirements for hashCode
      * calculation.
+     * @param u a URL object
      * @return an <tt>int</tt> suitable for hash table indexing
      */
     protected int hashCode(URL u) {
@@ -275,6 +324,8 @@ public abstract class URLStreamHandler {
      * This method requires that none of its arguments is null. This is 
      * guaranteed by the fact that it is only called indirectly
      * by java.net.URL class.
+     * @param u1 a URL object
+     * @param u2 a URL object
      * @return true if u1 and u2 refer to the same file
      */
     protected boolean sameFile(URL u1, URL u2) {
@@ -307,6 +358,7 @@ public abstract class URLStreamHandler {
      * Get the IP address of our host. An empty host field or a DNS failure
      * will result in a null return.
      *
+     * @param u a URL object
      * @return an <code>InetAddress</code> representing the host
      * IP address.
      */
@@ -384,6 +436,7 @@ public abstract class URLStreamHandler {
      * @param   host      the remote host value for the URL.
      * @param   port      the port on the remote machine.
      * @param   authority the authority part for the URL.
+     * @param   userInfo the userInfo part of the URL.
      * @param   path      the path component of the URL. 
      * @param   query     the query part for the URL.
      * @param   ref       the reference.

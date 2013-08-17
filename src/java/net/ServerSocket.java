@@ -1,12 +1,15 @@
 /*
+ * @(#)ServerSocket.java	1.69 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.net;
 
-import java.io.IOException;
 import java.io.FileDescriptor;
+import java.io.IOException;
+import java.nio.channels.ServerSocketChannel;
 
 /**
  * This class implements server sockets. A server socket waits for 
@@ -20,26 +23,39 @@ import java.io.FileDescriptor;
  * appropriate to the local firewall. 
  *
  * @author  unascribed
- * @version 1.43, 02/06/02
+ * @version 1.69, 12/03/01
  * @see     java.net.SocketImpl
  * @see     java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
+ * @see     java.nio.channels.ServerSocketChannel
  * @since   JDK1.0
  */
 public 
 class ServerSocket {
+    /**
+     * Various states of this socket.
+     */
+    private boolean created = false;
+    private boolean bound = false;
+    private boolean closed = false;
+
     /**
      * The implementation of this Socket.
      */
     private SocketImpl impl;
 
     /**
-     * Creates an unconnected server socket. Note: this method
-     * should not be public.
-     * @exception IOException IO error when opening the socket.
+     * Are we using an older SocketImpl?
      */
-    private ServerSocket() throws IOException {
-	impl = (factory != null) ? factory.createSocketImpl() : 
-	    new PlainSocketImpl();
+    private boolean oldImpl = false;
+
+    /**
+     * Creates an unbound server socket.
+     *
+     * @exception IOException IO error when opening the socket.
+     * @revised 1.4
+     */
+    public ServerSocket() throws IOException {
+	setImpl();
     }
 
     /**
@@ -59,6 +75,7 @@ class ServerSocket {
      * with the <code>port</code> argument
      * as its argument to ensure the operation is allowed. 
      * This could result in a SecurityException.
+     *
      *
      * @param      port  the port number, or <code>0</code> to use any
      *                   free port.
@@ -98,6 +115,11 @@ class ServerSocket {
      * as its argument to ensure the operation is allowed. 
      * This could result in a SecurityException.
      *
+     * <P>The <code>backlog</code> argument must be a positive
+     * value greater than 0. If the value passed if equal or less
+     * than 0, then the default value will be assumed.
+     * <P>
+     *
      * @param      port     the specified port, or <code>0</code> to use
      *                      any free port.
      * @param      backlog  the maximum length of the queue.
@@ -130,7 +152,10 @@ class ServerSocket {
      * with the <code>port</code> argument
      * as its argument to ensure the operation is allowed. 
      * This could result in a SecurityException.
-     * 
+     *
+     * <P>The <code>backlog</code> argument must be a positive
+     * value greater than 0. If the value passed if equal or less
+     * than 0, then the default value will be assumed.
      * <P>
      * @param port the local TCP port
      * @param backlog the listen backlog
@@ -147,29 +172,147 @@ class ServerSocket {
      * @since   JDK1.1
      */
     public ServerSocket(int port, int backlog, InetAddress bindAddr) throws IOException {
-    	this();
-
+	setImpl();
 	if (port < 0 || port > 0xFFFF)
 	    throw new IllegalArgumentException(
 		       "Port value out of range: " + port);
+	if (backlog < 1)
+	  backlog = 50;
 	try {
-	    SecurityManager security = System.getSecurityManager();
-	    if (security != null) {
-		security.checkListen(port);
-	    }
-
-	    impl.create(true); // a stream socket
-	    if (bindAddr == null)
-		bindAddr = InetAddress.anyLocalAddress;	
-
-	    impl.bind(bindAddr, port);
-	    impl.listen(backlog);
-
+	    bind(new InetSocketAddress(bindAddr, port));
 	} catch(SecurityException e) {
-	    impl.close();
+	    close();
 	    throw e;
 	} catch(IOException e) {
-	    impl.close();
+	    close();
+	    throw e;
+	}
+    }
+
+    /**
+     * Get the <code>SocketImpl</code> attached to this socket, creating
+     * it if necessary.
+     *
+     * @return	the <code>SocketImpl</code> attached to that ServerSocket.
+     * @throws SocketException if creation fails.
+     * @since 1.4
+     */
+    SocketImpl getImpl() throws SocketException {
+	if (!created)
+	    createImpl();
+	return impl;
+    }
+
+    private void checkOldImpl() {
+	if (impl == null)
+	    return;
+	Class[] cl = new Class[2];
+	cl[0] = SocketAddress.class;
+	cl[1] = Integer.TYPE;
+	try {
+	    impl.getClass().getDeclaredMethod("connect", cl);
+	} catch (NoSuchMethodException e) {
+	    oldImpl = true;
+	}
+    }
+
+    private void setImpl() {
+	if (factory != null) {
+	    impl = factory.createSocketImpl();
+	    checkOldImpl();
+	} else {
+	    // No need to do a checkOldImpl() here, we know it's an up to date
+	    // SocketImpl!
+	    impl = new PlainSocketImpl();
+	}
+	if (impl != null)
+	    impl.setServerSocket(this);
+    }
+
+    /**
+     * Creates the socket implementation.
+     *
+     * @throws IOException if creation fails
+     * @since 1.4
+     */
+    void createImpl() throws SocketException {
+	setImpl();
+	try {
+	    impl.create(true);
+	    created = true;
+	} catch (IOException e) {
+	    throw new SocketException(e.getMessage());
+	}
+    }
+
+    /**
+     *
+     * Binds the <code>ServerSocket</code> to a specific address
+     * (IP address and port number).
+     * <p>
+     * If the address is <code>null</code>, then the system will pick up
+     * an ephemeral port and a valid local address to bind the socket.
+     * <p>
+     * @param	endpoint	The IP address & port number to bind to.
+     * @throws	IOException if the bind operation fails, or if the socket
+     *			   is already bound.
+     * @throws	SecurityException	if a <code>SecurityManager</code> is present and
+     * its <code>checkListen</code> method doesn't allow the operation.
+     * @throws  IllegalArgumentException if endpoint is a
+     *          SocketAddress subclass not supported by this socket
+     * @since 1.4
+     */
+    public void bind(SocketAddress endpoint) throws IOException {
+	bind(endpoint, 50);
+    }
+
+    /**
+     *
+     * Binds the <code>ServerSocket</code> to a specific address
+     * (IP address and port number).
+     * <p>
+     * If the address is <code>null</code>, then the system will pick up
+     * an ephemeral port and a valid local address to bind the socket.
+     * <P>
+     * The <code>backlog</code> argument must be a positive
+     * value greater than 0. If the value passed if equal or less
+     * than 0, then the default value will be assumed.
+     * @param	endpoint	The IP address & port number to bind to.
+     * @param	backlog		The listen backlog length.
+     * @throws	IOException if the bind operation fails, or if the socket
+     *			   is already bound.
+     * @throws	SecurityException	if a <code>SecurityManager</code> is present and
+     * its <code>checkListen</code> method doesn't allow the operation.
+     * @throws  IllegalArgumentException if endpoint is a
+     *          SocketAddress subclass not supported by this socket
+     * @since 1.4
+     */
+    public void bind(SocketAddress endpoint, int backlog) throws IOException {
+	if (isClosed())
+	    throw new SocketException("Socket is closed");
+	if (!oldImpl && isBound())
+	    throw new SocketException("Already bound");
+	if (endpoint == null)
+	    endpoint = new InetSocketAddress(0);
+	if (!(endpoint instanceof InetSocketAddress))
+	    throw new IllegalArgumentException("Unsupported address type");
+	InetSocketAddress epoint = (InetSocketAddress) endpoint;
+	if (epoint.isUnresolved())
+	    throw new SocketException("Unresolved address");
+	if (backlog < 1)
+	  backlog = 50;
+	try {
+	    SecurityManager security = System.getSecurityManager();
+	    if (security != null)
+		security.checkListen(epoint.getPort());
+	    getImpl().bind(epoint.getAddress(), epoint.getPort());
+	    getImpl().listen(backlog);
+	    bound = true;
+	} catch(SecurityException e) {
+	    bound = false;
+	    throw e;
+	} catch(IOException e) {
+	    bound = false;
 	    throw e;
 	}
     }
@@ -181,16 +324,53 @@ class ServerSocket {
      *          or <code>null</code> if the socket is not yet connected.
      */
     public InetAddress getInetAddress() {
-	return impl.getInetAddress();
+	if (!isBound())
+	    return null;
+	try {
+	    return getImpl().getInetAddress();
+	} catch (SocketException e) {
+	    // nothing
+	    // If we're bound, the the impl has been created
+	    // so we shouldn't get here
+	}
+	return null;
     }
 
     /**
      * Returns the port on which this socket is listening.
      *
-     * @return  the port number to which this socket is listening.
+     * @return  the port number to which this socket is listening or
+     *	        -1 if the socket is not bound yet.
      */
     public int getLocalPort() {
-	return impl.getLocalPort();
+	if (!isBound())
+	    return -1;
+	try {
+	    return getImpl().getLocalPort();
+	} catch (SocketException e) {
+	    // nothing
+	    // If we're bound, the the impl has been created
+	    // so we shouldn't get here
+	}
+	return -1;
+    }
+
+    /**
+     * Returns the address of the endpoint this socket is bound to, or
+     * <code>null</code> if it is not bound yet.
+     *
+     * @return a <code>SocketAddress</code> representing the local endpoint of this
+     *	       socket, or <code>null</code> if it is not bound yet.
+     * @see #getInetAddress()
+     * @see #getLocalPort()
+     * @see #bind(SocketAddress)
+     * @since 1.4
+     */
+
+    public SocketAddress getLocalSocketAddress() {
+	if (!isBound())
+	    return null;
+	return new InetSocketAddress(getInetAddress(), getLocalPort());
     }
 
     /**
@@ -209,11 +389,23 @@ class ServerSocket {
      *               connection.
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkListen</code> method doesn't allow the operation.
+     * @exception  SocketTimeoutException if a timeout was previously set with setSoTimeout and
+     *             the timeout has been reached.
+     * @exception  java.nio.channels.IllegalBlockingModeException
+     *             if this socket has an associated channel,
+     *             and the channel is in non-blocking mode.
+     *
      * @return the new Socket
      * @see SecurityManager#checkAccept
+     * @revised 1.4
+     * @spec JSR-51
      */
     public Socket accept() throws IOException {
-	Socket s = new Socket();
+	if (isClosed())
+	    throw new SocketException("Socket is closed");
+	if (!isBound())
+	    throw new SocketException("Socket is not bound yet");
+	Socket s = new Socket((SocketImpl) null);
 	implAccept(s);
 	return s;
     }
@@ -225,42 +417,106 @@ class ServerSocket {
      * return from implAccept the FooSocket will be connected to a client.
      *
      * @param s the Socket
+     * @throws java.nio.channels.IllegalBlockingModeException
+     *         if this socket has an associated channel,
+     *         and the channel is in non-blocking mode
      * @throws IOException if an I/O error occurs when waiting 
      * for a connection.
      * @since   JDK1.1
+     * @revised 1.4
+     * @spec JSR-51
      */
     protected final void implAccept(Socket s) throws IOException {
-	SocketImpl si = s.impl;
+	SocketImpl si = null;
 	try {
-        s.impl = null;
-        si.address = new InetAddress();
-        si.fd = new FileDescriptor();
-        impl.accept(si);
-	    
+	    if (s.impl == null)
+	      s.setImpl();
+	    si = s.impl;	    
+	    s.impl = null;
+	    si.address = new InetAddress();
+	    si.fd = new FileDescriptor();
+	    getImpl().accept(si);
+ 	    
 	    SecurityManager security = System.getSecurityManager();
 	    if (security != null) {
 		security.checkAccept(si.getInetAddress().getHostAddress(),
-                     si.getPort());
+				     si.getPort());
 	    }
 	} catch (IOException e) {
+	    if (si != null)
 		si.reset();
-        s.impl = si;
+            s.impl = si;
 	    throw e;
 	} catch (SecurityException e) {
+	    if (si != null)
 		si.reset();
-        s.impl = si;
+	    s.impl = si;
 	    throw e;
 	}
 	s.impl = si;
+	s.postAccept();
     }
 
     /**
      * Closes this socket. 
+     * 
+     * Any thread currently blocked in {@link #accept()} will throw
+     * a {@link SocketException}.
+     *
+     * <p> If this socket has an associated channel then the channel is closed
+     * as well.
      *
      * @exception  IOException  if an I/O error occurs when closing the socket.
+     * @revised 1.4
+     * @spec JSR-51
      */
     public void close() throws IOException {
-	impl.close();
+	if (isClosed())
+	    return;
+	if (created)
+	    impl.close();
+	closed = true;
+    }
+
+    /**
+     * Returns the unique {@link java.nio.channels.ServerSocketChannel} object
+     * associated with this socket, if any.
+     *
+     * <p> A server socket will have a channel if, and only if, the channel
+     * itself was created via the {@link
+     * java.nio.channels.ServerSocketChannel#open ServerSocketChannel.open}
+     * method.
+     *
+     * @return  the server-socket channel associated with this socket,
+     *          or <tt>null</tt> if this socket was not created
+     *          for a channel
+     *
+     * @since 1.4
+     * @spec JSR-51
+     */
+    public ServerSocketChannel getChannel() {
+	return null;
+    }
+
+    /**
+     * Returns the binding state of the ServerSocket.
+     *
+     * @return true if the ServerSocket succesfuly bound to an address
+     * @since 1.4
+     */
+    public boolean isBound() {
+	// Before 1.3 ServerSockets were always bound during creation
+	return bound || oldImpl;
+    }
+
+    /**
+     * Returns the closed state of the ServerSocket.
+     *
+     * @return true if the socket has been closed
+     * @since 1.4
+     */
+    public boolean isClosed() {
+	return closed;
     }
 
     /**
@@ -268,7 +524,7 @@ class ServerSocket {
      * milliseconds.  With this option set to a non-zero timeout,
      * a call to accept() for this ServerSocket
      * will block for only this amount of time.  If the timeout expires,
-     * a <B>java.io.InterruptedIOException</B> is raised, though the
+     * a <B>java.net.SocketTimeoutException</B> is raised, though the
      * ServerSocket is still valid.  The option <B>must</B> be enabled
      * prior to entering the blocking operation to have effect.  The 
      * timeout must be > 0.
@@ -280,7 +536,9 @@ class ServerSocket {
      * @see #getSoTimeout()
      */
     public synchronized void setSoTimeout(int timeout) throws SocketException {
-	impl.setOption(SocketOptions.SO_TIMEOUT, new Integer(timeout));
+	if (isClosed())
+	    throw new SocketException("Socket is closed");
+	getImpl().setOption(SocketOptions.SO_TIMEOUT, new Integer(timeout));
     }
 
     /** 
@@ -292,7 +550,9 @@ class ServerSocket {
      * @see #setSoTimeout(int)
      */
     public synchronized int getSoTimeout() throws IOException {
-	Object o = impl.getOption(SocketOptions.SO_TIMEOUT);
+	if (isClosed())
+	    throw new SocketException("Socket is closed");
+	Object o = getImpl().getOption(SocketOptions.SO_TIMEOUT);
 	/* extra type safety */
 	if (o instanceof Integer) {
 	    return ((Integer) o).intValue();
@@ -302,21 +562,108 @@ class ServerSocket {
     }
 
     /**
+     * Enable/disable the SO_REUSEADDR socket option.
+     * <p>
+     * When a TCP connection is closed the connection may remain
+     * in a timeout state for a period of time after the connection
+     * is closed (typically known as the <tt>TIME_WAIT</tt> state 
+     * or <tt>2MSL</tt> wait state).
+     * For applications using a well known socket address or port 
+     * it may not be possible to bind a socket to the required
+     * <tt>SocketAddress</tt> if there is a connection in the
+     * timeout state involving the socket address or port. 
+     * <p>
+     * Enabling <tt>SO_REUSEADDR</tt> prior to binding the socket
+     * using {@link #bind(SocketAddress)} allows the socket to be
+     * bound even though a previous connection is in a timeout
+     * state.
+     * <p>
+     * When a <tt>ServerSocket</tt> is created the initial setting
+     * of <tt>SO_REUSEADDR</tt> is not defined. Applications can
+     * use {@link getReuseAddress()} to determine the initial 
+     * setting of <tt>SO_REUSEADDR</tt>. 
+     * <p>
+     * The behaviour when <tt>SO_REUSEADDR</tt> is enabled or
+     * disabled after a socket is bound (See {@link #isBound()})
+     * is not defined.
+     * 
+     * @param on  whether to enable or disable the socket option
+     * @exception SocketException if an error occurs enabling or
+     *            disabling the <tt>SO_RESUEADDR</tt> socket option,
+     *		  or the socket is closed.
+     * @since 1.4
+     * @see #getReuseAddress()     
+     * @see #bind(SocketAddress)
+     * @see #isBound()
+     * @see #isClosed()
+     */     
+    public void setReuseAddress(boolean on) throws SocketException {
+	if (isClosed())
+	    throw new SocketException("Socket is closed");
+        getImpl().setOption(SocketOptions.SO_REUSEADDR, new Boolean(on));
+    }
+
+    /**
+     * Tests if SO_REUSEADDR is enabled.
+     *
+     * @return a <code>boolean</code> indicating whether or not SO_REUSEADDR is enabled.
+     * @exception SocketException if there is an error
+     * in the underlying protocol, such as a TCP error. 
+     * @since   1.4
+     * @see #setReuseAddress(boolean)
+     */
+    public boolean getReuseAddress() throws SocketException {
+	if (isClosed())
+	    throw new SocketException("Socket is closed");
+	return ((Boolean) (getImpl().getOption(SocketOptions.SO_REUSEADDR))).booleanValue();
+    }
+
+    /**
      * Returns the implementation address and implementation port of 
      * this socket as a <code>String</code>.
      *
      * @return  a string representation of this socket.
      */
     public String toString() {
+	if (!isBound())
+	    return "ServerSocket[unbound]";
 	return "ServerSocket[addr=" + impl.getInetAddress() + 
 		",port=" + impl.getPort() + 
 		",localport=" + impl.getLocalPort()  + "]";
+    }
+
+    void setBound() {
+	bound = true;
+    }
+
+    void setCreated() {
+	created = true;
     }
 
     /**
      * The factory for all server sockets.
      */
     private static SocketImplFactory factory;
+
+    static {
+	int port = -1;
+	String socksPort = null;
+	String useSocks = 
+	    (String) java.security.AccessController.doPrivileged(
+		     new sun.security.action.GetPropertyAction("socksProxyHost"));
+	socksPort =
+	    (String) java.security.AccessController.doPrivileged(
+		     new sun.security.action.GetPropertyAction("socksProxyPort"));
+	if (socksPort != null) {
+	    try {
+		port = Integer.parseInt(socksPort);
+	    } catch (Exception e) {
+		port = -1;
+	    }
+	}
+	if (useSocks != null)
+	    factory = new SocksSocketImplFactory(useSocks, port);
+    }
 
     /**
      * Sets the server socket implementation factory for the 
@@ -349,5 +696,74 @@ class ServerSocket {
 	    security.checkSetFactory();
 	}
 	factory = fac;
+    }
+
+    /**
+     * Sets a default proposed value for the SO_RCVBUF option for sockets 
+     * accepted from this <tt>ServerSocket</tt>. The value actually set 
+     * in the accepted socket must be determined by calling 
+     * {@link Socket#getReceiveBufferSize()} after the socket 
+     * is returned by {@link #accept()}. 
+     * <p>
+     * The value of SO_RCVBUF is used both to set the size of the internal
+     * socket receive buffer, and to set the size of the TCP receive window
+     * that is advertized to the remote peer.
+     * <p>
+     * It is possible to change the value subsequently, by calling 
+     * {@link Socket#setReceiveBufferSize(int)}. However, if the application 
+     * wishes to allow a receive window larger than 64K bytes, as defined by RFC1323
+     * then the proposed value must be set in the ServerSocket <B>before</B> 
+     * it is bound to a local address. This implies, that the ServerSocket must be 
+     * created with the no-argument constructor, then setReceiveBufferSize() must 
+     * be called and lastly the ServerSocket is bound to an address by calling bind(). 
+     * <p>
+     * Failure to do this will not cause an error, and the buffer size may be set to the
+     * requested value but the TCP receive window in sockets accepted from 
+     * this ServerSocket will be no larger than 64K bytes.
+     *
+     * @exception SocketException if there is an error
+     * in the underlying protocol, such as a TCP error. 
+     *
+     * @param size the size to which to set the receive buffer
+     * size. This value must be greater than 0.
+     *
+     * @exception IllegalArgumentException if the 
+     * value is 0 or is negative.
+     *
+     * @since 1.4
+     * @see #getReceiveBufferSize
+     */
+     public synchronized void setReceiveBufferSize (int size) throws SocketException {
+	if (!(size > 0)) {
+	    throw new IllegalArgumentException("negative receive size");
+	}
+	if (isClosed())
+	    throw new SocketException("Socket is closed");
+	getImpl().setOption(SocketOptions.SO_RCVBUF, new Integer(size));
+    }
+
+    /**
+     * Gets the value of the SO_RCVBUF option for this <tt>ServerSocket</tt>, 
+     * that is the proposed buffer size that will be used for Sockets accepted
+     * from this <tt>ServerSocket</tt>.
+     * 
+     * <p>Note, the value actually set in the accepted socket is determined by
+     * calling {@link Socket#getReceiveBufferSize()}.
+     * @return the value of the SO_RCVBUF option for this <tt>Socket</tt>.
+     * @exception SocketException if there is an error
+     * in the underlying protocol, such as a TCP error. 
+     * @see #setReceiveBufferSize(int)
+     * @since 1.4
+     */
+    public synchronized int getReceiveBufferSize()
+    throws SocketException{
+	if (isClosed())
+	    throw new SocketException("Socket is closed");
+	int result = 0;
+	Object o = getImpl().getOption(SocketOptions.SO_RCVBUF);
+	if (o instanceof Integer) {
+	    result = ((Integer)o).intValue();
+	}
+	return result;
     }
 }

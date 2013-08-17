@@ -1,4 +1,6 @@
 /*
+ * @(#)InputStream.java	1.38 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,7 +15,7 @@ package java.io;
  * must always provide a method that returns the next byte of input.
  *
  * @author  Arthur van Hoff
- * @version 1.37, 02/06/02
+ * @version 1.38, 12/03/01
  * @see     java.io.BufferedInputStream
  * @see     java.io.ByteArrayInputStream
  * @see     java.io.DataInputStream
@@ -329,11 +331,13 @@ public abstract class InputStream {
 
     /**
      * Tests if this input stream supports the <code>mark</code> and
-     * <code>reset</code> methods. The <code>markSupported</code> method of
-     * <code>InputStream</code> returns <code>false</code>.
+     * <code>reset</code> methods. Whether or not <code>mark</code> and
+     * <code>reset</code> are supported is an invariant property of a
+     * particular input stream instance. The <code>markSupported</code> method
+     * of <code>InputStream</code> returns <code>false</code>.
      *
-     * @return  <code>true</code> if this true type supports the mark and reset
-     *          method; <code>false</code> otherwise.
+     * @return  <code>true</code> if this stream instance supports the mark
+     *          and reset methods; <code>false</code> otherwise.
      * @see     java.io.InputStream#mark(int)
      * @see     java.io.InputStream#reset()
      */

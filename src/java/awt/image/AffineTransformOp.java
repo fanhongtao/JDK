@@ -1,4 +1,6 @@
 /*
+ * @(#)AffineTransformOp.java	1.58 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,6 +8,7 @@
 package java.awt.image;
 
 import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.GraphicsEnvironment;
@@ -70,15 +73,18 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
      * the interpolation type is {@link #TYPE_NEAREST_NEIGHBOR 
      * TYPE_NEAREST_NEIGHBOR}.
      *
-     * @param xform The <CODE>AffineTransform</CODE> to use for the operation.
+     * @param xform The <CODE>AffineTransform</CODE> to use for the
+     * operation.
      *
-     * @param hints The <CODE>RenderingHints</CODE> object used to specify the
-     * interpolation type for the operation. 
+     * @param hints The <CODE>RenderingHints</CODE> object used to specify
+     * the interpolation type for the operation. 
      *
+     * @throws ImagingOpException if the transform is non-invertible.
      * @see java.awt.RenderingHints#KEY_INTERPOLATION
      * @see java.awt.RenderingHints#KEY_RENDERING
      */
-    public AffineTransformOp(AffineTransform xform, RenderingHints hints) {
+    public AffineTransformOp(AffineTransform xform, RenderingHints hints){
+        validateTransform(xform);
         this.xform = (AffineTransform) xform.clone();
         this.hints = hints;
 
@@ -117,8 +123,10 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
      * interpolation type constants defined by this class: 
      * {@link #TYPE_NEAREST_NEIGHBOR TYPE_NEAREST_NEIGHBOR}, 
      * {@link #TYPE_BILINEAR TYPE_BILINEAR}. 
+     * @throws ImagingOpException if the transform is non-invertible.
      */
     public AffineTransformOp(AffineTransform xform, int interpolationType) {
+        validateTransform(xform);
         this.xform = (AffineTransform)xform.clone();
         switch(interpolationType) {
             case TYPE_NEAREST_NEIGHBOR:
@@ -134,6 +142,7 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
 
     /**
      * Returns the interpolation type used by this op.
+     * @return the interpolation type.
      * @see #TYPE_NEAREST_NEIGHBOR
      * @see #TYPE_BILINEAR
      */
@@ -469,6 +478,8 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
      * point in the source.  If <CODE>dstPt</CODE> is specified, it
      * is used to hold the return value.
      *
+     * @param srcPt The <code>Point2D</code> that represents the source
+     *              point.
      * @param dstPt The <CODE>Point2D</CODE> in which to store the result.
      *
      * @return The <CODE>Point2D</CODE> in the destination that corresponds to 
@@ -515,5 +526,14 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
         }
 
         return hints;
+    }
+
+    // We need to be able to invert the transform if we want to
+    // transform the image.  If the determinant of the matrix is 0,
+    // then we can't invert the transform.
+    void validateTransform(AffineTransform xform) {
+        if (Math.abs(xform.getDeterminant()) <= Double.MIN_VALUE) {
+            throw new ImagingOpException("Unable to invert transform "+xform);
+        }
     }
 }

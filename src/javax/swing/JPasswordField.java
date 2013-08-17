@@ -1,4 +1,6 @@
 /*
+ * @(#)JPasswordField.java	1.49 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,17 +15,18 @@ import java.io.ObjectInputStream;
 import java.io.IOException;
 
 /**
- * JPasswordField is a lightweight component that allows the editing 
- * of a single line of text where the view indicates something was
- * typed, but does not show the original characters. 
+ * <code>JPasswordField</code> is a lightweight component that allows
+ * the editing of a single line of text where the view indicates
+ * something was typed, but does not show the original characters. 
  * You can find further information and examples in
  * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/textfield.html">How to Use Text Fields</a>,
  * a section in <em>The Java Tutorial.</em>
  * <p>
- * JPasswordField is intended 
- * to be source-compatible with java.awt.TextField used with echoChar 
- * set.  It is provided seperately to make it easier to safely change 
- * the ui for the JTextField without affecting password entries.
+ * <code>JPasswordField</code> is intended 
+ * to be source-compatible with <code>java.awt.TextField</code>
+ * used with <code>echoChar</code> set.  It is provided separately
+ * to make it easier to safely change the UI for the
+ * <code>JTextField</code> without affecting password entries.
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
@@ -31,23 +34,26 @@ import java.io.IOException;
  * key assignments.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @beaninfo
  *  attribute: isContainer false
  * description: Allows the editing of a line of text but doesn't show the characters.
  *
  * @author  Timothy Prinzing
- * @version 1.43 02/06/02
+ * @version 1.49 12/03/01
  */
 public class JPasswordField extends JTextField {
 
     /**
-     * Constructs a new JPasswordField, with a default document, null starting
+     * Constructs a new <code>JPasswordField</code>,
+     * with a default document, <code>null</code> starting
      * text string, and 0 column width.
      */
     public JPasswordField() {
@@ -55,19 +61,20 @@ public class JPasswordField extends JTextField {
     }
 
     /**
-     * Constructs a new JPasswordField initialized with the specified text.
-     * The document model is set to the default, and the number of columns to 0.
+     * Constructs a new <code>JPasswordField</code> initialized
+     * with the specified text.  The document model is set to the
+     * default, and the number of columns to 0.
      *
-     * @param text the text to be displayed, null if none
+     * @param text the text to be displayed, <code>null</code> if none
      */
     public JPasswordField(String text) {
         this(null, text, 0);
     }
 
     /**
-     * Constructs a new empty JPasswordField with the specified
+     * Constructs a new empty <code>JPasswordField</code> with the specified
      * number of columns.  A default model is created, and the initial string
-     * is set to null.
+     * is set to <code>null</code>.
      *
      * @param columns the number of columns >= 0
      */ 
@@ -76,10 +83,11 @@ public class JPasswordField extends JTextField {
     }
 
     /**
-     * Constructs a new JPasswordField initialized with the specified text
-     * and columns.  The document model is set to the default.
+     * Constructs a new <code>JPasswordField</code> initialized with
+     * the specified text and columns.  The document model is set to
+     * the default.
      *
-     * @param text the text to be displayed, null if none
+     * @param text the text to be displayed, <code>null</code> if none
      * @param columns the number of columns >= 0
      */
     public JPasswordField(String text, int columns) {
@@ -87,28 +95,32 @@ public class JPasswordField extends JTextField {
     }
 
     /**
-     * Constructs a new JPasswordField that uses the given text storage
-     * model and the given number of columns.  This is the constructor
-     * through which the other constructors feed.  The echo character is
-     * set to '*'.  If the document model is null, a default one will be
-     * created.
+     * Constructs a new <code>JPasswordField</code> that uses the
+     * given text storage model and the given number of columns. 
+     * This is the constructor through which the other constructors feed.
+     * The echo character is set to '*'.  If the document model is
+     * <code>null</code>, a default one will be created.
      *
      * @param doc  the text storage to use
-     * @param txt the text to be displayed, null if none
+     * @param txt the text to be displayed, <code>null</code> if none
      * @param columns  the number of columns to use to calculate 
-     *   the preferred width >= 0.  If columns is set to zero, the
+     *   the preferred width >= 0; if columns is set to zero, the
      *   preferred width will be whatever naturally results from
-     *   the component implementation.
+     *   the component implementation
      */
     public JPasswordField(Document doc, String txt, int columns) {
         super(doc, txt, columns);
         echoChar = '*';
+        // We could either leave this on, which wouldn't be secure,
+        // or obscure the composted text, which essentially makes displaying
+        // it useless. Therefore, we turn off input methods.
+        enableInputMethods(false);
     }
 
     /**
      * Returns the name of the L&F class that renders this component.
      *
-     * @return "PasswordFieldUI"
+     * @return the string "PasswordFieldUI"
      * @see JComponent#getUIClassID
      * @see UIDefaults#getUI
      */
@@ -129,26 +141,30 @@ public class JPasswordField extends JTextField {
     }
 
     /**
-     * Sets the echo character for this JPasswordField.  Note 
-     * that this is largely a suggestion to the view as the
+     * Sets the echo character for this <code>JPasswordField</code>. 
+     * Note that this is largely a suggestion, since the
      * view that gets installed can use whatever graphic techniques
-     * it desires to represent the field.  Setting a value of 0 unsets
-     * the echo character.
+     * it desires to represent the field.  Setting a value of 0 indicates
+     * that you wish to see the text as it is typed, similar to 
+     * the behavior of a standard <code>JTextField</code>.
      *
      * @param c the echo character to display
      * @see #echoCharIsSet
      * @see #getEchoChar
      * @beaninfo
      * description: character to display in place of the real characters
+     *   attribute: visualUpdate true
      */
     public void setEchoChar(char c) {
         echoChar = c;
+        repaint();
+        revalidate();
     }
 
     /**
-     * Returns true if this JPasswordField has a character set for
-     * echoing.  A character is considered to be set if the echo character
-     * is not 0.
+     * Returns true if this <code>JPasswordField</code> has a character
+     * set for echoing.  A character is considered to be set if the echo
+     * character is not 0.
      *
      * @return true if a character is set for echoing
      * @see #setEchoChar
@@ -161,33 +177,38 @@ public class JPasswordField extends JTextField {
     // --- JTextComponent methods ----------------------------------
 
     /**
-     * Normally transfers the currently selected range in the associated
-     * text model to the system clipboard, removing the contents
-     * from the model.  This is not a good thing for a password field
-     * and is reimplemented to simply beep.
+     * Invokes <code>provideErrorFeedback</code> on the current
+     * look and feel, which typically initiates an error beep.
+     * The normal behavior of transferring the
+     * currently selected range in the associated text model
+     * to the system clipboard, and removing the contents from
+     * the model, is not acceptable for a password field.
      */
     public void cut() {
-	getToolkit().beep();
+	UIManager.getLookAndFeel().provideErrorFeedback(this);
     }
 
     /**
-     * Normally transfers the currently selected range in the associated
-     * text model to the system clipboard, leaving the contents
-     * in the text model.  This is not a good thing for a password field
-     * and is reimplemented to simply beep.
+     * Invokes <code>provideErrorFeedback</code> on the current
+     * look and feel, which typically initiates an error beep.
+     * The normal behavior of transferring the
+     * currently selected range in the associated text model
+     * to the system clipboard, and leaving the contents from
+     * the model, is not acceptable for a password field.
      */
     public void copy() {
-	getToolkit().beep();
+	UIManager.getLookAndFeel().provideErrorFeedback(this);
     }
 
     /**
-     * Returns the text contained in this TextComponent.  If the underlying
-     * document is null, will give a NullPointerException.  
+     * Returns the text contained in this <code>TextComponent</code>. 
+     * If the underlying document is <code>null</code>, will give a
+     * <code>NullPointerException</code>.  
      * <p>
      * For security reasons, this method is deprecated.  Use the
-     * getPassword method instead.
+     <code>* getPassword</code> method instead.
      * @deprecated As of Java 2 platform v1.2,
-     * replaced by <code>getPassword()</code>.
+     * replaced by <code>getPassword</code>.
      * @return the text
      */
     public String getText() {
@@ -199,9 +220,9 @@ public class JPasswordField extends JTextField {
      * component.  Returns an empty string if length is 0.
      * <p>
      * For security reasons, this method is deprecated.  Use the
-     * getPassword method instead.
+     * <code>getPassword</code> method instead.
      * @deprecated As of Java 2 platform v1.2,
-     * replaced by <code>getPassword()</code>.
+     * replaced by <code>getPassword</code>.
      * @param offs the offset >= 0
      * @param len the length >= 0
      * @return the text
@@ -212,8 +233,9 @@ public class JPasswordField extends JTextField {
     }
 
     /**
-     * Returns the text contained in this TextComponent.  If the underlying
-     * document is null, will give a NullPointerException.  For stronger
+     * Returns the text contained in this <code>TextComponent</code>. 
+     * If the underlying document is <code>null</code>, will give a
+     * <code>NullPointerException</code>.  For stronger
      * security, it is recommended that the returned character array be
      * cleared after use by setting each character to zero.
      *
@@ -238,9 +260,13 @@ public class JPasswordField extends JTextField {
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
+        }
     }
 
     // --- variables -----------------------------------------------
@@ -255,13 +281,13 @@ public class JPasswordField extends JTextField {
 
 
     /**
-     * Returns a string representation of this JPasswordField. This method 
-     * is intended to be used only for debugging purposes, and the 
+     * Returns a string representation of this <code>JPasswordField</code>.
+     * This method is intended to be used only for debugging purposes, and the 
      * content and format of the returned string may vary between      
      * implementations. The returned string may be empty but may not 
      * be <code>null</code>.
      * 
-     * @return  a string representation of this JPasswordField.
+     * @return  a string representation of this <code>JPasswordField</code>
      */
     protected String paramString() {
 	return super.paramString() +
@@ -274,13 +300,16 @@ public class JPasswordField extends JTextField {
 
 
     /**
-     * Gets the AccessibleContext associated with this JPasswordField. 
-     * For password fields, the AccessibleContext takes the form of an 
-     * AccessibleJPasswordField. 
-     * A new AccessibleJPasswordField instance is created if necessary.
+     * Returns the <code>AccessibleContext</code> associated with this 
+     * <code>JPasswordField</code>. For password fields, the 
+     * <code>AccessibleContext</code> takes the form of an 
+     * <code>AccessibleJPasswordField</code>. 
+     * A new <code>AccessibleJPasswordField</code> instance is created
+     * if necessary.
      *
-     * @return an AccessibleJPasswordField that serves as the 
-     *         AccessibleContext of this JPasswordField
+     * @return an <code>AccessibleJPasswordField</code> that serves as the 
+     *         <code>AccessibleContext</code> of this
+     *         <code>JPasswordField</code>
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -297,10 +326,12 @@ public class JPasswordField extends JTextField {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJPasswordField extends AccessibleJTextField {
 

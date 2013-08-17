@@ -1,4 +1,6 @@
 /*
+ * @(#)ReferenceQueue.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,7 +12,7 @@ package java.lang.ref;
  * Reference queues, to which registered reference objects are appended by the
  * garbage collector after the appropriate reachability changes are detected.
  *
- * @version  1.15, 02/06/02
+ * @version  1.19, 12/03/01
  * @author   Mark Reinhold
  * @since    1.2
  */
@@ -34,6 +36,7 @@ public class ReferenceQueue {
     static private class Lock { };
     private Lock lock = new Lock();
     private Reference head = null;
+    private long queueLength = 0;
 
     boolean enqueue(Reference r) {	/* Called only by Reference class */
 	synchronized (r) {
@@ -42,6 +45,7 @@ public class ReferenceQueue {
 		r.queue = ENQUEUED;
 		r.next = (head == null) ? r : head;
 		head = r;
+		queueLength++;
 		lock.notifyAll();
 		return true;
 	    }
@@ -54,15 +58,16 @@ public class ReferenceQueue {
 	    head = (r.next == r) ? null : r.next;
 	    r.queue = NULL;
 	    r.next = r;
+	    queueLength--;
 	    return r;
 	}
 	return null;
     }
 
     /**
-     * Polls this queue to see if a reference object is available,
-     * returning one immediately if so.  If the queue is empty, this
-     * method immediately returns <code>null</code>.
+     * Polls this queue to see if a reference object is available.  If one is
+     * available without further delay then it is removed from the queue and
+     * returned.  Otherwise this method immediately returns <tt>null</tt>.
      *
      * @return  A reference object, if one was immediately available,
      *          otherwise <code>null</code>
@@ -76,6 +81,9 @@ public class ReferenceQueue {
     /**
      * Removes the next reference object in this queue, blocking until either
      * one becomes available or the given timeout period expires.
+     *
+     * <p> This method does not offer real-time guarantees: It schedules the
+     * timeout as if by invoking the {@link Object#wait(long)} method.
      *
      * @param  timeout  If positive, block for up <code>timeout</code>
      *                  milliseconds while waiting for a reference to be
@@ -112,6 +120,7 @@ public class ReferenceQueue {
      * Removes the next reference object in this queue, blocking until one
      * becomes available.
      *
+     * @return A reference object, blocking until one becomes available
      * @throws  InterruptedException  If the wait is interrupted
      */
     public Reference remove() throws InterruptedException {

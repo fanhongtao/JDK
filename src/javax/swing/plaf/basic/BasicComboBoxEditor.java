@@ -1,27 +1,38 @@
 /*
+ * @(#)BasicComboBoxEditor.java	1.22 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
 
 import javax.swing.*;
-import javax.swing.border.*;
-import java.io.Serializable;
+import javax.swing.border.Border;
+
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.PlainDocument;
+
 import java.awt.*;
 import java.awt.event.*;
 
+import java.lang.reflect.Method;
+
 /**
- * The default editor for editable combo boxes
+ * The default editor for editable combo boxes. The editor is implemented as a JTextField.
+ * If the text field is used to edit <code>java.lang.Number</code> objects, then
+ * its constrained to only accept numbers.
  *
- * @version 1.18 02/06/02
+ * @version 1.22 12/03/01
  * @author Arnaud Weber
+ * @author Mark Davidson
  */
 public class BasicComboBoxEditor implements ComboBoxEditor,FocusListener {
     protected JTextField editor;
+    private Object oldValue;
 
     public BasicComboBoxEditor() {
         editor = new BorderlessTextField("",9);
-        //editor.addFocusListener(this);
         editor.setBorder(null);
     }
 
@@ -29,15 +40,41 @@ public class BasicComboBoxEditor implements ComboBoxEditor,FocusListener {
         return editor;
     }
 
+    /** 
+     * Sets the item that should be edited. 
+     *
+     * @param anObject the displayed value of the editor
+     */
     public void setItem(Object anObject) {
-        if ( anObject != null )
+        if ( anObject != null )  {
             editor.setText(anObject.toString());
-        else
+            
+            oldValue = anObject;
+        } else {
             editor.setText("");
+        }
     }
 
     public Object getItem() {
-        return editor.getText();
+        Object newValue = editor.getText();
+        
+        if (oldValue != null && !(oldValue instanceof String))  {
+            // The original value is not a string. Should return the value in it's
+            // original type.
+            if (newValue.equals(oldValue.toString()))  {
+                return oldValue;
+            } else {
+                // Must take the value from the editor and get the value and cast it to the new type.
+                Class cls = oldValue.getClass();
+                try {
+                    Method method = cls.getMethod("valueOf", new Class[]{String.class});
+                    newValue = method.invoke(oldValue, new Object[] { editor.getText()});
+                } catch (Exception ex) {
+                    // Fail silently and return the newValue (a String object)
+                }
+            }
+        }
+        return newValue;
     }
 
     public void selectAll() {
@@ -68,7 +105,7 @@ public class BasicComboBoxEditor implements ComboBoxEditor,FocusListener {
 
         public void setBorder(Border b) {}
     }
-
+    
     /**
      * A subclass of BasicComboBoxEditor that implements UIResource.
      * BasicComboBoxEditor doesn't implement UIResource
@@ -77,10 +114,12 @@ public class BasicComboBoxEditor implements ComboBoxEditor,FocusListener {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class UIResource extends BasicComboBoxEditor
     implements javax.swing.plaf.UIResource {

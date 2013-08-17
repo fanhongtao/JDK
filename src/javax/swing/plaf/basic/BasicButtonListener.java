@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicButtonListener.java	1.55 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,7 +19,7 @@ import javax.swing.plaf.ComponentInputMapUIResource;
 /**
  * Button Listener
  *
- * @version 1.48 03/13/02
+ * @version 1.55 12/03/01
  * @author Jeff Dinkins 
  * @author Arnaud Weber (keyboard UI support)
  */
@@ -27,6 +29,9 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
 {
     /** Set to true when the WindowInputMap is installed. */
     private boolean createdWindowInputMap;
+
+    transient long lastPressedTimestamp = -1;
+    transient boolean shouldDiscardRelease = false;
   
     public BasicButtonListener(AbstractButton b) {
     }
@@ -41,7 +46,8 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
 	    checkOpacity((AbstractButton) e.getSource() );
 	}
 
-	if(prop.equals(AbstractButton.TEXT_CHANGED_PROPERTY)) {
+	if(prop.equals(AbstractButton.TEXT_CHANGED_PROPERTY) ||
+           "font".equals(prop) || "foreground".equals(prop)) {
 	    AbstractButton b = (AbstractButton) e.getSource();
 	    BasicHTML.updateRenderer(b, b.getText());
 	}
@@ -163,7 +169,12 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
         if (b instanceof JButton && ((JButton)b).isDefaultCapable()) {
             JRootPane root = b.getRootPane();
             if (root != null) {
-                root.setDefaultButton((JButton)b);
+		JButton defaultButton = root.getDefaultButton();
+		if (defaultButton != null) {
+		    root.putClientProperty("temporaryDefaultButton", b);
+                    root.setDefaultButton((JButton)b);
+		    root.putClientProperty("temporaryDefaultButton", null);
+		}
             }
         }
 	b.repaint();
@@ -171,6 +182,28 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
 
     public void focusLost(FocusEvent e) {
 	AbstractButton b = (AbstractButton) e.getSource();
+
+       /********REMIND(aim): maybe we don't need oppositeComponent...
+        getOppositeComponent() is currently unimplemented...
+
+	Component newFocusOwner = e.getOppositeComponent();
+        if (newFocusOwner != null && !(newFocusOwner instanceof JButton)) {
+            JRootPane root = b.getRootPane();
+            if (root != null) {
+		JButton initialDefault = (JButton)root.getClientProperty("initialDefaultButton");
+		if (initialDefault != null) {
+		    root.setDefaultButton(initialDefault);
+		}
+	    }
+	}
+	*********/
+	JRootPane root = b.getRootPane();
+	if (root != null) {
+	   JButton initialDefault = (JButton)root.getClientProperty("initialDefaultButton");
+	   if (initialDefault != null && b != initialDefault) {
+	       root.setDefaultButton(initialDefault);
+	   }
+	}
 	b.repaint();
     }
 
@@ -187,7 +220,16 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
     public void mousePressed(MouseEvent e) {
        if (SwingUtilities.isLeftMouseButton(e) ) {
 	  AbstractButton b = (AbstractButton) e.getSource();
+
 	  if(b.contains(e.getX(), e.getY())) {
+	      long multiClickThreshhold = b.getMultiClickThreshhold();
+	      long lastTime = lastPressedTimestamp;
+	      long currentTime = lastPressedTimestamp = e.getWhen();
+	      if (lastTime != -1 && currentTime - lastTime < multiClickThreshhold) {
+		  shouldDiscardRelease = true;
+		  return;
+	      }
+
 	     ButtonModel model = b.getModel();
 	     if (!model.isEnabled()) {
 	        // Disabled buttons ignore all input...
@@ -198,7 +240,7 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
                 model.setArmed(true);
 	     }
 	     model.setPressed(true);
-	     if(!b.hasFocus()) {
+	     if(!b.hasFocus() && b.isRequestFocusEnabled()) {
 	        b.requestFocus();
 	     }            
 	  } 
@@ -206,26 +248,33 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
     };
     
     public void mouseReleased(MouseEvent e) {
+	// Support for multiClickThreshhold
+        if (shouldDiscardRelease) {
+	    shouldDiscardRelease = false;
+	    return;
+	}
 	AbstractButton b = (AbstractButton) e.getSource();
 	ButtonModel model = b.getModel();
 	model.setPressed(false);
+	model.setArmed(false);
     };
  
     public void mouseEntered(MouseEvent e) {
 	AbstractButton b = (AbstractButton) e.getSource();
-	ButtonModel model = b.getModel();
-	if(b.isRolloverEnabled()) {
-	    model.setRollover(true);
-	}
-        model.setArmed(true);
+        ButtonModel model = b.getModel();
+        if(b.isRolloverEnabled()) {
+            model.setRollover(true);
+        }
+        if (model.isPressed())
+		model.setArmed(true);
     };
  
     public void mouseExited(MouseEvent e) {
 	AbstractButton b = (AbstractButton) e.getSource();
-	ButtonModel model = b.getModel();
-	if(b.isRolloverEnabled()) {
-	    model.setRollover(false);
-	}
+        ButtonModel model = b.getModel();
+        if(b.isRolloverEnabled()) {
+            model.setRollover(false);
+        }
         model.setArmed(false);
     };
 

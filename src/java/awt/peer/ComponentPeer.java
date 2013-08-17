@@ -1,4 +1,6 @@
 /*
+ * @(#)ComponentPeer.java	1.40 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,6 +12,7 @@ import java.awt.event.PaintEvent;
 import java.awt.image.ImageProducer;
 import java.awt.image.ImageObserver;
 import java.awt.image.ColorModel;
+import java.awt.image.VolatileImage;
 import java.awt.GraphicsConfiguration;
 
 import java.awt.dnd.peer.DropTargetPeer;
@@ -22,6 +25,8 @@ import java.awt.dnd.peer.DropTargetPeer;
  * instances.
  */
 public interface ComponentPeer {
+    boolean isObscured();
+    boolean canDetermineObscurity();
     void    	    	setVisible(boolean b);
     void    	    	setEnabled(boolean b);
     void		paint(Graphics g);
@@ -34,22 +39,32 @@ public interface ComponentPeer {
     Dimension		getPreferredSize();
     Dimension		getMinimumSize();
     ColorModel		getColorModel();
-    java.awt.Toolkit	getToolkit();
+    Toolkit		getToolkit();
     Graphics		getGraphics();
     FontMetrics		getFontMetrics(Font font);
     void		dispose();
     void		setForeground(Color c);
     void		setBackground(Color c);
     void		setFont(Font f);
-    void 		setCursor(Cursor cursor);
-    void		requestFocus();
-    boolean		isFocusTraversable();
+    void 		updateCursorImmediately();
+    boolean		requestFocus(Component lightweightChild,
+                                     boolean temporary,
+				     boolean focusedWindowChangeAllowed,
+                                     long time);
+    boolean		isFocusable();
 
     Image 		createImage(ImageProducer producer);
     Image 		createImage(int width, int height);
+    VolatileImage 	createVolatileImage(int width, int height);
     boolean		prepareImage(Image img, int w, int h, ImageObserver o);
     int			checkImage(Image img, int w, int h, ImageObserver o);
     GraphicsConfiguration getGraphicsConfiguration();
+    boolean     handlesWheelScrolling();
+    void createBuffers(int numBuffers, BufferCapabilities caps)
+        throws AWTException;
+    Image getBackBuffer();
+    void flip(BufferCapabilities.FlipContents flipAction);
+    void destroyBuffers();
 
     /**
      * DEPRECATED:  Replaced by getPreferredSize().

@@ -1,4 +1,6 @@
 /*
+ * @(#)java.h	1.20 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -30,10 +32,6 @@ jboolean
 GetJVMPath(const char *jrepath, const char *jvmtype,
 	   char *jvmpath, jint jvmpathsize);
 
-const char *
-ReadJVMLink(const char *jrepath, const char *jvmtype,
-	    char* knownVMs[], int knownVMsCount);
-
 jboolean
 GetJREPath(char *path, jint pathsize);
 
@@ -45,6 +43,13 @@ GetXUsagePath(char *buf, jint bufsize);
 
 jboolean
 GetApplicationHome(char *buf, jint bufsize);
+
+const char *
+GetArch();
+
+/* Defined in java.c; used in java_md.c.  Gets the name of the current executable. */
+extern char*
+GetExecname();
 
 /*
  * Make launcher spit debug output.

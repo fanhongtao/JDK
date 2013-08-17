@@ -1,4 +1,6 @@
 /*
+ * @(#)TreeModelListener.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,7 +17,7 @@ import java.util.EventListener;
  href="http://java.sun.com/docs/books/tutorial/uiswing/events/treemodellistener.html">How to Write a Tree Model Listener</a>,
  * a section in <em>The Java Tutorial.</em>
  *
- * @version 1.15 02/06/02
+ * @version 1.15 12/03/01
  * @author Rob Davis
  * @author Ray Ryan
  */

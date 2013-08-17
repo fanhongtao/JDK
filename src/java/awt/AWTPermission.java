@@ -1,4 +1,6 @@
 /*
+ * @(#)AWTPermission.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,7 +11,7 @@ import java.security.BasicPermission;
 
 /**
  * This class is for AWT permissions.
- * An AWTPermission contains a target name but
+ * An <code>AWTPermission</code> contains a target name but
  * no actions list; you either have the named permission
  * or you don't.
  *
@@ -19,9 +21,10 @@ import java.security.BasicPermission;
  * Also, an asterisk could be used to represent all AWT permissions.
  *
  * <P>
- * The following table lists all the possible AWTPermission target names,
- * and for each provides a description of what the permission allows
- * and a discussion of the risks of granting code the permission.
+ * The following table lists all the possible <code>AWTPermission</code>
+ * target names, and for each provides a description of what the
+ * permission allows and a discussion of the risks of granting code
+ * the permission.
  * <P>
  *
  * <table border=1 cellpadding=5>
@@ -89,6 +92,14 @@ import java.security.BasicPermission;
  * malicious code to control the system, run other programs, read the
  * display, and deny mouse and keyboard access to the user.</td>
  * </tr>
+ *
+ * <tr>
+ *   <td>fullScreenExclusive</td>
+ *   <td>Enter full-screen exclusive mode</td>
+ *   <td>Entering full-screen exclusive mode allows direct access to
+ * low-level graphics card memory.  This could be used to spoof the
+ * system, since the program is in direct control of rendering.</td>
+ * </tr>
  * </table>
  *
  * @see java.security.BasicPermission
@@ -97,7 +108,7 @@ import java.security.BasicPermission;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 	1.19, 02/06/02
+ * @version 	1.21, 12/03/01
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -109,12 +120,12 @@ public final class AWTPermission extends BasicPermission {
     private static final long serialVersionUID = 8890392402588814465L;
 
     /**
-     * Creates a new AWTPermission with the specified name.
-     * The name is the symbolic name of the AWTPermission, such as
-     * "topLevelWindow", "systemClipboard", etc. An asterisk
+     * Creates a new <code>AWTPermission</code> with the specified name.
+     * The name is the symbolic name of the <code>AWTPermission</code>,
+     * such as "topLevelWindow", "systemClipboard", etc. An asterisk
      * may be used to indicate all AWT permissions.
      *
-     * @param name the name of the AWTPermission.
+     * @param name the name of the AWTPermission
      */
 
     public AWTPermission(String name)
@@ -123,14 +134,14 @@ public final class AWTPermission extends BasicPermission {
     }
 
     /**
-     * Creates a new AWTPermission object with the specified name.
-     * The name is the symbolic name of the AWTPermission, and the
-     * actions String is currently unused and should be null. This
+     * Creates a new <code>AWTPermission</code> object with the specified name.
+     * The name is the symbolic name of the <code>AWTPermission</code>, and the
+     * actions string is currently unused and should be <code>null</code>. This
      * constructor exists for use by the <code>Policy</code> object
-     * to instantiate new Permission objects.
+     * to instantiate new permission objects.
      *
-     * @param name the name of the AWTPermission.
-     * @param actions should be null.
+     * @param name the name of the <code>AWTPermission</code>
+     * @param actions should be <code>null</code>
      */
 
     public AWTPermission(String name, String actions)

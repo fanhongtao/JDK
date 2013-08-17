@@ -1,6 +1,18 @@
 /*
+ * @(#)ValueBaseHelper.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+ 
+ /**
+ * The Helper for <tt>ValueBase</tt>.  For more information on 
+ * Helper files, see <a href="doc-files/generatedfiles.html#helper">
+ * "Generated Files: Helper Files"</a>.<P>
+ */
+ 
+/*
+ * @(#)ValueBaseHelper.java	1.10 01/12/03
  */
 /*
  * Licensed Materials - Property of IBM

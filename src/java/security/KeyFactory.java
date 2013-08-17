@@ -1,4 +1,6 @@
 /*
+ * @(#)KeyFactory.java	1.26 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -42,7 +44,7 @@ import java.security.spec.InvalidKeySpecException;
  *
  * @author Jan Luehe
  *
- * @version 1.25, 02/06/02
+ * @version 1.26, 12/03/01
  *
  * @see Key
  * @see PublicKey
@@ -104,7 +106,7 @@ public class KeyFactory {
 	throws NoSuchAlgorithmException { 
 	    try {
 		Object[] objs = Security.getImpl(algorithm, "KeyFactory",
-						 null);
+						 (String)null);
 		return new KeyFactory((KeyFactorySpi)objs[0],
 				      (Provider)objs[1],
 				      algorithm);
@@ -131,7 +133,10 @@ public class KeyFactory {
      * not available from the specified provider.
      *
      * @exception NoSuchProviderException if the provider has not been 
-     * configured. 
+     * configured.
+     *
+     * @exception IllegalArgumentException if the provider name is null
+     * or empty. 
      * 
      * @see Provider 
      */
@@ -139,6 +144,41 @@ public class KeyFactory {
 	throws NoSuchAlgorithmException, NoSuchProviderException
     {
 	if (provider == null || provider.length() == 0)
+	    throw new IllegalArgumentException("missing provider");
+	Object[] objs = Security.getImpl(algorithm, "KeyFactory", provider);
+	return new KeyFactory((KeyFactorySpi)objs[0], (Provider)objs[1],
+			      algorithm);
+    }
+
+    /**
+     * Generates a KeyFactory object for the specified algorithm from the
+     * specified provider. Note: the <code>provider</code> doesn't have 
+     * to be registered. 
+     *
+     * @param algorithm the name of the requested key algorithm. 
+     * See Appendix A in the <a href=
+     * "../../../guide/security/CryptoSpec.html#AppA">
+     * Java Cryptography Architecture API Specification &amp; Reference </a> 
+     * for information about standard algorithm names.
+     *
+     * @param provider the provider.
+     *
+     * @return a KeyFactory object for the specified algorithm.
+     *
+     * @exception NoSuchAlgorithmException if the algorithm is
+     * not available from the specified provider.
+     *
+     * @exception IllegalArgumentException if the <code>provider</code> is
+     * null.
+     * 
+     * @see Provider
+     *
+     * @since 1.4
+     */
+    public static KeyFactory getInstance(String algorithm, Provider provider)
+	throws NoSuchAlgorithmException
+    {
+	if (provider == null)
 	    throw new IllegalArgumentException("missing provider");
 	Object[] objs = Security.getImpl(algorithm, "KeyFactory", provider);
 	return new KeyFactory((KeyFactorySpi)objs[0], (Provider)objs[1],

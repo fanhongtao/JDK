@@ -1,5 +1,7 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)CompositeView.java	1.63 01/12/12
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -10,54 +12,54 @@ import javax.swing.event.*;
 import javax.swing.SwingConstants;
 
 /**
- * A view that is composed of other views (has children).
- * As a container of children, the composite view needs
- * to provide:
+ * <code>CompositeView</code> is an abstract <code>View</code>
+ * implementation which manages one or more child views.
+ * (Note that <code>CompositeView</code> is intended
+ * for managing relatively small numbers of child views.)
+ * <code>CompositeView</code> is intended to be used as 
+ * a starting point for <code>View</code> implementations,
+ * such as <code>BoxView</code>, that will contain child
+ * <code>View</code>s. Subclasses that wish to manage the
+ * collection of child <code>View</code>s should use the
+ * {@link #replace} method.  As <code>View</code> invokes
+ * <code>replace</code> during <code>DocumentListener</code>
+ * notification, you normally won't need to directly
+ * invoke <code>replace</code>.
  *
- * <dl>
- * <dt><b>services to manage the collection of children</b>
- * <dd>The following methods can be used to manage the
- * collection.
- *   <ul>
- *   <li><a href="#removeAll">removeAll</a>
- *   <li><a href="#insert">insert</a>
- *   <li><a href="#append">append</a>
- *   <li><a href="#replace">replace</a>
- *   <li><a href="#getViewCount">getViewCount</a>
- *   <li><a href="#getView">getView</a>
- *   <li><a href="#loadChildren">loadChildren</a>
- *   </ul>
+ * <p>While <code>CompositeView</code>
+ * does not impose a layout policy on its child <code>View</code>s,
+ * it does allow for inseting the child <code>View</code>s
+ * it will contain.  The insets can be set by either
+ * {@link #setInsets} or {@link #setParagraphInsets}.
  *
- * <dt><b>layout of the children</b>
- * <dd>This class does not implement a layout policy
- * as it is abstract.  A subclass will determine how
- * the children are laid out by implementing the
- * <a href="View.html#setSize(float, float)">setSize</a> method to position
- * the children when the size has been changed.
- *
- * <dt><b>paint the children</b>
- * <dd>This class does not attempt to paint the
- * children.  Subclasses will want to use the 
- * layout information and call paint on the children
- * that are visible (intersect the clipping region)
- * with the Shape argument set to the location of the
- * child view.
- *
- * <dt><b>propagation of 
- * <a href="../event/DocumentEvent.html">DocumentEvent</a> 
- * information to the appropriate children.</b>
- *
- * <dt>propagation of model/view translation to the
- * proper child.
- * </dl>
+ * <p>In addition to the abstract methods of
+ * {@link javax.swing.text.View},
+ * subclasses of <code>CompositeView</code> will need to
+ * override:
+ * <ul>
+ * <li>{@link #isBefore} - Used to test if a given
+ *     <code>View</code> location is before the visual space
+ *     of the <code>CompositeView</code>.
+ * <li>{@link #isAfter} - Used to test if a given
+ *     <code>View</code> location is after the visual space
+ *     of the <code>CompositeView</code>.
+ * <li>{@link #getViewAtPoint} - Returns the view at
+ *     a given visual location.
+ * <li>{@link #childAllocation} - Returns the bounds of
+ *     a particular child <code>View</code>. 
+ *     <code>getChildAllocation</code> will invoke
+ *     <code>childAllocation</code> after offseting
+ *     the bounds by the <code>Inset</code>s of the
+ *     <code>CompositeView</code>.
+ * </ul>
  *
  * @author  Timothy Prinzing
- * @version 1.57 12/02/02
+ * @version 1.63 12/12/01
  */
 public abstract class CompositeView extends View {
 
     /**
-     * Constructs a CompositeView for the given element.
+     * Constructs a <code>CompositeView</code> for the given element.
      *
      * @param elem  the element this view is responsible for
      */
@@ -70,7 +72,7 @@ public abstract class CompositeView extends View {
 
     /**
      * Loads all of the children to initialize the view.
-     * This is called by the <a href="#setParent">setParent</a> 
+     * This is called by the {@link #setParent}
      * method.  Subclasses can reimplement this to initialize 
      * their child views in a different manner.  The default
      * implementation creates a child view for each 
@@ -106,12 +108,12 @@ public abstract class CompositeView extends View {
      * The children should not be loaded in the 
      * constructor because the act of setting the parent
      * may cause them to try to search up the hierarchy
-     * (to get the hosting Container for example).
+     * (to get the hosting <code>Container</code> for example).
      * If this view has children (the view is being moved
      * from one place in the view hierarchy to another), 
      * the <code>loadChildren</code> method will not be called.
      *
-     * @param parent the parent of the view, null if none
+     * @param parent the parent of the view, <code>null</code> if none
      */
     public void setParent(View parent) {
 	super.setParent(parent);
@@ -132,28 +134,30 @@ public abstract class CompositeView extends View {
     }
 
     /** 
-     * Gets the n-th view in this container.
+     * Returns the n-th view in this container.
      *
-     * @param n the number of the view to get, >= 0 && < getViewCount()
-     * @return the view
+     * @param n the number of the desired view, >= 0 && < getViewCount()
+     * @return the view at index <code>n</code>
      */
     public View getView(int n) {
 	return children[n];
     }
 
     /**
-     * Replace child views.  If there are no views to remove
+     * Replaces child views.  If there are no views to remove
      * this acts as an insert.  If there are no views to
      * add this acts as a remove.  Views being removed will
-     * have the parent set to null, and the internal reference
-     * to them removed so that they can be garbage collected.
+     * have the parent set to <code>null</code>,
+     * and the internal reference to them removed so that they
+     * may be garbage collected.
      *
      * @param index the starting index into the child views to insert
-     *   the new views.  This should be a value >= 0 and <= getViewCount.
-     * @param length the number of existing child views to remove.
-     *   This should be a value >= 0 and <= (getViewCount() - offset).
-     * @param views the child views to add.  This value can be null
-     *   to indicate no children are being added (useful to remove).
+     *   the new views; >= 0 and <= getViewCount
+     * @param length the number of existing child views to remove;
+     *   this should be a value >= 0 and <= (getViewCount() - offset)
+     * @param views the child views to add; this value can be
+     *  <code>null</code>
+     *   to indicate no children are being added (useful to remove)
      */
     public void replace(int offset, int length, View[] views) {
 	// make sure an array exists
@@ -163,11 +167,11 @@ public abstract class CompositeView extends View {
 
 	// update parent reference on removed views
 	for (int i = offset; i < offset + length; i++) {
-	    if (children[i].getParent() == this) {
-                // in FlowView.java view might be referenced 
-                // from two super-views as a child. see logicalView
-                children[i].setParent(null);
-            }
+	    if (children[i].getParent() == this) { 
+		// in FlowView.java view might be referenced 
+		// from two super-views as a child. see logicalView
+		children[i].setParent(null);
+	    }
 	    children[i] = null;
 	}
 	
@@ -198,12 +202,12 @@ public abstract class CompositeView extends View {
     }
 
     /**
-     * Fetches the allocation for the given child view. 
-     * This enables finding out where various views
+     * Fetches the allocation for the given child view to
+     * render into. This enables finding out where various views
      * are located.
      *
      * @param index the index of the child, >= 0 && < getViewCount()
-     * @param a  the allocation to this view.
+     * @param a  the allocation to this view
      * @return the allocation to the child
      */
     public Shape getChildAllocation(int index, Shape a) {
@@ -218,6 +222,8 @@ public abstract class CompositeView extends View {
      *
      * @param pos the position to convert >= 0
      * @param a the allocated region to render into
+     * @param b a bias value of either <code>Position.Bias.Forward</code>
+     *	or <code>Position.Bias.Backward</code>
      * @return the bounding box of the given position
      * @exception BadLocationException  if the given position does
      *   not represent a valid location in the associated document
@@ -234,7 +240,12 @@ public abstract class CompositeView extends View {
 	    View v = getView(vIndex);
 	    if(v != null && testPos >= v.getStartOffset() &&
 	       testPos < v.getEndOffset()) {
-		Shape retShape = v.modelToView(pos, getChildAllocation(vIndex, a), b);
+                Shape childShape = getChildAllocation(vIndex, a);
+                if (childShape == null) {
+                    // We are likely invalid, fail.
+                    return null;
+                }
+		Shape retShape = v.modelToView(pos, childShape, b);
 		if(retShape == null && v.getEndOffset() == pos) {
 		    if(++vIndex < getViewCount()) {
 			v = getView(vIndex);
@@ -255,11 +266,13 @@ public abstract class CompositeView extends View {
      * @param p0 the position to convert >= 0
      * @param b0 the bias toward the previous character or the
      *  next character represented by p0, in case the 
-     *  position is a boundary of two views. 
+     *  position is a boundary of two views; either
+     *  <code>Position.Bias.Forward</code> or
+     *  <code>Position.Bias.Backward</code> 
      * @param p1 the position to convert >= 0
      * @param b1 the bias toward the previous character or the
      *  next character represented by p1, in case the 
-     *  position is a boundary of two views. 
+     *  position is a boundary of two views
      * @param a the allocated region to render into
      * @return the bounding box of the given position is returned
      * @exception BadLocationException  if the given position does
@@ -351,6 +364,8 @@ public abstract class CompositeView extends View {
      * @param x   x coordinate of the view location to convert >= 0
      * @param y   y coordinate of the view location to convert >= 0
      * @param a the allocated region to render into
+     * @param bias either <code>Position.Bias.Forward</code> or
+     *	<code>Position.Bias.Backward</code>
      * @return the location within the model that best represents the
      *  given point in the view >= 0
      * @see View#viewToModel
@@ -401,17 +416,27 @@ public abstract class CompositeView extends View {
      * location that one might place a caret.  Some views may not be visible,
      * they might not be in the same order found in the model, or they just
      * might not allow access to some of the locations in the model.
+     * This is a convenience method for {@link #getNextNorthSouthVisualPositionFrom}
+     * and {@link #getNextEastWestVisualPositionFrom}.
      *
      * @param pos the position to convert >= 0
+     * @param b a bias value of either <code>Position.Bias.Forward</code>
+     *	or <code>Position.Bias.Backward</code>
      * @param a the allocated region to render into
      * @param direction the direction from the current position that can
-     *  be thought of as the arrow keys typically found on a keyboard.
-     *  This may be SwingConstants.WEST, SwingConstants.EAST, 
-     *  SwingConstants.NORTH, or SwingConstants.SOUTH.  
+     *  be thought of as the arrow keys typically found on a keyboard;
+     *  this may be one of the following: 
+     *  <ul>
+     *  <li><code>SwingConstants.WEST</code>
+     *  <li><code>SwingConstants.EAST</code> 
+     *  <li><code>SwingConstants.NORTH</code>
+     *  <li><code>SwingConstants.SOUTH</code>  
+     *  </ul>
+     * @param biasRet an array containing the bias that was checked
      * @return the location within the model that best represents the next
-     *  location visual position.
+     *  location visual position
      * @exception BadLocationException
-     * @exception IllegalArgumentException for an invalid direction
+     * @exception IllegalArgumentException if <code>direction</code> is invalid
      */
     public int getNextVisualPositionFrom(int pos, Position.Bias b, Shape a, 
 					 int direction, Position.Bias[] biasRet) 
@@ -437,12 +462,13 @@ public abstract class CompositeView extends View {
     }
 
     /**
-     * Returns the child view index representing the given position in
-     * the model.  This is implemented to call the getViewIndexByPosition
+     * Returns the child view index representing the given 
+     * position in the model.  This is implemented to call the
+     * <code>getViewIndexByPosition</code>
      * method for backward compatibility.
      *
      * @param pos the position >= 0
-     * @returns  index of the view representing the given position, or 
+     * @return  index of the view representing the given position, or 
      *   -1 if no view represents that position
      */
     public int getViewIndex(int pos, Position.Bias b) {
@@ -479,7 +505,7 @@ public abstract class CompositeView extends View {
     protected abstract boolean isAfter(int x, int y, Rectangle alloc);
 
     /**
-     * Fetches the child view at the given point.
+     * Fetches the child view at the given coordinates.
      *
      * @param x the X coordinate >= 0
      * @param y the Y coordinate >= 0
@@ -506,8 +532,8 @@ public abstract class CompositeView extends View {
      * @param pos the position >= 0
      * @param a  the allocation to the interior of the box on entry, 
      *   and the allocation of the view containing the position on exit
-     * @returns  the view representing the given position, or 
-     *   null if there isn't one
+     * @return  the view representing the given position, or 
+     *   <code>null</code> if there isn't one
      */
     protected View getViewAtPosition(int pos, Rectangle a) {
 	int index = getViewIndexAtPosition(pos);
@@ -527,7 +553,7 @@ public abstract class CompositeView extends View {
      * where there is a child view for each child element.
      *
      * @param pos the position >= 0
-     * @returns  index of the view representing the given position, or 
+     * @return  index of the view representing the given position, or 
      *   -1 if no view represents that position
      */
     protected int getViewIndexAtPosition(int pos) {
@@ -545,12 +571,13 @@ public abstract class CompositeView extends View {
      * This is implemented to reuse an instance variable so
      * it avoids creating excessive Rectangles.  Typically
      * the result of calling this method would be fed to
-     * the childAllocation method.
+     * the <code>childAllocation</code> method.
      *
-     * @param a The allocation given to the view.
-     * @returns The allocation that represents the inside of the 
-     *   view after the margins have all been removed.  If the
-     *   given allocation was null, the return value is null.
+     * @param a the allocation given to the view
+     * @return the allocation that represents the inside of the 
+     *   view after the margins have all been removed; if the
+     *   given allocation was <code>null</code>,
+     *   the return value is <code>null</code>
      */
     protected Rectangle getInsideAllocation(Shape a) {
 	if (a != null) {
@@ -644,168 +671,88 @@ public abstract class CompositeView extends View {
 
     /**
      * Returns the next visual position for the cursor, in either the
-     * east or west direction.
+     * north or south direction.
      *
-     * @return next position west of the passed in position.
+     * @param pos the position to convert >= 0
+     * @param b a bias value of either <code>Position.Bias.Forward</code>
+     *  or <code>Position.Bias.Backward</code>
+     * @param a the allocated region to render into
+     * @param direction the direction from the current position that can
+     *  be thought of as the arrow keys typically found on a keyboard;
+     *  this may be one of the following:
+     *  <ul>
+     *  <li><code>SwingConstants.NORTH</code>
+     *  <li><code>SwingConstants.SOUTH</code>
+     *  </ul>
+     * @param biasRet an array containing the bias that was checked
+     * @return the location within the model that best represents the next
+     *  north or south location 
+     * @exception BadLocationException
+     * @exception IllegalArgumentException if <code>direction</code> is invalid
+     * @see #getNextVisualPositionFrom
+     *
+     * @return the next position west of the passed in position
      */
-    // PENDING: This only checks the next element. If one of the children
-    // Views returns -1, it should continue checking all the children.
-    // PENDING(sky): This name sucks! Come up with a better one!
     protected int getNextNorthSouthVisualPositionFrom(int pos, Position.Bias b,
 						      Shape a, int direction,
 						      Position.Bias[] biasRet)
 	                                        throws BadLocationException {
-	if(getViewCount() == 0) {
-	    // Nothing to do.
-	    return pos;
-	}
-
-	boolean isNorth = (direction == NORTH);
-	Rectangle alloc = getInsideAllocation(a);
-	int retValue;
-	if(pos == -1) {
-	    View v = (isNorth) ? getView(getViewCount() - 1) : getView(0);
-	    childAllocation(0, alloc);
-	    retValue = v.getNextVisualPositionFrom(pos, b, alloc, direction,
-						   biasRet);
-	}
-	else {
-	    int vIndex;
-	    if(b == Position.Bias.Backward && pos > 0) {
-		vIndex = getViewIndexAtPosition(pos - 1);
-	    }
-	    else {
-		vIndex = getViewIndexAtPosition(pos);
-	    }
-	    View v = getView(vIndex);
-	    childAllocation(vIndex, alloc);
-	    retValue = v.getNextVisualPositionFrom(pos, b, alloc, direction,
-						   biasRet);
-	    if(retValue == -1) {
-		if((isNorth && --vIndex >= 0) ||
-		   (!isNorth && ++vIndex < getViewCount())) {
-		    v = getView(vIndex);
-		    alloc = getInsideAllocation(a);
-		    childAllocation(vIndex, alloc);
-		    retValue = v.getNextVisualPositionFrom(-1, b, alloc,
-							   direction, biasRet);
-		}
-	    }
-	}
-	return retValue;
+        return Utilities.getNextVisualPositionFrom(
+                            this, pos, b, a, direction, biasRet);
     }
 
     /**
      * Returns the next visual position for the cursor, in either the
      * east or west direction.
      *
-     * @return next position west of the passed in position.
+    * @param pos the position to convert >= 0
+     * @param b a bias value of either <code>Position.Bias.Forward</code>
+     *  or <code>Position.Bias.Backward</code>
+     * @param a the allocated region to render into
+     * @param direction the direction from the current position that can
+     *  be thought of as the arrow keys typically found on a keyboard;
+     *  this may be one of the following:
+     *  <ul>
+     *  <li><code>SwingConstants.WEST</code>
+     *  <li><code>SwingConstants.EAST</code>
+     *  </ul>
+     * @param biasRet an array containing the bias that was checked
+     * @return the location within the model that best represents the next
+     *  west or east location 
+     * @exception BadLocationException
+     * @exception IllegalArgumentException if <code>direction</code> is invalid
+     * @see #getNextVisualPositionFrom
      */
-    // PENDING: This only checks the next element. If one of the children
-    // Views returns -1, it should continue checking all the children.
-    // PENDING(sky): This name sucks! Come up with a better one!
     protected int getNextEastWestVisualPositionFrom(int pos, Position.Bias b,
 						    Shape a,
 						    int direction,
 						    Position.Bias[] biasRet)
 	                                        throws BadLocationException {
-	if(getViewCount() == 0) {
-	    // Nothing to do.
-	    return pos;
-	}
-	boolean isEast = (direction == EAST);
-	Rectangle alloc = getInsideAllocation(a);
-	int retValue;
-	int increment = (isEast) ? 1 : -1;
-	if(pos == -1) {
-	    View v = (isEast) ? getView(0) : getView(getViewCount() - 1);
-	    childAllocation(0, alloc);
-	    retValue = v.getNextVisualPositionFrom(pos, b, alloc,
-						   direction, biasRet);
-	    if(retValue == -1 && isEast && getViewCount() > 1) {
-		// Special case that should ONLY happen if first view
-		// isn't valid (can happen when end position is put at
-		// beginning of line.
-		v = getView(1);
-		alloc = getInsideAllocation(a);
-		childAllocation(1, alloc);
-		retValue = v.getNextVisualPositionFrom(-1, biasRet[0], alloc,
-						       direction, biasRet);
-	    }
-	}
-	else {
-	    int vIndex;
-	    if(b == Position.Bias.Backward) {
-		vIndex = getViewIndexAtPosition(Math.max(getStartOffset(),
-							 pos - 1));
-	    }
-	    else {
-		vIndex = getViewIndexAtPosition(pos);
-	    }
-	    View v = getView(vIndex);
-	    childAllocation(vIndex, alloc);
-	    retValue = v.getNextVisualPositionFrom(pos, b, alloc,
-						   direction, biasRet);
-	    if(retValue == -1) {
-		if(flipEastAndWestAtEnds(pos, b)) {
-		    increment *= -1;
-		}
-		vIndex += increment;
-		if(vIndex >= 0 && vIndex < getViewCount()) {
-		    v = getView(vIndex);
-		    alloc = getInsideAllocation(a);
-		    childAllocation(vIndex, alloc);
-		    retValue = v.getNextVisualPositionFrom
-			(-1, b, alloc, direction, biasRet);
-		    // If there is a bias change, it is a fake position
-		    // and we should skip it. This is usually the result
-		    // of two elements side be side flowing the same way.
-		    if(retValue == pos && retValue != -1 && biasRet[0] != b) {
-			alloc = getInsideAllocation(a);
-			childAllocation(vIndex, alloc);
-			retValue = v.getNextVisualPositionFrom
-			    (retValue, biasRet[0], alloc, direction,
-			     biasRet);
-		    }
-		}
-	    }
-	    else {
-		if(flipEastAndWestAtEnds(pos, b)) {
-		    increment *= -1;
-		}
-		vIndex += increment;
-		if(biasRet[0] != b &&
-		    ((increment == 1 && v.getEndOffset() == retValue) ||
-		     (increment == -1 && v.getStartOffset() == retValue)) &&
-		   vIndex >= 0 && vIndex < getViewCount()) {
-		    // Reached the end of a view, make sure the next view
-		    // is a different direction.
-		    v = getView(vIndex);
-		    alloc = getInsideAllocation(a);
-		    childAllocation(vIndex, alloc);
-		    Position.Bias originalBias = biasRet[0];
-		    int nextPos = v.getNextVisualPositionFrom
-			(-1, b, alloc, direction, biasRet);
-		    if(biasRet[0] == b) {
-			retValue = nextPos;
-		    }
-		    else {
-			biasRet[0] = originalBias;
-		    }
-		}
-	    }
-	}
-	return retValue;
+        return Utilities.getNextVisualPositionFrom(
+                            this, pos, b, a, direction, biasRet);
     }
 
     /**
-     * Subclasses may wish to subclass this and conditionally return
-     * true based on the position. A return value of true indicates that
-     * when a View returns -1 from getNextVisualPositionFrom the next
-     * view for east should be the current index offset by -1, and for
-     * west it means offset by 1. The normal direction (for left to
-     * right text) is to offset east by 1 and west by -1.
+     * Determines in which direction the next view lays.
+     * Consider the <code>View</code> at index n. Typically the
+     * <code>View</code>s are layed out from left to right,
+     * so that the <code>View</code> to the EAST will be
+     * at index n + 1, and the <code>View</code> to the WEST
+     * will be at index n - 1. In certain situations,
+     * such as with bidirectional text, it is possible
+     * that the <code>View</code> to EAST is not at index n + 1,
+     * but rather at index n - 1, or that the <code>View</code>
+     * to the WEST is not at index n - 1, but index n + 1.
+     * In this case this method would return true, indicating the 
+     * <code>View</code>s are layed out in descending order.
+     * <p>
+     * This unconditionally returns false, subclasses should override this
+     * method if there is the possibility for laying <code>View</code>s in
+     * descending order.
      *
+     * @param position position into the model
+     * @param bias either <code>Position.Bias.Forward</code> or
+     *          <code>Position.Bias.Backward</code>
      * @return false
      */
     protected boolean flipEastAndWestAtEnds(int position,

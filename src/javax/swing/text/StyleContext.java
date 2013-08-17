@@ -1,4 +1,6 @@
 /*
+ * @(#)StyleContext.java	1.71 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -28,14 +30,16 @@ import javax.swing.event.ChangeEvent;
  * automatically to a less space-efficient implementation.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.66 02/06/02
+ * @version 1.71 12/03/01
  */
 public class StyleContext implements Serializable, AbstractDocument.AttributeContext {
 
@@ -133,6 +137,18 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
      */
     public void removeChangeListener(ChangeListener l) {
         styles.removeChangeListener(l);
+    }
+
+    /**
+     * Returns an array of all the <code>ChangeListener</code>s added
+     * to this StyleContext with addChangeListener().
+     *
+     * @return all of the <code>ChangeListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public ChangeListener[] getChangeListeners() {
+        return ((NamedStyle)styles).getChangeListeners();
     }
 
     /**
@@ -1178,7 +1194,8 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
          * @return     a hashcode value for this font.
          */
         public int hashCode() {
-            return family.hashCode() ^ style ^ size;
+	    int fhash = (family != null) ? family.hashCode() : 0;
+            return fhash ^ style ^ size;
         }
     
         /**
@@ -1210,10 +1227,12 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public class NamedStyle implements Style, Serializable {
 
@@ -1266,7 +1285,7 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
          */
         public String getName() {
             if (isDefined(StyleConstants.NameAttribute)) {
-                return (String) getAttribute(StyleConstants.NameAttribute);
+                return getAttribute(StyleConstants.NameAttribute).toString();
             }
             return null;
         }
@@ -1302,6 +1321,20 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
 
 
         /**
+         * Returns an array of all the <code>ChangeListener</code>s added
+         * to this NamedStyle with addChangeListener().
+         *
+         * @return all of the <code>ChangeListener</code>s added or an empty
+         *         array if no listeners have been added
+         * @since 1.4
+         */
+        public ChangeListener[] getChangeListeners() {
+            return (ChangeListener[])listenerList.getListeners(
+                    ChangeListener.class);
+        }
+
+
+        /**
          * Notifies all listeners that have registered interest for
          * notification on this event type.  The event instance 
          * is lazily created using the parameters passed into 
@@ -1328,7 +1361,7 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
 	 * Return an array of all the listeners of the given type that 
 	 * were added to this model. 
 	 *
-	 * @returns all of the objects recieving <em>listenerType</em> notifications 
+	 * @return all of the objects receiving <em>listenerType</em> notifications 
 	 *          from this model
 	 * 
 	 * @since 1.3

@@ -1,4 +1,6 @@
 /*
+ * @(#)StyleConstants.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -23,7 +25,7 @@ import javax.swing.Icon;
  * <p>
  * 
  * @author  Timothy Prinzing
- * @version 1.28 02/06/02
+ * @version 1.29 12/03/01
  */
 public class StyleConstants {
 
@@ -244,7 +246,7 @@ public class StyleConstants {
      * Gets the BidiLevel setting.
      *
      * @param a the attribute set
-     * @returns the value
+     * @return the value
      */
     public static int getBidiLevel(AttributeSet a) {
         Integer o = (Integer) a.getAttribute(BidiLevel);
@@ -557,7 +559,7 @@ public class StyleConstants {
      * Gets the first line indent setting.
      *
      * @param a the attribute set
-     * @returns the value, 0 if not set
+     * @return the value, 0 if not set
      */
     public static float getFirstLineIndent(AttributeSet a) {
         Float indent = (Float) a.getAttribute(FirstLineIndent);
@@ -581,7 +583,7 @@ public class StyleConstants {
      * Gets the right indent setting.
      *
      * @param a the attribute set
-     * @returns the value, 0 if not set
+     * @return the value, 0 if not set
      */
     public static float getRightIndent(AttributeSet a) {
         Float indent = (Float) a.getAttribute(RightIndent);
@@ -605,7 +607,7 @@ public class StyleConstants {
      * Gets the left indent setting.
      *
      * @param a the attribute set
-     * @returns the value, 0 if not set
+     * @return the value, 0 if not set
      */
     public static float getLeftIndent(AttributeSet a) {
         Float indent = (Float) a.getAttribute(LeftIndent);
@@ -629,7 +631,7 @@ public class StyleConstants {
      * Gets the line spacing setting.
      *
      * @param a the attribute set
-     * @returns the value, 0 if not set
+     * @return the value, 0 if not set
      */
     public static float getLineSpacing(AttributeSet a) {
         Float space = (Float) a.getAttribute(LineSpacing);
@@ -653,7 +655,7 @@ public class StyleConstants {
      * Gets the space above setting.
      *
      * @param a the attribute set
-     * @returns the value, 0 if not set
+     * @return the value, 0 if not set
      */
     public static float getSpaceAbove(AttributeSet a) {
         Float space = (Float) a.getAttribute(SpaceAbove);
@@ -677,7 +679,7 @@ public class StyleConstants {
      * Gets the space below setting.
      *
      * @param a the attribute set
-     * @returns the value, 0 if not set
+     * @return the value, 0 if not set
      */
     public static float getSpaceBelow(AttributeSet a) {
         Float space = (Float) a.getAttribute(SpaceBelow);
@@ -701,7 +703,7 @@ public class StyleConstants {
      * Gets the alignment setting.
      *
      * @param a the attribute set
-     * @returns the value, StyleConstants.ALIGN_LEFT if not set
+     * @return the value <code>StyleConstants.ALIGN_LEFT</code> if not set
      */
     public static int getAlignment(AttributeSet a) {
         Integer align = (Integer) a.getAttribute(Alignment);
@@ -725,7 +727,7 @@ public class StyleConstants {
      * Gets the TabSet.
      *
      * @param a the attribute set
-     * @returns the TabSet.
+     * @return the <code>TabSet</code>
      */
     public static TabSet getTabSet(AttributeSet a) {
         TabSet tabs = (TabSet)a.getAttribute(TabSet);

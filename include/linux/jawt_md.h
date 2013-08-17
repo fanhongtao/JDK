@@ -1,4 +1,6 @@
 /*
+ * @(#)jawt_md.h	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -25,6 +27,13 @@ typedef struct jawt_X11DrawingSurfaceInfo {
     VisualID visualID;
     Colormap colormapID;
     int depth;
+    /*
+     * Since 1.4
+     * Returns a pixel value from a set of RGB values.
+     * This is useful for paletted color (256 color) modes.
+     */
+    int (JNICALL *GetAWTColor)(JAWT_DrawingSurface* ds,
+        int r, int g, int b);
 } JAWT_X11DrawingSurfaceInfo;
 
 #ifdef __cplusplus

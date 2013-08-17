@@ -1,20 +1,23 @@
 /*
+ * @(#)OutputStreamWriter.java	1.43 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
 
-import sun.io.CharToByteConverter;
-import sun.io.ConversionBufferFullException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
+import sun.nio.cs.StreamEncoder;
 
 
 /**
  * An OutputStreamWriter is a bridge from character streams to byte streams:
- * Characters written to it are translated into bytes according to a specified
- * <a href="../lang/package-summary.html#charenc">character encoding</a>.  The
- * encoding that it uses may be specified by name, or the platform's default
- * encoding may be accepted.
+ * Characters written to it are encoded into bytes using a specified {@link
+ * java.nio.charset.Charset <code>charset</code>}.  The charset that it uses
+ * may be specified by name or may be given explicitly, or the platform's
+ * default charset may be accepted.
  *
  * <p> Each invocation of a write() method causes the encoding converter to be
  * invoked on the given character(s).  The resulting bytes are accumulated in a
@@ -31,43 +34,52 @@ import sun.io.ConversionBufferFullException;
  *   = new BufferedWriter(new OutputStreamWriter(System.out));
  * </pre>
  *
+ * <p> A <i>surrogate pair</i> is a character represented by a sequence of two
+ * <tt>char</tt> values: A <i>high</i> surrogate in the range '&#92;uD800' to
+ * '&#92;uDBFF' followed by a <i>low</i> surrogate in the range '&#92;uDC00' to
+ * '&#92;uDFFF'.  If the character represented by a surrogate pair cannot be
+ * encoded by a given charset then a charset-dependent <i>substitution
+ * sequence</i> is written to the output stream.
+ *
+ * <p> A <i>malformed surrogate element</i> is a high surrogate that is not
+ * followed by a low surrogate or a low surrogate that is not preceeded by a
+ * high surrogate.  It is illegal to attempt to write a character stream
+ * containing malformed surrogate elements.  The behavior of an instance of
+ * this class when a malformed surrogate element is written is not specified.
+ *
  * @see BufferedWriter
  * @see OutputStream
- * @see <a href="../lang/package-summary.html#charenc">Character encodings</a>
+ * @see java.nio.charset.Charset
  *
- * @version 	1.29, 02/06/02
+ * @version 	1.43, 01/12/03
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
 
 public class OutputStreamWriter extends Writer {
 
-    private CharToByteConverter ctb;
-    private OutputStream out;
-
-    private static final int defaultByteBufferSize = 8192;
-    /* bb is a temporary output buffer into which bytes are written. */
-    private byte bb[];
-    /* nextByte is where the next byte will be written into bb */
-    private int nextByte = 0;
-    /* nBytes is the buffer size = defaultByteBufferSize in this class */
-    private int nBytes = 0;
+    private final StreamEncoder se;
 
     /**
-     * Create an OutputStreamWriter that uses the named character encoding.
+     * Create an OutputStreamWriter that uses the named charset.
      *
-     * @param  out  An OutputStream
-     * @param  enc  The name of a supported
-     *              <a href="../lang/package-summary.html#charenc">character
-     *              encoding</a>
+     * @param  out
+     *         An OutputStream
+     *
+     * @param  charsetName
+     *         The name of a supported
+     *         {@link java.nio.charset.Charset </code>charset<code>}
      *
      * @exception  UnsupportedEncodingException
      *             If the named encoding is not supported
      */
-    public OutputStreamWriter(OutputStream out, String enc)
+    public OutputStreamWriter(OutputStream out, String charsetName)
 	throws UnsupportedEncodingException
     {
-	this(out, CharToByteConverter.getConverter(enc));
+	super(out);
+	if (charsetName == null)
+	    throw new NullPointerException("charsetName");
+	se = StreamEncoder.forOutputStreamWriter(out, this, charsetName);
     }
 
     /**
@@ -76,53 +88,85 @@ public class OutputStreamWriter extends Writer {
      * @param  out  An OutputStream
      */
     public OutputStreamWriter(OutputStream out) {
-	this(out, CharToByteConverter.getDefault());
-    }
-
-    /**
-     * Create an OutputStreamWriter that uses the specified character-to-byte
-     * converter.  The converter is assumed to have been reset.
-     *
-     * @param  out  An OutputStream
-     * @param  ctb  A CharToByteConverter
-     */
-    private OutputStreamWriter(OutputStream out, CharToByteConverter ctb) {
 	super(out);
-	if (out == null) 
-	    throw new NullPointerException("out is null");
-	this.out = out;
-	this.ctb = ctb;
-	bb = new byte[defaultByteBufferSize];
-	nBytes = defaultByteBufferSize;
+	try {
+	    se = StreamEncoder.forOutputStreamWriter(out, this, (String)null);
+	} catch (UnsupportedEncodingException e) {
+	    throw new Error(e);
+        }
     }
 
     /**
-     * Returns the canonical name of the character encoding being used by this
-     * stream.  If this <code>OutputStreamWriter</code> was created with the
-     * {@link #OutputStreamWriter(OutputStream, String)} constructor then the
-     * returned encoding name, being canonical, may differ from the encoding
-     * name passed to the constructor.  May return <code>null</code> if the
-     * stream has been closed.
+     * Create an OutputStreamWriter that uses the given charset. </p>
      *
-     * @return a String representing the encoding name, or possibly
+     * @param  out
+     *         An OutputStream
+     *
+     * @param  charset
+     *         A charset
+     *
+     * @since 1.4
+     * @spec JSR-51
+     */
+    public OutputStreamWriter(OutputStream out, Charset cs) {
+	super(out);
+	if (cs == null)
+	    throw new NullPointerException("charset");
+	se = StreamEncoder.forOutputStreamWriter(out, this, cs);
+    }
+
+    /**
+     * Create an OutputStreamWriter that uses the given charset encoder.  </p>
+     *
+     * @param  out
+     *         An OutputStream
+     *
+     * @param  enc
+     *         A charset encoder
+     *
+     * @since 1.4
+     * @spec JSR-51
+     */
+    public OutputStreamWriter(OutputStream out, CharsetEncoder enc) {
+	super(out);
+	if (enc == null)
+	    throw new NullPointerException("charset encoder");
+	se = StreamEncoder.forOutputStreamWriter(out, this, enc);
+    }
+
+    /**
+     * Return the name of the character encoding being used by this stream.
+     *
+     * <p> If the encoding has an historical name then that name is returned;
+     * otherwise the encoding's canonical name is returned.
+     *
+     * <p> If this instance was created with the {@link
+     * #OutputStreamWriter(OutputStream, String)} constructor then the returned
+     * name, being unique for the encoding, may differ from the name passed to
+     * the constructor.  This method may return <tt>null</tt> if the stream has
+     * been closed. </p>
+     *
+     * @return The historical name of this encoding, or possibly
      *         <code>null</code> if the stream has been closed
      *
-     * @see <a href="../lang/package-summary.html#charenc">Character
-     *      encodings</a>
+     * @see java.nio.charset.Charset
+     *
+     * @revised 1.4
+     * @spec JSR-51
      */
     public String getEncoding() {
-	synchronized (lock) {
-	    if (ctb != null)
-		return ctb.getCharacterEncoding();
-	    else
-		return null;
-	}
+	return se.getEncoding();
     }
 
-    /** Check to make sure that the stream has not been closed */
-    private void ensureOpen() throws IOException {
-	if (out == null)
-	    throw new IOException("Stream closed");
+
+
+    /**
+     * Flush the output buffer to the underlying byte stream, without flushing
+     * the byte stream itself.  This method is non-private only so that it may
+     * be invoked by PrintStream.
+     */
+    void flushBuffer() throws IOException {
+	se.flushBuffer();
     }
 
     /**
@@ -131,9 +175,7 @@ public class OutputStreamWriter extends Writer {
      * @exception  IOException  If an I/O error occurs
      */
     public void write(int c) throws IOException {
-	char cbuf[] = new char[1];
-	cbuf[0] = (char) c;
-	write(cbuf, 0, 1);
+	se.write(c);
     }
 
     /**
@@ -146,42 +188,7 @@ public class OutputStreamWriter extends Writer {
      * @exception  IOException  If an I/O error occurs
      */
     public void write(char cbuf[], int off, int len) throws IOException {
-	synchronized (lock) {
-	    ensureOpen();
-            if ((off < 0) || (off > cbuf.length) || (len < 0) ||
-                ((off + len) > cbuf.length) || ((off + len) < 0)) {
-                throw new IndexOutOfBoundsException();
-            } else if (len == 0) {
-                return;
-            }
-	    int ci = off, end = off + len;
-	    boolean bufferFlushed = false; 
-	    while (ci < end) {
-		boolean bufferFull = false;
-		try {
-		    nextByte += ctb.convertAny(cbuf, ci, end,
-					    bb, nextByte, nBytes);
-		    ci = end;
-		}
-		catch (ConversionBufferFullException x) {
-		    int nci = ctb.nextCharIndex();
-		    if ((nci == ci) && bufferFlushed) {
-			/* If the buffer has been flushed and it 
-			   still does not hold even one character */
-			throw new 
-			    CharConversionException("Output buffer too small");
-		    }
-		    ci = nci;
-		    bufferFull = true;
-		    nextByte = ctb.nextByteIndex();
-		} 
-		if ((nextByte >= nBytes) || bufferFull) {
-		    out.write(bb, 0, nextByte);
-		    nextByte = 0;
-		    bufferFlushed = true;
-		}
-	    }
-	}
+	se.write(cbuf, off, len);
     }
 
     /**
@@ -194,39 +201,7 @@ public class OutputStreamWriter extends Writer {
      * @exception  IOException  If an I/O error occurs
      */
     public void write(String str, int off, int len) throws IOException {
-	/* Check the len before creating a char buffer */
-	if (len < 0)
-	    throw new IndexOutOfBoundsException();
-
-	char cbuf[] = new char[len];
-	str.getChars(off, off + len, cbuf, 0);
-	write(cbuf, 0, len);
-    }
-
-    /**
-     * Flush the output buffer to the underlying byte stream, without flushing
-     * the byte stream itself.  This method is non-private only so that it may
-     * be invoked by PrintStream.
-     */
-    void flushBuffer() throws IOException {
-	synchronized (lock) {
-	    ensureOpen();
-
-	    for (;;) {
-		try {
-		    nextByte += ctb.flushAny(bb, nextByte, nBytes);
-		}
-		catch (ConversionBufferFullException x) {
-		    nextByte = ctb.nextByteIndex();
-		}
-		if (nextByte == 0)
-		    break;
-		if (nextByte > 0) {
-		    out.write(bb, 0, nextByte);
-		    nextByte = 0;
-		}
-	    }
-	}
+	se.write(str, off, len);
     }
 
     /**
@@ -235,10 +210,7 @@ public class OutputStreamWriter extends Writer {
      * @exception  IOException  If an I/O error occurs
      */
     public void flush() throws IOException {
-	synchronized (lock) {
-	    flushBuffer();
-	    out.flush();
-	}
+	se.flush();
     }
 
     /**
@@ -247,15 +219,7 @@ public class OutputStreamWriter extends Writer {
      * @exception  IOException  If an I/O error occurs
      */
     public void close() throws IOException {
-	synchronized (lock) {
-	    if (out == null)
-		return;
-	    flush();
-	    out.close();
-	    out = null;
-	    bb = null;
-	    ctb = null;
-	}
+	se.close();
     }
 
 }

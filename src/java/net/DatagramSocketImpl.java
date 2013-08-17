@@ -1,4 +1,6 @@
 /*
+ * @(#)DatagramSocketImpl.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -27,7 +29,6 @@ public abstract class DatagramSocketImpl implements SocketOptions {
      */
     protected FileDescriptor fd;
 
-
     /**
      * Creates a datagram socket.
      * @exception SocketException if there is an error in the 
@@ -50,22 +51,69 @@ public abstract class DatagramSocketImpl implements SocketOptions {
      * @param p the packet to be sent.
      * @exception IOException if an I/O exception occurs while sending the 
      * datagram packet.
+     * @exception  PortUnreachableException may be thrown if the socket is connected
+     * to a currently unreachable destination. Note, there is no guarantee that 
+     * the exception will be thrown.
      */
     protected abstract void send(DatagramPacket p) throws IOException;
+
+    /**
+     * Connects a datagram socket to a remote destination. This associates the remote
+     * address with the local socket so that datagrams may only be sent to this destination
+     * and received from this destination. This may be overridden to call a native
+     * system connect. 
+     *
+     * <p>If the remote destination to which the socket is connected does not
+     * exist, or is otherwise unreachable, and if an ICMP destination unreachable
+     * packet has been received for that address, then a subsequent call to 
+     * send or receive may throw a PortUnreachableException. 
+     * Note, there is no guarantee that the exception will be thrown.
+     * @param address the remote InetAddress to connect to
+     * @param port the remote port number
+     * @exception   SocketException may be thrown if the socket cannot be
+     * connected to the remote destination
+     * @since 1.4
+     */
+    protected void connect(InetAddress address, int port) throws SocketException {}
+
+    /**
+     * Disconnects a datagram socket from its remote destination. 
+     * @since 1.4
+     */
+    protected void disconnect() {}
 
     /**
      * Peek at the packet to see who it is from.
      * @param i an InetAddress object 
      * @return the address which the packet came from.
      * @exception IOException if an I/O exception occurs
+     * @exception  PortUnreachableException may be thrown if the socket is connected
+     *       to a currently unreachable destination. Note, there is no guarantee that the
+     *       exception will be thrown.
      */
     protected abstract int peek(InetAddress i) throws IOException;
 
+    /**
+     * Peek at the packet to see who it is from. The data is returned,
+     * but not consumed, so that a subsequent peekData/receive operation 
+     * will see the same data.
+     * @param p the Packet Received.
+     * @return the address which the packet came from.
+     * @exception IOException if an I/O exception occurs
+     * @exception  PortUnreachableException may be thrown if the socket is connected
+     *       to a currently unreachable destination. Note, there is no guarantee that the
+     *       exception will be thrown.
+     * @since 1.4
+     */
+    protected abstract int peekData(DatagramPacket p) throws IOException;
     /**
      * Receive the datagram packet.
      * @param p the Packet Received.
      * @exception IOException if an I/O exception occurs
      * while receiving the datagram packet.
+     * @exception  PortUnreachableException may be thrown if the socket is connected
+     *       to a currently unreachable destination. Note, there is no guarantee that the
+     *       exception will be thrown.
      */
     protected abstract void receive(DatagramPacket p) throws IOException;
 
@@ -124,6 +172,31 @@ public abstract class DatagramSocketImpl implements SocketOptions {
      * while leaving the multicast group.
      */
     protected abstract void leave(InetAddress inetaddr) throws IOException;
+
+    /**
+     * Join the multicast group.
+     * @param mcastaddr address to join.
+     * @param netIf specifies the local interface to receive multicast
+     *        datagram packets
+     * @throws IOException if an I/O exception occurs while joining
+     * the multicast group
+     * @since 1.4
+     */
+    protected abstract void joinGroup(SocketAddress mcastaddr,
+				      NetworkInterface netIf) 
+	throws IOException;
+
+    /**
+     * Leave the multicast group.
+     * @param mcastaddr address to leave.
+     * @param netIf specified the local interface to leave the group at
+     * @throws IOException if an I/O exception occurs while leaving
+     * the multicast group
+     * @since 1.4
+     */
+    protected abstract void leaveGroup(SocketAddress mcastaddr, 
+				       NetworkInterface netIf) 
+	throws IOException;
 
     /**
      * Close the socket.

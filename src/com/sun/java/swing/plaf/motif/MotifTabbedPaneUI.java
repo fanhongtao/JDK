@@ -1,4 +1,6 @@
 /*
+ * @(#)MotifTabbedPaneUI.java	1.46 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -23,7 +25,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.44 02/06/02
+ * @version 1.46 12/03/01
  * @author Amy Fowler
  * @author Philip Milne
  */
@@ -71,13 +73,18 @@ public class MotifTabbedPaneUI extends BasicTabbedPaneUI
    protected void paintContentBorderTopEdge(Graphics g, int tabPlacement,
                                             int selectedIndex, 
                                             int x, int y, int w, int h) {
-
+        Rectangle selRect = selectedIndex < 0? null :
+	                       getTabBounds(selectedIndex, calcRect);
         g.setColor(lightHighlight);
-        if (tabPlacement != TOP || selectedIndex < 0) {
+
+	// Draw unbroken line if tabs are not on TOP, OR
+	// selected tab is not visible (SCROLL_TAB_LAYOUT)
+	//
+        if (tabPlacement != TOP || selectedIndex < 0 ||
+	    (selRect.x < x || selRect.x > x + w)) {
             g.drawLine(x, y, x+w-2, y);
         } else {
-            Rectangle selRect = rects[selectedIndex];
-
+	    // Break line to show visual connection to selected tab
             g.drawLine(x, y, selRect.x - 1, y);
             if (selRect.x + selRect.width < x + w - 2) {
                 g.drawLine(selRect.x + selRect.width, y, 
@@ -89,12 +96,18 @@ public class MotifTabbedPaneUI extends BasicTabbedPaneUI
     protected void paintContentBorderBottomEdge(Graphics g, int tabPlacement,
                                                int selectedIndex,
                                                int x, int y, int w, int h) { 
+        Rectangle selRect = selectedIndex < 0? null :
+	                       getTabBounds(selectedIndex, calcRect);
         g.setColor(shadow);
-        if (tabPlacement != BOTTOM || selectedIndex < 0) {
+
+	// Draw unbroken line if tabs are not on BOTTOM, OR
+	// selected tab is not visible (SCROLL_TAB_LAYOUT)
+	//
+        if (tabPlacement != BOTTOM || selectedIndex < 0 ||
+	     (selRect.x < x || selRect.x > x + w)) {
             g.drawLine(x+1, y+h-1, x+w-1, y+h-1);
         } else {
-            Rectangle selRect = rects[selectedIndex];
-
+	    // Break line to show visual connection to selected tab
             g.drawLine(x+1, y+h-1, selRect.x - 1, y+h-1);
             if (selRect.x + selRect.width < x + w - 2) {
                 g.drawLine(selRect.x + selRect.width, y+h-1, x+w-2, y+h-1);
@@ -105,15 +118,18 @@ public class MotifTabbedPaneUI extends BasicTabbedPaneUI
     protected void paintContentBorderRightEdge(Graphics g, int tabPlacement,
                                                int selectedIndex,
                                                int x, int y, int w, int h) { 
-
+        Rectangle selRect = selectedIndex < 0? null :
+	                       getTabBounds(selectedIndex, calcRect);
         g.setColor(shadow);
-        if (tabPlacement != RIGHT || selectedIndex < 0) {
+	// Draw unbroken line if tabs are not on RIGHT, OR
+	// selected tab is not visible (SCROLL_TAB_LAYOUT)
+	//
+        if (tabPlacement != RIGHT || selectedIndex < 0 ||
+	     (selRect.y < y || selRect.y > y + h)) {
             g.drawLine(x+w-1, y+1, x+w-1, y+h-1);
         } else {
-            Rectangle selRect = rects[selectedIndex];
-
+	    // Break line to show visual connection to selected tab
             g.drawLine(x+w-1, y+1, x+w-1, selRect.y - 1);
-
             if (selRect.y + selRect.height < y + h - 2 ) {
                 g.drawLine(x+w-1, selRect.y + selRect.height, 
                            x+w-1, y+h-2);

@@ -1,4 +1,6 @@
 /*
+ * @(#)AlgorithmParameters.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -47,7 +49,7 @@ import java.security.spec.InvalidParameterSpecException;
  *
  * @author Jan Luehe
  *
- * @version 1.20, 02/06/02
+ * @version 1.21, 12/03/01
  *
  * @see java.security.spec.AlgorithmParameterSpec
  * @see java.security.spec.DSAParameterSpec
@@ -118,7 +120,7 @@ public class AlgorithmParameters {
     throws NoSuchAlgorithmException {
 	try {
 	    Object[] objs = Security.getImpl(algorithm, "AlgorithmParameters",
-					     null);
+					     (String)null);
 	    return new AlgorithmParameters((AlgorithmParametersSpi)objs[0],
 					   (Provider)objs[1],
 					   algorithm);
@@ -147,7 +149,10 @@ public class AlgorithmParameters {
      * provider.
      *
      * @exception NoSuchProviderException if the provider is not
-     * available in the environment. 
+     * available in the environment.
+     *
+     * @exception IllegalArgumentException if the provider name is null
+     * or empty. 
      * 
      * @see Provider 
      */
@@ -156,6 +161,45 @@ public class AlgorithmParameters {
 	throws NoSuchAlgorithmException, NoSuchProviderException
     {
 	if (provider == null || provider.length() == 0)
+	    throw new IllegalArgumentException("missing provider");
+	Object[] objs = Security.getImpl(algorithm, "AlgorithmParameters",
+					 provider);
+	return new AlgorithmParameters((AlgorithmParametersSpi)objs[0],
+				       (Provider)objs[1],
+				       algorithm);
+    }
+
+    /** 
+     * Generates a parameter object for the specified algorithm, as supplied
+     * by the specified provider, if such an algorithm is available from the
+     * provider. Note: the <code>provider</code> doesn't have to be registered.
+     *
+     * <p>The returned parameter object must be initialized via a call to
+     * <code>init</code>, using an appropriate parameter specification or
+     * parameter encoding.
+     *
+     * @param algorithm the name of the algorithm requested.
+     *
+     * @param provider the name of the provider.
+     *
+     * @return the new parameter object.
+     *
+     * @exception NoSuchAlgorithmException if the algorithm is
+     * not available in the package supplied by the requested
+     * provider.
+     *
+     * @exception IllegalArgumentException if the <code>provider</code> is
+     * null.
+     *
+     * @see Provider
+     *
+     * @since 1.4
+     */
+    public static AlgorithmParameters getInstance(String algorithm,
+						  Provider provider)
+	throws NoSuchAlgorithmException
+    {
+	if (provider == null)
 	    throw new IllegalArgumentException("missing provider");
 	Object[] objs = Security.getImpl(algorithm, "AlgorithmParameters",
 					 provider);

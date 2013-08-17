@@ -1,4 +1,6 @@
 /*
+ * @(#)MotifTextUI.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -23,7 +25,7 @@ import javax.swing.plaf.*;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.20 02/06/02
+ * @version 1.18 12/03/01
  */
 public class MotifTextUI {
 
@@ -113,14 +115,6 @@ public class MotifTextUI {
 		    TextUI mapper = c.getUI();
 		    int dot = getDot();
 		    Rectangle r = mapper.modelToView(c, dot);
-
-                    // Update caret's bounds
-                    x = r.x - IBeamOverhang - 1;
-                    y = r.y;
-                    width = r.width + (2 * IBeamOverhang) + 3;
-                    height = r.height;
-
-                    // Draw caret
 		    int x0 = r.x - IBeamOverhang;
 		    int x1 = r.x + IBeamOverhang;
 		    int y0 = r.y + 1;

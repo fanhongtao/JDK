@@ -1,4 +1,6 @@
 /*
+ * @(#)BAD_POLICY_VALUE.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,7 +12,7 @@ package org.omg.CORBA;
 * incorrect for a valid policy type in a call to the
 * <code>create_policy</code> method defined in the ORB class.
 *
-* @version 1.8 02/06/02
+* @version 1.10 12/03/01
 */
 public interface BAD_POLICY_VALUE {
     /** 

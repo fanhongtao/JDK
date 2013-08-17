@@ -1,4 +1,6 @@
 /*
+ * @(#)NumberFormat.java	1.57 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,15 +19,19 @@
  */
 
 package java.text;
-import java.util.Locale;
-import java.util.ResourceBundle;
-import java.text.resources.*;
-import java.util.Hashtable;
-import java.math.BigInteger;
-import java.io.IOException;
+
 import java.io.InvalidObjectException;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
+import java.util.Currency;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
+import sun.text.resources.LocaleData;
 
 /**
  * <code>NumberFormat</code> is the abstract base class for all number
@@ -73,7 +79,8 @@ import java.io.ObjectOutputStream;
  * </pre>
  * </blockquote>
  * Use <code>getInstance</code> or <code>getNumberInstance</code> to get the
- * normal number format. Use <code>getCurrencyInstance</code> to get the
+ * normal number format. Use <code>getIntegerInstance</code> to get an
+ * integer number format. Use <code>getCurrencyInstance</code> to get the
  * currency number format. And use <code>getPercentInstance</code> to get a
  * format for displaying percentages. With this format, a fraction like
  * 0.53 is displayed as 53%.
@@ -84,7 +91,7 @@ import java.io.ObjectOutputStream;
  * If you want even more control over the format or parsing,
  * or want to give your users more control,
  * you can try casting the <code>NumberFormat</code> you get from the factory methods
- * to a <code>DecimalNumberFormat</code>. This will work for the vast majority
+ * to a <code>DecimalFormat</code>. This will work for the vast majority
  * of locales; just remember to put it in a <code>try</code> block in case you
  * encounter an unusual one.
  *
@@ -135,13 +142,21 @@ import java.io.ObjectOutputStream;
  *      numbers: "(12)" for -12.
  * </ol>
  *
+ * <h4><a name="synchronization">Synchronization</a></h4>
+ *
+ * <p>
+ * Number formats are generally not synchronized.
+ * It is recommended to create separate format instances for each thread.
+ * If multiple threads access a format concurrently, it must be synchronized
+ * externally.
+ *
  * @see          DecimalFormat
  * @see          ChoiceFormat
- * @version      1.48, 02/06/02
+ * @version      1.57, 12/03/01
  * @author       Mark Davis
  * @author       Helena Shih
  */
-public abstract class NumberFormat extends Format{
+public abstract class NumberFormat extends Format  {
 
     /**
      * Field constant used to construct a FieldPosition object. Signifies that
@@ -160,7 +175,7 @@ public abstract class NumberFormat extends Format{
     /**
      * Formats an object to produce a string.
      * This general routines allows polymorphic parsing and
-     * formatting for objectst.
+     * formatting for objects.
      * @param obj    The object to format
      * @param toAppendTo    where the text is to be appended
      * @param pos    On input: an alignment field, if desired.
@@ -206,17 +221,31 @@ public abstract class NumberFormat extends Format{
     }
 
     /**
-     * Parses a string to produce an object.
-     * @param source the string to parse.
-     * @param parsePosition Input-Output parameter.  On input, the position
-     * to begin parsing.  On output, the position of the first unparse character.
-     * @return Object parsed from string. In case of error, returns null.
-     * @see java.text.ParsePosition
+     * Parses text from a string to produce a <code>Number</code>.
+     * <p>
+     * The method attempts to parse text starting at the index given by
+     * <code>pos</code>.
+     * If parsing succeeds, then the index of <code>pos</code> is updated
+     * to the index after the last character used (parsing does not necessarily
+     * use all characters up to the end of the string), and the parsed
+     * number is returned. The updated <code>pos</code> can be used to
+     * indicate the starting point for the next call to this method.
+     * If an error occurs, then the index of <code>pos</code> is not
+     * changed, the error index of <code>pos</code> is set to the index of
+     * the character where the error occurred, and null is returned.
+     * <p>
+     * See the {@link #parse(String, ParsePosition)} method for more information
+     * on number parsing.
+     *
+     * @param source A <code>String</code>, part of which should be parsed.
+     * @param pos A <code>ParsePosition</code> object with index and error
+     *            index information as described above.
+     * @return A <code>Number</code> parsed from the string. In case of
+     *         error, returns null.
+     * @exception NullPointerException if <code>pos</code> is null.
      */
-    public final Object parseObject(String source,
-                                    ParsePosition parsePosition)
-    {
-        return parse(source, parsePosition);
+    public final Object parseObject(String source, ParsePosition pos) {
+        return parse(source, pos);
     }
 
    /**
@@ -264,19 +293,25 @@ public abstract class NumberFormat extends Format{
      * @see java.text.NumberFormat#isParseIntegerOnly
      * @see java.text.Format#parseObject
      */
-    public abstract Number parse(String text, ParsePosition parsePosition);
+    public abstract Number parse(String source, ParsePosition parsePosition);
 
     /**
-     * Convenience method.
+     * Parses text from the beginning of the given string to produce a number.
+     * The method may not use the entire text of the given string.
+     * <p>
+     * See the {@link #parse(String, ParsePosition)} method for more information
+     * on number parsing.
      *
-     * @exception ParseException if the specified string is invalid.
-     * @see #format
+     * @param source A <code>String</code> whose beginning should be parsed.
+     * @return A <code>Number</code> parsed from the string.
+     * @exception ParseException if the beginning of the specified string
+     *            cannot be parsed.
      */
-    public Number parse(String text) throws ParseException {
+    public Number parse(String source) throws ParseException {
         ParsePosition parsePosition = new ParsePosition(0);
-        Number result = parse(text, parsePosition);
+        Number result = parse(source, parsePosition);
         if (parsePosition.index == 0) {
-            throw new ParseException("Unparseable number: \"" + text + "\"",
+            throw new ParseException("Unparseable number: \"" + source + "\"",
                 parsePosition.errorIndex);
         }
         return result;
@@ -307,7 +342,8 @@ public abstract class NumberFormat extends Format{
     /**
      * Returns the default number format for the current default locale.
      * The default format is one of the styles provided by the other
-     * factory methods: getNumberInstance, getCurrencyInstance or getPercentInstance.
+     * factory methods: getNumberInstance, getIntegerInstance,
+     * getCurrencyInstance or getPercentInstance.
      * Exactly which one is locale dependant.
      */
     public final static NumberFormat getInstance() {
@@ -317,7 +353,8 @@ public abstract class NumberFormat extends Format{
     /**
      * Returns the default number format for the specified locale.
      * The default format is one of the styles provided by the other
-     * factory methods: getNumberInstance, getCurrencyInstance or getPercentInstance.
+     * factory methods: getNumberInstance, getIntegerInstance,
+     * getCurrencyInstance or getPercentInstance.
      * Exactly which one is locale dependant.
      */
     public static NumberFormat getInstance(Locale inLocale) {
@@ -336,6 +373,37 @@ public abstract class NumberFormat extends Format{
      */
     public static NumberFormat getNumberInstance(Locale inLocale) {
         return getInstance(inLocale, NUMBERSTYLE);
+    }
+
+    /**
+     * Returns an integer number format for the current default locale. The
+     * returned number format is configured to round floating point numbers
+     * to the nearest integer using IEEE half-even rounding (see {@link 
+     * java.math.BigDecimal#ROUND_HALF_EVEN ROUND_HALF_EVEN}) for formatting,
+     * and to parse only the integer part of an input string (see {@link
+     * #isParseIntegerOnly isParseIntegerOnly}).
+     *
+     * @return a number format for integer values
+     * @since 1.4
+     */
+    public final static NumberFormat getIntegerInstance() {
+        return getInstance(Locale.getDefault(), INTEGERSTYLE);
+    }
+
+    /**
+     * Returns an integer number format for the specified locale. The
+     * returned number format is configured to round floating point numbers
+     * to the nearest integer using IEEE half-even rounding (see {@link 
+     * java.math.BigDecimal#ROUND_HALF_EVEN ROUND_HALF_EVEN}) for formatting,
+     * and to parse only the integer part of an input string (see {@link
+     * #isParseIntegerOnly isParseIntegerOnly}).
+     *
+     * @param inLocale the locale for which a number format is needed
+     * @return a number format for integer values
+     * @since 1.4
+     */
+    public static NumberFormat getIntegerInstance(Locale inLocale) {
+        return getInstance(inLocale, INTEGERSTYLE);
     }
 
     /**
@@ -546,24 +614,70 @@ public abstract class NumberFormat extends Format{
         if (maximumFractionDigits < minimumFractionDigits)
             maximumFractionDigits = minimumFractionDigits;
     }
+    
+    /**
+     * Gets the currency used by this number format when formatting
+     * currency values. The initial value is derived in a locale dependent
+     * way. The returned value may be null if no valid
+     * currency could be determined and no currency has been set using
+     * {@link #setCurrency(java.util.Currency) setCurrency}.
+     * <p>
+     * The default implementation throws
+     * <code>UnsupportedOperationException</code>.
+     *
+     * @return the currency used by this number format, or <code>null</code>
+     * @exception UnsupportedOperationException if the number format class
+     * doesn't implement currency formatting
+     * @since 1.4
+     */
+    public Currency getCurrency() {
+        throw new UnsupportedOperationException();
+    }
+    
+    /**
+     * Sets the currency used by this number format when formatting
+     * currency values. This does not update the minimum or maximum
+     * number of fraction digits used by the number format.
+     * <p>
+     * The default implementation throws
+     * <code>UnsupportedOperationException</code>.
+     *
+     * @param currency the new currency to be used by this number format
+     * @exception UnsupportedOperationException if the number format class
+     * doesn't implement currency formatting
+     * @exception NullPointerException if <code>currency</code> is null
+     * @since 1.4
+     */
+    public void setCurrency(Currency currency) {
+        throw new UnsupportedOperationException();
+    }
 
     // =======================privates===============================
 
     private static NumberFormat getInstance(Locale desiredLocale,
-                                           int choice)
-    {
-    /* try the cache first */
-    String[] numberPatterns = (String[])cachedLocaleData.get(desiredLocale);
-    if (numberPatterns == null) { /* cache miss */
-        ResourceBundle resource = ResourceBundle.getBundle
-        ("java.text.resources.LocaleElements", desiredLocale);
-        numberPatterns = resource.getStringArray("NumberPatterns");
-        /* update cache */
-        cachedLocaleData.put(desiredLocale, numberPatterns);
-    }
+                                           int choice) {
+        /* try the cache first */
+        String[] numberPatterns = (String[])cachedLocaleData.get(desiredLocale);
+        if (numberPatterns == null) { /* cache miss */
+            ResourceBundle resource = LocaleData.getLocaleElements(desiredLocale);
+            numberPatterns = resource.getStringArray("NumberPatterns");
+            /* update cache */
+            cachedLocaleData.put(desiredLocale, numberPatterns);
+        }
+        
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(desiredLocale);
+        int entry = (choice == INTEGERSTYLE) ? NUMBERSTYLE : choice;
+        DecimalFormat format = new DecimalFormat(numberPatterns[entry], symbols);
+        
+        if (choice == INTEGERSTYLE) {
+            format.setMaximumFractionDigits(0);
+            format.setDecimalSeparatorAlwaysShown(false);
+            format.setParseIntegerOnly(true);
+        } else if (choice == CURRENCYSTYLE) {
+            format.adjustForCurrencyDefaultFractionDigits();
+        }
 
-        return new DecimalFormat(numberPatterns[choice],
-                                 new DecimalFormatSymbols(desiredLocale));
+        return format;
     }
 
     /**
@@ -637,6 +751,7 @@ public abstract class NumberFormat extends Format{
     private static final int CURRENCYSTYLE = 1;
     private static final int PERCENTSTYLE = 2;
     private static final int SCIENTIFICSTYLE = 3;
+    private static final int INTEGERSTYLE = 4;
 
     /**
      * True if the the grouping (i.e. thousands) separator is used when
@@ -801,4 +916,112 @@ public abstract class NumberFormat extends Format{
     // Removed "implements Cloneable" clause.  Needs to update serialization
     // ID for backward compatibility.
     static final long serialVersionUID = -2308460125733713944L;
+
+
+    //
+    // class for AttributedCharacterIterator attributes
+    //
+    /**
+     * Defines constants that are used as attribute keys in the
+     * <code>AttributedCharacterIterator</code> returned
+     * from <code>NumberFormat.formatToCharacterIterator</code> and as
+     * field identifiers in <code>FieldPosition</code>.
+     *
+     * @since 1.4
+     */
+    public static class Field extends Format.Field {
+        // table of all instances in this class, used by readResolve
+        private static final Map instanceMap = new HashMap(11);
+
+        /**
+         * Creates a Field instance with the specified
+         * name.
+         *
+         * @param name Name of the attribute
+         */
+        protected Field(String name) {
+            super(name);
+            if (this.getClass() == NumberFormat.Field.class) {
+                instanceMap.put(name, this);
+            }
+        }
+
+        /**
+         * Resolves instances being deserialized to the predefined constants.
+         *
+	 * @throws InvalidObjectException if the constant could not be
+         *         resolved.
+         * @return resolved NumberFormat.Field constant
+         */
+        protected Object readResolve() throws InvalidObjectException {
+            if (this.getClass() != NumberFormat.Field.class) {
+                throw new InvalidObjectException("subclass didn't correctly implement readResolve");
+            }
+
+            Object instance = instanceMap.get(getName());
+            if (instance != null) {
+                return instance;
+            } else {
+                throw new InvalidObjectException("unknown attribute name");
+            }
+        }
+
+        /**
+         * Constant identifying the integer field.
+         */
+        public static final Field INTEGER = new Field("integer");
+
+        /**
+         * Constant identifying the fraction field.
+         */
+        public static final Field FRACTION = new Field("fraction");
+
+        /**
+         * Constant identifying the exponent field.
+         */
+        public static final Field EXPONENT = new Field("exponent");
+
+        /**
+         * Constant identifying the decimal separator field.
+         */
+        public static final Field DECIMAL_SEPARATOR =
+                            new Field("decimal separator");
+
+        /**
+         * Constant identifying the sign field.
+         */
+        public static final Field SIGN = new Field("sign");
+
+        /**
+         * Constant identifying the grouping separator field.
+         */
+        public static final Field GROUPING_SEPARATOR =
+                            new Field("grouping separator");
+
+        /**
+         * Constant identifying the exponent symbol field.
+         */
+        public static final Field EXPONENT_SYMBOL = new
+                            Field("exponent symbol");
+
+        /**
+         * Constant identifying the percent field.
+         */
+        public static final Field PERCENT = new Field("percent");
+
+        /**
+         * Constant identifying the permille field.
+         */
+        public static final Field PERMILLE = new Field("per mille");
+
+        /**
+         * Constant identifying the currency field.
+         */
+        public static final Field CURRENCY = new Field("currency");
+
+        /**
+         * Constant identifying the exponent sign field.
+         */
+        public static final Field EXPONENT_SIGN = new Field("exponent sign");
+    }
 }

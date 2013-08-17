@@ -1,4 +1,6 @@
 /*
+ * @(#)ColorModel.java	1.76 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,6 +11,7 @@ import java.awt.Transparency;
 import java.awt.color.ColorSpace;
 import java.awt.color.ICC_ColorSpace;
 import sun.awt.color.ICC_Transform;
+import sun.awt.color.CMM;
 import java.awt.Toolkit;
 import java.util.Collections;
 import java.util.Map;
@@ -51,7 +54,12 @@ import java.util.WeakHashMap;
  * occur with {@link DirectColorModel} or {@link IndexColorModel} objects.
  * <p>
  * Currently, the transfer types supported by the Java 2D(tm) API are
- * DataBuffer.TYPE_BYTE, DataBuffer.TYPE_USHORT, and DataBuffer.TYPE_INT.
+ * DataBuffer.TYPE_BYTE, DataBuffer.TYPE_USHORT, DataBuffer.TYPE_INT,
+ * DataBuffer.TYPE_SHORT, DataBuffer.TYPE_FLOAT, and DataBuffer.TYPE_DOUBLE.
+ * Most rendering operations will perform much faster when using ColorModels
+ * and images based on the first three of these types.  In addition, some
+ * image filtering operations are not supported for ColorModels and
+ * images based on the latter three types.
  * The transfer type for a particular <code>ColorModel</code> object is
  * specified when the object is created, either explicitly or by default.
  * All subclasses of <code>ColorModel</code> must specify what the
@@ -79,15 +87,40 @@ import java.util.WeakHashMap;
  * pixel values to color/alpha components is done.
  * <p>
  * Methods in the <code>ColorModel</code> class use two different
- * representations of color and alpha components.  In the unnormalized
+ * representations of color and alpha components - a normalized form
+ * and an unnormalized form.  In the normalized form, each component is a 
+ * <code>float</code> value between some minimum and maximum values.  For
+ * the alpha component, the minimum is 0.0 and the maximum is 1.0.  For
+ * color components the minimum and maximum values for each component can
+ * be obtained from the <code>ColorSpace</code> object.  These values
+ * will often be 0.0 and 1.0 (e.g. normalized component values for the
+ * default sRGB color space range from 0.0 to 1.0), but some color spaces
+ * have component values with different upper and lower limits.  These
+ * limits can be obtained using the <code>getMinValue</code> and
+ * <code>getMaxValue</code> methods of the <code>ColorSpace</code>
+ * class.  Normalized color component values are not premultiplied.
+ * All <code>ColorModels</code> must support the normalized form.
+ * <p>
+ * In the unnormalized
  * form, each component is an unsigned integral value between 0 and
  * 2<sup>n</sup> - 1, where n is the number of significant bits for a
  * particular component.  If pixel values for a particular 
  * <code>ColorModel</code> represent color samples premultiplied by
  * the alpha sample, unnormalized color component values are
- * also premultiplied.  In the normalized form, each component is a 
- * <code>float</code> value between 0.0 and 1.0.  Normalized color
- * component values are not premultiplied.
+ * also premultiplied.  The unnormalized form is used only with instances
+ * of <code>ColorModel</code> whose <code>ColorSpace</code> has minimum
+ * component values of 0.0 for all components and maximum values of
+ * 1.0 for all components.
+ * The unnormalized form for color and alpha components can be a convenient
+ * representation for <code>ColorModels</code> whose normalized component
+ * values all lie
+ * between 0.0 and 1.0.  In such cases the integral value 0 maps to 0.0 and
+ * the value 2<sup>n</sup> - 1 maps to 1.0.  In other cases, such as
+ * when the normalized component values can be either negative or positive,
+ * the unnormalized form is not convenient.  Such <code>ColorModel</code>
+ * objects throw an {@link IllegalArgumentException} when methods involving
+ * an unnormalized argument are called.  Subclasses of <code>ColorModel</code>
+ * must specify the conditions under which this occurs.
  *
  * @see IndexColorModel
  * @see ComponentColorModel
@@ -266,6 +299,9 @@ public abstract class ColorModel implements Transparency{
      *		the bit array is less than the number of color or alpha
      *		components in this <code>ColorModel</code>, or if the
      *          transparency is not a valid value.
+     * @throws IllegalArgumentException if the sum of the number
+     * 		of bits in <code>bits</code> is less than 1 or if
+     *          any of the elements in <code>bits</code> is less than 0.
      * @see java.awt.Transparency
      */
     protected ColorModel(int pixel_bits, int[] bits, ColorSpace cspace,
@@ -312,13 +348,21 @@ public abstract class ColorModel implements Transparency{
         // Check for bits < 0
         maxBits = 0;
         for (int i=0; i < bits.length; i++) {
-            if (bits[i] <= 0) {
+            // bug 4304697
+            if (bits[i] < 0) {
                 throw new
-                    IllegalArgumentException("Number of bits must be > 0");
+                    IllegalArgumentException("Number of bits must be >= 0");
             }
             if (maxBits < bits[i]) {
                 maxBits = bits[i];
             }
+        }
+
+        // Make sure that we don't have all 0-bit components
+        if (maxBits == 0) {
+            throw new IllegalArgumentException("There must be at least "+
+                                               "one component with > 0 "+
+                                              "pixel bits.");
         }
 
         // Save this since we always need to check if it is the default CS
@@ -865,7 +909,9 @@ public abstract class ColorModel implements Transparency{
      * in this <code>ColorModel</code>.  The pixel value is specified as
      * an <code>int</code>.  An <code>IllegalArgumentException</code>
      * will be thrown if pixel values for this <code>ColorModel</code> are
-     * not conveniently representable as a single <code>int</code>.
+     * not conveniently representable as a single <code>int</code> or if
+     * color component values for this <code>ColorModel</code> are not
+     * conveniently representable in the unnormalized form.
      * For example, this method can be used to retrieve the
      * components for a specific pixel value in a 
      * <code>DirectColorModel</code>.  If the components array is 
@@ -901,6 +947,9 @@ public abstract class ColorModel implements Transparency{
      * an array of data elements of type transferType passed in as an
      * object reference.  If <code>pixel</code> is not a primitive array
      * of type transferType, a <code>ClassCastException</code> is thrown.
+     * An <code>IllegalArgumentException</code> will be thrown if color
+     * component values for this <code>ColorModel</code> are not
+     * conveniently representable in the unnormalized form.
      * An <code>ArrayIndexOutOfBoundsException</code> is
      * thrown if <code>pixel</code> is not large enough to hold a pixel
      * value for this <code>ColorModel</code>.
@@ -939,7 +988,12 @@ public abstract class ColorModel implements Transparency{
      * form, given a normalized component array.  Unnormalized components
      * are unsigned integral values between 0 and 2<sup>n</sup> - 1, where
      * n is the number of bits for a particular component.  Normalized
-     * components are float values between 0.0 and 1.0.  If the 
+     * components are float values between a per component minimum and
+     * maximum specified by the <code>ColorSpace</code> object for this
+     * <code>ColorModel</code>.  An <code>IllegalArgumentException</code>
+     * will be thrown if color component values for this
+     * <code>ColorModel</code> are not conveniently representable in the
+     * unnormalized form.  If the 
      * <code>components</code> array is <code>null</code>, a new array
      * will be allocated.  The <code>components</code> array will
      * be returned.  Color/alpha components are stored in the 
@@ -963,6 +1017,9 @@ public abstract class ColorModel implements Transparency{
      * <code>normComponents</code>
      * @return an array containing unnormalized color and alpha 
      * components.
+     * @throws IllegalArgumentException If the component values for this
+     * <CODE>ColorModel</CODE> are not conveniently representable in the
+     * unnormalized form.
      * @throws IllegalArgumentException if the length of 
      *          <code>normComponents</code> minus <code>normOffset</code>
      *          is less than <code>numComponents</code>
@@ -1006,7 +1063,7 @@ public abstract class ColorModel implements Transparency{
                                               * normAlpha + 0.5f);
             }
             components[offset+numColorComponents] = (int)
-                (normAlpha * (1<<nBits[numColorComponents] - 1) + 0.5f);
+                (normAlpha * ((1<<nBits[numColorComponents]) - 1) + 0.5f);
         }
         else {
             for (int i=0; i < numComponents; i++) {
@@ -1023,7 +1080,12 @@ public abstract class ColorModel implements Transparency{
      * form, given an unnormalized component array.  Unnormalized components
      * are unsigned integral values between 0 and 2<sup>n</sup> - 1, where
      * n is the number of bits for a particular component.  Normalized
-     * components are float values between 0.0 and 1.0.  If the 
+     * components are float values between a per component minimum and
+     * maximum specified by the <code>ColorSpace</code> object for this
+     * <code>ColorModel</code>.  An <code>IllegalArgumentException</code>
+     * will be thrown if color component values for this
+     * <code>ColorModel</code> are not conveniently representable in the
+     * unnormalized form.  If the
      * <code>normComponents</code> array is <code>null</code>, a new array
      * will be allocated.  The <code>normComponents</code> array
      * will be returned.  Color/alpha components are stored in the
@@ -1036,16 +1098,25 @@ public abstract class ColorModel implements Transparency{
      * <code>IllegalArgumentException</code> is thrown if the 
      * <code>components</code> array is not large enough to hold all the
      * color and alpha components starting at <code>offset</code>.
+     * <p>
+     * Since <code>ColorModel</code> is an abstract class,
+     * any instance is an instance of a subclass.  The default implementation
+     * of this method in this abstract class assumes that component values
+     * for this class are conveniently representable in the unnormalized
+     * form.  Therefore, subclasses which may
+     * have instances which do not support the unnormalized form must
+     * override this method.
      * @param components an array containing unnormalized components
      * @param offset the offset into the <code>components</code> array at
      * which to start retrieving unnormalized components
-     * @param normComponents an array that receives the components from
-     * <code>components</code>
+     * @param normComponents an array that receives the normalized components
      * @param normOffset the index into <code>normComponents</code> at
-     * which to begin storing unnormalized components from
-     * <code>components</code>
+     * which to begin storing normalized components
      * @return an array containing normalized color and alpha 
      * components. 
+     * @throws IllegalArgumentException If the component values for this
+     * <CODE>ColorModel</CODE> are not conveniently representable in the
+     * unnormalized form.
      * @throws UnsupportedOperationException if the
      *          constructor of this <code>ColorModel</code> called the
      *          <code>super(bits)</code> constructor, but did not
@@ -1083,18 +1154,24 @@ public abstract class ColorModel implements Transparency{
         if (supportsAlpha && isAlphaPremultiplied) {
             // Normalized coordinates are non premultiplied
             float normAlpha = (float)components[offset+numColorComponents];
-            normAlpha /= ((1<<nBits[numColorComponents]) - 1);
-            for (int i=0; i < numColorComponents; i++) {
-                normComponents[normOffset+i] =
-                    ((float) components[offset+i]) /
-                    (normAlpha * ((1<<nBits[i]) - 1));
+            normAlpha /= (float) ((1<<nBits[numColorComponents]) - 1);
+            if (normAlpha != 0.0f) {
+                for (int i=0; i < numColorComponents; i++) {
+                    normComponents[normOffset+i] =
+                        ((float) components[offset+i]) /
+                        (normAlpha * ((float) ((1<<nBits[i]) - 1)));
+                }
+            } else {
+                for (int i=0; i < numColorComponents; i++) {
+                    normComponents[normOffset+i] = 0.0f;
+                }
             }
             normComponents[normOffset+numColorComponents] = normAlpha;
         }
         else {
             for (int i=0; i < numComponents; i++) {
-                normComponents[normOffset+i] =
-                    (float) components[offset+i] / ((1<<nBits[i]) - 1);
+                normComponents[normOffset+i] = ((float) components[offset+i]) /
+                                               ((float) ((1<<nBits[i]) - 1));
             }
         }
 
@@ -1105,9 +1182,11 @@ public abstract class ColorModel implements Transparency{
      * Returns a pixel value represented as an <code>int</code> in this
      * <code>ColorModel</code>, given an array of unnormalized color/alpha
      * components.  This method will throw an 
-     * <code>IllegalArgumentException</code> if pixel values for this
+     * <code>IllegalArgumentException</code> if component values for this
      * <code>ColorModel</code> are not conveniently representable as a
-     * single <code>int</code>. An 
+     * single <code>int</code> or if color component values for this
+     * <code>ColorModel</code> are not conveniently representable in the
+     * unnormalized form.  An 
      * <code>ArrayIndexOutOfBoundsException</code> is thrown if  the
      * <code>components</code> array is not large enough to hold all the
      * color and alpha components (starting at <code>offset</code>).
@@ -1124,6 +1203,9 @@ public abstract class ColorModel implements Transparency{
      * @throws IllegalArgumentException if
      * 	pixel values for this <code>ColorModel</code> are not 
      * 	conveniently representable as a single <code>int</code>
+     * @throws IllegalArgumentException if
+     * 	component values for this <code>ColorModel</code> are not 
+     * 	conveniently representable in the unnormalized form
      * @throws ArrayIndexOutOfBoundsException if
      *  the <code>components</code> array is not large enough to 
      *	hold all of the color and alpha components starting at
@@ -1141,7 +1223,10 @@ public abstract class ColorModel implements Transparency{
      * <code>ColorModel</code>, given an array of unnormalized color/alpha
      * components.  This array can then be passed to the
      * <code>setDataElements</code> method of a <code>WritableRaster</code> 
-     * object.  An <code>ArrayIndexOutOfBoundsException</code> is thrown
+     * object.  This method will throw an <code>IllegalArgumentException</code>
+     * if color component values for this <code>ColorModel</code> are not
+     * conveniently representable in the unnormalized form.
+     * An <code>ArrayIndexOutOfBoundsException</code> is thrown
      * if the <code>components</code> array is not large enough to hold
      * all the color and alpha components (starting at
      * <code>offset</code>).  If the <code>obj</code> variable is
@@ -1171,6 +1256,9 @@ public abstract class ColorModel implements Transparency{
      *  for this <code>ColorModel</code> or the <code>components</code>
      *	array is not large enough to hold all of the color and alpha
      *	components starting at <code>offset</code> 
+     * @throws IllegalArgumentException if
+     * 	component values for this <code>ColorModel</code> are not 
+     * 	conveniently representable in the unnormalized form
      * @throws UnsupportedOperationException if this 
      *  method is not supported by this <code>ColorModel</code> 
      * @see WritableRaster#setDataElements
@@ -1179,6 +1267,153 @@ public abstract class ColorModel implements Transparency{
     public Object getDataElements(int[] components, int offset, Object obj) {
         throw new UnsupportedOperationException("This method has not been implemented "+
                                     "for this color model.");
+    }
+
+    /**
+     * Returns a pixel value represented as an <code>int</code> in this
+     * <code>ColorModel</code>, given an array of normalized color/alpha
+     * components.  This method will throw an 
+     * <code>IllegalArgumentException</code> if pixel values for this
+     * <code>ColorModel</code> are not conveniently representable as a
+     * single <code>int</code>.  An 
+     * <code>ArrayIndexOutOfBoundsException</code> is thrown if  the
+     * <code>normComponents</code> array is not large enough to hold all the
+     * color and alpha components (starting at <code>normOffset</code>).
+     * Since <code>ColorModel</code> is an abstract class,
+     * any instance is an instance of a subclass.  The default implementation
+     * of this method in this abstract class first converts from the
+     * normalized form to the unnormalized form and then calls
+     * <code>getDataElement(int[], int)</code>.  Subclasses which may
+     * have instances which do not support the unnormalized form must
+     * override this method.
+     * @param normComponents an array of normalized color and alpha
+     * components
+     * @param normOffset the index into <code>normComponents</code> at which to
+     * begin retrieving the color and alpha components
+     * @return an <code>int</code> pixel value in this
+     * <code>ColorModel</code> corresponding to the specified components.  
+     * @throws IllegalArgumentException if
+     * 	pixel values for this <code>ColorModel</code> are not 
+     * 	conveniently representable as a single <code>int</code>
+     * @throws ArrayIndexOutOfBoundsException if
+     *  the <code>normComponents</code> array is not large enough to 
+     *	hold all of the color and alpha components starting at
+     *	<code>normOffset</code> 
+     * @since 1.4
+     */
+    public int getDataElement(float[] normComponents, int normOffset) {
+        int components[] = getUnnormalizedComponents(normComponents,
+                                                     normOffset, null, 0);
+        return getDataElement(components, 0);
+    }
+    
+    /**
+     * Returns a data element array representation of a pixel in this
+     * <code>ColorModel</code>, given an array of normalized color/alpha
+     * components.  This array can then be passed to the
+     * <code>setDataElements</code> method of a <code>WritableRaster</code> 
+     * object.  An <code>ArrayIndexOutOfBoundsException</code> is thrown
+     * if the <code>normComponents</code> array is not large enough to hold
+     * all the color and alpha components (starting at
+     * <code>normOffset</code>).  If the <code>obj</code> variable is
+     * <code>null</code>, a new array will be allocated.  If
+     * <code>obj</code> is not <code>null</code>, it must be a primitive
+     * array of type transferType; otherwise, a 
+     * <code>ClassCastException</code> is thrown.  An
+     * <code>ArrayIndexOutOfBoundsException</code> is thrown if 
+     * <code>obj</code> is not large enough to hold a pixel value for this
+     * <code>ColorModel</code>.
+     * Since <code>ColorModel</code> is an abstract class,
+     * any instance is an instance of a subclass.  The default implementation
+     * of this method in this abstract class first converts from the
+     * normalized form to the unnormalized form and then calls
+     * <code>getDataElement(int[], int, Object)</code>.  Subclasses which may
+     * have instances which do not support the unnormalized form must
+     * override this method.
+     * @param normComponents an array of normalized color and alpha
+     * components
+     * @param normOffset the index into <code>normComponents</code> at which to
+     * begin retrieving color and alpha components
+     * @param obj a primitive data array to hold the returned pixel
+     * @return an <code>Object</code> which is a primitive data array
+     * representation of a pixel
+     * @throws ClassCastException if <code>obj</code>
+     *  is not a primitive array of type <code>transferType</code>
+     * @throws ArrayIndexOutOfBoundsException if
+     *  <code>obj</code> is not large enough to hold a pixel value
+     *  for this <code>ColorModel</code> or the <code>normComponents</code>
+     *	array is not large enough to hold all of the color and alpha
+     *	components starting at <code>normOffset</code> 
+     * @see WritableRaster#setDataElements
+     * @see SampleModel#setDataElements
+     * @since 1.4
+     */
+    public Object getDataElements(float[] normComponents, int normOffset,
+                                  Object obj) {
+        int components[] = getUnnormalizedComponents(normComponents,
+                                                     normOffset, null, 0);
+        return getDataElements(components, 0, obj);
+    }
+
+    /**
+     * Returns an array of all of the color/alpha components in normalized
+     * form, given a pixel in this <code>ColorModel</code>.  The pixel
+     * value is specified by an array of data elements of type transferType
+     * passed in as an object reference.  If pixel is not a primitive array
+     * of type transferType, a <code>ClassCastException</code> is thrown.
+     * An <code>ArrayIndexOutOfBoundsException</code> is thrown if
+     * <code>pixel</code> is not large enough to hold a pixel value for this
+     * <code>ColorModel</code>.
+     * Normalized components are float values between a per component minimum
+     * and maximum specified by the <code>ColorSpace</code> object for this
+     * <code>ColorModel</code>.  If the
+     * <code>normComponents</code> array is <code>null</code>, a new array
+     * will be allocated.  The <code>normComponents</code> array
+     * will be returned.  Color/alpha components are stored in the
+     * <code>normComponents</code> array starting at
+     * <code>normOffset</code> (even if the array is allocated by this
+     * method).  An <code>ArrayIndexOutOfBoundsException</code> is thrown
+     * if the <code>normComponents</code> array is not <code>null</code> 
+     * and is not large enough to hold all the color and alpha components
+     * (starting at <code>normOffset</code>).
+     * Since <code>ColorModel</code> is an abstract class,
+     * any instance is an instance of a subclass.  The default implementation
+     * of this method in this abstract class first retrieves color and alpha
+     * components in the unnormalized form using
+     * <code>getComponents(Object, int[], int)</code> and then calls
+     * <code>getNormalizedComponents(int[], int, float[], int)</code>.
+     * Subclasses which may
+     * have instances which do not support the unnormalized form must
+     * override this method.
+     * @param pixel the specified pixel
+     * @param normComponents an array to receive the normalized components
+     * @param normOffset the offset into the <code>normComponents</code>
+     * array at which to start storing normalized components
+     * @return an array containing normalized color and alpha 
+     * components. 
+     * @throws ClassCastException if <code>pixel</code> is not a primitive
+     *          array of type transferType
+     * @throws ArrayIndexOutOfBoundsException if
+     *          <code>normComponents</code> is not large enough to hold all
+     *          color and alpha components starting at <code>normOffset</code>
+     * @throws ArrayIndexOutOfBoundsException if
+     *          <code>pixel</code> is not large enough to hold a pixel
+     *          value for this <code>ColorModel</code>.
+     * @throws UnsupportedOperationException if the
+     *          constructor of this <code>ColorModel</code> called the
+     *          <code>super(bits)</code> constructor, but did not
+     *          override this method.  See the constructor,
+     *          {@link #ColorModel(int)}.
+     * @throws UnsupportedOperationException if this method is unable
+     *          to determine the number of bits per component
+     * @since 1.4
+     */
+    public float[] getNormalizedComponents(Object pixel,
+                                           float[] normComponents,
+                                           int normOffset) {
+        int components[] = getComponents(pixel, null, 0);
+        return getNormalizedComponents(components, 0,
+                                       normComponents, normOffset);
     }
 
     /**
@@ -1438,11 +1673,15 @@ public abstract class ColorModel implements Transparency{
     static Map lg16Toog16Map = null; // 16-bit linear to 16-bit "other" gray
 
     static boolean isLinearRGBspace(ColorSpace cs) {
-        return (cs == ColorSpace.getInstance(ColorSpace.CS_LINEAR_RGB));
+        // Note: CMM.LINEAR_RGBspace will be null if the linear
+        // RGB space has not been created yet.
+        return (cs == CMM.LINEAR_RGBspace);
     }
 
     static boolean isLinearGRAYspace(ColorSpace cs) {
-        return (cs == ColorSpace.getInstance(ColorSpace.CS_GRAY));
+        // Note: CMM.GRAYspace will be null if the linear
+        // gray space has not been created yet.
+        return (cs == CMM.GRAYspace);
     }
 
     static byte[] getLinearRGB8TosRGB8LUT() {

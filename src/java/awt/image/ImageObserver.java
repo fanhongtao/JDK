@@ -1,4 +1,6 @@
 /*
+ * @(#)ImageObserver.java	1.25 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,7 @@ import java.awt.Image;
  * An asynchronous update interface for receiving notifications about
  * Image information as the Image is constructed.
  *
- * @version 	1.25 02/06/02
+ * @version 	1.25 12/03/01
  * @author 	Jim Graham
  */
 public interface ImageObserver {

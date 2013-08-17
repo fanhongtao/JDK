@@ -1,4 +1,6 @@
 /*
+ * @(#)X509EncodedKeySpec.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -7,8 +9,9 @@ package java.security.spec;
 
 /**
  * This class represents the ASN.1 encoding of a public key,
- * encoded according to the ASN.1 type <code>SubjectPublicKeyInfo</code>,
- * whose syntax is defined in the X.509 standard, as follows:
+ * encoded according to the ASN.1 type <code>SubjectPublicKeyInfo</code>.
+ * The <code>SubjectPublicKeyInfo</code> syntax is defined in the X.509 
+ * standard as follows:
  *
  * <pre>
  * SubjectPublicKeyInfo ::= SEQUENCE {
@@ -18,7 +21,7 @@ package java.security.spec;
  *
  * @author Jan Luehe
  *
- * @version 1.15, 02/06/02
+ * @version 1.16, 12/03/01
  *
  * @see java.security.Key
  * @see java.security.KeyFactory

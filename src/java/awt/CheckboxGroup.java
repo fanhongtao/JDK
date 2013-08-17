@@ -1,4 +1,6 @@
 /*
+ * @(#)CheckboxGroup.java	1.30 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -29,7 +31,7 @@ package java.awt;
  * <img src="doc-files/CheckboxGroup-1.gif"
  * ALIGN=center HSPACE=10 VSPACE=7> 
  * <p>
- * @version 	1.30 02/06/02
+ * @version 	1.30 12/03/01
  * @author 	Sami Shaio
  * @see         java.awt.Checkbox
  * @since       JDK1.0

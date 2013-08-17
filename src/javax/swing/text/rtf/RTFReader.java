@@ -1,4 +1,6 @@
 /*
+ * @(#)RTFReader.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,9 +16,9 @@ import javax.swing.text.*;
 
 /**
  * Takes a sequence of RTF tokens and text and appends the text
- * described by the RTF to a StyledDocument (the <em>target</em>).
+ * described by the RTF to a <code>StyledDocument</code> (the <em>target</em>).
  * The RTF is lexed
- * from the character stream by the RTFParser which is this class's
+ * from the character stream by the <code>RTFParser</code> which is this class's
  * superclass.
  *
  * This class is an indirect subclass of OutputStream. It must be closed
@@ -184,8 +186,8 @@ Color defaultColor()
 }
 
 /** Called by the superclass when a new RTF group is begun.
- *  This implementation saves the current parserState, and gives
- *  the current destination a chence to save its own state.
+ *  This implementation saves the current <code>parserState</code>, and gives
+ *  the current destination a chance to save its own state.
  * @see RTFParser#begingroup
  */
 public void begingroup()

@@ -1,4 +1,6 @@
 /*
+ * @(#)JSlider.java	1.97 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,7 +22,7 @@ import java.beans.*;
 
 
 /**
- * A component that lets the user graphically select a value by slding
+ * A component that lets the user graphically select a value by sliding
  * a knob within a bounded interval. The slider can show both 
  * major tick marks and minor tick marks between them. The number of
  * values between the tick marks is controlled with 
@@ -32,20 +34,22 @@ import java.beans.*;
  * a section in <em>The Java Tutorial.</em>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JSlider">JSlider</a> key assignments.
+ * <a href="doc-files/Key-Index.html#JSlider"><code>JSlider</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @beaninfo
  *      attribute: isContainer false
  *    description: A component that supports selecting a integer value from a range.
  * 
- * @version 1.91 02/06/02
+ * @version 1.97 12/03/01
  * @author David Kloba
  */
 public class JSlider extends JComponent implements SwingConstants, Accessible {
@@ -142,7 +146,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
 
     /**
      * Creates a horizontal slider with the range 0 to 100 and
-     * an intitial value of 50.
+     * an initial value of 50.
      */
     public JSlider() {
         this(HORIZONTAL, 0, 100, 50);
@@ -151,7 +155,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
 
     /**
      * Creates a slider using the specified orientation with the 
-     * range 0 to 100 and an intitial value of 50.
+     * range 0 to 100 and an initial value of 50.
      */
     public JSlider(int orientation) {
         this(orientation, 0, 100, 50);
@@ -160,10 +164,10 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
 
     /**
      * Creates a horizontal slider using the specified min and max
-     * with an intitial value of 50.
+     * with an initial value equal to the average of the min plus max.
      */
     public JSlider(int min, int max) {
-        this(HORIZONTAL, min, max, 50);
+        this(HORIZONTAL, min, max, (min + max) / 2);
     }
 
 
@@ -177,7 +181,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
 
     /**
      * Creates a slider with the specified orientation and the
-     * specified mimimum, maximum, and initial values.
+     * specified minimum, maximum, and initial values.
      * 
      * @exception IllegalArgumentException if orientation is not one of VERTICAL, HORIZONTAL
      *
@@ -236,9 +240,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
 
 
     /**
-     * Notification from the UIFactory that the L&F has changed. 
-     * Called to replace the UI with the latest version from the 
-     * default UIFactory.
+     * Resets the UI property to a value from the current look and feel.
      *
      * @see JComponent#updateUI
      */
@@ -306,6 +308,20 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
      */
     public void removeChangeListener(ChangeListener l) {
         listenerList.remove(ChangeListener.class, l);
+    }
+
+
+    /**
+     * Returns an array of all the <code>ChangeListener</code>s added
+     * to this JSlider with addChangeListener().
+     *
+     * @return all of the <code>ChangeListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public ChangeListener[] getChangeListeners() {
+        return (ChangeListener[])listenerList.getListeners(
+                ChangeListener.class);
     }
 
 
@@ -399,6 +415,9 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
     public void setValue(int n) { 
         BoundedRangeModel m = getModel();
         int oldValue = m.getValue();
+        if (oldValue == n) {
+            return;
+        }
         m.setValue(n);
 
         if (accessibleContext != null) {
@@ -580,7 +599,8 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
     /**
      * Returns the dictionary of what labels to draw at which values.
      *
-     * @return the Dictionary containing labels and where to draw them
+     * @return the <code>Dictionary</code> containing labels and
+     *    where to draw them
      */
     public Dictionary getLabelTable() {
 /*
@@ -618,9 +638,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
 
 
     /**
-     * Called internally to replace the label UIs with the latest versions
-     * from the UIFactory when the UIFactory notifies us via
-     * <code>updateUI</code> that the L&F has changed.
+     * Resets the UI property to a value from the current look and feel.
      *
      * @see JComponent#updateUI
      */
@@ -1023,8 +1041,12 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-        if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-            ui.installUI(this);
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
         }
     }
 
@@ -1094,10 +1116,12 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJSlider extends AccessibleJComponent
     implements AccessibleValue {

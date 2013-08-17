@@ -1,4 +1,6 @@
 /*
+ * @(#)Certificate.java	1.34 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -35,7 +37,7 @@ import java.util.Date;
  * the duty of the application implementing this interface to verify
  * the certificate and satisfy itself of its validity.
  *
- * @version 	1.32, 02/06/02
+ * @version 	1.34, 12/03/01
  * @author Benjamin Renaud 
  * @deprecated A new certificate handling package is created in the Java 2 platform.
  *             This Certificate interface is entirely deprecated and
@@ -128,7 +130,9 @@ public interface Certificate {
      * Returns a string that represents the contents of the certificate.
      *
      * @param detailed whether or not to give detailed information
-     * about the certificate.
+     * about the certificate
+     * 
+     * @return a string representing the contents of the certificate
      */
     public String toString(boolean detailed);
 }

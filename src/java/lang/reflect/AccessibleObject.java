@@ -1,9 +1,14 @@
 /*
+ * @(#)AccessibleObject.java	1.22 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.reflect;
+
+import java.security.AccessController;
+import sun.reflect.ReflectionFactory;
 
 /**
  * The AccessibleObject class is the base class for Field, Method and
@@ -119,6 +124,8 @@ class AccessibleObject {
 
     /**
      * Get the value of the <tt>accessible</tt> flag for this object.
+     *
+     * @return the value of the object's <tt>accessible</tt> flag
      */
     public boolean isAccessible() {
 	return override;
@@ -129,7 +136,32 @@ class AccessibleObject {
      */
     protected AccessibleObject() {}
 
-    // N.B. jvm depends on this field name, and initializes to <tt>false</tt>.
-    private boolean override;
+    // Cache for security checks.
 
+    // For non-public members or members in package-private classes,
+    // it is necessary to perform somewhat expensive security checks.
+    // If the security check succeeds for a given class, it will
+    // always succeed (it is not affected by the granting or revoking
+    // of permissions); we speed up the check in the common case by
+    // remembering the last Class for which the check succeeded.  This
+    // field is used by Field, Method, and Constructor.
+    //
+    // NOTE: for security purposes, this field must not be visible
+    // outside this package.
+    volatile Class securityCheckCache;
+
+    // Indicates whether language-level access checks are overridden
+    // by this object. Initializes to "false". This field is used by
+    // Field, Method, and Constructor.
+    //
+    // NOTE: for security purposes, this field must not be visible
+    // outside this package.
+    boolean override;
+
+    // Reflection factory used by subclasses for creating field,
+    // method, and constructor accessors. Note that this is called
+    // very early in the bootstrapping process.
+    static final ReflectionFactory reflectionFactory = (ReflectionFactory)
+        AccessController.doPrivileged
+            (new sun.reflect.ReflectionFactory.GetReflectionFactoryAction());
 }

@@ -1,4 +1,6 @@
 /*
+ * @(#)Time.java	1.27 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,8 @@
 package java.sql;
 
 /**
- * <P>A thin wrapper around <code>java.util.Date</code> that allows
- * JDBC to identify this as a SQL <code>TIME</code> value. The <code>Time</code>
+ * <P>A thin wrapper around the <code>java.util.Date</code> class that allows the JDBC
+ * API to identify this as an SQL <code>TIME</code> value. The <code>Time</code>
  * class adds formatting and
  * parsing operations to support the JDBC escape syntax for time
  * values. 
@@ -18,18 +20,20 @@ public class Time extends java.util.Date {
 
     /**
      * Constructs a <code>Time</code> object initialized with the 
-	 * given values for the hour, minute, and second.
-	 * The driver sets the date components to January 1, 1970.
-	 * Any method that attempts to access the date components of a
+     * given values for the hour, minute, and second.
+     * The driver sets the date components to January 1, 1970.
+     * Any method that attempts to access the date components of a
      * <code>Time</code> object will throw a
-	 * <code>java.lang.IllegalArgumentException</code>.
-	 *
+     * <code>java.lang.IllegalArgumentException</code>.
+     * <P>
+     * The result is undefined if a given argument is out of bounds.
+     *
      * @param hour 0 to 23
      * @param minute 0 to 59
      * @param second 0 to 59
-	 *
-	 * @deprecated Use the constructor that takes a milliseconds value
-	 *             in place of this constructor
+     *
+     * @deprecated Use the constructor that takes a milliseconds value
+     *             in place of this constructor
      */
     public Time(int hour, int minute, int second) {
 	super(70, 0, 1, hour, minute, second);
@@ -39,8 +43,8 @@ public class Time extends java.util.Date {
      * Constructs a <code>Time</code> object using a milliseconds time value.
      *
      * @param time milliseconds since January 1, 1970, 00:00:00 GMT;
-	 *             a negative number is milliseconds before
-	 *               January 1, 1970, 00:00:00 GMT
+     *             a negative number is milliseconds before
+     *               January 1, 1970, 00:00:00 GMT
      */
     public Time(long time) {
 	super(time);
@@ -50,8 +54,8 @@ public class Time extends java.util.Date {
      * Sets a <code>Time</code> object using a milliseconds time value.
      *
      * @param time milliseconds since January 1, 1970, 00:00:00 GMT;
-	 *             a negative number is milliseconds before
-	 *               January 1, 1970, 00:00:00 GMT
+     *             a negative number is milliseconds before
+     *               January 1, 1970, 00:00:00 GMT
      */
     public void setTime(long time) {
 	super.setTime(time);
@@ -62,6 +66,7 @@ public class Time extends java.util.Date {
      *
      * @param s time in format "hh:mm:ss"
      * @return a corresponding <code>Time</code> object
+     * @overrides java.util.Date.valueOf
      */
     public static Time valueOf(String s) {
 	int hour;
@@ -88,9 +93,10 @@ public class Time extends java.util.Date {
     }
    
     /**
-     * Formats a time in JDBC date escape format  
+     * Formats a time in JDBC time escape format.  
      *
      * @return a <code>String</code> in hh:mm:ss format
+     * @overrides java.util.Date.toString
      */
     public String toString () {
 	int hour = super.getHours();
@@ -126,7 +132,8 @@ public class Time extends java.util.Date {
     *
     * @deprecated
     * @exception java.lang.IllegalArgumentException if this
-	*           method is invoked
+    *           method is invoked
+    * @see #setYear
     */
     public int getYear() {
 	throw new java.lang.IllegalArgumentException();
@@ -137,8 +144,9 @@ public class Time extends java.util.Date {
     * values do not have a month component.
     *
     * @deprecated
-	* @exception java.lang.IllegalArgumentException if this
-	*           method is invoked
+    * @exception java.lang.IllegalArgumentException if this
+    *           method is invoked
+    * @see #setMonth
     */
     public int getMonth() {
 	throw new java.lang.IllegalArgumentException();
@@ -149,8 +157,8 @@ public class Time extends java.util.Date {
     * values do not have a day component.
     *
     * @deprecated
-	* @exception java.lang.IllegalArgumentException if this
-	*           method is invoked
+    * @exception java.lang.IllegalArgumentException if this
+    *           method is invoked
     */
     public int getDay() {
 	throw new java.lang.IllegalArgumentException();
@@ -161,8 +169,9 @@ public class Time extends java.util.Date {
     * values do not have a date component.
     *
     * @deprecated
-	* @exception java.lang.IllegalArgumentException if this
-	*           method is invoked
+    * @exception java.lang.IllegalArgumentException if this
+    *           method is invoked
+    * @see #setDate
     */
     public int getDate() {
 	throw new java.lang.IllegalArgumentException();
@@ -173,8 +182,9 @@ public class Time extends java.util.Date {
     * values do not have a year component.
     *
     * @deprecated
-	* @exception java.lang.IllegalArgumentException if this
-	*           method is invoked
+    * @exception java.lang.IllegalArgumentException if this
+    *           method is invoked
+    * @see #getYear
     */
     public void setYear(int i) {
 	throw new java.lang.IllegalArgumentException();
@@ -185,8 +195,9 @@ public class Time extends java.util.Date {
     * values do not have a month component.
     *
     * @deprecated
-	* @exception java.lang.IllegalArgumentException if this
-	*           method is invoked
+    * @exception java.lang.IllegalArgumentException if this
+    *           method is invoked
+    * @see #getMonth
     */
     public void setMonth(int i) {
 	throw new java.lang.IllegalArgumentException();
@@ -197,8 +208,9 @@ public class Time extends java.util.Date {
     * values do not have a date component.
     *
     * @deprecated
-	* @exception java.lang.IllegalArgumentException if this
-	*           method is invoked
+    * @exception java.lang.IllegalArgumentException if this
+    *           method is invoked
+    * @see #getDate
     */
     public void setDate(int i) {
 	throw new java.lang.IllegalArgumentException();

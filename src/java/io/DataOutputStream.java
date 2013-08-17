@@ -1,4 +1,6 @@
 /*
+ * @(#)DataOutputStream.java	1.34 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,12 +8,12 @@
 package java.io;
 
 /**
- * A data input stream lets an application write primitive Java data 
+ * A data output stream lets an application write primitive Java data 
  * types to an output stream in a portable way. An application can 
  * then use a data input stream to read the data back in. 
  *
  * @author  unascribed
- * @version 1.33, 02/06/02
+ * @version 1.34, 12/03/01
  * @see     java.io.DataInputStream
  * @since   JDK1.0
  */

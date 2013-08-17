@@ -1,4 +1,6 @@
 /*
+ * @(#)TreeSelectionModel.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -63,7 +65,7 @@ import java.beans.PropertyChangeListener;
   * row is then the row that corresponds to the TreePath as determined
   * from the RowMapper.
   *
-  * @version 1.20 02/06/02
+  * @version 1.21 12/03/01
   * @author Scott Violet
   */
 
@@ -227,7 +229,7 @@ public interface TreeSelectionModel
     int getMaxSelectionRow();
 
     /**
-      * Returns true if the row identitifed by row is selected.
+      * Returns true if the row identified by <code>row</code> is selected.
       */
     boolean isRowSelected(int row);
 

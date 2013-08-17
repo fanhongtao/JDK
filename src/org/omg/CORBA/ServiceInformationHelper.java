@@ -1,15 +1,20 @@
 /*
+ * @(#)ServiceInformationHelper.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
+ 
+ /**
+ * The Helper for <tt>ServiceInformation</tt>.  For more information on 
+* Helper files, see <a href="doc-files/generatedfiles.html#helper">
+* "Generated Files: Helper Files"</a>.<P>
+*/
 
 package org.omg.CORBA;
 
 
-public class ServiceInformationHelper {
-
-    // It is useless to have instances of this class
-    private ServiceInformationHelper() { }
+public abstract class ServiceInformationHelper {
 
     public static void write(org.omg.CORBA.portable.OutputStream out, org.omg.CORBA.ServiceInformation that)
     {

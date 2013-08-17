@@ -1,4 +1,6 @@
 /*
+ * @(#)Caret.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -28,7 +30,7 @@ import javax.swing.event.ChangeListener;
  * the mark is left at whatever position it previously had.
  *
  * @author  Timothy Prinzing
- * @version 1.27 02/06/02
+ * @version 1.28 12/03/01
  */
 public interface Caret {
 
@@ -140,7 +142,7 @@ public interface Caret {
      * and how fast the caret blinks, commonly used as one
      * way to attract attention to the caret.
      *
-     * @returns the delay in milliseconds >= 0.  If this is
+     * @return the delay in milliseconds >= 0.  If this is
      *  zero the caret will not blink.
      */
     public int getBlinkRate();

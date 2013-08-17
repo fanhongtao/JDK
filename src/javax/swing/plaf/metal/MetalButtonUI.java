@@ -1,4 +1,6 @@
 /*
+ * @(#)MetalButtonUI.java	1.26 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,20 +19,22 @@ import javax.swing.plaf.*;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.23 02/06/02
+ * @version 1.26 12/03/01
  * @author Tom Santos
  */
 public class MetalButtonUI extends BasicButtonUI {
 
     private final static MetalButtonUI metalButtonUI = new MetalButtonUI(); 
 
-    private boolean defaults_initialized = false;
-
+    // NOTE: These are not really needed, but at this point we can't pull
+    // them. Their values are updated purely for historical reasons.
     protected Color focusColor;
     protected Color selectColor;
     protected Color disabledTextColor;
@@ -47,17 +51,10 @@ public class MetalButtonUI extends BasicButtonUI {
     // ********************************
     public void installDefaults(AbstractButton b) {
         super.installDefaults(b);
-	if(!defaults_initialized) {
-	    focusColor = UIManager.getColor(getPropertyPrefix() + "focus");
-	    selectColor = UIManager.getColor(getPropertyPrefix() + "select");
-	    disabledTextColor = UIManager.getColor(getPropertyPrefix() + "disabledText");
-	    defaults_initialized = true;
-	}
     }
 
     public void uninstallDefaults(AbstractButton b) {
 	super.uninstallDefaults(b);
-	defaults_initialized = false;
     }
 
     // ********************************
@@ -72,14 +69,18 @@ public class MetalButtonUI extends BasicButtonUI {
     //         Default Accessors 
     // ********************************
     protected Color getSelectColor() {
+        selectColor = UIManager.getColor(getPropertyPrefix() + "select");
 	return selectColor;
     }
 
     protected Color getDisabledTextColor() {
+        disabledTextColor = UIManager.getColor(getPropertyPrefix() +
+                                               "disabledText");
 	return disabledTextColor;
     }
 
     protected Color getFocusColor() {
+        focusColor = UIManager.getColor(getPropertyPrefix() + "focus");
 	return focusColor;
     }
 
@@ -126,19 +127,20 @@ public class MetalButtonUI extends BasicButtonUI {
 	AbstractButton b = (AbstractButton) c;			     
 	ButtonModel model = b.getModel();
 	FontMetrics fm = g.getFontMetrics();
+        int mnemIndex = b.getDisplayedMnemonicIndex();
 
 	/* Draw the Text */
 	if(model.isEnabled()) {
 	    /*** paint the text normally */
 	    g.setColor(b.getForeground());
-	    BasicGraphicsUtils.drawString(g,text, model.getMnemonic(),
+	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text, mnemIndex,
 					  textRect.x,
 					  textRect.y + fm.getAscent());
 	}
 	else {
 	    /*** paint the text disabled ***/
 	    g.setColor(getDisabledTextColor());
-	    BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
+	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,mnemIndex,
 					  textRect.x, textRect.y + fm.getAscent());
 
 	}

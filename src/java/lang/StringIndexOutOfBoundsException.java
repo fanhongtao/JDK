@@ -1,4 +1,6 @@
 /*
+ * @(#)StringIndexOutOfBoundsException.java	1.20 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,13 +8,13 @@
 package java.lang;
 
 /**
- * Thrown by the <code>charAt</code> method in class 
- * <code>String</code> and by other <code>String</code> 
- * methods to indicate that an index is either negative or greater 
- * than or equal to the size of the string. 
+ * Thrown by <code>String</code> methods to indicate that an index
+ * is either negative or greater than the size of the string.  For
+ * some methods such as the charAt method, this exception also is
+ * thrown when the index is equal to the size of the string.
  *
  * @author  unascribed
- * @version 1.19, 02/06/02
+ * @version 1.20, 12/03/01
  * @see     java.lang.String#charAt(int)
  * @since   JDK1.0
  */

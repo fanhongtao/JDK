@@ -1,4 +1,6 @@
 /*
+ * @(#)Graphics.java	1.64 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -71,7 +73,7 @@ import java.text.AttributedCharacterIterator;
  * All drawing or writing is done in the current color, 
  * using the current paint mode, and in the current font. 
  * 
- * @version 	1.64, 02/06/02
+ * @version 	1.64, 12/03/01
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see     java.awt.Component
@@ -166,7 +168,7 @@ public abstract class Graphics {
      * Gets this graphics context's current color.
      * @return    this graphics context's current color.
      * @see       java.awt.Color
-     * @see       java.awt.Graphics#setColor
+     * @see       java.awt.Graphics#setColor(Color)
      */
     public abstract Color getColor();
 
@@ -210,7 +212,7 @@ public abstract class Graphics {
      * Gets the current font.
      * @return    this graphics context's current font.
      * @see       java.awt.Font
-     * @see       java.awt.Graphics#setFont
+     * @see       java.awt.Graphics#setFont(Font)
      */
     public abstract Font getFont();
 
@@ -301,6 +303,7 @@ public abstract class Graphics {
      * @param       height the height of the new clip rectangle.
      * @see         java.awt.Graphics#clipRect
      * @see         java.awt.Graphics#setClip(Shape)
+     * @see	    java.awt.Graphics#getClip
      * @since       JDK1.1
      */
     public abstract void setClip(int x, int y, int width, int height);
@@ -830,6 +833,8 @@ public abstract class Graphics {
      * @param    y   the <i>y</i> coordinate.
      * @param    observer    object to be notified as more of 
      *                          the image is converted.
+     * @return   <code>true</code> if the image is completely loaded;
+     *           <code>false</code> otherwise.
      * @see      java.awt.Image
      * @see      java.awt.image.ImageObserver
      * @see      java.awt.image.ImageObserver#imageUpdate(java.awt.Image, int, int, int, int, int)
@@ -866,6 +871,8 @@ public abstract class Graphics {
      * @param    height the height of the rectangle.
      * @param    observer    object to be notified as more of 
      *                          the image is converted.
+     * @return   <code>true</code> if the current output representation
+     *           is complete; <code>false</code> otherwise.
      * @see      java.awt.Image
      * @see      java.awt.image.ImageObserver
      * @see      java.awt.image.ImageObserver#imageUpdate(java.awt.Image, int, int, int, int, int)
@@ -900,6 +907,8 @@ public abstract class Graphics {
      *                         non-opaque portions of the image.
      * @param    observer    object to be notified as more of 
      *                          the image is converted.
+     * @return   <code>true</code> if the image is completely loaded;
+     *           <code>false</code> otherwise.
      * @see      java.awt.Image
      * @see      java.awt.image.ImageObserver
      * @see      java.awt.image.ImageObserver#imageUpdate(java.awt.Image, int, int, int, int, int)
@@ -942,6 +951,8 @@ public abstract class Graphics {
      *                         non-opaque portions of the image.
      * @param    observer    object to be notified as more of 
      *                          the image is converted.
+     * @return   <code>true</code> if the current output representation
+     *           is complete; <code>false</code> otherwise.
      * @see      java.awt.Image
      * @see      java.awt.image.ImageObserver
      * @see      java.awt.image.ImageObserver#imageUpdate(java.awt.Image, int, int, int, int, int)
@@ -993,6 +1004,8 @@ public abstract class Graphics {
      *                    source rectangle.
      * @param       observer object to be notified as more of the image is
      *                    scaled and converted.
+     * @return   <code>true</code> if the current output representation
+     *           is complete; <code>false</code> otherwise.
      * @see         java.awt.Image
      * @see         java.awt.image.ImageObserver
      * @see         java.awt.image.ImageObserver#imageUpdate(java.awt.Image, int, int, int, int, int)
@@ -1051,6 +1064,8 @@ public abstract class Graphics {
      *                    non-opaque portions of the image.
      * @param       observer object to be notified as more of the image is
      *                    scaled and converted.
+     * @return   <code>true</code> if the current output representation
+     *           is complete; <code>false</code> otherwise.
      * @see         java.awt.Image
      * @see         java.awt.image.ImageObserver
      * @see         java.awt.image.ImageObserver#imageUpdate(java.awt.Image, int, int, int, int, int)
@@ -1109,6 +1124,9 @@ public abstract class Graphics {
     }
 
     /**
+     * Returns the bounding rectangle of the current clipping area.
+     * @return      the bounding rectangle of the current clipping area
+     *              or <code>null</code> if no clip is set.
      * @deprecated As of JDK version 1.1,
      * replaced by <code>getClipBounds()</code>.
      */
@@ -1117,25 +1135,40 @@ public abstract class Graphics {
     }
 
     /**
-     * Returns true if the specified rectangular area intersects 
-     * the bounding rectangle of the current clipping area.
-     * The coordinates in the rectangle are relative to the coordinate
+     * Returns true if the specified rectangular area might intersect 
+     * the current clipping area.
+     * The coordinates of the specified rectangular area are in the
+     * user coordinate space and are relative to the coordinate
      * system origin of this graphics context.
+     * This method may use an algorithm that calculates a result quickly
+     * but which sometimes might return true even if the specified
+     * rectangular area does not intersect the clipping area.
+     * The specific algorithm employed may thus trade off accuracy for
+     * speed, but it will never return false unless it can guarantee
+     * that the specified rectangular area does not intersect the
+     * current clipping area.
+     * The clipping area used by this method can represent the
+     * intersection of the user clip as specified through the clip
+     * methods of this graphics context as well as the clipping
+     * associated with the device or image bounds and window visibility.
      *
      * @param x the x coordinate of the rectangle to test against the clip
      * @param y the y coordinate of the rectangle to test against the clip
      * @param width the width of the rectangle to test against the clip
      * @param height the height of the rectangle to test against the clip
+     * @return <code>true</code> if the specified rectangle intersects
+     *         the bounds of the current clip; <code>false</code>
+     *         otherwise.
      */
     public boolean hitClip(int x, int y, int width, int height) {
-        // Note, this implementation is not very efficient.
-        // Subclasses should override this method and calculate
-        // the results more directly.
-        Rectangle clipRect = getClipBounds();
-        if (clipRect == null) {
-            return true;
-        }
-        return clipRect.intersects(x, y, width, height);
+	// Note, this implementation is not very efficient.
+	// Subclasses should override this method and calculate
+	// the results more directly.
+	Rectangle clipRect = getClipBounds();
+	if (clipRect == null) {
+	    return true;
+	}
+	return clipRect.intersects(x, y, width, height);
     }
 
     /**
@@ -1155,18 +1188,18 @@ public abstract class Graphics {
      * @return      the bounding rectangle of the current clipping area.
      */
     public Rectangle getClipBounds(Rectangle r) {
-        // Note, this implementation is not very efficient.
-        // Subclasses should override this method and avoid
-        // the allocation overhead of getClipBounds().
+	// Note, this implementation is not very efficient.
+	// Subclasses should override this method and avoid
+	// the allocation overhead of getClipBounds().
         Rectangle clipRect = getClipBounds();
-        if (clipRect != null) {
-            r.x = clipRect.x;
-            r.y = clipRect.y;
-            r.width = clipRect.width;
-            r.height = clipRect.height;
-        } else if (r == null) {
-            throw new NullPointerException("null rectangle parameter");
-        }
+	if (clipRect != null) {
+	    r.x = clipRect.x;
+	    r.y = clipRect.y;
+	    r.width = clipRect.width;
+	    r.height = clipRect.height;
+	} else if (r == null) {
+	    throw new NullPointerException("null rectangle parameter");
+	}
         return r;
     }
 }

@@ -1,4 +1,6 @@
 /*
+ * @(#)INV_POLICY.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,9 +8,9 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>INV_POLICY</code> standard exception, which is thrown
+ * Standard exception  thrown
  * when an invocation cannot be made because of an incompatibility between 
- * Policy overrides.
+ * <tt>Policy</tt> overrides that apply to the particular invocation.
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.
@@ -18,7 +20,7 @@ package org.omg.CORBA;
  * @version     1.5 09/09/97
  */
 
-public class INV_POLICY extends SystemException {
+public final class INV_POLICY extends SystemException {
     /**
      * Constructs a <code>INV_POLICY</code> exception with a default minor code
      * of 0, a completion state of CompletionStatus.COMPLETED_NO,

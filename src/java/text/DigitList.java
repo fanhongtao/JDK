@@ -1,4 +1,6 @@
 /*
+ * @(#)DigitList.java	1.26 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -44,7 +46,7 @@ package java.text;
  * @see  DecimalFormat
  * @see  ChoiceFormat
  * @see  MessageFormat
- * @version      1.25 02/06/02
+ * @version      1.26 12/03/01
  * @author       Mark Davis, Alan Liu
  */
 final class DigitList implements Cloneable {
@@ -511,6 +513,22 @@ final class DigitList implements Cloneable {
             hashcode = hashcode * 37 + digits[i];
 
         return hashcode;
+    }
+
+    /**
+     * Creates a copy of this object.
+     * @return a clone of this instance.
+     */
+    public Object clone() {
+	try {
+	    DigitList other = (DigitList) super.clone();
+	    byte[] newDigits = new byte[digits.length];
+	    System.arraycopy(digits, 0, newDigits, 0, digits.length);
+	    other.digits = newDigits;
+	    return other;
+	} catch (CloneNotSupportedException e) {
+	    throw new InternalError();
+	}
     }
 
     /**

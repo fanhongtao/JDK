@@ -1,4 +1,6 @@
 /*
+ * @(#)AffineTransform.java	1.65 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -26,7 +28,7 @@ import java.awt.Shape;
  *	[ 1 ]   [   0    0    1   ] [ 1 ]   [         1         ]
  * </pre>
  *
- * @version 1.63, 02/06/02
+ * @version 1.65, 12/03/01
  * @author Jim Graham
  */
 public class AffineTransform implements Cloneable, java.io.Serializable {
@@ -2070,9 +2072,9 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * previous operation before they can be transformed.
      * The coordinates are stored in the arrays starting at the specified
      * offset in the order <code>[x0, y0, x1, y1, ..., xn, yn]</code>.
-     * @param ptSrc the array containing the source point coordinates.
+     * @param srcPts the array containing the source point coordinates.
      * Each point is stored as a pair of x,&nbsp;y coordinates.
-     * @param ptDst the array into which the transformed point coordinates
+     * @param dstPts the array into which the transformed point coordinates
      * are returned.  Each point is stored as a pair of x,&nbsp;y
      * coordinates.
      * @param srcOff the offset to the first point to be transformed
@@ -2292,9 +2294,9 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * and stores the results into an array of doubles.
      * The coordinates are stored in the arrays starting at the specified
      * offset in the order <code>[x0, y0, x1, y1, ..., xn, yn]</code>.
-     * @param ptSrc the array containing the source point coordinates.
+     * @param srcPts the array containing the source point coordinates.
      * Each point is stored as a pair of x,&nbsp;y coordinates.
-     * @param ptDst the array into which the transformed point coordinates
+     * @param dstPts the array into which the transformed point coordinates
      * are returned.  Each point is stored as a pair of x,&nbsp;y
      * coordinates.
      * @param srcOff the offset to the first point to be transformed
@@ -2641,8 +2643,8 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    }
 	    while (--numPts >= 0) {
 		double x = srcPts[srcOff++] - M02;
-		dstPts[dstOff++] = (srcPts[srcOff++] - M12) / M01;
-		dstPts[dstOff++] = x / M10;
+		dstPts[dstOff++] = (srcPts[srcOff++] - M12) / M10;
+		dstPts[dstOff++] = x / M01;
 	    }
 	    return;
 	case (APPLY_SHEAR):
@@ -2652,8 +2654,8 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    }
 	    while (--numPts >= 0) {
 		double x = srcPts[srcOff++];
-		dstPts[dstOff++] = srcPts[srcOff++] / M01;
-		dstPts[dstOff++] = x / M10;
+		dstPts[dstOff++] = srcPts[srcOff++] / M10;
+		dstPts[dstOff++] = x / M01;
 	    }
 	    return;
 	case (APPLY_SCALE | APPLY_TRANSLATE):

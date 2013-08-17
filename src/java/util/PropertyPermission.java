@@ -1,4 +1,6 @@
 /*
+ * @(#)PropertyPermission.java	1.27 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -52,7 +54,7 @@ import java.security.*;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.25 02/02/06
+ * @version 1.27 01/12/03
  *
  * @author Roland Schemers
  * @since 1.2
@@ -141,7 +143,7 @@ public final class PropertyPermission extends BasicPermission {
      * More specifically, this method returns true if:<p>
      * <ul>
      * <li> <i>p</i> is an instanceof PropertyPermission,<p>
-     * <li> <i>p</i>'s actions are a proper subset of this
+     * <li> <i>p</i>'s actions are a subset of this
      * object's actions, and <p>
      * <li> <i>p</i>'s name is implied by this object's
      *      name. For example, "java.*" implies "java.home".
@@ -385,7 +387,7 @@ public final class PropertyPermission extends BasicPermission {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.25, 02/06/02
+ * @version 1.27, 12/03/01
  *
  * @author Roland Schemers
  *
@@ -415,7 +417,7 @@ implements Serializable
      */
 
     public PropertyPermissionCollection() {
-	permissions = new Hashtable();
+	permissions = new Hashtable(32);     // Capacity for default policy
 	all_allowed = false;
     }
 

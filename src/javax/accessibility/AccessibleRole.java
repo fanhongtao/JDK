@@ -1,4 +1,6 @@
 /*
+ * @(#)AccessibleRole.java	1.38 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -159,6 +161,12 @@ public class AccessibleRole extends AccessibleBundle {
      */
     public static final AccessibleRole FILLER
             = new AccessibleRole("filler");
+
+    /**
+     * A hypertext anchor
+     */
+    public static final AccessibleRole HYPERLINK
+	    = new AccessibleRole("hyperlink");
 
     /**
      * A small fixed size picture, typically used to decorate components.
@@ -472,6 +480,41 @@ public class AccessibleRole extends AccessibleBundle {
      */
     public static final AccessibleRole UNKNOWN
             = new AccessibleRole("unknown");
+
+    /**
+     * A STATUS_BAR is an simple component that can contain
+     * multiple labels of status information to the user.
+     */
+    public static final AccessibleRole STATUS_BAR
+	= new AccessibleRole("statusbar");
+    
+    /**
+     * A DATE_EDITOR is a component that allows users to edit
+     * java.util.Date and java.util.Time objects
+     */
+    public static final AccessibleRole DATE_EDITOR
+	= new AccessibleRole("dateeditor");
+    
+    /**
+     * A SPIN_BOX is a simple spinner component and its main use
+     * is for simple numbers.
+     */
+    public static final AccessibleRole SPIN_BOX
+	= new AccessibleRole("spinbox");
+    
+    /**
+     * A FONT_CHOOSER is a component that lets the user pick various
+     * attributes for fonts.
+     */
+    public static final AccessibleRole FONT_CHOOSER
+	= new AccessibleRole("fontchooser");
+    
+    /**
+     * A GROUP_BOX is a simple container that contains a border
+     * around it and contains components inside it.
+     */
+    public static final AccessibleRole GROUP_BOX
+	= new AccessibleRole("groupbox");
 
 // The following are all under consideration for potential future use.
 

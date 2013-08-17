@@ -1,5 +1,7 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)URLClassLoader.java	1.74 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,6 +32,7 @@ import java.security.Permission;
 import java.security.PermissionCollection;
 import sun.misc.Resource;
 import sun.misc.URLClassPath;
+import sun.net.www.ParseUtil;
 
 /**
  * This class loader is used to load classes and resources from a search
@@ -45,7 +48,7 @@ import sun.misc.URLClassPath;
  * access the URLs specified when the URLClassLoader was created.
  *
  * @author  David Connelly
- * @version 1.78, 06/12/03
+ * @version 1.74, 12/03/01
  * @since   1.2
  */
 public class URLClassLoader extends SecureClassLoader {
@@ -353,7 +356,7 @@ public class URLClassLoader extends SecureClassLoader {
      * on the URL search path having the specified name.
      *
      * @param name the resource name
-     * @exception if an I/O exception occurs
+     * @exception IOException if an I/O exception occurs
      * @return an <code>Enumeration</code> of <code>URL</code>s
      */
     public Enumeration findResources(final String name) throws IOException {
@@ -393,10 +396,8 @@ public class URLClassLoader extends SecureClassLoader {
 
     /**
      * Returns the permissions for the given codesource object.
-     * The implementation of this method first calls super.getPermissions,
-     * to get the permissions
-     * granted by the policy, and then adds additional permissions
-     * based on the URL of the codesource.
+     * The implementation of this method first calls super.getPermissions
+     * and then adds permissions based on the URL of the codesource.
      * <p>
      * If the protocol is "file"
      * and the path specifies a file, then permission to read that
@@ -417,15 +418,12 @@ public class URLClassLoader extends SecureClassLoader {
 	URL url = codesource.getLocation();
 
 	Permission p;
-	URLConnection urlConnection;
 
 	try {
-	    urlConnection = url.openConnection();
-	    p = urlConnection.getPermission();
+	    p = url.openConnection().getPermission();
 	} catch (java.io.IOException ioe) {
 
 	    p = null;
-	    urlConnection = null;
 	}
 
 	if (p instanceof FilePermission) {
@@ -439,15 +437,12 @@ public class URLClassLoader extends SecureClassLoader {
 	    }
 	} else if ((p == null) && (url.getProtocol().equals("file"))) {
 	    String path = url.getFile().replace('/', File.separatorChar);
+            path = ParseUtil.decode(path);
 	    if (path.endsWith(File.separator))
 		path += "-";
 	    p =  new FilePermission(path, "read");
 	} else {
-	    URL locUrl = url;
-	    if (urlConnection instanceof JarURLConnection) {
-		locUrl = ((JarURLConnection)urlConnection).getJarFileURL();
-	    }
-	    String host = locUrl.getHost();
+	    String host = url.getHost();
 	    if (host == null)
 		host = "localhost";
 	    p = new SocketPermission(host,"connect, accept");
@@ -547,17 +542,10 @@ final class FactoryURLClassLoader extends URLClassLoader {
 	// should go away once we've added support for exported packages.
 	SecurityManager sm = System.getSecurityManager();
 	if (sm != null) {
-            String cname = name.replace('/', '.');
-            if (cname.startsWith("[")) {
-                int b = cname.lastIndexOf('[') + 2;
-                if (b > 1 && b < cname.length()) {
-                    cname = cname.substring(b);
-                }
-            }
-            int i = cname.lastIndexOf('.');
-            if (i != -1) {
-                sm.checkPackageAccess(cname.substring(0, i));
-            }
+	    int i = name.lastIndexOf('.');
+	    if (i != -1) {
+		sm.checkPackageAccess(name.substring(0, i));
+	    }
 	}
 	return super.loadClass(name, resolve);
     }

@@ -1,15 +1,24 @@
 /*
+ * @(#)UIManager.java	1.102 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Window;
 import java.awt.Font;
 import java.awt.Color;
 import java.awt.Insets;
 import java.awt.Dimension;
+import java.awt.KeyboardFocusManager;
+import java.awt.KeyEventPostProcessor;
+
+import java.awt.event.KeyEvent;
+
+import java.security.AccessController;
 
 import javax.swing.plaf.ComponentUI;
 import javax.swing.border.Border;
@@ -32,40 +41,62 @@ import java.util.Hashtable;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.Vector;
+import java.util.Locale;
 
+import sun.security.action.GetPropertyAction;
 
 /**
  * This class keeps track of the current look and feel and its
  * defaults.
+ * The default look and feel class is chosen in the following manner:
+ * <ol>  
+ *   <li>If the system property <code>swing.defaultlaf</code> is
+ *       non-null, use it as the default look and feel class name.
+ *   <li>If the {@link java.util.Properties} file <code>swing.properties</code>
+ *       exists and contains the key <code>swing.defaultlaf</code>,
+ *       use its value as default look and feel class name. The location of
+ *       <code>swing.properties</code> may vary depending upon the
+ *       implementation of the Java platform. In Sun's implementation
+ *       this will reside in
+ *       <code>&amp;java.home>/lib/swing.properties</code>. Refer to
+ *       the release notes of the implementation you are using for
+ *       further details.
+ *   <li>Otherwise use the Java look and feel.
+ * </ol> 
  * <p>
  * We manage three levels of defaults: user defaults, look
- * and feel defaults, system defaults.  A call to UIManager.get()
- * checks all three levels in order and returns the first non-null 
- * value for a key, if any.  A call to UIManager.put() just
+ * and feel defaults, system defaults.  A call to <code>UIManager.get</code>
+ * checks all three levels in order and returns the first non-<code>null</code> 
+ * value for a key, if any.  A call to <code>UIManager.put</code> just
  * affects the user defaults.  Note that a call to 
- * setLookAndFeel() doesn't affect the user defaults, it just
+ * <code>setLookAndFeel</code> doesn't affect the user defaults, it just
  * replaces the middle defaults "level".
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.85 02/06/02
+ * @see javax.swing.plaf.metal
+ *
+ * @version 1.102 12/03/01
  * @author Thomas Ball
  * @author Hans Muller
  */
 public class UIManager implements Serializable 
 {
     /**
-     * This class defines the state managed by the UIManager.  For 
+     * This class defines the state managed by the <code>UIManager</code>.  For 
      * Swing applications the fields in this class could just as well
-     * be static members of UIManager however we give them "AppContext"
+     * be static members of <code>UIManager</code> however we give them
+     * "AppContext"
      * scope instead so that applets (and potentially multiple lightweight
-     * applications running in a single VM) have their own state. For 
-     * example an applet can it's look and feel, see setLookAndFeel().
+     * applications running in a single VM) have their own state. For example,
+     * an applet can alter its look and feel, see <code>setLookAndFeel</code>.
      * Doing so has no affect on other applets (or the browser).
      */
     private static class LAFState 
@@ -90,7 +121,7 @@ public class UIManager implements Serializable
 
 
     /**
-     * The AppContext key for our one LAFState instance.
+     * The <code>AppContext</code> key for our one <code>LAFState</code> instance.
      */
     private static final Object lafStateACKey = new StringBuffer("LookAndFeel State");
 
@@ -112,8 +143,9 @@ public class UIManager implements Serializable
 
 
     /**
-     * Return the LAFState object, lazily create one if neccessary.  All access
-     * to the LAFState fields is done via this method, for example:
+     * Return the <code>LAFState</code> object, lazily create one if necessary.
+     * All access to the <code>LAFState</code> fields is done via this method,
+     * for example:
      * <pre>
      *     getLAFState().initialized = true;
      * </pre>
@@ -152,6 +184,7 @@ public class UIManager implements Serializable
     private static final String auxiliaryLAFsKey = "swing.auxiliarylaf";
     private static final String multiplexingLAFKey = "swing.plaf.multiplexinglaf";
     private static final String installedLAFsKey = "swing.installedlafs";
+    private static final String disableMnemonicKey = "swing.disablenavaids";
 
     /**
      * Return a swing.properties file key for the attribute of specified 
@@ -168,22 +201,18 @@ public class UIManager implements Serializable
      * filename if java.home isn't defined.  
      */
     private static String makeSwingPropertiesFilename() {
-        final String homeDir[] = new String[]{"<java.home undefined>"};
-	SwingUtilities.doPrivileged(new Runnable() {
-	    public void run() {
-		homeDir[0] = System.getProperty("java.home", "<java.home undefined>");
-	    }
-	});
         String sep = File.separator;
-        return homeDir[0] + sep + "lib" + sep + "swing.properties";
+	return AccessController.doPrivileged(new GetPropertyAction(
+                    "java.home", "<java.home undefined>")) + sep + "lib" +
+                    sep + "swing.properties";
     }
 
 
     /** 
-     * Provide a little information about an installed LookAndFeel
-     * for the sake of configuring a menu or for initial application 
-     * set up.
-     * 
+     * Provides a little information about an installed
+     * <code>LookAndFeel</code> for the sake of configuring a menu or
+     * for initial application set up.
+     *
      * @see UIManager#getInstalledLookAndFeels
      * @see LookAndFeel
      */
@@ -192,11 +221,13 @@ public class UIManager implements Serializable
         private String className;
 
         /**
-         * Constructs an UIManager$LookAndFeelInfo object.
+         * Constructs a <code>UIManager</code>s 
+         * <code>LookAndFeelInfo</code> object.
          *
-         * @param name      a String specifying the name of the look and feel
-         * @param className a String specifiying the name of the class that
-         *                  implements the look and feel
+         * @param name      a <code>String</code> specifying the name of
+         *			the look and feel
+         * @param className a <code>String</code> specifiying the name of
+         *			the class that implements the look and feel
          */
         public LookAndFeelInfo(String name, String className) {
             this.name = name;
@@ -206,7 +237,7 @@ public class UIManager implements Serializable
         /**
          * Returns the name of the look and feel in a form suitable
          * for a menu or other presentation
-         * @return a String containing the name
+         * @return a <code>String</code> containing the name
          * @see LookAndFeel#getName
          */
         public String getName() {
@@ -215,7 +246,8 @@ public class UIManager implements Serializable
 
         /**
          * Returns the name of the class that implements this look and feel.
-         * @return the name of the class that implements this LookAndFeel
+         * @return the name of the class that implements this 
+         *		<code>LookAndFeel</code>
          * @see LookAndFeel
          */
         public String getClassName() {
@@ -226,7 +258,7 @@ public class UIManager implements Serializable
          * Returns a string that displays and identifies this
          * object's properties.
          *
-         * @return a String representation of this object
+         * @return a <code>String</code> representation of this object
          */
         public String toString() {
             return getClass().getName() + "[" + getName() + " " + getClassName() + "]";
@@ -235,7 +267,8 @@ public class UIManager implements Serializable
 
 
     /**
-     * The default value of installedLAFS is used when no swing.properties
+     * The default value of <code>installedLAFS</code> is used when no
+     * swing.properties
      * file is available or if the file doesn't contain a "swing.installedlafs"
      * property.   
      * 
@@ -249,19 +282,20 @@ public class UIManager implements Serializable
 
 
     /** 
-     * Return an array of objects that provide some information about the
-     * LookAndFeel implementations that have been installed with this 
-     * software development kit.  The LookAndFeel info objects can be used
-     * by an application to construct a menu of look and feel options for 
+     * Returns an array of objects that provide some information about the
+     * <code>LookAndFeel</code> implementations that have been installed with this 
+     * software development kit.  The <code>LookAndFeel</code> info objects can
+     * used by an application to construct a menu of look and feel options for 
      * the user or to set the look and feel at start up time.  Note that 
-     * we do not return the LookAndFeel classes themselves here to avoid the
-     * cost of unnecessarily loading them.
+     * we do not return the <code>LookAndFeel</code> classes themselves here to
+     * avoid the cost of unnecessarily loading them.
      * <p>
-     * Given a LookAndFeelInfo object one can set the current look and feel
-     * like this:
+     * Given a <code>LookAndFeelInfo</code> object one can set the current
+     * look and feel like this:
      * <pre>
      * UIManager.setLookAndFeel(info.getClassName());
      * </pre>
+     * @return an array of <code>LookAndFeelInfo</code> objects
      * 
      * @see #setLookAndFeel
      */
@@ -275,7 +309,8 @@ public class UIManager implements Serializable
 
 
     /**
-     * Replaces the current array of installed LookAndFeelInfos.
+     * Replaces the current array of installed <code>LookAndFeelInfos</code>.
+     * @param infos  new array of <code>LookAndFeelInfo</code> objects
      * 
      * @see #getInstalledLookAndFeels
      */
@@ -291,8 +326,8 @@ public class UIManager implements Serializable
     /**
      * Adds the specified look and feel to the current array and
      * then calls {@link #setInstalledLookAndFeels}.
-     * @param info a LookAndFeelInfo object that names the look and feel
-     *        and identifies that class that implements it
+     * @param info a <code>LookAndFeelInfo</code> object that names the
+     *		look and feel and identifies that class that implements it
      */
     public static void installLookAndFeel(LookAndFeelInfo info) {
         LookAndFeelInfo[] infos = getInstalledLookAndFeels();
@@ -307,9 +342,10 @@ public class UIManager implements Serializable
      * Creates a new look and feel and adds it to the current array.
      * Then calls {@link #setInstalledLookAndFeels}.
      *
-     * @param name       a String specifying the name of the look and feel
-     * @param className  a String specifying the class name that implements the
-     *                   look and feel
+     * @param name      a <code>String</code> specifying the name of the
+     *			look and feel
+     * @param className a <code>String</code> specifying the class name
+     *			that implements the look and feel
      */
     public static void installLookAndFeel(String name, String className) {
         installLookAndFeel(new LookAndFeelInfo(name, className));
@@ -317,9 +353,9 @@ public class UIManager implements Serializable
 
 
     /**
-     * Returns The current default look and feel, or null.
+     * Returns the current default look and feel or <code>null</code>.
      *
-     * @return The current default look and feel, or null.
+     * @return the current default look and feel, or <code>null</code>
      * @see #setLookAndFeel
      */
     public static LookAndFeel getLookAndFeel() {
@@ -329,12 +365,14 @@ public class UIManager implements Serializable
     
 
     /**
-     * Set the current default look and feel using a LookAndFeel object.  
+     * Sets the current default look and feel using a
+     * <code>LookAndFeel</code> object.  
      * <p>
      * This is a JavaBeans bound property.
      *
-     * @param newLookAndFeel the LookAndFeel object
-     * @exception UnsupportedLookAndFeelException If <code>lnf.isSupportedLookAndFeel()</code> is false.
+     * @param newLookAndFeel the <code>LookAndFeel</code> object
+     * @exception UnsupportedLookAndFeelException if
+     *		<code>lnf.isSupportedLookAndFeel()</code> is false
      * @see #getLookAndFeel
      */
     public static void setLookAndFeel(LookAndFeel newLookAndFeel) 
@@ -364,14 +402,17 @@ public class UIManager implements Serializable
 
     
     /**
-     * Set the current default look and feel using a class name.
+     * Sets the current default look and feel using a class name.
      *
      * @param className  a string specifying the name of the class that implements
      *        the look and feel
-     * @exception ClassNotFoundException If the LookAndFeel class could not be found.
-     * @exception InstantiationException If a new instance of the class couldn't be creatd.
-     * @exception IllegalAccessException If the class or initializer isn't accessible. 
-     * @exception UnsupportedLookAndFeelException If <code>lnf.isSupportedLookAndFeel()</code> is false.
+     * @exception ClassNotFoundException if the <code>LookAndFeel</code>
+     *		 class could not be found
+     * @exception InstantiationException if a new instance of the class
+     *		couldn't be created
+     * @exception IllegalAccessException if the class or initializer isn't accessible
+     * @exception UnsupportedLookAndFeelException if
+     *		<code>lnf.isSupportedLookAndFeel()</code> is false
      */
     public static void setLookAndFeel(String className) 
         throws ClassNotFoundException, 
@@ -385,31 +426,30 @@ public class UIManager implements Serializable
 
 
     /**
-     * Returns the name of the LookAndFeel class that implements
-     * the native systems look and feel if there is one,
-     * otherwise the name of the default cross platform LookAndFeel
+     * Returns the name of the <code>LookAndFeel</code> class that implements
+     * the native systems look and feel if there is one, otherwise
+     * the name of the default cross platform <code>LookAndFeel</code>
      * class.
+     * 
+     * @return the <code>String</code> of the <code>LookAndFeel</code>
+     *		class
      * 
      * @see #setLookAndFeel
      * @see #getCrossPlatformLookAndFeelClassName
      */
     public static String getSystemLookAndFeelClassName() {
-        final String osName[] = new String[]{""};
-	SwingUtilities.doPrivileged(new Runnable() {
-	    public void run() {
-		osName[0] = System.getProperty("os.name");
-	    }
-	});
+	String osName = (String)AccessController.doPrivileged(
+                             new GetPropertyAction("os.name"));
 
-        if (osName[0] != null) {
-            if (osName[0].indexOf("Windows") != -1) {
+        if (osName != null) {
+            if (osName.indexOf("Windows") != -1) {
                 return "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
             }
-            else if ((osName[0].indexOf("Solaris") != -1) || 
-		     (osName[0].indexOf("SunOS") != -1)) {
+            else if ((osName.indexOf("Solaris") != -1) || 
+		     (osName.indexOf("SunOS") != -1)) {
                 return "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
             } 
-	    else if (osName[0].indexOf("Mac") != -1 ) {
+	    else if (osName.indexOf("Mac") != -1 ) {
                 return "com.sun.java.swing.plaf.mac.MacLookAndFeel";
             }
         }
@@ -418,7 +458,7 @@ public class UIManager implements Serializable
 
 
     /**
-     * Returns the name of the LookAndFeel class that implements
+     * Returns the name of the <code>LookAndFeel</code> class that implements
      * the default cross platform look and feel -- the Java
      * Look and Feel (JLF).
      * 
@@ -434,7 +474,7 @@ public class UIManager implements Serializable
     /**
      * Returns the default values for this look and feel.
      *
-     * @return an UIDefaults object containing the default values
+     * @return a <code>UIDefaults</code> object containing the default values
      */
     public static UIDefaults getDefaults() {
         maybeInitialize();
@@ -444,57 +484,135 @@ public class UIManager implements Serializable
     /**
      * Returns a drawing font from the defaults table.
      *
-     * @param key  an Object specifying the font
-     * @return the Font object
+     * @param key  an <code>Object</code> specifying the font
+     * @return the <code>Font</code> object
      */
     public static Font getFont(Object key) { 
         return getDefaults().getFont(key); 
     }
 
     /**
+     * Returns a drawing font from the defaults table that is appropriate
+     * for the given locale.
+     *
+     * @param key  an <code>Object</code> specifying the font
+     * @param l the <code>Locale</code> for which the font is desired
+     * @return the <code>Font</code> object
+     * @since 1.4
+     */
+    public static Font getFont(Object key, Locale l) { 
+        return getDefaults().getFont(key,l); 
+    }
+
+    /**
      * Returns a drawing color from the defaults table.
      *
-     * @param key  an Object specifying the color
-     * @return the Color object
+     * @param key  an <code>Object</code> specifying the color
+     * @return the <code>Color</code> object
      */
     public static Color getColor(Object key) { 
         return getDefaults().getColor(key); 
     }
 
     /**
-     * Returns an Icon from the defaults table.
+     * Returns a drawing color from the defaults table that is appropriate
+     * for the given locale.
      *
-     * @param key  an Object specifying the icon
-     * @return the Icon object
+     * @param key  an <code>Object</code> specifying the color
+     * @param l the <code>Locale</code> for which the color is desired
+     * @return the <code>Color</code> object
+     * @since 1.4
+     */
+    public static Color getColor(Object key, Locale l) { 
+        return getDefaults().getColor(key,l); 
+    }
+
+    /**
+     * Returns an <code>Icon</code> from the defaults table.
+     *
+     * @param key  an <code>Object</code> specifying the icon
+     * @return the <code>Icon</code> object
      */
     public static Icon getIcon(Object key) { 
         return getDefaults().getIcon(key); 
     }
 
     /**
+     * Returns an <code>Icon</code> from the defaults table that is appropriate
+     * for the given locale.
+     *
+     * @param key  an <code>Object</code> specifying the icon
+     * @param l the <code>Locale</code> for which the icon is desired
+     * @return the <code>Icon</code> object
+     * @since 1.4
+     */
+    public static Icon getIcon(Object key, Locale l) { 
+        return getDefaults().getIcon(key,l); 
+    }
+
+    /**
      * Returns a border from the defaults table.
      *
-     * @param key  an Object specifying the border
-     * @return the Border object
+     * @param key  an <code>Object</code> specifying the border
+     * @return the <code>Border</code> object
      */
     public static Border getBorder(Object key) { 
         return getDefaults().getBorder(key); 
     }
 
     /**
+     * Returns a border from the defaults table that is appropriate
+     * for the given locale.
+     *
+     * @param key  an <code>Object</code> specifying the border
+     * @param l the <code>Locale</code> for which the border is desired
+     * @return the <code>Border</code> object
+     * @since 1.4
+     */
+    public static Border getBorder(Object key, Locale l) { 
+        return getDefaults().getBorder(key,l); 
+    }
+
+    /**
      * Returns a string from the defaults table.
      *
-     * @param key  an Object specifying the string
-     * @return the String
+     * @param key  an <code>Object</code> specifying the string
+     * @return the <code>String</code>
      */
     public static String getString(Object key) { 
         return getDefaults().getString(key); 
     }
 
     /**
-     * Returns an int from the defaults table.
+     * Returns a string from the defaults table that is appropriate for the
+     * given locale.
      *
-     * @param key  an Object specifying the int
+     * @param key  an <code>Object</code> specifying the string
+     * @param l the <code>Locale</code> for which the string is desired
+     * @return the <code>String</code>
+     */
+    public static String getString(Object key, Locale l) { 
+        return getDefaults().getString(key,l); 
+    }
+
+    /**
+     * Returns a string from the defaults table that is appropriate for the
+     * given locale.
+     *
+     * @param key  an <code>Object</code> specifying the string
+     * @param c Component used to determine Locale, null implies use the
+     *          default Locale.
+     * @return the <code>String</code>
+     */
+    static String getString(Object key, Component c) { 
+        Locale l = (c == null) ? Locale.getDefault() : c.getLocale();
+        return getString(key, l);
+    }
+
+    /**
+     * Returns an integer from the defaults table.
+     *
+     * @param key  an <code>Object</code> specifying the int
      * @return the int
      */
     public static int getInt(Object key) {
@@ -502,41 +620,146 @@ public class UIManager implements Serializable
     }
 
     /**
-     * Returns an Insets object from the defaults table.
+     * Returns an integer from the defaults table that is appropriate
+     * for the given locale.
      *
-     * @param key  an Object specifying the Insets object
-     * @return the Insets object
+     * @param key  an <code>Object</code> specifying the int
+     * @param l the <code>Locale</code> for which the int is desired
+     * @return the int
+     * @since 1.4
+     */
+    public static int getInt(Object key, Locale l) {
+        return getDefaults().getInt(key,l);
+    }
+
+    /**
+     * Returns an integer from the defaults table. If <code>key</code> does
+     * not map to a valid <code>Integer</code>, or can not be convered from
+     * a <code>String</code> to an integer, <code>default</code> is
+     * returned.
+     *
+     * @param key  an <code>Object</code> specifying the int
+     * @param defaultValue Returned value if <code>key</code> is not available,
+     *                     or is not an Integer
+     * @return the int
+     */
+    static int getInt(Object key, int defaultValue) {
+        Object value = UIManager.get(key);
+
+        if (value instanceof Integer) {
+            return ((Integer)value).intValue();
+        }
+        if (value instanceof String) {
+            try {
+                return Integer.parseInt((String)value);
+            } catch (NumberFormatException nfe) {}
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Returns a boolean from the defaults table which is associated with
+     * the key value. If the key is not found or the key doesn't represent
+     * a boolean value then false will be returned.
+     *
+     * @param key  an <code>Object</code> specifying the key for the desired boolean value
+     * @return the boolean value corresponding to the key
+     * @since 1.4
+     */
+    public static boolean getBoolean(Object key) {
+        return getDefaults().getBoolean(key);
+    }
+
+    /**
+     * Returns a boolean from the defaults table which is associated with
+     * the key value and the given <code>Locale</code>. If the key is not
+     * found or the key doesn't represent
+     * a boolean value then false will be returned.
+     *
+     * @param key  an <code>Object</code> specifying the key for the desired 
+     *             boolean value
+     * @param l the <code>Locale</code> for which the boolean is desired
+     * @return the boolean value corresponding to the key
+     * @since 1.4
+     */
+    public static boolean getBoolean(Object key, Locale l) {
+        return getDefaults().getBoolean(key,l);
+    }
+
+    /**
+     * Returns an <code>Insets</code> object from the defaults table.
+     *
+     * @param key  an <code>Object</code> specifying the <code>Insets</code> object
+     * @return the <code>Insets</code> object
      */
     public static Insets getInsets(Object key) {
         return getDefaults().getInsets(key);
     }
 
     /**
+     * Returns an <code>Insets</code> object from the defaults table that is 
+     * appropriate for the given locale.
+     *
+     * @param key  an <code>Object</code> specifying the <code>Insets</code> object
+     * @param l the <code>Locale</code> for which the object is desired
+     * @return the <code>Insets</code> object
+     * @since 1.4
+     */
+    public static Insets getInsets(Object key, Locale l) {
+        return getDefaults().getInsets(key,l);
+    }
+
+    /**
      * Returns a dimension from the defaults table.
      *
-     * @param key  an Object specifying the dimension object
-     * @return the Dimension object
+     * @param key  an <code>Object</code> specifying the dimension object
+     * @return the <code>Dimension</code> object
      */
     public static Dimension getDimension(Object key) {
         return getDefaults().getDimension(key);
     }
 
     /**
+     * Returns a dimension from the defaults table that is appropriate
+     * for the given locale.
+     *
+     * @param key  an <code>Object</code> specifying the dimension object
+     * @param l the <code>Locale</code> for which the object is desired
+     * @return the <code>Dimension</code> object
+     * @since 1.4
+     */
+    public static Dimension getDimension(Object key, Locale l) {
+        return getDefaults().getDimension(key,l);
+    }
+
+    /**
      * Returns an object from the defaults table.
      *
-     * @param key  an Object specifying the desired object
-     * @return the Object
+     * @param key  an <code>Object</code> specifying the desired object
+     * @return the <code>Object</code>
      */
     public static Object get(Object key) { 
         return getDefaults().get(key); 
     }
 
     /**
+     * Returns an object from the defaults table that is appropriate for
+     * the given locale.
+     *
+     * @param key  an <code>Object</code> specifying the desired object
+     * @param l the <code>Locale</code> for which the object is desired
+     * @return the <code>Object</code>
+     */
+    public static Object get(Object key, Locale l) { 
+        return getDefaults().get(key,l); 
+    }
+
+    /**
      * Stores an object in the defaults table.
      *
-     * @param key    an Object specifying the retrieval key
-     * @param value  the Object to store
-     * @return the Object returned by {@link UIDefaults#put}
+     * @param key    an <code>Object</code> specifying the retrieval key
+     * @param value  the <code>Object</code> to store
+     * @return the <code>Object</code> returned by {@link UIDefaults#put}
      */
     public static Object put(Object key, Object value) { 
         return getDefaults().put(key, value); 
@@ -545,8 +768,8 @@ public class UIManager implements Serializable
     /**
      * Returns the L&F object that renders the target component.
      *
-     * @param target  the JComponent to render
-     * @return the ComponentUI object that renders the target component
+     * @param target  the <code>JComponent</code> to render
+     * @return the <code>ComponentUI</code> object that renders the target component
      */
     public static ComponentUI getUI(JComponent target) {
         maybeInitialize();
@@ -567,7 +790,7 @@ public class UIManager implements Serializable
     /**
      * Returns the default values for this look and feel.
      *
-     * @return an UIDefaults object containing the default values
+     * @return an <code>UIDefaults</code> object containing the default values
      */
     public static UIDefaults getLookAndFeelDefaults() {
         maybeInitialize();
@@ -575,7 +798,7 @@ public class UIManager implements Serializable
     }
 
     /**
-     * Find the Multiplexing LookAndFeel.
+     * Finds the Multiplexing <code>LookAndFeel</code>.
      */
     private static LookAndFeel getMultiLookAndFeel() {
 	LookAndFeel multiLookAndFeel = getLAFState().multiLookAndFeel;
@@ -593,16 +816,16 @@ public class UIManager implements Serializable
     }
 
     /**
-     * Add a LookAndFeel to the list of auxiliary look and feels.  The
-     * auxiliary look and feels tell the multiplexing look and feel what
-     * other LookAndFeel classes for a component instance are to be used 
-     * in addition to the default LookAndFeel class when creating a 
+     * Adds a <code>LookAndFeel</code> to the list of auxiliary look and feels.
+     * The auxiliary look and feels tell the multiplexing look and feel what
+     * other <code>LookAndFeel</code> classes for a component instance are to be used 
+     * in addition to the default <code>LookAndFeel</code> class when creating a 
      * multiplexing UI.  The change will only take effect when a new
      * UI class is created or when the default look and feel is changed
      * on a component instance.
      * <p>Note these are not the same as the installed look and feels.
      *
-     * @param laf the LookAndFeel object
+     * @param laf the <code>LookAndFeel</code> object
      * @see #removeAuxiliaryLookAndFeel
      * @see #setLookAndFeel
      * @see #getAuxiliaryLookAndFeels
@@ -628,15 +851,15 @@ public class UIManager implements Serializable
     }
 
     /**
-     * Remove a LookAndFeel from the list of auxiliary look and feels.  The
-     * auxiliary look and feels tell the multiplexing look and feel what
-     * other LookAndFeel classes for a component instance are to be used 
-     * in addition to the default LookAndFeel class when creating a 
+     * Removes a <code>LookAndFeel</code> from the list of auxiliary look and feels.
+     * The auxiliary look and feels tell the multiplexing look and feel what
+     * other <code>LookAndFeel</code> classes for a component instance are to be used 
+     * in addition to the default <code>LookAndFeel</code> class when creating a 
      * multiplexing UI.  The change will only take effect when a new
      * UI class is created or when the default look and feel is changed
      * on a component instance.
      * <p>Note these are not the same as the installed look and feels.
-     * @return true if the LookAndFeel was removed from the list
+     * @return true if the <code>LookAndFeel</code> was removed from the list
      * @see #removeAuxiliaryLookAndFeel
      * @see #getAuxiliaryLookAndFeels
      * @see #setLookAndFeel
@@ -667,12 +890,14 @@ public class UIManager implements Serializable
     }
 
     /**
-     * Return the list of auxiliary look and feels (can be null).  The
-     * auxiliary look and feels tell the multiplexing look and feel what
-     * other LookAndFeel classes for a component instance are to be used 
-     * in addition to the default LookAndFeel class when creating a 
+     * Returns the list of auxiliary look and feels (can be <code>null</code>).
+     * The auxiliary look and feels tell the multiplexing look and feel what
+     * other <code>LookAndFeel</code> classes for a component instance are 
+     * to be used in addition to the default LookAndFeel class when creating a 
      * multiplexing UI.  
      * <p>Note these are not the same as the installed look and feels.
+     *
+     * @return list of auxiliary <code>LookAndFeel</code>s or <code>null</code>
      * @see #addAuxiliaryLookAndFeel
      * @see #removeAuxiliaryLookAndFeel
      * @see #setLookAndFeel
@@ -696,10 +921,10 @@ public class UIManager implements Serializable
 
 
     /**
-     * Add a PropertyChangeListener to the listener list.
+     * Adds a <code>PropertyChangeListener</code> to the listener list.
      * The listener is registered for all properties.
      *
-     * @param listener  The PropertyChangeListener to be added
+     * @param listener  the <code>PropertyChangeListener</code> to be added
      * @see java.beans.PropertyChangeSupport
      */
     public static void addPropertyChangeListener(PropertyChangeListener listener) 
@@ -711,11 +936,11 @@ public class UIManager implements Serializable
 
 
     /**
-     * Remove a PropertyChangeListener from the listener list.
-     * This removes a PropertyChangeListener that was registered
+     * Removes a <code>PropertyChangeListener</code> from the listener list.
+     * This removes a <code>PropertyChangeListener</code> that was registered
      * for all properties.
      *
-     * @param listener  The PropertyChangeListener to be removed
+     * @param listener  the <code>PropertyChangeListener</code> to be removed
      * @see java.beans.PropertyChangeSupport
      */
     public static void removePropertyChangeListener(PropertyChangeListener listener) 
@@ -725,6 +950,20 @@ public class UIManager implements Serializable
 	}
     }
 
+
+    /**
+     * Returns an array of all the <code>PropertyChangeListener</code>s added
+     * to this UIManager with addPropertyChangeListener().
+     *
+     * @return all of the <code>PropertyChangeListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public static PropertyChangeListener[] getPropertyChangeListeners() {
+        synchronized(classLock) {
+            return getLAFState().changeSupport.getPropertyChangeListeners();
+        }
+    }
 
     private static Properties loadSwingProperties()
     {
@@ -741,10 +980,14 @@ public class UIManager implements Serializable
 		public void run() {
 		    try {
 			File file = new File(makeSwingPropertiesFilename());
-			// InputStream has been buffered in Properties class
-			FileInputStream ins = new FileInputStream(file);
-			props.load(ins);
-			ins.close();
+
+                        if (file.exists()) {
+                            // InputStream has been buffered in Properties
+                            // class
+                            FileInputStream ins = new FileInputStream(file);
+                            props.load(ins);
+                            ins.close();
+                        }
 		    } 
 		    catch (Exception e) {
 			// No such file, or file is otherwise non-readable.
@@ -756,6 +999,7 @@ public class UIManager implements Serializable
 		    checkProperty(props, auxiliaryLAFsKey);
 		    checkProperty(props, multiplexingLAFKey);
 		    checkProperty(props, installedLAFsKey);
+		    checkProperty(props, disableMnemonicKey);
 		}
 	    });
 	    return props;
@@ -776,7 +1020,7 @@ public class UIManager implements Serializable
 
     /**
      * If a swing.properties file exist and it has a swing.installedlafs property
-     * then initialize the installedLAFs field.
+     * then initialize the <code>installedLAFs</code> field.
      * 
      * @see #getInstalledLookAndFeels
      */
@@ -821,7 +1065,7 @@ public class UIManager implements Serializable
     /**
      * If the user has specified a default look and feel, use that.  
      * Otherwise use the look and feel that's native to this platform.
-     * If this code is called after the application has expclicitly
+     * If this code is called after the application has explicitly
      * set it's look and feel, do nothing.
      *
      * @see #maybeInitialize
@@ -908,7 +1152,7 @@ public class UIManager implements Serializable
 
     /* 
      * This method is called before any code that depends on the 
-     * AppContext specific LAFState object runs.  When the AppContext
+     * <code>AppContext</code> specific LAFState object runs.  When the AppContext
      * corresponds to a set of applets it's possible for this method 
      * to be re-entered, which is why we grab a lock before calling
      * initialize().
@@ -943,6 +1187,35 @@ public class UIManager implements Serializable
 	    // Make sure to always re-enable the JIT.
 	    java.lang.Compiler.enable();
 	}
+
+        // Enable the Swing default LayoutManager.
+	if (FocusManager.isFocusManagerEnabled()) {
+	    KeyboardFocusManager.getCurrentKeyboardFocusManager().
+		setDefaultFocusTraversalPolicy(
+                    new LayoutFocusTraversalPolicy());
+	}
+        // Install a hook that will be invoked if no one consumes the
+        // KeyEvent.  If the source isn't a JComponent this will process
+        // key bindings, if the source is a JComponent it implies that
+        // processKeyEvent was already invoked and thus no need to process
+        // the bindings again, unless the Component is disabled, in which
+        // case KeyEvents will no longer be dispatched to it so that we
+        // handle it here.
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().
+                addKeyEventPostProcessor(new KeyEventPostProcessor() {
+                    public boolean postProcessKeyEvent(KeyEvent e) {
+                        Component c = e.getComponent();
+
+                        if ((!(c instanceof JComponent) ||
+                             (c != null && !((JComponent)c).isEnabled())) &&
+                                JComponent.KeyboardState.shouldProcess(e) &&
+                                SwingUtilities.processKeyBindings(e)) {
+                            e.consume();
+                            return true;
+                        }
+                        return false;
+                    }
+                });
     }
 }
 

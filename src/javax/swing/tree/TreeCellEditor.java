@@ -1,4 +1,6 @@
 /*
+ * @(#)TreeCellEditor.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,7 +17,7 @@ import javax.swing.JTree;
   *
   * @see javax.swing.JTree
   *
-  * @version 1.11 02/06/02
+  * @version 1.12 12/03/01
   * @author Scott Violet
   */
 
@@ -30,9 +32,9 @@ public interface TreeCellEditor extends CellEditor
      * Component hierarchy.  Once installed in the client's hierarchy
      * this component will then be able to draw and receive user input.
      *
-     * @param	table		the JTree that is asking the editor to edit
-     *				This parameter can be null.
-     * @param	value		the value of the cell to be edited.
+     * @param	tree		the JTree that is asking the editor to edit;
+     *				this parameter can be null
+     * @param	value		the value of the cell to be edited
      * @param	isSelected	true is the cell is to be renderer with
      *				selection highlighting
      * @param	expanded	true if the node is expanded

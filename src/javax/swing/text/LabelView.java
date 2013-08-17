@@ -1,4 +1,6 @@
 /*
+ * @(#)LabelView.java	1.60 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,12 +10,13 @@ import java.awt.*;
 import javax.swing.event.*;
 
 /**
- * A LabelView is a styled chunk of text that represents a view
- * mapped over an element in the text model.  It caches the
- * character level attributes used for rendering.
+ * A <code>LabelView</code> is a styled chunk of text
+ * that represents a view mapped over an element in the
+ * text model.  It caches the character level attributes
+ * used for rendering.
  *
  * @author Timothy Prinzing
- * @version 1.57 02/06/02
+ * @version 1.60 12/03/01
  */
 public class LabelView extends GlyphView implements TabableView {
 
@@ -29,7 +32,7 @@ public class LabelView extends GlyphView implements TabableView {
     /**
      * Synchronize the view's cached values with the model.
      * This causes the font, metrics, color, etc to be 
-     * recached if the cache has been invalidated.
+     * re-cached if the cache has been invalidated.
      */
     final void sync() {
 	if (font == null) {
@@ -38,15 +41,29 @@ public class LabelView extends GlyphView implements TabableView {
     }
     
     /**
-     * Set whether or not the view is underlined.
+     * Sets whether or not the view is underlined.
+     * Note that this setter is protected and is really
+     * only meant if you need to update some additional
+     * state when set.
+     *
+     * @param u true if the view is underlined, otherwise
+     *          false
+     * @see #isUnderline
      */
     protected void setUnderline(boolean u) {
 	underline = u;
     }
 
     /**
-     * Set whether or not the view has a strike/line
+     * Sets whether or not the view has a strike/line
      * through it.
+     * Note that this setter is protected and is really
+     * only meant if you need to update some additional
+     * state when set.
+     *
+     * @param u true if the view has a strike/line
+     *          through it, otherwise false
+     * @see #isStrikeThrough
      */
     protected void setStrikeThrough(boolean s) {
 	strike = s;
@@ -54,23 +71,37 @@ public class LabelView extends GlyphView implements TabableView {
 
 
     /**
-     * Set whether or not the view represents a 
+     * Sets whether or not the view represents a 
      * superscript.
+     * Note that this setter is protected and is really
+     * only meant if you need to update some additional
+     * state when set.
+     *
+     * @param u true if the view represents a
+     *          superscript, otherwise false
+     * @see #isSuperscript
      */
     protected void setSuperscript(boolean s) {
 	superscript = s;
     }
 
     /**
-     * Set whether or not the view represents a 
+     * Sets whether or not the view represents a 
      * subscript.
+     * Note that this setter is protected and is really
+     * only meant if you need to update some additional
+     * state when set.
+     *
+     * @param u true if the view represents a
+     *          subscript, otherwise false
+     * @see #isSubscript
      */
     protected void setSubscript(boolean s) {
 	subscript = s;
     }
 
     /**
-     * Set the cached properties from the attributes.
+     * Sets the cached properties from the attributes.
      */
     protected void setPropertiesFromAttributes() {
 	AttributeSet attr = getAttributes();
@@ -96,7 +127,7 @@ public class LabelView extends GlyphView implements TabableView {
      }
 
     /**
-     * Fetch the FontMetrics used for this view.
+     * Fetches the <code>FontMetrics</code> used for this view.
      * @deprecated FontMetrics are not used for glyph rendering
      *  when running in the Java2 SDK.
      */
@@ -106,10 +137,11 @@ public class LabelView extends GlyphView implements TabableView {
     }
 
     /**
-     * Fetch the background color to use to render the
-     * glyphs.  If there is no background color, null should
-     * be returned.  This is implemented to return a cached
-     * background color.
+     * Fetches the background color to use to render the glyphs.
+     * This is implemented to return a cached background color,
+     * which defaults to <code>null</code>.
+     *
+     * @return the cached background color
      */
     public Color getBackground() {
 	sync();
@@ -117,10 +149,11 @@ public class LabelView extends GlyphView implements TabableView {
     }
 
     /**
-     * Fetch the foreground color to use to render the
-     * glyphs.  If there is no foreground color, null should
-     * be returned.  This is implemented to return a cached
-     * foreground color.
+     * Fetches the foreground color to use to render the glyphs.
+     * This is implemented to return a cached foreground color,
+     * which defaults to <code>null</code>.
+     *
+     * @return the cached foreground color
      */
     public Color getForeground() {
 	sync();
@@ -128,9 +161,10 @@ public class LabelView extends GlyphView implements TabableView {
     }
 
     /**
-     * Fetch the font that the glyphs should be based
-     * upon.  This is implemented to return a cached
-     * font.
+     * Fetches the font that the glyphs should be based upon.
+     * This is implemented to return a cached font.
+     *
+     * @return the cached font
      */
      public Font getFont() {
 	sync();
@@ -138,8 +172,18 @@ public class LabelView extends GlyphView implements TabableView {
     }
 
     /**
-     * Determine if the glyphs should be underlined.  If true,
-     * an underline should be drawn through the baseline.
+     * Determines if the glyphs should be underlined.  If true,
+     * an underline should be drawn through the baseline.  This
+     * is implemented to return the cached underline property.
+     *
+     * <p>When you request this property, <code>LabelView</code>
+     * re-syncs its state with the properties of the
+     * <code>Element</code>'s <code>AttributeSet</code>.
+     * If <code>Element</code>'s <code>AttributeSet</code>
+     * does not have this property set, it will revert to false.
+     *
+     * @return the value of the cached
+     *     <code>underline</code> property
      */
     public boolean isUnderline() {
 	sync();
@@ -147,9 +191,19 @@ public class LabelView extends GlyphView implements TabableView {
     }
 
     /**
-     * Determine if the glyphs should have a strikethrough
+     * Determines if the glyphs should have a strikethrough
      * line.  If true, a line should be drawn through the center
-     * of the glyphs.
+     * of the glyphs.  This is implemented to return the
+     * cached <code>strikeThrough</code> property.
+     *
+     * <p>When you request this property, <code>LabelView</code>
+     * re-syncs its state with the properties of the
+     * <code>Element</code>'s <code>AttributeSet</code>.
+     * If <code>Element</code>'s <code>AttributeSet</code>
+     * does not have this property set, it will revert to false.
+     *
+     * @return the value of the cached
+     *     <code>strikeThrough</code> property
      */
     public boolean isStrikeThrough() {
 	sync();
@@ -157,7 +211,17 @@ public class LabelView extends GlyphView implements TabableView {
     }
 
     /**
-     * Determine if the glyphs should be rendered as superscript.
+     * Determines if the glyphs should be rendered as superscript.
+     * @return the value of the cached subscript property
+     *
+     * <p>When you request this property, <code>LabelView</code>
+     * re-syncs its state with the properties of the
+     * <code>Element</code>'s <code>AttributeSet</code>.
+     * If <code>Element</code>'s <code>AttributeSet</code>
+     * does not have this property set, it will revert to false.
+     *
+     * @return the value of the cached
+     *     <code>subscript</code> property
      */
     public boolean isSubscript() {
 	sync();
@@ -165,7 +229,16 @@ public class LabelView extends GlyphView implements TabableView {
     }
 
     /**
-     * Determine if the glyphs should be rendered as subscript.
+     * Determines if the glyphs should be rendered as subscript.
+     *
+     * <p>When you request this property, <code>LabelView</code>
+     * re-syncs its state with the properties of the
+     * <code>Element</code>'s <code>AttributeSet</code>.
+     * If <code>Element</code>'s <code>AttributeSet</code>
+     * does not have this property set, it will revert to false.
+     *
+     * @return the value of the cached
+     *     <code>superscript</code> property
      */
     public boolean isSuperscript() {
 	sync();
@@ -185,6 +258,7 @@ public class LabelView extends GlyphView implements TabableView {
      */
     public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
 	font = null;
+        super.changedUpdate(e, a, f);
     }
 
     // --- variables ------------------------------------------------

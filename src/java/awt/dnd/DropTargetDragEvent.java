@@ -1,4 +1,6 @@
 /*
+ * @(#)DropTargetDragEvent.java	1.20 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,39 +11,70 @@ import java.awt.Point;
 
 import java.awt.datatransfer.DataFlavor;
 
-import java.awt.dnd.DropTargetEvent;
-
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * The <code>DropTargetDragEvent</code> is delivered to a 
  * <code>DropTargetListener</code> via its
  * dragEnter() and dragOver() methods.
+ * <p>
+ * The <code>DropTargetDragEvent</code> reports the <i>source drop actions</i>
+ * and the <i>user drop action</i> that reflect the current state of 
+ * the drag operation.
+ * <p>
+ * <i>Source drop actions</i> is a bitwise mask of <code>DnDConstants</code>
+ * that represents the set of drop actions supported by the drag source for 
+ * this drag operation.
+ * <p>
+ * <i>User drop action</i> depends on the drop actions supported by the drag
+ * source and the drop action selected by the user. The user can select a drop
+ * action by pressing modifier keys during the drag operation: 
+ * <pre> 
+ *   Ctrl + Shift -> ACTION_LINK
+ *   Ctrl         -> ACTION_COPY
+ *   Shift        -> ACTION_MOVE
+ * </pre> 
+ * If the user selects a drop action, the <i>user drop action</i> is one of 
+ * <code>DnDConstants</code> that represents the selected drop action if this
+ * drop action is supported by the drag source or
+ * <code>DnDConstants.ACTION_NONE</code> if this drop action is not supported 
+ * by the drag source.
+ * <p>
+ * If the user doesn't select a drop action, the set of
+ * <code>DnDConstants</code> that represents the set of drop actions supported
+ * by the drag source is searched for <code>DnDConstants.ACTION_MOVE</code>,
+ * then for <code>DnDConstants.ACTION_COPY</code>, then for
+ * <code>DnDConstants.ACTION_LINK</code> and the <i>user drop action</i> is the
+ * first constant found. If no constant is found the <i>user drop action</i>
+ * is <code>DnDConstants.ACTION_NONE</code>.
  *
- * @version 	1.17, 02/06/02
+ * @version 	1.20, 12/03/01
  * @since 1.2
  */
 
 public class DropTargetDragEvent extends DropTargetEvent {
+
+    private static final long serialVersionUID = -8422265619058953682L;
 
     /**
      * Construct a <code>DropTargetDragEvent</code> given the
      * <code>DropTargetContext</code> for this operation,
      * the location of the "Drag" <code>Cursor</code>'s hotspot 
      * in the <code>Component</code>'s coordinates, the
-     * currently selected user drop action, and current 
-     * set of actions supported by the source.
+     * user drop action, and the source drop actions.
      * <P>
      * @param dtc        The DropTargetContext for this operation
      * @param cursorLocn The location of the "Drag" Cursor's 
      * hotspot in Component coordinates
-     * @param dropAction The currently selected user drop action
-     * @param srcActions The current set of actions supported by the source
-     * <P>
+     * @param dropAction The user drop action
+     * @param srcActions The source drop actions
+     * 
      * @throws NullPointerException if cursorLocn is null
-     * @throws IllegalArgumentException if the dropAction or 
-     * srcActions are illegal values, or if dtc is null
+     * @throws <code>IllegalArgumentException</code> if dropAction is not one of
+     *         <code>DnDConstants</code>.
+     * @throws <code>IllegalArgumentException</code> if srcActions is not
+     *         a bitwise mask of <code>DnDConstants</code>.
+     * @throws <code>IllegalArgumentException</code> if dtc is <code>null</code>.
      */
 
     public DropTargetDragEvent(DropTargetContext dtc, Point cursorLocn, int dropAction, int srcActions)  {
@@ -113,43 +146,40 @@ public class DropTargetDragEvent extends DropTargetEvent {
     }
 
     /**
-     * This method returns an <code>int</code> representing
-     * set of actions supported by the source.
-     * <P>
-     * @return source actions
+     * This method returns the source drop actions.
+     * 
+     * @return the source drop actions
      */
-
     public int getSourceActions() { return actions; }
 
     /**
-     * This method returns an <code>int</code>
-     * representing the currently selected drop action.
-     * <P>
-     * @return currently selected drop action
+     * This method returns the user drop action.
+     * 
+     * @return the user drop action
      */
-
     public int getDropAction() { return dropAction; }
 
     /**
-     * Accept the drag
+     * Accepts the drag.
      *
-     * This method should be called from a DropTargetListeners dragEnter(),
-     * dragOver() and dragActionChanged() methods if the implementation
-     * wishes to accept an operation from the srcActions other than the one
-     * selected by the user as represented by the dropAction.
-     * <P>
+     * This method should be called from a
+     * <code>DropTargetListeners</code> <code>dragEnter</code>,
+     * <code>dragOver</code>, and <code>dropActionChanged</code>
+     * methods if the implementation wishes to accept an operation
+     * from the srcActions other than the one selected by
+     * the user as represented by the <code>dropAction</code>.
+     * 
      * @param dragOperation the operation accepted by the target
      */
-
     public void acceptDrag(int dragOperation) {
 	getDropTargetContext().acceptDrag(dragOperation);
     }
 
     /**
-     * Reject the drag as a result of examining either the dropAction or
-     * the available DataFlavor types.
+     * Rejects the drag as a result of examining either the
+     * <code>dropAction</code> or the available <code>DataFlavor</code>
+     * types.
      */
-
     public void rejectDrag() {
 	getDropTargetContext().rejectDrag();
     }
@@ -158,12 +188,24 @@ public class DropTargetDragEvent extends DropTargetEvent {
      * fields
      */
 
+    /**
+     * The location of the drag cursor's hotspot in Component coordinates.
+     *
+     * @serial
+     */
     private Point		location;
+
+    /**
+     * The source drop actions.
+     *
+     * @serial
+     */
     private int			actions;
+
+    /**
+     * The user drop action.
+     *
+     * @serial
+     */
     private int			dropAction;
 }
-
-
-
-
-

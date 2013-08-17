@@ -1,4 +1,6 @@
 /*
+ * @(#)CompositeName.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -176,7 +178,7 @@ import java.util.Properties;
  *
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.9 02/02/06
+ * @version 1.9 01/12/03
  * @since 1.3
  */
 
@@ -542,7 +544,7 @@ public class CompositeName implements Name {
     }
 
     /**
-     * Overriden to avoid implementation dependency.
+     * Overridden to avoid implementation dependency.
      * @serialData The number of components (an <tt>int</tt>) followed by
      * the individual components (each a <tt>String</tt>).
      */
@@ -556,7 +558,7 @@ public class CompositeName implements Name {
     }
 
     /**
-     * Overriden to avoid implementation dependency.
+     * Overridden to avoid implementation dependency.
      */
     private void readObject(java.io.ObjectInputStream s)
 	    throws java.io.IOException, ClassNotFoundException {

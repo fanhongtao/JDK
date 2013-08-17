@@ -1,4 +1,6 @@
 /*
+ * @(#)DefaultSingleSelectionModel.java	1.32 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,13 +15,15 @@ import java.util.EventListener;
  * A generic implementation of SingleSelectionModel.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.26 02/06/02
+ * @version 1.32 12/03/01
  * @author Dave Moore
  */
 public class DefaultSingleSelectionModel implements SingleSelectionModel, 
@@ -62,23 +66,41 @@ Serializable {
     }
 
     /**
-     * Adds a ChangeListener to the button.
+     * Adds a <code>ChangeListener</code> to the button.
      */
     public void addChangeListener(ChangeListener l) {
 	listenerList.add(ChangeListener.class, l);
     }
     
     /**
-     * Removes a ChangeListener from the button.
+     * Removes a <code>ChangeListener</code> from the button.
      */
     public void removeChangeListener(ChangeListener l) {
 	listenerList.remove(ChangeListener.class, l);
     }
-    /*
-     * Notify all listeners that have registered interest for
+
+    /**
+     * Returns an array of all the change listeners 
+     * registered on this <code>DefaultSingleSelectionModel</code>.
+     *
+     * @return all of this model's <code>ChangeListener</code>s 
+     *         or an empty
+     *         array if no change listeners are currently registered
+     * 
+     * @see #addChangeListener
+     * @see #removeChangeListener
+     * 
+     * @since 1.4
+     */
+    public ChangeListener[] getChangeListeners() {
+        return (ChangeListener[])listenerList.getListeners(
+                ChangeListener.class);
+    }
+
+    /**
+     * Notifies all listeners that have registered interest for
      * notification on this event type.  The event instance 
-     * is lazily created using the parameters passed into 
-     * the fire method.
+     * is created lazily.
      * @see EventListenerList
      */
     protected void fireStateChanged() {
@@ -97,24 +119,43 @@ Serializable {
     }	
 
     /**
-     * Return an array of all the listeners of the given type that 
-     * were added to this model. 
+     * Returns an array of all the objects currently registered as
+     * <code><em>Foo</em>Listener</code>s
+     * upon this model.
+     * <code><em>Foo</em>Listener</code>s
+     * are registered using the <code>add<em>Foo</em>Listener</code> method.
+     * <p>
+     * You can specify the <code>listenerType</code> argument
+     * with a class literal, such as <code><em>Foo</em>Listener.class</code>.
+     * For example, you can query a <code>DefaultSingleSelectionModel</code>
+     * instance <code>m</code>
+     * for its change listeners
+     * with the following code:
      *
-     * @returns all of the objects recieving <em>listenerType</em> notifications 
-     *          from this model
-     * 
+     * <pre>ChangeListener[] cls = (ChangeListener[])(m.getListeners(ChangeListener.class));</pre>
+     *
+     * If no such listeners exist,
+     * this method returns an empty array.
+     *
+     * @param listenerType  the type of listeners requested;
+     *          this parameter should specify an interface
+     *          that descends from <code>java.util.EventListener</code>
+     * @return an array of all objects registered as
+     *          <code><em>Foo</em>Listener</code>s
+     *          on this model,
+     *          or an empty array if no such
+     *          listeners have been added
+     * @exception ClassCastException if <code>listenerType</code> doesn't
+     *          specify a class or interface that implements
+     *          <code>java.util.EventListener</code>
+     *
+     * @see #getChangeListeners
+     *
      * @since 1.3
      */
     public EventListener[] getListeners(Class listenerType) { 
 	return listenerList.getListeners(listenerType); 
     }
 }
-
-
-
-
-
-
-
 
 

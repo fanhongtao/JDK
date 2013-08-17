@@ -1,4 +1,6 @@
 /*
+ * @(#)RenderableImageOp.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -101,6 +103,7 @@ public class RenderableImageOp implements RenderableImage {
 
     /**
      * Return a list of names recognized by getProperty.
+     * @return a list of property names.
      */
     public String[] getPropertyNames() {
         return myCRIF.getPropertyNames();
@@ -112,6 +115,9 @@ public class RenderableImageOp implements RenderableImage {
      * may produce different results.  This method may be used to
      * determine whether an existing rendering may be cached and
      * reused.  The CRIF's isDynamic method will be called.
+     * @return <code>true</code> if successive renderings with the
+     *         same arguments might produce different results;
+     *         <code>false</code> otherwise.
      */
     public boolean isDynamic() {
         return myCRIF.isDynamic();
@@ -172,6 +178,7 @@ public class RenderableImageOp implements RenderableImage {
      *
      * @param paramBlock the new ParameterBlock.
      * @return the old ParameterBlock.
+     * @see #getParameterBlock
      */
     public ParameterBlock setParameterBlock(ParameterBlock paramBlock) {
         ParameterBlock oldParamBlock = this.paramBlock;
@@ -179,7 +186,12 @@ public class RenderableImageOp implements RenderableImage {
         return oldParamBlock;
     }
 
-    /** Returns a reference to the current parameter block. */
+    /** 
+     * Returns a reference to the current parameter block. 
+     * @return the <code>ParameterBlock</code> of this
+     *         <code>RenderableImageOp</code>.
+     * @see #setParameterBlock(ParameterBlock)
+     */
     public ParameterBlock getParameterBlock() {
         return paramBlock;
     }

@@ -1,5 +1,7 @@
 /*
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * @(#)Parser.java	1.28 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,11 +34,29 @@ import sun.misc.MessageUtils;
  * The parser treats \r and \r\n as \n. Newlines after starttags
  * and before end tags are ignored just as specified in the SGML/HTML
  * specification.
+ * <p>
+ * The html spec does not specify how spaces are to be coalesced very well.
+ * Specifically, the following scenarios are not discussed (note that a
+ * space should be used here, but I am using &amp;nbsp to force the space to
+ * be displayed):
+ * <p>
+ * '&lt;b>blah&nbsp;&lt;i>&nbsp;&lt;strike>&nbsp;foo' which can be treated as:
+ * '&lt;b>blah&nbsp;&lt;i>&lt;strike>foo' 
+ * <p>as well as:
+ * '&lt;p>&lt;a href="xx">&nbsp;&lt;em>Using&lt;/em>&lt;/a>&lt;/p>'
+ * which appears to be treated as:
+ * '&lt;p>&lt;a href="xx">&lt;em>Using&lt;/em>&lt;/a>&lt;/p>'
+ * <p>
+ * If <code>strict</code> is false, when a tag that breaks flow,
+ * (<code>TagElement.breaksFlows</code>) or trailing whitespace is
+ * encountered, all whitespace will be ignored until a non whitespace
+ * character is encountered. This appears to give behavior closer to
+ * the popular browsers.
  *
  * @see DTD
  * @see TagElement
  * @see SimpleAttributeSet
- * @version 1.25, 02/06/02
+ * @version 1.28, 12/03/01
  * @author Arthur van Hoff
  * @author Sunita Mani
  */
@@ -71,6 +91,28 @@ class Parser implements DTDConstants {
     private boolean seenHtml = false;
     private boolean seenHead = false;
     private boolean seenBody = false;
+
+    /**
+     * The html spec does not specify how spaces are coalesced very well.
+     * If strict == false, ignoreSpace is used to try and mimic the behavior
+     * of the popular browsers.
+     * <p>
+     * The problematic scenarios are:
+     * '&lt;b>blah &lt;i> &lt;strike> foo' which can be treated as:
+     * '&lt;b>blah &lt;i>&lt;strike>foo'
+     * as well as:
+     * '&lt;p>&lt;a href="xx"> &lt;em>Using&lt;/em>&lt;/a>&lt;/p>'
+     * which appears to be treated as:
+     * '&lt;p>&lt;a href="xx">&lt;em>Using&lt;/em>&lt;/a>&lt;/p>'
+     * <p>
+     * When a tag that breaks flow, or trailing whitespace is encountered
+     * ignoreSpace is set to true. From then on, all whitespace will be
+     * ignored.
+     * ignoreSpace will be set back to false the first time a
+     * non whitespace character is encountered. This appears to give
+     * behavior closer to the popular browsers.
+     */
+    private boolean ignoreSpace;
 
     /**
      * This flag determines whether or not the Parser will be strict
@@ -226,6 +268,9 @@ class Parser implements DTDConstants {
     void handleText(TagElement tag) {
 	if (tag.breaksFlow()) {
 	    space = false;
+            if (!strict) {
+                ignoreSpace = true;
+            }
 	}
 	if (textpos == 0) {
 	    if ((!space) || (stack == null) || last.breaksFlow() ||
@@ -237,16 +282,21 @@ class Parser implements DTDConstants {
 	    }
 	}
 	if (space) {
-	    // enlarge buffer if needed
-	    if (textpos + 1 > text.length) {
-		char newtext[] = new char[text.length + 200];
-		System.arraycopy(text, 0, newtext, 0, text.length);
-		text = newtext;
-	    }
+            if (!ignoreSpace) {
+                // enlarge buffer if needed
+                if (textpos + 1 > text.length) {
+                    char newtext[] = new char[text.length + 200];
+                    System.arraycopy(text, 0, newtext, 0, text.length);
+                    text = newtext;
+                }
 
-	    // output pending space
-	    text[textpos++] = ' ';
-	    space = false;
+                // output pending space
+                text[textpos++] = ' ';
+                if (!strict) {
+                    ignoreSpace = true;
+                }
+            }
+            space = false;
 	}
 	char newtext[] = new char[textpos];
 	System.arraycopy(text, 0, newtext, 0, textpos);
@@ -320,8 +370,10 @@ class Parser implements DTDConstants {
 
 	if (elem.isEmpty()) {
 	    handleEmptyTag(tag);
+            /*
 	} else if (elem.getName().equals("form")) {
 	    handleStartTag(tag);
+            */
 	} else {
 	    recent = elem;
 	    stack = new TagStack(tag, stack);
@@ -398,7 +450,7 @@ class Parser implements DTDConstants {
 	} else if (elemName.equals("head")) {
 	    seenHead = true;
 	} else if (elemName.equals("body")) {
-	    if (buf.length == 1) {
+            if (buf.length == 1) {
                 // Refer to note in definition of buf for details on this.
                 char[] newBuf = new char[256];
 
@@ -1574,6 +1626,7 @@ class Parser implements DTDConstants {
 	    // start tag to find. Hence do not touch the tag stack.
 	    //
 
+            /*
 	    if (!strict && elem.getName().equals("form")) {
 		if (lastFormSent != null) {
 		    handleEndTag(lastFormSent);
@@ -1583,6 +1636,7 @@ class Parser implements DTDConstants {
 		    return;
 		}
 	    }
+            */
 
 	    if (unknown) {
 		// we will not see a corresponding start tag
@@ -1760,6 +1814,7 @@ class Parser implements DTDConstants {
 	    several pages in the web oasis that choose to
 	    start and end forms in any possible location. **/
 
+        /*
 	if (!strict && elem.getName().equals("form")) {
 	    if (lastFormSent == null) {
 		lastFormSent = tag;
@@ -1768,6 +1823,7 @@ class Parser implements DTDConstants {
 		lastFormSent = tag;
 	    }
 	} else {
+        */
 	    // Smlly, if a tag is unknown, we will apply
 	    // no legalTagContext logic to it.
 	    //
@@ -1783,7 +1839,9 @@ class Parser implements DTDConstants {
 		    return;
 		}
 	    }
+            /*
 	}
+            */
 
 	startTag(tag);
 
@@ -1866,10 +1924,12 @@ class Parser implements DTDConstants {
 		if ((stack != null) && stack.pre) {
 		    break;
 		}
-		space = true;
 		if (textpos == 0) {
 		    lastBlockStartPos = currentPosition;
 		}
+                if (!ignoreSpace) {
+                    space = true;
+                }
 		continue;
 
 	      case '\r':
@@ -1888,7 +1948,9 @@ class Parser implements DTDConstants {
 		if (textpos == 0) {
 		    lastBlockStartPos = currentPosition;
 		}
-		space = true;
+                if (!ignoreSpace) {
+                    space = true;
+                }
 		continue;
 
 
@@ -1898,10 +1960,12 @@ class Parser implements DTDConstants {
 		if ((stack != null) && stack.pre) {
 		    break;
 		}
-		space = true;
 		if (textpos == 0) {
 		    lastBlockStartPos = currentPosition;
 		}
+                if (!ignoreSpace) {
+                    space = true;
+                }
 		continue;
 
 	      default:
@@ -1933,6 +1997,7 @@ class Parser implements DTDConstants {
 		space = false;
 	    }
 	    text[textpos++] = (char)c;
+            ignoreSpace = false;
 	}
     }
 

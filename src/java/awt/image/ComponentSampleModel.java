@@ -1,4 +1,6 @@
 /*
+ * @(#)ComponentSampleModel.java	1.42 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,6 +17,8 @@
 
 package java.awt.image;
 
+import java.util.Arrays;
+
 /**
  *  This class represents image data which is stored such that each sample
  *  of a pixel occupies one data element of the DataBuffer.  It stores the
@@ -30,14 +34,23 @@ package java.awt.image;
  *  of data array elements from the first data array element of the bank
  *  of the DataBuffer holding each band to the first sample of the band.
  *  The bands are numbered from 0 to N-1.  This class can represent image
- *  data for which each sample is an integral number which can be
- *  stored in 8, 16, or 32 bits (all samples of a given ComponentSampleModel
- *  are stored with the same precision).  All strides and offsets must be
+ *  data for which each sample is an unsigned integral number which can be
+ *  stored in 8, 16, or 32 bits (using <code>DataBuffer.TYPE_BYTE</code>,
+ *  <code>DataBuffer.TYPE_USHORT</code>, or <code>DataBuffer.TYPE_INT</code>,
+ *  respectively), data for which each sample is a signed integral number
+ *  which can be stored in 16 bits (using <code>DataBuffer.TYPE_SHORT</code>),
+ *  or data for which each sample is a signed float or double quantity
+ *  (using <code>DataBuffer.TYPE_FLOAT</code> or
+ *  <code>DataBuffer.TYPE_DOUBLE</code>, respectively).
+ *  All samples of a given ComponentSampleModel
+ *  are stored with the same precision.  All strides and offsets must be
  *  non-negative.  This class supports 
  *  {@link DataBuffer#TYPE_BYTE TYPE_BYTE}, 
  *  {@link DataBuffer#TYPE_USHORT TYPE_USHORT}, 
  *  {@link DataBuffer#TYPE_SHORT TYPE_SHORT}, 
  *  {@link DataBuffer#TYPE_INT TYPE_INT}, 
+ *  {@link DataBuffer#TYPE_FLOAT TYPE_FLOAT}, 
+ *  {@link DataBuffer#TYPE_DOUBLE TYPE_DOUBLE}, 
  *  @see java.awt.image.PixelInterleavedSampleModel
  *  @see java.awt.image.BandedSampleModel
  */
@@ -83,16 +96,16 @@ public class ComponentSampleModel extends SampleModel
      * Constructs a ComponentSampleModel with the specified parameters.
      * The number of bands will be given by the length of the bandOffsets array.
      * All bands will be stored in the first bank of the DataBuffer.
-     * @param dataType 	The data type for storing samples.
-     * @param w 	The width (in pixels) of the region of
-     * image data described.
-     * @param h 	The height (in pixels) of the region of
-     * image data described.
-     * @param pixelStride The pixel stride of the region of image
-     * data described.
-     * @param scanlineStride The line stride of the region of image
-     * data described.
-     * @param bandOffsets The offsets of all bands.
+     * @param dataType 	the data type for storing samples
+     * @param w 	the width (in pixels) of the region of
+     *     image data described
+     * @param h 	the height (in pixels) of the region of
+     *     image data described
+     * @param pixelStride the pixel stride of the region of image
+     *     data described
+     * @param scanlineStride the line stride of the region of image
+     *     data described
+     * @param bandOffsets the offsets of all bands
      * @throws IllegalArgumentException if <code>w</code> or
      *         <code>h</code> is not greater than 0
      * @throws IllegalArgumentException if <code>pixelStride</code>
@@ -121,11 +134,16 @@ public class ComponentSampleModel extends SampleModel
         if (pixelStride < 0) {
             throw new IllegalArgumentException("Pixel stride must be >= 0");
         }
+        // TODO - bug 4296691 - remove this check
         if (scanlineStride < 0) {
             throw new IllegalArgumentException("Scanline stride must be >= 0");
         }
         if (numBands < 1) {
             throw new IllegalArgumentException("Must have at least one band.");
+        }
+        if ((dataType < DataBuffer.TYPE_BYTE) ||
+            (dataType > DataBuffer.TYPE_DOUBLE)) {
+            throw new IllegalArgumentException("Unsupported dataType.");
         }
 	bankIndices = new int[numBands];
 	for (int i=0; i<numBands; i++) {
@@ -138,17 +156,18 @@ public class ComponentSampleModel extends SampleModel
      * Constructs a ComponentSampleModel with the specified parameters.
      * The number of bands will be given by the length of the bandOffsets array.
      * Different bands may be stored in different banks of the DataBuffer.
-     * @param dataType 	The data type for storing samples.
-     * @param w 	The width (in pixels) of the region of
-     * image data described. 
-     * @param h 	The height (in pixels) of the region of
-     * image data described.
-     * @param pixelStride The pixel stride of the region of image
-     * data described.	
+     *
+     * @param dataType 	the data type for storing samples
+     * @param w 	the width (in pixels) of the region of
+     *     image data described
+     * @param h 	the height (in pixels) of the region of
+     *     image data described
+     * @param pixelStride the pixel stride of the region of image
+     *     data described
      * @param scanlineStride The line stride of the region of image
-     * data described. 
-     * @param bandIndices The bank indices of all bands. 
-     * @param bandOffsets The band offsets of all bands. 
+     *     data described
+     * @param bankIndices the bank indices of all bands
+     * @param bandOffsets the band offsets of all bands
      * @throws IllegalArgumentException if <code>w</code> or
      *         <code>h</code> is not greater than 0
      * @throws IllegalArgumentException if <code>pixelStride</code>
@@ -160,6 +179,8 @@ public class ComponentSampleModel extends SampleModel
      *         <code>bankOffsets</code>
      * @throws IllegalArgumentException if any of the bank indices 
      *         of <code>bandIndices</code> is less than 0
+     * @throws IllegalArgumentException if <code>dataType</code> is not
+     *         one of the supported data types
      */
     public ComponentSampleModel(int dataType,
                                 int w, int h,
@@ -176,8 +197,13 @@ public class ComponentSampleModel extends SampleModel
         if (pixelStride < 0) {
             throw new IllegalArgumentException("Pixel stride must be >= 0");
         }
+        // TODO - bug 4296691 - remove this check
         if (scanlineStride < 0) {
             throw new IllegalArgumentException("Scanline stride must be >= 0");
+        }
+        if ((dataType < DataBuffer.TYPE_BYTE) ||
+            (dataType > DataBuffer.TYPE_DOUBLE)) {
+            throw new IllegalArgumentException("Unsupported dataType.");
         }
         int maxBank = bankIndices[0];
         if (maxBank < 0) {
@@ -244,12 +270,13 @@ public class ComponentSampleModel extends SampleModel
     }
 
     /**
-     * Creates a new ComponentSampleModel with the specified
-     * width and height.  The new SampleModel will have the same
+     * Creates a new <code>ComponentSampleModel</code> with the specified
+     * width and height.  The new <code>SampleModel</code> will have the same
      * number of bands, storage data type, interleaving scheme, and
-     * pixel stride as this SampleModel.
+     * pixel stride as this <code>SampleModel</code>.
      * @param w the width of the resulting <code>SampleModel</code>
      * @param h the height of the resulting <code>SampleModel</code>
+     * @return a new <code>ComponentSampleModel</code> with the specified size
      * @throws IllegalArgumentException if <code>w</code> or
      *         <code>h</code> is not greater than 0
      */
@@ -318,16 +345,20 @@ public class ComponentSampleModel extends SampleModel
         for (int i=0; i<bands; i++)
             bandOff[i] += base;
         return new ComponentSampleModel(dataType, w, h, pStride,
-                                        lStride, bandOff);
+                                        lStride, bankIndices, bandOff);
     }
 
     /**
-     * This creates a new ComponentSampleModel with a subset of the bands
+     * Creates a new ComponentSampleModel with a subset of the bands
      * of this ComponentSampleModel.  The new ComponentSampleModel can be
      * used with any DataBuffer that the existing ComponentSampleModel
      * can be used with.  The new ComponentSampleModel/DataBuffer
      * combination will represent an image with a subset of the bands
      * of the original ComponentSampleModel/DataBuffer combination.
+     * @param bands a subset of bands from this 
+     *              <code>ComponentSampleModel</code>
+     * @return a <code>ComponentSampleModel</code> created with a subset
+     *          of bands from this <code>ComponentSampleModel</code>.
      */
     public SampleModel createSubsetSampleModel(int bands[]) {
        if (bands.length > bankIndices.length)
@@ -349,9 +380,13 @@ public class ComponentSampleModel extends SampleModel
     }
 
     /**
-     * Creates a DataBuffer that corresponds to this ComponentSampleModel.
-     * The DataBuffer's data type, number of banks, and size
-     * will be consistent with this ComponentSampleModel.
+     * Creates a <code>DataBuffer</code> that corresponds to this 
+     * <code>ComponentSampleModel</code>.
+     * The <code>DataBuffer</code> object's data type, number of banks, 
+     * and size are be consistent with this <code>ComponentSampleModel</code>.
+     * @return a <code>DataBuffer</code> whose data type, number of banks
+     *         and size are consistent with this 
+     *         <code>ComponentSampleModel</code>.
      */
     public DataBuffer createDataBuffer() {
         DataBuffer dataBuffer = null;
@@ -370,6 +405,12 @@ public class ComponentSampleModel extends SampleModel
         case DataBuffer.TYPE_INT:
             dataBuffer = new DataBufferInt(size, numBanks);
             break;
+        case DataBuffer.TYPE_FLOAT:
+            dataBuffer = new DataBufferFloat(size, numBanks);
+            break;
+        case DataBuffer.TYPE_DOUBLE:
+            dataBuffer = new DataBufferDouble(size, numBanks);
+            break;
         }
 
         return dataBuffer;
@@ -377,11 +418,15 @@ public class ComponentSampleModel extends SampleModel
 
 
     /** Gets the offset for the first band of pixel (x,y).
-     *  A sample of the first band can be retrieved from a DataBuffer
-     *  <code>data</code> with a ComponentSampleModel <code>csm</code> as
+     *  A sample of the first band can be retrieved from a 
+     * <code>DataBuffer</code>
+     *  <code>data</code> with a <code>ComponentSampleModel</code>
+     * <code>csm</code> as
      * <pre>
      *        data.getElem(csm.getOffset(x, y));
      * </pre>
+     * @param x,&nbsp;y the location of the pixel
+     * @return the offset for the first band of the specified pixel.
      */
     public int getOffset(int x, int y) {
         int offset = y*scanlineStride + x*pixelStride + bandOffsets[0];
@@ -390,18 +435,25 @@ public class ComponentSampleModel extends SampleModel
  
     /** Gets the offset for band b of pixel (x,y).
      *  A sample of band <code>b</code> can be retrieved from a
-     *  DataBuffer <code>data</code>
-     *  with a ComponentSampleModel <code>csm</code> as
+     *  <code>DataBuffer</code> <code>data</code>
+     *  with a <code>ComponentSampleModel</code> <code>csm</code> as
      * <pre>
      *       data.getElem(csm.getOffset(x, y, b));
      * </pre>
+     * @param x,&nbsp;y the location of the specified pixel
+     * @param b the specified band
+     * @return the offset for the specified band of the specified pixel.
      */
     public int getOffset(int x, int y, int b) {
         int offset = y*scanlineStride + x*pixelStride + bandOffsets[b];
         return offset;
     }
  
-    /** Returns the number of bits per sample for all bands. */
+    /** Returns the number of bits per sample for all bands. 
+     *  @return an array containing the number of bits per sample 
+     *          for all bands, where each element in the array 
+     *          represents a band.   
+     */
     public final int[] getSampleSize() {
         int sampleSize[] = new int [numBands];
         int sizeInBits = getSampleSize(0);
@@ -412,37 +464,55 @@ public class ComponentSampleModel extends SampleModel
         return sampleSize;
     }
 
-    /** Returns the number of bits per sample for the specified band. */
+    /** Returns the number of bits per sample for the specified band. 
+     *  @param band the specified band
+     *  @return the number of bits per sample for the specified band.
+     */
     public final int getSampleSize(int band) {
         return DataBuffer.getDataTypeSize(dataType);
     }
 
-    /** Returns the bank indices for all bands. */
+    /** Returns the bank indices for all bands.
+     *  @return the bank indices for all bands.
+     */
     public final int [] getBankIndices() {
         return (int[]) bankIndices.clone();
     }
 
-    /** Returns the band offset for all bands. */
+    /** Returns the band offset for all bands.
+     *  @return the band offsets for all bands.
+     */
     public final int [] getBandOffsets() {
         return (int[])bandOffsets.clone();
     }
 
-    /** Returns the scanline stride of this ComponentSampleModel. */
+    /** Returns the scanline stride of this ComponentSampleModel.
+     *  @return the scanline stride of this <code>ComponentSampleModel</code>.
+     */
     public final int getScanlineStride() {
         return scanlineStride;
     }
 
-    /** Returns the pixel stride of this ComponentSampleModel. */
+    /** Returns the pixel stride of this ComponentSampleModel.
+     *  @return the pixel stride of this <code>ComponentSampleModel</code>.
+     */
     public final int getPixelStride() {
         return pixelStride;
     }
 
     /**
      * Returns the number of data elements needed to transfer a pixel
-     * via the getDataElements and setDataElements methods.
-     * For a ComponentSampleModel this is identical to the
+     * with the 
+     * {@link #getDataElements(int, int, Object, DataBuffer) } and 
+     * {@link #setDataElements(int, int, Object, DataBuffer) }
+     * methods.
+     * For a <code>ComponentSampleModel</code>, this is identical to the
      * number of bands.
+     * @return the number of data elements needed to transfer a pixel with
+     *         the <code>getDataElements</code> and 
+     *         <code>setDataElements</code> methods.
      * @see java.awt.image.SampleModel#getNumDataElements
+     * @see #getNumBands
      */ 
     public final int getNumDataElements() {
 	return getNumBands();
@@ -450,42 +520,56 @@ public class ComponentSampleModel extends SampleModel
 
     /** 
      * Returns data for a single pixel in a primitive array of type
-     * TransferType.  For a ComponentSampleModel, this will be the same
-     * as the data type, and samples will be returned one per array
-     * element.  Generally, obj
-     * should be passed in as null, so that the Object will be created
-     * automatically and will be of the right primitive data type.
+     * <code>TransferType</code>.  For a <code>ComponentSampleModel</code>,
+     * this is the same as the data type, and samples are returned
+     * one per array element.  Generally, <code>obj</code> should
+     * be passed in as <code>null</code>, so that the <code>Object</code>
+     * is created automatically and is the right primitive data type.
      * <p>
      * The following code illustrates transferring data for one pixel from
-     * DataBuffer <code>db1</code>, whose storage layout is described by
-     * ComponentSampleModel <code>csm1</code>, to DataBuffer <code>db2</code>,
-     * whose storage layout is described by
-     * ComponentSampleModel <code>csm2</code>.
-     * The transfer will generally be more efficient than using
-     * getPixel/setPixel.
+     * <code>DataBuffer</code> <code>db1</code>, whose storage layout is 
+     * described by <code>ComponentSampleModel</code> <code>csm1</code>, 
+     * to <code>DataBuffer</code> <code>db2</code>, whose storage layout 
+     * is described by <code>ComponentSampleModel</code> <code>csm2</code>.
+     * The transfer is usually more efficient than using 
+     * <code>getPixel</code> and <code>setPixel</code>.
      * <pre>
      * 	     ComponentSampleModel csm1, csm2;
      *	     DataBufferInt db1, db2;
      * 	     csm2.setDataElements(x, y,
      *                            csm1.getDataElements(x, y, null, db1), db2);
      * </pre>
-     * Using getDataElements/setDataElements to transfer between two
-     * DataBuffer/SampleModel pairs is legitimate if the SampleModels have
+     *
+     * Using <code>getDataElements</code> and <code>setDataElements</code>
+     * to transfer between two <code>DataBuffer/SampleModel</code> 
+     * pairs is legitimate if the <code>SampleModel</code> objects have
      * the same number of bands, corresponding bands have the same number of
-     * bits per sample, and the TransferTypes are the same.
+     * bits per sample, and the <code>TransferType</code>s are the same.
      * <p>
-     * If obj is non-null, it should be a primitive array of type TransferType.
-     * Otherwise, a ClassCastException is thrown.  An
-     * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
-     * not in bounds, or if obj is non-null and is not large enough to hold
+     * If <code>obj</code> is not <code>null</code>, it should be a 
+     * primitive array of type <code>TransferType</code>.
+     * Otherwise, a <code>ClassCastException</code> is thrown.  An
+     * <code>ArrayIndexOutOfBoundsException</code> might be thrown if the 
+     * coordinates are not in bounds, or if <code>obj</code> is not 
+     * <code>null</code> and is not large enough to hold
      * the pixel data.
-     * @param x 	The X coordinate of the pixel location.
-     * @param y 	The Y coordinate of the pixel location.
-     * @param obj       If non-null, a primitive array in which to return
-     *                  the pixel data.
-     * @param data      The DataBuffer containing the image data.
+     *
+     * @param x,&nbsp;y the coordinates of the pixel location
+     * @param obj       if non-<code>null</code>, a primitive array
+     *                  in which to return the pixel data 
+     * @param data      the <code>DataBuffer</code> containing the image data
+     * @return the data of the specified pixel
+     * @see #setDataElements(int, int, Object, DataBuffer)
+     *
+     * @throws NullPointerException if data is null.
+     * @throws ArrayIndexOutOfBoundsException if the coordinates are
+     * not in bounds, or if obj is too small to hold the ouput.
      */
     public Object getDataElements(int x, int y, Object obj, DataBuffer data) {
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
 
 	int type = getTransferType();
 	int numDataElems = getNumDataElements();
@@ -544,6 +628,40 @@ public class ComponentSampleModel extends SampleModel
 
 	    obj = (Object)idata;
 	    break;
+
+	case DataBuffer.TYPE_FLOAT:
+
+	    float[] fdata;
+
+	    if (obj == null)
+		fdata = new float[numDataElems];
+	    else
+		fdata = (float[])obj;
+
+	    for (int i=0; i<numDataElems; i++) {
+		fdata[i] = data.getElemFloat(bankIndices[i],
+                                             pixelOffset + bandOffsets[i]);
+	    }
+
+	    obj = (Object)fdata;
+	    break;
+
+	case DataBuffer.TYPE_DOUBLE:
+
+	    double[] ddata;
+
+	    if (obj == null)
+		ddata = new double[numDataElems];
+	    else
+		ddata = (double[])obj;
+
+	    for (int i=0; i<numDataElems; i++) {
+		ddata[i] = data.getElemDouble(bankIndices[i],
+                                              pixelOffset + bandOffsets[i]);
+	    }
+
+	    obj = (Object)ddata;
+	    break;
         }
         
 	return obj;
@@ -552,14 +670,23 @@ public class ComponentSampleModel extends SampleModel
     /**
      * Returns all samples for the specified pixel in an int array,
      * one sample per array element.
-     * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
-     * not in bounds.
-     * @param x 	The X coordinate of the pixel location.
-     * @param y 	The Y coordinate of the pixel location.
-     * @param iArray 	If non-null, returns the samples in this array.
-     * @param data 	The DataBuffer containing the image data.
+     * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if 
+     * the coordinates are not in bounds.
+     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param iArray    If non-null, returns the samples in this array
+     * @param data      The DataBuffer containing the image data
+     * @return the samples of the specified pixel.
+     * @see #setPixel(int, int, int[], DataBuffer)
+     *
+     * @throws NullPointerException if data is null.
+     * @throws ArrayIndexOutOfBoundsException if the coordinates are
+     * not in bounds, or if iArray is too small to hold the output.
      */
     public int[] getPixel(int x, int y, int iArray[], DataBuffer data) {
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         int pixels[];
         if (iArray != null) {
            pixels = iArray;
@@ -577,17 +704,22 @@ public class ComponentSampleModel extends SampleModel
     /**
      * Returns all samples for the specified rectangle of pixels in
      * an int array, one sample per array element.
-     * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
-     * not in bounds.
-     * @param x 	The X coordinate of the upper left pixel location.
-     * @param y 	The Y coordinate of the upper left pixel location.
-     * @param w 	The width of the pixel rectangle.
-     * @param h 	The height of the pixel rectangle.
-     * @param iArray 	If non-null, returns the samples in this array.
-     * @param data 	The DataBuffer containing the image data.
+     * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if 
+     * the coordinates are not in bounds.
+     * @param x,&nbsp;y  the coordinates of the upper left pixel location
+     * @param w         The width of the pixel rectangle
+     * @param h         The height of the pixel rectangle  
+     * @param iArray    If non-null, returns the samples in this array
+     * @param data      The DataBuffer containing the image data
+     * @return the samples of the pixels within the specified region. 
+     * @see #setPixels(int, int, int, int, int[], DataBuffer)
      */
     public int[] getPixels(int x, int y, int w, int h,
                            int iArray[], DataBuffer data) {
+        if ((x < 0) || (y < 0) || (x + w > width) || (y + h > height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         int pixels[];
         if (iArray != null) {
            pixels = iArray;
@@ -614,14 +746,20 @@ public class ComponentSampleModel extends SampleModel
     /**
      * Returns as int the sample in a specified band for the pixel
      * located at (x,y).
-     * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
-     * not in bounds.
-     * @param x 	The X coordinate of the pixel location.
-     * @param y 	The Y coordinate of the pixel location.
-     * @param b 	The band to return.
-     * @param data 	The DataBuffer containing the image data.
+     * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if 
+     * the coordinates are not in bounds.
+     * @param x,&nbsp;y  the coordinates of the pixel location
+     * @param b         the band to return
+     * @param data      the <code>DataBuffer</code> containing the image data
+     * @return the sample in a specified band for the specified pixel
+     * @see #setSample(int, int, int, int, DataBuffer)
      */
     public int getSample(int x, int y, int b, DataBuffer data) {
+        // Bounds check for 'b' will be performed automatically
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         int sample = data.getElem(bankIndices[b],
                                   y*scanlineStride + x*pixelStride +
                                   bandOffsets[b]);
@@ -631,14 +769,20 @@ public class ComponentSampleModel extends SampleModel
     /**
      * Returns the sample in a specified band
      * for the pixel located at (x,y) as a float.
-     * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
-     * not in bounds.
-     * @param x 	The X coordinate of the pixel location.
-     * @param y 	The Y coordinate of the pixel location.
-     * @param b 	The band to return.
-     * @param data 	The DataBuffer containing the image data.
+     * An <code>ArrayIndexOutOfBoundsException</code> might be 
+     * thrown if the coordinates are not in bounds.
+     * @param x,&nbsp;y  The coordinates of the pixel location
+     * @param b         The band to return
+     * @param data      The DataBuffer containing the image data
+     * @return a float value representing the sample in the specified
+     * band for the specified pixel.
      */
     public float getSampleFloat(int x, int y, int b, DataBuffer data) {
+        // Bounds check for 'b' will be performed automatically
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
 
         float sample = data.getElemFloat(bankIndices[b],
                                          y*scanlineStride + x*pixelStride +
@@ -649,14 +793,20 @@ public class ComponentSampleModel extends SampleModel
     /**
      * Returns the sample in a specified band
      * for a pixel located at (x,y) as a double.
-     * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
-     * not in bounds.
-     * @param x 	The X coordinate of the pixel location.
-     * @param y 	The Y coordinate of the pixel location.
-     * @param b 	The band to return.
-     * @param data 	The DataBuffer containing the image data.
+     * An <code>ArrayIndexOutOfBoundsException</code> might be 
+     * thrown if the coordinates are not in bounds.
+     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param b         The band to return
+     * @param data      The DataBuffer containing the image data
+     * @return a double value representing the sample in the specified
+     * band for the specified pixel.
      */
     public double getSampleDouble(int x, int y, int b, DataBuffer data) {
+        // Bounds check for 'b' will be performed automatically
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
 
         double sample = data.getElemDouble(bankIndices[b],
                                            y*scanlineStride + x*pixelStride +
@@ -667,18 +817,25 @@ public class ComponentSampleModel extends SampleModel
     /**
      * Returns the samples in a specified band for the specified rectangle
      * of pixels in an int array, one sample per data array element.
-     * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
-     * not in bounds.
-     * @param x 	The X coordinate of the upper left pixel location.
-     * @param y 	The Y coordinate of the upper left pixel location.
-     * @param w 	The width of the pixel rectangle.
-     * @param h 	The height of the pixel rectangle.
-     * @param b 	The band to return.
-     * @param iArray 	If non-null, returns the samples in this array.
-     * @param data 	The DataBuffer containing the image data.
+     * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if 
+     * the coordinates are not in bounds.
+     * @param x,&nbsp;y the coordinates of the upper left pixel location
+     * @param w         the width of the pixel rectangle
+     * @param h         the height of the pixel rectangle
+     * @param b         the band to return
+     * @param iArray    if non-<code>null</code>, returns the samples
+     *                  in this array
+     * @param data      the <code>DataBuffer</code> containing the image data
+     * @return the samples in the specified band of the specified pixel
+     * @see #setSamples(int, int, int, int, int, int[], DataBuffer)
      */
     public int[] getSamples(int x, int y, int w, int h, int b,
                             int iArray[], DataBuffer data) {
+        // Bounds check for 'b' will be performed automatically
+        if ((x < 0) || (y < 0) || (x + w > width) || (y + h > height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         int samples[];
         if (iArray != null) {
            samples = iArray;
@@ -701,39 +858,46 @@ public class ComponentSampleModel extends SampleModel
     }
 
     /** 
-     * Sets the data for a single pixel in the specified DataBuffer from a
-     * primitive array of type TransferType.  For a ComponentSampleModel,
-     * this will be the same as the data type, and samples are transferred
+     * Sets the data for a single pixel in the specified 
+     * <code>DataBuffer</code> from a primitive array of type 
+     * <code>TransferType</code>.  For a <code>ComponentSampleModel</code>,
+     * this is the same as the data type, and samples are transferred
      * one per array element.
      * <p>
      * The following code illustrates transferring data for one pixel from
-     * DataBuffer <code>db1</code>, whose storage layout is described by
-     * ComponentSampleModel <code>csm1</code>, to DataBuffer <code>db2</code>,
-     * whose storage layout is described by
-     * ComponentSampleModel <code>csm2</code>.
-     * The transfer will generally be more efficient than using
-     * getPixel/setPixel.
+     * <code>DataBuffer</code> <code>db1</code>, whose storage layout is 
+     * described by <code>ComponentSampleModel</code> <code>csm1</code>, 
+     * to <code>DataBuffer</code> <code>db2</code>, whose storage layout 
+     * is described by <code>ComponentSampleModel</code> <code>csm2</code>.
+     * The transfer is usually more efficient than using
+     * <code>getPixel</code> and <code>setPixel</code>.
      * <pre>
      * 	     ComponentSampleModel csm1, csm2;
      *	     DataBufferInt db1, db2;
      * 	     csm2.setDataElements(x, y, csm1.getDataElements(x, y, null, db1),
      *                            db2);
      * </pre>
-     * Using getDataElements/setDataElements to transfer between two
-     * DataBuffer/SampleModel pairs is legitimate if the SampleModels have
+     * Using <code>getDataElements</code> and <code>setDataElements</code>
+     * to transfer between two <code>DataBuffer/SampleModel</code> pairs 
+     * is legitimate if the <code>SampleModel</code> objects have
      * the same number of bands, corresponding bands have the same number of
-     * bits per sample, and the TransferTypes are the same.
+     * bits per sample, and the <code>TransferType</code>s are the same.
      * <p>
-     * obj must be a primitive array of type TransferType.  Otherwise,
-     * a ClassCastException is thrown.  An
-     * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
-     * not in bounds, or if obj is not large enough to hold the pixel data.
-     * @param x 	The X coordinate of the pixel location.
-     * @param y 	The Y coordinate of the pixel location.
-     * @param obj       A primitive array containing pixel data.
-     * @param data      The DataBuffer containing the image data.
+     * A <code>ClassCastException</code> is thrown if <code>obj</code> is not
+     * a primitive array of type <code>TransferType</code>.
+     * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if
+     * the coordinates are not in bounds, or if <code>obj</code> is not large 
+     * enough to hold the pixel data.
+     * @param x,&nbsp;y the coordinates of the pixel location
+     * @param obj       a primitive array containing pixel data
+     * @param data      the DataBuffer containing the image data
+     * @see #getDataElements(int, int, Object, DataBuffer)
      */
     public void setDataElements(int x, int y, Object obj, DataBuffer data) {
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
 
 	int type = getTransferType();
 	int numDataElems = getNumDataElements();
@@ -796,15 +960,20 @@ public class ComponentSampleModel extends SampleModel
     }
 
     /**
-     * Sets a pixel in the DataBuffer using an int array of samples for input.
-     * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
+     * Sets a pixel in the <code>DataBuffer</code> using an int array of 
+     * samples for input.  An <code>ArrayIndexOutOfBoundsException</code>
+     * might be thrown if the coordinates are
      * not in bounds.
-     * @param x 	The X coordinate of the pixel location.
-     * @param y 	The Y coordinate of the pixel location.
-     * @param iArray 	The input samples in an int array.
-     * @param data 	The DataBuffer containing the image data.
+     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param iArray    The input samples in an int array
+     * @param data      The DataBuffer containing the image data
+     * @see #getPixel(int, int, int[], DataBuffer)
      */
     public void setPixel(int x, int y, int iArray[], DataBuffer data) {
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
        int pixelOffset = y*scanlineStride + x*pixelStride;
        for (int i=0; i<numBands; i++) {
            data.setElem(bankIndices[i],
@@ -815,17 +984,21 @@ public class ComponentSampleModel extends SampleModel
     /**
      * Sets all samples for a rectangle of pixels from an int array containing
      * one sample per array element.
-     * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
-     * not in bounds.
-     * @param x 	The X coordinate of the upper left pixel location.
-     * @param y 	The Y coordinate of the upper left pixel location.
-     * @param w 	The width of the pixel rectangle.
-     * @param h         The height of the pixel rectangle.
-     * @param iArray 	The input samples in an int array.
-     * @param data 	The DataBuffer containing the image data.
+     * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if the 
+     * coordinates are not in bounds.
+     * @param x,&nbsp;y The coordinates of the upper left pixel location
+     * @param w         The width of the pixel rectangle
+     * @param h         The height of the pixel rectangle
+     * @param iArray    The input samples in an int array
+     * @param data      The DataBuffer containing the image data
+     * @see #getPixels(int, int, int, int, int[], DataBuffer)
      */
     public void setPixels(int x, int y, int w, int h,
                           int iArray[], DataBuffer data) {
+        if ((x < 0) || (y < 0) || (x + w > width) || (y + h > height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
 
         int lineOffset = y*scanlineStride + x*pixelStride;
         int srcOffset = 0;
@@ -845,35 +1018,45 @@ public class ComponentSampleModel extends SampleModel
 
     /**
      * Sets a sample in the specified band for the pixel located at (x,y)
-     * in the DataBuffer using an int for input.
-     * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
-     * not in bounds.
-     * @param x 	The X coordinate of the pixel location.
-     * @param y 	The Y coordinate of the pixel location.
-     * @param b 	The band to set.
-     * @param s 	The input sample as an int.
-     * @param data 	The DataBuffer containing the image data.
+     * in the <code>DataBuffer</code> using an int for input.
+     * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if the 
+     * coordinates are not in bounds.
+     * @param x,&nbsp;y the coordinates of the pixel location
+     * @param b         the band to set
+     * @param s         the input sample as an int 
+     * @param data      the DataBuffer containing the image data
+     * @see #getSample(int, int, int, DataBuffer)
      */
     public void setSample(int x, int y, int b, int s,
                           DataBuffer data) {
+        // Bounds check for 'b' will be performed automatically
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         data.setElem(bankIndices[b],
                      y*scanlineStride + x*pixelStride + bandOffsets[b], s);
     }
 
     /**
      * Sets a sample in the specified band for the pixel located at (x,y)
-     * in the DataBuffer using a float for input.
-     * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
-     * not in bounds.
-     * @param x 	The X coordinate of the pixel location.
-     * @param y 	The Y coordinate of the pixel location.
-     * @param b 	The band to set.
-     * @param s 	The input sample as a float.
-     * @param data 	The DataBuffer containing the image data.
+     * in the <code>DataBuffer</code> using a float for input.
+     * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if 
+     * the coordinates are not in bounds.
+     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param b         The band to set
+     * @param s         The input sample as a float
+     * @param data      The DataBuffer containing the image data
+     * @see #getSample(int, int, int, DataBuffer)
      */
     public void setSample(int x, int y, int b,
 			  float s ,
 			  DataBuffer data) {
+        // Bounds check for 'b' will be performed automatically
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         data.setElemFloat(bankIndices[b],
                           y*scanlineStride + x*pixelStride + bandOffsets[b],
                           s);
@@ -881,18 +1064,23 @@ public class ComponentSampleModel extends SampleModel
 
     /**
      * Sets a sample in the specified band for the pixel located at (x,y)
-     * in the DataBuffer using a double for input.
-     * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
-     * not in bounds.
-     * @param x 	The X coordinate of the pixel location.
-     * @param y 	The Y coordinate of the pixel location.
-     * @param b 	The band to set.
-     * @param s 	The input sample as a double.
-     * @param data 	The DataBuffer containing the image data.
+     * in the <code>DataBuffer</code> using a double for input.
+     * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if 
+     * the coordinates are not in bounds.
+     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param b         The band to set
+     * @param s         The input sample as a double
+     * @param data      The DataBuffer containing the image data
+     * @see #getSample(int, int, int, DataBuffer)
      */
     public void setSample(int x, int y, int b,
 			  double s,
 			  DataBuffer data) {
+        // Bounds check for 'b' will be performed automatically
+        if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         data.setElemDouble(bankIndices[b],
                           y*scanlineStride + x*pixelStride + bandOffsets[b],
                           s);
@@ -901,18 +1089,23 @@ public class ComponentSampleModel extends SampleModel
     /**
      * Sets the samples in the specified band for the specified rectangle
      * of pixels from an int array containing one sample per data array element.
-     * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
-     * not in bounds.
-     * @param x 	The X coordinate of the upper left pixel location.
-     * @param y 	The Y coordinate of the upper left pixel location.
-     * @param w 	The width of the pixel rectangle.
-     * @param h         The height of the pixel rectangle.
-     * @param b 	The band to set.
-     * @param iArray 	The input samples in an int array.
-     * @param data 	The DataBuffer containing the image data.
+     * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if the 
+     * coordinates are not in bounds.
+     * @param x,&nbsp;y The coordinates of the upper left pixel location
+     * @param w         The width of the pixel rectangle
+     * @param h         The height of the pixel rectangle
+     * @param b         The band to set
+     * @param iArray    The input samples in an int array
+     * @param data      The DataBuffer containing the image data
+     * @see #getSamples(int, int, int, int, int, int[], DataBuffer)
      */
     public void setSamples(int x, int y, int w, int h, int b,
                            int iArray[], DataBuffer data) {
+        // Bounds check for 'b' will be performed automatically
+        if ((x < 0) || (y < 0) || (x + w > width) || (y + h > height)) {
+            throw new ArrayIndexOutOfBoundsException
+                ("Coordinate out of bounds!");
+        }
         int lineOffset = y*scanlineStride + x*pixelStride + bandOffsets[b];
         int srcOffset = 0;
 
@@ -925,5 +1118,51 @@ public class ComponentSampleModel extends SampleModel
            lineOffset += scanlineStride;
         }
     }
-}
 
+    public boolean equals(Object o) {
+        if ((o == null) || !(o instanceof ComponentSampleModel)) {
+            return false;
+        }
+
+        ComponentSampleModel that = (ComponentSampleModel)o;
+        return this.width == that.width &&
+            this.height == that.height &&
+            this.numBands == that.numBands &&
+            this.dataType == that.dataType &&
+            Arrays.equals(this.bandOffsets, that.bandOffsets) &&
+            Arrays.equals(this.bankIndices, that.bankIndices) &&
+            this.numBands == that.numBands &&
+            this.numBanks == that.numBanks &&
+            this.scanlineStride == that.scanlineStride &&
+            this.pixelStride == that.pixelStride;
+    }
+
+    // If we implement equals() we must also implement hashCode
+    public int hashCode() {
+        int hash = 0;
+        hash = width;
+        hash <<= 8;
+        hash ^= height;
+        hash <<= 8;
+        hash ^= numBands;
+        hash <<= 8;
+        hash ^= dataType;
+        hash <<= 8;
+        for (int i = 0; i < bandOffsets.length; i++) {
+            hash ^= bandOffsets[i];
+            hash <<= 8;
+        }
+        for (int i = 0; i < bankIndices.length; i++) {
+            hash ^= bankIndices[i];
+            hash <<= 8;
+        }
+        hash ^= numBands;
+        hash <<= 8;
+        hash ^= numBanks;
+        hash <<= 8;
+        hash ^= scanlineStride;
+        hash <<= 8;
+        hash ^= pixelStride;
+        return hash;
+    }
+}

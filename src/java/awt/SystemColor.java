@@ -1,4 +1,6 @@
 /*
+ * @(#)SystemColor.java	1.22 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,147 +11,208 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.ColorModel;
 
 /**
- * A class to encapsulate symbolic colors representing the color
- * of GUI objects on a system.  For systems which support the dynamic
+ * A class to encapsulate symbolic colors representing the color of
+ * native GUI objects on a system.  For systems which support the dynamic
  * update of the system colors (when the user changes the colors)
  * the actual RGB values of these symbolic colors will also change
- * dynamically.  In order to compare the "current" RGB value of a SystemColor
- * object with a non-symbolic Color object, getRGB() should be used
- * rather than equals().
+ * dynamically.  In order to compare the "current" RGB value of a
+ * <code>SystemColor</code> object with a non-symbolic Color object,
+ * <code>getRGB</code> should be used rather than <code>equals</code>.
+ * <p>
+ * Note that the way in which these system colors are applied to GUI objects
+ * may vary slightly from platform to platform since GUI objects may be
+ * rendered differently on each platform.
+ * <p>
+ * System color values may also be available through the <code>getDesktopProperty</code>
+ * method on <code>java.awt.Toolkit</code>.
  *
- * @version 	1.19, 02/06/02
+ * @see Toolkit#getDesktopProperty
+ *
+ * @version 	1.22, 12/03/01
  * @author 	Carl Quinn
  * @author      Amy Fowler
  */
 public final class SystemColor extends Color implements java.io.Serializable {
 
-    /**
-     * The array index for the desktop background color.
+   /**
+     * The array index for the
+     * <a href="#desktop"><code>desktop</code></a> system color.
+     * @see SystemColor#desktop
      */
     public final static int DESKTOP = 0;
 
     /**
-     * The array index for the active caption background color.
+     * The array index for the
+     * <a href="#activeCaption"><code>activeCaption</code></a> system color.
+     * @see SystemColor#activeCaption
      */
     public final static int ACTIVE_CAPTION = 1;
 
     /**
-     * The array index for the action caption text color.
+     * The array index for the
+     * <a href="#activeCaptionText"><code>activeCaptionText</code></a> system color.
+     * @see SystemColor#activeCaptionText
      */
     public final static int ACTIVE_CAPTION_TEXT = 2;
 
     /**
-     * The array index for the active caption border color.
+     * The array index for the
+     * <a href="#activeCaptionBorder"><code>activeCaptionBorder</code></a> system color.
+     * @see SystemColor#activeCaptionBorder
      */
     public final static int ACTIVE_CAPTION_BORDER = 3;
 
     /**
-     * The array index for the inactive caption background color.
+     * The array index for the
+     * <a href="#inactiveCaption"><code>inactiveCaption</code></a> system color.
+     * @see SystemColor#inactiveCaption
      */
     public final static int INACTIVE_CAPTION = 4;
 
     /**
-     * The array index for the inactive caption text color.
+     * The array index for the
+     * <a href="#inactiveCaptionText"><code>inactiveCaptionText</code></a> system color.
+     * @see SystemColor#inactiveCaptionText
      */
     public final static int INACTIVE_CAPTION_TEXT = 5;
 
     /**
-     * The array index for the inactive caption border color.
+     * The array index for the
+     * <a href="#inactiveCaptionBorder"><code>inactiveCaptionBorder</code></a> system color.
+     * @see SystemColor#inactiveCaptionBorder
      */
     public final static int INACTIVE_CAPTION_BORDER = 6;
 
     /**
-     * The array index for the window background color.
+     * The array index for the
+     * <a href="#window"><code>window</code></a> system color.
+     * @see SystemColor#window
      */
     public final static int WINDOW = 7;
 
     /**
-     * The array index for the window border color.
+     * The array index for the
+     * <a href="#windowBorder"><code>windowBorder</code></a> system color.
+     * @see SystemColor#windowBorder
      */
     public final static int WINDOW_BORDER = 8;
 
     /**
-     * The array index for the window text color.
+     * The array index for the
+     * <a href="#windowText"><code>windowText</code></a> system color.
+     * @see SystemColor#windowText
      */
     public final static int WINDOW_TEXT = 9;
 
     /**
-     * The array index for the menu background color.
+     * The array index for the
+     * <a href="#menu"><code>menu</code></a> system color.
+     * @see SystemColor#menu
      */
     public final static int MENU = 10;
 
     /**
-     * The array index for the menu text color.
+     * The array index for the
+     * <a href="#menuText"><code>menuText</code></a> system color.
+     * @see SystemColor#menuText
      */
     public final static int MENU_TEXT = 11;
 
     /**
-     * The array index for the text background color.
+     * The array index for the
+     * <a href="#text"><code>text</code></a> system color.
+     * @see SystemColor#text
      */
     public final static int TEXT = 12;
 
     /**
-     * The array index for the text text color.
+     * The array index for the
+     * <a href="#textText"><code>textText</code></a> system color.
+     * @see SystemColor#textText
      */
     public final static int TEXT_TEXT = 13;
 
     /**
-     * The array index for the text highlight color.
+     * The array index for the
+     * <a href="#textHighlight"><code>textHighlight</code></a> system color.
+     * @see SystemColor#textHighlight
      */
     public final static int TEXT_HIGHLIGHT = 14;
 
     /**
-     * The array index for the text highlight text color.
+     * The array index for the
+     * <a href="#textHighlightText"><code>textHighlightText</code></a> system color.
+     * @see SystemColor#textHighlightText
      */
     public final static int TEXT_HIGHLIGHT_TEXT = 15;
 
     /**
-     * The array index for the text inactive text color.
+     * The array index for the
+     * <a href="#textInactiveText"><code>textInactiveText</code></a> system color.
+     * @see SystemColor#textInactiveText
      */
     public final static int TEXT_INACTIVE_TEXT = 16;
 
     /**
-     * The array index for the control background color.
+     * The array index for the
+     * <a href="#control"><code>control</code></a> system color.
+     * @see SystemColor#control
      */
     public final static int CONTROL = 17;
 
     /**
-     * The array index for the control text color.
+     * The array index for the
+     * <a href="#controlText"><code>controlText</code></a> system color.
+     * @see SystemColor#controlText
      */
     public final static int CONTROL_TEXT = 18;
 
     /**
-     * The array index for the control highlight color.
+     * The array index for the
+     * <a href="#controlHighlight"><code>controlHighlight</code></a> system color.
+     * @see SystemColor#controlHighlight
      */
     public final static int CONTROL_HIGHLIGHT = 19;
 
     /**
-     * The array index for the control light highlight color.
+     * The array index for the
+     * <a href="#controlLtHighlight"><code>controlLtHighlight</code></a> system color.
+     * @see SystemColor#controlLtHighlight
      */
     public final static int CONTROL_LT_HIGHLIGHT = 20;
 
     /**
-     * The array index for the control shadow color.
+     * The array index for the
+     * <a href="#controlShadow"><code>controlShadow</code></a> system color.
+     * @see SystemColor#controlShadow
      */
     public final static int CONTROL_SHADOW = 21;
 
     /**
-     * The array index for the control dark shadow color.
+     * The array index for the
+     * <a href="#controlDkShadow"><code>controlDkShadow</code></a> system color.
+     * @see SystemColor#controlDkShadow
      */
     public final static int CONTROL_DK_SHADOW = 22;
 
     /**
-     * The array index for the scrollbar background color.
+     * The array index for the
+     * <a href="#scrollbar"><code>scrollbar</code></a> system color.
+     * @see SystemColor#scrollbar
      */
     public final static int SCROLLBAR = 23;
 
     /**
-     * The array index for the info background color.
+     * The array index for the
+     * <a href="#info"><code>info</code></a> system color.
+     * @see SystemColor#info
      */
     public final static int INFO = 24;
 
     /**
-     * The array index for the info text color.
+     * The array index for the
+     * <a href="#infoText"><code>infoText</code></a> system color.
+     * @see SystemColor#infoText
      */
     public final static int INFO_TEXT = 25;
 
@@ -158,133 +221,149 @@ public final class SystemColor extends Color implements java.io.Serializable {
      */
     public final static int NUM_COLORS = 26;
 
+    /******************************************************************************************/
+
    /**
-     * The color of the desktop background.
+     * The color rendered for the background of the desktop.
      */
     public final static SystemColor desktop = new SystemColor((byte)DESKTOP);
 
     /**
-     * The background color for captions in window borders.
+     * The color rendered for the window-title background of the currently active window.
      */
     public final static SystemColor activeCaption = new SystemColor((byte)ACTIVE_CAPTION);
 
     /**
-     * The text color for captions in window borders.
+     * The color rendered for the window-title text of the currently active window.
      */
     public final static SystemColor activeCaptionText = new SystemColor((byte)ACTIVE_CAPTION_TEXT);
 
     /**
-     * The border color for captions in window borders.
+     * The color rendered for the border around the currently active window.
      */
     public final static SystemColor activeCaptionBorder = new SystemColor((byte)ACTIVE_CAPTION_BORDER);
 
     /**
-     * The background color for inactive captions in window borders.
+     * The color rendered for the window-title background of inactive windows.
      */
     public final static SystemColor inactiveCaption = new SystemColor((byte)INACTIVE_CAPTION);
 
     /**
-     * The text color for inactive captions in window borders.
+     * The color rendered for the window-title text of inactive windows.
      */
     public final static SystemColor inactiveCaptionText = new SystemColor((byte)INACTIVE_CAPTION_TEXT);
 
     /**
-     * The border color for inactive captios in window borders.
+     * The color rendered for the border around inactive windows.
      */
     public final static SystemColor inactiveCaptionBorder = new SystemColor((byte)INACTIVE_CAPTION_BORDER);
 
     /**
-     * The background color for windows.
+     * The color rendered for the background of interior regions inside windows.
      */
     public final static SystemColor window = new SystemColor((byte)WINDOW);
 
     /**
-     * The border color for windows.
+     * The color rendered for the border around interior regions inside windows.
      */
     public final static SystemColor windowBorder = new SystemColor((byte)WINDOW_BORDER);
 
     /**
-     * The text color for windows.
+     * The color rendered for text of interior regions inside windows.
      */
     public final static SystemColor windowText = new SystemColor((byte)WINDOW_TEXT);
 
     /**
-     * The background color for menus.
+     * The color rendered for the background of menus.
      */
     public final static SystemColor menu = new SystemColor((byte)MENU);
 
     /**
-     * The text color for menus.
+     * The color rendered for the text of menus.
      */
     public final static SystemColor menuText = new SystemColor((byte)MENU_TEXT);
 
     /**
-     * The background color for text components.
+     * The color rendered for the background of text control objects, such as
+     * textfields and comboboxes.
      */
     public final static SystemColor text = new SystemColor((byte)TEXT);
 
     /**
-     * The text color for text components.
+     * The color rendered for the text of text control objects, such as textfields
+     * and comboboxes.
      */
     public final static SystemColor textText = new SystemColor((byte)TEXT_TEXT);
 
     /**
-     * The background color for highlighted text.
+     * The color rendered for the background of selected items, such as in menus,
+     * comboboxes, and text.
      */
     public final static SystemColor textHighlight = new SystemColor((byte)TEXT_HIGHLIGHT);
 
     /**
-     * The text color for highlighted text.
+     * The color rendered for the text of selected items, such as in menus, comboboxes,
+     * and text.
      */
     public final static SystemColor textHighlightText = new SystemColor((byte)TEXT_HIGHLIGHT_TEXT);
 
     /**
-     * The text color for inactive text.
+     * The color rendered for the text of inactive items, such as in menus.
      */
     public final static SystemColor textInactiveText = new SystemColor((byte)TEXT_INACTIVE_TEXT);
 
     /**
-     * The background color for control objects.
+     * The color rendered for the background of control panels and control objects,
+     * such as pushbuttons.
      */
     public final static SystemColor control = new SystemColor((byte)CONTROL);
 
     /**
-     * The text color for control objects.
+     * The color rendered for the text of control panels and control objects,
+     * such as pushbuttons.
      */
     public final static SystemColor controlText = new SystemColor((byte)CONTROL_TEXT);
 
     /**
-     * The regular highlight color for control objects.
+     * The color rendered for light areas of 3D control objects, such as pushbuttons.
+     * This color is typically derived from the <code>control</code> background color
+     * to provide a 3D effect.
      */
     public final static SystemColor controlHighlight = new SystemColor((byte)CONTROL_HIGHLIGHT);
 
     /**
-     * The light highlight color for control objects.
+     * The color rendered for highlight areas of 3D control objects, such as pushbuttons.
+     * This color is typically derived from the <code>control</code> background color
+     * to provide a 3D effect.
      */
     public final static SystemColor controlLtHighlight = new SystemColor((byte)CONTROL_LT_HIGHLIGHT);
 
     /**
-     * The regular shadow color for control objects.
+     * The color rendered for shadow areas of 3D control objects, such as pushbuttons.
+     * This color is typically derived from the <code>control</code> background color
+     * to provide a 3D effect.
      */
     public final static SystemColor controlShadow = new SystemColor((byte)CONTROL_SHADOW);
 
     /**
-     * The dark shadow color for control objects.
+     * The color rendered for dark shadow areas on 3D control objects, such as pushbuttons.
+     * This color is typically derived from the <code>control</code> background color
+     * to provide a 3D effect.
      */
     public final static SystemColor controlDkShadow = new SystemColor((byte)CONTROL_DK_SHADOW);
 
     /**
-     * The background color for scrollbars.
+     * The color rendered for the background of scrollbars.
      */
     public final static SystemColor scrollbar = new SystemColor((byte)SCROLLBAR);
 
     /**
-     * The background color for info(help) text.
+     * The color rendered for the background of tooltips or spot help.
      */
     public final static SystemColor info = new SystemColor((byte)INFO);
 
     /**
-     * The text color for info(help) text.
+     * The color rendered for the text of tooltips or spot help.
      */
     public final static SystemColor infoText = new SystemColor((byte)INFO_TEXT);
 
@@ -322,7 +401,7 @@ public final class SystemColor extends Color implements java.io.Serializable {
     };
 
     /*
-     * JDK 1.1 serialVersionUID
+     * JDK 1.1 serialVersionUID.
      */
     private static final long serialVersionUID = 4503142729533789064L;
 
@@ -331,14 +410,16 @@ public final class SystemColor extends Color implements java.io.Serializable {
     }
 
     /**
-     * called from <init> & toolkit to update the above systemColors cache
+     * Called from <init> & toolkit to update the above systemColors cache.
      */
     private static void updateSystemColors() {
-      Toolkit.getDefaultToolkit().loadSystemColors(systemColors);
+        if (!GraphicsEnvironment.isHeadless()) {
+            Toolkit.getDefaultToolkit().loadSystemColors(systemColors);
+        }
     }
 
     /**
-     * Create a symbolic color that represents an indexed entry into system
+     * Creates a symbolic color that represents an indexed entry into system
      * color cache. Used by above static system colors.
      */
     private SystemColor(byte index) {
@@ -361,9 +442,10 @@ public final class SystemColor extends Color implements java.io.Serializable {
     }
 
     /**
-     * Create and return a PaintContext used to generate a solid color
-     * pattern.  This enables a Color object to be used as an argument to
-     * any method requiring an object implementing the Paint interface.
+     * Creates and returns a <code>PaintContext</code> used to generate
+     * a solid color pattern.  This enables a Color object to be used
+     * as an argument to any method requiring an object implementing
+     * the Paint interface.
      * @see Paint
      * @see PaintContext
      * @see Graphics2D#setPaint
@@ -375,7 +457,13 @@ public final class SystemColor extends Color implements java.io.Serializable {
     }
 
     /**
-     * Returns the String representation of this Color's values.
+     * Returns a string representation of this <code>Color</code>'s values.
+     * This method is intended to be used only for debugging purposes,
+     * and the content and format of the returned string may vary between
+     * implementations.
+     * The returned string may be empty but may not be <code>null</code>.
+     *
+     * @return  a string representation of this <code>Color</code>
      */
     public String toString() {
         return getClass().getName() + "[i=" + (value) + "]";

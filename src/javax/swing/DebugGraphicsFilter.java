@@ -1,4 +1,6 @@
 /*
+ * @(#)DebugGraphicsFilter.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,7 +12,7 @@ import java.awt.image.*;
 
 /** Color filter for DebugGraphics, used for images only.
   * 
-  * @version 1.9 02/06/02
+  * @version 1.9 12/03/01
   * @author Dave Karlton
   */
 class DebugGraphicsFilter extends RGBImageFilter {

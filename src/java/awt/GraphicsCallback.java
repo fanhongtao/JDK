@@ -1,10 +1,13 @@
 /*
+ * @(#)GraphicsCallback.java	1.5 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
 
+import java.awt.peer.LightweightPeer;
 import sun.awt.SunGraphicsCallback;
 
 
@@ -60,7 +63,7 @@ abstract class GraphicsCallback extends SunGraphicsCallback {
         private PeerPaintCallback() {}
         public void run(Component comp, Graphics cg) {
 	    comp.validate();
-	    if (comp.peer instanceof java.awt.peer.LightweightPeer) {
+	    if (comp.peer instanceof LightweightPeer) {
 	        comp.lightweightPaint(cg);
 	    } else {
 	        comp.peer.paint(cg);
@@ -76,7 +79,7 @@ abstract class GraphicsCallback extends SunGraphicsCallback {
         private PeerPrintCallback() {}
         public void run(Component comp, Graphics cg) {
 	    comp.validate();
-	    if (comp.peer instanceof java.awt.peer.LightweightPeer) {
+	    if (comp.peer instanceof LightweightPeer) {
 	        comp.lightweightPrint(cg);
 	    } else {
 	        comp.peer.print(cg);
@@ -94,7 +97,7 @@ abstract class GraphicsCallback extends SunGraphicsCallback {
 
         private PaintHeavyweightComponentsCallback() {}
         public void run(Component comp, Graphics cg) {
-	    if (comp.peer instanceof java.awt.peer.LightweightPeer) {
+	    if (comp.peer instanceof LightweightPeer) {
 	        comp.paintHeavyweightComponents(cg);
 	    } else {
 	        comp.paintAll(cg);
@@ -112,7 +115,7 @@ abstract class GraphicsCallback extends SunGraphicsCallback {
 
         private PrintHeavyweightComponentsCallback() {}
         public void run(Component comp, Graphics cg) {
-	    if (comp.peer instanceof java.awt.peer.LightweightPeer) {
+	    if (comp.peer instanceof LightweightPeer) {
 	        comp.printHeavyweightComponents(cg);
 	    } else {
 	        comp.printAll(cg);

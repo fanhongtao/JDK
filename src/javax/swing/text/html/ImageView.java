@@ -1,4 +1,6 @@
 /*
+ * @(#)ImageView.java	1.50 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,26 +18,107 @@ import javax.swing.event.*;
 
 /**
  * View of an Image, intended to support the HTML &lt;IMG&gt; tag.
- * Supports scaling via the HEIGHT and WIDTH parameters.
+ * Supports scaling via the HEIGHT and WIDTH attributes of the tag.
+ * If the image is unable to be loaded any text specified via the
+ * <code>ALT</code> attribute will be rendered.
+ * <p>
+ * While this class has been part of swing for a while now, it is public
+ * as of 1.4.
  *
- * @author  Jens Alfke
- * @version 1.41 02/06/02
+ * @author  Scott Violet
+ * @version 1.50 12/03/01
  * @see IconView
+ * @since 1.4
  */
-class ImageView extends View implements ImageObserver, MouseListener, MouseMotionListener {
+public class ImageView extends View {
+    /**
+     * If true, when some of the bits are available a repaint is done.
+     * <p>
+     * This is set to false as swing does not offer a repaint that takes a
+     * delay. If this were true, a bunch of immediate repaints would get
+     * generated that end up significantly delaying the loading of the image
+     * (or anything else going on for that matter).
+     */
+    private static boolean sIsInc = false;
+    /**
+     * Repaint delay when some of the bits are available.
+     */
+    private static int sIncRate = 100;
+    /**
+     * Icon used while the image is being loaded.
+     */
+    private static Icon sPendingImageIcon;
+    /**
+     * Icon used if the image could not be found.
+     */
+    private static Icon sMissingImageIcon;
+    /**
+     * File name for <code>sPendingImageIcon</code>.
+     */
+    private static final String PENDING_IMAGE_SRC = "icons/image-delayed.gif";
+    /**
+     * File name for <code>sMissingImageIcon</code>.
+     */
+    private static final String MISSING_IMAGE_SRC = "icons/image-failed.gif";
 
-    // --- Attribute Values ------------------------------------------
+    /**
+     * Document property for image cache.
+     */
+    private static final String IMAGE_CACHE_PROPERTY = "imageCache";
     
-    public static final String
-    	TOP = "top",
-    	TEXTTOP = "texttop",
-    	MIDDLE = "middle",
-    	ABSMIDDLE = "absmiddle",
-    	CENTER = "center",
-    	BOTTOM = "bottom";
-    
+    // Height/width to use before we know the real size, these should at least
+    // the size of <code>sMissingImageIcon</code> and
+    // <code>sPendingImageIcon</code>
+    private static final int DEFAULT_WIDTH = 38;
+    private static final int DEFAULT_HEIGHT= 38;
 
-    // --- Construction ----------------------------------------------
+    /**
+     * Default border to use if one is not specified.
+     */
+    private static final int DEFAULT_BORDER = 2;
+
+    // Bitmask values
+    private static final int LOADING_FLAG = 1;
+    private static final int LINK_FLAG = 2;
+    private static final int WIDTH_FLAG = 4;
+    private static final int HEIGHT_FLAG = 8;
+    private static final int RELOAD_FLAG = 16;
+    private static final int RELOAD_IMAGE_FLAG = 32;
+    private static final int SYNC_LOAD_FLAG = 64;
+
+    private AttributeSet attr;
+    private Image image;
+    private int width;
+    private int height;
+    /** Bitmask containing some of the above bitmask values. Because the
+     * image loading notification can happen on another thread access to
+     * this is synchronized (at least for modifying it). */
+    private int state;
+    private Container container;
+    private Rectangle fBounds;
+    private Color borderColor;
+    // Size of the border, the insets contains this valid. For example, if
+    // the HSPACE attribute was 4 and BORDER 2, leftInset would be 6.
+    private short borderSize;
+    // Insets, obtained from the painter.
+    private short leftInset;
+    private short rightInset;
+    private short topInset;
+    private short bottomInset;
+    /**
+     * We don't directly implement ImageObserver, instead we use an instance
+     * that calls back to us.
+     */
+    private ImageObserver imageObserver;
+    /**
+     * Used for alt text. Will be non-null if the image couldn't be found,
+     * and there is valid alt text.
+     */
+    private View altView;
+    /** Alignment along the vertical (Y) axis. */
+    private float vAlign;
+
+
 
     /**
      * Creates a new view that represents an IMG element.
@@ -45,137 +128,30 @@ class ImageView extends View implements ImageObserver, MouseListener, MouseMotio
     public ImageView(Element elem) {
     	super(elem);
 	fBounds = new Rectangle();
-    	initialize(elem);
-	StyleSheet sheet = getStyleSheet();
-	attr = sheet.getViewAttributes(this);
+        imageObserver = new ImageHandler();
+        state = RELOAD_FLAG | RELOAD_IMAGE_FLAG;
     }
-    
-    
-    private void initialize( Element elem ) {
-	synchronized(this) {
-	    loading = true;
-	    fWidth = fHeight = 0;
-	}
-	int width = 0;
-	int height = 0;
-	boolean customWidth = false;
-	boolean customHeight = false;
-	try {
-	    fElement = elem;
-	    AttributeSet attr = elem.getAttributes();
-        
-	    AttributeSet anchorAttr = (AttributeSet)attr.
-		         getAttribute(HTML.Tag.A);
-	    isLink = (anchorAttr != null && anchorAttr.isDefined
-		      (HTML.Attribute.HREF));
-	    border = getIntAttr(HTML.Attribute.BORDER, isLink() ?
-				DEFAULT_BORDER : 0);
-	    xSpace = getIntAttr(HTML.Attribute.HSPACE, 0);
-	    ySpace = getIntAttr(HTML.Attribute.VSPACE, 0);
 
-	    // Request image from document's cache:
-	    URL src = getSourceURL();
-	    if( src != null ) {
-		Dictionary cache = (Dictionary) getDocument().getProperty(IMAGE_CACHE_PROPERTY);
-		if( cache != null )
-		    fImage = (Image) cache.get(src);
-		else
-		    fImage = Toolkit.getDefaultToolkit().getImage(src);
-	    }
-	
-	    // Get height/width from params or image or defaults:
-	    height = getIntAttr(HTML.Attribute.HEIGHT,-1);
-	    customHeight = (height>0);
-	    if( !customHeight && fImage != null )
-		height = fImage.getHeight(this);
-	    if( height <= 0 )
-		height = DEFAULT_HEIGHT;
-		
-	    width = getIntAttr(HTML.Attribute.WIDTH,-1);
-	    customWidth = (width>0);
-	    if( !customWidth && fImage != null )
-		width = fImage.getWidth(this);
-	    if( width <= 0 )
-		width = DEFAULT_WIDTH;
-
-	    // Make sure the image starts loading:
-	    if( fImage != null )
-		if( customWidth && customHeight )
-		    Toolkit.getDefaultToolkit().prepareImage(fImage,height,
-							     width,this);
-		else
-		    Toolkit.getDefaultToolkit().prepareImage(fImage,-1,-1,
-							     this);
-	
-	    if( DEBUG ) {
-		if( fImage != null )
-		    System.out.println("ImageInfo: new on "+src+
-				       " ("+fWidth+"x"+fHeight+")");
-		else
-		    System.out.println("ImageInfo: couldn't get image at "+
-				       src);
-		if(isLink())
-		    System.out.println("           It's a link! Border = "+
-				       getBorder());
-		//((AbstractDocument.AbstractElement)elem).dump(System.out,4);
-	    }
-	} finally {
-	    synchronized(this) {
-		loading = false;
-		if (customWidth || fWidth == 0) {
-		    fWidth = width;
-		}
-		if (customHeight || fHeight == 0) {
-		    fHeight = height;
-		}
-	    }
-	}
-    }
-    
     /**
-     * Fetches the attributes to use when rendering.  This is
-     * implemented to multiplex the attributes specified in the
-     * model with a StyleSheet.
+     * Returns the text to display if the image can't be loaded. This is
+     * obtained from the Elements attribute set with the attribute name
+     * <code>HTML.Attribute.ALT</code>.
      */
-    public AttributeSet getAttributes() {
-	return attr;
+    public String getAltText() {
+        return (String)getElement().getAttributes().getAttribute
+            (HTML.Attribute.ALT);
     }
 
-    /** Is this image within a link? */
-    boolean isLink( ) {
-	return isLink;
-    }
-    
-    /** Returns the size of the border to use. */
-    int getBorder( ) {
-        return border;
-    }
-    
-    /** Returns the amount of extra space to add along an axis. */
-    int getSpace( int axis ) {
-	if (axis == X_AXIS) {
-	    return xSpace;
-	}
-	return ySpace;
-    }
-    
-    /** Returns the border's color, or null if this is not a link. */
-    Color getBorderColor( ) {
-    	StyledDocument doc = (StyledDocument) getDocument();
-        return doc.getForeground(getAttributes());
-    }
-    
-    boolean hasPixels( ImageObserver obs ) {
-        return fImage != null && fImage.getHeight(obs)>0
-			      && fImage.getWidth(obs)>0;
-    }
-    
-
-    /** Return a URL for the image source, 
-        or null if it could not be determined. */
-    private URL getSourceURL( ) {
- 	String src = (String) fElement.getAttributes().getAttribute(HTML.Attribute.SRC);
- 	if( src==null ) return null;
+    /**
+     * Return a URL for the image source, 
+     * or null if it could not be determined.
+     */
+    public URL getImageURL() {
+ 	String src = (String)getElement().getAttributes().
+                             getAttribute(HTML.Attribute.SRC);
+ 	if (src == null) {
+            return null;
+        }
 
 	URL reference = ((HTMLDocument)getDocument()).getBase();
         try {
@@ -186,289 +162,312 @@ class ImageView extends View implements ImageObserver, MouseListener, MouseMotio
         }
     }
     
-    /** Look up an integer-valued attribute. <b>Not</b> recursive. */
-    private int getIntAttr(HTML.Attribute name, int deflt ) {
-    	AttributeSet attr = fElement.getAttributes();
-    	if( attr.isDefined(name) ) {		// does not check parents!
-    	    int i;
- 	    String val = (String) attr.getAttribute(name);
- 	    if( val == null )
- 	    	i = deflt;
- 	    else
- 	    	try{
- 	            i = Math.max(0, Integer.parseInt(val));
- 	    	}catch( NumberFormatException x ) {
- 	    	    i = deflt;
- 	    	}
-	    return i;
-	} else
-	    return deflt;
+    /**
+     * Returns the icon to use if the image couldn't be found.
+     */
+    public Icon getNoImageIcon() {
+        loadDefaultIconsIfNecessary();
+        return sMissingImageIcon;
     }
-    
+
+    /**
+     * Returns the icon to use while in the process of loading the image.
+     */
+    public Icon getLoadingImageIcon() {
+        loadDefaultIconsIfNecessary();
+        return sPendingImageIcon;
+    }
+
+    /**
+     * Returns the image to render.
+     */
+    public Image getImage() {
+        sync();
+        return image;
+    }
+
+    /**
+     * Sets how the image is loaded. If <code>newValue</code> is true,
+     * the image we be loaded when first asked for, otherwise it will
+     * be loaded asynchronously. The default is to not load synchronously,
+     * that is to load the image asynchronously.
+     */
+    public void setLoadsSynchronously(boolean newValue) {
+        synchronized(this) {
+            if (newValue) {
+                state |= SYNC_LOAD_FLAG;
+            }
+            else {
+                state = (state | SYNC_LOAD_FLAG) ^ SYNC_LOAD_FLAG;
+            }
+        }
+    }
+
+    /**
+     * Returns true if the image should be loaded when first asked for.
+     */
+    public boolean getLoadsSynchronously() {
+        return ((state & SYNC_LOAD_FLAG) != 0);
+    }
+
+    /**
+     * Convenience method to get the StyleSheet.
+     */
+    protected StyleSheet getStyleSheet() {
+	HTMLDocument doc = (HTMLDocument) getDocument();
+	return doc.getStyleSheet();
+    }
+
+    /**
+     * Fetches the attributes to use when rendering.  This is
+     * implemented to multiplex the attributes specified in the
+     * model with a StyleSheet.
+     */
+    public AttributeSet getAttributes() {
+        sync();
+	return attr;
+    }
+
+    /**
+     * For images the tooltip text comes from text specified with the
+     * <code>ALT</code> attribute. This is overriden to return
+     * <code>getAltText</code>.
+     *
+     * @see JTextComponent#getToolTipText
+     */
+    public String getToolTipText(float x, float y, Shape allocation) {
+        return getAltText();
+    }
+
+    /**
+     * Update any cached values that come from attributes.
+     */
+    protected void setPropertiesFromAttributes() {
+        StyleSheet sheet = getStyleSheet();
+        this.attr = sheet.getViewAttributes(this);
+
+        // Gutters
+        borderSize = (short)getIntAttr(HTML.Attribute.BORDER, isLink() ?
+                                       DEFAULT_BORDER : 0);
+
+        if (borderSize == 0 && image == null) {
+            borderSize = 1;
+        }
+
+        leftInset = rightInset = (short)(getIntAttr(HTML.Attribute.HSPACE,
+                                                    0) + borderSize);
+        topInset = bottomInset = (short)(getIntAttr(HTML.Attribute.VSPACE,
+                                                    0) + borderSize);
+
+        borderColor = ((StyledDocument)getDocument()).getForeground
+                      (getAttributes());
+
+        AttributeSet attr = getElement().getAttributes();
+
+        // Alignment.
+        // PENDING: This needs to be changed to support the CSS versions
+        // when conversion from ALIGN to VERTICAL_ALIGN is complete.
+        Object alignment = attr.getAttribute(HTML.Attribute.ALIGN);
+
+        vAlign = 1.0f;
+        if (alignment != null) {
+            alignment = alignment.toString();
+            if ("top".equals(alignment)) {
+                vAlign = 0f;
+            }
+            else if ("middle".equals(alignment)) {
+                vAlign = .5f;
+            }
+        }
+
+        AttributeSet anchorAttr = (AttributeSet)attr.getAttribute(HTML.Tag.A);
+        if (anchorAttr != null && anchorAttr.isDefined
+            (HTML.Attribute.HREF)) {
+            synchronized(this) {
+                state |= LINK_FLAG;
+            }
+        }
+        else {
+            synchronized(this) {
+                state = (state | LINK_FLAG) ^ LINK_FLAG;
+            }
+        }
+    }
 
     /**
      * Establishes the parent view for this view.
      * Seize this moment to cache the AWT Container I'm in.
      */
     public void setParent(View parent) {
+        View oldParent = getParent();
 	super.setParent(parent);
-	fContainer = parent!=null ?getContainer() :null;
-	if( parent==null && fComponent!=null ) {
-	    fComponent.getParent().remove(fComponent);
-	    fComponent = null;
-	}
+	container = (parent != null) ? getContainer() : null;
+        if (oldParent != parent) {
+            synchronized(this) {
+                state |= RELOAD_FLAG;
+            }
+        }
     }
-
-    /** My attributes may have changed. */
-    public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
-if(DEBUG) System.out.println("ImageView: changedUpdate begin...");
-    	super.changedUpdate(e,a,f);
-    	
-    	int height = fHeight;
-    	int width  = fWidth;
-    	
-    	initialize(getElement());
-    	
-    	boolean hChanged = fHeight!=height;
-    	boolean wChanged = fWidth!=width;
-    	if( hChanged || wChanged) {
-    	    if(DEBUG) System.out.println("ImageView: calling preferenceChanged");
-	    preferenceChanged(null,hChanged,wChanged);
-    	}
-    }
-
-
-    // --- Painting --------------------------------------------------------
 
     /**
-     * Paints the image.
+     * Invoked when the Elements attributes have changed. Recreates the image.
+     */
+    public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+    	super.changedUpdate(e,a,f);
+
+        synchronized(this) {
+            state |= RELOAD_FLAG | RELOAD_IMAGE_FLAG;
+        }
+
+        // Assume the worst.
+        preferenceChanged(null, true, true);
+    }
+
+    /**
+     * Paints the View.
      *
      * @param g the rendering surface to use
      * @param a the allocated region to render into
      * @see View#paint
      */
     public void paint(Graphics g, Shape a) {
-	Color oldColor = g.getColor();
-	Rectangle alloc = (a instanceof Rectangle) ? (Rectangle)a :
-	                  a.getBounds();
-	fBounds.setBounds(alloc);
-        int border = getBorder();
-	int x = fBounds.x + border + getSpace(X_AXIS);
-	int y = fBounds.y + border + getSpace(Y_AXIS);
-	int width = fWidth;
-	int height = fHeight;
-	int sel = getSelectionState();
-	
-	// Make sure my Component is in the right place:
-/*
-	if( fComponent == null ) {
-	    fComponent = new Component() { };
-	    fComponent.addMouseListener(this);
-	    fComponent.addMouseMotionListener(this);
-	    fComponent.setCursor(Cursor.getDefaultCursor());	// use arrow cursor
-	    fContainer.add(fComponent);
-	}
-	fComponent.setBounds(x,y,width,height);
-	*/
-	// If no pixels yet, draw gray outline and icon:
-	if( ! hasPixels(this) ) {
-	    g.setColor(Color.lightGray);
-	    g.drawRect(x,y,width-1,height-1);
-	    g.setColor(oldColor);
-	    loadIcons();
-	    Icon icon = fImage==null ?sMissingImageIcon :sPendingImageIcon;
-	    if( icon != null )
-	        icon.paintIcon(getContainer(), g, x, y);
-	}
-		    
-	// Draw image:
-	if( fImage != null ) {
-	    g.drawImage(fImage,x, y,width,height,this);
-	    // Use the following instead of g.drawImage when
-	    // BufferedImageGraphics2D.setXORMode is fixed (4158822).
+        sync();
 
-	    //  Use Xor mode when selected/highlighted.
-	    //! Could darken image instead, but it would be more expensive.
-/*
-	    if( sel > 0 )
-	    	g.setXORMode(Color.white);
-	    g.drawImage(fImage,x, y,
-	    		width,height,this);
-	    if( sel > 0 )
-	        g.setPaintMode();
-*/
-	}
-	
-	// If selected exactly, we need a black border & grow-box:
-	Color bc = getBorderColor();
-	if( sel == 2 ) {
-	    // Make sure there's room for a border:
-	    int delta = 2-border;
-	    if( delta > 0 ) {
-	    	x += delta;
-	    	y += delta;
-	    	width -= delta<<1;
-	    	height -= delta<<1;
-	    	border = 2;
-	    }
-	    bc = null;
-	    g.setColor(Color.black);
-	    // Draw grow box:
-	    g.fillRect(x+width-5,y+height-5,5,5);
-	}
+	Rectangle rect = (a instanceof Rectangle) ? (Rectangle)a :
+                         a.getBounds();
 
-	// Draw border:
-	if( border > 0 ) {
-	    if( bc != null ) g.setColor(bc);
-	    // Draw a thick rectangle:
-	    for( int i=1; i<=border; i++ )
-	        g.drawRect(x-i, y-i, width-1+i+i, height-1+i+i);
-	    g.setColor(oldColor);
-	}
-    }
+        Image image = getImage();
+        Rectangle clip = g.getClipBounds();
 
-    /** Request that this view be repainted.
-        Assumes the view is still at its last-drawn location. */
-    protected void repaint( long delay ) {
-    	if( fContainer != null && fBounds!=null ) {
-	    fContainer.repaint(delay,
-	   	      fBounds.x,fBounds.y,fBounds.width,fBounds.height);
-    	}
-    }
-    
-    /** Determines whether the image is selected, and if it's the only thing selected.
-    	@return  0 if not selected, 1 if selected, 2 if exclusively selected.
-    		 "Exclusive" selection is only returned when editable. */
-    protected int getSelectionState( ) {
-    	int p0 = fElement.getStartOffset();
-    	int p1 = fElement.getEndOffset();
-	if (fContainer instanceof JTextComponent) {
-	    JTextComponent textComp = (JTextComponent)fContainer;
-	    int start = textComp.getSelectionStart();
-	    int end = textComp.getSelectionEnd();
-	    if( start<=p0 && end>=p1 ) {
-		if( start==p0 && end==p1 && isEditable() )
-		    return 2;
-		else
-		    return 1;
-	    }
-	}
-    	return 0;
-    }
-    
-    protected boolean isEditable( ) {
-    	return fContainer instanceof JEditorPane
-    	    && ((JEditorPane)fContainer).isEditable();
-    }
-    
-    /** Returns the text editor's highlight color. */
-    protected Color getHighlightColor( ) {
-    	JTextComponent textComp = (JTextComponent)fContainer;
-    	return textComp.getSelectionColor();
-    }
-
-    // --- Progressive display ---------------------------------------------
-    
-    // This can come on any thread. If we are in the process of reloading
-    // the image and determining our state (loading == true) we don't fire
-    // preference changed, or repaint, we just reset the fWidth/fHeight as
-    // necessary and return. This is ok as we know when loading finishes
-    // it will pick up the new height/width, if necessary.
-    public boolean imageUpdate( Image img, int flags, int x, int y,
-    				int width, int height ) {
-    	if( fImage==null || fImage != img )
-    	    return false;
-    	    
-    	// Bail out if there was an error:
-        if( (flags & (ABORT|ERROR)) != 0 ) {
-            fImage = null;
-            repaint(0);
-            return false;
+	fBounds.setBounds(rect);
+        paintHighlights(g, a);
+        paintBorder(g, rect);
+        if (clip != null) {
+            g.clipRect(rect.x + leftInset, rect.y + topInset,
+                       rect.width - leftInset - rightInset,
+                       rect.height - topInset - bottomInset);
         }
-        
-        // Resize image if necessary:
-	short changed = 0;
-        if( (flags & ImageObserver.HEIGHT) != 0 )
-            if( ! getElement().getAttributes().isDefined(HTML.Attribute.HEIGHT) ) {
-		changed |= 1;
+        if (image != null) {
+            if (!hasPixels(image)) {
+                // No pixels yet, use the default
+                Icon icon = (image == null) ? getNoImageIcon() :
+                                               getLoadingImageIcon();
+
+                if (icon != null) {
+                    icon.paintIcon(getContainer(), g, rect.x + leftInset,
+                                   rect.y + topInset);
+                }
             }
-        if( (flags & ImageObserver.WIDTH) != 0 )
-            if( ! getElement().getAttributes().isDefined(HTML.Attribute.WIDTH) ) {
-		changed |= 2;
+            else {
+                // Draw the image
+                g.drawImage(image, rect.x + leftInset, rect.y + topInset,
+                            width, height, imageObserver);
             }
-	synchronized(this) {
-	    if ((changed & 1) == 1) {
-		fWidth = width;
-	    }
-	    if ((changed & 2) == 2) {
-		fHeight = height;
-	    }
-	    if (loading) {
-		// No need to resize or repaint, still in the process of
-		// loading.
-		return true;
+        }
+        else {
+            Icon icon = getNoImageIcon();
+
+            if (icon != null) {
+                icon.paintIcon(getContainer(), g, rect.x + leftInset,
+                               rect.y + topInset);
+            }
+            View view = getAltView();
+            // Paint the view representing the alt text, if its non-null
+            if (view != null && ((state & WIDTH_FLAG) == 0 ||
+                                 width > DEFAULT_WIDTH)) {
+                // Assume layout along the y direction
+                Rectangle altRect = new Rectangle
+                    (rect.x + leftInset + DEFAULT_WIDTH, rect.y + topInset,
+                     rect.width - leftInset - rightInset - DEFAULT_WIDTH,
+                     rect.height - topInset - bottomInset);
+
+                view.paint(g, altRect);
+            }
+        }
+        if (clip != null) {
+            // Reset clip.
+            g.setClip(clip.x, clip.y, clip.width, clip.height);
+        }
+    }
+
+    private void paintHighlights(Graphics g, Shape shape) {
+	if (container instanceof JTextComponent) {
+	    JTextComponent tc = (JTextComponent)container;
+	    Highlighter h = tc.getHighlighter();
+	    if (h instanceof LayeredHighlighter) {
+		((LayeredHighlighter)h).paintLayeredHighlights
+		    (g, getStartOffset(), getEndOffset(), shape, tc, this);
 	    }
 	}
-        if( changed != 0 ) {
-            // May need to resize myself, asynchronously:
-            if( DEBUG ) System.out.println("ImageView: resized to "+fWidth+"x"+fHeight);
-	    
-	    Document doc = getDocument();
-	    try {
-	      if (doc instanceof AbstractDocument) {
-		((AbstractDocument)doc).readLock();
-	      }
-	      preferenceChanged(null,true,true);
-	    } finally {
-	      if (doc instanceof AbstractDocument) {
-		((AbstractDocument)doc).readUnlock();
-	      }
-	    }			
-	      
-	    return true;
-        }
-	
-	// Repaint when done or when new pixels arrive:
-	if( (flags & (FRAMEBITS|ALLBITS)) != 0 )
-	    repaint(0);
-	else if( (flags & SOMEBITS) != 0 )
-	    if( sIsInc )
-	        repaint(sIncRate);
-        
-        return ((flags & ALLBITS) == 0);
     }
-					  /*        
-    /**
-     * Static properties for incremental drawing.
-     * Swiped from Component.java
-     * @see #imageUpdate
-     */
-    private static boolean sIsInc = true;
-    private static int sIncRate = 100;
 
-    // --- Layout ----------------------------------------------------------
+    private void paintBorder(Graphics g, Rectangle rect) {
+        Color color = borderColor;
+
+        if (borderSize > 0 && color != null) {
+            int xOffset = leftInset - borderSize;
+            int yOffset = topInset - borderSize;
+            g.setColor(color);
+	    for (int counter = 0; counter < borderSize; counter++) {
+	        g.drawRect(rect.x + xOffset + counter,
+                           rect.y + yOffset + counter,
+                           rect.width - counter - counter - xOffset -xOffset-1,
+                           rect.height - counter - counter -yOffset-yOffset-1);
+            }
+        }
+    }
 
     /**
      * Determines the preferred span for this view along an
      * axis.
      *
      * @param axis may be either X_AXIS or Y_AXIS
-     * @returns  the span the view would like to be rendered into.
-     *           Typically the view is told to render into the span
-     *           that is returned, although there is no guarantee.  
-     *           The parent may choose to resize or break the view.
+     * @return   the span the view would like to be rendered into;
+     *           typically the view is told to render into the span
+     *           that is returned, although there is no guarantee;  
+     *           the parent may choose to resize or break the view
      */
     public float getPreferredSpan(int axis) {
-//if(DEBUG)System.out.println("ImageView: getPreferredSpan");
-        int extra = 2*(getBorder()+getSpace(axis));
-	switch (axis) {
-	case View.X_AXIS:
-	    return fWidth+extra;
-	case View.Y_AXIS:
-	    return fHeight+extra;
-	default:
-	    throw new IllegalArgumentException("Invalid axis: " + axis);
-	}
+        sync();
+
+        // If the attributes specified a width/height, always use it!
+        if (axis == View.X_AXIS && (state & WIDTH_FLAG) == WIDTH_FLAG) {
+            getPreferredSpanFromAltView(axis);
+            return width + leftInset + rightInset;
+        }
+        if (axis == View.Y_AXIS && (state & HEIGHT_FLAG) == HEIGHT_FLAG) {
+            getPreferredSpanFromAltView(axis);
+            return height + topInset + bottomInset;
+        }
+
+        Image image = getImage();
+
+        if (image != null) {
+            switch (axis) {
+            case View.X_AXIS:
+                return width + leftInset + rightInset;
+            case View.Y_AXIS:
+                return height + topInset + bottomInset;
+            default:
+                throw new IllegalArgumentException("Invalid axis: " + axis);
+            }
+        }
+        else {
+            View view = getAltView();
+            float retValue = 0f;
+
+            if (view != null) {
+                retValue = view.getPreferredSpan(axis);
+            }
+            switch (axis) {
+            case View.X_AXIS:
+                return retValue + (float)(width + leftInset + rightInset);
+            case View.Y_AXIS:
+                return retValue + (float)(height + topInset + bottomInset);
+            default:
+                throw new IllegalArgumentException("Invalid axis: " + axis);
+            }
+        }
     }
 
     /**
@@ -478,16 +477,16 @@ if(DEBUG) System.out.println("ImageView: changedUpdate begin...");
      * along the x axis.
      *
      * @param axis may be either X_AXIS or Y_AXIS
-     * @returns the desired alignment.  This should be a value
+     * @return the desired alignment; this should be a value
      *   between 0.0 and 1.0 where 0 indicates alignment at the
      *   origin and 1.0 indicates alignment to the full span
-     *   away from the origin.  An alignment of 0.5 would be the
-     *   center of the view.
+     *   away from the origin; an alignment of 0.5 would be the
+     *   center of the view
      */
     public float getAlignment(int axis) {
 	switch (axis) {
 	case View.Y_AXIS:
-	    return 1.0f;
+	    return vAlign;
 	default:
 	    return super.getAlignment(axis);
 	}
@@ -540,118 +539,55 @@ if(DEBUG) System.out.println("ImageView: changedUpdate begin...");
     }
 
     /**
-     * Set the size of the view. (Ignored.)
+     * Sets the size of the view.  This should cause 
+     * layout of the view if it has any layout duties.
      *
-     * @param width the width
-     * @param height the height
+     * @param width the width >= 0
+     * @param height the height >= 0
      */
     public void setSize(float width, float height) {
-    	// Ignore this -- image size is determined by the tag attrs and
-    	// the image itself, not the surrounding layout!
-    }
-    
-    /** Change the size of this image. This alters the HEIGHT and WIDTH
-    	attributes of the Element and causes a re-layout. */
-    protected void resize( int width, int height ) {
-    	if( width==fWidth && height==fHeight )
-    	    return;
-    	
-    	fWidth = width;
-    	fHeight= height;
-    	
-    	// Replace attributes in document:
-	MutableAttributeSet attr = new SimpleAttributeSet();
-	attr.addAttribute(HTML.Attribute.WIDTH ,Integer.toString(width));
-	attr.addAttribute(HTML.Attribute.HEIGHT,Integer.toString(height));
-	((StyledDocument)getDocument()).setCharacterAttributes(
-			fElement.getStartOffset(),
-			fElement.getEndOffset(),
-			attr, false);
-    }
-    
-    // --- Mouse event handling --------------------------------------------
-    
-    /** Select or grow image when clicked. */
-    public void mousePressed(MouseEvent e){
-    	Dimension size = fComponent.getSize();
-    	if( e.getX() >= size.width-7 && e.getY() >= size.height-7
-    			&& getSelectionState()==2 ) {
-    	    // Click in selected grow-box:
-    	    if(DEBUG)System.out.println("ImageView: grow!!! Size="+fWidth+"x"+fHeight);
-    	    Point loc = fComponent.getLocationOnScreen();
-    	    fGrowBase = new Point(loc.x+e.getX() - fWidth,
-    	    			  loc.y+e.getY() - fHeight);
-    	    fGrowProportionally = e.isShiftDown();
-    	} else {
-    	    // Else select image:
-    	    fGrowBase = null;
-    	    JTextComponent comp = (JTextComponent)fContainer;
-    	    int start = fElement.getStartOffset();
-    	    int end = fElement.getEndOffset();
-    	    int mark = comp.getCaret().getMark();
-    	    int dot  = comp.getCaret().getDot();
-    	    if( e.isShiftDown() ) {
-    	    	// extend selection if shift key down:
-    	    	if( mark <= start )
-    	    	    comp.moveCaretPosition(end);
-    	    	else
-    	    	    comp.moveCaretPosition(start);
-    	    } else {
-    	    	// just select image, without shift:
-    	    	if( mark!=start )
-    	            comp.setCaretPosition(start);
-    	        if( dot!=end )
-    	            comp.moveCaretPosition(end);
-    	    }
-    	}
-    }
-    
-    /** Resize image if initial click was in grow-box: */
-    public void mouseDragged(MouseEvent e ) {
-    	if( fGrowBase != null ) {
-    	    Point loc = fComponent.getLocationOnScreen();
-    	    int width = Math.max(2, loc.x+e.getX() - fGrowBase.x);
-    	    int height= Math.max(2, loc.y+e.getY() - fGrowBase.y);
-    	    
-    	    if( e.isShiftDown() && fImage!=null ) {
-    	    	// Make sure size is proportional to actual image size:
-    	    	float imgWidth = fImage.getWidth(this);
-    	    	float imgHeight = fImage.getHeight(this);
-    	    	if( imgWidth>0 && imgHeight>0 ) {
-    	    	    float prop = imgHeight / imgWidth;
-    	    	    float pwidth = height / prop;
-    	    	    float pheight= width * prop;
-    	    	    if( pwidth > width )
-    	    	        width = (int) pwidth;
-    	    	    else
-    	    	        height = (int) pheight;
-    	    	}
-    	    }
-    	    
-    	    resize(width,height);
-    	}
+        sync();
+
+        if (getImage() == null) {
+            View view = getAltView();
+
+            if (view != null) {
+		view.setSize(Math.max(0f, width - (float)(DEFAULT_WIDTH + leftInset + rightInset)),
+			     Math.max(0f, height - (float)(topInset + bottomInset)));
+            }
+        }
     }
 
-    public void mouseReleased(MouseEvent e){
-    	fGrowBase = null;
-    	//! Should post some command to make the action undo-able
+    /**
+     * Returns true if this image within a link?
+     */
+    private boolean isLink() {
+	return ((state & LINK_FLAG) == LINK_FLAG);
     }
 
-    /** On double-click, open image properties dialog. */
-    public void mouseClicked(MouseEvent e){
-    	if( e.getClickCount() == 2 ) {
-    	    //$ IMPLEMENT
-    	}
+    /**
+     * Returns true if the passed in image has a non-zero width and height.
+     */
+    private boolean hasPixels(Image image) {
+        return image != null &&
+            (image.getHeight(imageObserver) > 0) &&
+            (image.getWidth(imageObserver) > 0);
     }
 
-    public void mouseEntered(MouseEvent e){
+    /**
+     * Returns the preferred span of the View used to display the alt text,
+     * or 0 if the view does not exist.
+     */
+    private float getPreferredSpanFromAltView(int axis) {
+        if (getImage() == null) {
+            View view = getAltView();
+
+            if (view != null) {
+                return view.getPreferredSpan(axis);
+            }
+        }
+        return 0f;
     }
-    public void mouseMoved(MouseEvent e ) {
-    }
-    public void mouseExited(MouseEvent e){
-    }
-    
-    // --- Static icon accessors -------------------------------------------
 
     private Icon makeIcon(final String gifFile) throws IOException {
         /* Copy resource into a byte array.  This is
@@ -689,59 +625,437 @@ if(DEBUG) System.out.println("ImageView: changedUpdate begin...");
         return new ImageIcon(buffer);
     }
 
-    private void loadIcons( ) {
-        try{
-            if( sPendingImageIcon == null )
+    /**
+     * Request that this view be repainted.
+     * Assumes the view is still at its last-drawn location.
+     */
+    private void repaint(long delay) {
+    	if (container != null && fBounds != null) {
+	    container.repaint(delay, fBounds.x, fBounds.y, fBounds.width,
+                               fBounds.height);
+    	}
+    }
+
+    private void loadDefaultIconsIfNecessary() {
+        try {
+            if (sPendingImageIcon == null)
             	sPendingImageIcon = makeIcon(PENDING_IMAGE_SRC);
-            if( sMissingImageIcon == null )
+            if (sMissingImageIcon == null)
             	sMissingImageIcon = makeIcon(MISSING_IMAGE_SRC);
-	}catch( Exception x ) {
+	} catch(Exception x) {
 	    System.err.println("ImageView: Couldn't load image icons");
 	}
     }
     
-    protected StyleSheet getStyleSheet() {
-	HTMLDocument doc = (HTMLDocument) getDocument();
-	return doc.getStyleSheet();
+    /**
+     * Convenience method for getting an integer attribute from the elements
+     * AttributeSet.
+     */
+    private int getIntAttr(HTML.Attribute name, int deflt) {
+    	AttributeSet attr = getElement().getAttributes();
+    	if (attr.isDefined(name)) {		// does not check parents!
+    	    int i;
+ 	    String val = (String)attr.getAttribute(name);
+ 	    if (val == null) {
+ 	    	i = deflt;
+            }
+ 	    else {
+ 	    	try{
+ 	            i = Math.max(0, Integer.parseInt(val));
+ 	    	}catch( NumberFormatException x ) {
+ 	    	    i = deflt;
+ 	    	}
+            }
+	    return i;
+	} else
+	    return deflt;
     }
 
-    // --- member variables ------------------------------------------------
+    /**
+     * Makes sure the necessary properties and image is loaded.
+     */
+    private void sync() {
+        int s = state;
+        if ((s & RELOAD_IMAGE_FLAG) != 0) {
+            refreshImage();
+        }
+        s = state;
+        if ((s & RELOAD_FLAG) != 0) {
+            synchronized(this) {
+                state = (state | RELOAD_FLAG) ^ RELOAD_FLAG;
+            }
+            setPropertiesFromAttributes();
+        }
+    }
 
-    private AttributeSet attr;
-    private Element   fElement;
-    private Image     fImage;
-    private int       fHeight,fWidth;
-    private Container fContainer;
-    private Rectangle fBounds;
-    private Component fComponent;
-    private Point     fGrowBase;        // base of drag while growing image
-    private boolean   fGrowProportionally;	// should grow be proportional?
-    /** Set to true, while the receiver is locked, to indicate the reciever
-     * is loading the image. This is used in imageUpdate. */
-    private boolean   loading;
-    private boolean   isLink;
-    private int       border;
-    private int       xSpace;
-    private int       ySpace;
-    
-    // --- constants and static stuff --------------------------------
+    /**
+     * Loads the image and updates the size accordingly. This should be
+     * invoked instead of invoking <code>loadImage</code> or
+     * <code>updateImageSize</code> directly.
+     */
+    private void refreshImage() {
+	synchronized(this) {
+            // clear out width/height/realoadimage flag and set loading flag
+            state = (state | LOADING_FLAG | RELOAD_IMAGE_FLAG | WIDTH_FLAG |
+                     HEIGHT_FLAG) ^ (WIDTH_FLAG | HEIGHT_FLAG |
+                                     RELOAD_IMAGE_FLAG);
+            image = null;
+            width = height = 0;
+        }
 
-    private static Icon sPendingImageIcon,
-    			sMissingImageIcon;
-    private static final String
-        PENDING_IMAGE_SRC = "icons/image-delayed.gif",  // both stolen from HotJava
-        MISSING_IMAGE_SRC = "icons/image-failed.gif";
-    
-    private static final boolean DEBUG = false;
-    
-    //$ move this someplace public
-    static final String IMAGE_CACHE_PROPERTY = "imageCache";
-    
-    // Height/width to use before we know the real size:
-    private static final int
-        DEFAULT_WIDTH = 32,
-        DEFAULT_HEIGHT= 32,
-    // Default value of BORDER param:      //? possibly move into stylesheet?
-        DEFAULT_BORDER=  2;
+        try {
+            // Load the image
+            loadImage();
 
+            // And update the size params
+            updateImageSize();
+        }
+        finally {
+            synchronized(this) {
+                // Clear out state in case someone threw an exception.
+                state = (state | LOADING_FLAG) ^ LOADING_FLAG;
+            }
+        }
+    }
+
+    /**
+     * Loads the image from the URL <code>getImageURL</code>. This should
+     * only be invoked from <code>refreshImage</code>.
+     */
+    private void loadImage() {
+        URL src = getImageURL();
+        Image newImage = null;
+        if (src != null) {
+            Dictionary cache = (Dictionary)getDocument().
+                                    getProperty(IMAGE_CACHE_PROPERTY);
+            if (cache != null) {
+                newImage = (Image)cache.get(src);
+            }
+            else {
+                newImage = Toolkit.getDefaultToolkit().getImage(src);
+                if (newImage != null && getLoadsSynchronously()) {
+                    // Force the image to be loaded by using an ImageIcon.
+                    ImageIcon ii = new ImageIcon();
+                    ii.setImage(newImage);
+                }
+            }
+        }
+        image = newImage;
+    }
+
+    /**
+     * Recreates and reloads the image.  This should
+     * only be invoked from <code>refreshImage</code>.
+     */
+    private void updateImageSize() {
+	int newWidth = 0;
+	int newHeight = 0;
+        int newState = 0;
+        Image newImage = getImage();
+
+        if (newImage != null) {
+            Element elem = getElement();
+	    AttributeSet attr = elem.getAttributes();
+
+            // Get the width/height and set the state ivar before calling
+            // anything that might cause the image to be loaded, and thus the
+            // ImageHandler to be called.
+	    newWidth = getIntAttr(HTML.Attribute.WIDTH, -1);
+            if (newWidth > 0) {
+                newState |= WIDTH_FLAG;
+            }
+	    newHeight = getIntAttr(HTML.Attribute.HEIGHT, -1);
+            if (newHeight > 0) {
+                newState |= HEIGHT_FLAG;
+            }
+
+            if (newWidth <= 0) {
+		newWidth = newImage.getWidth(imageObserver);
+                if (newWidth <= 0) {
+                    newWidth = DEFAULT_WIDTH;
+                }
+            }
+
+            if (newHeight <= 0) {
+		newHeight = newImage.getHeight(imageObserver);
+                if (newHeight <= 0) {
+                    newHeight = DEFAULT_HEIGHT;
+                }
+            }
+
+	    // Make sure the image starts loading:
+            if ((newState & (WIDTH_FLAG | HEIGHT_FLAG)) != 0) {
+                Toolkit.getDefaultToolkit().prepareImage(newImage, newWidth,
+                                                         newHeight,
+                                                         imageObserver);
+            }
+            else {
+                Toolkit.getDefaultToolkit().prepareImage(newImage, -1, -1,
+                                                         imageObserver);
+            }
+
+            boolean createText = false;
+	    synchronized(this) {
+                // If imageloading failed, other thread may have called
+                // ImageLoader which will null out image, hence we check
+                // for it.
+                if (image != null) {
+                    if ((newState & WIDTH_FLAG) == WIDTH_FLAG || width == 0) {
+                        width = newWidth;
+                    }
+                    if ((newState & HEIGHT_FLAG) == HEIGHT_FLAG ||
+                        height == 0) {
+                        height = newHeight;
+                    }
+                }
+                else {
+                    createText = true;
+                    if ((newState & WIDTH_FLAG) == WIDTH_FLAG) {
+                        width = newWidth;
+                    }
+                    if ((newState & HEIGHT_FLAG) == HEIGHT_FLAG) {
+                        height = newHeight;
+                    }
+                }
+                state = state | newState;
+                state = (state | LOADING_FLAG) ^ LOADING_FLAG;
+            }
+            if (createText) {
+                // Only reset if this thread determined image is null
+                updateAltTextView();
+	    }
+	}
+        else {
+            width = height = DEFAULT_HEIGHT;
+            updateBorderForNoImage();
+            updateAltTextView();
+        }
+    }
+
+    /**
+     * Updates the view representing the alt text.
+     */
+    private void updateAltTextView() {
+        String text = getAltText();
+
+        if (text != null) {
+            ImageLabelView newView;
+
+            newView = new ImageLabelView(getElement(), text);
+            synchronized(this) {
+                altView = newView;
+            }
+        }
+    }
+
+    /**
+     * Returns the view to use for alternate text. This may be null.
+     */
+    private View getAltView() {
+        View view;
+
+        synchronized(this) {
+            view = altView;
+        }
+        if (view != null && view.getParent() == null) {
+            view.setParent(getParent());
+        }
+        return view;
+    }
+
+    /**
+     * Invokes <code>preferenceChanged</code> on the event displatching
+     * thread.
+     */
+    private void safePreferenceChanged() {
+        if (SwingUtilities.isEventDispatchThread()) {
+            preferenceChanged(null, true, true);
+        }
+        else {
+            SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        preferenceChanged(null, true, true);
+                    }
+                });
+        }
+    }
+
+    /**
+     * Invoked if no image is found, in which case a default border is
+     * used if one isn't specified.
+     */
+    private void updateBorderForNoImage() {
+        if (borderSize == 0) {
+            borderSize = 1;
+            leftInset += borderSize;
+            rightInset += borderSize;
+            bottomInset += borderSize;
+            topInset += borderSize;
+        }
+    }
+
+
+    /**
+     * ImageHandler implements the ImageObserver to correctly update the
+     * display as new parts of the image become available.
+     */
+    private class ImageHandler implements ImageObserver {
+        // This can come on any thread. If we are in the process of reloading
+        // the image and determining our state (loading == true) we don't fire
+        // preference changed, or repaint, we just reset the fWidth/fHeight as
+        // necessary and return. This is ok as we know when loading finishes
+        // it will pick up the new height/width, if necessary.
+        public boolean imageUpdate(Image img, int flags, int x, int y,
+                                   int newWidth, int newHeight ) {
+            if (image == null || image != img) {
+                return false;
+            }
+    	    
+            // Bail out if there was an error:
+            if ((flags & (ABORT|ERROR)) != 0) {
+                repaint(0);
+                synchronized(ImageView.this) {
+                    if (image == img) {
+                        // Be sure image hasn't changed since we don't
+                        // initialy synchronize
+                        image = null;
+                        if ((state & WIDTH_FLAG) != WIDTH_FLAG) {
+                            width = DEFAULT_WIDTH;
+                        }
+                        if ((state & HEIGHT_FLAG) != HEIGHT_FLAG) {
+                            height = DEFAULT_HEIGHT;
+                        }
+                        // No image, use a default border.
+                        updateBorderForNoImage();
+                    }
+                    if ((state & LOADING_FLAG) == LOADING_FLAG) {
+                        // No need to resize or repaint, still in the process
+                        // of loading.
+                        return false;
+                    }
+                }
+                updateAltTextView();
+                safePreferenceChanged();
+                return false;
+            }
+
+            // Resize image if necessary:
+            short changed = 0;
+            if ((flags & ImageObserver.HEIGHT) != 0 && !getElement().
+                  getAttributes().isDefined(HTML.Attribute.HEIGHT)) {
+                changed |= 1;
+            }
+            if ((flags & ImageObserver.WIDTH) != 0 && !getElement().
+                  getAttributes().isDefined(HTML.Attribute.WIDTH)) {
+		changed |= 2;
+            }
+
+            synchronized(ImageView.this) {
+                if (image != img) {
+                    return false;
+                }
+                if ((changed & 1) == 1 && (state & WIDTH_FLAG) == 0) {
+                    width = newWidth;
+                }
+                if ((changed & 2) == 2 && (state & HEIGHT_FLAG) == 0) {
+                    height = newHeight;
+                }
+                if ((state & LOADING_FLAG) == LOADING_FLAG) {
+                    // No need to resize or repaint, still in the process of
+                    // loading.
+                    return true;
+                }
+            }
+            if (changed != 0) {
+                // May need to resize myself, asynchronously:
+                Document doc = getDocument();
+                try {
+                    if (doc instanceof AbstractDocument) {
+                        ((AbstractDocument)doc).readLock();
+                    }
+                    safePreferenceChanged();
+                } finally {
+                    if (doc instanceof AbstractDocument) {
+                        ((AbstractDocument)doc).readUnlock();
+                    }
+                }
+                return true;
+            }
+
+            // Repaint when done or when new pixels arrive:
+            if ((flags & (FRAMEBITS|ALLBITS)) != 0) {
+                repaint(0);
+            }
+            else if ((flags & SOMEBITS) != 0 && sIsInc) {
+                repaint(sIncRate);
+            }
+            return ((flags & ALLBITS) == 0);
+        }
+    }
+
+
+    /**
+     * ImageLabelView is used if the image can't be loaded, and
+     * the attribute specified an alt attribute. It overriden a handle of
+     * methods as the text is hardcoded and does not come from the document.
+     */
+    private class ImageLabelView extends InlineView {
+        private Segment segment;
+        private Color fg;
+
+        ImageLabelView(Element e, String text) {
+            super(e);
+            reset(text);
+        }
+
+        public void reset(String text) {
+            segment = new Segment(text.toCharArray(), 0, text.length());
+        }
+
+        public void paint(Graphics g, Shape a) {
+            // Don't use supers paint, otherwise selection will be wrong
+            // as our start/end offsets are fake.
+            GlyphPainter painter = getGlyphPainter();
+
+            if (painter != null) {
+                g.setColor(getForeground());
+                painter.paint(this, g, a, getStartOffset(), getEndOffset());
+            }
+        }
+
+        public Segment getText(int p0, int p1) {
+            if (p0 < 0 || p1 > segment.array.length) {
+                throw new RuntimeException("ImageLabelView: Stale view");
+            }
+            segment.offset = p0;
+            segment.count = p1 - p0;
+            return segment;
+        }
+
+        public int getStartOffset() {
+            return 0;
+        }
+    
+        public int getEndOffset() {
+            return segment.array.length;
+        }
+
+        public View breakView(int axis, int p0, float pos, float len) {
+            // Don't allow a break
+            return this;
+        }
+
+        public Color getForeground() {
+            View parent;
+            if (fg == null && (parent = getParent()) != null) {
+                Document doc = getDocument();
+                AttributeSet attr = parent.getAttributes();
+
+                if (attr != null && (doc instanceof StyledDocument)) {
+                    fg = ((StyledDocument)doc).getForeground(attr);
+                }
+            }
+            return fg;
+        }
+    }
 }

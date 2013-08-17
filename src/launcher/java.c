@@ -1,4 +1,6 @@
 /*
+ * @(#)java.c	1.91 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,22 +12,27 @@
  * instance, the JDK command line tools such as javac and javadoc (see
  * makefiles for more details) are built with this program.  Any arguments
  * prefixed with '-J' will be passed directly to the 'java' command.
- *
- * If OLDJAVA is defined then enables old-style launcher behavior. In the
- * old launcher, both application and system classes are loaded from the
- * system class path.  In the new launcher, there is a separate class path
- * and class loader for loading application classes.
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef WIN32
+#include <unistd.h>
+#endif
+
 #include <jni.h>
 #include "java.h"
 
 #ifndef FULL_VERSION
-#define FULL_VERSION "1.2"
+#define FULL_VERSION "1.4"
+#endif
+
+#ifdef WIN32
+#define PATHSEP "\\"
+#else
+#define PATHSEP "/"
 #endif
 
 static jboolean printVersion = JNI_FALSE; /* print and exit */
@@ -65,18 +72,41 @@ static void PrintJavaVersion(JNIEnv *env);
 static void PrintUsage(void);
 static jint PrintXUsage(void);
 
+static char *SetExecname(int argc, char **argv);
+static void SetPaths(int argc, char **argv);
+static char *CheckJvmType(int *argc, char ***argv);
+static void SetDataModel(int *argc, char ***argv, char *execname, 
+			    char *jrepath);
+static void SetLibraryPath(char ** original_argv, char *execname, 
+			   char *jrepath, char *jvmpath);
+static void InitEncodingFlag(JNIEnv *env); /* Temp fix for UTF16-le encoding */
+
 /* Support for options such as -hotspot, -classic etc. */
-#define MAX_KNOWN_VMS 10
-static char *knownVMs[MAX_KNOWN_VMS];
-static int knownVMsCount;
-static jint ReadKnownVMs(const char *jrepath);
-static void FreeKnownVMs();
+#define INIT_MAX_KNOWN_VMS 10
+struct vmdesc {
+    char *name;
+#define VM_UNKNOWN -1
+#define VM_KNOWN 0
+#define VM_ALIASED_TO 1
+#define VM_WARN 2
+#define VM_ERROR 3
+    int flag;
+    char *alias;
+};
+static struct vmdesc *knownVMs = NULL;
+static int knownVMsCount = 0;
+static int knownVMsLimit = 0;
+
+static jint ReadKnownVMs(const char *jrepath); 
+static void GrowKnownVMs();
+static int  KnownVMIndex(const char* name);
+static void FreeKnownVMs(); 
 
 /*
  * Entry point.
  */
 int
-main(int argc, char **argv)
+main(int argc, char ** argv)
 {
     JavaVM *vm = 0;
     JNIEnv *env = 0;
@@ -88,16 +118,24 @@ main(int argc, char **argv)
     jobjectArray mainArgs;
     int ret;
     InvocationFunctions ifn;
-    const char *jvmtype = 0;
-    jboolean jvmspecified = JNI_FALSE;     /* Assume no option specified. */
-    char jrepath[MAXPATHLEN], jvmpath[MAXPATHLEN];
+    char *jvmtype = 0;
     jlong start, end;
-    int i;
+    char jrepath[MAXPATHLEN], jvmpath[MAXPATHLEN];
+    char ** original_argv = argv;
+
+#ifndef WIN32
+    char *execname = 0;
+#endif
 
     if (getenv("_JAVA_LAUNCHER_DEBUG") != 0) {
 	debug = JNI_TRUE;
 	printf("----_JAVA_LAUNCHER_DEBUG----\n");
     }
+
+#ifndef WIN32
+    /* Compute the name of the executable */
+    execname = SetExecname(argc, argv);
+#endif
 
     /* Find out where the JRE is that we will be using. */
     if (!GetJREPath(jrepath, sizeof(jrepath))) {
@@ -105,44 +143,30 @@ main(int argc, char **argv)
 	return 2;
     }
 
-    knownVMsCount = ReadKnownVMs(jrepath);
-    if (knownVMsCount < 1) { /* Error already printed. */
-	return 3;
-    }
+#ifndef WIN32
+    /* Check for data model flags, and run a different executable, if necessary. */
+    SetDataModel(&argc, &argv, execname, jrepath);
+#endif
 
-    /* Did the user pass an explicit VM type? */
-    if (argc > 1 && argv[1][0] == '-') {
-	for (i = 0; i < knownVMsCount; i++) {
-	    if (strcmp(argv[1], knownVMs[i]) == 0) {
-		jvmtype = argv[1]+1; /* skip the - */
-		jvmspecified = JNI_TRUE;
-		break;
-	    }
-	}
+    /* Find the specified JVM type */
+    if (ReadKnownVMs(jrepath) < 1) {
+	fprintf(stderr, "Error: no known VMs. (check for corrupt jvm.cfg file)\n");
+	exit(1);
     }
-    if (jvmspecified) {
-	jvmpath[0] = '\0';
-	if (!GetJVMPath(jrepath, jvmtype, jvmpath, sizeof(jvmpath))) {
-	    fprintf(stderr, "Error: no `%s' JVM at `%s'.\n", jvmtype, jvmpath);
-	    return 4;
-	}
-    } else {
-	/* Find an installed VM in the preferred order... */
-	jboolean foundJVM = JNI_FALSE;
-	for (i = 0; i < knownVMsCount; i++) {
-	    jvmtype = knownVMs[i] + 1; /* skip the - */
-	    if (GetJVMPath(jrepath, jvmtype, jvmpath, sizeof(jvmpath))) {
-		foundJVM = JNI_TRUE;
-		break;
-	    }
-	}
-	if (!foundJVM) {
-	    fprintf(stderr, "Error: could not find a JVM.\n");
-	    return 5;
-	}
-    }
+    jvmtype = CheckJvmType(&argc, &argv);
 
+    jvmpath[0] = '\0';
+    if (!GetJVMPath(jrepath, jvmtype, jvmpath, sizeof(jvmpath))) {
+	fprintf(stderr, "Error: no `%s' JVM at `%s'.\n", jvmtype, jvmpath);
+	return 4;
+    }
     /* If we got here, jvmpath has been correctly initialized. */
+
+#ifndef WIN32
+    /* Set the LD_LIBRARY_PATH environment variable */
+    SetLibraryPath(original_argv, execname, jrepath, jvmpath);
+#endif
+
     ifn.CreateJavaVM = 0; ifn.GetDefaultJavaVMInitArgs = 0;
     if (!LoadJavaVM(jvmpath, &ifn)) {
         status = 1;
@@ -164,12 +188,6 @@ main(int argc, char **argv)
     ++argv;
     --argc;
 
-    /* Skip over a specified -classic/-hotspot/-server option */
-    if (jvmspecified) {
-	argv++;
-	argc--;
-    }
-
 #ifdef JAVA_ARGS
     /* Preprocess wrapper arguments */
     TranslateDashJArgs(&argc, &argv);
@@ -183,23 +201,6 @@ main(int argc, char **argv)
     if ((s = getenv("CLASSPATH")) == 0) {
 	s = ".";
     }
-#ifdef OLDJAVA
-    /* Prepend system class path to default */
-    {
-	JDK1_1InitArgs args;
-	char *buf;
-	args.version = JNI_VERSION_1_1;
-	if (ifn.GetDefaultJavaVMInitArgs(&args) != JNI_OK
-                || args.classpath == 0) {
-	    fprintf(stderr, "Could not get default system class path.\n");
-            status = 2;
-	    return 1;
-	}
-	buf = MemAlloc(strlen(args.classpath) + strlen(s) + 2);
-	sprintf(buf, "%s%c%s", args.classpath, PATH_SEPARATOR, s);
-	s = buf;
-    }
-#endif
 #ifndef JAVA_ARGS
     SetClassPath(s);
 #endif
@@ -251,7 +252,7 @@ main(int argc, char **argv)
     if (debug) {
 	end   = CounterGet();
 	printf("%ld micro seconds to InitializeJVM\n",
-	       (jint)Counter2Micros(end-start));
+	       (long)(jint)Counter2Micros(end-start));
     }
 
     /* At this stage, argc/argv have the applications' arguments */
@@ -265,6 +266,9 @@ main(int argc, char **argv)
     }
 
     ret = 1;
+
+    /* Temporary fix for utf-16le encoding. Init encoding flag */
+    InitEncodingFlag(env);
 
     /* Get the application's main class */
     if (jarfile != 0) {
@@ -307,6 +311,28 @@ main(int argc, char **argv)
 	goto leave;
     }
 
+    {    /* Make sure the main method is public */
+	jobject obj = (*env)->ToReflectedMethod(env, mainClass, 
+						mainID, JNI_TRUE);
+	jint mods;
+	jmethodID mid = 
+	  (*env)->GetMethodID(env, 
+			      (*env)->GetObjectClass(env, obj),
+			      "getModifiers", "()I");
+	if ((*env)->ExceptionOccurred(env)) {
+	    (*env)->ExceptionDescribe(env);
+	    status = 6;
+	    goto leave;
+	}
+
+	mods = (*env)->CallIntMethod(env, obj, mid);
+	if ((mods & 1) == 0) { /* if (!Modifier.isPublic(mods)) ... */
+	    fprintf(stderr, "Main method not public.\n");
+	    status = 8;
+	    goto leave;
+	}
+    }
+
     /* Build argument array */
     mainArgs = NewPlatformStringArray(env, argv, argc);
     if (mainArgs == NULL) {
@@ -341,6 +367,373 @@ leave:
     return ret;
 }
 
+
+#ifndef WIN32
+
+#include <sys/stat.h>
+
+/*
+ * Return true if the named program exists
+ */
+static int
+ProgramExists(char *name)
+{
+    struct stat sb;
+    if (stat(name, &sb) != 0) return 0;
+    if (S_ISDIR(sb.st_mode)) return 0;
+    return (sb.st_mode & S_IEXEC) != 0;
+}
+
+
+/*
+ * Find a command in a directory, returning the path.
+ */
+static char *
+Resolve(char *indir, char *cmd)
+{
+    char name[PATH_MAX + 2], *real;
+
+    if ((strlen(indir) + strlen(cmd) + 1)  > PATH_MAX) return 0;
+    sprintf(name, "%s%c%s", indir, FILE_SEPARATOR, cmd);
+    if (!ProgramExists(name)) return 0;
+    real = malloc(PATH_MAX + 2);
+    if (!realpath(name, real)) 
+	strcpy(real, name);
+    return real;
+}
+
+
+/*
+ * Find a path for the executable
+ */
+static char *
+FindExecName(char *program)
+{
+    char cwdbuf[PATH_MAX+2];
+    char *path;
+    char *tmp_path;
+    char *f;
+    char *result = 0;
+
+    /* absolute path? */
+    if (*program == FILE_SEPARATOR || 
+	(FILE_SEPARATOR=='\\' && strrchr(program, ':')))
+	return Resolve("", program+1);
+
+    /* relative path? */
+    if (strrchr(program, FILE_SEPARATOR) != 0) {
+	char buf[PATH_MAX+2];
+	return Resolve(getcwd(cwdbuf, sizeof(cwdbuf)), program);
+    }
+
+    /* from search path? */
+    path = getenv("PATH");
+    if (!path || !*path) path = ".";
+    tmp_path = malloc(strlen(path) + 2);
+    strcpy(tmp_path, path);
+
+    for (f=tmp_path; *f && result==0; ) {
+	char *s = f;
+	while (*f && (*f != PATH_SEPARATOR)) ++f;
+	if (*f) *f++ = 0;
+	if (*s == FILE_SEPARATOR)
+	    result = Resolve(s, program);
+	else {
+	    /* relative path element */
+	    char dir[2*PATH_MAX];
+	    sprintf(dir, "%s%c%s", getcwd(cwdbuf, sizeof(cwdbuf)), 
+		    FILE_SEPARATOR, s);
+	    result = Resolve(dir, program);
+	}
+	if (result != 0) break;
+    }
+
+    free(tmp_path);
+    return result;
+}
+
+
+/* Store the name of the executable once computed */
+static char *execname = 0;
+
+/*
+ * Compute the name of the executable
+ */
+static char *
+SetExecname(int argc, char **argv)
+{
+    char *exec_path = FindExecName(argv[0]);
+    execname = exec_path;
+    return exec_path;
+}
+
+/*
+ * Return the name of the executable.  Used in java_md.c to find the JRE area.
+ */
+char *
+GetExecname()
+{
+    return execname;
+}
+#endif /* #ifndef WIN32 */
+
+
+/*
+ * Run another executable if necessary to change the data model.
+ * Also, remove -d64 and the like from argc/argv.
+ */
+static void
+SetDataModel(int *_argc, char ***_argv, 
+		char *execname, char *jrepath)
+{
+#ifdef sparc
+    int argc = *_argc;
+    char **argv = *_argv;
+    int i, running, wanted;
+
+    char **newargv;
+    int newargc = 0;
+
+    newargv = (char **)malloc((argc+1) * sizeof(*newargv));
+    newargv[newargc++] = argv[0];
+
+#ifdef _LP64
+    /* we're already running a 64-bit executable */
+    running = 64;
+#else
+    running = 32;
+#endif
+    wanted = 0;
+
+    /* scan for data model arg */
+    for (i=1; i<argc; i++) {
+	if (strcmp(argv[i], "-J-d64") == 0 || strcmp(argv[i], "-d64") == 0) {
+	    wanted = 64;
+	    continue;
+	}
+	if (strcmp(argv[i], "-J-d32") == 0 || strcmp(argv[i], "-d32") == 0) {
+	    wanted = 32;
+	    continue;
+	}
+	newargv[newargc++] = argv[i];
+
+#ifdef JAVA_ARGS
+	if (argv[i][0] != '-') continue;
+#else
+	if (strcmp(argv[i], "-classpath") == 0 || strcmp(argv[i], "-cp") == 0) {
+	    i++;
+	    if (i >= argc) break;
+	    newargv[newargc++] = argv[i];
+	    continue;
+	}
+	if (argv[i][0] != '-') { i++; break; }
+#endif
+    }
+
+    /* copy rest of args [i .. argc) */
+    while (i < argc) {
+	newargv[newargc++] = argv[i++];
+    }
+    newargv[newargc] = 0;
+
+    *_argc = argc = newargc;
+    *_argv = argv = newargv;
+
+    if (wanted == 0 || running == wanted) return;
+
+    {
+	char *oldexec = strcpy(malloc(strlen(execname) + 1), execname);
+	char *olddir = oldexec;
+	char *oldbase = strrchr(oldexec, '/');
+	char *newexec;
+
+	newexec = malloc(strlen(execname) + 20);
+	*oldbase++ = 0;
+	sprintf(newexec, "%s/%s/%s", olddir, 
+		((wanted==64) ? "sparcv9" : ".."), oldbase);
+	argv[0] = newexec;
+	execv(newexec, argv);
+	perror("execv()");
+	exit(1);
+    }
+#endif /* sparc */
+}
+
+
+/*
+ * Check for a specified JVM type
+ */
+static char *
+CheckJvmType(int *pargc, char ***argv) {
+    int i, argi;
+    int argc;
+    char **newArgv;
+    int newArgvIdx = 0;
+    int isVMType;
+    int jvmidx = -1;
+    char *jvmtype = getenv("JDK_ALTERNATE_VM");
+
+    argc = *pargc;
+
+    /* To make things simpler we always copy the argv array */
+    newArgv = MemAlloc((argc + 1) * sizeof(char *));
+
+    /* The program name is always present */
+    newArgv[newArgvIdx++] = (*argv)[0];
+
+    for (argi = 1; argi < argc; argi++) {
+	char *arg = (*argv)[argi];
+        isVMType = 0;
+
+#ifdef JAVA_ARGS
+ 	if (arg[0] != '-') {
+            newArgv[newArgvIdx++] = arg;
+            continue;
+        }
+#else
+ 	if (strcmp(arg, "-classpath") == 0 || 
+ 	    strcmp(arg, "-cp") == 0) {
+            newArgv[newArgvIdx++] = arg;
+ 	    argi++;
+            if (argi < argc) {
+                newArgv[newArgvIdx++] = (*argv)[argi];
+            }
+ 	    continue;
+ 	}
+ 	if (arg[0] != '-') break;
+#endif
+
+ 	/* Did the user pass an explicit VM type? */
+	i = KnownVMIndex(arg);
+	if (i >= 0) {
+	    jvmtype = knownVMs[jvmidx = i].name + 1; /* skip the - */
+	    isVMType = 1;
+	    *pargc = *pargc - 1;
+	}
+
+	/* Did the user specify an "alternate" VM? */
+	else if (strncmp(arg, "-XXaltjvm=", 10) == 0 || strncmp(arg, "-J-XXaltjvm=", 12) == 0) {
+	    isVMType = 1;
+	    jvmtype = arg+((arg[1]=='X')? 10 : 12);
+	    jvmidx = -1;
+	}
+
+        if (!isVMType) {
+            newArgv[newArgvIdx++] = arg;
+        }
+    }
+
+    /* Finish copying the arguments if we aborted the above loop.
+       NOTE that if we aborted via "break" then we did NOT copy the
+       last argument above, and in addition argi will be less than
+       argc. */
+    while (argi < argc) {
+        newArgv[newArgvIdx++] = (*argv)[argi];
+        argi++;
+    }
+
+    /* argv is null-terminated */
+    newArgv[newArgvIdx] = 0;
+
+    /* Copy back argv */
+    *argv = newArgv;
+    *pargc = newArgvIdx;
+
+    /* use the default VM type if not specified (no alias processing) */
+    if (jvmtype == NULL) return knownVMs[0].name+1;
+
+    /* if using an alternate VM, no alieas processing */
+    if (jvmidx < 0) return jvmtype;
+
+    /* Resolve aliases first */
+    while (knownVMs[jvmidx].flag == VM_ALIASED_TO) {
+        int nextIdx = KnownVMIndex(knownVMs[jvmidx].alias);
+        if (nextIdx < 0) {
+            fprintf(stderr, "Error: Unable to resolve VM alias %s\n", knownVMs[jvmidx].alias);
+            exit(1);
+        }
+        jvmidx = nextIdx;
+        jvmtype = knownVMs[jvmidx].name+1;
+    }
+
+    switch (knownVMs[jvmidx].flag) {
+    case VM_WARN:
+	fprintf(stderr, "Warning: %s VM not supported; %s VM will be used\n", 
+		jvmtype, knownVMs[0].name + 1);
+	jvmtype = knownVMs[jvmidx=0].name + 1;
+	/* fall through */
+    case VM_KNOWN:
+	break;
+    case VM_ERROR:
+	fprintf(stderr, "Error: %s VM not supported\n", jvmtype);
+	exit(1);
+    }
+
+    return jvmtype;
+}
+
+
+static void
+SetLibraryPath(char **original_argv, char *execname, 
+	       char *jrepath, char *_jvmpath)
+{
+#ifndef WIN32
+    char *arch = (char *)GetArch(); /* like sparc or sparcv9 */
+    char *oldpath = getenv("LD_LIBRARY_PATH");
+
+    /*
+     * We need to set LD_LIBRARY_PATH as follows:
+     *
+     *     o		$JVMPATH (directory portion only)
+     *     o		$JRE/lib/$ARCH
+     *     o		$JRE/../lib/$ARCH
+     *
+     * followed by the user's previous $LD_LIBRARY_PATH, if any
+     */
+    char *jvmpath = strdup(_jvmpath);
+    char *newenv = malloc((oldpath?strlen(oldpath):0) + 
+			  2*strlen(jrepath) + 2*strlen(arch) +
+			  strlen(jvmpath) + 52);
+    char *newpath = newenv + strlen("LD_LIBRARY_PATH=");
+
+    /* remove the name of the .so from the JVM path */
+    char *lastslash = strrchr(jvmpath, '/');
+    if (lastslash) *lastslash = '\0';
+
+    sprintf(newenv, "LD_LIBRARY_PATH="
+	    "%s:"
+	    "%s/lib/%s:"
+	    "%s/../lib/%s",
+	    jvmpath,
+	    jrepath, arch,
+	    jrepath, arch);
+
+    /* Check to make sure that the prefix of the current path is the 
+     * desired environment variable setting. */
+    if (oldpath != 0 && 
+	strncmp(newpath, oldpath, strlen(newpath))==0 &&
+	(oldpath[strlen(newpath)] == 0 || oldpath[strlen(newpath)] == ':'))
+	return; /* already on the LD_LIBRARY_PATH */
+    
+    /* Place the desired environment setting onto the prefix of 
+     * LD_LIBRARY_PATH.  Note that this prevents any possible infinite 
+     * loop of execv() because we test for the prefix, above. */
+    if (oldpath != 0) {
+	strcat(newenv, ":");
+	strcat(newenv, oldpath);
+    }
+    putenv(newenv);
+
+    /* Unix systems document that they look at LD_LIBRARY_PATH 
+     * only once at startup, so we have to re-exec the current executable 
+     * to get the changed environment variable to have an effect. */
+    execv(execname, original_argv);
+    perror("execv()");
+    exit(1);
+#endif
+}
+
+
 /*
  * Adds a new VM option with the given given name and value.
  */
@@ -372,11 +765,7 @@ static void
 SetClassPath(char *s)
 {
     char *def = MemAlloc(strlen(s) + 40);
-#ifdef OLDJAVA
-    sprintf(def, "-Xbootclasspath:%s", s);
-#else
     sprintf(def, "-Djava.class.path=%s", s);
-#endif
     AddOption(def, NULL);
 }
 
@@ -403,10 +792,8 @@ ParseArguments(int *pargc, char ***pargv, char **pjarfile,
 	    }
 	    SetClassPath(*argv);
 	    argv++; --argc;
-#ifndef OLDJAVA
 	} else if (strcmp(arg, "-jar") == 0) {
 	    jarflag = JNI_TRUE;
-#endif
 	} else if (strcmp(arg, "-help") == 0 ||
 		   strcmp(arg, "-h") == 0 ||
 		   strcmp(arg, "-?") == 0) {
@@ -501,11 +888,6 @@ InitializeJVM(JavaVM **pvm, JNIEnv **penv, InvocationFunctions *ifn)
     JavaVMInitArgs args;
     jint r;
 
-#ifdef OLDJAVA
-    /* Indicate that we are using the old-style launcher */
-    AddOption("-Xoldjava", NULL);
-#endif
-
     memset(&args, 0, sizeof(args));
     args.version  = JNI_VERSION_1_2;
     args.nOptions = numOptions;
@@ -515,10 +897,10 @@ InitializeJVM(JavaVM **pvm, JNIEnv **penv, InvocationFunctions *ifn)
     if (debug) {
 	int i = 0;
 	printf("JavaVM args:\n    ");
-	printf("version 0x%08lx, ", args.version);
+	printf("version 0x%08lx, ", (long)args.version);
 	printf("ignoreUnrecognized is %s, ",
 	       args.ignoreUnrecognized ? "JNI_TRUE" : "JNI_FALSE");
-	printf("nOptions is %ld\n", args.nOptions);
+	printf("nOptions is %ld\n", (long)args.nOptions);
 	for (i = 0; i < numOptions; i++)
 	    printf("    option[%2d] = '%s'\n",
 		   i, args.options[i].optionString);
@@ -548,16 +930,49 @@ MemAlloc(size_t size)
     return p;
 }
 
+static int isUTF16;
+
+static void
+InitEncodingFlag(JNIEnv *env)
+{
+    jclass system;
+    jmethodID getProperty;
+    jstring fileEncoding;
+    jstring value;
+    const char* str;
+
+    system = (*env)->FindClass(env, "java/lang/System");
+    getProperty = 
+            (*env)->GetStaticMethodID(env, system, "getProperty", 
+                                     "(Ljava/lang/String;)Ljava/lang/String;");
+    fileEncoding = (*env)->NewStringUTF(env, "file.encoding");
+    value = 
+       (*env)->CallStaticObjectMethod(env, system, getProperty, fileEncoding);
+    if (value == NULL) {
+        isUTF16 = JNI_FALSE;
+        return;
+    }
+    str = (*env)->GetStringUTFChars(env, value, NULL);
+    if (strcmp(str, "utf-16le") == 0)
+        isUTF16 = JNI_TRUE;
+    else
+        isUTF16 = JNI_FALSE;
+    (*env)->ReleaseStringUTFChars(env, value, str);
+}
+
 /*
  * Returns a new Java string object for the specified platform string.
  */
 static jstring
 NewPlatformString(JNIEnv *env, char *s)
-{
+{    
     int len = strlen(s);
     jclass cls;
     jmethodID mid;
     jbyteArray ary;
+
+    if (isUTF16)
+        return (*env)->NewStringUTF(env, s);
 
     NULL_CHECK0(cls = (*env)->FindClass(env, "java/lang/String"));
     NULL_CHECK0(mid = (*env)->GetMethodID(env, cls, "<init>", "([B)V"));
@@ -620,7 +1035,7 @@ LoadClass(JNIEnv *env, char *name)
     if (debug) {
 	end   = CounterGet();
 	printf("%ld micro seconds to load main class\n",
-	       (jint)Counter2Micros(end-start));
+	       (long)(jint)Counter2Micros(end-start));
 	printf("----_JAVA_LAUNCHER_DEBUG----\n");
     }
 
@@ -689,14 +1104,20 @@ TranslateDashJArgs(int *pargc, char ***pargv)
     /* Copy the VM arguments (i.e. prefixed with -J) */
     for (i = 0; i < NUM_ARGS; i++) {
 	char *arg = java_args[i];
-	if (arg[0] == '-' && arg[1] == 'J')
+	if (arg[0] == '-' && arg[1] == 'J') {
 	    *nargv++ = arg + 2;
+	}
     }
 
     for (i = 0; i < argc; i++) {
 	char *arg = argv[i];
-	if (arg[0] == '-' && arg[1] == 'J')
+	if (arg[0] == '-' && arg[1] == 'J') {
+	    if (arg[2] == '\0') {
+		fprintf(stderr, "Error: the -J option should not be followed by a space.\n");
+		exit(1);
+	    }
 	    *nargv++ = arg + 2;
+	}
     }
 
     /* Copy the rest of the arguments */
@@ -796,67 +1217,61 @@ static void
 PrintUsage(void)
 {
     int i;
-    char jrepath[MAXPATHLEN], jvmpath[MAXPATHLEN];
 
     fprintf(stdout,
 	"Usage: %s [-options] class [args...]\n"
-#ifndef OLDJAVA
 	"           (to execute a class)\n"
 	"   or  %s -jar [-options] jarfile [args...]\n"
 	"           (to execute a jar file)\n"
-#endif
 	"\n"
 	"where options include:\n",
-#ifndef OLDJAVA
 	progname,
-#endif
 	progname);
 
-    /*
-     * Find out where the JRE is that we will be using.
-     * Loop through the known VMs, printing a line for each existing VM.
-     */
-    if (GetJREPath(jrepath, sizeof(jrepath))) {
-	for (i = 0; i < knownVMsCount; i++) {
-	    const char *jvmtype = knownVMs[i]+1;
+#ifdef sparc
+    fprintf(stdout,
+	"    -d32\n"
+	"                  use a 32-bit data model if available\n"
+	"    -d64\n"
+	"                  use a 64-bit data model if available\n");
+#endif
 
-	    const char *synonym = ReadJVMLink(jrepath, jvmtype,
-					      knownVMs, knownVMsCount);
-	    if (synonym != NULL) {
-		if (synonym[0] != '\0') {
-		    fprintf(stdout, "    %s\t  is a synonym for "
-			    "the \"%s\" VM  [deprecated]\n",
-			    knownVMs[i], synonym);
-		}
-	    } else {
-		if (GetJVMPath(jrepath, jvmtype, jvmpath, sizeof(jvmpath))) {
-		    fprintf(stdout, "    %s\t  to select the \"%s\" VM\n",
-			    knownVMs[i], knownVMs[i]+1);
-		}
-	    }
-	}
-	fprintf(stdout,
-	    "                  If present, the option to select the VM must be first.\n"
-	    "                  The default VM is %s.\n\n", knownVMs[0]);
+    for (i=0; i<knownVMsCount; i++) {
+	if (knownVMs[i].flag == VM_KNOWN)
+	    fprintf(stdout, "    %s\t  to select the \"%s\" VM\n",
+		    knownVMs[i].name, knownVMs[i].name+1);
     }
+    for (i=0; i<knownVMsCount; i++) {
+	if (knownVMs[i].flag == VM_ALIASED_TO)
+	    fprintf(stdout, "    %s\t  is a synonym for "
+		    "the \"%s\" VM  [deprecated]\n",
+		    knownVMs[i].name, knownVMs[i].alias+1);
+    }
+    fprintf(stdout,
+	"                  The default VM is %s.\n\n", knownVMs[0].name+1);
 
     fprintf(stdout,
-#ifdef OLDJAVA
-	"    -cp -classpath <directories and zip/jar files separated by %c>\n"
-	"                  set search path for classes and resources\n"
-#else
-	"    -cp -classpath <directories and zip/jar files separated by %c>\n"
-	"                  set search path for application classes and resources\n"
-#endif
-	"    -D<name>=<value>\n"
-	"                  set a system property\n"
-	"    -verbose[:class|gc|jni]\n"
-	"                  enable verbose output\n"
-	"    -version      print product version and exit\n"
-	"    -showversion  print product version and continue\n"
-	"    -? -help      print this help message\n"
-	"    -X            print help on non-standard options\n",
-	PATH_SEPARATOR);
+"    -cp -classpath <directories and zip/jar files separated by %c>\n"
+"                  set search path for application classes and resources\n"
+"    -D<name>=<value>\n"
+"                  set a system property\n"
+"    -verbose[:class|gc|jni]\n"
+"                  enable verbose output\n"
+"    -version      print product version and exit\n"
+"    -showversion  print product version and continue\n"
+"    -? -help      print this help message\n"
+"    -X            print help on non-standard options\n"
+"    -ea[:<packagename>...|:<classname>]\n"
+"    -enableassertions[:<packagename>...|:<classname>]\n"
+"                  enable assertions\n"
+"    -da[:<packagename>...|:<classname>]\n"
+"    -disableassertions[:<packagename>...|:<classname>]\n"
+"                  disable assertions\n"
+"    -esa | -enablesystemassertions\n"
+"                  enable system assertions\n"
+"    -dsa | -disablesystemassertions\n"
+"                  disable system assertions\n"
+	    ,PATH_SEPARATOR);
 }
 
 /*
@@ -883,71 +1298,158 @@ PrintXUsage(void)
     return 0;
 }
 
+
 /*
  * Read the jvm.cfg file and fill the knownJVMs[] array.
  */
-static jint cfgLinesRead = 0;
-
 static jint
 ReadKnownVMs(const char *jrepath)
 {
+    char *arch = (char *)GetArch(); /* like sparcv9 */
     FILE *jvmCfg;
-    char jvmCfgName[MAXPATHLEN];
-    char line[MAXPATHLEN];
+    char jvmCfgName[MAXPATHLEN+20];
+    char line[MAXPATHLEN+20];
     int cnt = 0;
     int lineno = 0;
     jlong start, end;
-
+    int vmType;
+    char *tmpPtr;
+    char *altVMName;
+    static char *whiteSpace = " \t";
     if (debug) {
-	start = CounterGet();
+        start = CounterGet();
     }
-
+    
     strcpy(jvmCfgName, jrepath);
-    strcat(jvmCfgName, JVM_CFG);
-
+    strcat(jvmCfgName, PATHSEP "lib" PATHSEP);
+    strcat(jvmCfgName, arch);
+    strcat(jvmCfgName, PATHSEP "jvm.cfg");
+    
     jvmCfg = fopen(jvmCfgName, "r");
     if (jvmCfg == NULL) {
-	fprintf(stderr, "Error: could not open `%s'\n", jvmCfgName);
-	return 0;
+        fprintf(stderr, "Error: could not open `%s'\n", jvmCfgName);
+	exit(1);
     }
     while (fgets(line, sizeof(line), jvmCfg) != NULL) {
-	lineno++;
-	if (line[0] == '#')
-	    continue;
-	if (line[0] != '-') {
-	    fprintf(stderr, "Warning: no leading - on line %d of `%s'\n",
-		    lineno, jvmCfgName);
-	}
-	if (cnt >= MAX_KNOWN_VMS) {
-	    fprintf(stderr,
-		    "Warning: can't read more than %d entries from\n`%s'\n",
-		    MAX_KNOWN_VMS, jvmCfgName);
-	    break;
-	}
-	line[strlen(line)-1] = '\0'; /* remove trailing newline */
-	if (debug)
-	    printf("jvm.cfg[%d] = ->%s<-\n", cnt, line);
-	knownVMs[cnt++] = strdup(line);
+        vmType = VM_UNKNOWN;
+        lineno++;
+        if (line[0] == '#')
+            continue;
+        if (line[0] != '-') {
+            fprintf(stderr, "Warning: no leading - on line %d of `%s'\n",
+                    lineno, jvmCfgName);
+        }
+        if (cnt >= knownVMsLimit) {
+            GrowKnownVMs(cnt);
+        }
+        line[strlen(line)-1] = '\0'; /* remove trailing newline */
+        tmpPtr = line + strcspn(line, whiteSpace);
+        if (*tmpPtr == 0) {
+            fprintf(stderr, "Warning: missing VM type on line %d of `%s'\n",
+                    lineno, jvmCfgName);
+        } else {
+            /* Null-terminate this string for strdup below */
+            *tmpPtr++ = 0;
+            tmpPtr += strspn(tmpPtr, whiteSpace);
+            if (*tmpPtr == 0) {
+                fprintf(stderr, "Warning: missing VM type on line %d of `%s'\n",
+                        lineno, jvmCfgName);
+            } else {
+                if (!strncmp(tmpPtr, "KNOWN", strlen("KNOWN"))) {
+                    vmType = VM_KNOWN;
+                } else if (!strncmp(tmpPtr, "ALIASED_TO", strlen("ALIASED_TO"))) {
+                    tmpPtr += strcspn(tmpPtr, whiteSpace);
+                    if (*tmpPtr != 0) {
+                        tmpPtr += strspn(tmpPtr, whiteSpace);
+                    }
+                    if (*tmpPtr == 0) {
+                        fprintf(stderr, "Warning: missing VM alias on line %d of `%s'\n",
+                                lineno, jvmCfgName);
+                    } else {
+                        /* Null terminate altVMName */
+                        altVMName = tmpPtr;
+                        tmpPtr += strcspn(tmpPtr, whiteSpace);
+                        *tmpPtr = 0;
+                        vmType = VM_ALIASED_TO;
+                    }
+                } else if (!strncmp(tmpPtr, "WARN", strlen("WARN"))) {
+                    vmType = VM_WARN;
+                } else if (!strncmp(tmpPtr, "ERROR", strlen("ERROR"))) {
+                    vmType = VM_ERROR;
+                } else {
+                    fprintf(stderr, "Warning: unknown VM type %s on line %d of `%s'\n",
+                            vmType, lineno, jvmCfgName);
+                    vmType = VM_KNOWN;
+                }
+            }
+        }
+
+        if (debug)
+            printf("jvm.cfg[%d] = ->%s<-\n", cnt, line);
+        if (vmType != VM_UNKNOWN) {
+            knownVMs[cnt].name = strdup(line);
+            knownVMs[cnt].flag = vmType;
+            if (vmType == VM_ALIASED_TO) {
+                knownVMs[cnt].alias = strdup(altVMName);
+            }
+            cnt++;
+        }
     }
     fclose(jvmCfg);
-    cfgLinesRead = cnt;
-
+    knownVMsCount = cnt;
+    
     if (debug) {
-	end   = CounterGet();
-	printf("%ld micro seconds to parse jvm.cfg\n",
-	       (jint)Counter2Micros(end-start));
+        end   = CounterGet();
+        printf("%ld micro seconds to parse jvm.cfg\n",
+               (jint)Counter2Micros(end-start));
     }
-
+    
     return cnt;
 }
 
 
 static void
+GrowKnownVMs(int minimum)
+{
+    struct vmdesc* newKnownVMs;
+    int newMax;
+
+    newMax = (knownVMsLimit == 0 ? INIT_MAX_KNOWN_VMS : (2 * knownVMsLimit));
+    if (newMax <= minimum) {
+        newMax = minimum;
+    }
+    newKnownVMs = (struct vmdesc*) malloc(newMax * sizeof(struct vmdesc));
+    if (knownVMs != NULL) {
+        memcpy(newKnownVMs, knownVMs, knownVMsLimit * sizeof(struct vmdesc));
+    }
+    free(knownVMs);
+    knownVMs = newKnownVMs;
+    knownVMsLimit = newMax;
+}
+
+
+/* Returns index of VM or -1 if not found */
+static int
+KnownVMIndex(const char* name)
+{
+    int i;
+    if (strncmp(name, "-J", 2) == 0) name += 2;
+    for (i = 0; i < knownVMsCount; i++) {
+        if (!strcmp(name, knownVMs[i].name)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+static void
 FreeKnownVMs()
 {
     int i;
-    for (i = 0; i < cfgLinesRead; i++) {
-	free(knownVMs[i]);
-	knownVMs[i] = NULL;
+    for (i = 0; i < knownVMsCount; i++) {
+        free(knownVMs[i].name);
+        knownVMs[i].name = NULL;
     }
+    free(knownVMs);
 }
+

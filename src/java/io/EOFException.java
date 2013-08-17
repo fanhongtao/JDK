@@ -1,4 +1,6 @@
 /*
+ * @(#)EOFException.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,17 +11,13 @@ package java.io;
  * Signals that an end of file or end of stream has been reached
  * unexpectedly during input.
  * <p>
- * This exception is mainly used by data input streams, which
- * generally expect a binary file in a specific format, and for which
- * an end of stream is an unusual condition. Most other input streams
- * return a special value on end of stream.
+ * This exception is mainly used by data input streams to signal end of
+ * stream. Note that many other input operations return a special value on
+ * end of stream rather than throwing an exception.
  * <p>
- * Note that some input operations react to end-of-file by returning
- * a distinguished value (such as <code>-1</code>) rather than by
- * throwing an exception.
  *
  * @author  Frank Yellin
- * @version 1.10, 02/06/02
+ * @version 1.11, 12/03/01
  * @see     java.io.DataInputStream
  * @see     java.io.IOException
  * @since   JDK1.0

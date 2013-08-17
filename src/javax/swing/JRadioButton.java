@@ -1,4 +1,6 @@
 /*
+ * @(#)JRadioButton.java	1.71 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -37,14 +39,16 @@ import java.io.IOException;
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JRadioButton">JRadioButton</a> key assignments.
+ * <a href="doc-files/Key-Index.html#JRadioButton"><code>JRadioButton</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  * 
  * @beaninfo
  *   attribute: isContainer false
@@ -52,7 +56,7 @@ import java.io.IOException;
  *
  * @see ButtonGroup
  * @see JCheckBox
- * @version 1.65 02/06/02
+ * @version 1.71 12/03/01
  * @author Jeff Dinkins
  */
 public class JRadioButton extends JToggleButton implements Accessible {
@@ -147,13 +151,12 @@ public class JRadioButton extends JToggleButton implements Accessible {
     public JRadioButton (String text, Icon icon, boolean selected) {
         super(text, icon, selected);
         setBorderPainted(false);
-        setHorizontalAlignment(LEFT);
+        setHorizontalAlignment(LEADING);
     }
 
 
     /**
-     * Notification from the UIFactory that the L&F
-     * has changed. 
+     * Resets the UI property to a value from the current look and feel.
      *
      * @see JComponent#updateUI
      */
@@ -179,11 +182,11 @@ public class JRadioButton extends JToggleButton implements Accessible {
 
 
     /**
-     * Factory method which sets the ActionEvent source's properties
-     * according to values from the Action instance.  The properties 
-     * which are set may differ for subclasses.
-     * By default, the properties which get set are Text, Icon
-     * Enabled, and ToolTipText.
+     * Factory method which sets the <code>ActionEvent</code> source's
+     * properties according to values from the Action instance. The
+     * properties which are set may differ for subclasses.
+     * By default, the properties which get set are <code>Text, Mnemonic,
+     * Enabled, ActionCommand</code>, and <code>ToolTipText</code>.
      *
      * @param a the Action from which to get the properties, or null
      * @since 1.3
@@ -191,9 +194,10 @@ public class JRadioButton extends JToggleButton implements Accessible {
      * @see #setAction
      */
     protected void configurePropertiesFromAction(Action a) {
-	setText((a!=null?(String)a.getValue(Action.NAME):null));
-	setEnabled((a!=null?a.isEnabled():true));
- 	setToolTipText((a!=null?(String)a.getValue(Action.SHORT_DESCRIPTION):null));	
+        String[] types = { Action.MNEMONIC_KEY, Action.NAME,
+                           Action.SHORT_DESCRIPTION,
+                           Action.ACTION_COMMAND_KEY, "enabled" };
+        configurePropertiesFromAction(a, types);
     }
 
     /**
@@ -222,17 +226,19 @@ public class JRadioButton extends JToggleButton implements Accessible {
 		    Action action = (Action)e.getSource();
 		    action.removePropertyChangeListener(this);
 		} else {
-		    if (e.getPropertyName().equals(Action.NAME)) {
+		    if (propertyName.equals(Action.NAME)) {
 			String text = (String) e.getNewValue();
 			button.setText(text);
 			button.repaint();
-		    } else if (e.getPropertyName().equals(Action.SHORT_DESCRIPTION)) {
+		    } else if (propertyName.equals(Action.SHORT_DESCRIPTION)) {
 			String text = (String) e.getNewValue();
 			button.setToolTipText(text);
 		    } else if (propertyName.equals("enabled")) {
 			Boolean enabledState = (Boolean) e.getNewValue();
 			button.setEnabled(enabledState.booleanValue());
 			button.repaint();
+                    } else if (propertyName.equals(Action.ACTION_COMMAND_KEY)) {
+                        button.setActionCommand((String)e.getNewValue());
 		    } 
 		}
 	    }
@@ -245,9 +251,13 @@ public class JRadioButton extends JToggleButton implements Accessible {
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
+        }
     }
 
 
@@ -297,10 +307,12 @@ public class JRadioButton extends JToggleButton implements Accessible {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJRadioButton extends AccessibleJToggleButton {
 

@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicToolTipUI.java	1.36 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -22,14 +24,19 @@ import javax.swing.text.View;
  * Standard tool tip L&F.
  * <p>
  *
- * @version 1.31 02/06/02
+ * @version 1.36 12/03/01
  * @author Dave Moore
  */
 public class BasicToolTipUI extends ToolTipUI
 {
     static BasicToolTipUI sharedInstance = new BasicToolTipUI();
+    /**
+     * Global <code>PropertyChangeListener</code> that
+     * <code>createPropertyChangeListener</code> returns.
+     */
+    private static PropertyChangeListener sharedPropertyChangedListener;
 
-    private   PropertyChangeListener propertyChangeListener;
+    private PropertyChangeListener propertyChangeListener;
 
     public static ComponentUI createUI(JComponent c) {
         return sharedInstance;
@@ -56,7 +63,7 @@ public class BasicToolTipUI extends ToolTipUI
 	LookAndFeel.installColorsAndFont(c, "ToolTip.background",
 					 "ToolTip.foreground",
 					 "ToolTip.font");
-        LookAndFeel.installBorder(c, "ToolTip.border");
+        componentChanged(c);
     }
     
    protected void uninstallDefaults(JComponent c){
@@ -90,15 +97,20 @@ public class BasicToolTipUI extends ToolTipUI
     /* Unfortunately this has to remain private until we can make API additions.
      */
     private PropertyChangeListener createPropertyChangeListener(JComponent c) {
-        return new PropertyChangeHandler();
+        if (sharedPropertyChangedListener == null) {
+            sharedPropertyChangedListener = new PropertyChangeHandler();
+        }
+        return sharedPropertyChangedListener;
     }
 
     public void paint(Graphics g, JComponent c) {
         Font font = c.getFont();
         FontMetrics metrics = Toolkit.getDefaultToolkit().getFontMetrics(font);
         Dimension size = c.getSize();
-        g.setColor(c.getBackground());
-        g.fillRect(0, 0, size.width, size.height);
+        if (c.isOpaque()) {
+            g.setColor(c.getBackground());
+            g.fillRect(0, 0, size.width, size.height);
+        }
         g.setColor(c.getForeground());
         g.setFont(font);
 	// fix for bug 4153892
@@ -106,18 +118,19 @@ public class BasicToolTipUI extends ToolTipUI
 	if (tipText == null) {
 	    tipText = "";
 	}
+
+        Insets insets = c.getInsets();
+        Rectangle paintTextR = new Rectangle(
+            insets.left,
+            insets.top,
+            size.width - (insets.left + insets.right),
+            size.height - (insets.top + insets.bottom));
 	View v = (View) c.getClientProperty(BasicHTML.propertyKey);
 	if (v != null) {
-	    Rectangle paintTextR = c.getBounds();
-	    Insets insets = c.getInsets();
-	    paintTextR.x += insets.left;
-	    paintTextR.y += insets.top;
-	    paintTextR.width -= insets.left+insets.right;
-	    paintTextR.height -= insets.top+insets.bottom;
-	    
 	    v.paint(g, paintTextR);
 	} else {
-	    g.drawString(tipText, 3, 2 + metrics.getAscent());
+	    g.drawString(tipText, paintTextR.x + 3,
+                                  paintTextR.y + metrics.getAscent());
 	}
     }
 
@@ -125,6 +138,7 @@ public class BasicToolTipUI extends ToolTipUI
         Font font = c.getFont();
         FontMetrics fm = Toolkit.getDefaultToolkit().getFontMetrics(font);
 	Insets insets = c.getInsets();
+
 	Dimension prefSize = new Dimension(insets.left+insets.right,
 					   insets.top+insets.bottom);
 	String text = ((JToolTip)c).getTipText();
@@ -139,7 +153,7 @@ public class BasicToolTipUI extends ToolTipUI
 		prefSize.height += (int) v.getPreferredSpan(View.Y_AXIS);
 	    } else {
 		prefSize.width += SwingUtilities.computeStringWidth(fm,text) + 6;
-		prefSize.height += fm.getHeight() + 4;
+		prefSize.height += fm.getHeight();
 	    }
         }
 	return prefSize;
@@ -163,10 +177,47 @@ public class BasicToolTipUI extends ToolTipUI
  	return d;
     }
 
-    private class PropertyChangeHandler implements PropertyChangeListener {
+    /**
+     * Invoked when the <code>JCompoment</code> associated with the
+     * <code>JToolTip</code> has changed, or at initialization time. This
+     * should update any state dependant upon the <code>JComponent</code>.
+     *
+     * @param c the JToolTip the JComponent has changed on.
+     */
+    private void componentChanged(JComponent c) {
+        JComponent comp = ((JToolTip)c).getComponent();
+
+        if (comp != null && !(comp.isEnabled())) {
+            // For better backward compatability, only install inactive
+            // properties if they are defined.
+            if (UIManager.getBorder("ToolTip.borderInactive") != null) {
+                LookAndFeel.installBorder(c, "ToolTip.borderInactive");
+            }
+            else {
+                LookAndFeel.installBorder(c, "ToolTip.border");
+            }
+            if (UIManager.getColor("ToolTip.backgroundInactive") != null) {
+                LookAndFeel.installColors(c,"ToolTip.backgroundInactive",
+                                          "ToolTip.foregroundInactive");
+            }
+            else {
+                LookAndFeel.installColors(c,"ToolTip.background",
+                                          "ToolTip.foreground");
+            }
+        } else {
+            LookAndFeel.installBorder(c, "ToolTip.border");
+            LookAndFeel.installColors(c, "ToolTip.background",
+                                      "ToolTip.foreground");
+        }
+    }
+
+
+    private static class PropertyChangeHandler implements
+                                 PropertyChangeListener {
 	public void propertyChange(PropertyChangeEvent e) {
 	    String name = e.getPropertyName();
-	    if (name.equals("tiptext")) {
+	    if (name.equals("tiptext") || "font".equals(name) ||
+                "foreground".equals(name)) {
 		// remove the old html view client property if one
 		// existed, and install a new one if the text installed
 		// into the JLabel is html source.
@@ -174,6 +225,13 @@ public class BasicToolTipUI extends ToolTipUI
 		String text = tip.getTipText();
 		BasicHTML.updateRenderer(tip, text);
 	    }
+            else if ("component".equals(name)) {
+		JToolTip tip = ((JToolTip) e.getSource());
+
+                if (tip.getUI() instanceof BasicToolTipUI) {
+                    ((BasicToolTipUI)tip.getUI()).componentChanged(tip);
+                }
+            }
 	}
     }
 }

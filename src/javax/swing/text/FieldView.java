@@ -1,4 +1,6 @@
 /*
+ * @(#)FieldView.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,7 +20,7 @@ import javax.swing.event.*;
  * current visibility settings of the JTextField.
  *
  * @author  Timothy Prinzing
- * @version 1.19 02/06/02
+ * @version 1.21 12/03/01
  * @see     View
  */
 public class FieldView extends PlainView {
@@ -181,7 +183,7 @@ public class FieldView extends PlainView {
      * axis.
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the span the view would like to be rendered into >= 0.
+     * @return   the span the view would like to be rendered into >= 0.
      *           Typically the view is told to render into the span
      *           that is returned, although there is no guarantee.  
      *           The parent may choose to resize or break the view.
@@ -189,7 +191,7 @@ public class FieldView extends PlainView {
     public float getPreferredSpan(int axis) {
 	switch (axis) {
 	case View.X_AXIS:
-	    Segment buff = getLineBuffer();
+	    Segment buff = SegmentCache.getSharedSegment();
 	    Document doc = getDocument();
 	    int width;
 	    try {
@@ -198,6 +200,7 @@ public class FieldView extends PlainView {
 	    } catch (BadLocationException bl) {
 		width = 0; 
 	    }
+            SegmentCache.releaseSharedSegment(buff);
 	    return width;
 	default:
 	    return super.getPreferredSpan(axis);

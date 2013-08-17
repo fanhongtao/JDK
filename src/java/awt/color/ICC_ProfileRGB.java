@@ -1,4 +1,6 @@
 /*
+ * @(#)ICC_ProfileRGB.java	1.20 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,43 +22,48 @@ import sun.awt.color.ProfileDeferralInfo;
 
 /**
  *
- * A subclass of the ICC_Profile class which represents profiles
- * which meet the following criteria: the color space type of the
- * profile is RGB and the profile includes the redColorantTag,
- * greenColorantTag, blueColorantTag, redTRCTag, greenTRCTag,
- * blueTRCTag, and mediaWhitePointTag tags.  Examples of this
- * kind of profile are three-component matrix-based input profiles
- * and RGB display profiles.  The getInstance methods in the
- * ICC_Profile class will return an ICC_ProfileRGB object
- * when the above conditions are met.  The advantage of this class
- * is that it provides color transform matrices and lookup tables
- * that Java or native methods may be able to use directly to
+ * The ICC_ProfileRGB class is a subclass of the ICC_Profile class
+ * that represents profiles which meet the following criteria: 
+ * <ul>
+ * <li>The profile's color space type is RGB.</li>
+ * <li>The profile includes the <code>redColorantTag</code>,
+ * <code>greenColorantTag</code>, <code>blueColorantTag</code>, 
+ * <code>redTRCTag</code>, <code>greenTRCTag</code>,
+ * <code>blueTRCTag</code>, and <code>mediaWhitePointTag</code> tags.</li>
+ * </ul>  
+ * The <code>ICC_Profile</code> <code>getInstance</code> method will
+ * return an <code>ICC_ProfileRGB</code> object when these conditions are met.
+ * Three-component, matrix-based input profiles and RGB display profiles are
+ * examples of this type of profile.
+ * <p>
+ * This profile class provides color transform matrices and lookup tables
+ * that Java or native methods can use directly to
  * optimize color conversion in some cases.
  * <p>
  * To transform from a device profile color space to the CIEXYZ Profile
  * Connection Space, each device color component is first linearized by
  * a lookup through the corresponding tone reproduction curve (TRC).
- * Then the resulting linear RGB components are converted via a 3x3 matrix
- * (constructed from the RGB colorants) to the CIEXYZ PCS.
-<pre>
-
-&nbsp;               linearR = redTRC[deviceR]
-
-&nbsp;               linearG = greenTRC[deviceG]
-
-&nbsp;               linearB = blueTRC[deviceB]
-
-&nbsp; _      _       _                                             _   _         _
-&nbsp;[  PCSX  ]     [  redColorantX  greenColorantX  blueColorantX  ] [  linearR  ]
-&nbsp;[        ]     [                                               ] [           ]
-&nbsp;[  PCSY  ]  =  [  redColorantY  greenColorantY  blueColorantY  ] [  linearG  ]
-&nbsp;[        ]     [                                               ] [           ]
-&nbsp;[_ PCSZ _]     [_ redColorantZ  greenColorantZ  blueColorantZ _] [_ linearB _]
-
-</pre>
- * The inverse transform is done by converting PCS XYZ components to linear
- * RGB components via the inverse of the above 3x3 matrix, and then converting
- * linear RGB to device RGB via inverses of the TRCs.
+ * The resulting linear RGB components are converted to the CIEXYZ PCS
+ * using a a 3x3 matrix constructed from the RGB colorants.
+ * <pre>
+ *
+ * &nbsp;               linearR = redTRC[deviceR]
+ *
+ * &nbsp;               linearG = greenTRC[deviceG]
+ * 
+ * &nbsp;               linearB = blueTRC[deviceB]
+ * 
+ * &nbsp; _      _       _                                             _   _         _
+ * &nbsp;[  PCSX  ]     [  redColorantX  greenColorantX  blueColorantX  ] [  linearR  ]
+ * &nbsp;[        ]     [                                               ] [           ]
+ * &nbsp;[  PCSY  ]  =  [  redColorantY  greenColorantY  blueColorantY  ] [  linearG  ]
+ * &nbsp;[        ]     [                                               ] [           ]
+ * &nbsp;[_ PCSZ _]     [_ redColorantZ  greenColorantZ  blueColorantZ _] [_ linearB _]
+ * 
+ * </pre>
+ * The inverse transform is performed by converting PCS XYZ components to linear
+ * RGB components through the inverse of the above 3x3 matrix, and then converting
+ * linear RGB to device RGB through inverses of the TRCs.
  * <p>
  */
 
@@ -66,30 +73,36 @@ public class ICC_ProfileRGB
 extends ICC_Profile {
 
     /**
-     * To request a gamma value or TRC for the red component.
+     * Used to get a gamma value or TRC for the red component.
      */
     public static final int REDCOMPONENT = 0;
 
     /**
-     * To request a gamma value or TRC for the green component.
+     * Used to get a gamma value or TRC for the green component.
      */
     public static final int GREENCOMPONENT = 1;
 
     /**
-     * To request a gamma value or TRC for the blue component.
+     * Used to get a gamma value or TRC for the blue component.
      */
     public static final int BLUECOMPONENT = 2;
 
 
     /**
-     * Constructs an new ICC_ProfileRGB from a CMM ID.
+     * Constructs an new <code>ICC_ProfileRGB</code> from a CMM ID.
+     *
+     * @param ID The CMM ID for the profile.
+     *
      */
     ICC_ProfileRGB(long ID) {
         super(ID);
     }
 
     /**
-     * Constructs a new ICC_ProfileRGB from a ProfileDeferralInfo object.
+     * Constructs a new <code>ICC_ProfileRGB</code> from a 
+     * ProfileDeferralInfo object.
+     * 
+     * @param pdi
      */
     ICC_ProfileRGB(ProfileDeferralInfo pdi) {
         super(pdi);
@@ -97,8 +110,11 @@ extends ICC_Profile {
 
 
     /**
-     * Returns a float array of length 3 containing the X, Y, and Z
-     * components of the mediaWhitePointTag in the ICC profile.
+     * Returns an array that contains the components of the profile's
+     * <CODE>mediaWhitePointTag</CODE>.
+     *
+     * @return A 3-element <CODE>float</CODE> array containing the x, y,
+     * and z components of the profile's <CODE>mediaWhitePointTag</CODE>.
      */
     public float[] getMediaWhitePoint() {
         return super.getMediaWhitePoint();
@@ -106,12 +122,17 @@ extends ICC_Profile {
 
 
     /**
-     * Returns a 3x3 float matrix constructed from the X, Y, and Z
-     * components of the redColorantTag, greenColorantTag, and
-     * blueColorantTag in the ICC profile, as described above.
+     * Returns a 3x3 <CODE>float</CODE> matrix constructed from the
+     * X, Y, and Z components of the profile's <CODE>redColorantTag</CODE>,
+     * <CODE>greenColorantTag</CODE>, and <CODE>blueColorantTag</CODE>.
+     * <p>
      * This matrix can be used for color transforms in the forward
-     * direction of the profile, i.e. from the profile color space
+     * direction of the profile--from the profile color space
      * to the CIEXYZ PCS.
+     *
+     * @return A 3x3 <CODE>float</CODE> array that contains the x, y, and z
+     * components of the profile's <CODE>redColorantTag</CODE>,
+     * <CODE>greenColorantTag</CODE>, and <CODE>blueColorantTag</CODE>.
      */
     public float[][] getMatrix() {
         float[][] theMatrix = new float[3][3];
@@ -134,19 +155,24 @@ extends ICC_Profile {
 
     /**
      * Returns a gamma value representing the tone reproduction curve
-     * (TRC) for a particular component.  Component must be one of
-     * REDCOMPONENT, GREENCOMPONENT, or BLUECOMPONENT.  If the profile
+     * (TRC) for a particular component.  The component parameter 
+     * must be one of REDCOMPONENT, GREENCOMPONENT, or BLUECOMPONENT.  
+     * <p>
+     * If the profile
      * represents the TRC for the corresponding component
-     * as a table rather than a single gamma value, then an
+     * as a table rather than a single gamma value, an
      * exception is thrown.  In this case the actual table
-     * can be obtained via getTRC().  When using a gamma value,
+     * can be obtained through the {@link #getTRC(int)} method.  
+     * When using a gamma value,
      * the linear component (R, G, or B) is computed as follows:
-<pre>
-
-&nbsp;                                         gamma
-&nbsp;        linearComponent = deviceComponent
-
-</pre>
+     * <pre>
+     * 
+     * &nbsp;                                         gamma
+     * &nbsp;        linearComponent = deviceComponent
+     *
+     *</pre>
+     * @param component The <CODE>ICC_ProfileRGB</CODE> constant that 
+     * represents the component whose TRC you want to retrieve
      * @return the gamma value as a float.
      * @exception ProfileDataException if the profile does not specify
      *            the corresponding TRC as a single gamma value.
@@ -178,21 +204,31 @@ extends ICC_Profile {
     }
 
     /**
-     * Returns the TRC for a particular component as an array of
-     * shorts.  Component must be one of REDCOMPONENT, GREENCOMPONENT, or
-     * BLUECOMPONENT.  If the profile has specified the corresponding TRC
-     * as linear (gamma = 1.0) or as a simple gamma value, this method
-     * throws an exception, and the getGamma() method should be used
-     * to get the gamma value.  Otherwise the short array returned here
+     * Returns the TRC for a particular component as an array.  
+     * Component must be <code>REDCOMPONENT</code>,
+     * <code>GREENCOMPONENT</code>, or <code>BLUECOMPONENT</code>. 
+     * Otherwise the returned array
      * represents a lookup table where the input component value
      * is conceptually in the range [0.0, 1.0].  Value 0.0 maps
      * to array index 0 and value 1.0 maps to array index length-1.
-     * Interpolation may be used to generate output values for
-     * input values which do not map exactly to an index in the
+     * Interpolation might be used to generate output values for
+     * input values that do not map exactly to an index in the
      * array.  Output values also map linearly to the range [0.0, 1.0].
      * Value 0.0 is represented by an array value of 0x0000 and
-     * value 1.0 by 0xFFFF, i.e. the values are really unsigned
-     * short values, although they are returned in a short array.
+     * value 1.0 by 0xFFFF.  In other words, the values are really unsigned
+     * <code>short</code> values even though they are returned in a 
+     * <code>short</code> array.
+     *
+     * If the profile has specified the corresponding TRC
+     * as linear (gamma = 1.0) or as a simple gamma value, this method
+     * throws an exception.  In this case, the {@link #getGamma(int)}
+     * method should be used to get the gamma value.      
+     *
+     * @param component The <CODE>ICC_ProfileRGB</CODE> constant that
+     * represents the component whose TRC you want to retrieve:
+     * <CODE>REDCOMPONENT</CODE>, <CODE>GREENCOMPONENT</CODE>, or   
+     * <CODE>BLUECOMPONENT</CODE>.
+     *
      * @return a short array representing the TRC.
      * @exception ProfileDataException if the profile does not specify
      *            the corresponding TRC as a table.

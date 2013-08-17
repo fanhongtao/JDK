@@ -1,4 +1,6 @@
 /*
+ * @(#)RoundRectangle2D.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,7 +18,7 @@ package java.awt.geom;
  * The actual storage representation of the coordinates is left to
  * the subclass.
  *
- * @version 1.15, 02/06/02
+ * @version 1.16, 12/03/01
  * @author	Jim Graham
  */
 public abstract class RoundRectangle2D extends RectangularShape {
@@ -66,7 +68,7 @@ public abstract class RoundRectangle2D extends RectangularShape {
 	/**
 	 * Constructs and initializes a <code>RoundRectangle2D</code> 
          * from the specified coordinates.
-	 * @param x,&nbsp; the coordinates to which to set the newly
+	 * @param x,&nbsp;y the coordinates to which to set the newly
          * constructed <code>RoundRectangle2D</code>
 	 * @param w the width to which to set the newly
          * constructed <code>RoundRectangle2D</code>
@@ -267,7 +269,7 @@ public abstract class RoundRectangle2D extends RectangularShape {
 	/**
          * Constructs and initializes a <code>RoundRectangle2D</code>
          * from the specified coordinates.
-         * @param x,&nbsp; the coordinates to which to set the newly
+         * @param x,&nbsp;y the coordinates to which to set the newly
          * constructed <code>RoundRectangle2D</code>
          * @param w the width to which to set the newly
          * constructed <code>RoundRectangle2D</code>

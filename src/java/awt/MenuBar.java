@@ -1,9 +1,13 @@
 /*
+ * @(#)MenuBar.java	1.60 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.Vector;
 import java.util.Enumeration;
 import java.awt.peer.MenuBarPeer;
@@ -34,7 +38,7 @@ import javax.accessibility.*;
  * that retrieve information about the shortcuts a given
  * menu bar is managing.
  *
- * @version 1.55, 02/06/02
+ * @version 1.60, 12/03/01
  * @author Sami Shaio
  * @see        java.awt.Frame
  * @see        java.awt.Frame#setMenuBar(java.awt.MenuBar)
@@ -48,7 +52,9 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
     static {
         /* ensure that the necessary native libraries are loaded */
 	Toolkit.loadLibraries();
-        initIDs();
+        if (!GraphicsEnvironment.isHeadless()) {
+            initIDs();
+        }
     }
 
     /**
@@ -82,8 +88,11 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
 
     /**
      * Creates a new menu bar.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public MenuBar() {
+    public MenuBar() throws HeadlessException {
     }
 
     /**
@@ -365,19 +374,11 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
     private int menuBarSerializedDataVersion = 1;
 
     /**
-     * Writes default serializable fields to stream.  Writes
-     * a list of serializable ItemListener(s) as optional data.
-     * The non-serializable ItemListner(s) are detected and
-     * no attempt is made to serialize them.
+     * Writes default serializable fields to stream.
      *
-     * @serialData Null terminated sequence of 0 or more pairs.
-     *             The pair consists of a String and Object.
-     *             The String indicates the type of object and
-     *             is one of the following :
-     *             itemListenerK indicating and ItemListener object.
-     *
+     * @param s the <code>ObjectOutputStream</code> to write
      * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-     * @see java.awt.Component.itemListenerK
+     * @see #readObject
      */
     private void writeObject(java.io.ObjectOutputStream s)
       throws java.lang.ClassNotFoundException,
@@ -387,18 +388,20 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
     }
 
     /**
-     * Read the ObjectInputStream and if it isnt null
-     * add a listener to receive item events fired
-     * by the MenuBar.
-     * Unrecognised keys or values will be Ignored.
+     * Reads the <code>ObjectInputStream</code>.
+     * Unrecognized keys or values will be ignored.
      *
-     * @see removeActionListener()
-     * @see addActionListener()
+     * @param s the <code>ObjectInputStream</code> to read
+     * @exception HeadlessException if
+     *   <code>GraphicsEnvironment.isHeadless</code> returns
+     *   <code>true</code>
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see #readObject
      */
-    private void readObject(java.io.ObjectInputStream s)
-      throws java.lang.ClassNotFoundException,
-	     java.io.IOException
+    private void readObject(ObjectInputStream s)
+      throws ClassNotFoundException, IOException, HeadlessException
     {
+      // HeadlessException will be thrown from MenuComponent's readObject
       s.defaultReadObject();
       for (int i = 0; i < menus.size(); i++) {
 	Menu m = (Menu)menus.elementAt(i);

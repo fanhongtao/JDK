@@ -1,4 +1,6 @@
 /*
+ * @(#)List.java	1.36 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -51,8 +53,22 @@ package java.util;
  * extreme caution is advised: the <tt>equals</tt> and <tt>hashCode</tt>
  * methods are no longer well defined on a such a list.
  *
+ * <p>Some list implementations have restrictions on the elements that
+ * they may contain.  For example, some implementations prohibit null elements,
+ * and some have restrictions on the types of their elements.  Attempting to
+ * add an ineligible element throws an unchecked exception, typically
+ * <tt>NullPointerException</tt> or <tt>ClassCastException</tt>.  Attempting
+ * to query the presence of an ineligible element may throw an exception,
+ * or it may simply return false; some implementations will exhibit the former
+ * behavior and some will exhibit the latter.  More generally, attempting an
+ * operation on an ineligible element whose completion would not result in
+ * the insertion of an ineligible element into the list may throw an
+ * exception or it may succeed, at the option of the implementation.
+ * Such exceptions are marked as "optional" in the specification for this
+ * interface. 
+ *
  * @author  Josh Bloch
- * @version 1.33, 02/06/02
+ * @version 1.36, 12/03/01
  * @see Collection
  * @see Set
  * @see ArrayList
@@ -94,6 +110,10 @@ public interface List extends Collection {
      *
      * @param o element whose presence in this list is to be tested.
      * @return <tt>true</tt> if this list contains the specified element.
+     * @throws ClassCastException if the type of the specified element
+     * 	       is incompatible with this list (optional).
+     * @throws NullPointerException if the specified element is null and this
+     *         list does not support null elements (optional).
      */
     boolean contains(Object o);
 
@@ -129,6 +149,7 @@ public interface List extends Collection {
      * @throws ArrayStoreException if the runtime type of the specified array
      * 		  is not a supertype of the runtime type of every element in
      * 		  this list.
+     * @throws NullPointerException if the specified array is <tt>null</tt>.
      */
     Object[] toArray(Object a[]);
 
@@ -154,8 +175,10 @@ public interface List extends Collection {
      * 		  supported by this list.
      * @throws ClassCastException if the class of the specified element
      * 		  prevents it from being added to this list.
+     * @throws NullPointerException if the specified element is null and this
+     *           list does not support null elements.
      * @throws IllegalArgumentException if some aspect of this element
-     *            prevents it from being added to this collection.
+     *            prevents it from being added to this list.
      */
     boolean add(Object o);
 
@@ -168,7 +191,10 @@ public interface List extends Collection {
      *
      * @param o element to be removed from this list, if present.
      * @return <tt>true</tt> if this list contained the specified element.
-     * 
+     * @throws ClassCastException if the type of the specified element
+     * 	          is incompatible with this list (optional).
+     * @throws NullPointerException if the specified element is null and this
+     *            list does not support null elements (optional).
      * @throws UnsupportedOperationException if the <tt>remove</tt> method is
      *		  not supported by this list.
      */
@@ -182,11 +208,18 @@ public interface List extends Collection {
      * Returns <tt>true</tt> if this list contains all of the elements of the
      * specified collection.
      *
-     * @param c collection to be checked for containment in this list.
+     * @param  c collection to be checked for containment in this list.
      * @return <tt>true</tt> if this list contains all of the elements of the
      * 	       specified collection.
-     * 
-     * @see #contains(Object)
+     * @throws ClassCastException if the types of one or more elements
+     *         in the specified collection are incompatible with this
+     *         list (optional).
+     * @throws NullPointerException if the specified collection contains one
+     *         or more null elements and this list does not support null
+     *         elements (optional).
+     * @throws NullPointerException if the specified collection is
+     *         <tt>null</tt>.
+     * @see #  contains(Object)
      */
     boolean containsAll(Collection c);
 
@@ -203,14 +236,14 @@ public interface List extends Collection {
      * 
      * @throws UnsupportedOperationException if the <tt>addAll</tt> method is
      *         not supported by this list.
-     * 
      * @throws ClassCastException if the class of an element in the specified
      * 	       collection prevents it from being added to this list.
-     * 
+     * @throws NullPointerException if the specified collection contains one
+     *         or more null elements and this list does not support null
+     *         elements, or if the specified collection is <tt>null</tt>.
      * @throws IllegalArgumentException if some aspect of an element in the
      *         specified collection prevents it from being added to this
      *         list.
-     * 
      * @see #add(Object)
      */
     boolean addAll(Collection c);
@@ -236,6 +269,9 @@ public interface List extends Collection {
      * @throws ClassCastException if the class of one of elements of the
      * 		  specified collection prevents it from being added to this
      * 		  list.
+     * @throws NullPointerException if the specified collection contains one
+     *           or more null elements and this list does not support null
+     *           elements, or if the specified collection is <tt>null</tt>.
      * @throws IllegalArgumentException if some aspect of one of elements of
      *		  the specified collection prevents it from being added to
      *		  this list.
@@ -254,7 +290,14 @@ public interface List extends Collection {
      * 
      * @throws UnsupportedOperationException if the <tt>removeAll</tt> method
      * 		  is not supported by this list.
-     * 
+     * @throws ClassCastException if the types of one or more elements
+     *            in this list are incompatible with the specified
+     *            collection (optional).
+     * @throws NullPointerException if this list contains one or more
+     *            null elements and the specified collection does not support
+     *            null elements (optional).
+     * @throws NullPointerException if the specified collection is
+     *            <tt>null</tt>.
      * @see #remove(Object)
      * @see #contains(Object)
      */
@@ -272,7 +315,14 @@ public interface List extends Collection {
      * 
      * @throws UnsupportedOperationException if the <tt>retainAll</tt> method
      * 		  is not supported by this list.
-     * 
+     * @throws ClassCastException if the types of one or more elements
+     *            in this list are incompatible with the specified
+     *            collection (optional).
+     * @throws NullPointerException if this list contains one or more
+     *            null elements and the specified collection does not support
+     *            null elements (optional).
+     * @throws NullPointerException if the specified collection is
+     *         <tt>null</tt>.
      * @see #remove(Object)
      * @see #contains(Object)
      */
@@ -356,10 +406,13 @@ public interface List extends Collection {
      *		  supported by this list.
      * @throws    ClassCastException if the class of the specified element
      * 		  prevents it from being added to this list.
+     * @throws    NullPointerException if the specified element is null and
+     *            this list does not support null elements.
      * @throws    IllegalArgumentException if some aspect of the specified
      *		  element prevents it from being added to this list.
      * @throws    IndexOutOfBoundsException if the index is out of range
-     *		  (index &lt; 0 || index &gt;= size()).  */
+     *		  (index &lt; 0 || index &gt;= size()).
+     */
     Object set(int index, Object element);
 
     /**
@@ -375,6 +428,8 @@ public interface List extends Collection {
      *		  supported by this list.
      * @throws    ClassCastException if the class of the specified element
      * 		  prevents it from being added to this list.
+     * @throws    NullPointerException if the specified element is null and
+     *            this list does not support null elements.
      * @throws    IllegalArgumentException if some aspect of the specified
      *		  element prevents it from being added to this list.
      * @throws    IndexOutOfBoundsException if the index is out of range
@@ -393,7 +448,6 @@ public interface List extends Collection {
      * 
      * @throws UnsupportedOperationException if the <tt>remove</tt> method is
      *		  not supported by this list.
-     * 
      * @throws IndexOutOfBoundsException if the index is out of range (index
      *            &lt; 0 || index &gt;= size()).
      */
@@ -412,6 +466,10 @@ public interface List extends Collection {
      * @param o element to search for.
      * @return the index in this list of the first occurrence of the specified
      * 	       element, or -1 if this list does not contain this element.
+     * @throws ClassCastException if the type of the specified element
+     * 	       is incompatible with this list (optional).
+     * @throws NullPointerException if the specified element is null and this
+     *         list does not support null elements (optional).
      */
     int indexOf(Object o);
 
@@ -425,6 +483,10 @@ public interface List extends Collection {
      * @param o element to search for.
      * @return the index in this list of the last occurrence of the specified
      * 	       element, or -1 if this list does not contain this element.
+     * @throws ClassCastException if the type of the specified element
+     * 	       is incompatible with this list (optional).
+     * @throws NullPointerException if the specified element is null and this
+     *         list does not support null elements (optional).
      */
     int lastIndexOf(Object o);
 
@@ -463,10 +525,10 @@ public interface List extends Collection {
      * Returns a view of the portion of this list between the specified
      * <tt>fromIndex</tt>, inclusive, and <tt>toIndex</tt>, exclusive.  (If
      * <tt>fromIndex</tt> and <tt>toIndex</tt> are equal, the returned list is
-     * empty.)  The returned list is backed by this list, so changes in the
-     * returned list are reflected in this list, and vice-versa.  The returned
-     * list supports all of the optional list operations supported by this
-     * list.<p>
+     * empty.)  The returned list is backed by this list, so non-structural
+     * changes in the returned list are reflected in this list, and vice-versa.
+     * The returned list supports all of the optional list operations supported
+     * by this list.<p>
      *
      * This method eliminates the need for explicit range operations (of
      * the sort that commonly exist for arrays).   Any operation that expects
@@ -480,7 +542,7 @@ public interface List extends Collection {
      * <tt>lastIndexOf</tt>, and all of the algorithms in the
      * <tt>Collections</tt> class can be applied to a subList.<p>
      *
-     * The semantics of this list returned by this method become undefined if
+     * The semantics of the list returned by this method become undefined if
      * the backing list (i.e., this list) is <i>structurally modified</i> in
      * any way other than via the returned list.  (Structural modifications are
      * those that change the size of this list, or otherwise perturb it in such

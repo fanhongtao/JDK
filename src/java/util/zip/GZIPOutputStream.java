@@ -1,4 +1,6 @@
 /*
+ * @(#)GZIPOutputStream.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,7 @@ import java.io.IOException;
 /**
  * This class implements a stream filter for writing compressed data in
  * the GZIP file format.
- * @version 	1.19, 02/06/02
+ * @version 	1.19, 12/03/01
  * @author 	David Connelly
  *
  */
@@ -78,17 +80,6 @@ class GZIPOutputStream extends DeflaterOutputStream {
 	    }
 	    writeTrailer();
 	}
-    }
-
-    /**
-     * Writes remaining compressed data to the output stream and closes the
-     * underlying stream.
-     * @exception IOException if an I/O error has occurred
-     */
-    public void close() throws IOException {
-	finish();
-	def.end();
-	out.close();
     }
   
     /*

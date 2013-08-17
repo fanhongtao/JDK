@@ -1,4 +1,6 @@
 /*
+ * @(#)MetalComboBoxUI.java	1.39 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,31 +22,22 @@ import java.beans.*;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @see MetalComboBoxListCellRenderer
- * @see MetalPopupMenuBorder
- * @version 1.30 02/06/02
+ * @see MetalComboBoxEditor
+ * @see MetalComboBoxButton
+ * @version 1.39 12/03/01
  * @author Tom Santos
  */
 public class MetalComboBoxUI extends BasicComboBoxUI {
 
-    FocusListener focusDelegator;
-
     public static ComponentUI createUI(JComponent c) {
         return new MetalComboBoxUI();
-    }
-
-    public void installUI(JComponent c) {
-        super.installUI(c);
-        comboBox.setRequestFocusEnabled( true );
-    }
-
-    public void uninstallUI( JComponent c ) {
-        super.uninstallUI( c ); 
     }
 
     public void paint(Graphics g, JComponent c) {
@@ -61,26 +54,11 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
     protected JButton createArrowButton() {
         JButton button = new MetalComboBoxButton( comboBox,
                                                   new MetalComboBoxIcon(),
-                                                  comboBox.isEditable() ? true : false,
+                                                  comboBox.isEditable(),
                                                   currentValuePane,
                                                   listBox );
         button.setMargin( new Insets( 0, 1, 1, 3 ) );
         return button;
-    }
-
-    FocusListener createFocusDelegator() {
-        return new FocusDelegator();
-    }
-
-    class FocusDelegator extends FocusAdapter {
-        public void focusGained( FocusEvent e ) {
-            if ( metalGetComboBox().isEditable() ) {
-                metalGetEditor().requestFocus();
-            }
-            else {
-                metalGetArrowButton().requestFocus();
-            }
-        }
     }
 
     public PropertyChangeListener createPropertyChangeListener() {
@@ -95,34 +73,33 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
     public class MetalPropertyChangeListener extends BasicComboBoxUI.PropertyChangeHandler {
         public void propertyChange(PropertyChangeEvent e) {
             super.propertyChange( e );
-            metalGetComboBox().setRequestFocusEnabled( true );
-
             String propertyName = e.getPropertyName();
 
             if ( propertyName.equals( "editable" ) ) {
-                editablePropertyChanged( e );
-            }
-            else if ( propertyName.equals( "enabled" ) ) {
-                enabledPropertyChanged( e );
+		MetalComboBoxButton button = (MetalComboBoxButton)arrowButton;
+		button.setIconOnly( comboBox.isEditable() );
+		comboBox.repaint();
+            } else if ( propertyName.equals( "background" ) ) {
+                Color color = (Color)e.getNewValue();
+                arrowButton.setBackground(color);
+                listBox.setBackground(color);
+                
+            } else if ( propertyName.equals( "foreground" ) ) {
+                Color color = (Color)e.getNewValue();
+                arrowButton.setForeground(color);
+                listBox.setForeground(color);
             }
         }
     }
 
-    protected void editablePropertyChanged( PropertyChangeEvent e ) {
-        if ( arrowButton instanceof MetalComboBoxButton ) {
-            MetalComboBoxButton button = (MetalComboBoxButton)arrowButton;
-            button.setIconOnly( comboBox.isEditable() );
-            button.setRequestFocusEnabled( (!comboBox.isEditable()) && comboBox.isEnabled() );
-            comboBox.repaint();
-        }
-    }
-
-    void enabledPropertyChanged( PropertyChangeEvent e ) {
-        if ( arrowButton instanceof MetalComboBoxButton ) {
-            arrowButton.setRequestFocusEnabled( (!comboBox.isEditable()) && comboBox.isEnabled() );
-            comboBox.repaint();
-        }
-    }
+    /**
+     * As of Java 2 platform v1.4 this method is no longer used. Do not call or
+     * override. All the functionality of this method is in the
+     * MetalPropertyChangeListener.
+     *
+     * @deprecated As of Java 2 platform v1.4.
+     */
+    protected void editablePropertyChanged( PropertyChangeEvent e ) { }
 
     protected LayoutManager createLayoutManager() {
         return new MetalComboBoxLayoutManager();
@@ -142,7 +119,8 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
         }
     }
 
-    // This is here because of a bug in the compiler.  When a protected-inner-class-savvy compiler comes out we
+    // This is here because of a bug in the compiler.  
+    // When a protected-inner-class-savvy compiler comes out we
     // should move this into MetalComboBoxLayoutManager.
     public void layoutComboBox( Container parent, MetalComboBoxLayoutManager manager ) {
         if ( comboBox.isEditable() ) {
@@ -160,113 +138,29 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
         }
     }
 
-    public boolean isFocusTraversable( JComboBox c ) {
-        return false;
-    }
-
-    protected void installListeners() {
-        if ( (itemListener = createItemListener()) != null ) {
-            comboBox.addItemListener( itemListener );
-        }
-        if ( (propertyChangeListener = createPropertyChangeListener()) != null ) {
-            comboBox.addPropertyChangeListener( propertyChangeListener );
-        }
-
-        keyListener = createKeyListener();
-        focusListener = createFocusListener();
-        popupKeyListener = popup.getKeyListener();
-        popupMouseListener = popup.getMouseListener();
-        popupMouseMotionListener = popup.getMouseMotionListener();
-
-        if ( comboBox.getModel() != null ) {
-            if ( (listDataListener = createListDataListener()) != null ) {
-                comboBox.getModel().addListDataListener( listDataListener );
-            }
-        }
-
-        if ( (focusDelegator = createFocusDelegator()) != null ) {
-            comboBox.addFocusListener( focusDelegator );
-        }
-    }
-
-    protected void uninstallListeners() {
-        if ( itemListener != null ) {
-            comboBox.removeItemListener( itemListener );
-        }
-        if ( propertyChangeListener != null ) {
-            comboBox.removePropertyChangeListener( propertyChangeListener );
-        }
-        if ( comboBox.getModel() != null ) {
-            if ( listDataListener != null ) {
-                comboBox.getModel().removeListDataListener( listDataListener );
-            }
-        }
-        if ( focusDelegator != null ) {
-            comboBox.removeFocusListener( focusDelegator );
-        }
-    }
-
+    /**
+     * As of Java 2 platform v1.4 this method is no
+     * longer used.
+     *
+     * @deprecated As of Java 2 platform v1.4.
+     */
     protected void removeListeners() {
-        if ( itemListener != null ) {
-            comboBox.removeItemListener( itemListener );
-        }
         if ( propertyChangeListener != null ) {
             comboBox.removePropertyChangeListener( propertyChangeListener );
         }
     }
+
+    // These two methods were overloaded and made public. This was probably a
+    // mistake in the implementation. The functionality that they used to 
+    // provide is no longer necessary and should be removed. However, 
+    // removing them will create an uncompatible API change.
 
     public void configureEditor() {
-        super.configureEditor();
-        if ( popupKeyListener != null ) {
-            editor.removeKeyListener( popupKeyListener );
-        }
-        if ( focusListener != null ) {
-            editor.addFocusListener( focusListener );
-        }
+	super.configureEditor();
     }
 
     public void unconfigureEditor() {
-        super.unconfigureEditor();
-        if ( focusListener != null ) {
-            editor.removeFocusListener( focusListener );
-        }
-    }
-
-    public void configureArrowButton() {
-        if ( arrowButton != null ) {
-            arrowButton.setRequestFocusEnabled( (!comboBox.isEditable()) && comboBox.isEnabled() );
-            if ( keyListener != null ) {
-                arrowButton.addKeyListener( keyListener );
-            }
-            if ( popupKeyListener != null ) {
-                arrowButton.addKeyListener( popupKeyListener );
-            }
-            if ( focusListener != null ) {
-                arrowButton.addFocusListener( focusListener );
-            }
-            if ( popupMouseListener != null ) {
-                arrowButton.addMouseListener( popupMouseListener );
-            }
-            if ( popupMouseMotionListener != null ) {
-                arrowButton.addMouseMotionListener( popupMouseMotionListener );
-            }
-        }
-    }
-
-    public void unconfigureArrowButton() {
-        if ( arrowButton != null ) {
-            super.unconfigureArrowButton();
-
-            if ( keyListener != null ) {
-                arrowButton.removeKeyListener( keyListener );
-            }
-            if ( popupKeyListener != null ) {
-                arrowButton.removeKeyListener( popupKeyListener );
-            }
-            if ( focusListener != null ) {
-                arrowButton.removeFocusListener( focusListener );
-            }
-        }
+	super.unconfigureEditor();
     }
 
     public Dimension getMinimumSize( JComponent c ) {
@@ -314,54 +208,31 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
         return new Dimension( cachedMinimumSize );
     }
 
-    protected void selectNextPossibleValue() { super.selectNextPossibleValue();}
-    protected void selectPreviousPossibleValue() { super.selectPreviousPossibleValue();}
-
-    /**
-     * This method is here as a workaround for a bug in the javac compiler.
-     */
-    JComboBox metalGetComboBox() {
-        return comboBox;
-    }
-
-    /**
-     * This method is here as a workaround for a bug in the javac compiler.
-     */
-    JButton getArrowButton() {
-        return arrowButton;
-    }
-
-    boolean isPopupVisible() {
-        return super.isPopupVisible( comboBox );
-    }
-
-    void togglePopup() {
-       toggleOpenClose();
-    }
-
-    Component metalGetEditor() {
-        return editor;
-    }
-
-    JButton metalGetArrowButton() {
-        return arrowButton;
-    }
-
     /**
      * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of <FooUI>.
+     *
+     * This class is now obsolete and doesn't do anything and
+     * is only included for backwards API compatibility. Do not call or 
+     * override.
+     * 
+     * @deprecated As of Java 2 platform v1.4.
      */          
     public class MetalComboPopup extends BasicComboPopup {
-        public MetalComboPopup( JComboBox cBox ) {
-            super( cBox );
-        }
 
-        public void delegateFocus( MouseEvent e ) {
-            if ( metalGetComboBox().isEditable() ) {
-                metalGetEditor().requestFocus();
-            }
-        }
+	public MetalComboPopup( JComboBox cBox) {
+	    super( cBox );
+	}
+
+	// This method was overloaded and made public. This was probably
+	// mistake in the implementation. The functionality that they used to 
+	// provide is no longer necessary and should be removed. However, 
+	// removing them will create an uncompatible API change.
+
+	public void delegateFocus(MouseEvent e) {
+	    super.delegateFocus(e);
+	}
     }
 }
 

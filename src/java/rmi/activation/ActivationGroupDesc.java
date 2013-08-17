@@ -1,4 +1,6 @@
 /*
+ * @(#)ActivationGroupDesc.java	1.25 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -35,7 +37,7 @@ import java.util.Properties;
  * <li> the group's initialization data (in a
  * <code>java.rmi.MarshalledObject</code>)</ul><p>
  *
- * @version	1.25, 02/06/02
+ * @version	1.25, 12/03/01
  * @author	Ann Wollrath
  * @since	1.2
  * @see		ActivationGroup

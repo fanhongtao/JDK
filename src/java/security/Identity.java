@@ -1,4 +1,6 @@
 /*
+ * @(#)Identity.java	1.58 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -30,7 +32,7 @@ import java.util.*;
  * @see Signer
  * @see Principal
  *
- * @version 1.57
+ * @version 1.58
  * @author Benjamin Renaud
  * @deprecated This class is no longer used. Its functionality has been
  * replaced by <code>java.security.KeyStore</code>, the
@@ -134,6 +136,8 @@ public abstract class Identity implements Principal, Serializable {
      * Returns this identity's public key.
      * 
      * @return the public key for this identity.
+     * 
+     * @see #setPublicKey
      */
     public PublicKey getPublicKey() {
 	return publicKey;
@@ -156,6 +160,7 @@ public abstract class Identity implements Principal, Serializable {
      * <code>checkSecurityAccess</code> method doesn't allow 
      * setting the public key.
      * 
+     * @see #getPublicKey
      * @see SecurityManager#checkSecurityAccess
      */
     /* Should we throw an exception if this is already set? */

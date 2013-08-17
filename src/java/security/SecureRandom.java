@@ -1,4 +1,6 @@
 /*
+ * @(#)SecureRandom.java	1.41 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,8 +11,14 @@ import java.util.Enumeration;
 
 /**
  * <p>This class provides a cryptographically strong pseudo-random number
- * generator (PRNG).
- *
+ * generator (PRNG). A cryptographically strong pseudo-random number
+ * minimally complies with the statistical random number generator tests
+ * specified in <a href="http://csrc.nist.gov/cryptval/140-2.htm"><i>FIPS 140-2, Security Requirements for Cryptographic Modules</i></a>, section 4.9.1.
+ * Additionally, SecureRandom must produce non-deterministic 
+ * output and therefore it is required that the seed material be unpredictable
+ * and that output of SecureRandom be cryptographically strong sequences as
+ * described in <a href="http://www.ietf.org/rfc/rfc1750.txt"><i>RFC 1750: Randomness Recommendations for Security</i></a>.
+ * 
  * <p>Like other algorithm-based classes in Java Security, SecureRandom 
  * provides implementation-independent algorithms, whereby a caller 
  * (application code) requests a particular PRNG algorithm
@@ -69,7 +77,7 @@ import java.util.Enumeration;
  * @see java.security.SecureRandomSpi
  * @see java.util.Random
  * 
- * @version 1.37, 02/06/02
+ * @version 1.41, 12/03/01
  * @author Benjamin Renaud
  * @author Josh Bloch 
  */
@@ -215,10 +223,10 @@ public class SecureRandom extends java.util.Random {
 	    try {
 		Object[] objs = Security.getImpl(algorithm,
 						 "SecureRandom",
-						 null);
+						 (String)null);
 		return new SecureRandom((SecureRandomSpi)objs[0],
 					(Provider)objs[1]);
-	    } catch(NoSuchProviderException e) {
+	    } catch (NoSuchProviderException e) {
 		throw new NoSuchAlgorithmException(algorithm + " not found");
 	    }
     }
@@ -250,6 +258,9 @@ public class SecureRandom extends java.util.Random {
      * @exception NoSuchProviderException if the provider has not been
      * configured.
      *
+     * @exception IllegalArgumentException if the provider name is null
+     * or empty.
+     *
      * @see Provider
      *
      * @since 1.2
@@ -258,6 +269,48 @@ public class SecureRandom extends java.util.Random {
 	throws NoSuchAlgorithmException, NoSuchProviderException
     {
 	if (provider == null || provider.length() == 0)
+	    throw new IllegalArgumentException("missing provider");
+	Object[] objs = Security.getImpl(algorithm, "SecureRandom", provider);
+	return new SecureRandom((SecureRandomSpi)objs[0], (Provider)objs[1]);
+    }
+
+    /**
+     * Generates a SecureRandom object for the specified PRNG
+     * algorithm, as supplied from the specified provider, if such a
+     * PRNG implementation is available from the provider.
+     * Note: the <code>provider</code> doesn't have to be registered. 
+     *
+     * <p>Note that the returned instance of SecureRandom has not been seeded.
+     * A call to the <code>setSeed</code> method will seed the SecureRandom
+     * object.  If a call is not made to <code>setSeed</code>, the first call
+     * to the <code>nextBytes</code> method will force the SecureRandom object
+     * to seed itself.
+     *
+     * @param algorithm the name of the PRNG algorithm.
+     * See Appendix A in the <a href=
+     * "../../../guide/security/CryptoSpec.html#AppA">
+     * Java Cryptography Architecture API Specification &amp; Reference </a> 
+     * for information about standard PRNG algorithm names.
+     *
+     * @param provider the provider.
+     *
+     * @return the new SecureRandom object.
+     *
+     * @exception NoSuchAlgorithmException if the requested PRNG
+     * implementation is not available from the provider.
+     *
+     * @exception IllegalArgumentException if the <code>provider</code> is
+     * null.
+     *
+     * @see Provider
+     *
+     * @since 1.4
+     */
+    public static SecureRandom getInstance(String algorithm,
+					   Provider provider)
+	throws NoSuchAlgorithmException
+    {
+	if (provider == null)
 	    throw new IllegalArgumentException("missing provider");
 	Object[] objs = Security.getImpl(algorithm, "SecureRandom", provider);
 	return new SecureRandom((SecureRandomSpi)objs[0], (Provider)objs[1]);
@@ -285,6 +338,8 @@ public class SecureRandom extends java.util.Random {
      * never to reduce randomness.
      *
      * @param seed the seed.
+     *
+     * @see #getSeed
      */
     synchronized public void setSeed(byte[] seed) {
 	secureRandomSpi.engineSetSeed(seed);
@@ -300,6 +355,8 @@ public class SecureRandom extends java.util.Random {
      * <code>java.util.Random</code>.
      *
      * @param seed the seed.
+     *
+     * @see #getSeed
      */
     public void setSeed(long seed) {
 	/* 
@@ -344,7 +401,7 @@ public class SecureRandom extends java.util.Random {
 	int next = 0;
  
 	nextBytes(b);
-	for (int i=0; i<numBytes; i++)
+	for (int i = 0; i < numBytes; i++)
 	    next = (next << 8) + (b[i] & 0xFF);
  
 	return next >>> (numBytes*8 - numBits);
@@ -364,12 +421,14 @@ public class SecureRandom extends java.util.Random {
      * @param numBytes the number of seed bytes to generate.
      * 
      * @return the seed bytes.
+     *
+     * @see #setSeed
      */
-     public static byte[] getSeed(int numBytes) {
+    public static byte[] getSeed(int numBytes) {
 	if (seedGenerator == null)
 	    seedGenerator = new SecureRandom();
 	return seedGenerator.generateSeed(numBytes);
-     }
+    }
 
     /**
      * Returns the given number of seed bytes, computed using the seed
@@ -391,7 +450,7 @@ public class SecureRandom extends java.util.Random {
     private static byte[] longToByteArray(long l) {
 	byte[] retVal = new byte[8];
 
-	for (int i=0; i<8; i++) {
+	for (int i = 0; i < 8; i++) {
 	    retVal[i] = (byte) l;
 	    l >>= 8;
 	}
@@ -407,16 +466,18 @@ public class SecureRandom extends java.util.Random {
      */
     private static String getPrngAlgorithm() {
 	Provider[] provs = Security.getProviders();
-	for (int i=0; i<provs.length; i++) {
+	for (int i = 0; i < provs.length; i++) {
 	    // search the provider's properties list for a property name
 	    // that starts with "SecureRandom."
 	    for (Enumeration e = provs[i].propertyNames();
 		 e.hasMoreElements();) {
 		String propName = (String)e.nextElement();
-		if (propName.startsWith("SecureRandom.")) {
+		// if property name is followed by an atttribute, skip it
+		if ((propName.startsWith("SecureRandom.")) &&
+		    (propName.indexOf(' ') < 0)) {
 		    int index = propName.indexOf(".", 0);
-		    return propName.substring(index+1);
-		}
+                    return propName.substring(index+1);
+                }
 	    }
 	}
 	return null;

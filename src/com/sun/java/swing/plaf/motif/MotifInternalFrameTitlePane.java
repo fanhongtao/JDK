@@ -1,4 +1,6 @@
 /*
+ * @(#)MotifInternalFrameTitlePane.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,7 +20,7 @@ import java.beans.PropertyVetoException;
 
 /**
  * Class that manages a Motif title bar
- * @version 1.18 02/02/00
+ * @version 1.24 12/03/01
  *
  * @since 1.3
  */
@@ -80,26 +82,25 @@ public class MotifInternalFrameTitlePane
             }
         };
 	
-        JMenuItem mi = (JMenuItem) systemMenu.add(new JMenuItem(RESTORE_CMD));
-        mi.setEnabled(iFrame.isIcon());
-        mi.addActionListener(this);
-
+	JMenuItem mi = (JMenuItem) systemMenu.add(new JMenuItem(RESTORE_CMD));
+	mi.setEnabled(iFrame.isIcon());
+	mi.addActionListener(this);
 	/// PENDING(klobad) Move/Size actions on InternalFrame need to be determined
-        mi = (JMenuItem) systemMenu.add(new JMenuItem(MOVE_CMD));
-        mi.setEnabled(false);
-        mi.addActionListener(this);
-        mi = (JMenuItem) systemMenu.add(new JMenuItem(SIZE_CMD));
-        mi.setEnabled(false);
-        mi.addActionListener(this);
-        mi = (JMenuItem) systemMenu.add(new JMenuItem(ICONIFY_CMD));
-        mi.setEnabled(!iFrame.isIcon());
-        mi.addActionListener(this);
-        mi = (JMenuItem) systemMenu.add(new JMenuItem(MAXIMIZE_CMD));
-        mi.addActionListener(this);
-        systemMenu.add(new JSeparator());
-        mi = (JMenuItem) systemMenu.add(new JMenuItem(CLOSE_CMD));
-        mi.addActionListener(this);
-
+	mi = (JMenuItem) systemMenu.add(new JMenuItem(MOVE_CMD));
+	mi.setEnabled(false);
+	mi.addActionListener(this);
+	mi = (JMenuItem) systemMenu.add(new JMenuItem(SIZE_CMD));
+	mi.setEnabled(false);
+	mi.addActionListener(this);
+	mi = (JMenuItem) systemMenu.add(new JMenuItem(ICONIFY_CMD));
+	mi.setEnabled(!iFrame.isIcon());
+	mi.addActionListener(this);
+	mi = (JMenuItem) systemMenu.add(new JMenuItem(MAXIMIZE_CMD));
+	mi.addActionListener(this);
+	systemMenu.add(new JSeparator());
+	mi = (JMenuItem) systemMenu.add(new JMenuItem(CLOSE_CMD));
+	mi.addActionListener(this); 
+	
         systemButton = new SystemButton();
 	systemButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -155,26 +156,26 @@ public class MotifInternalFrameTitlePane
     public void actionPerformed(ActionEvent e) {
         try {
             if (CLOSE_CMD.equals(e.getActionCommand()) && iFrame.isClosable()) {
-	        iFrame.doDefaultCloseAction();
-	    } else if (ICONIFY_CMD.equals(e.getActionCommand()) && 
-                        iFrame.isIconifiable()) {    //4118140
+                iFrame.doDefaultCloseAction();
+            } else if (ICONIFY_CMD.equals(e.getActionCommand()) &&
+                    iFrame.isIconifiable()) {    //4118140
                 if (!iFrame.isIcon()) {
                     iFrame.setIcon(true); 
                 } else {
-		    iFrame.setIcon(false); 
-		}
-	    } else if (MAXIMIZE_CMD.equals(e.getActionCommand()) && 
-                       iFrame.isMaximizable()) {
-                if(!iFrame.isMaximum()) {
+                    iFrame.setIcon(false); 
+                }
+            } else if (MAXIMIZE_CMD.equals(e.getActionCommand()) &&
+                    iFrame.isMaximizable()) {
+                if (!iFrame.isMaximum()) {
                     iFrame.setMaximum(true);
                 } else {
                     iFrame.setMaximum(false);
                 }
-            } else if (RESTORE_CMD.equals(e.getActionCommand()) && 
-                       iFrame.isMaximizable() && iFrame.isMaximum()) {
-                   iFrame.setMaximum(false);
-            } else if (RESTORE_CMD.equals(e.getActionCommand()) && 
-                       iFrame.isIconifiable() && iFrame.isIcon()) {
+            } else if (RESTORE_CMD.equals(e.getActionCommand()) &&
+                    iFrame.isMaximizable() && iFrame.isMaximum()) {
+                iFrame.setMaximum(false);
+            } else if (RESTORE_CMD.equals(e.getActionCommand()) &&
+                    iFrame.isIconifiable() && iFrame.isIcon()) {
                 iFrame.setIcon(false);
             }
         } catch (PropertyVetoException e0) { }
@@ -203,7 +204,23 @@ public class MotifInternalFrameTitlePane
 	    else
 	      systemMenu.getComponentAtIndex(MAXIMIZE_MENU_ITEM).setEnabled(false); 
 	    systemMenu.getComponentAtIndex(MINIMIZE_MENU_ITEM).setEnabled(!value); 
-	} 
+	} else if( prop.equals("maximizable") ) {
+            if( (Boolean)evt.getNewValue() == Boolean.TRUE )
+                add(maximizeButton);
+            else
+                remove(maximizeButton);
+            revalidate();
+            repaint();
+        } else if( prop.equals("iconable") ) {
+            if( (Boolean)evt.getNewValue() == Boolean.TRUE )
+                add(minimizeButton);
+            else
+                remove(minimizeButton);
+            revalidate();
+            repaint();
+        } else if (prop.equals(JInternalFrame.TITLE_PROPERTY)) {
+            repaint();
+      }
     }
 
     public void addLayoutComponent(String name, Component c) {}
@@ -385,9 +402,12 @@ public class MotifInternalFrameTitlePane
                 g.setColor(UIManager.getColor("inactiveCaptionText"));
             }
             Dimension d = getSize();
-            MotifGraphicsUtils.drawStringInRect(g, iFrame.getTitle(),
-                                                0, 0, d.width, d.height,
-                                                SwingConstants.CENTER);
+            String frameTitle = iFrame.getTitle();
+            if (frameTitle != null) {
+                MotifGraphicsUtils.drawStringInRect(g, frameTitle,
+                                                    0, 0, d.width, d.height,
+                                                    SwingConstants.CENTER);
+            }
         }
     }
 

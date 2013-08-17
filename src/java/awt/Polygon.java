@@ -1,4 +1,6 @@
 /*
+ * @(#)Polygon.java	1.45 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -31,36 +33,49 @@ import sun.awt.geom.Crossings;
  *
  * @version     1.26, 07/24/98
  * @author 	Sami Shaio
- * @author      Herb Jellinek
  * @see Shape
+ * @author      Herb Jellinek
  * @since       JDK1.0
  */
 public class Polygon implements Shape, java.io.Serializable {
 
     /**
-     * The total number of points.
+     * The total number of points.  The value of <code>npoints</code>
+     * represents the number of valid points in this <code>Polygon</code>
+     * and might be less than the number of elements in 
+     * {@link #xpoints xpoints} or {@link #ypoints ypoints}.
      * This value can be NULL.
      *
      * @serial
      * @see #addPoint(int, int)
      */
-    public int npoints = 0;
+    public int npoints;
 
     /**
-     * The array of <i>x</i> coordinates. 
+     * The array of <i>x</i> coordinates.  The number of elements in 
+     * this array might be more than the number of <i>x</i> coordinates 
+     * in this <code>Polygon</code>.  The extra elements allow new points
+     * to be added to this <code>Polygon</code> without re-creating this
+     * array.  The value of {@link #npoints npoints} is equal to the
+     * number of valid points in this <code>Polygon</code>.
      *
      * @serial
      * @see #addPoint(int, int)
      */
-    public int xpoints[] = new int[4];
+    public int xpoints[];
 
     /**
-     * The array of <i>y</i> coordinates. 
+     * The array of <i>y</i> coordinates.  The number of elements in
+     * this array might be more than the number of <i>y</i> coordinates   
+     * in this <code>Polygon</code>.  The extra elements allow new points    
+     * to be added to this <code>Polygon</code> without re-creating this
+     * array.  The value of <code>npoints</code> is equal to the
+     * number of valid points in this <code>Polygon</code>. 
      *
      * @serial
      * @see #addPoint(int, int)
      */
-    public int ypoints[] = new int[4];
+    public int ypoints[];
     
     /**
      * Bounds of the polygon.
@@ -71,7 +86,7 @@ public class Polygon implements Shape, java.io.Serializable {
      * @see #getBoundingBox()
      * @see #getBounds()
      */
-    protected Rectangle bounds = null;
+    protected Rectangle bounds;
     
     /* 
      * JDK 1.1 serialVersionUID 
@@ -82,6 +97,8 @@ public class Polygon implements Shape, java.io.Serializable {
      * Creates an empty polygon.
      */
     public Polygon() {
+	xpoints = new int[4];
+	ypoints = new int[4];
     }
 
     /**
@@ -100,13 +117,56 @@ public class Polygon implements Shape, java.io.Serializable {
      *             <code>ypoints</code> is <code>null</code>.
      */
     public Polygon(int xpoints[], int ypoints[], int npoints) {
+    	// Fix 4489009: should throw IndexOutofBoundsException instead
+    	// of OutofMemoryException if npoints is huge and > {x,y}points.length
+    	if (npoints > xpoints.length || npoints > ypoints.length) {
+    		throw new IndexOutOfBoundsException("npoints > xpoints.length || npoints > ypoints.length");
+    	}
 	this.npoints = npoints;
 	this.xpoints = new int[npoints];
 	this.ypoints = new int[npoints];
 	System.arraycopy(xpoints, 0, this.xpoints, 0, npoints);
 	System.arraycopy(ypoints, 0, this.ypoints, 0, npoints);	
     }
-    
+
+    /**
+     * Resets this <code>Polygon</code> object to an empty polygon.
+     * The coordinate arrays and the data in them are left untouched
+     * but the number of points is reset to zero to mark the old
+     * vertex data as invalid and to start accumulating new vertex
+     * data at the beginning.
+     * All internally-cached data relating to the old vertices
+     * are discarded.
+     * Note that since the coordinate arrays from before the reset
+     * are reused, creating a new empty <code>Polygon</code> might
+     * be more memory efficient than resetting the current one if
+     * the number of vertices in the new polygon data is significantly
+     * smaller than the number of vertices in the data from before the
+     * reset.
+     * @see         java.awt.Polygon#invalidate
+     * @since 1.4
+     */
+    public void reset() {
+	npoints = 0;
+	bounds = null;
+    }
+
+    /**
+     * Invalidates or flushes any internally-cached data that depends
+     * on the vertex coordinates of this <code>Polygon</code>.
+     * This method should be called after any direct manipulation
+     * of the coordinates in the <code>xpoints</code> or
+     * <code>ypoints</code> arrays to avoid inconsistent results
+     * from methods such as <code>getBounds</code> or <code>contains</code>
+     * that might cache data from earlier computations relating to
+     * the vertex coordinates.
+     * @see         java.awt.Polygon#getBounds
+     * @since 1.4
+     */
+    public void invalidate() {
+	bounds = null;
+    }
+
     /**
      * Translates the vertices of the <code>Polygon</code> by 
      * <code>deltaX</code> along the x axis and by 
@@ -226,10 +286,13 @@ public class Polygon implements Shape, java.io.Serializable {
      * replaced by <code>getBounds()</code>.
      */
     public Rectangle getBoundingBox() {
+	if (npoints == 0) {
+	    return new Rectangle();
+	}
 	if (bounds == null) {
 	    calculateBounds(xpoints, ypoints, npoints);
 	}
-	return bounds;
+	return bounds.getBounds();
     }
 
     /**
@@ -280,17 +343,15 @@ public class Polygon implements Shape, java.io.Serializable {
      *		bounds the <code>Shape</code>.
      */
     public Rectangle2D getBounds2D() {
-	Rectangle r = getBounds();
-	return new Rectangle2D.Float(r.x, r.y, r.width, r.height);
+	return getBounds();
     }
 
-
     /**
-     * Determines whether the specified coordinates are inside this
+     * Determines if the specified coordinates are inside this 
      * <code>Polygon</code>.  For the definition of
      * <i>insideness</i>, see the class comments of {@link Shape}.
      * @param x,&nbsp;y the specified coordinates
-     * @return <code>true</code> if this <code>Polygon</code> contains the
+     * @return <code>true</code> if the <code>Polygon</code> contains the
      * specified coordinates; <code>false</code> otherwise.
      */
     public boolean contains(double x, double y) {

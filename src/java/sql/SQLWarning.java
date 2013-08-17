@@ -1,4 +1,6 @@
 /*
+ * @(#)SQLWarning.java	1.23 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,7 +10,15 @@ package java.sql;
 /**
  * <P>An exception that provides information on  database access
  * warnings. Warnings are silently chained to the object whose method
- * caused it to be reported.
+ * caused it to be reported.  
+ * <P>
+ * Warnings may be retrieved from <code>Connection</code>, <code>Statement</code>,
+ * and <code>ResultSet</code> objects.  Trying to retrieve a warning on a
+ * connection after it has been closed will cause an exception to be thrown.
+ * Similarly, trying to retrieve a warning on a statement after it has been
+ * closed or on a result set after it has been closed will cause 
+ * an exception to be thrown. Note that closing a statement also 
+ * closes a result set that it might have produced.
  *
  * @see Connection#getWarnings
  * @see Statement#getWarnings
@@ -18,10 +28,10 @@ public class SQLWarning extends SQLException {
 
     /**
      * Constructs a fully-specified <code>SQLWarning</code> object
-	 * initialized with the given values.
+     * initialized with the given values.
      *
      * @param reason a description of the warning 
-     * @param SQLState an XOPEN code identifying the warning
+     * @param SQLstate an XOPEN code identifying the warning
      * @param vendorCode a database vendor-specific warning code
      */
      public SQLWarning(String reason, String SQLstate, int vendorCode) {
@@ -38,7 +48,7 @@ public class SQLWarning extends SQLException {
      * the vendorCode defaults to 0.
      *
      * @param reason a description of the warning 
-     * @param SQLState an XOPEN code identifying the warning
+     * @param SQLstate an XOPEN code identifying the warning
      */
     public SQLWarning(String reason, String SQLstate) {
 	super(reason, SQLstate);
@@ -48,7 +58,7 @@ public class SQLWarning extends SQLException {
 
     /**
      * Constructs an <code>SQLWarning</code> object
-     * with the given value for a reason; SQLState defaults to
+     * with the given value for a reason; SQLstate defaults to
      * <code>null</code>, and vendorCode defaults to 0.
      *
      * @param reason a description of the warning 
@@ -74,6 +84,7 @@ public class SQLWarning extends SQLException {
      * Retrieves the warning chained to this <code>SQLWarning</code> object.
      *
      * @return the next <code>SQLException</code> in the chain; <code>null</code> if none
+     * @see #setNextWarning
      */
     public SQLWarning getNextWarning() {
 	try {
@@ -90,6 +101,7 @@ public class SQLWarning extends SQLException {
      * Adds an <code>SQLWarning</code> object to the end of the chain.
      *
      * @param w the new end of the <code>SQLException</code> chain
+     * @see #getNextWarning
      */
     public void setNextWarning(SQLWarning w) {
 	setNextException(w);

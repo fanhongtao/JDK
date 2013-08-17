@@ -1,20 +1,31 @@
 /*
+ * @(#)OptionalDataException.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.io;
 
 /**
- * Unexpected data appeared in an ObjectInputStream trying to read
- * an Object.
- * Occurs when the stream contains primitive data
- * instead of the object that is expected by readObject.
- * The EOF flag in the exception is true indicating that no more
- * primitive data is available.
- * The count field contains the number of bytes available to read.
+ * Exception indicating the failure of an object read operation due to
+ * unread primitive data, or the end of data belonging to a serialized
+ * object in the stream.  This exception may be thrown in two cases:
+ *
+ * <ul>
+ *   <li>An attempt was made to read an object when the next element in the
+ *       stream is primitive data.  In this case, the OptionalDataException's
+ *       length field is set to the number of bytes of primitive data
+ *       immediately readable from the stream, and the eof field is set to
+ *       false.
+ *
+ *   <li>An attempt was made to read past the end of data consumable by a
+ *       class-defined readObject or readExternal method.  In this case, the
+ *       OptionalDataException's eof field is set to true, and the length field
+ *       is set to 0.
+ * </ul>
  *
  * @author  unascribed
- * @version %I%, %G%
+ * @version 1.15, 12/03/01
  * @since   JDK1.1
  */
 public class OptionalDataException extends ObjectStreamException {

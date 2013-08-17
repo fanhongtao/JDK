@@ -1,4 +1,6 @@
 /*
+ * @(#)AttributeSet.java	1.37 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -22,7 +24,7 @@ import java.util.Enumeration;
  * exists, the key will be resolved through the parent.
  *
  * @author  Timothy Prinzing
- * @version 1.34 02/06/02
+ * @version 1.37 12/03/01
  * @see MutableAttributeSet
  */
 public interface AttributeSet {
@@ -33,7 +35,7 @@ public interface AttributeSet {
      * the determination of what font to use to render some 
      * text.  This is not considered to be a closed set, the 
      * definition can change across version of the platform and can 
-     * be ammended by additional user added entries that 
+     * be amended by additional user added entries that 
      * correspond to logical settings that are specific to
      * some type of content.
      */
@@ -113,8 +115,9 @@ public interface AttributeSet {
 
     /**
      * Returns an enumeration over the names of the attributes in the set.
-     * The elements of the enumeration are all Strings.  The set does
-     * not include the resolving parent, if one is defined.
+     * The values of the <code>Enumeration</code> may be anything
+     * and are not constrained to a particular <code>Object</code> type.
+     * The set does not include the resolving parent, if one is defined.
      *
      * @return the names
      */
@@ -151,7 +154,7 @@ public interface AttributeSet {
     public static final Object NameAttribute = StyleConstants.NameAttribute;
 
     /**
-     * Attribute name used to identifiy the resolving parent
+     * Attribute name used to identify the resolving parent
      * set of attributes, if one is defined.
      */
     public static final Object ResolveAttribute = StyleConstants.ResolveAttribute;

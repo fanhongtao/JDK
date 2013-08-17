@@ -1,4 +1,6 @@
 /*
+ * @(#)Authenticator.java	1.25 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -25,7 +27,7 @@ package java.net;
  * @see java.net.Authenticator#getPasswordAuthentication()
  *
  * @author  Bill Foote
- * @version 1.21, 02/06/02
+ * @version 1.25, 12/03/01
  * @since   1.2
  */
 
@@ -37,6 +39,7 @@ class Authenticator {
     // The system-wide authenticator object.  See setDefault().
     private static Authenticator theAuthenticator;
 
+    private String requestingHost;
     private InetAddress requestingSite;
     private int requestingPort;
     private String requestingProtocol;
@@ -44,6 +47,7 @@ class Authenticator {
     private String requestingScheme;
 
     private void reset() {
+	requestingHost = null;
 	requestingSite = null;
 	requestingPort = -1;
 	requestingProtocol = null;
@@ -54,21 +58,15 @@ class Authenticator {
 
     /**
      * Sets the authenticator that will be used by the networking code
-     * when a proxy or an HTTP server asks for authenticator.
-     * If an Authenticator has already been established
-     * as the current authenticator, no action will be taken.
-     * If the argument is <code>null</code> and no
-     * authenticator has been established, then no action is taken
-     * and the method simply returns.
+     * when a proxy or an HTTP server asks for authentication.
      * <p>
      * First, if there is a security manager, its <code>checkPermission</code> 
      * method is called with a 
      * <code>NetPermission("setDefaultAuthenticator")</code> permission.
      * This may result in a java.lang.SecurityException. 
-     * <p>
-     * Typically, this method will be called exactly once, at system startup.
      *
-     * @param	a	The authenticator
+     * @param	a	The authenticator to be set. If a is <code>null</code> then
+     *			any previously set authenticator is removed.
      *
      * @throws SecurityException
      *        if a security manager exists and its 
@@ -83,9 +81,6 @@ class Authenticator {
 	    = new NetPermission("setDefaultAuthenticator");
 	SecurityManager sm = System.getSecurityManager();
 	if (sm != null) sm.checkPermission(setDefaultPermission);
-	if (theAuthenticator != null) {
-	    return;
-	}
 	theAuthenticator = a;
     }
 
@@ -102,7 +97,7 @@ class Authenticator {
      *             or null if not known.
      * @param port the port for the requested connection
      * @param protocol The protocol that's requesting the connection
-     *          ({@link java.net.Authenticator#getProtocol()})
+     *          ({@link java.net.Authenticator#getRequestingProtocol()})
      * @param prompt A prompt string for the user
      * @param scheme The authentication scheme
      *
@@ -142,6 +137,80 @@ class Authenticator {
 		return a.getPasswordAuthentication();
 	    }
 	}
+    }
+
+    /**
+     * Ask the authenticator that has been registered with the system
+     * for a password. This is the preferred method for requesting a password
+     * because the hostname can be provided in cases where the InetAddress
+     * is not available.
+     * <p>
+     * First, if there is a security manager, its <code>checkPermission</code> 
+     * method is called with a 
+     * <code>NetPermission("requestPasswordAuthentication")</code> permission.
+     * This may result in a java.lang.SecurityException. 
+     *
+     * @param host The hostname of the site requesting authentication.
+     * @param addr The InetAddress of the site requesting authentication,
+     *             or null if not known. 
+     * @param port the port for the requested connection.
+     * @param protocol The protocol that's requesting the connection
+     *          ({@link java.net.Authenticator#getRequestingProtocol()})
+     * @param prompt A prompt string for the user which identifies the authentication realm.
+     * @param scheme The authentication scheme
+     *
+     * @return The username/password, or null if one can't be gotten.
+     *
+     * @throws SecurityException
+     *        if a security manager exists and its 
+     *        <code>checkPermission</code> method doesn't allow 
+     *        the password authentication request.
+     *
+     * @see SecurityManager#checkPermission
+     * @see java.net.NetPermission
+     * @since 1.4
+     */
+    public static PasswordAuthentication requestPasswordAuthentication(
+					    String host,
+					    InetAddress addr,
+					    int port,
+					    String protocol,
+					    String prompt,
+					    String scheme) {
+
+	NetPermission requestPermission
+	    = new NetPermission("requestPasswordAuthentication");
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) sm.checkPermission(requestPermission);
+
+	Authenticator a = theAuthenticator;
+	if (a == null) {
+	    return null;
+	} else {
+	    synchronized(a) {
+		a.reset();
+		a.requestingHost = host;
+		a.requestingSite = addr;
+		a.requestingPort = port;
+		a.requestingProtocol = protocol;
+		a.requestingPrompt = prompt;
+		a.requestingScheme = scheme;
+		return a.getPasswordAuthentication();
+	    }
+	}
+    }
+
+    /**
+     * Gets the <code>hostname</code> of the
+     * site or proxy requesting authentication, or <code>null</code>
+     * if not available.
+     * 
+     * @return the hostname of the connection requiring authentication, or null
+     *		if it's not available.
+     * @since 1.4
+     */
+    protected final String getRequestingHost() {
+	return requestingHost;
     }
 
     /**

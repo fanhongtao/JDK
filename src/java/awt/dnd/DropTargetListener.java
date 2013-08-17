@@ -1,4 +1,6 @@
 /*
+ * @(#)DropTargetListener.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,26 +22,41 @@ import java.awt.dnd.DropTargetDropEvent;
  * this interface may be implemented to provide
  * "drag under" visual feedback to the user throughout
  * the Drag and Drop operation.
+ * <p>
+ * Create a listener object by implementing the interface and then register it
+ * with a <code>DropTarget</code>. When the drag enters, moves over, or exits
+ * the operable part of the drop site for that <code>DropTarget</code>, when 
+ * the drop action changes, and when the drop occurs, the relevant method in 
+ * the listener object is invoked, and the <code>DropTargetEvent</code> is 
+ * passed to it.
+ * <p>
+ * The operable part of the drop site for the <code>DropTarget</code> is 
+ * the part of the associated <code>Component</code>'s geometry that is not 
+ * obscured by an overlapping top-level window or by another 
+ * <code>Component</code> higher in the Z-order that has an associated active 
+ * <code>DropTarget</code>.
  *
- * @version 	1.17, 02/06/02
+ * @version 	1.19, 12/03/01
  * @since 1.2
  */
 
 public interface DropTargetListener extends EventListener {
 
     /**
-     * Called when a drag operation has 
-     * encountered the <code>DropTarget</code>.
-     * <P>
+     * Called while a drag operation is ongoing, when the mouse pointer enters
+     * the operable part of the drop site for the <code>DropTarget</code>
+     * registered with this listener. 
+     * 
      * @param dtde the <code>DropTargetDragEvent</code> 
      */
 
     void dragEnter(DropTargetDragEvent dtde);
 
     /**
-     * Called when a drag operation is ongoing 
-     * on the <code>DropTarget</code>.
-     * <P>
+     * Called when a drag operation is ongoing, while the mouse pointer is still
+     * over the operable part of the drop site for the <code>DropTarget</code>
+     * registered with this listener.
+     * 
      * @param dtde the <code>DropTargetDragEvent</code> 
      */
 
@@ -55,17 +72,20 @@ public interface DropTargetListener extends EventListener {
     void dropActionChanged(DropTargetDragEvent dtde);
 
     /**
-     * The drag operation has departed 
-     * the <code>DropTarget</code> without dropping.
-     * <P>
+     * Called while a drag operation is ongoing, when the mouse pointer has
+     * exited the operable part of the drop site for the
+     * <code>DropTarget</code> registered with this listener.
+     * 
      * @param dte the <code>DropTargetEvent</code> 
      */
 
     void dragExit(DropTargetEvent dte);
 
     /**
-     * The drag operation has terminated 
-     * with a drop on this <code>DropTarget</code>.
+     * Called when the drag operation has terminated with a drop on
+     * the operable part of the drop site for the <code>DropTarget</code>
+     * registered with this listener.  
+     * <p>
      * This method is responsible for undertaking
      * the transfer of the data associated with the
      * gesture. The <code>DropTargetDropEvent</code> 
@@ -89,9 +109,15 @@ public interface DropTargetListener extends EventListener {
      * <code>boolean</code> to the <code>DropTargetDropEvent</code>'s
      * dropComplete(boolean success) method.
      * <P>
-     * Note: The actual processing of the data transfer is not
-     * required to finish before this method returns. It may be
-     * deferred until later.
+     * Note: The data transfer should be completed before the call  to the
+     * <code>DropTargetDropEvent</code>'s dropComplete(boolean success) method.
+     * After that, a call to the getTransferData() method of the
+     * <code>Transferable</code> returned by
+     * <code>DropTargetDropEvent.getTransferable()</code> is guaranteed to
+     * succeed only if the data transfer is local; that is, only if
+     * <code>DropTargetDropEvent.isLocalTransfer()</code> returns
+     * <code>true</code>. Otherwise, the behavior of the call is
+     * implementation-dependent.
      * <P>
      * @param dtde the <code>DropTargetDropEvent</code> 
      */

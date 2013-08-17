@@ -1,4 +1,6 @@
 /*
+ * @(#)SQLPermission.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,18 +12,11 @@ import java.security.*;
 
 /**
  * The permission for which the <code>SecurityManager</code> will check
- * when code that is running in an applet calls one of the 
- * <code>setLogWriter</code> methods.  These methods include those in the
- * following list.
- * <UL>
- * <LI><code>DriverManager.setLogWriter</code> <br>
- * <LI><code>DriverManager.setLogStream</code> (deprecated)<br>
- * <LI><code>javax.sql.DataSource.setLogWriter</code><br>
- * <LI><code>javax.sql.ConnectionPoolDataSource.setLogWriter</code><br>
- * <LI><code>javax.sql.XADataSource.setLogWriter</code><br>
- * </UL>
- * If there is no <code>SQLPermission</code> object, this method
- * throws a <code>java.lang.SecurityException</code> as a runtime exception.
+ * when code that is running in an applet calls the 
+ * <code>DriverManager.setLogWriter</code> method or the
+ * <code>DriverManager.setLogStream</code> (deprecated) method.
+ * If there is no <code>SQLPermission</code> object, these methods
+ * throw a <code>java.lang.SecurityException</code> as a runtime exception.
  * <P> 
  * A <code>SQLPermission</code> object contains
  * a name (also referred to as a "target name") but no actions

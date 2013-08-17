@@ -1,4 +1,6 @@
 /*
+ * @(#)JPanel.java	1.42 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,23 +18,25 @@ import java.io.IOException;
 
 
 /**
- * JPanel is a generic lightweight container.
+ * <code>JPanel</code> is a generic lightweight container.
  * For examples and task-oriented documentation for JPanel, see
  * <a
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/panel.html">How to Use Panels</a>,
  * a section in <em>The Java Tutorial</em>.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @beaninfo
  * description: A generic lightweight container.
  * 
- * @version 1.38 02/06/02
+ * @version 1.42 12/03/01
  * @author Arnaud Weber
  * @author Steve Wilson
  */
@@ -44,8 +48,6 @@ public class JPanel extends JComponent implements Accessible
      */
     private static final String uiClassID = "PanelUI";
 
-    private static final FlowLayout defaultLayout = new FlowLayout();
-    
     /**
      * Creates a new JPanel with the specified layout manager and buffering
      * strategy.
@@ -72,8 +74,9 @@ public class JPanel extends JComponent implements Accessible
     }
 
     /**
-     * Create a new JPanel with FlowLayout and the specified buffering
-     * strategy. If <code>isDoubleBuffered</code> is true, the JPanel 
+     * Creates a new <code>JPanel</code> with <code>FlowLayout</code>
+     * and the specified buffering strategy.
+     * If <code>isDoubleBuffered</code> is true, the <code>JPanel</code>
      * will use a double buffer.
      *
      * @param layout  the LayoutManager to use
@@ -82,24 +85,51 @@ public class JPanel extends JComponent implements Accessible
      *        updates
      */
     public JPanel(boolean isDoubleBuffered) {
-        this(defaultLayout, isDoubleBuffered);
+        this(new FlowLayout(), isDoubleBuffered);
     }
 
     /**
-     * Create a new JPanel with a double buffer and a flow layout
+     * Creates a new <code>JPanel</code> with a double buffer
+     * and a flow layout.
      */
     public JPanel() {
-        this(defaultLayout, true);
+        this(true);
     }
 
     /**
-     * Notification from the UIFactory that the L&F
-     * has changed. 
+     * Resets the UI property with a value from the current look and feel.
      *
      * @see JComponent#updateUI
      */
     public void updateUI() {
         setUI((PanelUI)UIManager.getUI(this));
+    }
+
+    /**
+     * Returns the look and feel (L&F) object that renders this component.
+     *
+     * @return the PanelUI object that renders this component
+     * @since 1.4
+     */
+    public PanelUI getUI() {
+        return (PanelUI)ui;
+    }
+
+
+    /**
+     * Sets the look and feel (L&F) object that renders this component.
+     *
+     * @param ui  the PanelUI L&F object
+     * @see UIDefaults#getUI
+     * @since 1.4
+     * @beaninfo
+     *        bound: true
+     *       hidden: true
+     *    attribute: visualUpdate true
+     *  description: The UI object that implements the Component's LookAndFeel. 
+     */
+    public void setUI(PanelUI ui) {
+        super.setUI(ui);
     }
 
     /**
@@ -124,9 +154,13 @@ public class JPanel extends JComponent implements Accessible
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
+        }
     }
 
 
@@ -140,11 +174,7 @@ public class JPanel extends JComponent implements Accessible
      * @return  a string representation of this JPanel.
      */
     protected String paramString() {
-        String defaultLayoutString = (defaultLayout != null ?
-				      defaultLayout.toString() : "");
-
-	return super.paramString() +
-	",defaultLayout=" + defaultLayoutString;
+	return super.paramString();
     }
 
 /////////////////
@@ -175,10 +205,12 @@ public class JPanel extends JComponent implements Accessible
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJPanel extends AccessibleJComponent {
 

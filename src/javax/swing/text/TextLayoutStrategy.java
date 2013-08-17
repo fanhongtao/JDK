@@ -1,4 +1,6 @@
 /*
+ * @(#)TextLayoutStrategy.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -7,9 +9,11 @@ package javax.swing.text;
 import java.util.*;
 import java.awt.*;
 import java.text.AttributedCharacterIterator;
+import java.text.BreakIterator;
 import java.awt.font.*;
 import java.awt.geom.AffineTransform;
 import javax.swing.event.DocumentEvent;
+import sun.awt.font.BidiUtils;
 
 /**
  * A flow strategy that uses java.awt.font.LineBreakMeasureer to
@@ -19,7 +23,7 @@ import javax.swing.event.DocumentEvent;
  * that uses TextLayout is plugged into the GlyphView.
  *
  * @author  Timothy Prinzing
- * @version 1.12 02/06/02
+ * @version 1.17 12/03/01
  */
 class TextLayoutStrategy extends FlowView.FlowStrategy {
 
@@ -99,7 +103,7 @@ class TextLayoutStrategy extends FlowView.FlowStrategy {
      *   to be empty on entry.
      * @param pos  The current position in the children of
      *   this views element from which to start.  
-     * @returns the position to start the next row
+     * @return the position to start the next row
      */
     protected int layoutRow(FlowView fv, int rowIndex, int p0) {
 	int p1 = super.layoutRow(fv, rowIndex, p0);
@@ -122,7 +126,7 @@ class TextLayoutStrategy extends FlowView.FlowStrategy {
 		    reorder[i] = v;
 		}
 		
-		Bidi.reorderVisually( levels, reorder );
+		BidiUtils.reorderVisually( levels, reorder );
 		row.replace(0, n, reorder);
 	    }
 	}
@@ -295,7 +299,15 @@ class TextLayoutStrategy extends FlowView.FlowStrategy {
                 g2d.dispose();
         }
         
-        measurer = new LineBreakMeasurer(text, frc);
+        BreakIterator iter;
+        Container c = fv.getContainer();
+        if (c != null) {
+            iter = BreakIterator.getLineInstance(c.getLocale());
+        } else {
+            iter = BreakIterator.getLineInstance();
+        }
+
+        measurer = new LineBreakMeasurer(text, iter, frc);
 
         // If the children of the FlowView's logical view are GlyphViews, they 
         // need to have their painters updated.
@@ -356,7 +368,7 @@ class TextLayoutStrategy extends FlowView.FlowStrategy {
 	 * equal if their references are equal (i.e. that the
 	 * font came from a cache).
 	 *
-	 * @returns the location in model coordinates.  This is
+	 * @return the location in model coordinates.  This is
 	 *  not the same as the Segment coordinates.
 	 */
 	int getFontBoundary(int childIndex, int dir) {

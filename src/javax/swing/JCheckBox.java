@@ -1,4 +1,6 @@
 /*
+ * @(#)JCheckBox.java	1.68 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -26,14 +28,16 @@ import java.io.IOException;
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JCheckBox">JCheckBox</a> key assignments.
+ * <a href="doc-files/Key-Index.html#JCheckBox"><code>JCheckBox</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @see JRadioButton
  *
@@ -41,7 +45,7 @@ import java.io.IOException;
  *   attribute: isContainer false
  * description: A component which can be selected or deselected.
  *
- * @version 1.60 02/06/02
+ * @version 1.68 12/03/01
  * @author Jeff Dinkins
  */
 public class JCheckBox extends JToggleButton implements Accessible {
@@ -142,15 +146,24 @@ public class JCheckBox extends JToggleButton implements Accessible {
     public JCheckBox (String text, Icon icon, boolean selected) {
         super(text, icon, selected);
         setBorderPainted(false);
-        setHorizontalAlignment(LEFT);
+        setHorizontalAlignment(LEADING);
     }
 
     /**
-     * Sets whether the border should be painted flat. This is usually
-     * set to true when a JCheckBox instance is used as a renderer in a
-     * component such as a JTable or JTree.
+     * Sets the <code>borderPaintedFlat</code> property,
+     * which gives a hint to the look and feel as to the
+     * appearance of the check box border.
+     * This is usually set to <code>true</code> when a
+     * <code>JCheckBox</code> instance is used as a
+     * renderer in a component such as a <code>JTable</code> or
+     * <code>JTree</code>.  The default value for the
+     * <code>borderPaintedFlat</code> property is <code>false</code>.
+     * This method fires a property changed event.
+     * Some look and feels might not implement flat borders;
+     * they will ignore this property.
      *
-     * @param b if true, the border is painted flat.
+     * @param b <code>true</code> requests that the border be painted flat;
+     *          <code>false</code> requests normal borders
      * @see #isBorderPaintedFlat
      * @beaninfo
      *        bound: true
@@ -158,7 +171,6 @@ public class JCheckBox extends JToggleButton implements Accessible {
      *  description: Whether the border is painted flat.
      */
     public void setBorderPaintedFlat(boolean b) {
-	flat = b;
         boolean oldValue = flat;
         flat = b;
         firePropertyChange(BORDER_PAINTED_FLAT_CHANGED_PROPERTY, oldValue, flat);
@@ -169,7 +181,9 @@ public class JCheckBox extends JToggleButton implements Accessible {
     }
 
     /**
-     * Returns whether the border should be painted flat.
+     * Gets the value of the <code>borderPaintedFlat</code> property.
+     *
+     * @return the value of the <code>borderPaintedFlat</code> property
      * @see #setBorderPaintedFlat
      */
     public boolean isBorderPaintedFlat() {
@@ -177,8 +191,7 @@ public class JCheckBox extends JToggleButton implements Accessible {
     }
 
     /**
-     * Notification from the UIFactory that the L&F
-     * has changed. 
+     * Resets the UI property to a value from the current look and feel.
      *
      * @see JComponent#updateUI
      */
@@ -191,7 +204,7 @@ public class JCheckBox extends JToggleButton implements Accessible {
      * Returns a string that specifies the name of the L&F class
      * that renders this component.
      *
-     * @return "CheckBoxUI"
+     * @return the string "CheckBoxUI"
      * @see JComponent#getUIClassID
      * @see UIDefaults#getUI
      * @beaninfo
@@ -204,11 +217,11 @@ public class JCheckBox extends JToggleButton implements Accessible {
 
 
     /**
-     * Factory method which sets the ActionEvent source's properties
-     * according to values from the Action instance.  The properties 
-     * which are set may differ for subclasses.
-     * By default, the properties which get set are Text, Icon
-     * Enabled, and ToolTipText.
+     * Factory method which sets the <code>ActionEvent</code> source's
+     * properties according to values from the Action instance. The
+     * properties which are set may differ for subclasses.
+     * By default, the properties which get set are <code>Text, Mnemonic,
+     * Enabled, ActionCommand</code>, and <code>ToolTipText</code>.
      *
      * @param a the Action from which to get the properties, or null
      * @since 1.3
@@ -216,9 +229,10 @@ public class JCheckBox extends JToggleButton implements Accessible {
      * @see #setAction
      */
     protected void configurePropertiesFromAction(Action a) {
-	setText((a!=null?(String)a.getValue(Action.NAME):null));
-	setEnabled((a!=null?a.isEnabled():true));
- 	setToolTipText((a!=null?(String)a.getValue(Action.SHORT_DESCRIPTION):null));	
+        String[] types = { Action.MNEMONIC_KEY, Action.NAME,
+                           Action.SHORT_DESCRIPTION,
+                           Action.ACTION_COMMAND_KEY, "enabled" };
+        configurePropertiesFromAction(a, types);
     }
 
     /**
@@ -247,22 +261,41 @@ public class JCheckBox extends JToggleButton implements Accessible {
 		    Action action = (Action)e.getSource();
 		    action.removePropertyChangeListener(this);
 		} else {
-		    if (e.getPropertyName().equals(Action.NAME)) {
+		    if (propertyName.equals(Action.NAME)) {
 			String text = (String) e.getNewValue();
 			button.setText(text);
 			button.repaint();
-		    } else if (e.getPropertyName().equals(Action.SHORT_DESCRIPTION)) {
+		    } else if (propertyName.equals(Action.SHORT_DESCRIPTION)) {
 			String text = (String) e.getNewValue();
 			button.setToolTipText(text);
 		    } else if (propertyName.equals("enabled")) {
 			Boolean enabledState = (Boolean) e.getNewValue();
 			button.setEnabled(enabledState.booleanValue());
 			button.repaint();
+		    } else if (propertyName.equals(Action.ACTION_COMMAND_KEY)) {
+                        button.setActionCommand((String)e.getNewValue());
 		    } 
 		}
 	    }
 	};
     }
+
+
+     /*
+      * See readObject and writeObject in JComponent for more
+      * information about serialization in Swing.
+      */
+     private void writeObject(ObjectOutputStream s) throws IOException {
+        s.defaultWriteObject();
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
+        }
+     }
+
 
     /**
      * See JComponent.readObject() for information about serialization
@@ -323,10 +356,12 @@ public class JCheckBox extends JToggleButton implements Accessible {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJCheckBox extends AccessibleJToggleButton {
 

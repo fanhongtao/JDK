@@ -1,4 +1,6 @@
 /*
+ * @(#)SoftReference.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -37,7 +39,7 @@ package java.lang.ref;
  * strong referents to those entries, leaving the remaining entries to be
  * discarded at the discretion of the garbage collector.
  *
- * @version  1.28, 02/06/02
+ * @version  1.29, 12/03/01
  * @author   Mark Reinhold
  * @since    1.2
  */
@@ -57,6 +59,8 @@ public class SoftReference extends Reference {
     /**
      * Creates a new soft reference that refers to the given object.  The new
      * reference is not registered with any queue.
+     *
+     * @param referent object the new soft reference will refer to
      */
     public SoftReference(Object referent) {
 	super(referent);
@@ -67,6 +71,8 @@ public class SoftReference extends Reference {
      * Creates a new soft reference that refers to the given object and is
      * registered with the given queue.
      *
+     * @param referent object the new soft reference will refer to
+     * @param q queue the soft reference is registered with
      * @throws  NullPointerException  If the <code>queue</code> argument
      *                                is <code>null</code>
      *

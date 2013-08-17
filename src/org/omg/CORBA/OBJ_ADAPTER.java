@@ -1,4 +1,6 @@
 /*
+ * @(#)OBJ_ADAPTER.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,10 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>OBJ_ADAPTER</code> exception, which is thrown
- * by the object adapter on the server to indicate some error.
+ * This exception typically indicates an administrative mismatch, for 
+ * example, a server may have made an attempt to register itself with 
+ * an implementation repository under a name that is already in use, 
+ * or is unknown to the repository. <P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

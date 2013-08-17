@@ -1,4 +1,6 @@
 /*
+ * @(#)VariableHeightLayoutCache.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,12 +21,14 @@ import java.util.Vector;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.14 02/06/02
+ * @version 1.18 12/03/01
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -56,7 +60,7 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
     private Rectangle         boundsBuffer;
 
     /**
-     * Maps from TreePath to a TreeStateNode.
+     * Maps from <code>TreePath</code> to a <code>TreeStateNode</code>.
      */
     private Hashtable         treePathMapping;
 
@@ -75,21 +79,21 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
     }
 
     /**
-     * Sets the TreeModel that will provide the data.
+     * Sets the <code>TreeModel</code> that will provide the data.
      *
-     * @param newModel the TreeModel that is to provide the data
+     * @param newModel the <code>TreeModel</code> that is to provide the data
      * @beaninfo
      *        bound: true
      *  description: The TreeModel that will provide the data.
      */
     public void setModel(TreeModel newModel) {
 	super.setModel(newModel);
-	rebuild();
+	rebuild(false);
     }
 
     /**
      * Determines whether or not the root node from
-     * the TreeModel is visible.
+     * the <code>TreeModel</code> is visible.
      *
      * @param rootVisible true if the root node of the tree is to be displayed
      * @see #rootVisible
@@ -140,6 +144,7 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 
     /**
      * Sets the renderer that is responsible for drawing nodes in the tree.
+     * @param nd the renderer
      */
     public void setNodeDimensions(NodeDimensions nd) {
 	super.setNodeDimensions(nd);
@@ -150,6 +155,8 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
     /**
      * Marks the path <code>path</code> expanded state to
      * <code>isExpanded</code>.
+     * @param path the <code>TreePath</code> of interest
+     * @param isExpanded true if the path should be expanded, otherwise false
      */
     public void setExpandedState(TreePath path, boolean isExpanded) {
 	if(path != null) {
@@ -168,6 +175,7 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 
     /**
      * Returns true if the path is expanded, and visible.
+     * @return true if the path is expanded and visible, otherwise false
      */
     public boolean getExpandedState(TreePath path) {
 	TreeStateNode       node = getNodeForPath(path, true, false);
@@ -177,8 +185,13 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
     }
 
     /**
-      * Returns the Rectangle enclosing the label portion that the
-      * item identified by row will be drawn into.
+      * Returns the <code>Rectangle</code> enclosing the label portion
+      * into which the item identified by <code>path</code> will be drawn.
+      *
+      * @param path  the path to be drawn
+      * @param placeIn the bounds of the enclosing rectangle
+      * @return the bounds of the enclosing rectangle or <code>null</code>
+      *    if the node could not be ascertained
       */
     public Rectangle getBounds(TreePath path, Rectangle placeIn) {
 	TreeStateNode       node = getNodeForPath(path, true, false);
@@ -192,8 +205,12 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
     }
 
     /**
-      * Returns the path for passed in row.  If row is not visible
-      * null is returned.
+      * Returns the path for <code>row</code>.  If <code>row</code>
+      * is not visible, <code>null</code> is returned.
+      *
+      * @param row the location of interest
+      * @return the path for <code>row</code>, or <code>null</code>
+      * if <code>row</code> is not visible
       */
     public TreePath getPathForRow(int row) {
 	if(row >= 0 && row < getRowCount()) {
@@ -203,9 +220,12 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
     }
 
     /**
-      * Returns the row that the last item identified in path is visible
-      * at.  Will return -1 if any of the elements in path are not
+      * Returns the row where the last item identified in path is visible.
+      * Will return -1 if any of the elements in path are not
       * currently visible.
+      * 
+      * @param path the <code>TreePath</code> of interest
+      * @return the row where the last item in path is visible
       */
     public int getRowForPath(TreePath path) {
 	if(path == null)
@@ -220,14 +240,17 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 
     /**
      * Returns the number of visible rows.
+     * @return the number of visible rows
      */
     public int getRowCount() {
 	return visibleNodes.size();
     }
 
     /**
-     * Instructs the LayoutCache that the bounds for <code>path</code>
-     * are invalid, and need to be updated.
+     * Instructs the <code>LayoutCache</code> that the bounds for
+     * <code>path</code> are invalid, and need to be updated.
+     *
+     * @param path the <code>TreePath</code> which is now invalid
      */
     public void invalidatePathBounds(TreePath path) {
 	TreeStateNode       node = getNodeForPath(path, true, false);
@@ -241,6 +264,7 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 
     /**
      * Returns the preferred height.
+     * @return the preferred height
      */
     public int getPreferredHeight() {
 	// Get the height
@@ -257,6 +281,8 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
     /**
      * Returns the preferred width and height for the region in
      * <code>visibleRegion</code>.
+     *
+     * @param bounds  the region being queried
      */
     public int getPreferredWidth(Rectangle bounds) {
 	if(updateNodeSizes)
@@ -267,10 +293,15 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 
     /**
       * Returns the path to the node that is closest to x,y.  If
-      * there is nothing currently visible this will return null, otherwise
-      * it'll always return a valid path.  If you need to test if the
+      * there is nothing currently visible this will return <code>null</code>,
+      * otherwise it will always return a valid path. 
+      * If you need to test if the
       * returned object is exactly at x, y you should get the bounds for
       * the returned path and test x, y against that.
+      *
+      * @param x  the x-coordinate 
+      * @param y  the y-coordinate 
+      * @return the path to the node that is closest to x, y
       */
     public TreePath getPathClosestTo(int x, int y) {
 	if(getRowCount() == 0)
@@ -285,9 +316,13 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
     }
 
     /**
-     * Returns an Enumerator that increments over the visible paths
+     * Returns an <code>Enumerator</code> that increments over the visible paths
      * starting at the passed in location. The ordering of the enumeration
      * is based on how the paths are displayed.
+     *
+     * @param path the location in the <code>TreePath</code> to start
+     * @return an <code>Enumerator</code> that increments over the visible
+     *     paths
      */
     public Enumeration getVisiblePathsFrom(TreePath path) {
 	TreeStateNode       node = getNodeForPath(path, true, false);
@@ -299,7 +334,8 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
     }
 
     /**
-     * Returns the number of visible children for row.
+     * Returns the number of visible children for <code>path</code>.
+     * @return the number of visible children for <code>path</code>
      */
     public int getVisibleChildCount(TreePath path) {
 	TreeStateNode         node = getNodeForPath(path, true, false);
@@ -308,8 +344,8 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
     }
 
     /**
-     * Informs the TreeState that it needs to recalculate all the sizes
-     * it is referencing.
+     * Informs the <code>TreeState</code> that it needs to recalculate
+     * all the sizes it is referencing.
      */
     public void invalidateSizes() {
 	if(root != null)
@@ -320,7 +356,10 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
     }
 
     /**
-      * Returns true if the value identified by row is currently expanded.
+      * Returns true if the value identified by <code>path</code> is
+      * currently expanded.
+      * @return true if the value identified by <code>path</code> is
+      *    currently expanded
       */
     public boolean isExpanded(TreePath path) {
 	if(path != null) {
@@ -336,16 +375,20 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
     //
 
     /**
-     * <p>Invoked after a node (or a set of siblings) has changed in some
+     * Invoked after a node (or a set of siblings) has changed in some
      * way. The node(s) have not changed locations in the tree or
      * altered their children arrays, but other attributes have
      * changed and may affect presentation. Example: the name of a
      * file has changed, but it is in the same location in the file
-     * system.</p>
+     * system.
      *
-     * <p>e.path() returns the path the parent of the changed node(s).</p>
+     * <p><code>e.path</code> returns the path the parent of the
+     * changed node(s).
      *
-     * <p>e.childIndices() returns the index(es) of the changed node(s).</p>
+     * <p><code>e.childIndices</code> returns the index(es) of the
+     * changed node(s).
+     *
+     * @param e the <code>TreeModelEvent</code> of interest
      */
     public void treeNodesChanged(TreeModelEvent e) {
 	if(e != null) {
@@ -392,11 +435,13 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 
 
     /**
-     * <p>Invoked after nodes have been inserted into the tree.</p>
+     * Invoked after nodes have been inserted into the tree.
      *
-     * <p>e.path() returns the parent of the new nodes
-     * <p>e.childIndices() returns the indices of the new nodes in
+     * <p><code>e.path</code> returns the parent of the new nodes.
+     * <p><code>e.childIndices</code> returns the indices of the new nodes in
      * ascending order.
+     *
+     * @param e the <code>TreeModelEvent</code> of interest
      */
     public void treeNodesInserted(TreeModelEvent e) {
 	if(e != null) {
@@ -460,14 +505,17 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
     }
 
     /**
-     * <p>Invoked after nodes have been removed from the tree.  Note that
+     * Invoked after nodes have been removed from the tree.  Note that
      * if a subtree is removed from the tree, this method may only be
      * invoked once for the root of the removed subtree, not once for
-     * each individual set of siblings removed.</p>
+     * each individual set of siblings removed.
      *
-     * <p>e.path() returns the former parent of the deleted nodes.</p>
+     * <p><code>e.path</code> returns the former parent of the deleted nodes.
      *
-     * <p>e.childIndices() returns the indices the nodes had before they were deleted in ascending order.</p>
+     * <p><code>e.childIndices</code> returns the indices the nodes had
+     * before they were deleted in ascending order.
+     *
+     * @param e the <code>TreeModelEvent</code> of interest
      */
     public void treeNodesRemoved(TreeModelEvent e) {
 	if(e != null) {
@@ -510,6 +558,11 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 		    if(changedParentNode.getChildCount() == 0) {
 			// Update the size of the parent.
 			changedParentNode.updatePreferredSize();
+                        if (changedParentNode.isExpanded() &&
+                                   changedParentNode.isLeaf()) {
+                            // Node has become a leaf, collapse it.
+                            changedParentNode.collapse(false);
+                        }
 		    }
 		    if(treeSelectionModel != null)
 			treeSelectionModel.resetRowSelection();
@@ -544,13 +597,16 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
     }
 
     /**
-     * <p>Invoked after the tree has drastically changed structure from a
-     * given node down.  If the path returned by e.getPath() is of length
-     * one and the first element does not identify the current root node
-     * the first element should become the new root of the tree.<p>
+     * Invoked after the tree has drastically changed structure from a
+     * given node down.  If the path returned by <code>e.getPath</code>
+     * is of length one and the first element does not identify the
+     * current root node the first element should become the new root
+     * of the tree.
      *
-     * <p>e.path() holds the path to the node.</p>
-     * <p>e.childIndices() returns null.</p>
+     * <p><code>e.path</code> holds the path to the node.
+     * <p><code>e.childIndices</code> returns <code>null</code>.
+     *
+     * @param e the <code>TreeModelEvent</code> of interest
      */
     public void treeStructureChanged(TreeModelEvent e) {
 	if(e != null)
@@ -559,47 +615,47 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 	    TreeStateNode     changedNode;
 
 	    changedNode = getNodeForPath(changedPath, false, false);
-	    // Check if new tree structure!
-	    if(changedNode == null && changedPath != null &&
-	       changedPath.getPathCount() == 1)
-		changedNode = root;
-	    if(changedNode != null) {
-		boolean                   wasExpanded, wasVisible;
-		int                       newIndex;
 
-		wasExpanded = changedNode.isExpanded();
-		wasVisible = (changedNode.getRow() != -1);
-		if(changedNode == root) {
-		    this.rebuild();
-		}
-		else {
-		    int                              nodeIndex, oldRow;
-		    TreeStateNode                    newNode, parent;
+	    // Check if root has changed, either to a null root, or
+            // to an entirely new root.
+	    if(changedNode == root ||
+               (changedNode == null &&
+                ((changedPath == null && treeModel != null &&
+                  treeModel.getRoot() == null) ||
+                 (changedPath != null && changedPath.getPathCount() == 1)))) {
+                rebuild(true);
+            }
+	    else if(changedNode != null) {
+                int                              nodeIndex, oldRow;
+                TreeStateNode                    newNode, parent;
+                boolean                          wasExpanded, wasVisible;
+                int                              newIndex;
 
-		    /* Remove the current node and recreate a new one. */
-		    parent = (TreeStateNode)changedNode.getParent();
-		    nodeIndex = parent.getIndex(changedNode);
-		    if(wasVisible && wasExpanded) {
-			changedNode.collapse(false);
-		    }
-		    if(wasVisible)
-			visibleNodes.removeElement(changedNode);
-		    changedNode.removeFromParent();
-		    createNodeAt(parent, nodeIndex);
-		    newNode = (TreeStateNode)parent.getChildAt(nodeIndex);
-		    if(wasVisible && wasExpanded)
-			newNode.expand(false);
-		    newIndex = newNode.getRow();
-		    if(!isFixedRowHeight() && wasVisible) {
-			if(newIndex == 0)
-			    updateYLocationsFrom(newIndex);
-			else
-			    updateYLocationsFrom(newIndex - 1);
-			this.visibleNodesChanged();
-		    }
-		    else if(wasVisible)
-			this.visibleNodesChanged();
-		}
+                wasExpanded = changedNode.isExpanded();
+                wasVisible = (changedNode.getRow() != -1);
+                /* Remove the current node and recreate a new one. */
+                parent = (TreeStateNode)changedNode.getParent();
+                nodeIndex = parent.getIndex(changedNode);
+                if(wasVisible && wasExpanded) {
+                    changedNode.collapse(false);
+                }
+                if(wasVisible)
+                    visibleNodes.removeElement(changedNode);
+                changedNode.removeFromParent();
+                createNodeAt(parent, nodeIndex);
+                newNode = (TreeStateNode)parent.getChildAt(nodeIndex);
+                if(wasVisible && wasExpanded)
+                    newNode.expand(false);
+                newIndex = newNode.getRow();
+                if(!isFixedRowHeight() && wasVisible) {
+                    if(newIndex == 0)
+                        updateYLocationsFrom(newIndex);
+                    else
+                        updateYLocationsFrom(newIndex - 1);
+                    this.visibleNodesChanged();
+                }
+                else if(wasVisible)
+                    this.visibleNodesChanged();
 	    }
 	}
     }
@@ -653,11 +709,11 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
      * Completely rebuild the tree, all expanded state, and node caches are
      * removed. All nodes are collapsed, except the root.
      */
-    private void rebuild() {
-	treePathMapping.clear();
-	if(treeModel != null) {
-	    Object          rootObject = treeModel.getRoot();
+    private void rebuild(boolean clearSelection) {
+        Object rootObject;
 
+	treePathMapping.clear();
+	if(treeModel != null && (rootObject = treeModel.getRoot()) != null) {
 	    root = createNodeForValue(rootObject);
 	    root.path = new TreePath(rootObject);
 	    addMapping(root);
@@ -680,9 +736,7 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 	    visibleNodes.removeAllElements();
 	    root = null;
 	}
-	/* Clear out the selection model, might not always be the right
-	   thing to do, but the tree is being rebuilt, soooo.... */
-	if(treeSelectionModel != null) {
+	if(clearSelection && treeSelectionModel != null) {
 	    treeSelectionModel.clearSelection();
 	}
 	this.visibleNodesChanged();

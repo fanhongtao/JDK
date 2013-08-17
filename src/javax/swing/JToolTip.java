@@ -1,4 +1,6 @@
 /*
+ * @(#)JToolTip.java	1.44 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -25,7 +27,7 @@ import java.io.IOException;
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JToolTip">JToolTip</a> key assignments.
+ * <a href="doc-files/Key-Index.html#JToolTip"><code>JToolTip</code> key assignments</a>.
  * <p>
  * See <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/tooltip.html">How to Use Tool Tips</a>
  * in <em>The Java Tutorial</em>
@@ -33,14 +35,16 @@ import java.io.IOException;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @see JComponent#setToolTipText
  * @see JComponent#createToolTip
- * @version %I% %G%
+ * @version 1.44 12/03/01
  * @author Dave Moore
  * @author Rich Shiavi
  */
@@ -56,6 +60,7 @@ public class JToolTip extends JComponent implements Accessible {
 
     /** Creates a tool tip. */
     public JToolTip() {
+        setOpaque(true);
         updateUI();
     }
 
@@ -69,9 +74,7 @@ public class JToolTip extends JComponent implements Accessible {
     }
 
     /**
-     * Notification from the <code>UIFactory</code> that the L&F has changed. 
-     * Called to replace the UI with the latest version from the 
-     * <code>UIFactory</code>.
+     * Resets the UI property to a value from the current look and feel.
      *
      * @see JComponent#updateUI
      */
@@ -122,12 +125,20 @@ public class JToolTip extends JComponent implements Accessible {
      * Specifies the component that the tooltip describes.
      * The component <code>c</code> may be <code>null</code>
      * and will have no effect.
+     * <p>
+     * This is a bound property.
      *
      * @param c the <code>JComponent</code> being described
      * @see JComponent#createToolTip
+     * @beaninfo
+     *       bound: true
+     * description: Sets the component that the tooltip describes.
      */
     public void setComponent(JComponent c) {
+        JComponent oldValue = this.component;
+
         component = c;
+        firePropertyChange("component", oldValue, c);
     }
 
     /**
@@ -159,9 +170,13 @@ public class JToolTip extends JComponent implements Accessible {
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
+        }
     }
 
 
@@ -211,10 +226,12 @@ public class JToolTip extends JComponent implements Accessible {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJToolTip extends AccessibleJComponent {
 

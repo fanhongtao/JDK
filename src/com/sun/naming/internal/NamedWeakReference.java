@@ -1,4 +1,6 @@
 /*
+ * @(#)NamedWeakReference.java	1.2 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,7 +12,7 @@ package com.sun.naming.internal;
  * A NamedWeakReference is a WeakReference with an immutable string name.
  *
  * @author Scott Seligman
- * @version 1.1 01/06/18
+ * @version 1.2 01/12/03
  */
 
 

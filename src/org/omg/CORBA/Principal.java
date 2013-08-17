@@ -1,4 +1,6 @@
 /*
+ * @(#)Principal.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,19 +17,22 @@ package org.omg.CORBA;
  * @deprecated Deprecated by CORBA 2.2.
  */
 
-public abstract class Principal {
-
+public class Principal {
     /**
      * Sets the name of this <code>Principal</code> object to the given value.
      * @param value the value to be set in the <code>Principal</code>
      * @deprecated Deprecated by CORBA 2.2.
      */
-    public abstract void name(byte[] value);
+    public void name(byte[] value) {
+	throw new org.omg.CORBA.NO_IMPLEMENT() ;
+    }
 
     /**
      * Gets the name of this <code>Principal</code> object.
      * @return the name of this <code>Principal</code> object
      * @deprecated Deprecated by CORBA 2.2.
      */
-    public abstract byte[] name();
+    public byte[] name() {
+	throw new org.omg.CORBA.NO_IMPLEMENT() ;
+    }
 }

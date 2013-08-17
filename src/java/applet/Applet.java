@@ -1,11 +1,15 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * @(#)Applet.java	1.70 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.applet;
 
 import java.awt.*;
 import java.awt.image.ColorModel;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.util.Hashtable;
@@ -23,10 +27,24 @@ import javax.accessibility.*;
  *
  * @author      Arthur van Hoff
  * @author      Chris Warth
- * @version     1.69, 07/19/04
+ * @version     1.70, 12/03/01
  * @since       JDK1.0
  */
 public class Applet extends Panel {
+    
+    /**
+     * Creates a new Applet object
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @since 1.4
+     */
+    public Applet() throws HeadlessException {
+        if (GraphicsEnvironment.isHeadless()) {
+            throw new HeadlessException();
+        }
+    }
+    
     /**
      * Applets can be serialized but the following conventions MUST be followed:
      *
@@ -44,22 +62,29 @@ public class Applet extends Panel {
     private static final long serialVersionUID = -5836846270535785031L;
 
     /**
+     * Read an applet from an object input stream.
+     * @exception HeadlessException if
+     * <code>GraphicsEnvironment.isHeadless()</code> returns
+     * <code>true</code>
+     * @serial
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @since 1.4
+     */
+    private void readObject(ObjectInputStream s)
+        throws ClassNotFoundException, IOException, HeadlessException {
+        if (GraphicsEnvironment.isHeadless()) {
+            throw new HeadlessException();
+        }
+        s.defaultReadObject();
+    }
+
+    /**
      * Sets this applet's stub. This is done automatically by the system.
-     * <p>If there is a security manager, its <code> checkPermission </code>
-     * method is called with the
-     * <code>AWTPermission("setAppletStub")</code>
-     * permission.
+     *
      * @param   stub   the new stub.
-     * @exception SecurityException if the caller cannot set the stub
      */
     public final void setStub(AppletStub stub) {
-	if (this.stub != null) {
-            SecurityManager s = System.getSecurityManager();
-            if (s != null) {
-                s.checkPermission(new AWTPermission("setAppletStub"));
-            }
-	}
-        this.stub = (AppletStub)stub;
+	this.stub = (AppletStub)stub;
     }
 
     /**
@@ -310,7 +335,7 @@ public class Applet extends Panel {
     }
 
     /**
-     * Returns information about the parameters than are understood by
+     * Returns information about the parameters that are understood by
      * this applet. An applet should override this method to return an
      * array of <code>Strings</code> describing these parameters.
      * <p>

@@ -1,4 +1,6 @@
 /*
+ * @(#)MotifScrollBarButton.java	1.20 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */

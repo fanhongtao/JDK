@@ -1,4 +1,6 @@
 /*
+ * @(#)OpenType.java	1.22 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -350,7 +352,7 @@ public interface OpenType {
    * Tags for sfnt tables include items like <i>cmap</i>, 
    * <i>name</i> and <i>head</i>.  The byte array returned is a 
    * copy of the font data in memory.
-   * @param     sfntTag a four-character code as a 
+   * @param     strSfntTag a four-character code as a 
    *		<code>String</code>
    * @return a <code>byte</code> array that is the table that
    * contains the font data corresponding to the specified
@@ -380,7 +382,7 @@ public interface OpenType {
    * like <i>cmap</i>, <i>name</i> and <i>head</i>. The 
    * <code>byte</code> array returned is a copy of the font 
    * data in memory.
-   * @param sfntTag a four-character code as a 
+   * @param     strSfntTag a four-character code as a 
    * <code>String</code>
    * @param     offset index of first byte to return from table
    * @param     count  number of bytes to return from table

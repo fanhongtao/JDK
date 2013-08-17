@@ -1,4 +1,6 @@
 /*
+ * @(#)ObjectView.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -48,7 +50,7 @@ import java.lang.reflect.*;
  * </code></pre>
  *
  * @author Timothy Prinzing
- * @version 1.8 02/06/02
+ * @version 1.10 12/03/01
  */
 public class ObjectView extends ComponentView  {
 
@@ -70,7 +72,8 @@ public class ObjectView extends ComponentView  {
 	AttributeSet attr = getElement().getAttributes();
 	String classname = (String) attr.getAttribute(HTML.Attribute.CLASSID);
 	try {
-	    Class c = getClass(classname);
+            Class c = Class.forName(classname, true,Thread.currentThread().
+                                    getContextClassLoader());
 	    Object o = c.newInstance();
 	    if (o instanceof Component) {
 		Component comp = (Component) o;

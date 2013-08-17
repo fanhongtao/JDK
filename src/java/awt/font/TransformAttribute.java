@@ -1,4 +1,6 @@
 /*
+ * @(#)TransformAttribute.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -29,6 +31,11 @@ import java.io.Serializable;
  */
 public final class TransformAttribute implements Serializable {
 
+    /** 
+     * The <code>AffineTransform</code> for this 
+     * <code>TransformAttribute</code>, or <code>null</code>
+     * if <code>AffineTransform</code> is the identity transform.
+     */
     private AffineTransform transform;
 
     /**
@@ -41,7 +48,9 @@ public final class TransformAttribute implements Serializable {
 	    throw new IllegalArgumentException("transform may not be null");
 	}
 
-	this.transform = new AffineTransform(transform);
+	if (!transform.isIdentity()) {
+	    this.transform = new AffineTransform(transform);
+	}
     }
 
     /**
@@ -50,10 +59,33 @@ public final class TransformAttribute implements Serializable {
      * transform of this <code>TransformAttribute</code>.
      */
     public AffineTransform getTransform() {
-	return new AffineTransform(transform);
-
-
+	AffineTransform at = transform;
+	return (at == null) ? new AffineTransform() : new AffineTransform(at);
     }
+
+    /**
+     * Returns <code>true</code> if the wrapped transform is
+     * an identity transform.
+     * @return <code>true</code> if the wrapped transform is
+     * an identity transform; <code>false</code> otherwise.
+     * @since 1.4
+     */
+    public boolean isIdentity() {
+	return (transform == null);
+    }
+
+    private void writeObject(java.io.ObjectOutputStream s)
+      throws java.lang.ClassNotFoundException,
+	     java.io.IOException
+    {
+        // sigh -- 1.3 expects transform is never null, so we need to always write one out
+	if (this.transform == null) {
+	    this.transform = new AffineTransform();
+	}
+	s.defaultWriteObject();
+    }
+    
+    // Added for serial backwards compatability (4348425)
+    static final long serialVersionUID = 3356247357827709530L;
+
 }
-
-

@@ -1,4 +1,6 @@
 /*
+ * @(#)RectangularShape.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,7 +20,7 @@ import java.awt.Rectangle;
  * query and modify the rectangular frame, which provides a reference
  * for the subclasses to define their geometry.
  *
- * @version 	1.15, 02/06/02
+ * @version 	1.16, 12/03/01
  * @author	Jim Graham
  */
 public abstract class RectangularShape implements Shape, Cloneable {
@@ -134,6 +136,9 @@ public abstract class RectangularShape implements Shape, Cloneable {
      * that defines the overall shape of this object.
      * @return a <code>Rectangle2D</code>, specified in
      * <code>double</code> coordinates.
+     * @see #setFrame(double, double, double, double)
+     * @see #setFrame(Point2D, Dimension2D)
+     * @see #setFrame(Rectangle2D)
      */
     public Rectangle2D getFrame() {
 	return new Rectangle2D.Double(getX(), getY(), getWidth(), getHeight());
@@ -157,6 +162,7 @@ public abstract class RectangularShape implements Shape, Cloneable {
      * 		specified rectangular shape
      * @param w the width of the specified rectangular shape
      * @param h the height of the specified rectangular shape
+     * @see #getFrame
      */
     public abstract void setFrame(double x, double y, double w, double h);
 
@@ -168,6 +174,7 @@ public abstract class RectangularShape implements Shape, Cloneable {
      * their geometry.
      * @param loc the specified <code>Point2D</code>
      * @param size the specified <code>Dimension2D</code>
+     * @see #getFrame
      */
     public void setFrame(Point2D loc, Dimension2D size) {
 	setFrame(loc.getX(), loc.getY(), size.getWidth(), size.getHeight());
@@ -179,6 +186,7 @@ public abstract class RectangularShape implements Shape, Cloneable {
      * used by the subclasses of <code>RectangularShape</code> to define
      * their geometry.
      * @param r the specified <code>Rectangle2D</code>
+     * @see #getFrame
      */
     public void setFrame(Rectangle2D r) {
 	setFrame(r.getX(), r.getY(), r.getWidth(), r.getHeight());

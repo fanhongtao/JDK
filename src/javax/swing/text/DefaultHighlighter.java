@@ -1,4 +1,6 @@
 /*
+ * @(#)DefaultHighlighter.java	1.35 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,7 +15,7 @@ import javax.swing.plaf.*;
  * painter that renders in a solid color.
  * 
  * @author  Timothy Prinzing
- * @version 1.32 02/06/02
+ * @version 1.35 12/03/01
  * @see     Highlighter
  */
 public class DefaultHighlighter extends LayeredHighlighter {
@@ -88,7 +90,7 @@ public class DefaultHighlighter extends LayeredHighlighter {
      * @param p0   the start offset of the range to highlight >= 0
      * @param p1   the end offset of the range to highlight >= p0
      * @param p    the painter to use to actually render the highlight
-     * @returns    an object that can be used as a tag
+     * @return     an object that can be used as a tag
      *   to refer to the highlight
      * @exception BadLocationException if the specified location is invalid
      */
@@ -139,17 +141,34 @@ public class DefaultHighlighter extends LayeredHighlighter {
 		int minY = 0;
 		int maxX = 0;
 		int maxY = 0;
+		int p0 = -1;
+		int p1 = -1;
 		for (int i = 0; i < len; i++) {
-		    LayeredHighlightInfo info = (LayeredHighlightInfo)
-			                    highlights.elementAt(i);
-		    minX = Math.min(minX, info.x);
-		    minY = Math.min(minY, info.y);
-		    maxX = Math.max(maxX, info.x + info.width);
-		    maxY = Math.max(maxY, info.y + info.height);
-		}
+                    HighlightInfo hi = (HighlightInfo)highlights.elementAt(i);
+                    if (hi instanceof LayeredHighlightInfo) {
+                        LayeredHighlightInfo info = (LayeredHighlightInfo)hi;
+                        minX = Math.min(minX, info.x);
+                        minY = Math.min(minY, info.y);
+                        maxX = Math.max(maxX, info.x + info.width);
+                        maxY = Math.max(maxY, info.y + info.height);
+                    }
+                    else {
+                        if (p0 == -1) {
+                            p0 = hi.p0.getOffset();
+                            p1 = hi.p1.getOffset();
+                        }
+                        else {
+                            p0 = Math.min(p0, hi.p0.getOffset());
+                            p1 = Math.max(p1, hi.p1.getOffset());
+                        }
+                    }
+                }
 		if (minX != maxX && minY != maxY) {
 		    component.repaint(minX, minY, maxX - minX, maxY - minY);
 		}
+                if (p0 != -1) {
+                    mapper.damageRange(component, p0, p1);
+                }
 		highlights.removeAllElements();
 	    }
 	}
@@ -277,7 +296,13 @@ public class DefaultHighlighter extends LayeredHighlighter {
     private boolean drawsLayeredHighlights;
 
 
-    public static LayeredHighlighter.LayerPainter DefaultPainter = new DefaultHighlightPainter(null);
+    /**
+     * Default implementation of LayeredHighlighter.LayerPainter that can
+     * be used for painting highlights.
+     * <p>
+     * As of 1.4 this field is final.
+     */
+    public static final LayeredHighlighter.LayerPainter DefaultPainter = new DefaultHighlightPainter(null);
 
 
     /**

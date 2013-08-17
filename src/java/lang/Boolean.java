@@ -1,4 +1,6 @@
 /*
+ * @(#)Boolean.java	1.42 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,7 +20,7 @@ package java.lang;
  * <code>boolean</code>. 
  *
  * @author  Arthur van Hoff
- * @version 1.39, 02/06/02
+ * @version 1.42, 12/03/01
  * @since   JDK1.0
  */
 public final
@@ -56,6 +58,11 @@ class Boolean implements java.io.Serializable {
      * Allocates a <code>Boolean</code> object representing the 
      * <code>value</code> argument. 
      *
+     * <p><b>Note: It is rarely appropriate to use this constructor.
+     * Unless a <i>new</i> instance is required, the static factory
+     * {@link #valueOf(boolean)} is generally a better choice. It is
+     * likely to yield significantly better space and time performance.</b>
+     * 
      * @param   value   the value of the <code>Boolean</code>.
      */
     public Boolean(boolean value) {
@@ -90,6 +97,24 @@ class Boolean implements java.io.Serializable {
     }
 
     /**
+     * Returns a <tt>Boolean</tt> instance representing the specified
+     * <tt>boolean</tt> value.  If the specified <tt>boolean</tt> value
+     * is <tt>true</tt>, this method returns <tt>Boolean.TRUE</tt>;
+     * if it is <tt>false</tt>, this method returns <tt>Boolean.FALSE</tt>.
+     * If a new <tt>Boolean</tt> instance is not required, this method
+     * should generally be used in preference to the constructor
+     * {@link #Boolean(boolean)}, as this method is likely to to yield
+     * significantly better space and time performance.
+     *
+     * @param  b a boolean value.
+     * @return a <tt>Boolean</tt> instance representing <tt>b</tt>.
+     * @since  1.4
+     */
+    public static Boolean valueOf(boolean b) {
+        return (b ? TRUE : FALSE);
+    }
+
+    /**
      * Returns a <code>Boolean</code> with a value represented by the
      * specified String.  The <code>Boolean</code> returned represents the
      * value <code>true</code> if the string argument is not <code>null</code>
@@ -105,10 +130,24 @@ class Boolean implements java.io.Serializable {
     }
 
     /**
-     * Returns a String object representing this Boolean's value.
-     * If this object represents the value <code>true</code>, a string equal 
-     * to <code>"true"</code> is returned. Otherwise, a string equal to 
-     * <code>"false"</code> is returned. 
+     * Returns a <tt>String</tt> object representing the specified
+     * boolean.  If the specified boolean is <code>true</code>, then
+     * the string <tt>"true"</tt> will be returned, otherwise the
+     * string <tt>"false"</tt> will be returned.
+     *
+     * @param b	the boolean to be converted
+     * @return the string representation of the specified <code>boolean</code>
+     * @since 1.4
+     */
+    public static String toString(boolean b) {
+        return b ? "true" : "false";
+    }
+
+    /**
+     * Returns a <tt>String</tt> object representing this Boolean's
+     * value.  If this object represents the value <code>true</code>,
+     * a string equal to <code>"true"</code> is returned. Otherwise, a
+     * string equal to <code>"false"</code> is returned.
      *
      * @return  a string representation of this object. 
      */

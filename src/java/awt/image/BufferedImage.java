@@ -1,4 +1,6 @@
 /*
+ * @(#)BufferedImage.java	1.85 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -51,7 +53,9 @@ public class BufferedImage extends java.awt.Image
 
     boolean    isAlphaPremultiplied;// If true, alpha has been premultiplied in
     // color channels
-        
+
+    sun.java2d.SurfaceData sData;
+
     /**
      * Image Type Constants
      */
@@ -155,14 +159,24 @@ public class BufferedImage extends java.awt.Image
     public static final int TYPE_USHORT_GRAY = 11;
     
     /**
-     * Represents an opaque byte-packed binary image.  The
+     * Represents an opaque byte-packed 1, 2, or 4 bit image.  The
      * image has an {@link IndexColorModel} without alpha.  When this
-     * type is used as the <code>imageType</code> argument to the 
-     * <code>BufferedImage</code> constructor that takes an 
-     * <code>imageType</code> argument but no <code>ColorModel</code> 
-     * argument, an <code>IndexColorModel</code> is created with
-     * two colors in the default sRGB <code>ColorSpace</code>:  
-     * {0,&nbsp;0,&nbsp;0} and {255,&nbsp;255,&nbsp;255}.
+     * type is used as the <code>imageType</code> argument to the
+     * <code>BufferedImage</code> constructor that takes an
+     * <code>imageType</code> argument but no <code>ColorModel</code>
+     * argument, a 1-bit image is created with an
+     * <code>IndexColorModel</code> with two colors in the default
+     * sRGB <code>ColorSpace</code>: {0,&nbsp;0,&nbsp;0} and
+     * {255,&nbsp;255,&nbsp;255}.
+     *
+     * <p> Images with 2 or 4 bits per pixel may be constructed via
+     * the <code>BufferedImage</code> constructor that takes a
+     * <code>ColorModel</code> argument by supplying a
+     * <code>ColorModel</code> with an appropriate map size.
+     *
+     * <p> Images with 8 bits per pixel should use the image types
+     * <code>TYPE_BYTE_INDEXED</code> or <code>TYPE_BYTE_GRAY</code>
+     * depending on their <code>ColorModel</code>.
      */
     public static final int TYPE_BYTE_BINARY = 12;
 
@@ -421,13 +435,23 @@ public class BufferedImage extends java.awt.Image
     /**
      * Constructs a <code>BufferedImage</code> of one of the predefined
      * image types:
-     * TYPE_BYTE_BINARY or TYPE_BYTE_INDEXED
+     * TYPE_BYTE_BINARY or TYPE_BYTE_INDEXED.
+     *
+     * <p> If the image type is TYPE_BYTE_BINARY, the number of
+     * entries in the color model is used to determine whether the
+     * image should have 1, 2, or 4 bits per pixel.  If the color model
+     * has 1 or 2 entries, the image will have 1 bit per pixel.  If it
+     * has 3 or 4 entries, the image with have 2 bits per pixel.  If
+     * it has between 5 and 16 entries, the image will have 4 bits per
+     * pixel.  Otherwise, an IllegalArgumentException will be thrown.
+     *
      * @param width     width of the created image
      * @param height    height of the created image
      * @param imageType type of the created image
      * @param cm        <code>IndexColorModel</code> of the created image
      * @throws IllegalArgumentException   if the imageType is not
-     * TYPE_BYTE_BINARY or TYPE_BYTE_INDEXED
+     * TYPE_BYTE_BINARY or TYPE_BYTE_INDEXED or if the imageType is
+     * TYPE_BYTE_BINARY and the color map has more than 16 entries.
      * @see #TYPE_BYTE_BINARY
      * @see #TYPE_BYTE_INDEXED
      */
@@ -442,8 +466,21 @@ public class BufferedImage extends java.awt.Image
 
         switch(imageType) {
         case TYPE_BYTE_BINARY:
+            int bits; // Will be set below
+            int mapSize = cm.getMapSize();
+            if (mapSize <= 2) {
+                bits = 1;
+            } else if (mapSize <= 4) {
+                bits = 2;
+            } else if (mapSize <= 16) {
+                bits = 4;
+            } else {
+                throw new IllegalArgumentException
+                    ("Color map for TYPE_BYTE_BINARY " +
+                     "must have no more than 16 entries");
+            }
             raster = Raster.createPackedRaster(DataBuffer.TYPE_BYTE,
-                                                width, height, 1, 1, null);
+                                                width, height, 1, bits, null);
             break;
             
         case TYPE_BYTE_INDEXED:
@@ -478,7 +515,7 @@ public class BufferedImage extends java.awt.Image
      * <code>BufferedImage</code> can be established by passing
      * in a {@link Hashtable} of <code>String</code>/<code>Object</code> 
      * pairs.
-     * @param ColorModel <code>ColorModel</code> for the new image
+     * @param cm <code>ColorModel</code> for the new image
      * @param raster     <code>Raster</code> for the image data
      * @param isRasterPremultiplied   if <code>true</code>, the data in
      *                  the raster has been premultiplied with alpha.
@@ -545,10 +582,12 @@ public class BufferedImage extends java.awt.Image
                     imageType = TYPE_CUSTOM;
                 } else if (raster instanceof ByteComponentRaster &&
                        raster.getNumBands() == 1 &&
+                       cm.getComponentSize(0) == 8 &&
                        ((ByteComponentRaster)raster).getPixelStride() == 1) {
                     imageType = TYPE_BYTE_GRAY;
                 } else if (raster instanceof ShortComponentRaster &&
                        raster.getNumBands() == 1 &&
+                       cm.getComponentSize(0) == 16 &&
                        ((ShortComponentRaster)raster).getPixelStride() == 1) {
                     imageType = TYPE_USHORT_GRAY;
                 }
@@ -753,6 +792,8 @@ public class BufferedImage extends java.awt.Image
      *          color space
      * @return an integer pixel in the default RGB color model and
      *          default sRGB colorspace. 
+     * @see #setRGB(int, int, int)
+     * @see #setRGB(int, int, int, int, int[], int, int)
      */
     public int getRGB(int x, int y) {
         return colorModel.getRGB(raster.getDataElements(x, y, null));
@@ -770,7 +811,7 @@ public class BufferedImage extends java.awt.Image
      * <pre>
      *    pixel   = rgbArray[offset + (y-startY)*scansize + (x-startX)];
      * </pre>
-     * @param startX,&nbsp; startY the starting coordinates
+     * @param startX,&nbsp;startY the starting coordinates
      * @param w           width of region
      * @param h           height of region
      * @param rgbArray    if not <code>null</code>, the rgb pixels are 
@@ -780,6 +821,8 @@ public class BufferedImage extends java.awt.Image
      * @return            array of RGB pixels. 
      * @exception <code>IllegalArgumentException</code> if an unknown
      *		datatype is specified
+     * @see #setRGB(int, int, int)
+     * @see #setRGB(int, int, int, int, int[], int, int)
      */
     public int[] getRGB(int startX, int startY, int w, int h,
                         int[] rgbArray, int offset, int scansize) {
@@ -834,6 +877,8 @@ public class BufferedImage extends java.awt.Image
      * color is chosen.
      * @param x,&nbsp;y the coordinates of the pixel to set
      * @param rgb the RGB value 
+     * @see #getRGB(int, int)
+     * @see #getRGB(int, int, int, int, int[], int, int)
      */
     public synchronized void setRGB(int x, int y, int rgb) {
         raster.setDataElements(x, y, colorModel.getDataElements(rgb, null));
@@ -859,6 +904,8 @@ public class BufferedImage extends java.awt.Image
      * @param rgbArray    the rgb pixels
      * @param offset      offset into the <code>rgbArray</code>
      * @param scansize    scanline stride for the <code>rgbArray</code> 
+     * @see #getRGB(int, int)
+     * @see #getRGB(int, int, int, int, int[], int, int)
      */
     public void setRGB(int startX, int startY, int w, int h,
                         int[] rgbArray, int offset, int scansize) {
@@ -1228,6 +1275,7 @@ public class BufferedImage extends java.awt.Image
      * returned is a copy of the image data is not updated if the
      * image is changed.
      * @return a <code>Raster</code> that is a copy of the image data. 
+     * @see #setData(Raster)
      */
     public Raster getData() {
 
@@ -1261,6 +1309,7 @@ public class BufferedImage extends java.awt.Image
      * returned.
      * @return a <code>Raster</code> that is a copy of the image data of
      *          the specified region of the <code>BufferedImage</code> 
+     * @see #setData(Raster)
      */
     public Raster getData(Rectangle rect) {
         SampleModel sm = raster.getSampleModel();
@@ -1323,6 +1372,8 @@ public class BufferedImage extends java.awt.Image
      * <code>BufferedImage</code>. The operation is clipped to the bounds
      * of the <code>BufferedImage</code>.
      * @param r the specified <code>Raster</code> 
+     * @see #getData
+     * @see #getData(Rectangle)
     */
     public void setData(Raster r) {
         int width = r.getWidth();

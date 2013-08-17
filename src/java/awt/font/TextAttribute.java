@@ -1,4 +1,6 @@
 /*
+ * @(#)TextAttribute.java	1.40 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -60,7 +62,7 @@ import java.util.HashMap;
  * 	constants above and below the request:<BR>
  *      <BLOCKQUOTE><TT>
  *	interpolation = (request - below)/(above - below);
- *	</BLOCKQUOTE></TT>
+ *	</TT></BLOCKQUOTE>
  * </UL>
  * <p>
  * <H4>Interpolation</H4>
@@ -710,8 +712,8 @@ public final class TextAttribute extends Attribute {
      * <TD VALIGN="TOP">Integer</TD></TR>
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Limits</TH>
-     * <TD VALIGN="TOP">Positive values 1 through 15 are <I>embedding</I>
-     * levels, negative values<BR> through -15 are <I>override</I> levels
+     * <TD VALIGN="TOP">Positive values 1 through 61 are <I>embedding</I>
+     * levels, negative values<BR> through -61 are <I>override</I> levels
      * </TD></TR>
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
@@ -861,12 +863,12 @@ public final class TextAttribute extends Attribute {
 
     /** Swap foreground and background. */
     public static final Boolean SWAP_COLORS_ON = new Boolean(true);
+
+    /**
+     * Attribute key for converting ASCII decimal digits to other decimal ranges.
+     *
+     * <p>Values are instances of <code>NumericShaping</code>.
+     * The default is not to perform numeric shaping.
+     */
+    public static final TextAttribute NUMERIC_SHAPING = new TextAttribute("numeric_shaping");
 }
-
-
-
-
-
-
-
-

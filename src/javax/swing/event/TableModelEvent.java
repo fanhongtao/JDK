@@ -1,4 +1,6 @@
 /*
+ * @(#)TableModelEvent.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,7 +20,7 @@ import javax.swing.table.*;
  *
  * <pre>
  * TableModelEvent(source);              //  The data, ie. all rows changed 
- * TableModelEvent(source, HEADER_ROW);  //  Structure change, reallcoate TableColumns
+ * TableModelEvent(source, HEADER_ROW);  //  Structure change, reallocate TableColumns
  * TableModelEvent(source, 1);           //  Row 1 changed
  * TableModelEvent(source, 3, 6);        //  Rows 3 to 6 inclusive changed
  * TableModelEvent(source, 2, 2, 6);     //  Cell at (2, 6) changed
@@ -34,12 +36,14 @@ import javax.swing.table.*;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.17 02/06/02
+ * @version 1.19 12/03/01
  * @author Alan Chung
  * @author Philip Milne
  * @see TableModel
@@ -74,10 +78,10 @@ public class TableModelEvent extends java.util.EventObject
 
     /** 
      *  All row data in the table has changed, listeners should discard any state 
-     *  that was based on the rows and requery the TableModel to get the new 
-     *  row count and all the appropriate values. 
-     *  The JTable will repaint the entire visible region on recieving 
-     *  this event, querying the model for the cell values that are visble. 
+     *  that was based on the rows and requery the <code>TableModel</code>
+     *  to get the new row count and all the appropriate values. 
+     *  The <code>JTable</code> will repaint the entire visible region on
+     *  receiving this event, querying the model for the cell values that are visible. 
      *  The structure of the table ie, the column names, types and order 
      *  have not changed.  
      */
@@ -89,11 +93,12 @@ public class TableModelEvent extends java.util.EventObject
     /**
      *  This row of data has been updated. 
      *  To denote the arrival of a completely new table with a different structure 
-     *  use <code>HEADER_ROW</code> as the value for the <I>row</I>. 
-     *  When the JTable recieves this event and its <I>autoCreateColumnsFromModel</I> 
+     *  use <code>HEADER_ROW</code> as the value for the <code>row</code>. 
+     *  When the <code>JTable</code> receives this event and its
+     *  <code>autoCreateColumnsFromModel</code> 
      *  flag is set it discards any TableColumns that it had and reallocates 
      *  default ones in the order they appear in the model. This is the 
-     *  same as calling <code>setModel(TableModel)</code> on the JTable. 
+     *  same as calling <code>setModel(TableModel)</code> on the <code>JTable</code>. 
      */
     public TableModelEvent(TableModel source, int row) {
 	this(source, row, row, ALL_COLUMNS, UPDATE);

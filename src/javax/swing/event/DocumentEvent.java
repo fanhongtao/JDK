@@ -1,4 +1,6 @@
 /*
+ * @(#)DocumentEvent.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,12 +13,12 @@ import javax.swing.text.*;
  * Interface for document change notifications.  This provides
  * detailed information to Document observers about how the
  * Document changed.  It provides high level information such
- * as type of change and where it occured, as well as the more
+ * as type of change and where it occurred, as well as the more
  * detailed structural changes (What Elements were inserted and
  * removed).
  *
  * @author  Timothy Prinzing
- * @version 1.19 02/06/02
+ * @version 1.21 12/03/01
  * @see javax.swing.text.Document
  * @see DocumentListener
  */
@@ -40,7 +42,7 @@ public interface DocumentEvent {
     /**
      * Gets the document that sourced the change event.
      *
-     * @returns the document
+     * @return the document
      */
     public Document getDocument();
 

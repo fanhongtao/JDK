@@ -1,4 +1,6 @@
 /*
+ * @(#)BoxLayout.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,7 @@ import java.io.Serializable;
 import java.io.PrintStream;
 
 /**
- * A layout manager that allows multiple components to be layed out either
+ * A layout manager that allows multiple components to be laid out either
  * vertically or horizontally. The components will not wrap so, for 
  * example, a vertical arrangement of components will stay vertically 
  * arranged when the frame is resized. 
@@ -27,56 +29,86 @@ import java.io.PrintStream;
  * vertical gives an effect similar to GridBagLayout, without the 
  * complexity. The diagram shows two panels arranged horizontally, each 
  * of which contains 3 components arranged vertically.
+ *
+ * <p> The BoxLayout manager is constructed with an axis parameter that
+ * specifies the type of layout that will be done. There are four choices:
+ *
+ * <blockquote><b><tt>X_AXIS</tt></b> - Components are laid out horizontally
+ * from left to right.</blockquote>
+ * 
+ * <blockquote><b><tt>Y_AXIS</tt></b> - Components are laid out vertically
+ * from top to bottom.</blockquote>
+ * 
+ * <blockquote><b><tt>LINE_AXIS</tt></b> - Components are laid out the way
+ * words are laid out in a line, based on the container's
+ * <tt>ComponentOrientation</tt> property. If the container's
+ * <tt>ComponentOrientation</tt> is horizontal then components are laid out
+ * horizontally, otherwise they are laid out vertically.  For horizontal
+ * orientations, if the container's <tt>ComponentOrientation</tt> is left to
+ * right then components are laid out left to right, otherwise they are laid
+ * out right to left. For vertical orientations components are always laid out
+ * from top to bottom.</blockquote>
+ * 
+ * <blockquote><b><tt>PAGE_AXIS</tt></b> - Components are laid out the way
+ * text lines are laid out on a page, based on the container's
+ * <tt>ComponentOrientation</tt> property. If the container's
+ * <tt>ComponentOrientation</tt> is horizontal then components are laid out
+ * vertically, otherwise they are laid out horizontally.  For horizontal
+ * orientations, if the container's <tt>ComponentOrientation</tt> is left to
+ * right then components are laid out left to right, otherwise they are laid
+ * out right to left.&nbsp; For vertical orientations components are always
+ * laid out from top to bottom.</blockquote>
  * <p>
- * The Box container uses BoxLayout (unlike JPanel, which defaults to flow
- * layout). You can nest multiple boxes and add components to them to get
- * the arrangement you want.
- * <p>
- * The BoxLayout manager that places each of its managed components
- * from left to right or from top to bottom.
- * When you create a BoxLayout, you specify whether its major axis is 
- * the X axis (which means left to right placement) or Y axis (top to 
- * bottom placement). Components are arranged from left to right (or 
- * top to bottom), in the same order as they were added to the container.
- * <p>
- * Instead of using BoxLayout directly, many programs use the Box class.
- * The Box class provides a lightweight container that uses a BoxLayout.
- * Box also provides handy methods to help you use BoxLayout well.
+ * For all directions, components are arranged in the same order as they were
+ * added to the container.
  * <p>
  * BoxLayout attempts to arrange components
- * at their preferred widths (for left to right layout)
- * or heights (for top to bottom layout).
- * For a left to right layout,
+ * at their preferred widths (for horizontal layout)
+ * or heights (for vertical layout).
+ * For a horizontal layout,
  * if not all the components are the same height,
  * BoxLayout attempts to make all the components 
  * as high as the highest component.
  * If that's not possible for a particular component, 
  * then BoxLayout aligns that component vertically,
  * according to the component's Y alignment.
- * By default, a component has an Y alignment of 0.5,
+ * By default, a component has a Y alignment of 0.5,
  * which means that the vertical center of the component
  * should have the same Y coordinate as 
  * the vertical centers of other components with 0.5 Y alignment.
  * <p>
  * Similarly, for a vertical layout,
  * BoxLayout attempts to make all components in the column
- * as wide as the widest component;
- * if that fails, it aligns them horizontally
- * according to their X alignments.
+ * as wide as the widest component.
+ * If that fails, it aligns them horizontally
+ * according to their X alignments.  For <code>PAGE_AXIS</code> layout,
+ * horizontal alignment is done based on the leading edge of the component. 
+ * In other words, an X alignment value of 0.0 means the left edge of a 
+ * component if the container's <code>ComponentOrientation</code> is left to 
+ * right and it means the right edge of the component otherwise.
+ * <p>
+ * Instead of using BoxLayout directly, many programs use the Box class.
+ * The Box class is a lightweight container that uses a BoxLayout.
+ * It also provides handy methods to help you use BoxLayout well.  
+ * Adding components to multiple nested boxes is a powerful way to get
+ * the arrangement you want.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @see Box
- * @see Component#getAlignmentX
- * @see Component#getAlignmentY
+ * @see java.awt.ComponentOrientation
+ * @see JComponent#getAlignmentX
+ * @see JComponent#getAlignmentY
  *
  * @author   Timothy Prinzing
- * @version  1.26 02/06/02
+ * @version 1.29 12/03/01 
  */
 public class BoxLayout implements LayoutManager2, Serializable {
 
@@ -91,22 +123,35 @@ public class BoxLayout implements LayoutManager2, Serializable {
     public static final int Y_AXIS = 1;
 
     /**
-     * Creates a layout manager that will lay out components either 
-     * left to right or
-     * top to bottom,
-     * as specified in the <code>axis</code> parameter.  
+     * Specifies that components should be laid out in the direction of 
+     * a line of text as determined by the target container's
+     * <code>ComponentOrientation</code> property.  
+     */
+    public static final int LINE_AXIS = 2;
+
+    /**
+     * Specifies that components should be laid out in the direction that
+     * lines flow across a page as determined by the target container's
+     * <code>ComponentOrientation</code> property.
+     */
+    public static final int PAGE_AXIS = 3;
+
+    /**
+     * Creates a layout manager that will lay out components along the
+     * given axis.  
      *
      * @param target  the container that needs to be laid out
-     * @param axis  the axis to lay out components along.
-     *              For left-to-right layout, 
-     *              specify <code>BoxLayout.X_AXIS</code>;
-     *              for top-to-bottom layout, 
-     *              specify <code>BoxLayout.Y_AXIS</code>
+     * @param axis  the axis to lay out components along. Can be one of:
+     *              <code>BoxLayout.X_AXIS</code>,
+     *              <code>BoxLayout.Y_AXIS</code>,
+     *              <code>BoxLayout.LINE_AXIS</code> or
+     *              <code>BoxLayout.PAGE_AXIS</code>
      *
      * @exception AWTError  if the value of <code>axis</code> is invalid 
      */
     public BoxLayout(Container target, int axis) {
-        if (axis != X_AXIS && axis != Y_AXIS) {
+        if (axis != X_AXIS && axis != Y_AXIS && 
+            axis != LINE_AXIS && axis != PAGE_AXIS) {
             throw new AWTError("Invalid axis");
         }
         this.axis = axis;
@@ -118,9 +163,12 @@ public class BoxLayout implements LayoutManager2, Serializable {
      * produces debugging messages.
      *
      * @param target  the container that needs to be laid out
-     * @param axis  the axis to lay out components along; can be either
-     *              <code>BoxLayout.X_AXIS</code>
-     *              or <code>BoxLayout.Y_AXIS</code>
+     * @param axis  the axis to lay out components along. Can be one of:
+     *              <code>BoxLayout.X_AXIS</code>,
+     *              <code>BoxLayout.Y_AXIS</code>,
+     *              <code>BoxLayout.LINE_AXIS</code> or
+     *              <code>BoxLayout.PAGE_AXIS</code>
+     *
      * @param dbg  the stream to which debugging messages should be sent,
      *   null if none
      */
@@ -309,21 +357,27 @@ public class BoxLayout implements LayoutManager2, Serializable {
 	alloc.width -= in.left + in.right;
 	alloc.height -= in.top + in.bottom;
 
+        // Resolve axis to an absolute value (either X_AXIS or Y_AXIS)
+        ComponentOrientation o = target.getComponentOrientation();
+        int absoluteAxis = resolveAxis( axis, o );
+        boolean ltr = (absoluteAxis != axis) ? o.isLeftToRight() : true;
+
+
 	// determine the child placements
 	synchronized(this) {
 	    checkRequests();
         
-	    if (axis == X_AXIS) {
+	    if (absoluteAxis == X_AXIS) {
 		SizeRequirements.calculateTiledPositions(alloc.width, xTotal,
 							 xChildren, xOffsets,
-							 xSpans);
+							 xSpans, ltr);
 		SizeRequirements.calculateAlignedPositions(alloc.height, yTotal,
 							   yChildren, yOffsets,
 							   ySpans);
 	    } else {
 		SizeRequirements.calculateAlignedPositions(alloc.width, xTotal,
 							   xChildren, xOffsets,
-							   xSpans);
+							   xSpans, ltr);
 		SizeRequirements.calculateTiledPositions(alloc.height, yTotal,
 							 yChildren, yOffsets,
 							 ySpans);
@@ -380,7 +434,10 @@ public class BoxLayout implements LayoutManager2, Serializable {
                                                     c.getAlignmentY());
             }
             
-            if (axis == X_AXIS) {
+            // Resolve axis to an absolute value (either X_AXIS or Y_AXIS)
+            int absoluteAxis = resolveAxis(axis,target.getComponentOrientation());
+
+            if (absoluteAxis == X_AXIS) {
                 xTotal = SizeRequirements.getTiledSizeRequirements(xChildren);
                 yTotal = SizeRequirements.getAlignedSizeRequirements(yChildren);
             } else {
@@ -389,7 +446,30 @@ public class BoxLayout implements LayoutManager2, Serializable {
             }
         }
     }
-            
+     
+    /**
+     * Given one of the 4 axis values, resolve it to an absolute axis.
+     * The relative axis values, PAGE_AXIS and LINE_AXIS are converted
+     * to their absolute couterpart given the target's ComponentOrientation
+     * value.  The absolute axes, X_AXIS and Y_AXIS are returned unmodified.
+     *
+     * @param axis the axis to resolve
+     * @param o the ComponentOrientation to resolve against
+     * @return the resolved axis
+     */
+    private int resolveAxis( int axis, ComponentOrientation o ) {
+        int absoluteAxis;
+        if( axis == LINE_AXIS ) {
+            absoluteAxis = o.isHorizontal() ? X_AXIS : Y_AXIS;
+        } else if( axis == PAGE_AXIS ) {
+            absoluteAxis = o.isHorizontal() ? Y_AXIS : X_AXIS;
+        } else {
+            absoluteAxis = axis;
+        } 
+        return absoluteAxis;
+   }
+
+
     private int axis;
     private Container target;
 

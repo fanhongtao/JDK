@@ -1,5 +1,7 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * @(#)Thread.java	1.125 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +11,8 @@ import java.security.AccessController;
 import java.security.AccessControlContext;
 import java.util.Map;
 import java.util.Collections;
+import sun.nio.ch.Interruptible;
+
 
 /**
  * A <i>thread</i> is a thread of execution in a program. The Java 
@@ -95,7 +99,7 @@ import java.util.Collections;
  * a thread is created, a new name is generated for it. 
  *
  * @author  unascribed
- * @version 1.109, 05/20/02
+ * @version 1.125, 12/03/01
  * @see     java.lang.Runnable
  * @see     java.lang.Runtime#exit(int)
  * @see     java.lang.Thread#run()
@@ -151,9 +155,28 @@ class Thread implements Runnable {
 
     /*
      * InheritableThreadLocal values pertaining to this thread. This map is
-     * maintained by the InheritableThreadLocal class.
-     */
+     * maintained by the InheritableThreadLocal class.  
+     */ 
     ThreadLocal.ThreadLocalMap inheritableThreadLocals = null;
+
+    /*
+     * The requested stack size for this thread, or 0 if the creator did
+     * not specify a stack size.  It is up to the VM to do whatever it
+     * likes with this number; some VMs will ignore it.
+     */
+    private long stackSize;
+
+    /* The object in which this thread is blocked in an interruptible I/O
+     * operation, if any.  The blocker's interrupt method() should be invoked
+     * before setting this thread's interrupt status.
+     */
+    private volatile Interruptible blocker;
+
+    /* Set the blocker field; invoked via reflection magic from java.nio code
+     */
+    private void blockedOn(Interruptible b) {
+	blocker = b;
+    }
 
     /**
      * The minimum priority that a thread can have. 
@@ -235,8 +258,11 @@ class Thread implements Runnable {
      * @param g the Thread group
      * @param target the object whose run() method gets called
      * @param name the name of the new Thread
+     * @param stackSize the desired stack size for the new thread, or
+     *        zero to indicate that this parameter is to be ignored.
      */
-    private void init(ThreadGroup g, Runnable target, String name){
+    private void init(ThreadGroup g, Runnable target, String name,
+                      long stackSize) {
 	Thread parent = currentThread();
 	if (g == null) {
 	    /* Determine if it's an applet or not */
@@ -268,8 +294,11 @@ class Thread implements Runnable {
 	this.target = target;
 	setPriority(priority);
         if (parent.inheritableThreadLocals != null)
-          this.inheritableThreadLocals =
+          this.inheritableThreadLocals = 
             ThreadLocal.createInheritedMap(parent.inheritableThreadLocals);
+
+        /* Stash the specified stack size in case the VM cares */
+        this.stackSize = stackSize;
 
 	g.add(this);
     }
@@ -280,49 +309,12 @@ class Thread implements Runnable {
      * <i>gname</i><code>)</code>, where <b><i>gname</i></b> is 
      * a newly generated name. Automatically generated names are of the 
      * form <code>"Thread-"+</code><i>n</i>, where <i>n</i> is an integer. 
-     * <p>
-     * Threads created this way must have overridden their
-     * <code>run()</code> method to actually do anything.  An example
-     * illustrating this method being used follows:
-     * <p><blockquote><pre>
-     *     import java.lang.*;
-     *
-     *     class plain01 implements Runnable {
-     *         String name; 
-     *         plain01() {
-     *             name = null;
-     *         }
-     *         plain01(String s) {
-     *             name = s;
-     *         }
-     *         public void run() {
-     *             if (name == null)
-     *                 System.out.println("A new thread created");
-     *             else
-     *                 System.out.println("A new thread with name " + name +
-     *                                    " created");
-     *         }
-     *     }
-     *     class threadtest01 {
-     *         public static void main(String args[] ) {
-     *             int failed = 0 ;
-     *
-     *             <b>Thread t1 = new Thread();</b>  
-     *             if (t1 != null)
-     *                 System.out.println("new Thread() succeed");
-     *             else {
-     *                 System.out.println("new Thread() failed"); 
-     *                 failed++; 
-     *             }
-     *         }
-     *     }
-     * </pre></blockquote>
      *
      * @see     java.lang.Thread#Thread(java.lang.ThreadGroup,
      *          java.lang.Runnable, java.lang.String)
      */
     public Thread() {
-	init(null, null, "Thread-" + nextThreadNum());
+	init(null, null, "Thread-" + nextThreadNum(), 0);
     }
 
     /**
@@ -337,7 +329,7 @@ class Thread implements Runnable {
      *          java.lang.Runnable, java.lang.String)
      */
     public Thread(Runnable target) {
-	init(null, target, "Thread-" + nextThreadNum());
+	init(null, target, "Thread-" + nextThreadNum(), 0);
     }
 
     /**
@@ -355,7 +347,7 @@ class Thread implements Runnable {
      *             java.lang.Runnable, java.lang.String)
      */
     public Thread(ThreadGroup group, Runnable target) {
-	init(group, target, "Thread-" + nextThreadNum());
+	init(group, target, "Thread-" + nextThreadNum(), 0);
     }
 
     /**
@@ -367,7 +359,7 @@ class Thread implements Runnable {
      *          java.lang.Runnable, java.lang.String)
      */
     public Thread(String name) {
-	init(null, null, name);
+	init(null, null, name, 0);
     }
 
     /**
@@ -382,7 +374,7 @@ class Thread implements Runnable {
      *          java.lang.Runnable, java.lang.String)
      */
     public Thread(ThreadGroup group, String name) {
-	init(group, null, name);
+	init(group, null, name, 0);
     }
 
     /**
@@ -395,7 +387,7 @@ class Thread implements Runnable {
      *          java.lang.Runnable, java.lang.String)
      */
     public Thread(Runnable target, String name) {
-	init(null, target, name);
+	init(null, target, name, 0);
     }
 
     /**
@@ -404,9 +396,13 @@ class Thread implements Runnable {
      * <code>name</code> as its name, and belongs to the thread group 
      * referred to by <code>group</code>.
      * <p>
-     * If <code>group</code> is <code>null</code>, the group is
-     * set to be the same ThreadGroup as 
-     * the thread that is creating the new thread. 
+     * If <code>group</code> is <code>null</code> and there is a 
+     * security manager, the group is determined by the security manager's 
+     * <code>getThreadGroup</code> method. If <code>group</code> is 
+     * <code>null</code> and there is not a security manager, or the
+     * security manager's <code>getThreadGroup</code> method returns 
+     * <code>null</code>, the group is set to be the same ThreadGroup 
+     * as the thread that is creating the new thread.
      * 
      * <p>If there is a security manager, its <code>checkAccess</code> 
      * method is called with the ThreadGroup as its argument.
@@ -441,7 +437,68 @@ class Thread implements Runnable {
      * @see        SecurityManager#checkAccess
      */
     public Thread(ThreadGroup group, Runnable target, String name) {
-	init(group, target, name);
+	init(group, target, name, 0);
+    }
+
+    /**
+     * Allocates a new <code>Thread</code> object so that it has
+     * <code>target</code> as its run object, has the specified
+     * <code>name</code> as its name, belongs to the thread group referred to
+     * by <code>group</code>, and has the specified <i>stack size</i>.
+     *
+     * <p>This constructor is identical to {@link
+     * #Thread(ThreadGroup,Runnable,String)} with the exception of the fact
+     * that it allows the thread stack size to be specified.  The stack size
+     * is the approximate number of bytes of address space that the virtual
+     * machine is to allocate for this thread's stack.  <b>The effect of the
+     * <tt>stackSize</tt> parameter, if any, is highly platform dependent.</b>
+     *
+     * <p>On some platforms, specifying a higher value for the
+     * <tt>stackSize</tt> parameter may allow a thread to achieve greater
+     * recursion depth before throwing a {@link StackOverflowError}.
+     * Similarly, specifying a lower value may allow a greater number of
+     * threads to exist concurrently without throwing an an {@link
+     * OutOfMemoryError} (or other internal error).  The details of
+     * the relationship between the value of the <tt>stackSize</tt> parameter
+     * and the maximum recursion depth and concurrency level are
+     * platform-dependent.  <b>On some platforms, the value of the
+     * <tt>stackSize</tt> parameter may have no effect whatsoever.</b>
+     * 
+     * <p>The virtual machine is free to treat the <tt>stackSize</tt>
+     * parameter as a suggestion.  If the specified value is unreasonably low
+     * for the platform, the virtual machine may instead use some
+     * platform-specific minimum value; if the specified value is unreasonably
+     * high, the virtual machine may instead use some platform-specific
+     * maximum.  Likewise, the virtual machine is free to round the specified
+     * value up or down as it sees fit (or to ignore it completely).
+     *
+     * <p>Specifying a value of zero for the <tt>stackSize</tt> parameter will
+     * cause this constructor to behave exactly like the
+     * <tt>Thread(ThreadGroup, Runnable, String)</tt> constructor.
+     *
+     * <p><i>Due to the platform-dependent nature of the behavior of this
+     * constructor, extreme care should be exercised in its use.
+     * The thread stack size necessary to perform a given computation will
+     * likely vary from one JRE implementation to another.  In light of this
+     * variation, careful tuning of the stack size parameter may be required,
+     * and the tuning may need to be repeated for each JRE implementation on
+     * which an application is to run.</i>
+     *
+     * <p>Implementation note: Java platform implementers are encouraged to
+     * document their implementation's behavior with respect to the
+     * <tt>stackSize parameter</tt>.
+     *
+     * @param      group    the thread group.
+     * @param      target   the object whose <code>run</code> method is called.
+     * @param      name     the name of the new thread.
+     * @param      stackSize the desired stack size for the new thread, or
+     *             zero to indicate that this parameter is to be ignored.
+     * @exception  SecurityException  if the current thread cannot create a
+     *               thread in the specified thread group.
+     */
+    public Thread(ThreadGroup group, Runnable target, String name,
+                  long stackSize) {
+	init(group, target, name, stackSize);
     }
 
     /**
@@ -628,8 +685,6 @@ class Thread implements Runnable {
      *        are Thread.stop, Thread.suspend and Thread.resume Deprecated?</a>.
      */
     public final synchronized void stop(Throwable obj) {
-        //if the thread is already dead, return
-        if (!this.isAlive()) return;
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
 	    checkAccess();
@@ -647,21 +702,44 @@ class Thread implements Runnable {
     /**
      * Interrupts this thread.
      * 
-     * <p>
-     * First the <code>checkAccess</code> method of this thread is called 
-     * with no arguments. This may result in throwing a 
-     * <code>SecurityException</code>. 
+     * <p> First the {@link #checkAccess() checkAccess} method of this thread
+     * is invoked, which may cause a {@link SecurityException} to be thrown.
+     *
+     * <p> If this thread is blocked in an invocation of the {@link
+     * Object#wait() wait()}, {@link Object#wait(long) wait(long)}, or {@link
+     * Object#wait(long, int) wait(long, int)} methods of the {@link Object}
+     * class, or of the {@link #join()}, {@link #join(long)}, {@link
+     * #join(long, int)}, {@link #sleep(long)}, or {@link #sleep(long, int)},
+     * methods of this class, then its interrupt status will be cleared and it
+     * will receive an {@link InterruptedException}.
+     *
+     * <p> If this thread is blocked in an I/O operation upon an {@link
+     * java.nio.channels.InterruptibleChannel </code>interruptible
+     * channel<code>} then the channel will be closed, the thread's interrupt
+     * status will be set, and the thread will receive a {@link
+     * java.nio.channels.ClosedByInterruptException}.
+     *
+     * <p> If this thread is blocked in a {@link java.nio.channels.Selector}
+     * then the thread's interrupt status will be set and it will return
+     * immediately from the selection operation, possibly with a non-zero
+     * value, just as if the selector's {@link
+     * java.nio.channels.Selector#wakeup wakeup} method were invoked.
+     *
+     * <p> If none of the previous conditions hold then this thread's interrupt
+     * status will be set. </p>
      * 
-     * @exception  SecurityException  if the current thread cannot modify
-     *         this thread.
+     * @throws  SecurityException
+     *          if the current thread cannot modify this thread
+     *
+     * @revised 1.4
+     * @spec JSR-51
      */
-	// Note that this method is not synchronized.  Three reasons for this:
-	// 1) It changes the API.
-	// 2) It's another place where the system could hang.
-	// 3) All we're doing is turning on a one-way bit.  It doesn't matter
-	//    exactly when it's done WRT probes via the interrupted() method.
     public void interrupt() {
 	checkAccess();
+	Interruptible b = blocker;
+	if (b != null) {
+	    b.interrupt();
+	}
 	interrupt0();
     }
 
@@ -810,7 +888,7 @@ class Thread implements Runnable {
     /**
      * Returns this thread's priority.
      *
-     * @return  this thread's name.
+     * @return  this thread's priority.
      * @see     #setPriority
      * @see     java.lang.Thread#setPriority(int)
      */
@@ -861,10 +939,11 @@ class Thread implements Runnable {
     }
 
     /**
-     * Returns the current number of active threads in this thread's 
-     * thread group.
+     * Returns the number of active threads in the current thread's thread
+     * group.
      *
-     * @return  the current number of threads in this thread's thread group.
+     * @return  the number of active threads in the current thread's thread
+     *          group.
      */
     public static int activeCount() {
 	return currentThread().getThreadGroup().activeCount();
@@ -872,8 +951,8 @@ class Thread implements Runnable {
 
     /**
      * Copies into the specified array every active thread in 
-     * this thread's thread group and its subgroups. This method simply 
-     * calls the <code>enumerate</code> method of this thread's thread 
+     * the current thread's thread group and its subgroups. This method simply 
+     * calls the <code>enumerate</code> method of the current thread's thread 
      * group with the array argument. 
      * <p>
      * First, if there is a security manager, that <code>enumerate</code>
@@ -1060,9 +1139,10 @@ class Thread implements Runnable {
      * @return  a string representation of this thread.
      */
     public String toString() {
-	if (getThreadGroup() != null) {
+        ThreadGroup group = getThreadGroup();
+	if (group != null) {
 	    return "Thread[" + getName() + "," + getPriority() + "," + 
-		            getThreadGroup().getName() + "]";
+		           group.getName() + "]";
 	} else {
 	    return "Thread[" + getName() + "," + getPriority() + "," + 
 		            "" + "]";
@@ -1141,11 +1221,28 @@ class Thread implements Runnable {
 	contextClassLoader = cl;
     }
 
+    /**
+     * Returns <tt>true</tt> if and only if the current thread holds the
+     * monitor lock on the specified object.
+     *
+     * <p>This method is designed to allow a program to assert that
+     * the current thread already holds a specified lock:
+     * <pre>
+     *     assert Thread.holdsLock(obj);
+     * </pre>
+     *
+     * @param  obj the object on which to test lock ownership
+     * @throws NullPointerException if obj is <tt>null</tt>
+     * @return <tt>true</tt> if the current thread holds the monitor lock on
+     *         the specified object.
+     * @since 1.4
+     */
+    public static native boolean holdsLock(Object obj);
+
     /* Some private helper methods */
     private native void setPriority0(int newPriority);
     private native void stop0(Object o);
     private native void suspend0();
     private native void resume0();
     private native void interrupt0();
-
 }

@@ -1,4 +1,6 @@
 /*
+ * @(#)WrongTransaction.java	1.22 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,12 +20,12 @@ package org.omg.CORBA;
  * Java&nbsp;IDL exceptions</A>
  */
 
-public class WrongTransaction extends UserException {
+public final class WrongTransaction extends UserException {
     /**
      * Constructs a WrongTransaction object with an empty detail message.
      */
     public WrongTransaction() {
-	super();
+        super(WrongTransactionHelper.id());
     }
 
     /**
@@ -31,6 +33,6 @@ public class WrongTransaction extends UserException {
      * @param reason The detail message explaining what caused this exception to be thrown.
      */
     public WrongTransaction(String reason) {
-	super(reason);
+        super(WrongTransactionHelper.id() + "  " + reason);
     }
 }

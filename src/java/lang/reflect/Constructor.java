@@ -1,9 +1,14 @@
 /*
+ * @(#)Constructor.java	1.32 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.reflect;
+
+import sun.reflect.ConstructorAccessor;
+import sun.reflect.Reflection;
 
 /**
  * <code>Constructor</code> provides information about, and access to, a single
@@ -20,6 +25,7 @@ package java.lang.reflect;
  * @see java.lang.Class#getConstructor(Class[])
  * @see java.lang.Class#getDeclaredConstructors()
  *
+ * @author	Kenneth Russell
  * @author	Nakul Saraiya
  */
 public final
@@ -30,12 +36,50 @@ class Constructor extends AccessibleObject implements Member {
     private Class[]		parameterTypes;
     private Class[]		exceptionTypes;
     private int			modifiers;
+    private volatile ConstructorAccessor constructorAccessor;
+    // For sharing of ConstructorAccessors. This branching structure
+    // is currently only two levels deep (i.e., one root Constructor
+    // and potentially many Constructor objects pointing to it.)
+    private Constructor         root;
 
     /**
-     * Constructor.  Only the Java Virtual Machine may construct
-     * a Constructor.
+     * Package-private constructor used by ReflectAccess to enable
+     * instantiation of these objects in Java code from the java.lang
+     * package via sun.reflect.LangReflectAccess.
      */
-    private Constructor() {}
+    Constructor(Class declaringClass,
+                Class[] parameterTypes,
+                Class[] checkedExceptions,
+                int modifiers,
+                int slot)
+    {
+        this.clazz = declaringClass;
+        this.parameterTypes = parameterTypes;
+        this.exceptionTypes = checkedExceptions;
+        this.modifiers = modifiers;
+        this.slot = slot;
+    }
+
+    /**
+     * Package-private routine (exposed to java.lang.Class via
+     * ReflectAccess) which returns a copy of this Constructor. The copy's
+     * "root" field points to this Constructor.
+     */
+    Constructor copy() {
+        // This routine enables sharing of ConstructorAccessor objects
+        // among Constructor objects which refer to the same underlying
+        // method in the VM. (All of this contortion is only necessary
+        // because of the "accessibility" bit in AccessibleObject,
+        // which implicitly requires that new java.lang.reflect
+        // objects be fabricated for each reflective call on Class
+        // objects.)
+        Constructor res = new Constructor(clazz, parameterTypes,
+                                          exceptionTypes, modifiers, slot);
+        res.root = this;
+        // Might as well eagerly propagate this if already present
+        res.constructorAccessor = constructorAccessor;
+        return res;
+    }
 
     /**
      * Returns the <code>Class</code> object representing the class that declares
@@ -70,6 +114,9 @@ class Constructor extends AccessibleObject implements Member {
      * parameter types, in declaration order, of the constructor
      * represented by this <code>Constructor</code> object.  Returns an array of
      * length 0 if the underlying constructor takes no parameters.
+     *
+     * @return the parameter types for the constructor this object
+     * represents
      */
     public Class[] getParameterTypes() {
 	return Method.copy(parameterTypes);
@@ -80,6 +127,9 @@ class Constructor extends AccessibleObject implements Member {
      * of exceptions declared to be thrown by the underlying constructor
      * represented by this <code>Constructor</code> object.  Returns an array of
      * length 0 if the constructor declares no exceptions in its <code>throws</code> clause.
+     *
+     * @return the exception types declared as being thrown by the
+     * constructor this object represents
      */
     public Class[] getExceptionTypes() {
 	return Method.copy(exceptionTypes);
@@ -172,58 +222,34 @@ class Constructor extends AccessibleObject implements Member {
      * Individual parameters are automatically unwrapped to match
      * primitive formal parameters, and both primitive and reference
      * parameters are subject to method invocation conversions as necessary.
-     * Returns the newly created and initialized object.
      *
-     * <p>Creation proceeds with the following steps, in order:
+     * <p>If the number of formal parameters required by the underlying constructor
+     * is 0, the supplied <code>initargs</code> array may be of length 0 or null.
      *
-     * <p>If the class that declares the underlying constructor
-     * represents an abstract class, the creation throws an
-     * <code>InstantiationException</code>.
-     *
-     * <p>If this <code>Constructor</code> object enforces Java language access
-     * control and the underlying constructor is inaccessible, the
-     * creation throws an <code>IllegalAccessException</code>.
-     *
-     * <p>If the number of actual parameters supplied via <code>initargs</code> is
-     * different from the number of formal parameters required by the
-     * underlying constructor, the creation throws an
-     * <code>IllegalArgumentException</code>.
-     *
-     * <p>A new instance of the constructor's declaring class is
-     * created, and its fields are initialized to their default
-     * initial values.
-     *
-     * <p>For each actual parameter in the supplied <code>initargs</code> array:
-     *
-     * <p>If the corresponding formal parameter has a primitive type,
-     * an unwrapping conversion is attempted to convert the object
-     * value to a value of the primitive type.  If this attempt fails,
-     * the creation throws an <code>IllegalArgumentException</code>.
-     *
-     * <p>If, after possible unwrapping, the parameter value cannot be
-     * converted to the corresponding formal parameter type by a
-     * method invocation conversion, the creation throws an
-     * <code>IllegalArgumentException</code>.
-     *
-     * <p> The constructor's declaring class is initialized if it has
-     * not already been initialized.  A new instance of the constructor's
-     * declaring class is created, and its fields are initialized to
-     * their default initial values.
-     *
-     * <p>Control transfers to the underlying constructor to
-     * initialize the new instance.  If the constructor completes
-     * abruptly by throwing an exception, the exception is placed in
-     * an <code>InvocationTargetException</code> and thrown in turn to the caller
-     * of <code>newInstance</code>.
+     * <p>If the required access and argument checks succeed and the
+     * instantiation will proceed, the constructor's declaring class
+     * is initialized if it has not already been initialized.
      *
      * <p>If the constructor completes normally, returns the newly
      * created and initialized instance.
      *
-     * @exception IllegalAccessException    if the underlying constructor
-     *              is inaccessible.
-     * @exception IllegalArgumentException  if the number of actual and formal
-     *              parameters differ, or if an unwrapping  or method
-     *              invocation conversion fails.
+     * @param initargs array of objects to be passed as arguments to
+     * the constructor call; values of primitive types are wrapped in
+     * a wrapper object of the appropriate type (e.g. a <tt>float</tt>
+     * in a {@link java.lang.Float Float})
+     *
+     * @return a new object created by calling the constructor
+     * this object represents
+     * 
+     * @exception IllegalAccessException    if this <code>Constructor</code> object
+     *              enforces Java language access control and the underlying
+     *              constructor is inaccessible.
+     * @exception IllegalArgumentException  if the number of actual
+     *              and formal parameters differ; if an unwrapping
+     *              conversion for primitive arguments fails; or if,
+     *              after possible unwrapping, a parameter value
+     *              cannot be converted to the corresponding formal
+     *              parameter type by a method invocation conversion.
      * @exception InstantiationException    if the class that declares the
      *              underlying constructor represents an abstract class.
      * @exception InvocationTargetException if the underlying constructor
@@ -231,7 +257,59 @@ class Constructor extends AccessibleObject implements Member {
      * @exception ExceptionInInitializerError if the initialization provoked
      *              by this method fails.
      */
-    public native Object newInstance(Object[] initargs)
+    public Object newInstance(Object[] initargs)
 	throws InstantiationException, IllegalAccessException,
-	    IllegalArgumentException, InvocationTargetException;
+               IllegalArgumentException, InvocationTargetException
+    {
+        if (!override) {
+            if (!Reflection.quickCheckMemberAccess(clazz, modifiers)) {
+                Class caller = Reflection.getCallerClass(2);
+                if (securityCheckCache != caller) {
+                    Reflection.ensureMemberAccess(caller, clazz, null, modifiers);
+                    securityCheckCache = caller;
+                }
+            }
+        }
+        if (constructorAccessor == null) acquireConstructorAccessor();
+        return constructorAccessor.newInstance(initargs);
+    }
+
+    // NOTE that there is no synchronization used here. It is correct
+    // (though not efficient) to generate more than one
+    // ConstructorAccessor for a given Constructor. However, avoiding
+    // synchronization will probably make the implementation more
+    // scalable.
+    private void acquireConstructorAccessor() {
+        // First check to see if one has been created yet, and take it
+        // if so.
+        ConstructorAccessor tmp = null;
+        if (root != null) tmp = root.getConstructorAccessor();
+        if (tmp != null) {
+            constructorAccessor = tmp;
+            return;
+        }
+        // Otherwise fabricate one and propagate it up to the root
+        tmp = reflectionFactory.newConstructorAccessor(this);
+        setConstructorAccessor(tmp);
+    }
+
+    // Returns ConstructorAccessor for this Constructor object, not
+    // looking up the chain to the root
+    ConstructorAccessor getConstructorAccessor() {
+        return constructorAccessor;
+    }
+
+    // Sets the ConstructorAccessor for this Constructor object and
+    // (recursively) its root
+    void setConstructorAccessor(ConstructorAccessor accessor) {
+        constructorAccessor = accessor;
+        // Propagate up
+        if (root != null) {
+            root.setConstructorAccessor(accessor);
+        }
+    }
+
+    int getSlot() {
+        return slot;
+    }
 }

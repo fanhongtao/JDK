@@ -1,4 +1,6 @@
 /*
+ * @(#)ContextualRenderedImageFactory.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -50,6 +52,9 @@ public interface ContextualRenderedImageFactory extends RenderedImageFactory {
      * @param paramBlock a ParameterBlock containing the operation's
      *        sources and parameters.
      * @param image the RenderableImage being rendered.
+     * @return a <code>RenderContext</code> for 
+     *         the source at the specified index of the parameters
+     *         Vector contained in the specified ParameterBlock.
      */
     RenderContext mapRenderContext(int i,
                                    RenderContext renderContext,
@@ -65,9 +70,12 @@ public interface ContextualRenderedImageFactory extends RenderedImageFactory {
      * rendering-independent operation to adapt to a specific
      * RenderContext.
      *
-     * @param renderContext The RenderContext specifying the rendering.
+     * @param renderContext The RenderContext specifying the rendering
      * @param paramBlock a ParameterBlock containing the operation's
-     *        sources and parameters.
+     *        sources and parameters
+     * @return a <code>RenderedImage</code> from the sources and parameters
+     *         in the specified ParameterBlock and according to the 
+     *         rendering instructions in the specified RenderContext.
      */
     RenderedImage create(RenderContext renderContext,
                          ParameterBlock paramBlock);
@@ -99,6 +107,7 @@ public interface ContextualRenderedImageFactory extends RenderedImageFactory {
 
     /** 
      * Returns a list of names recognized by getProperty. 
+     * @return the list of property names.
      */
     String[] getPropertyNames();
 
@@ -108,6 +117,9 @@ public interface ContextualRenderedImageFactory extends RenderedImageFactory {
      * may produce different results.  This method may be used to
      * determine whether an existing rendering may be cached and
      * reused.  It is always safe to return true.
+     * @return <code>true</code> if successive renderings with the
+     *         same arguments might produce different results;
+     *         <code>false</code> otherwise.
      */
     boolean isDynamic();
 }

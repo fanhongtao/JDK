@@ -1,4 +1,6 @@
 /*
+ * @(#)JSplitPane.java	1.69 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -61,20 +63,21 @@ import java.io.IOException;
  * <p>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JSplitPane">JSplitPane</a> key
- * assignments.
+ * <a href="doc-files/Key-Index.html#JSplitPane"><code>JSplitPane</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @see #setDividerLocation
  * @see #resetToPreferredSizes
  *
- * @version 1.65 02/06/02
+ * @version 1.69 12/03/01
  * @author Scott Violet
  */
 public class JSplitPane extends JComponent implements Accessible
@@ -338,6 +341,11 @@ public class JSplitPane extends JComponent implements Accessible
      *
      * @param ui  the <code>SplitPaneUI</code> L&F object
      * @see UIDefaults#getUI
+     * @beaninfo
+     *        bound: true
+     *       hidden: true
+     *    attribute: visualUpdate true
+     *  description: The UI object that implements the Component's LookAndFeel. 
      */
     public void setUI(SplitPaneUI ui) {
         if ((SplitPaneUI)this.ui != ui) {
@@ -522,15 +530,22 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Determines whether the <code>JSplitPane</code> provides a UI widget
+     * Sets the value of the <code>oneTouchExpandable</code> property, 
+     * which must be <code>true</code> for the
+     * <code>JSplitPane</code> to provide a UI widget
      * on the divider to quickly expand/collapse the divider.
+     * The default value of this property is <code>false</code>.
+     * Some look and feels might not support one-touch expanding;
+     * they will ignore this property.
      *
-     * @param newValue a boolean, where true means to provide a
+     * @param newValue <code>true</code> to specify that the split pane should provide a
      *        collapse/expand widget
      * @beaninfo
      *        bound: true
      *  description: UI widget on the divider to quickly 
      *               expand/collapse the divider.
+     *
+     * @see #isOneTouchExpandable
      */
     public void setOneTouchExpandable(boolean newValue) {
         boolean           oldValue = oneTouchExpandable;
@@ -542,10 +557,10 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Returns true if the pane provides a UI widget to collapse/expand
-     * the divider.
+     * Gets the <code>oneTouchExpandable</code> property.
      *
-     * @return true if the split pane provides a collapse/expand widget
+     * @return the value of the <code>oneTouchExpandable</code> property
+     * @see #setOneTouchExpandable
      */
     public boolean isOneTouchExpandable() {
         return oneTouchExpandable;
@@ -628,16 +643,22 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Sets whether or not the child components are continuously
-     * redisplayed and layed out during user intervention.
+     * Sets the value of the <code>continuousLayout</code> property,
+     * which must be <code>true</code> for the child components
+     * to be continuously
+     * redisplayed and laid out during user intervention.
+     * The default value of this property is <code>false</code>.
+     * Some look and feels might not support continuous layout;
+     * they will ignore this property.
      *
-     * @param newContinuousLayout  a boolean, true if the components
-     *        are continuously redrawn as the divider changes position
+     * @param newContinuousLayout  <code>true</code> if the components
+     *        should continuously be redrawn as the divider changes position
      * @beaninfo
      *        bound: true
-     *  description: Whether or not the child components are
-     *               continuously redisplayed and layed out during
+     *  description: Whether the child components are
+     *               continuously redisplayed and laid out during
      *               user intervention.
+     * @see #isContinuousLayout
      */
     public void setContinuousLayout(boolean newContinuousLayout) {
         boolean           oldCD = continuousLayout;
@@ -649,11 +670,10 @@ public class JSplitPane extends JComponent implements Accessible
 
 
     /**
-     * Returns true if the child comopnents are continuously redisplayed and
-     * layed out during user intervention.
+     * Gets the <code>continuousLayout</code> property.
      *
-     * @return true if the components are continuously redrawn as the
-     *         divider changes position
+     * @return the value of the <code>continuousLayout</code> property
+     * @see #setContinuousLayout
      */
     public boolean isContinuousLayout() {
         return continuousLayout;
@@ -915,8 +935,8 @@ public class JSplitPane extends JComponent implements Accessible
      * right/bottom child component, and a component with that identifier
      * was previously added, it will be removed and then <code>comp</code>
      * will be added in its place. If <code>constraints</code> is not
-     * one of the known identifers the layout manager may throw an
-     * IllegalArgumentException.
+     * one of the known identifiers the layout manager may throw an
+     * <code>IllegalArgumentException</code>.
      * <p>
      * The possible constraints objects (Strings) are:
      * <ul>
@@ -1017,8 +1037,12 @@ public class JSplitPane extends JComponent implements Accessible
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-        if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-            ui.installUI(this);
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
         }
     }
 
@@ -1083,10 +1107,12 @@ public class JSplitPane extends JComponent implements Accessible
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJSplitPane extends AccessibleJComponent 
         implements AccessibleValue {

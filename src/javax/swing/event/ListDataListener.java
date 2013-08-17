@@ -1,4 +1,6 @@
 /*
+ * @(#)ListDataListener.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,7 +12,7 @@ import java.util.EventListener;
 /**
  * ListDataListener
  *
- * @version 1.10 02/06/02
+ * @version 1.11 12/03/01
  * @author Hans Muller
  */
 public interface ListDataListener extends EventListener {
@@ -20,7 +22,8 @@ public interface ListDataListener extends EventListener {
      * interval have been inserted in the data model.
      * The new interval includes both index0 and index1.
      *
-     * @param e  a ListDataEvent encapuslating the event information
+     * @param e  a <code>ListDataEvent</code> encapsulating the
+     *    event information
      */
     void intervalAdded(ListDataEvent e);
 
@@ -30,7 +33,8 @@ public interface ListDataListener extends EventListener {
      * have been removed from the data model.  The interval 
      * includes both index0 and index1.
      *
-     * @param e  a ListDataEvent encapuslating the event information
+     * @param e  a <code>ListDataEvent</code> encapsulating the
+     *    event information
      */
     void intervalRemoved(ListDataEvent e);
 
@@ -38,9 +42,11 @@ public interface ListDataListener extends EventListener {
     /** 
      * Sent when the contents of the list has changed in a way 
      * that's too complex to characterize with the previous 
-     * methods.  Index0 and index1 bracket the change.
+     * methods. For example, this is sent when an item has been
+     * replaced. Index0 and index1 bracket the change.
      *
-     * @param e  a ListDataEvent encapuslating the event information
+     * @param e  a <code>ListDataEvent</code> encapsulating the
+     *    event information
      */
     void contentsChanged(ListDataEvent e);
 }

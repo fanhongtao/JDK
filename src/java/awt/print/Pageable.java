@@ -1,4 +1,6 @@
 /*
+ * @(#)Pageable.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,7 +21,7 @@ public interface Pageable {
      * This constant is returned from the 
      * {@link #getNumberOfPages() getNumberOfPages}
      * method if a <code>Pageable</code> implementation does not know
-     * the number of pages in its set
+     * the number of pages in its set.
      */
     int UNKNOWN_NUMBER_OF_PAGES = -1;
 
@@ -41,7 +43,7 @@ public interface Pageable {
      *            <code>PageFormat</code> is being requested
      * @return the <code>PageFormat</code> describing the size and
      *		orientation.
-     * @exception <code>IndexOutOfBoundsException</code>
+     * @throws IndexOutOfBoundsException if
      *          the <code>Pageable</code> does not contain the requested
      *		page.
      */
@@ -54,7 +56,7 @@ public interface Pageable {
      * @param pageIndex the zero based index of the page whose
      *            <code>Printable</code> is being requested
      * @return the <code>Printable</code> that renders the page.
-     * @exception <code>IndexOutOfBoundsException</code>
+     * @throws IndexOutOfBoundsException if
      *            the <code>Pageable</code> does not contain the requested
      *		  page.
      */

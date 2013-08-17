@@ -1,4 +1,6 @@
 /*
+ * @(#)Adjustable.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,7 @@ import java.awt.event.*;
  * The interface for objects which have an adjustable numeric value
  * contained within a bounded range of values.
  *
- * @version 1.11 02/06/02
+ * @version 1.14 12/03/01
  * @author Amy Fowler
  * @author Tim Prinzing
  */
@@ -19,17 +21,25 @@ import java.awt.event.*;
 public interface Adjustable {
 
     /**
-     * The horizontal orientation.  
+     * Indicates that the <code>Adjustable</code> has horizontal orientation.  
      */
     public static final int HORIZONTAL = 0; 
 
     /**
-     * The vertical orientation.  
+     * Indicates that the <code>Adjustable</code> has vertical orientation.  
      */
     public static final int VERTICAL = 1;    
 
     /**
+     * Indicates that the <code>Adjustable</code> has no orientation.  
+     */
+    public static final int NO_ORIENTATION = 2;    
+
+    /**
      * Gets the orientation of the adjustable object.
+     * @return the orientation of the adjustable object;
+     *   either <code>HORIZONTAL</code>, <code>VERTICAL</code>,
+     *   or <code>NO_ORIENTATION</code>
      */
     int getOrientation();
 
@@ -41,6 +51,7 @@ public interface Adjustable {
 
     /**
      * Gets the minimum value of the adjustable object.
+     * @return the minimum value of the adjustable object
      */
     int getMinimum();
 
@@ -52,6 +63,7 @@ public interface Adjustable {
 
     /**
      * Gets the maximum value of the adjustable object.
+     * @return the maximum value of the adjustable object
      */
     int getMaximum();
 
@@ -63,6 +75,7 @@ public interface Adjustable {
 
     /**
      * Gets the unit value increment for the adjustable object.
+     * @return the unit value increment for the adjustable object
      */
     int getUnitIncrement();
 
@@ -74,18 +87,20 @@ public interface Adjustable {
 
     /**
      * Gets the block value increment for the adjustable object.
+     * @return the block value increment for the adjustable object
      */
     int getBlockIncrement();
 
     /**
-     * Sets the length of the proportionl indicator of the
+     * Sets the length of the proportional indicator of the
      * adjustable object.
      * @param v the length of the indicator
      */
     void setVisibleAmount(int v);
 
     /**
-     * Gets the length of the propertional indicator.
+     * Gets the length of the proportional indicator.
+     * @return the length of the proportional indicator
      */
     int getVisibleAmount();
 
@@ -99,13 +114,14 @@ public interface Adjustable {
 
     /**
      * Gets the current value of the adjustable object.
+     * @return the current value of the adjustable object
      */
     int getValue();
 
     /**
-     * Add a listener to recieve adjustment events when the value of
+     * Adds a listener to receive adjustment events when the value of
      * the adjustable object changes.
-     * @param l the listener to recieve events
+     * @param l the listener to receive events
      * @see AdjustmentEvent
      */    
     void addAdjustmentListener(AdjustmentListener l);

@@ -1,4 +1,6 @@
 /*
+ * @(#)TCKind.java	1.25 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,7 +11,7 @@ package org.omg.CORBA;
 /**
  * The Java mapping of the IDL enum <code>TCKind</code>, which
  * specifies the kind of a <code>TypeCode</code> object.  There is
- * one kind for each primitive and essential IDL datatype.
+ * one kind for each primitive and essential IDL data type.
  * <P>
  * The class <code>TCKind</code> consists of:
  * <UL>
@@ -433,7 +435,7 @@ public class TCKind {
      * Converts the given <code>int</code> to the corresponding
      * <code>TCKind</code> instance.
      *
-     * @param  the <code>int</code> to convert.  It must be one of
+     * @param i the <code>int</code> to convert.  It must be one of
      *         the <code>int</code> constants in the class
      *         <code>TCKind</code>.
      * @return  the <code>TCKind</code> instance whose <code>value</code>
@@ -442,7 +444,7 @@ public class TCKind {
      * match the <code>_value</code> field of
      * any <code>TCKind</code> instance
      */
-    public static TCKind from_int(int i)  throws  org.omg.CORBA.BAD_PARAM {
+    public static TCKind from_int(int i) {
 	switch (i) {
 	case _tk_null:
 	    return tk_null;
@@ -522,7 +524,7 @@ public class TCKind {
     * @deprecated Do not use this constructor as this method should be private
     * according to the OMG specification. Use {@link #from_int(int)} instead.
     *
-    * @param  the <code>int</code> to convert.  It must be one of
+    * @param  _value the <code>int</code> to convert.  It must be one of
     *         the <code>int</code> constants in the class
     *         <code>TCKind</code>.
     * @return  a new <code>TCKind</code> instance whose <code>value</code>

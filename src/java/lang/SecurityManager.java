@@ -1,4 +1,6 @@
 /*
+ * @(#)SecurityManager.java	1.127 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -145,7 +147,7 @@ import java.net.URL;
  * BasicPermission subclass directly from Permission rather than from
  * BasicPermission. For example, 
  * for a <code>java.io.FilePermission</code> object, the permission name is
- * the pathname of a file (or directory).
+ * the path name of a file (or directory).
  *
  * <p>Some of the permission classes have an "actions" list that tells 
  * the actions that are permitted for the object.  For example, 
@@ -178,7 +180,7 @@ import java.net.URL;
  * @author  Arthur van Hoff
  * @author  Roland Schemers
  *
- * @version 1.122, 02/06/02
+ * @version 1.127, 12/03/01
  * @see     java.lang.ClassLoader
  * @see     java.lang.SecurityException
  * @see     java.lang.SecurityManager#checkTopLevelWindow(java.lang.Object)
@@ -1033,6 +1035,9 @@ class SecurityManager {
 	if (host == null) {
 	    throw new NullPointerException("host can't be null");
 	}
+	if (!host.startsWith("[") && host.indexOf(':') != -1) {
+	    host = "[" + host + "]";
+	}
 	if (port == -1) {
 	    checkPermission(new SocketPermission(host,"resolve"));
 	} else {
@@ -1082,6 +1087,9 @@ class SecurityManager {
     public void checkConnect(String host, int port, Object context) {
 	if (host == null) {
 	    throw new NullPointerException("host can't be null");
+	}
+	if (!host.startsWith("[") && host.indexOf(':') != -1) {
+	    host = "[" + host + "]";
 	}
 	if (port == -1)
 	    checkPermission(new SocketPermission(host,"resolve"),
@@ -1154,6 +1162,9 @@ class SecurityManager {
 	if (host == null) {
 	    throw new NullPointerException("host can't be null");
 	}
+	if (!host.startsWith("[") && host.indexOf(':') != -1) {
+	    host = "[" + host + "]";
+	}
 	checkPermission(new SocketPermission(host+":"+port,"accept"));
     }
 
@@ -1180,8 +1191,11 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkMulticast(InetAddress maddr) {
-      	checkPermission(new SocketPermission(maddr.getHostAddress(),
-					     "accept,connect"));
+	String host = maddr.getHostAddress();
+	if (!host.startsWith("[") && host.indexOf(':') != -1) {
+	    host = "[" + host + "]";
+	}
+      	checkPermission(new SocketPermission(host, "accept,connect"));
     }
 
     /**
@@ -1207,11 +1221,15 @@ class SecurityManager {
      * @exception  NullPointerException if the address argument is
      *             <code>null</code>.
      * @since      JDK1.1
+     * @deprecated Use #checkPermission(java.security.Permission) instead
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkMulticast(InetAddress maddr, byte ttl) {
-      	checkPermission(new SocketPermission(maddr.getHostAddress(),
-					     "accept,connect"));
+	String host = maddr.getHostAddress();
+	if (!host.startsWith("[") && host.indexOf(':') != -1) {
+	    host = "[" + host + "]";
+	}
+      	checkPermission(new SocketPermission(host, "accept,connect"));
     }
 
     /**
@@ -1301,7 +1319,6 @@ class SecurityManager {
      * @param      window   the new window that is being created.
      * @return     <code>true</code> if the calling thread is trusted to put up
      *             top-level windows; <code>false</code> otherwise.
-     * @exception  SecurityException  if creation is disallowed entirely.
      * @exception  NullPointerException if the <code>window</code> argument is
      *             <code>null</code>.
      * @see        java.awt.Window
@@ -1492,7 +1509,7 @@ class SecurityManager {
 	     */
 	    for (int i = 0; i < packageAccess.length; i++) {
 		if (pkg.startsWith(packageAccess[i]) ||
-		    pkg.equals(packageAccess[i])) {
+		    packageAccess[i].equals(pkg + ".")) {
 		    checkPermission(
 			new RuntimePermission("accessClassInPackage."+pkg));
 		}
@@ -1556,7 +1573,7 @@ class SecurityManager {
 	     */
 	    for (int i = 0; i < packageDefinition.length; i++) {
 		if (pkg.startsWith(packageDefinition[i]) ||
-		    pkg.equals(packageDefinition[i])) {
+		    packageDefinition[i].equals(pkg + ".")) {
 		    checkPermission(
 			new RuntimePermission("defineClassInPackage."+pkg));
 		}

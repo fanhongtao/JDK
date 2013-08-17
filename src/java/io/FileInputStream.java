@@ -1,17 +1,27 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)FileInputStream.java	1.57 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
+
+import java.nio.channels.FileChannel;
+import sun.nio.ch.FileChannelImpl;
+
 
 /**
  * A <code>FileInputStream</code> obtains input bytes
  * from a file in a file system. What files
  * are  available depends on the host environment.
  *
+ * <p><code>FileInputStream</code> is meant for reading streams of raw bytes
+ * such as image data. For reading streams of characters, consider using
+ * <code>FileReader</code>.
+ *
  * @author  Arthur van Hoff
- * @version 1.48, 12/02/02
+ * @version 1.57, 12/03/01
  * @see     java.io.File
  * @see     java.io.FileDescriptor
  * @see	    java.io.FileOutputStream
@@ -22,6 +32,8 @@ class FileInputStream extends InputStream
 {
     /* File Descriptor - handle to the open file */
     private FileDescriptor fd;
+
+    private FileChannel channel = null;
 
     /**
      * Creates a <code>FileInputStream</code> by
@@ -51,7 +63,7 @@ class FileInputStream extends InputStream
      * @see        java.lang.SecurityManager#checkRead(java.lang.String)
      */
     public FileInputStream(String name) throws FileNotFoundException {
-       this(new File(name));
+        this(new File(name));
     }
 
     /**
@@ -82,13 +94,14 @@ class FileInputStream extends InputStream
      * @see        java.lang.SecurityManager#checkRead(java.lang.String)
      */
     public FileInputStream(File file) throws FileNotFoundException {
-        String name = file.getPath();
-        SecurityManager security = System.getSecurityManager();
-        if (security != null) {
-            security.checkRead(name);
-        }
-        fd = new FileDescriptor();
-        open(name);
+	String name = file.getPath();
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkRead(name);
+	}
+	fd = new FileDescriptor();
+	open(name);
+   
     }
 
     /**
@@ -205,9 +218,19 @@ class FileInputStream extends InputStream
      * Closes this file input stream and releases any system resources
      * associated with the stream.
      *
+     * <p> If this stream has an associated channel then the channel is closed
+     * as well.
+     *
      * @exception  IOException  if an I/O error occurs.
+     *
+     * @revised 1.4
+     * @spec JSR-51
      */
-    public native void close() throws IOException;
+    public void close() throws IOException {
+        if (channel != null)
+            channel.close();
+        close0();
+    }
 
     /**
      * Returns the <code>FileDescriptor</code>
@@ -224,7 +247,33 @@ class FileInputStream extends InputStream
 	throw new IOException();
     }
 
+    /**
+     * Returns the unique {@link java.nio.channels.FileChannel FileChannel}
+     * object associated with this file input stream.
+     *
+     * <p> The initial {@link java.nio.channels.FileChannel#position()
+     * </code>position<code>} of the returned channel will be equal to the
+     * number of bytes read from the file so far.  Reading bytes from this
+     * stream will increment the channel's position.  Changing the channel's
+     * position, either explicitly or by reading, will change this stream's
+     * file position.
+     *
+     * @return  the file channel associated with this file input stream
+     *
+     * @since 1.4
+     * @spec JSR-51
+     */
+    public FileChannel getChannel() {
+	synchronized (this) {
+	    if (channel == null)
+		channel = FileChannelImpl.open(fd, true, false, this);
+	    return channel;
+	}
+    }
+
     private static native void initIDs();
+
+    private native void close0() throws IOException;
 
     static {
 	initIDs();

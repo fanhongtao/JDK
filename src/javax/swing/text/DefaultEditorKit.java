@@ -1,4 +1,6 @@
 /*
+ * @(#)DefaultEditorKit.java	1.62 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,6 +13,7 @@ import java.text.*;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 
 /**
  * This is the set of things needed by a text component
@@ -18,9 +21,35 @@ import javax.swing.SwingConstants;
  * of text document.  This implementation provides a default
  * implementation which treats text as plain text and 
  * provides a minimal set of actions for a simple editor.
+ * <p>
+ * <dl>
+ * <dt><b><font size=+1>Newlines</font></b>
+ * <dd>
+ * There are two properties which deal with newlines.  The
+ * system property, <code>line.separator</code>, is defined to be
+ * platform-dependent, either "\n", "\r", or "\r\n".  There is also
+ * a property defined in <code>DefaultEditorKit</code>, called
+ * <a href=#EndOfLineStringProperty><code>EndOfLineStringProperty</code></a>,
+ * which is defined automatically when a document is loaded, to be
+ * the first occurrence of any of the newline characters.
+ * When a document is loaded, <code>EndOfLineStringProperty</code>
+ * is set appropriately, and when the document is written back out, the
+ * <code>EndOfLineStringProperty</code> is used.  But while the document
+ * is in memory, the "\n" character is used to define a
+ * newline, regardless of how the newline is defined when
+ * the document is on disk.  Therefore, for searching purposes,
+ * "\n" should always be used.  When a new document is created,
+ * and the <code>EndOfLineStringProperty</code> has not been defined,
+ * it will use the System property when writing out the
+ * document.
+ * <p>Note that <code>EndOfLineStringProperty</code> is set
+ * on the <code>Document</code> using the <code>get/setProperty</code>
+ * methods.  Subclasses may override this behavior.
+ *
+ * </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.51 02/06/02
+ * @version 1.62 12/03/01
  */
 public class DefaultEditorKit extends EditorKit {
     
@@ -125,6 +154,18 @@ public class DefaultEditorKit extends EditorKit {
     }
 
     /**
+     * Gets the input attributes for the pane. This method exists for
+     * the benefit of StyledEditorKit so that the read method will
+     * pick up the correct attributes to apply to inserted text.
+     * This class's implementation simply returns null.
+     *
+     * @return null
+     */    
+    MutableAttributeSet getInputAttributes() {
+        return null;
+    }
+
+    /**
      * Inserts content from the given stream, which will be 
      * treated as plain text.
      * 
@@ -146,6 +187,7 @@ public class DefaultEditorKit extends EditorKit {
 	boolean isCR = false;
 	int last;
 	boolean wasEmpty = (doc.getLength() == 0);
+        AttributeSet attr = getInputAttributes();
 
 	// Read in a block at a time, mapping \r\n to \n, as well as single
         // \r's to \n's. If a \r\n is encountered, \r\n will be set as the
@@ -160,7 +202,7 @@ public class DefaultEditorKit extends EditorKit {
 		    if (lastWasCR) {
 			isCR = true;
 			if (counter == 0) {
-			    doc.insertString(pos, "\n", null);
+                            doc.insertString(pos, "\n", attr);
 			    pos++;
 			}
 			else {
@@ -175,7 +217,7 @@ public class DefaultEditorKit extends EditorKit {
 		    if (lastWasCR) {
 			if (counter > (last + 1)) {
 			    doc.insertString(pos, new String(buff, last,
-					    counter - last - 1), null);
+                                            counter - last - 1), attr);
 			    pos += (counter - last - 1);
 			}
 			// else nothing to do, can skip \r, next write will
@@ -189,7 +231,7 @@ public class DefaultEditorKit extends EditorKit {
 		    if (lastWasCR) {
 			isCR = true;
 			if (counter == 0) {
-			    doc.insertString(pos, "\n", null);
+                            doc.insertString(pos, "\n", attr);
 			    pos++;
 			}
 			else {
@@ -204,19 +246,19 @@ public class DefaultEditorKit extends EditorKit {
 		if(lastWasCR) {
 		    if (last < (nch - 1)) {
 			doc.insertString(pos, new String(buff, last,
-					 nch - last - 1), null);
+                                         nch - last - 1), attr);
 			pos += (nch - last - 1);
 		    }
 		}
 		else {
 		    doc.insertString(pos, new String(buff, last,
-				     nch - last), null);
+                                     nch - last), attr);
 		    pos += (nch - last);
 		}
 	    }
         }
 	if (lastWasCR) {
-	    doc.insertString(pos, "\n", null);
+            doc.insertString(pos, "\n", attr);
 	    isCR = true;
 	}
 	if (wasEmpty) {
@@ -495,8 +537,8 @@ public class DefaultEditorKit extends EditorKit {
     public static final String selectionDownAction = "selection-down";
 
     /**
-     * Name of the Action for moving the caret 
-     * to the begining of a word.
+     * Name of the <code>Action</code> for moving the caret 
+     * to the beginning of a word.
      * @see #getActions
      */
     public static final String beginWordAction = "caret-begin-word";
@@ -509,8 +551,8 @@ public class DefaultEditorKit extends EditorKit {
     public static final String endWordAction = "caret-end-word";
 
     /**
-     * Name of the Action for moving the caret 
-     * to the begining of a word, extending the selection.
+     * Name of the <code>Action</code> for moving the caret 
+     * to the beginning of a word, extending the selection.
      * @see #getActions
      */
     public static final String selectionBeginWordAction = "selection-begin-word";
@@ -523,107 +565,106 @@ public class DefaultEditorKit extends EditorKit {
     public static final String selectionEndWordAction = "selection-end-word";
 
     /**
-     * Name of the Action for moving the caret to the begining of the
-     * previous word.
+     * Name of the <code>Action</code> for moving the caret to the
+     * beginning of the previous word.
      * @see #getActions
      */
     public static final String previousWordAction = "caret-previous-word";
 
     /**
-     * Name of the Action for moving the caret to the begining of the
-     * next word.
-     * to the next of the document.
+     * Name of the <code>Action</code> for moving the caret to the
+     * beginning of the next word.
      * @see #getActions
      */
     public static final String nextWordAction = "caret-next-word";
 
     /**
-     * Name of the Action for moving the selection to the begining of the
-     * previous word, extending the selection.
+     * Name of the <code>Action</code> for moving the selection to the
+     * beginning of the previous word, extending the selection.
      * @see #getActions
      */
     public static final String selectionPreviousWordAction = "selection-previous-word";
 
     /**
-     * Name of the Action for moving the selection to the begining of the
-     * next word, extending the selection.
+     * Name of the <code>Action</code> for moving the selection to the
+     * beginning of the next word, extending the selection.
      * @see #getActions
      */
     public static final String selectionNextWordAction = "selection-next-word";
 
     /**
-     * Name of the Action for moving the caret 
-     * to the begining of a line.
+     * Name of the <code>Action</code> for moving the caret 
+     * to the beginning of a line.
      * @see #getActions
      */
     public static final String beginLineAction = "caret-begin-line";
 
     /**
-     * Name of the Action for moving the caret 
+     * Name of the <code>Action</code> for moving the caret 
      * to the end of a line.
      * @see #getActions
      */
     public static final String endLineAction = "caret-end-line";
 
     /**
-     * Name of the Action for moving the caret 
-     * to the begining of a line, extending the selection.
+     * Name of the <code>Action</code> for moving the caret 
+     * to the beginning of a line, extending the selection.
      * @see #getActions
      */
     public static final String selectionBeginLineAction = "selection-begin-line";
 
     /**
-     * Name of the Action for moving the caret 
+     * Name of the <code>Action</code> for moving the caret 
      * to the end of a line, extending the selection.
      * @see #getActions
      */
     public static final String selectionEndLineAction = "selection-end-line";
 
     /**
-     * Name of the Action for moving the caret 
-     * to the begining of a paragraph.
+     * Name of the <code>Action</code> for moving the caret 
+     * to the beginning of a paragraph.
      * @see #getActions
      */
     public static final String beginParagraphAction = "caret-begin-paragraph";
 
     /**
-     * Name of the Action for moving the caret 
+     * Name of the <code>Action</code> for moving the caret 
      * to the end of a paragraph.
      * @see #getActions
      */
     public static final String endParagraphAction = "caret-end-paragraph";
 
     /**
-     * Name of the Action for moving the caret 
-     * to the begining of a paragraph, extending the selection.
+     * Name of the <code>Action</code> for moving the caret 
+     * to the beginning of a paragraph, extending the selection.
      * @see #getActions
      */
     public static final String selectionBeginParagraphAction = "selection-begin-paragraph";
 
     /**
-     * Name of the Action for moving the caret 
+     * Name of the <code>Action</code> for moving the caret 
      * to the end of a paragraph, extending the selection.
      * @see #getActions
      */
     public static final String selectionEndParagraphAction = "selection-end-paragraph";
 
     /**
-     * Name of the Action for moving the caret 
-     * to the begining of the document.
+     * Name of the <code>Action</code> for moving the caret 
+     * to the beginning of the document.
      * @see #getActions
      */
     public static final String beginAction = "caret-begin";
 
     /**
-     * Name of the Action for moving the caret 
+     * Name of the <code>Action</code> for moving the caret 
      * to the end of the document.
      * @see #getActions
      */
     public static final String endAction = "caret-end";
 
     /**
-     * Name of the Action for moving the caret 
-     * to the begining of the document.
+     * Name of the <code>Action</code> for moving the caret 
+     * to the beginning of the document.
      * @see #getActions
      */
     public static final String selectionBeginAction = "selection-begin";
@@ -687,10 +728,10 @@ public class DefaultEditorKit extends EditorKit {
         new DeleteNextCharAction(), new ReadOnlyAction(),
         new WritableAction(), new CutAction(), 
         new CopyAction(), new PasteAction(),
-        new PageUpAction(pageUpAction, false), 
-	new PageDownAction(pageDownAction, false),
-        new PageUpAction(selectionPageUpAction, true), 
-	new PageDownAction(selectionPageDownAction, true),
+        new VerticalPageAction(pageUpAction, -1, false), 
+	new VerticalPageAction(pageDownAction, 1, false),
+        new VerticalPageAction(selectionPageUpAction, -1, true), 
+	new VerticalPageAction(selectionPageDownAction, 1, true),
         new PageAction(selectionPageLeftAction, true, true), 
 	new PageAction(selectionPageRightAction, false, true),
         new InsertBreakAction(), new BeepAction(),
@@ -757,10 +798,12 @@ public class DefaultEditorKit extends EditorKit {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      *
      * @see DefaultEditorKit#defaultKeyTypedAction
      * @see DefaultEditorKit#getActions
@@ -807,10 +850,12 @@ public class DefaultEditorKit extends EditorKit {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      *
      * @see DefaultEditorKit#insertContentAction
      * @see DefaultEditorKit#getActions
@@ -833,14 +878,14 @@ public class DefaultEditorKit extends EditorKit {
             JTextComponent target = getTextComponent(e);
             if ((target != null) && (e != null)) {
 		if ((! target.isEditable()) || (! target.isEnabled())) {
-		    target.getToolkit().beep();
+		    UIManager.getLookAndFeel().provideErrorFeedback(target);
 		    return;
 		}
                 String content = e.getActionCommand();
                 if (content != null) {
                     target.replaceSelection(content);
                 } else {
-                    target.getToolkit().beep();
+		    UIManager.getLookAndFeel().provideErrorFeedback(target);
                 }
             }
         }
@@ -853,10 +898,12 @@ public class DefaultEditorKit extends EditorKit {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      *
      * @see DefaultEditorKit#insertBreakAction
      * @see DefaultEditorKit#getActions
@@ -879,7 +926,7 @@ public class DefaultEditorKit extends EditorKit {
             JTextComponent target = getTextComponent(e);
             if (target != null) {
 		if ((! target.isEditable()) || (! target.isEnabled())) {
-		    target.getToolkit().beep();
+		    UIManager.getLookAndFeel().provideErrorFeedback(target);
 		    return;
 		}
                 target.replaceSelection("\n");
@@ -893,10 +940,12 @@ public class DefaultEditorKit extends EditorKit {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      *
      * @see DefaultEditorKit#insertTabAction
      * @see DefaultEditorKit#getActions
@@ -919,7 +968,7 @@ public class DefaultEditorKit extends EditorKit {
             JTextComponent target = getTextComponent(e);
             if (target != null) {
 		if ((! target.isEditable()) || (! target.isEnabled())) {
-		    target.getToolkit().beep();
+		    UIManager.getLookAndFeel().provideErrorFeedback(target);
 		    return;
 		}
                 target.replaceSelection("\t");
@@ -960,14 +1009,27 @@ public class DefaultEditorKit extends EditorKit {
                         doc.remove(Math.min(dot, mark), Math.abs(dot - mark));
                         beep = false;
                     } else if (dot > 0) {
-                        doc.remove(dot - 1, 1);
+                        int delChars = 1;
+                        
+                        if (dot > 1) {
+                            String dotChars = doc.getText(dot - 2, 2);
+                            char c0 = dotChars.charAt(0);
+                            char c1 = dotChars.charAt(1);
+                            
+                            if (c0 >= '\uD800' && c0 <= '\uDBFF' &&
+                                c1 >= '\uDC00' && c1 <= '\uDFFF') {
+                                delChars = 2;
+                            }
+                        }
+                        
+                        doc.remove(dot - delChars, delChars);
                         beep = false;
                     }
                 } catch (BadLocationException bl) {
                 }
             }
             if (beep) {
-                Toolkit.getDefaultToolkit().beep();
+		UIManager.getLookAndFeel().provideErrorFeedback(target);
             }
         }
     }
@@ -999,14 +1061,27 @@ public class DefaultEditorKit extends EditorKit {
                         doc.remove(Math.min(dot, mark), Math.abs(dot - mark));
                         beep = false;
                     } else if (dot < doc.getLength()) {
-                        doc.remove(dot, 1);
+                        int delChars = 1;
+                        
+                        if (dot < doc.getLength() - 1) {
+                            String dotChars = doc.getText(dot, 2);
+                            char c0 = dotChars.charAt(0);
+                            char c1 = dotChars.charAt(1);
+                            
+                            if (c0 >= '\uD800' && c0 <= '\uDBFF' &&
+                                c1 >= '\uDC00' && c1 <= '\uDFFF') {
+                                delChars = 2;
+                            }
+                        }
+                        
+                        doc.remove(dot, delChars);
                         beep = false;
                     }
                 } catch (BadLocationException bl) {
                 }
             }
             if (beep) {
-                Toolkit.getDefaultToolkit().beep();
+		UIManager.getLookAndFeel().provideErrorFeedback(target);
             }
         }
     }
@@ -1067,10 +1142,12 @@ public class DefaultEditorKit extends EditorKit {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      *
      * @see DefaultEditorKit#cutAction
      * @see DefaultEditorKit#getActions
@@ -1096,15 +1173,17 @@ public class DefaultEditorKit extends EditorKit {
     }
 
     /**
-     * Coies the selected region and place its contents
+     * Copies the selected region and place its contents
      * into the system clipboard.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      *
      * @see DefaultEditorKit#copyAction
      * @see DefaultEditorKit#getActions
@@ -1136,10 +1215,12 @@ public class DefaultEditorKit extends EditorKit {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      *
      * @see DefaultEditorKit#pasteAction
      * @see DefaultEditorKit#getActions
@@ -1169,10 +1250,12 @@ public class DefaultEditorKit extends EditorKit {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      *
      * @see DefaultEditorKit#beepAction
      * @see DefaultEditorKit#getActions
@@ -1190,138 +1273,165 @@ public class DefaultEditorKit extends EditorKit {
          * @param e the action event
          */
         public void actionPerformed(ActionEvent e) {
-            Toolkit.getDefaultToolkit().beep();
+            JTextComponent target = getTextComponent(e);
+	    UIManager.getLookAndFeel().provideErrorFeedback(target);
         }
     }
 
     /**
-     * Pages up vertically.  The select version of this action extends
+     * Scrolls up/down vertically.  The select version of this action extends
      * the selection, instead of simply moving the caret.
      *
      * @see DefaultEditorKit#pageUpAction
      * @see DefaultEditorKit#selectPageUpAction
      * @see DefaultEditorKit#getActions
      */
-    static class PageUpAction extends TextAction {
+    static class VerticalPageAction extends TextAction {
 
 	/** Create this object with the appropriate identifier. */
-	public PageUpAction(String nm, boolean select) {
+	public VerticalPageAction(String nm, int direction, boolean select) {
 	    super(nm);
 	    this.select = select;
+            this.direction = direction;
 	}
 
 	/** The operation to perform when this action is triggered. */
         public void actionPerformed(ActionEvent e) {
 	    JTextComponent target = getTextComponent(e);
 	    if (target != null) {
-		int scrollOffset;
-		int selectedIndex;
-		Rectangle visible = new Rectangle();
-		Rectangle r;
-		target.computeVisibleRect(visible);
-		scrollOffset = visible.y;
-		visible.y -= visible.height;
-		if(visible.y < 0)
-		    visible.y = 0;
-		scrollOffset = scrollOffset - visible.y;
-		target.scrollRectToVisible(visible);
-		
-		selectedIndex = target.getCaretPosition();
-		try {
-		    if(selectedIndex != -1) {
-			r = target.modelToView(selectedIndex);
-			if (scrollOffset == 0 && visible.y == 0 && r.y > 0) {
-			    r.y = 0;
-			}
-			else {
-			    r.y -= scrollOffset;
-			}
-			selectedIndex = target.viewToModel(new Point(r.x,r.y));
-			Document doc = target.getDocument();
-			if ((selectedIndex != 0) && 
-			    (selectedIndex  > (doc.getLength()-1))) {
-			    selectedIndex = doc.getLength()-1;
-			}
-			if(selectedIndex  < 0) {
-			    selectedIndex = 0;
-			}
-			if (select)
-			    target.moveCaretPosition(selectedIndex);
-			else
-			    target.setCaretPosition(selectedIndex);
-		    }
-		} catch(BadLocationException bl) {
-		    target.getToolkit().beep();
-		}
+		Rectangle visible = target.getVisibleRect();
+                Rectangle newVis = new Rectangle(visible);
+                int selectedIndex = target.getCaretPosition();
+                int yOffset = direction * visible.height;
+                int initialY = visible.y;
+                Caret caret = target.getCaret();
+                Point magicPosition = caret.getMagicCaretPosition();
+
+                newVis.y = constrainY(target, visible.y + yOffset, yOffset);
+                if (selectedIndex != -1) {
+                    try {
+                        Rectangle dotBounds = target.modelToView(
+                                                     selectedIndex);
+                        int x = (magicPosition != null) ? magicPosition.x :
+                                                          dotBounds.x;
+                        int newIndex;
+
+                        if (visible.contains(dotBounds.x, dotBounds.y)) {
+                            // Dot is currently visible, base the new
+                            // location off the old, or
+
+                            newIndex = target.viewToModel(
+                                new Point(x, constrainY(target,
+                                          dotBounds.y + yOffset, 0)));
+                        }
+                        else {
+                            // Dot isn't visible, choose the top or the bottom
+                            // for the new location.
+                            if (direction == -1) {
+                                newIndex = target.viewToModel(new Point(
+                                    x, newVis.y));
+                            }
+                            else {
+                                newIndex = target.viewToModel(new Point(
+                                    x, newVis.y + visible.height));
+                            }
+                        }
+                        newIndex = constrainOffset(target, newIndex);
+                        if (newIndex != selectedIndex) {
+                            // Make sure the new visible location contains
+                            // the location of dot, otherwise Caret will
+                            // cause an additional scroll.
+                            adjustScrollIfNecessary(target, newVis, initialY,
+                                                    newIndex);
+                            if (select) {
+                                target.moveCaretPosition(newIndex);
+                            }
+                            else {
+                                target.setCaretPosition(newIndex);
+                            }
+                        }
+                    } catch (BadLocationException ble) { }
+                }
+                if (magicPosition != null) {
+                    caret.setMagicCaretPosition(magicPosition);
+                }
+		target.scrollRectToVisible(newVis);
 	    }
 	}
 
+        /**
+         * Makes sure <code>y</code> is a valid location in
+         * <code>target</code>.
+         */
+        private int constrainY(JTextComponent target, int y, int vis) {
+            if (y < 0) {
+                y = 0;
+            }
+            else if (y + vis > target.getHeight()) {
+                y = Math.max(0, target.getHeight() - vis);
+            }
+            return y;
+        }
+
+        /**
+         * Ensures that <code>offset</code> is a valid offset into the
+         * model for <code>text</code>.
+         */
+        private int constrainOffset(JTextComponent text, int offset) {
+            Document doc = text.getDocument();
+
+            if ((offset != 0) && (offset > doc.getLength())) {
+                offset = doc.getLength();
+            }
+            if (offset  < 0) {
+                offset = 0;
+            }
+            return offset;
+        }
+
+        /**
+         * Adjusts the rectangle that indicates the location to scroll to
+         * after selecting <code>index</code>.
+         */
+        private void adjustScrollIfNecessary(JTextComponent text,
+                                             Rectangle visible, int initialY,
+                                             int index) {
+            try {
+                Rectangle dotBounds = text.modelToView(index);
+
+                if (dotBounds.y < visible.y ||
+                       (dotBounds.y > (visible.y + visible.height)) ||
+                       (dotBounds.y + dotBounds.height) >
+                       (visible.y + visible.height)) {
+                    int y;
+
+                    if (dotBounds.y < visible.y) {
+                        y = dotBounds.y;
+                    }
+                    else {
+                        y = dotBounds.y + dotBounds.height - visible.height;
+                    }
+                    if ((direction == -1 && y < initialY) ||
+                                        (direction == 1 && y > initialY)) {
+                        // Only adjust if won't cause scrolling upward.
+                        visible.y = y;
+                    }
+                }
+            } catch (BadLocationException ble) {}
+        }
+
+        /**
+         * Adjusts the Rectangle to contain the bounds of the character at
+         * <code>index</code> in response to a page up.
+         */
         private boolean select;
+
+        /**
+         * Direction to scroll, 1 is down, -1 is up.
+         */
+        private int direction;
     }
 
-    /**
-     * Pages down vertically.  The select version of this action extends
-     * the selection, instead of simply moving the caret.
-     *
-     * @see DefaultEditorKit#pageDownAction
-     * @see DefaultEditorKit#selectPageDownAction
-     * @see DefaultEditorKit#getActions
-     */
-    static class PageDownAction extends TextAction {
-
-	/* Create this object with the appropriate identifier. */
-	PageDownAction(String nm, boolean select) {
-	    super(nm);
-	    this.select = select;
-	}
-
-	/** The operation to perform when this action is triggered. */
-        public void actionPerformed(ActionEvent e) {
-	    JTextComponent target = getTextComponent(e);
-	    if (target != null) {
-		int scrollOffset;
-		int selectedIndex;
-		Rectangle visible = new Rectangle();
-		Rectangle r;
-		target.computeVisibleRect(visible);
-		scrollOffset = visible.y;
-		visible.y += visible.height;
-		int maxHeight = target.getHeight();
-		if((visible.y+visible.height) > maxHeight)
-		    visible.y = (maxHeight - visible.height);
-		scrollOffset = visible.y - scrollOffset;
-		target.scrollRectToVisible(visible);
-		
-		selectedIndex = target.getCaretPosition();
-		try {
-		    if(selectedIndex != -1) {
-			r = target.modelToView(selectedIndex);
-			r.y += scrollOffset;
-			if (scrollOffset == 0 &&
-			    (visible.y + visible.height == maxHeight)) {
-			    r.y = visible.y + visible.height;
-			}
-			selectedIndex = target.viewToModel(new Point(r.x,r.y));
-			Document doc = target.getDocument();
-			if ((selectedIndex != 0) && 
-			    (selectedIndex  > (doc.getLength()-1))) {
-			    selectedIndex = doc.getLength()-1;
-			}
-			if (selectedIndex  < 0) {
-			    selectedIndex = 0;
-			}
-			if (select)
-			    target.moveCaretPosition(selectedIndex);
-			else
-			    target.setCaretPosition(selectedIndex);
-		    }
-		} catch(BadLocationException bl) {
-		    target.getToolkit().beep();
-		}
-	    }
-	}
-        private boolean select;
-    }
 
     /**
      * Pages one view to the left or right.
@@ -1348,7 +1458,6 @@ public class DefaultEditorKit extends EditorKit {
 		else {
 		    visible.x += visible.width;
 		}
-		target.scrollRectToVisible(visible);
 		
 		selectedIndex = target.getCaretPosition();
 		if(selectedIndex != -1) {
@@ -1439,9 +1548,20 @@ public class DefaultEditorKit extends EditorKit {
 			magicPosition = new Point(r.x, r.y);
 		    }
 
-                    dot = target.getUI().getNextVisualPositionFrom(target, dot,
-                            (bidiCaret != null) ? bidiCaret.getDotBias() :
-			    Position.Bias.Forward, direction, bias);
+                    NavigationFilter filter = target.getNavigationFilter();
+
+                    if (filter != null) {
+                        dot = filter.getNextVisualPositionFrom
+                                     (target, dot, (bidiCaret != null) ?
+                                      bidiCaret.getDotBias() :
+                                      Position.Bias.Forward, direction, bias);
+                    }
+                    else {
+                        dot = target.getUI().getNextVisualPositionFrom
+                                     (target, dot, (bidiCaret != null) ?
+                                      bidiCaret.getDotBias() :
+                                      Position.Bias.Forward, direction, bias);
+                    }
 		    if(bias[0] == null) {
 			bias[0] = Position.Bias.Forward;
 		    }
@@ -1505,7 +1625,7 @@ public class DefaultEditorKit extends EditorKit {
                         target.setCaretPosition(begOffs);
                     }
                 } catch (BadLocationException bl) {
-                    target.getToolkit().beep();
+		    UIManager.getLookAndFeel().provideErrorFeedback(target);
                 }
             }
         }
@@ -1545,7 +1665,7 @@ public class DefaultEditorKit extends EditorKit {
                         target.setCaretPosition(endOffs);
                     }
                 } catch (BadLocationException bl) {
-                    target.getToolkit().beep();
+		    UIManager.getLookAndFeel().provideErrorFeedback(target);
                 }
             }
         }
@@ -1554,7 +1674,7 @@ public class DefaultEditorKit extends EditorKit {
     }
 
     /*
-     * Position the caret to the previousning of the word.
+     * Position the caret to the beginning of the previous word.
      * @see DefaultEditorKit#previousWordAction
      * @see DefaultEditorKit#selectPreviousWordAction
      * @see DefaultEditorKit#getActions
@@ -1576,16 +1696,27 @@ public class DefaultEditorKit extends EditorKit {
         public void actionPerformed(ActionEvent e) {
             JTextComponent target = getTextComponent(e);
             if (target != null) {
+                int offs = target.getCaretPosition();
+                boolean failed = false;
                 try {
-                    int offs = target.getCaretPosition();
                     offs = Utilities.getPreviousWord(target, offs);
+                } catch (BadLocationException bl) {
+                    if (offs != 0) {
+                        offs = 0;
+                    }
+                    else {
+                        failed = true;
+                    }
+                }
+                if (!failed) {
                     if (select) {
                         target.moveCaretPosition(offs);
                     } else {
                         target.setCaretPosition(offs);
                     }
-                } catch (BadLocationException bl) {
-                    target.getToolkit().beep();
+                }
+                else {
+		    UIManager.getLookAndFeel().provideErrorFeedback(target);
                 }
             }
         }
@@ -1616,16 +1747,28 @@ public class DefaultEditorKit extends EditorKit {
         public void actionPerformed(ActionEvent e) {
             JTextComponent target = getTextComponent(e);
             if (target != null) {
+                int offs = target.getCaretPosition();
+                boolean failed = false;
                 try {
-                    int offs = target.getCaretPosition();
                     offs = Utilities.getNextWord(target, offs);
+                } catch (BadLocationException bl) {
+                    int end = target.getDocument().getLength();
+                    if (offs != end) {
+                        offs = end;
+                    }
+                    else {
+                        failed = true;
+                    }
+                }
+                if (!failed) {
                     if (select) {
                         target.moveCaretPosition(offs);
                     } else {
                         target.setCaretPosition(offs);
                     }
-                } catch (BadLocationException bl) {
-                    target.getToolkit().beep();
+                }
+                else {
+		    UIManager.getLookAndFeel().provideErrorFeedback(target);
                 }
             }
         }
@@ -1665,7 +1808,7 @@ public class DefaultEditorKit extends EditorKit {
                         target.setCaretPosition(begOffs);
                     }
                 } catch (BadLocationException bl) {
-                    target.getToolkit().beep();
+		    UIManager.getLookAndFeel().provideErrorFeedback(target);
                 }
             }
         }
@@ -1705,7 +1848,7 @@ public class DefaultEditorKit extends EditorKit {
                         target.setCaretPosition(endOffs);
                     }
                 } catch (BadLocationException bl) {
-                    target.getToolkit().beep();
+		    UIManager.getLookAndFeel().provideErrorFeedback(target);
                 }
             }
         }
@@ -1789,7 +1932,7 @@ public class DefaultEditorKit extends EditorKit {
     }
 
     /*
-     * Move the caret to the begining of the document.
+     * Move the caret to the beginning of the document.
      * @see DefaultEditorKit#beginAction
      * @see DefaultEditorKit#getActions
      */

@@ -1,4 +1,6 @@
 /*
+ * @(#)TextLayout.java	1.86 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -24,6 +26,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Shape;
+import java.awt.font.NumericShaper;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
@@ -31,7 +34,11 @@ import java.awt.geom.Rectangle2D;
 import java.text.AttributedString;
 import java.text.AttributedCharacterIterator;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Hashtable;
+import sun.awt.font.AdvanceCache;
+import sun.awt.font.Decoration;
+import sun.awt.font.FontResolver;
 import sun.awt.font.NativeFontWrapper;
 import sun.java2d.SunGraphicsEnvironment;
 
@@ -116,13 +123,13 @@ import sun.java2d.SunGraphicsEnvironment;
  *   Font font = Font.getFont("Helvetica-bold-italic");
  *   FontRenderContext frc = g.getFontRenderContext();
  *   TextLayout layout = new TextLayout("This is a string", font, frc);
- *   layout.draw(g, loc.getX(), loc.getY());
+ *   layout.draw(g, (float)loc.getX(), (float)loc.getY());
  *
  *   Rectangle2D bounds = layout.getBounds();
  *   bounds.setRect(bounds.getX()+loc.getX(),
  *                  bounds.getY()+loc.getY(),
  *                  bounds.getWidth(),
- *                  bounds.getHeight())
+ *                  bounds.getHeight());
  *   g.draw(bounds);
  * </pre>
  * </blockquote>
@@ -138,7 +145,7 @@ import sun.java2d.SunGraphicsEnvironment;
  * </blockquote>
  * <p>
  * Responding to a right-arrow key press:
- * <blockquoute><pre>
+ * <blockquote><pre>
  *   int insertionIndex = ...;
  *   TextHitInfo next = layout.getNextRightHit(insertionIndex);
  *   if (next != null) {
@@ -154,7 +161,7 @@ import sun.java2d.SunGraphicsEnvironment;
  * <p>
  * Drawing a selection range corresponding to a substring in the source text.
  * The selected area may not be visually contiguous:
- * <blockquoute><pre>
+ * <blockquote><pre>
  *   // selStart, selLimit should be relative to the layout,
  *   // not to the source text
  *
@@ -171,7 +178,7 @@ import sun.java2d.SunGraphicsEnvironment;
  * correspond to more than one substring in the source text.  The ranges of
  * the corresponding source text substrings can be obtained with
  * <code>getLogicalRangesForVisualSelection()</code>:
- * <blockquoute><pre>
+ * <blockquote><pre>
  *   TextHitInfo selStart = ..., selLimit = ...;
  *   Shape selection = layout.getVisualHighlightShape(selStart, selLimit);
  *   g.setColor(selectionColor);
@@ -198,6 +205,138 @@ public final class TextLayout implements Cloneable {
     private TextLine.TextLineMetrics lineMetrics = null;
     private float visibleAdvance;
     private int hashCodeCache;
+
+    /**
+     * temporary optimization
+     */
+    static class OptInfo implements Decoration.Label {
+        private static final float MAGIC_ADVANCE = -12345.67f;
+
+        // cache of required information for TextLine construction
+        private FontRenderContext frc;
+        private char[] chars;
+        private Font font;
+        private LineMetrics metrics;
+        private Map attrs;
+
+        // deferred initialization 
+        private float advance;
+	private Rectangle2D vb;
+        private Decoration decoration;
+        private String str;
+
+        private OptInfo(FontRenderContext frc, char[] chars, Font font, LineMetrics metrics, Map attrs) {
+            this.frc = frc;
+            this.chars = chars;
+            this.font = font;
+            this.metrics = metrics;
+            this.attrs = attrs;
+
+	    if (attrs != null) {
+		this.attrs = new HashMap(attrs); // sigh, need to clone since might change...
+	    }
+
+            this.advance = MAGIC_ADVANCE;
+        }
+
+        TextLine createTextLine() {
+            return TextLine.fastCreateTextLine(frc, chars, font, metrics, attrs);
+        }
+
+        float getAdvance() {
+            if (advance == MAGIC_ADVANCE) {
+                AdvanceCache adv = AdvanceCache.get(font, frc);
+                advance = adv.getAdvance(chars, 0, chars.length); // we pretested the chars array so no exception here
+            }
+            return advance;
+        }
+
+        // Decoration.Label reqd.
+        public LineMetrics getLineMetrics() {
+            return metrics;
+        }
+
+        // Decoration.Label reqd.
+        public Rectangle2D getLogicalBounds() {
+            return new Rectangle2D.Float(0, -metrics.getAscent(), getAdvance(), metrics.getHeight());
+        }
+
+        // Decoration.Label reqd.
+        public void handleDraw(Graphics2D g2d, float x, float y) {
+            if (str == null) {
+                str = new String(chars, 0, chars.length);
+            }
+            g2d.drawString(str, x , y);
+        }
+
+        // Decoration.Label reqd.
+        public Rectangle2D handleGetCharVisualBounds(int index) {
+            // not used
+            throw new InternalError();
+        }
+
+        // Decoration.Label reqd.
+        public Rectangle2D handleGetVisualBounds() {
+	    AdvanceCache adv = AdvanceCache.get(font, frc);
+	    return adv.getVisualBounds(chars, 0, chars.length);
+        }
+
+        // Decoration.Label reqd.
+        public Shape handleGetOutline(float x, float y) {
+            // not used
+            throw new InternalError();
+        }
+
+        // if we could successfully draw, then return true
+        boolean draw(Graphics2D g2d, float x, float y) {
+            // If the frc differs from the graphics frc, we punt to TextLayout because the
+            // metrics might be different...
+            if (g2d.getFontRenderContext().equals(frc)) {
+                Font oldFont = g2d.getFont();
+                g2d.setFont(font);
+                    
+                getDecoration().drawTextAndDecorations(this, g2d, x, y);
+
+                g2d.setFont(oldFont);
+
+                return true;
+            }
+            return false;
+        }
+
+	Rectangle2D getVisualBounds() {
+	    if (vb == null) {
+		vb = getDecoration().getVisualBounds(this);
+	    }
+	    return (Rectangle2D)vb.clone();
+	}
+
+	Decoration getDecoration() {
+	    if (decoration == null) {
+		if (attrs == null) {
+		    decoration = Decoration.getDecoration(null);
+		} else {
+		    decoration = Decoration.getDecoration(StyledParagraph.addInputMethodAttrs(attrs));
+		}
+	    }
+	    return decoration;
+	}
+
+        static OptInfo create(FontRenderContext frc, char[] chars, Font font, LineMetrics metrics, Map attrs) {
+            // Preflight text to make sure advance cache supports it, otherwise it would throw an exception.
+            // We also need to preflight to make sure we don't require layout.  If we limit optimizations to
+            // latin-1 we handle both cases.  We could add an additional check for Japanese since currently
+            // it doesn't require layout and the advance cache would be simple, but right now we don't.
+
+            if (AdvanceCache.supportsText(chars)) {
+		if (attrs == null || attrs.get(TextAttribute.CHAR_REPLACEMENT) == null) {
+		    return new OptInfo(frc, chars, font, metrics, attrs);
+		}
+            }
+            return null;
+        }
+    }
+    private OptInfo optInfo;
 
     /*
      * TextLayouts are supposedly immutable.  If you mutate a TextLayout under
@@ -309,7 +448,7 @@ public final class TextLayout implements Cloneable {
      * The <code>String</code> must specify a single paragraph of text, 
      * because an entire paragraph is required for the bidirectional
      * algorithm.
-     * @param str the text to display
+     * @param string the text to display
      * @param font a <code>Font</code> used to style the text
      * @param frc contains information about a graphics device which is needed 
      *       to measure the text correctly.
@@ -334,7 +473,7 @@ public final class TextLayout implements Cloneable {
 
         char[] text = string.toCharArray();
         if (sameBaselineUpTo(font, text, 0, text.length) == text.length) {
-            fastInit(text, 0, text.length, font, null, frc);
+            fastInit(text, font, null, frc);
         } else {
             AttributedString as = new AttributedString(string);
             as.addAttribute(TextAttribute.FONT, font);
@@ -350,7 +489,7 @@ public final class TextLayout implements Cloneable {
      * <p>
      * <code>string</code> must specify a single paragraph of text because an
      * entire paragraph is required for the bidirectional algorithm.
-     * @param str the text to display
+     * @param string the text to display
      * @param attributes the attributes used to style the text
      * @param frc contains information about a graphics device which is needed 
      *       to measure the text correctly.
@@ -376,7 +515,7 @@ public final class TextLayout implements Cloneable {
         char[] text = string.toCharArray();
         Font font = singleFont(text, 0, text.length, attributes);
         if (font != null) {
-            fastInit(text, 0, text.length, font, attributes, frc);
+            fastInit(text, font, attributes, frc);
         } else {
             AttributedString as = new AttributedString(string, attributes);
             standardInit(as.getIterator(), text, frc);
@@ -401,11 +540,23 @@ public final class TextLayout implements Cloneable {
 
         Font font = (Font)attributes.get(TextAttribute.FONT);
         if (font == null) {
-                font = Font.getFont(attributes); // uses static cache in Font;
-                if (font.canDisplayUpTo(text, start, limit) != limit) {
+            if (attributes.get(TextAttribute.FAMILY) != null) {            
+                font = Font.getFont(attributes);
+                if (font.canDisplayUpTo(text, start, limit) != -1) {
                     return null;
                 }
             }
+            else {
+                FontResolver resolver = FontResolver.getInstance();
+                int fontIndex = resolver.getFontIndex(text[start]);
+                for (int i=start+1; i<limit; i++) {
+                    if (resolver.getFontIndex(text[i]) != fontIndex) {
+                        return null;
+                    }
+                }
+                font = resolver.getFont(fontIndex, attributes);
+            }
+        }
 
         if (sameBaselineUpTo(font, text, start, limit) != limit) {
             return null;
@@ -451,11 +602,10 @@ public final class TextLayout implements Cloneable {
         text.first();
         if (text.getRunLimit() == limit) {
 
-            text.first();
             Map attributes = text.getAttributes();
             Font font = singleFont(chars, 0, len, attributes);
             if (font != null) {
-                fastInit(chars, 0, len, font, attributes, frc);
+                fastInit(chars, font, attributes, frc);
                 return;
             }
         }
@@ -490,40 +640,26 @@ public final class TextLayout implements Cloneable {
     /**
      * Initialize the paragraph-specific data.
      */
-    private void paragraphInit(byte aBaseline, LineMetrics lm, Map paragraphAttrs) {
-        // Object vf = paragraphAttrs.get(TextAttribute.ORIENTATION);
-        // isVerticalLine = TextAttribute.ORIENTATION_VERTICAL.equals(vf);
-        isVerticalLine = false;
-
+    private void paragraphInit(byte aBaseline, LineMetrics lm, Map paragraphAttrs, char[] text) {
+        
         baseline = aBaseline;
 
-        baselineOffsets = lm.getBaselineOffsets();
-
         // normalize to current baseline
-        if (baselineOffsets[baseline] != 0) {
-            float base = baselineOffsets[baseline];
-            float[] temp = new float[baselineOffsets.length];
-            for (int i = 0; i < temp.length; i++)
-                temp[i] = baselineOffsets[i] - base;
-            baselineOffsets = temp;
-        }
+        baselineOffsets = TextLine.getNormalizedOffsets(lm.getBaselineOffsets(), baseline);
+        
+        justifyRatio = TextLine.getJustifyRatio(paragraphAttrs);
 
-        /*
-         * if justification is defined, use it (forcing to valid range)
-         * otherwise set to 1.0
-         */
-        Float justifyLF = (Float) paragraphAttrs.get(TextAttribute.JUSTIFICATION);
-        if (justifyLF == null) {
-            justifyRatio = 1;
-        } else {
-            justifyRatio = justifyLF.floatValue();
-
-            if (justifyRatio < 0) {
-                justifyRatio = 0;
-            } else if (justifyRatio > 1) {
-                justifyRatio = 1;
-            }
-        }
+	if (paragraphAttrs != null) {
+	    Object o = paragraphAttrs.get(TextAttribute.NUMERIC_SHAPING);
+	    if (o != null) {
+		try {
+		  NumericShaper shaper = (NumericShaper)o;
+		  shaper.shape(text, 0, text.length);
+		}
+		catch (ClassCastException e) {
+		}
+	    }
+	}
     }
 
     /*
@@ -532,12 +668,12 @@ public final class TextLayout implements Cloneable {
      * all renderable by one font (ie no embedded graphics)
      * all on one baseline
      */
-    private void fastInit(char[] text, int start, int limit, Font font, Map attrs, FontRenderContext frc) {
+    private void fastInit(char[] chars, Font font, Map attrs, FontRenderContext frc) {
         // Object vf = attrs.get(TextAttribute.ORIENTATION);
         // isVerticalLine = TextAttribute.ORIENTATION_VERTICAL.equals(vf);
         isVerticalLine = false;
 
-        LineMetrics lm = font.getLineMetrics(text, start, start+1, frc);
+        LineMetrics lm = font.getLineMetrics(chars, 0, chars.length, frc);
         byte glyphBaseline = (byte) lm.getBaselineIndex();
 
         if (attrs == null) {
@@ -545,11 +681,20 @@ public final class TextLayout implements Cloneable {
             baselineOffsets = lm.getBaselineOffsets();
             justifyRatio = 1.0f;
         } else {
-            paragraphInit(glyphBaseline, lm, attrs);
+            paragraphInit(glyphBaseline, lm, attrs, chars);
         }
 
-        characterCount = limit-start;
-        textLine = TextLine.fastCreateTextLine(frc, text, start, limit, font, lm, attrs);
+        characterCount = chars.length;
+
+        optInfo = OptInfo.create(frc, chars, font, lm, attrs);
+        if (optInfo == null) {
+            textLine = TextLine.fastCreateTextLine(frc, chars, font, lm, attrs);
+        }
+    }
+
+    private void initTextLine() {
+        textLine = optInfo.createTextLine();
+        optInfo = null;
     }
 
     /*
@@ -559,7 +704,7 @@ public final class TextLayout implements Cloneable {
      */
     private void standardInit(AttributedCharacterIterator text, char[] chars, FontRenderContext frc) {
 
-        characterCount = text.getEndIndex() - text.getBeginIndex();
+        characterCount = chars.length;
 
         // set paragraph attributes
         {
@@ -568,53 +713,27 @@ public final class TextLayout implements Cloneable {
             // and use it and its font to initialize the paragraph.
             // If not, use the first graphic to initialize.
 
-            char firstChar = text.first();
             Map paragraphAttrs = text.getAttributes();
-            Map fontAttrs = paragraphAttrs;
-            GraphicAttribute firstGraphic = (GraphicAttribute)
-                        paragraphAttrs.get(TextAttribute.CHAR_REPLACEMENT);
 
-            boolean useFirstGraphic = false;
+            boolean haveFont = TextLine.advanceToFirstFont(text);
 
-            if (firstGraphic != null) {
-
-                useFirstGraphic = true;
-
-                for (firstChar = text.setIndex(text.getRunLimit());
-                        firstChar != text.DONE;
-                        firstChar = text.setIndex(text.getRunLimit())) {
-
-                    fontAttrs = text.getAttributes();
-                    if (fontAttrs.get(TextAttribute.CHAR_REPLACEMENT) == null) {
-                        useFirstGraphic = false;
-                        break;
-                    }
-                }
-                if (useFirstGraphic) {
-                    firstChar = text.first();
-                }
+            if (haveFont) {
+                Font defaultFont = TextLine.getFontAtCurrentPos(text);
+                int charsStart = text.getIndex() - text.getBeginIndex();
+                LineMetrics lm = defaultFont.getLineMetrics(chars, charsStart, charsStart+1, frc);
+                paragraphInit((byte)lm.getBaselineIndex(), lm, paragraphAttrs, chars);
             }
-
-            if (useFirstGraphic) {
+            else {
                 // hmmm what to do here?  Just try to supply reasonable
                 // values I guess.
 
-                byte defaultBaseline = getBaselineFromGraphic(firstGraphic);
+                GraphicAttribute graphic = (GraphicAttribute)
+                                paragraphAttrs.get(TextAttribute.CHAR_REPLACEMENT);
+                byte defaultBaseline = getBaselineFromGraphic(graphic);
                 Font dummyFont = new Font(new Hashtable(5, (float)0.9));
-                LineMetrics lm = dummyFont.getLineMetrics(chars, 0, 1, frc);
-                float[] defaultOffsets = lm.getBaselineOffsets();
+                LineMetrics lm = dummyFont.getLineMetrics(" ", 0, 1, frc);
 
-                paragraphInit(defaultBaseline, lm, paragraphAttrs);
-            }
-            else {
-                Font defaultFont = (Font)fontAttrs.get(TextAttribute.FONT);
-                if (defaultFont == null) {
-                    defaultFont = SunGraphicsEnvironment.getBestFontFor(
-                                            text, text.getIndex(), text.getEndIndex());
-                }
-                int charsStart = text.getIndex() - text.getBeginIndex();
-                LineMetrics lm = defaultFont.getLineMetrics(chars, charsStart, charsStart+1, frc);
-                paragraphInit(defaultFont.getBaselineFor(firstChar), lm, paragraphAttrs);
+                paragraphInit(defaultBaseline, lm, paragraphAttrs, chars);
             }
         }
 
@@ -633,6 +752,9 @@ public final class TextLayout implements Cloneable {
     }
 
     private void buildCache() {
+        if (textLine == null) {
+            initTextLine();
+        }
 
         lineMetrics = textLine.getMetrics();
 
@@ -698,11 +820,9 @@ public final class TextLayout implements Cloneable {
     }
 
     private Rectangle2D getNaturalBounds() {
-
         ensureCache();
 
         if (naturalBounds == null) {
-
             int leftmostCharIndex = textLine.visualToLogical(0);
             float angle = textLine.getCharAngle(leftmostCharIndex);
             float leftOrTop = isVerticalLine? -dy : -dx;
@@ -807,6 +927,8 @@ public final class TextLayout implements Cloneable {
             throw new Error("Can't justify again.");
         }
 
+	ensureCache(); // make sure textLine is not null
+
         // default justification range to exclude trailing logical whitespace
         int limit = characterCount;
         while (limit > 0 && textLine.isCharWhitespace(limit-1)) {
@@ -889,6 +1011,14 @@ public final class TextLayout implements Cloneable {
      * @return the advance of this <code>TextLayout</code>.
      */
     public float getAdvance() {
+        if (optInfo != null) {
+            try {
+                return optInfo.getAdvance();
+            }
+            catch (Error e) {
+                // cache was flushed under optInfo
+            }
+        }
         ensureCache();
         return lineMetrics.advance;
     }
@@ -915,6 +1045,9 @@ public final class TextLayout implements Cloneable {
      * @return the ascent of this <code>TextLayout</code>.
      */
     public float getAscent() {
+        if (optInfo != null) {
+            return optInfo.getLineMetrics().getAscent();
+        }
         ensureCache();
         return lineMetrics.ascent;
     }
@@ -928,6 +1061,9 @@ public final class TextLayout implements Cloneable {
      * @return the descent of this <code>TextLayout</code>.
      */
     public float getDescent() {
+        if (optInfo != null) {
+            return optInfo.getLineMetrics().getDescent();
+        }
         ensureCache();
         return lineMetrics.descent;
     }
@@ -953,6 +1089,9 @@ public final class TextLayout implements Cloneable {
      * @return the leading of this <code>TextLayout</code>.
      */
     public float getLeading() {
+        if (optInfo != null) {
+            return optInfo.getLineMetrics().getLeading();
+        }
         ensureCache();
         return lineMetrics.leading;
     }
@@ -966,6 +1105,10 @@ public final class TextLayout implements Cloneable {
      *        <code>TextLayout</code>.
      */
     public Rectangle2D getBounds() {
+	if (optInfo != null) {
+	    return optInfo.getVisualBounds();
+	}
+
         ensureCache();
 
         if (boundsRect == null) {
@@ -1002,7 +1145,7 @@ public final class TextLayout implements Cloneable {
      *         otherwise.
      */
     public boolean isLeftToRight() {
-        return textLine.isDirectionLTR();
+        return (optInfo != null) || textLine.isDirectionLTR();
     }
 
     /**
@@ -1651,7 +1794,7 @@ public final class TextLayout implements Cloneable {
      * @return a <code>Shape</code> representing the caret.
      */
     public Shape getCaretShape(TextHitInfo hit, Rectangle2D bounds) {
-
+	ensureCache();
         checkTextHit(hit);
 
         if (bounds == null) {
@@ -1717,12 +1860,17 @@ public final class TextLayout implements Cloneable {
     public byte getCharacterLevel(int index) {
 
         // hmm, allow indices at endpoints?  For now, yes.
-        if (index == -1 || index == characterCount) {
-             return (byte) (textLine.isDirectionLTR()? 0 : 1);
+        if (index < -1 || index > characterCount) {
+            throw new IllegalArgumentException("Index is out of range in getCharacterLevel.");
         }
 
-        if (index < 0 || index >= characterCount) {
-            throw new IllegalArgumentException("Index is out of range in getCharacterLevel.");
+        if (optInfo != null) {
+            return 0;
+        }
+
+	ensureCache();
+        if (index == -1 || index == characterCount) {
+             return (byte) (textLine.isDirectionLTR()? 0 : 1);
         }
 
         return textLine.getCharLevel(index);
@@ -1807,7 +1955,6 @@ public final class TextLayout implements Cloneable {
      * that uses the default caret policy and this <code>TextLayout</code>
      * object's natural bounds.  
      * @param offset an offset in this <code>TextLayout</code>
-     * @param bounds the bounds to which to extend the carets
      * @return two paths corresponding to the strong and weak caret as
      *    defined by the <code>DEFAULT_CARET_POLICY</code>
      */
@@ -2441,6 +2588,7 @@ public final class TextLayout implements Cloneable {
      */
     public int hashCode() {
         if (hashCodeCache == 0) {
+	    ensureCache();
             hashCodeCache = textLine.hashCode();
         }
         return hashCodeCache;
@@ -2477,6 +2625,7 @@ public final class TextLayout implements Cloneable {
             return true;
         }
 
+	ensureCache();
         return textLine.equals(rhs.textLine);
     }
 
@@ -2486,6 +2635,7 @@ public final class TextLayout implements Cloneable {
      *        as a <code>String</code>.
      */
     public String toString() {
+	ensureCache();
         return textLine.toString();
      }
 
@@ -2506,7 +2656,13 @@ public final class TextLayout implements Cloneable {
         if (g2 == null) {
             throw new IllegalArgumentException("Null Graphics2D passed to TextLayout.draw()");
         }
-
+        if (optInfo != null) {
+            if (optInfo.draw(g2, x, y)) { // might fail to draw because of frc change
+                return;
+            }
+            // replace with TextLine and fall through
+            initTextLine();
+        }
         textLine.draw(g2, x - dx, y - dy);
     }
 
@@ -2526,11 +2682,15 @@ public final class TextLayout implements Cloneable {
      */
     private static int sameBaselineUpTo(Font font, char[] text,
                                         int start, int limit) {
+        // current implementation doesn't support multiple baselines
+        return limit;
+        /*
         byte bl = font.getBaselineFor(text[start++]);
         while (start < limit && font.getBaselineFor(text[start]) == bl) {
             ++start;
         }
         return start;
+        */
     }
 
     static byte getBaselineFromGraphic(GraphicAttribute graphic) {
@@ -2556,7 +2716,7 @@ public final class TextLayout implements Cloneable {
    *     <code>TextLayout</code>.
    */
     public Shape getOutline(AffineTransform tx) {
-
+	ensureCache();
         return textLine.getOutline(tx);
     }
 }

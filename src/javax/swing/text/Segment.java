@@ -1,4 +1,6 @@
 /*
+ * @(#)Segment.java	1.20 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,7 +11,7 @@ import java.text.CharacterIterator;
 /**
  * A segment of a character array representing a fragment
  * of text.  It should be treated as immutable even though
- * the array is directly accessable.  This gives fast access
+ * the array is directly accessible.  This gives fast access
  * to fragments of text without the overhead of copying
  * around characters.  This is effectively an unprotected
  * String.
@@ -19,7 +21,7 @@ import java.text.CharacterIterator;
  * copying text into a string.
  *
  * @author  Timothy Prinzing
- * @version 1.19 02/06/02
+ * @version 1.20 12/03/01
  */
 public class Segment implements Cloneable, CharacterIterator {
 
@@ -42,13 +44,13 @@ public class Segment implements Cloneable, CharacterIterator {
      */
     public int count;
 
+    private boolean partialReturn;
+
     /**
      * Creates a new segment.
      */
     public Segment() {
-	array = null;
-	offset = 0;
-	count = 0;
+	this(null, 0, 0);
     }
 
     /**
@@ -62,6 +64,32 @@ public class Segment implements Cloneable, CharacterIterator {
 	this.array = array;
 	this.offset = offset;
 	this.count = count;
+	partialReturn = false;
+    }
+
+    /** 
+     * Flag to indicate that partial returns are valid.  If the flag is true, 
+     * an implementation of the interface method Document.getText(position,length,Segment) 
+     * should return as much text as possible without making a copy.  The default 
+     * state of the flag is false which will cause Document.getText(position,length,Segment) 
+     * to provide the same return behavior it always had, which may or may not 
+     * make a copy of the text depending upon the request.   
+     * 
+     * @param p whether or not partial returns are valid.
+     * @since 1.4
+     */
+    public void setPartialReturn(boolean p) {
+	partialReturn = p;
+    }
+
+    /**
+     * Flag to indicate that partial returns are valid. 
+     *
+     * @return whether or not partial returns are valid.
+     * @since 1.4
+     */
+    public boolean isPartialReturn() {
+	return partialReturn;
     }
 
     /**
@@ -114,7 +142,7 @@ public class Segment implements Cloneable, CharacterIterator {
      * @see #getIndex
      */
     public char current() {
-        if (count != 0 && pos < offset + count) {
+	if (count != 0 && pos < offset + count) {
 	    return array[pos];
 	}
 	return DONE;

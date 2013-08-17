@@ -1,4 +1,6 @@
 /*
+ * @(#)BeanContextSupport.java	1.42 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -50,7 +52,7 @@ import java.util.Map;
  * </p>
  *
  * @author Laurence P. G. Cable
- * @version 1.39, 02/06/02
+ * @version 1.42, 12/03/01
  * @since 1.2
  */
 public class      BeanContextSupport extends BeanContextChildSupport
@@ -344,11 +346,15 @@ public class      BeanContextSupport extends BeanContextChildSupport
      * Adds/nests a child within this <tt>BeanContext</tt>.
      * <p>
      * Invoked as a side effect of java.beans.Beans.instantiate().
+     * If the child object is not valid for adding then this method
+     * throws an IllegalStateException.
      * </p>
+     *
      *
      * @param targetChild The child objects to nest 
      * within this <tt>BeanContext</tt>
      * @return true if the child was added successfully.
+     * @see #validatePendingAdd
      */
     public boolean add(Object targetChild) {
 
@@ -449,8 +455,10 @@ public class      BeanContextSupport extends BeanContextChildSupport
     }
 
     /**
-     * Removes a child from this BeanContext.
+     * Removes a child from this BeanContext.  If the child object is not
+     * for adding then this method throws an IllegalStateException.
      * @param targetChild The child objects to remove
+     * @see #validatePendingRemove
      */
     public boolean remove(Object targetChild) {
 	return remove(targetChild, true);
@@ -696,7 +704,8 @@ public class      BeanContextSupport extends BeanContextChildSupport
 
     /**
      * Sets the locale of this BeanContext.
-     * @param newLocale the new locale
+     * @param newLocale the new locale. This method call will have
+     *        no effect if newLocale is <CODE>null</CODE>.
      * @throws PropertyVetoException if the new value is rejected
      */
     public synchronized void setLocale(Locale newLocale) throws PropertyVetoException {
@@ -1105,7 +1114,7 @@ public class      BeanContextSupport extends BeanContextChildSupport
      * immediately prior to their being added to the BeanContext. 
      * </p>
      *
-     * @returns true iff the child may be added to this BeanContext, otherwise false.
+     * @return true iff the child may be added to this BeanContext, otherwise false.
      */
 
     protected boolean validatePendingAdd(Object targetChild) {
@@ -1119,7 +1128,7 @@ public class      BeanContextSupport extends BeanContextChildSupport
      * immediately prior to their being removed from the BeanContext. 
      * </p>
      *
-     * @returns true iff the child may be removed from this BeanContext, otherwise false.
+     * @return true iff the child may be removed from this BeanContext, otherwise false.
      */
 
     protected boolean validatePendingRemove(Object targetChild) {
@@ -1307,7 +1316,7 @@ public class      BeanContextSupport extends BeanContextChildSupport
 
     /**
      * Gets a copy of the this BeanContext's children.
-     * @returns a copy of the current nested children
+     * @return a copy of the current nested children
      */
     protected final Object[] copyChildren() {
 	synchronized(children) { return children.keySet().toArray(); }

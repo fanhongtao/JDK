@@ -1,4 +1,6 @@
 /*
+ * @(#)DataInputStream.java	1.56 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,27 +18,29 @@ package java.io;
  * more information, see X/Open Company Ltd., "File System Safe
  * UCS Transformation Format (FSS_UTF)", X/Open Preliminary
  * Specification, Document Number: P316. This information also
- * appears in ISO/IEC 10646, Annex P.)
+ * appears in ISO/IEC 10646, Annex P.) Note that in the 
+ * following tables, the most significant bit appears in the
+ * far left-hand column.
  * <p>
  * All characters in the range <code>'&#92;u0001'</code> to
  * <code>'&#92;u007F'</code> are represented by a single byte:
  * <center><table border="3">
- *   <tr><td><i>0</i></td>  <td>bits 0-7</td></tr>
+ *   <tr><td><i>0</i></td>  <td>bits 6-0</td></tr>
  * </table></center>
  * <p>
  * The null character <code>'&#92;u0000'</code> and characters in the
  * range <code>'&#92;u0080'</code> to <code>'&#92;u07FF'</code> are
  * represented by a pair of bytes:
  * <center><table border="3">
- *   <tr><td>1</td>  <td>1</td>  <td>0</td>  <td>bits 6-10</td></tr>
- *   <tr><td>1</td>  <td>0</td>  <td colspan=2>bits 0-5</td></tr>
+ *   <tr><td>1</td>  <td>1</td>  <td>0</td>  <td>bits 10-6</td></tr>
+ *   <tr><td>1</td>  <td>0</td>  <td colspan=2>bits 5-0</td></tr>
  * </table></center><br>
  * Characters in the range <code>'&#92;u0800'</code> to
  * <code>'&#92;uFFFF'</code> are represented by three bytes:
  * <center><table border="3">
- *   <tr><td>1</td>  <td>1</td>  <td>1</td>  <td>0</td>  <td>bits 12-15</td</tr>
- *   <tr><td>1</td>  <td>0</td>  <td colspan=3>bits 6-11</td></tr>
- *   <tr><td>1</td>  <td>0</td>  <td colspan=3>bits 0-5</td></tr>
+ *   <tr><td>1</td>  <td>1</td>  <td>1</td>  <td>0</td>  <td>bits 15-12</td></tr>
+ *   <tr><td>1</td>  <td>0</td>  <td colspan=3>bits 11-6</td></tr>
+ *   <tr><td>1</td>  <td>0</td>  <td colspan=3>bits 5-0</td></tr>
  * </table></center>
  * <p>
  * The two differences between this format and the
@@ -49,7 +53,7 @@ package java.io;
  * </ul>
  *
  * @author  Arthur van Hoff
- * @version 1.52, 02/06/02
+ * @version 1.56, 12/03/01
  * @see     java.io.DataOutputStream
  * @since   JDK1.0
  */
@@ -67,12 +71,35 @@ class DataInputStream extends FilterInputStream implements DataInput {
     }
 
     /**
-     * See the general contract of the <code>read</code>
-     * method of <code>DataInput</code>.
-     * <p>
-     * Bytes
-     * for this operation are read from the contained
-     * input stream.
+     * Reads some number of bytes from the contained input stream and 
+     * stores them into the buffer array <code>b</code>. The number of 
+     * bytes actually read is returned as an integer. This method blocks 
+     * until input data is available, end of file is detected, or an 
+     * exception is thrown. 
+     * 
+     * <p>If <code>b</code> is null, a <code>NullPointerException</code> is 
+     * thrown. If the length of <code>b</code> is zero, then no bytes are 
+     * read and <code>0</code> is returned; otherwise, there is an attempt 
+     * to read at least one byte. If no byte is available because the 
+     * stream is at end of file, the value <code>-1</code> is returned;
+     * otherwise, at least one byte is read and stored into <code>b</code>. 
+     * 
+     * <p>The first byte read is stored into element <code>b[0]</code>, the 
+     * next one into <code>b[1]</code>, and so on. The number of bytes read 
+     * is, at most, equal to the length of <code>b</code>. Let <code>k</code> 
+     * be the number of bytes actually read; these bytes will be stored in 
+     * elements <code>b[0]</code> through <code>b[k-1]</code>, leaving 
+     * elements <code>b[k]</code> through <code>b[b.length-1]</code> 
+     * unaffected. 
+     * 
+     * <p>If the first byte cannot be read for any reason other than end of 
+     * file, then an <code>IOException</code> is thrown. In particular, an 
+     * <code>IOException</code> is thrown if the input stream has been closed. 
+     * 
+     * <p>The <code>read(b)</code> method has the same effect as: 
+     * <blockquote><pre>
+     * read(b, 0, b.length) 
+     * </pre></blockquote>
      *
      * @param      b   the buffer into which the data is read.
      * @return     the total number of bytes read into the buffer, or
@@ -87,12 +114,44 @@ class DataInputStream extends FilterInputStream implements DataInput {
     }
 
     /**
-     * See the general contract of the <code>read</code>
-     * method of <code>DataInput</code>.
-     * <p>
-     * Bytes
-     * for this operation are read from the contained
-     * input stream.
+     * Reads up to <code>len</code> bytes of data from the contained 
+     * input stream into an array of bytes.  An attempt is made to read 
+     * as many as <code>len</code> bytes, but a smaller number may be read, 
+     * possibly zero. The number of bytes actually read is returned as an 
+     * integer.
+     *
+     * <p> This method blocks until input data is available, end of file is
+     * detected, or an exception is thrown.
+     *
+     * <p> If <code>b</code> is <code>null</code>, a
+     * <code>NullPointerException</code> is thrown.
+     *
+     * <p> If <code>off</code> is negative, or <code>len</code> is negative, or
+     * <code>off+len</code> is greater than the length of the array
+     * <code>b</code>, then an <code>IndexOutOfBoundsException</code> is
+     * thrown.
+     *
+     * <p> If <code>len</code> is zero, then no bytes are read and
+     * <code>0</code> is returned; otherwise, there is an attempt to read at
+     * least one byte. If no byte is available because the stream is at end of
+     * file, the value <code>-1</code> is returned; otherwise, at least one
+     * byte is read and stored into <code>b</code>.
+     *
+     * <p> The first byte read is stored into element <code>b[off]</code>, the
+     * next one into <code>b[off+1]</code>, and so on. The number of bytes read
+     * is, at most, equal to <code>len</code>. Let <i>k</i> be the number of
+     * bytes actually read; these bytes will be stored in elements
+     * <code>b[off]</code> through <code>b[off+</code><i>k</i><code>-1]</code>,
+     * leaving elements <code>b[off+</code><i>k</i><code>]</code> through
+     * <code>b[off+len-1]</code> unaffected.
+     *
+     * <p> In every case, elements <code>b[0]</code> through
+     * <code>b[off]</code> and elements <code>b[off+len]</code> through
+     * <code>b[b.length-1]</code> are unaffected.
+     *
+     * <p> If the first byte cannot be read for any reason other than end of
+     * file, then an <code>IOException</code> is thrown. In particular, an
+     * <code>IOException</code> is thrown if the input stream has been closed.
      *
      * @param      b     the buffer into which the data is read.
      * @param      off   the start offset of the data.
@@ -512,11 +571,10 @@ loop:	while (true) {
      */
     public final static String readUTF(DataInput in) throws IOException {
         int utflen = in.readUnsignedShort();
-        char str[] = new char[utflen];
+        StringBuffer str = new StringBuffer(utflen);
         byte bytearr [] = new byte[utflen];
         int c, char2, char3;
 	int count = 0;
-	int strlen = 0;
 
  	in.readFully(bytearr, 0, utflen);
 
@@ -526,7 +584,7 @@ loop:	while (true) {
 	        case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
 		    /* 0xxxxxxx*/
 		    count++;
-		    str[strlen++] = (char)c;
+                    str.append((char)c);
 		    break;
 	        case 12: case 13:
 		    /* 110x xxxx   10xx xxxx*/
@@ -536,7 +594,7 @@ loop:	while (true) {
 		    char2 = (int) bytearr[count-1];
 		    if ((char2 & 0xC0) != 0x80)
 			throw new UTFDataFormatException(); 
-		    str[strlen++] = (char)(((c & 0x1F) << 6) | (char2 & 0x3F));
+                    str.append((char)(((c & 0x1F) << 6) | (char2 & 0x3F)));
 		    break;
 	        case 14:
 		    /* 1110 xxxx  10xx xxxx  10xx xxxx */
@@ -547,9 +605,9 @@ loop:	while (true) {
 		    char3 = (int) bytearr[count-1];
 		    if (((char2 & 0xC0) != 0x80) || ((char3 & 0xC0) != 0x80))
 			throw new UTFDataFormatException();	  
-		    str[strlen++] = (char)(((c & 0x0F) << 12) |
-					   ((char2 & 0x3F) << 6) |
-					   ((char3 & 0x3F) << 0));
+                    str.append((char)(((c     & 0x0F) << 12) |
+                    	              ((char2 & 0x3F) << 6)  |
+                    	              ((char3 & 0x3F) << 0)));
 		    break;
 	        default:
 		    /* 10xx xxxx,  1111 xxxx */
@@ -557,6 +615,6 @@ loop:	while (true) {
 		}
 	}
         // The number of chars produced may be less than utflen
-        return new String(str, 0, strlen);
+        return new String(str);
     }
 }

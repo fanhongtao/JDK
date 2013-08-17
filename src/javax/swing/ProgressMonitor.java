@@ -1,4 +1,6 @@
 /*
+ * @(#)ProgressMonitor.java	1.25 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -45,7 +47,7 @@ import java.awt.event.WindowEvent;
  *
  * @see ProgressMonitorInputStream
  * @author James Gosling
- * @version 1.25 02/06/02
+ * @version 1.25 12/03/01
  */
 public class ProgressMonitor extends Object
 {
@@ -163,7 +165,7 @@ public class ProgressMonitor extends Object
                 boolean gotFocus = false;
 
                 public void windowClosing(WindowEvent we) {
-                    setValue(null);
+                    setValue(cancelOption[0]);
                 }
 
                 public void windowActivated(WindowEvent we) {

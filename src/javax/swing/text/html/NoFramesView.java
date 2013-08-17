@@ -1,4 +1,6 @@
 /*
+ * @(#)NoFramesView.java	1.7 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,7 +16,7 @@ import java.awt.*;
  * when the JTextComponent the view is contained in is editable.
  *
  * @author  Sunita Mani
- * @version 1.6 02/06/02
+ * @version 1.7 12/03/01
  */
 class NoFramesView extends BlockView {
 
@@ -103,10 +105,10 @@ class NoFramesView extends BlockView {
      * axis.
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the span the view would like to be rendered into.
-     *           Typically the view is told to render into the span
-     *           that is returned, although there is no guarantee.  
-     *           The parent may choose to resize or break the view.
+     * @return   the span the view would like to be rendered into;
+     *           typically the view is told to render into the span
+     *           that is returned, although there is no guarantee;  
+     *           the parent may choose to resize or break the view
      * @see text.ParagraphView#getPreferredSpan
      */
     public float getPreferredSpan(int axis) {
@@ -121,8 +123,9 @@ class NoFramesView extends BlockView {
      * axis.  Returns 0 if the view is not visible, otherwise 
      * it calls the superclass method to get the minimum span.
      *
-     * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the minimum span the view can be rendered into.
+     * @param axis may be either <code>View.X_AXIS</code> or 
+     *		<code>View.Y_AXIS</code>
+     * @return  the minimum span the view can be rendered into
      * @see text.ParagraphView#getMinimumSpan
      */
     public float getMinimumSpan(int axis) {
@@ -137,8 +140,9 @@ class NoFramesView extends BlockView {
      * axis.  Returns 0 if the view is not visible, otherwise
      * it calls the superclass method ot get the maximum span.
      *
-     * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the maximum span the view can be rendered into.
+     * @param axis may be either <code>View.X_AXIS</code> or 
+     *	<code>View.Y_AXIS</code>
+     * @return  the maximum span the view can be rendered into
      * @see text.ParagraphView#getMaximumSpan
      */
     public float getMaximumSpan(int axis) {

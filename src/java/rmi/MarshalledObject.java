@@ -1,4 +1,6 @@
 /*
+ * @(#)MarshalledObject.java	1.30 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -33,7 +35,7 @@ import sun.rmi.server.MarshalOutputStream;
  * <p><code>MarshalledObject</code> facilitates passing objects in RMI calls
  * that are not automatically deserialized immediately by the remote peer.
  *
- * @version 1.29, 02/06/02
+ * @version 1.30, 12/03/01
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   1.2
@@ -130,7 +132,9 @@ public final class MarshalledObject implements Serializable {
 	    (locBytes == null ? null : new ByteArrayInputStream(locBytes));
 	MarshalledObjectInputStream in =
 	    new MarshalledObjectInputStream(bin, lin);
-	return in.readObject();
+	Object obj = in.readObject();
+	in.close();
+	return obj;
     }
 
     /**

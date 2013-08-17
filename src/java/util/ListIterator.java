@@ -1,4 +1,6 @@
 /*
+ * @(#)ListIterator.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,11 +8,32 @@
 package java.util;
 
 /**
- * An iterator for lists that allows the programmer to traverse the
- * list in either direction and modify the list during iteration.
+ * 
+ * An iterator for lists that allows the programmer 
+ * to traverse the list in either direction, modify 
+ * the list during iteration, and obtain the iterator's 
+ * current position in the list. A <TT>ListIterator</TT> 
+ * has no current element; its <I>cursor position</I> always 
+ * lies between the element that would be returned by a call 
+ * to <TT>previous()</TT> and the element that would be 
+ * returned by a call to <TT>next()</TT>. In a list of 
+ * length <TT>n</TT>, there are <TT>n+1</TT> valid 
+ * index values, from <TT>0</TT> to <TT>n</TT>, inclusive. 
+ * <PRE>
+ *
+ *          Element(0)   Element(1)   Element(2)   ... Element(n)   
+ *        ^            ^            ^            ^               ^
+ * Index: 0            1            2            3               n+1
+ *
+ * </PRE>
+ * <P>
+ * Note that the {@link #remove} and {@link #set(Object)} methods are
+ * <i>not</i> defined in terms of the cursor position;  they are defined to
+ * operate on the last element returned by a call to {@link #next} or {@link
+ * #previous()}.
  *
  * @author  Josh Bloch
- * @version 1.17, 02/06/02
+ * @version 1.19, 12/03/01
  * @see Collection
  * @see List
  * @see Iterator
@@ -148,10 +171,10 @@ public interface ListIterator extends Iterator {
      * 		  not supported by this list iterator.
      * 
      * @exception ClassCastException if the class of the specified element
-     * 		  prevents it from being added to this Set.
+     * 		  prevents it from being added to this list.
      * 
      * @exception IllegalArgumentException if some aspect of this element
-     *            prevents it from being added to this Collection.
+     *            prevents it from being added to this list.
      */
     void add(Object o);
 }

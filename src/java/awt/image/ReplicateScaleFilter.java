@@ -1,4 +1,6 @@
 /*
+ * @(#)ReplicateScaleFilter.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -24,7 +26,7 @@ import java.awt.Rectangle;
  * @see FilteredImageSource
  * @see ImageFilter
  *
- * @version	1.13 02/06/02
+ * @version	1.14 12/03/01
  * @author 	Jim Graham
  */
 public class ReplicateScaleFilter extends ImageFilter {
@@ -180,7 +182,7 @@ public class ReplicateScaleFilter extends ImageFilter {
 	    int srcoff = off + scansize * (sy - y);
 	    int dx;
 	    for (dx = dx1; (sx = srccols[dx]) < x + w; dx++) {
-		outpix[dx] = pixels[srcoff + sx];
+		outpix[dx] = pixels[srcoff + sx - x];
 	    }
 	    if (dx > dx1) {
 		consumer.setPixels(dx1, dy, dx - dx1, 1,
@@ -221,7 +223,7 @@ public class ReplicateScaleFilter extends ImageFilter {
 	    int srcoff = off + scansize * (sy - y);
 	    int dx;
 	    for (dx = dx1; (sx = srccols[dx]) < x + w; dx++) {
-		outpix[dx] = pixels[srcoff + sx];
+		outpix[dx] = pixels[srcoff + sx - x];
 	    }
 	    if (dx > dx1) {
 		consumer.setPixels(dx1, dy, dx - dx1, 1,

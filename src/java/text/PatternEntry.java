@@ -1,4 +1,6 @@
 /*
+ * @(#)PatternEntry.java	1.23 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -25,7 +27,7 @@ import java.lang.Character;
  * This is to be used with MergeCollation for adding patterns to an
  * existing rule table.
  * @see        MergeCollation
- * @version    1.22 02/06/02
+ * @version    1.23 12/03/01
  * @author     Mark Davis, Helena Shih
  */
 
@@ -270,7 +272,8 @@ class PatternEntry {
     }
         
     static boolean isSpecialChar(char ch) {
-        return (((ch <= '\u002F') && (ch >= '\u0020')) ||
+        return ((ch == '\u0020') ||
+		((ch <= '\u002F') && (ch >= '\u0022')) ||
                 ((ch <= '\u003F') && (ch >= '\u003A')) ||
                 ((ch <= '\u0060') && (ch >= '\u005B')) ||
                 ((ch <= '\u007E') && (ch >= '\u007B')));

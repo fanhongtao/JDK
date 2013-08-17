@@ -1,4 +1,6 @@
 /*
+ * @(#)Types.java	1.23 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -159,7 +161,7 @@ public class Types {
 
     /**
      * The constant in the Java programming language that indicates
-	 * that the SQL type is database-specific and
+     * that the SQL type is database-specific and
      * gets mapped to a Java object that can be accessed via
      * the methods <code>getObject</code> and <code>setObject</code>.
      */
@@ -169,67 +171,75 @@ public class Types {
 
     /**
      * The constant in the Java programming language, sometimes referred to
-	 * as a type code, that identifies the generic SQL type
-	 * <code>JAVA_OBJECT</code>.
-	 * @since 1.2
-     * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
+     * as a type code, that identifies the generic SQL type
+     * <code>JAVA_OBJECT</code>.
+     * @since 1.2
      */
         public final static int JAVA_OBJECT         = 2000;
 
     /**
      * The constant in the Java programming language, sometimes referred to
-	 * as a type code, that identifies the generic SQL type
-	 * <code>DISTINCT</code>.
-	 * @since 1.2
-     * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
+     * as a type code, that identifies the generic SQL type
+     * <code>DISTINCT</code>.
+     * @since 1.2
      */
         public final static int DISTINCT            = 2001;
 	
     /**
      * The constant in the Java programming language, sometimes referred to
-	 * as a type code, that identifies the generic SQL type
-	 * <code>STRUCT</code>.
-	 * @since 1.2
-     * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
+     * as a type code, that identifies the generic SQL type
+     * <code>STRUCT</code>.
+     * @since 1.2
      */
         public final static int STRUCT              = 2002;
 
     /**
      * The constant in the Java programming language, sometimes referred to
-	 * as a type code, that identifies the generic SQL type
-	 * <code>ARRAY</code>.
-	 * @since 1.2
-     * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
+     * as a type code, that identifies the generic SQL type
+     * <code>ARRAY</code>.
+     * @since 1.2
      */
         public final static int ARRAY               = 2003;
 
     /**
      * The constant in the Java programming language, sometimes referred to
-	 * as a type code, that identifies the generic SQL type
-	 * <code>BLOB</code>.
-	 * @since 1.2
-     * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
+     * as a type code, that identifies the generic SQL type
+     * <code>BLOB</code>.
+     * @since 1.2
      */
         public final static int BLOB                = 2004;
 
     /**
      * The constant in the Java programming language, sometimes referred to
-	 * as a type code, that identifies the generic SQL type
-	 * <code>CLOB</code>.
-	 * @since 1.2
-     * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
+     * as a type code, that identifies the generic SQL type
+     * <code>CLOB</code>.
+     * @since 1.2
      */
         public final static int CLOB                = 2005;
 
     /**
      * The constant in the Java programming language, sometimes referred to
-	 * as a type code, that identifies the generic SQL type
-	 * <code>REF</code>.
-	 * @since 1.2
-     * @see <a href="package-summary.html#2.0 API">What Is in the JDBC 2.0 API</a>
+     * as a type code, that identifies the generic SQL type
+     * <code>REF</code>.
+     * @since 1.2
      */
         public final static int REF                 = 2006;
         
+    /**
+     * The constant in the Java programming language, somtimes referred to
+     * as a type code, that identifies the generic SQL type <code>DATALINK</code>.
+     *
+     * @since 1.4
+     */
+    public final static int DATALINK = 70;
+
+    /**
+     * The constant in the Java programming language, somtimes referred to
+     * as a type code, that identifies the generic SQL type <code>BOOLEAN</code>.
+     *
+     * @since 1.4
+     */
+    public final static int BOOLEAN = 16;
 
     // Prevent instantiation
     private Types() {}

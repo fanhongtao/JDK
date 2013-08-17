@@ -1,4 +1,6 @@
 /*
+ * @(#)MetalTabbedPaneUI.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,10 +20,12 @@ import javax.swing.plaf.basic.BasicTabbedPaneUI;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @version 1.19 08/28/98
  * @author Tom Santos
@@ -39,6 +43,9 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
     }  
 
     protected LayoutManager createLayoutManager() {
+	if (tabPane.getTabLayoutPolicy() == JTabbedPane.SCROLL_TAB_LAYOUT) {
+            return super.createLayoutManager(); 
+	}
         return new TabbedPaneLayout();
     }  
 
@@ -606,7 +613,7 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
     }
 
     /**
-     * Overidden to do nothing for the Java L&F.
+     * Overridden to do nothing for the Java L&F.
      */
     protected int getTabLabelShiftX( int tabPlacement, int tabIndex, boolean isSelected ) {
         return 0; 
@@ -614,7 +621,7 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
 
 
     /**
-     * Overidden to do nothing for the Java L&F.
+     * Overridden to do nothing for the Java L&F.
      */
     protected int getTabLabelShiftY( int tabPlacement, int tabIndex, boolean isSelected ) {
         return 0; 
@@ -757,14 +764,20 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
                                               int x, int y, int w, int h ) {    
 	boolean leftToRight = MetalUtils.isLeftToRight(tabPane);
 	int right = x + w - 1;
-
+        Rectangle selRect = selectedIndex < 0? null :
+	                       getTabBounds(selectedIndex, calcRect);
         g.setColor(selectHighlight);
 
-        if (tabPlacement != TOP || selectedIndex < 0 || 
-            (rects[selectedIndex].y + rects[selectedIndex].height + 1 < y)) {
+	// Draw unbroken line if tabs are not on TOP, OR
+	// selected tab is not in run adjacent to content, OR
+	// selected tab is not visible (SCROLL_TAB_LAYOUT)
+	//
+         if (tabPlacement != TOP || selectedIndex < 0 || 
+            (selRect.y + selRect.height + 1 < y) ||
+	    (selRect.x < x || selRect.x > x + w)) {
             g.drawLine(x, y, x+w-2, y);
         } else {
-            Rectangle selRect = rects[selectedIndex];
+ 	    // Break line to show visual connection to selected tab
 	    boolean lastInRun = isLastInRun(selectedIndex);
 
 	    if ( leftToRight || lastInRun ) {
@@ -792,14 +805,21 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
 	boolean leftToRight = MetalUtils.isLeftToRight(tabPane);
         int bottom = y + h - 1;
 	int right = x + w - 1;
-
+        Rectangle selRect = selectedIndex < 0? null :
+	                       getTabBounds(selectedIndex, calcRect);
         g.setColor(shadow);
+
+	// Draw unbroken line if tabs are not on BOTTOM, OR
+	// selected tab is not in run adjacent to content, OR
+	// selected tab is not visible (SCROLL_TAB_LAYOUT)
+	//
         if (tabPlacement != BOTTOM || selectedIndex < 0 ||
-            (rects[selectedIndex].y - 1 > h)) {
+             (selRect.y - 1 > h) ||
+	     (selRect.x < x || selRect.x > x + w)) {
             g.setColor(darkShadow);
             g.drawLine(x, y+h-1, x+w-1, y+h-1);
         } else {
-            Rectangle selRect = rects[selectedIndex];
+	    // Break line to show visual connection to selected tab
 	    boolean lastInRun = isLastInRun(selectedIndex);
 
             g.setColor(darkShadow);
@@ -825,13 +845,20 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
     protected void paintContentBorderLeftEdge(Graphics g, int tabPlacement,
                                               int selectedIndex,
                                               int x, int y, int w, int h) { 
+        Rectangle selRect = selectedIndex < 0? null :
+	                       getTabBounds(selectedIndex, calcRect);
         g.setColor(selectHighlight); 
+
+	// Draw unbroken line if tabs are not on LEFT, OR
+	// selected tab is not in run adjacent to content, OR
+	// selected tab is not visible (SCROLL_TAB_LAYOUT)
+	//
         if (tabPlacement != LEFT || selectedIndex < 0 ||
-           (rects[selectedIndex].x + rects[selectedIndex].width + 1< x)) {
+            (selRect.x + selRect.width + 1 < x) ||
+	    (selRect.y < y || selRect.y > y + h)) {
             g.drawLine(x, y, x, y+h-2);
         } else {
-            Rectangle selRect = rects[selectedIndex];
-
+	    // Break line to show visual connection to selected tab
             g.drawLine(x, y, x, selRect.y + 1);
             if (selRect.y + selRect.height < y + h - 2) {
 	      g.drawLine(x, selRect.y + selRect.height + 1, 
@@ -843,14 +870,21 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
     protected void paintContentBorderRightEdge(Graphics g, int tabPlacement,
                                                int selectedIndex,
                                                int x, int y, int w, int h) {
+        Rectangle selRect = selectedIndex < 0? null :
+	                       getTabBounds(selectedIndex, calcRect);
         g.setColor(shadow);
+
+	// Draw unbroken line if tabs are not on RIGHT, OR
+	// selected tab is not in run adjacent to content, OR
+	// selected tab is not visible (SCROLL_TAB_LAYOUT)
+	//
         if (tabPlacement != RIGHT || selectedIndex < 0 ||
-            rects[selectedIndex].x - 1 > w) {
+             (selRect.x - 1 > w) ||
+	     (selRect.y < y || selRect.y > y + h)) {
             g.setColor(darkShadow);
             g.drawLine(x+w-1, y, x+w-1, y+h-1);
         } else {
-            Rectangle selRect = rects[selectedIndex];
-
+	    // Break line to show visual connection to selected tab
             g.setColor(darkShadow);
             g.drawLine(x+w-1, y, x+w-1, selRect.y);
 
@@ -882,7 +916,7 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
 
 
     protected int getTabRunOverlay( int tabPlacement ) {
-        // Tab runs layed out vertically should overlap
+        // Tab runs laid out vertically should overlap
         // at least as much as the largest slant
         if ( tabPlacement == LEFT || tabPlacement == RIGHT ) {
             int maxTabHeight = calculateMaxTabHeight(tabPlacement);
@@ -920,7 +954,7 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
             // doesn't look right for Metal's vertical tabs
             // because the last run isn't padded and it looks odd to have
             // fat tabs in the first vertical runs, but slimmer ones in the
-            // last (this effect isn't noticable for horizontal tabs).
+            // last (this effect isn't noticeable for horizontal tabs).
             if ( tabPlacement == TOP || tabPlacement == BOTTOM ) {
                 super.normalizeTabRuns( tabPlacement, tabCount, start, max );
             }

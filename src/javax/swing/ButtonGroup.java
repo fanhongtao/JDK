@@ -1,4 +1,6 @@
 /*
+ * @(#)ButtonGroup.java	1.32 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -41,13 +43,15 @@ import java.io.Serializable;
  * a section in <em>The Java Tutorial</em>.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.28 02/06/02
+ * @version 1.32 12/03/01
  * @author Jeff Dinkins
  */
 public class ButtonGroup implements Serializable {
@@ -56,17 +60,18 @@ public class ButtonGroup implements Serializable {
     protected Vector buttons = new Vector();
 
     /**
-     * The current choice.
+     * The current selection.
      */
     ButtonModel selection = null;
 
     /**
-     * Creates a new ButtonGroup.
+     * Creates a new <code>ButtonGroup</code>.
      */
     public ButtonGroup() {}
 
     /**
      * Adds the button to the group.
+     * @param b the button to be added
      */ 
     public void add(AbstractButton b) {
         if(b == null) {
@@ -81,6 +86,7 @@ public class ButtonGroup implements Serializable {
  
     /**
      * Removes the button from the group.
+     * @param b the button to be removed
      */ 
     public void remove(AbstractButton b) {
         if(b == null) {
@@ -94,35 +100,44 @@ public class ButtonGroup implements Serializable {
     }
 
     /**
-     * Return all the buttons that are participating in
+     * Returns all the buttons that are participating in
      * this group.
+     * @return an <code>Enumeration</code> of the buttons in this group
      */
     public Enumeration getElements() {
         return buttons.elements();
     }
 
     /**
-     * Return the selected button model.
+     * Returns the model of the selected button.
+     * @return the selected button model
      */
     public ButtonModel getSelection() {
         return selection;
     }
 
     /**
-     * Sets the selected value for the button.
+     * Sets the selected value for the <code>ButtonModel</code>.
+     * Only one button in the group may be selected at a time.
+     * @param the <code>ButtonModel</code>
+     * @param <code>true</code> if this button is to be
+     *   selected, otherwise <code>false</code>
      */
     public void setSelected(ButtonModel m, boolean b) {
-        if(b && m != selection) {
+        if (b && m != null && m != selection) {
             ButtonModel oldSelection = selection;
             selection = m;
-            if(oldSelection != null) {
+            if (oldSelection != null) {
                 oldSelection.setSelected(false);
             }
+            m.setSelected(true);
         } 
     }
 
     /**
-     * Returns the selected value for the button.
+     * Returns whether a <code>ButtonModel</code> is selected.
+     * @return <code>true</code> if the button is selected,
+     *   otherwise returns <code>false</code>
      */
     public boolean isSelected(ButtonModel m) {
         return (m == selection);
@@ -130,6 +145,7 @@ public class ButtonGroup implements Serializable {
 
     /**
      * Returns the number of buttons in the group.
+     * @return the button count
      */
     public int getButtonCount() {
 	if (buttons == null) {

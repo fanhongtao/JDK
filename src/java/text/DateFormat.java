@@ -1,4 +1,6 @@
 /*
+ * @(#)DateFormat.java	1.45 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,14 +19,18 @@
  */
 
 package java.text;
+
+import java.io.InvalidObjectException;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.MissingResourceException;
 import java.util.TimeZone;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Date;
-import java.text.resources.*;
+import sun.text.resources.LocaleData;
 
 /**
  * DateFormat is an abstract class for date/time formatting subclasses which
@@ -35,7 +41,7 @@ import java.text.resources.*;
  * as the milliseconds since January 1, 1970, 00:00:00 GMT.
  *
  * <p>DateFormat provides many class methods for obtaining default date/time
- * formatters based on the default or a given loacle and a number of formatting
+ * formatters based on the default or a given locale and a number of formatting
  * styles. The formatting styles include FULL, LONG, MEDIUM, and SHORT. More
  * detail and examples of using these styles are provided in the method
  * descriptions.
@@ -49,7 +55,7 @@ import java.text.resources.*;
  * <pre>
  *  myString = DateFormat.getDateInstance().format(myDate);
  * </pre>
- * <p>If you are formatting multiple numbers, it is
+ * <p>If you are formatting multiple dates, it is
  * more efficient to get the format and use it multiple times so that
  * the system doesn't have to fetch the information about the local
  * language and country conventions multiple times.
@@ -59,10 +65,10 @@ import java.text.resources.*;
  *    output.println(df.format(myDate[i]) + "; ");
  *  }
  * </pre>
- * <p>To format a number for a different Locale, specify it in the
+ * <p>To format a date for a different Locale, specify it in the
  * call to getDateInstance().
  * <pre>
- *  DateFormat df = DateFormat.getDateInstance(Locale.FRANCE);
+ *  DateFormat df = DateFormat.getDateInstance(DateFormat.LONG, Locale.FRANCE);
  * </pre>
  * <p>You can use a DateFormat to parse also.
  * <pre>
@@ -98,13 +104,21 @@ import java.text.resources.*;
  * on the screen.
  * </ul>
  *
+ * <h4><a name="synchronization">Synchronization</a></h4>
+ *
+ * <p>
+ * Date formats are not synchronized.
+ * It is recommended to create separate format instances for each thread.
+ * If multiple threads access a format concurrently, it must be synchronized
+ * externally.
+ *
  * @see          Format
  * @see          NumberFormat
  * @see          SimpleDateFormat
  * @see          java.util.Calendar
  * @see          java.util.GregorianCalendar
  * @see          java.util.TimeZone
- * @version      1.39 02/06/02
+ * @version      1.45 12/03/01
  * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public abstract class DateFormat extends Format {
@@ -245,11 +259,11 @@ public abstract class DateFormat extends Format {
      * 0 and 4, respectively.
      * Notice that if the same time field appears
      * more than once in a pattern, the fieldPosition will be set for the first
-     * occurence of that time field. For instance, formatting a Date to
+     * occurrence of that time field. For instance, formatting a Date to
      * the time string "1 PM PDT (Pacific Daylight Time)" using the pattern
      * "h a z (zzzz)" and the alignment field DateFormat.TIMEZONE_FIELD,
      * the begin index and end index of fieldPosition will be set to
-     * 5 and 8, respectively, for the first occurence of the timezone
+     * 5 and 8, respectively, for the first occurrence of the timezone
      * pattern character 'z'.
      * @see java.text.Format
      */
@@ -279,11 +293,11 @@ public abstract class DateFormat extends Format {
      * 0 and 4, respectively.
      * Notice that if the same time field appears
      * more than once in a pattern, the fieldPosition will be set for the first
-     * occurence of that time field. For instance, formatting a Date to
+     * occurrence of that time field. For instance, formatting a Date to
      * the time string "1 PM PDT (Pacific Daylight Time)" using the pattern
      * "h a z (zzzz)" and the alignment field DateFormat.TIMEZONE_FIELD,
      * the begin index and end index of fieldPosition will be set to
-     * 5 and 8, respectively, for the first occurence of the timezone
+     * 5 and 8, respectively, for the first occurrence of the timezone
      * pattern character 'z'.
      * @return the formatted date/time string.
      */
@@ -301,22 +315,23 @@ public abstract class DateFormat extends Format {
     }
 
     /**
-     * Parse a date/time string.
+     * Parses text from the beginning of the given string to produce a date.
+     * The method may not use the entire text of the given string.
+     * <p>
+     * See the {@link #parse(String, ParsePosition)} method for more information
+     * on date parsing.
      *
-     * @param text  The date/time string to be parsed
-     *
-     * @return      A Date, or null if the input could not be parsed
-     *
-     * @exception  ParseException  If the given string cannot be parsed as a date.
-     *
-     * @see #parse(String, ParsePosition)
+     * @param source A <code>String</code> whose beginning should be parsed.
+     * @return A <code>Date</code> parsed from the string.
+     * @exception ParseException if the beginning of the specified string
+     *            cannot be parsed.
      */
-    public Date parse(String text) throws ParseException
+    public Date parse(String source) throws ParseException
     {
         ParsePosition pos = new ParsePosition(0);
-        Date result = parse(text, pos);
+        Date result = parse(source, pos);
         if (pos.index == 0)
-            throw new ParseException("Unparseable date: \"" + text + "\"" ,
+            throw new ParseException("Unparseable date: \"" + source + "\"" ,
                 pos.errorIndex);
         return result;
     }
@@ -333,7 +348,7 @@ public abstract class DateFormat extends Format {
      *
      * @see java.text.DateFormat#setLenient(boolean)
      *
-     * @param text  The date/time string to be parsed
+     * @param source  The date/time string to be parsed
      *
      * @param pos   On input, the position at which to start parsing; on
      *              output, the position at which parsing terminated, or the
@@ -341,16 +356,33 @@ public abstract class DateFormat extends Format {
      *
      * @return      A Date, or null if the input could not be parsed
      */
-    public abstract Date parse(String text, ParsePosition pos);
+    public abstract Date parse(String source, ParsePosition pos);
 
     /**
-     * Parse a date/time string into an Object.  This convenience method simply
-     * calls parse(String, ParsePosition).
+     * Parses text from a string to produce a <code>Date</code>.
+     * <p>
+     * The method attempts to parse text starting at the index given by
+     * <code>pos</code>.
+     * If parsing succeeds, then the index of <code>pos</code> is updated
+     * to the index after the last character used (parsing does not necessarily
+     * use all characters up to the end of the string), and the parsed
+     * date is returned. The updated <code>pos</code> can be used to
+     * indicate the starting point for the next call to this method.
+     * If an error occurs, then the index of <code>pos</code> is not
+     * changed, the error index of <code>pos</code> is set to the index of
+     * the character where the error occurred, and null is returned.
+     * <p>
+     * See the {@link #parse(String, ParsePosition)} method for more information
+     * on date parsing.
      *
-     * @see #parse(String, ParsePosition)
+     * @param source A <code>String</code>, part of which should be parsed.
+     * @param pos A <code>ParsePosition</code> object with index and error
+     *            index information as described above.
+     * @return A <code>Date</code> parsed from the string. In case of
+     *         error, returns null.
+     * @exception NullPointerException if <code>pos</code> is null.
      */
-    public Object parseObject (String source, ParsePosition pos)
-    {
+    public Object parseObject(String source, ParsePosition pos) {
         return parse(source, pos);
     }
 
@@ -653,4 +685,214 @@ public abstract class DateFormat extends Format {
      * Create a new date format.
      */
     protected DateFormat() {}
+
+    /**
+     * Defines constants that are used as attribute keys in the
+     * <code>AttributedCharacterIterator</code> returned
+     * from <code>DateFormat.formatToCharacterIterator</code> and as
+     * field identifiers in <code>FieldPosition</code>.
+     * <p>
+     * The class also provides two methods to map
+     * between its constants and the corresponding Calendar constants.
+     *
+     * @since 1.4
+     * @see java.util.Calendar
+     */
+    public static class Field extends Format.Field {
+        // table of all instances in this class, used by readResolve
+        private static final Map instanceMap = new HashMap(18);
+        // Maps from Calendar constant (such as Calendar.ERA) to Field
+        // constant (such as Field.ERA).
+        private static final Field[] calendarToFieldMapping =
+                                             new Field[Calendar.FIELD_COUNT];
+
+        /** Calendar field. */
+        private int calendarField;
+
+        /**
+         * Returns the <code>Field</code> constant that corresponds to
+         * the <code>Calendar</code> constant <code>calendarField</code>.
+         * If there is no direct mapping between the <code>Calendar</code>
+         * constant and a <code>Field</code>, null is returned.
+         *
+         * @throws IllegalArgumentException if <code>calendarField</code> is
+         *         not the value of a <code>Calendar</code> field constant.
+         * @param calendarField Calendar field constant
+         * @return Field instance representing calendarField.
+         * @see java.util.Calendar
+         */
+        public static Field ofCalendarField(int calendarField) {
+            if (calendarField < 0 || calendarField >=
+                        calendarToFieldMapping.length) {
+                throw new IllegalArgumentException("Unknown Calendar constant "
+                                                   + calendarField);
+            }
+            return calendarToFieldMapping[calendarField];
+        }
+
+        /**
+         * Creates a Field with the specified name.
+         * calendarField is used to identify the <code>Calendar</code>
+         * field this attribute represents. Use -1 if this field does
+         * not have a corresponding <code>Calendar</code> value.
+         *
+         * @param name Name of the attribute
+         * @param calendarField Calendar constant
+         */
+        protected Field(String name, int calendarField) {
+            super(name);
+            this.calendarField = calendarField;
+            if (this.getClass() == DateFormat.Field.class) {
+                instanceMap.put(name, this);
+                if (calendarField >= 0) {
+                    // assert(calendarField < Calendar.FIELD_COUNT);
+                    calendarToFieldMapping[calendarField] = this;
+                }
+            }
+        }
+
+        /**
+         * Returns the <code>Calendar</code> field associated with this
+         * attribute. For example, if this represents the hours field of
+         * a <code>Calendar</code>, this would return
+         * <code>Calendar.HOUR</code>. If there is no corresponding
+         * <code>Calendar</code> constant, this will return -1.
+         *
+         * @return Calendar constant for this field
+         * @see java.util.Calendar
+         */
+        public int getCalendarField() {
+            return calendarField;
+        }
+
+        /**
+         * Resolves instances being deserialized to the predefined constants.
+         *
+	 * @throws InvalidObjectException if the constant could not be
+         *         resolved.
+         * @return resolved DateFormat.Field constant
+         */
+        protected Object readResolve() throws InvalidObjectException {
+            if (this.getClass() != DateFormat.Field.class) {
+                throw new InvalidObjectException("subclass didn't correctly implement readResolve");
+            }
+
+            Object instance = instanceMap.get(getName());
+            if (instance != null) {
+                return instance;
+            } else {
+                throw new InvalidObjectException("unknown attribute name");
+            }
+        }
+
+        //
+        // The constants
+        //
+
+        /**
+         * Constant identifying the era field.
+         */
+        public final static Field ERA = new Field("era", Calendar.ERA);
+
+        /**
+         * Constant identifying the year field.
+         */
+        public final static Field YEAR = new Field("year", Calendar.YEAR);
+
+        /**
+         * Constant identifying the month field.
+         */
+        public final static Field MONTH = new Field("month", Calendar.MONTH);
+
+        /**
+         * Constant identifying the day of month field.
+         */
+        public final static Field DAY_OF_MONTH = new
+                            Field("day of month", Calendar.DAY_OF_MONTH);
+
+        /**
+         * Constant identifying the hour of day field, where the legal values
+         * are 1 to 24.
+         */
+        public final static Field HOUR_OF_DAY1 = new Field("hour of day 1",-1);
+
+        /**
+         * Constant identifying the hour of day field, where the legal values
+         * are 0 to 23.
+         */
+        public final static Field HOUR_OF_DAY0 = new
+               Field("hour of day", Calendar.HOUR_OF_DAY);
+
+        /**
+         * Constant identifying the minute field.
+         */
+        public final static Field MINUTE =new Field("minute", Calendar.MINUTE);
+
+        /**
+         * Constant identifying the second field.
+         */
+        public final static Field SECOND =new Field("second", Calendar.SECOND);
+
+        /**
+         * Constant identifying the millisecond field.
+         */
+        public final static Field MILLISECOND = new
+                Field("millisecond", Calendar.MILLISECOND);
+
+        /**
+         * Constant identifying the day of week field.
+         */
+        public final static Field DAY_OF_WEEK = new
+                Field("day of week", Calendar.DAY_OF_WEEK);
+
+        /**
+         * Constant identifying the day of year field.
+         */
+        public final static Field DAY_OF_YEAR = new
+                Field("day of year", Calendar.DAY_OF_YEAR);
+
+        /**
+         * Constant identifying the day of week field.
+         */
+        public final static Field DAY_OF_WEEK_IN_MONTH =
+                     new Field("day of week in month",
+                                            Calendar.DAY_OF_WEEK_IN_MONTH);
+
+        /**
+         * Constant identifying the week of year field.
+         */
+        public final static Field WEEK_OF_YEAR = new
+              Field("week of year", Calendar.WEEK_OF_YEAR);
+
+        /**
+         * Constant identifying the week of month field.
+         */
+        public final static Field WEEK_OF_MONTH = new
+            Field("week of month", Calendar.WEEK_OF_MONTH);
+
+        /**
+         * Constant identifying the time of day indicator
+         * (e.g. "a.m." or "p.m.") field.
+         */
+        public final static Field AM_PM = new
+                            Field("am pm", Calendar.AM_PM);
+
+        /**
+         * Constant identifying the hour field, where the legal values are
+         * 1 to 12.
+         */
+        public final static Field HOUR1 = new Field("hour 1", -1);
+
+        /**
+         * Constant identifying the hour field, where the legal values are
+         * 0 to 11.
+         */
+        public final static Field HOUR0 = new
+                            Field("hour", Calendar.HOUR);
+
+        /**
+         * Constant identifying the time zone field.
+         */
+        public final static Field TIME_ZONE = new Field("time zone", -1);
+    }
 }

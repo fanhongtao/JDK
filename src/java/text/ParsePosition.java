@@ -1,4 +1,6 @@
 /*
+ * @(#)ParsePosition.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -30,7 +32,7 @@ package java.text;
  * you can use the same <code>ParsePosition</code>, since the index parameter
  * records the current position.
  *
- * @version     1.16 02/06/02
+ * @version     1.16 12/03/01
  * @author      Mark Davis
  * @see         java.text.Format
  */

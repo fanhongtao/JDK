@@ -1,4 +1,6 @@
 /*
+ * @(#)TreeCellRenderer.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,7 +17,7 @@ import javax.swing.JTree;
  * for an example of implementing a tree cell renderer
  * that displays custom icons.
  *
- * @version 1.17 02/06/02
+ * @version 1.18 12/03/01
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -27,12 +29,12 @@ public interface TreeCellRenderer {
      * If <code>selected</code> is true, the cell will be drawn as if
      * selected. If <code>expanded</code> is true the node is currently
      * expanded and if <code>leaf</code> is true the node represets a
-     * leaf anf if <code>hasFocus</code> is true the node currently has
-     * focus. <code>tree</code> is the JTree the receiver is being
-     * configured for.
-     * Returns the Component that the renderer uses to draw the value.
+     * leaf and if <code>hasFocus</code> is true the node currently has
+     * focus. <code>tree</code> is the <code>JTree</code> the receiver is being
+     * configured for.  Returns the <code>Component</code> that the renderer
+     * uses to draw the value.
      *
-     * @return	Component that the renderer uses to draw the value.
+     * @return	the <code>Component</code> that the renderer uses to draw the value
      */
     Component getTreeCellRendererComponent(JTree tree, Object value,
 				   boolean selected, boolean expanded,

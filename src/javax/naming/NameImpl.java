@@ -1,4 +1,6 @@
 /*
+ * @(#)NameImpl.java	1.6 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,7 +19,7 @@ import java.util.NoSuchElementException;
   * @author Rosanna Lee
   * @author Scott Seligman
   * @author Aravindan Ranganathan
-  * @version 1.5 02/02/06
+  * @version 1.6 01/12/03
   * @since 1.3
   */
 
@@ -129,7 +131,7 @@ class NameImpl implements java.io.Serializable {
 
 	    } else if (isA(name, i, syntaxEscape)) {
 		if (isMeta(name, i + syntaxEscape.length())) {
-		    // if escape preceeds meta, consume escape and let
+		    // if escape precedes meta, consume escape and let
 		    // meta through
 		    i += syntaxEscape.length();
 		    if (escapingStyle == STYLE_NONE) {

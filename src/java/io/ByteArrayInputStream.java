@@ -1,4 +1,6 @@
 /*
+ * @(#)ByteArrayInputStream.java	1.39 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,19 +13,18 @@ package java.io;
  * may be read from the stream. An internal
  * counter keeps track of the next byte to
  * be supplied by the <code>read</code> method.
+ * <p>
+ * Closing a <tt>ByteArrayInputStream</tt> has no effect. The methods in
+ * this class can be called after the stream has been closed without
+ * generating an <tt>IOException</tt>.
  *
  * @author  Arthur van Hoff
- * @version 1.36, 02/06/02
+ * @version 1.39, 12/03/01
  * @see     java.io.StringBufferInputStream
  * @since   JDK1.0
  */
 public
 class ByteArrayInputStream extends InputStream {
-
-    /**
-     * A flag that is set to true when this stream is closed.
-     */
-    private boolean isClosed = false;
 
     /**
      * An array of bytes that was provided
@@ -51,6 +52,9 @@ class ByteArrayInputStream extends InputStream {
      * position within the buffer by the <code>mark()</code> method.
      * The current buffer position is set to this point by the
      * <code>reset()</code> method.
+     * <p>
+     * If no mark has been set, then the value of mark is the offset
+     * passed to the constructor (or 0 if the offset was not supplied).
      *
      * @since   JDK1.1
      */
@@ -91,15 +95,8 @@ class ByteArrayInputStream extends InputStream {
      * buffer array. The initial value of <code>pos</code>
      * is <code>offset</code> and the initial value
      * of <code>count</code> is <code>offset+len</code>.
-     * The buffer array is not copied. 
-     * <p>
-     * Note that if bytes are simply read from
-     * the resulting input stream, elements <code>buf[pos]</code>
-     * through <code>buf[pos+len-1]</code> will
-     * be read; however, if a <code>reset</code>
-     * operation  is performed, then bytes <code>buf[0]</code>
-     * through b<code>uf[pos-1]</code> will then
-     * become available for input.
+     * The buffer array is not copied. The buffer's mark is
+     * set to the specified offset.
      *
      * @param   buf      the input buffer.
      * @param   offset   the offset in the buffer of the first byte to read.
@@ -126,7 +123,6 @@ class ByteArrayInputStream extends InputStream {
      *          stream has been reached.
      */
     public synchronized int read() {
-	ensureOpen();
 	return (pos < count) ? (buf[pos++] & 0xff) : -1;
     }
 
@@ -156,7 +152,6 @@ class ByteArrayInputStream extends InputStream {
      *          the stream has been reached.
      */
     public synchronized int read(byte b[], int off, int len) {
-	ensureOpen();
 	if (b == null) {
 	    throw new NullPointerException();
 	} else if ((off < 0) || (off > b.length) || (len < 0) ||
@@ -190,7 +185,6 @@ class ByteArrayInputStream extends InputStream {
      * @return  the actual number of bytes skipped.
      */
     public synchronized long skip(long n) {
-	ensureOpen();
 	if (pos + n > count) {
 	    n = count - pos;
 	}
@@ -212,7 +206,6 @@ class ByteArrayInputStream extends InputStream {
      *          without blocking.
      */
     public synchronized int available() {
-	ensureOpen();
 	return count - pos;
     }
 
@@ -230,39 +223,33 @@ class ByteArrayInputStream extends InputStream {
      * ByteArrayInputStream objects are marked at position zero by
      * default when constructed.  They may be marked at another
      * position within the buffer by this method.
+     * <p>
+     * If no mark has been set, then the value of the mark is the
+     * offset passed to the constructor (or 0 if the offset was not
+     * supplied).
      *
      * @since   JDK1.1
      */
     public void mark(int readAheadLimit) {
-	ensureOpen();
 	mark = pos;
     }
 
     /**
      * Resets the buffer to the marked position.  The marked position
-     * is the beginning unless another position was marked.
-     * The value of <code>pos</code> is set to 0.
+     * is 0 unless another position was marked or an offset was specified
+     * in the constructor.
      */
     public synchronized void reset() {
-	ensureOpen();
 	pos = mark;
     }
 
     /**
-     * Closes this input stream and releases any system resources 
-     * associated with the stream. 
+     * Closing a <tt>ByteArrayInputStream</tt> has no effect. The methods in
+     * this class can be called after the stream has been closed without
+     * generating an <tt>IOException</tt>.
      * <p>
      */
-    public synchronized void close() throws IOException {
-	isClosed = true;
-    }
-
-    /** Check to make sure that the stream has not been closed */
-    private void ensureOpen() {
-        /* This method does nothing for now.  Once we add throws clauses
-	 * to the I/O methods in this class, it will throw an IOException
-	 * if the stream has been closed.
-	 */
+    public void close() throws IOException {
     }
 
 }

@@ -1,4 +1,6 @@
 /*
+ * @(#)jni.h	1.53 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -724,6 +726,13 @@ struct JNINativeInterface_ {
 
     jboolean (JNICALL *ExceptionCheck)
        (JNIEnv *env);
+
+    jobject (JNICALL *NewDirectByteBuffer)
+       (JNIEnv* env, void* address, jlong capacity);
+    void* (JNICALL *GetDirectBufferAddress)
+       (JNIEnv* env, jobject buf);
+    jlong (JNICALL *GetDirectBufferCapacity)
+       (JNIEnv* env, jobject buf);
 };
 
 /*
@@ -1803,6 +1812,16 @@ struct JNIEnv_ {
 	return functions->ExceptionCheck(this);
     }
 
+    jobject NewDirectByteBuffer(void* address, jlong capacity) {
+        return functions->NewDirectByteBuffer(this, address, capacity);
+    }
+    void* GetDirectBufferAddress(jobject buf) {
+        return functions->GetDirectBufferAddress(this, buf);
+    }
+    jlong GetDirectBufferCapacity(jobject buf) {
+        return functions->GetDirectBufferCapacity(this, buf);
+    }
+
 #endif /* __cplusplus */
 };
 
@@ -1857,6 +1876,7 @@ typedef struct JDK1_1AttachArgs {
 } JDK1_1AttachArgs;
 
 #define JDK1_2
+#define JDK1_4
 
 /* End VM-specific. */
 
@@ -1872,6 +1892,8 @@ struct JNIInvokeInterface_ {
     jint (JNICALL *DetachCurrentThread)(JavaVM *vm);
 
     jint (JNICALL *GetEnv)(JavaVM *vm, void **penv, jint version);
+
+    jint (JNICALL *AttachCurrentThreadAsDaemon)(JavaVM *vm, void **penv, void *args);
 };
 
 struct JavaVM_ {
@@ -1890,6 +1912,9 @@ struct JavaVM_ {
 
     jint GetEnv(void **penv, jint version) {
         return functions->GetEnv(this, penv, version);
+    }
+    jint AttachCurrentThreadAsDaemon(void **penv, void *args) {
+        return functions->AttachCurrentThreadAsDaemon(this, penv, args);
     }
 #endif
 };
@@ -1917,11 +1942,10 @@ JNI_OnUnload(JavaVM *vm, void *reserved);
 
 #define JNI_VERSION_1_1 0x00010001
 #define JNI_VERSION_1_2 0x00010002
+#define JNI_VERSION_1_4 0x00010004
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */
 
 #endif /* !_JAVASOFT_JNI_H_ */
-
-

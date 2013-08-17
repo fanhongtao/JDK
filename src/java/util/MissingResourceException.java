@@ -1,4 +1,6 @@
 /*
+ * @(#)MissingResourceException.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -24,7 +26,7 @@ package java.util;
  * Signals that a resource is missing.
  * @see java.lang.Exception
  * @see ResourceBundle
- * @version     1.13, 02/06/02
+ * @version     1.14, 12/03/01
  * @author      Mark Davis
  * @since       JDK1.1
  */
@@ -35,7 +37,7 @@ class MissingResourceException extends RuntimeException {
      * Constructs a MissingResourceException with the specified information.
      * A detail message is a String that describes this particular exception.
      * @param s the detail message
-     * @param classname the name of the resource class
+     * @param className the name of the resource class
      * @param key the key for the missing resource.
      */
     public MissingResourceException(String s, String className, String key) {
@@ -46,6 +48,8 @@ class MissingResourceException extends RuntimeException {
 
     /**
      * Gets parameter passed by constructor.
+     *
+     * @return the name of the resource class
      */
     public String getClassName() {
         return className;
@@ -53,6 +57,8 @@ class MissingResourceException extends RuntimeException {
 
     /**
      * Gets parameter passed by constructor.
+     *
+     * @return the key for the missing resource
      */
     public String getKey() {
         return key;

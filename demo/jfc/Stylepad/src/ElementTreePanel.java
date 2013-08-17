@@ -1,4 +1,6 @@
 /*
+ * @(#)ElementTreePanel.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,7 +21,7 @@ import java.util.*;
  * in the text to update the selected item in the tree.
  *
  * @author Scott Violet
- * @version 1.10 02/06/02
+ * @version 1.12 12/03/01
  */
 public class ElementTreePanel extends JPanel implements CaretListener, DocumentListener, PropertyChangeListener, TreeSelectionListener {
     /** Tree showing the documents element structure. */
@@ -79,6 +81,7 @@ public class ElementTreePanel extends JPanel implements CaretListener, DocumentL
 	    }
 	};
 	tree.addTreeSelectionListener(this);
+	tree.setDragEnabled(true);
 	// Don't show the root, it is fake.
 	tree.setRootVisible(false);
 	// Since the display value of every node after the insertion point

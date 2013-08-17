@@ -1,5 +1,7 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * @(#)AbstractDocument.java	1.130 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -7,6 +9,7 @@ package javax.swing.text;
 import java.util.*;
 import java.io.*;
 import java.awt.font.TextAttribute;
+import java.text.Bidi;
 
 import javax.swing.UIManager;
 import javax.swing.undo.*;
@@ -14,24 +17,26 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.*;
 import javax.swing.tree.TreeNode;
 
+import sun.awt.font.BidiUtils;
+
 /**
- * An implementation of the document interface to serve as a
+ * An implementation of the document interface to serve as a 
  * basis for implementing various kinds of documents.  At this
  * level there is very little policy, so there is a corresponding
  * increase in difficulty of use.
  * <p>
  * This class implements a locking mechanism for the document.  It
- * allows multiple readers or one writer, and writers must wait until
- * all observers of the document have been notified of a previous
+ * allows multiple readers or one writer, and writers must wait until 
+ * all observers of the document have been notified of a previous 
  * change before beginning another mutation to the document.  The
- * read lock is aquired and released using the <code>render</code>
+ * read lock is acquired and released using the <code>render</code>
  * method.  A write lock is aquired by the methods that mutate the
  * document, and are held for the duration of the method call.
- * Notification is done on the thread that produced the mutation,
+ * Notification is done on the thread that produced the mutation, 
  * and the thread has full read access to the document for the
  * duration of the notification, but other readers are kept out
  * until the notification has finished.  The notification is a
- * beans event notification which does not allow any further
+ * beans event notification which does not allow any further 
  * mutations until all listeners have been notified.
  * <p>
  * Any models subclassed from this class and used in conjunction
@@ -44,11 +49,11 @@ import javax.swing.tree.TreeNode;
  * the DocumentListener methods, and that there will be only
  * one event thread active at a time.
  * <p>
- * If concurrency support is desired, there are the following
- * additional implications.  The code path for any DocumentListener
- * implementation and any UndoListener implementation must be threadsafe,
- * and not access the component lock if trying to be safe from deadlocks.
- * The <code>repaint</code> and <code>revalidate</code> methods
+ * If concurrency support is desired, there are the following 
+ * additional implications.  The code path for any DocumentListener 
+ * implementation and any UndoListener implementation must be threadsafe, 
+ * and not access the component lock if trying to be safe from deadlocks.  
+ * The <code>repaint</code> and <code>revalidate</code> methods 
  * on JComponent are safe.
  * <p>
  * AbstractDocument models an implied break at the end of the document.
@@ -64,18 +69,20 @@ import javax.swing.tree.TreeNode;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.119 10/19/04
+ * @version 1.130 12/03/01
  */
 public abstract class AbstractDocument implements Document, Serializable {
 
     /**
-     * Constructs a new AbstractDocument, wrapped around some
+     * Constructs a new <code>AbstractDocument</code>, wrapped around some
      * specified content storage mechanism.
      *
      * @param data the content
@@ -85,7 +92,7 @@ public abstract class AbstractDocument implements Document, Serializable {
     }
 
     /**
-     * Constructs a new AbstractDocument, wrapped around some
+     * Constructs a new <code>AbstractDocument</code>, wrapped around some
      * specified content storage mechanism.
      *
      * @param data the content
@@ -129,11 +136,11 @@ public abstract class AbstractDocument implements Document, Serializable {
     }
 
     /**
-     * Support for managing a set of properties. Callers
-     * can use the documentProperties dictionary to annotate the
-     * document with document-wide properties.
-     *
-     * @return a non null Dictionary
+     * Supports managing a set of properties. Callers
+     * can use the <code>documentProperties</code> dictionary
+     * to annotate the document with document-wide properties.
+     * 
+     * @return a non-<code>null</code> <code>Dictionary</code>
      * @see #setDocumentProperties
      */
     public Dictionary getDocumentProperties() {
@@ -144,8 +151,8 @@ public abstract class AbstractDocument implements Document, Serializable {
     }
 
     /**
-     * Replace the document properties dictionary for this document.
-     *
+     * Replaces the document properties dictionary for this document.
+     * 
      * @param x the new dictionary
      * @see #getDocumentProperties
      */
@@ -155,80 +162,95 @@ public abstract class AbstractDocument implements Document, Serializable {
 
     /**
      * Notifies all listeners that have registered interest for
-     * notification on this event type.  The event instance
-     * is lazily created using the parameters passed into
+     * notification on this event type.  The event instance 
+     * is lazily created using the parameters passed into 
      * the fire method.
      *
      * @param e the event
      * @see EventListenerList
      */
     protected void fireInsertUpdate(DocumentEvent e) {
-	// Guaranteed to return a non-null array
-	Object[] listeners = listenerList.getListenerList();
-	// Process the listeners last to first, notifying
-	// those that are interested in this event
-	for (int i = listeners.length-2; i>=0; i-=2) {
-	    if (listeners[i]==DocumentListener.class) {
-		// Lazily create the event:
-		// if (e == null)
-		// e = new ListSelectionEvent(this, firstIndex, lastIndex);
-		((DocumentListener)listeners[i+1]).insertUpdate(e);
-	    }
-	}
+        notifyingListeners = true;
+        try {
+            // Guaranteed to return a non-null array
+            Object[] listeners = listenerList.getListenerList();
+            // Process the listeners last to first, notifying
+            // those that are interested in this event
+            for (int i = listeners.length-2; i>=0; i-=2) {
+                if (listeners[i]==DocumentListener.class) {
+                    // Lazily create the event:
+                    // if (e == null)
+                    // e = new ListSelectionEvent(this, firstIndex, lastIndex);
+                    ((DocumentListener)listeners[i+1]).insertUpdate(e);
+                }
+            }
+        } finally {
+            notifyingListeners = false;
+        }
     }
 
     /**
      * Notifies all listeners that have registered interest for
-     * notification on this event type.  The event instance
-     * is lazily created using the parameters passed into
+     * notification on this event type.  The event instance 
+     * is lazily created using the parameters passed into 
      * the fire method.
      *
      * @param e the event
      * @see EventListenerList
      */
     protected void fireChangedUpdate(DocumentEvent e) {
-	// Guaranteed to return a non-null array
-	Object[] listeners = listenerList.getListenerList();
-	// Process the listeners last to first, notifying
-	// those that are interested in this event
-	for (int i = listeners.length-2; i>=0; i-=2) {
-	    if (listeners[i]==DocumentListener.class) {
-		// Lazily create the event:
-		// if (e == null)
-		// e = new ListSelectionEvent(this, firstIndex, lastIndex);
-		((DocumentListener)listeners[i+1]).changedUpdate(e);
-	    }
-	}
+        notifyingListeners = true;
+        try {
+            // Guaranteed to return a non-null array
+            Object[] listeners = listenerList.getListenerList();
+            // Process the listeners last to first, notifying
+            // those that are interested in this event
+            for (int i = listeners.length-2; i>=0; i-=2) {
+                if (listeners[i]==DocumentListener.class) {
+                    // Lazily create the event:
+                    // if (e == null)
+                    // e = new ListSelectionEvent(this, firstIndex, lastIndex);
+                    ((DocumentListener)listeners[i+1]).changedUpdate(e);
+                }	       
+            }
+        } finally {
+            notifyingListeners = false;
+        }
     }
 
     /**
      * Notifies all listeners that have registered interest for
-     * notification on this event type.  The event instance
-     * is lazily created using the parameters passed into
+     * notification on this event type.  The event instance 
+     * is lazily created using the parameters passed into 
      * the fire method.
      *
      * @param e the event
      * @see EventListenerList
      */
     protected void fireRemoveUpdate(DocumentEvent e) {
-	// Guaranteed to return a non-null array
-	Object[] listeners = listenerList.getListenerList();
-	// Process the listeners last to first, notifying
-	// those that are interested in this event
-	for (int i = listeners.length-2; i>=0; i-=2) {
-	    if (listeners[i]==DocumentListener.class) {
-		// Lazily create the event:
-		// if (e == null)
-		// e = new ListSelectionEvent(this, firstIndex, lastIndex);
-		((DocumentListener)listeners[i+1]).removeUpdate(e);
-	    }
-	}
+        notifyingListeners = true;
+        try {
+            // Guaranteed to return a non-null array
+            Object[] listeners = listenerList.getListenerList();
+            // Process the listeners last to first, notifying
+            // those that are interested in this event
+            for (int i = listeners.length-2; i>=0; i-=2) {
+                if (listeners[i]==DocumentListener.class) {
+                    // Lazily create the event:
+                    // if (e == null)
+                    // e = new ListSelectionEvent(this, firstIndex, lastIndex);
+                    ((DocumentListener)listeners[i+1]).removeUpdate(e);
+                }	       
+            }
+        } finally {
+            notifyingListeners = false;
+        }
     }
 
     /**
      * Notifies all listeners that have registered interest for
-     * notification on this event type.  The event instance
-     * is lazily created using the parameters passed into
+     * notification on this event type.  The event instance 
+     * is lazily created using the parameters passed into 
      * the fire method.
      *
      * @param e the event
@@ -245,29 +267,58 @@ public abstract class AbstractDocument implements Document, Serializable {
 		// if (e == null)
 		// e = new ListSelectionEvent(this, firstIndex, lastIndex);
 		((UndoableEditListener)listeners[i+1]).undoableEditHappened(e);
-	    }
+	    }	       
 	}
     }
 
     /**
-     * Return an array of all the listeners of the given type that
-     * were added to this model.
+     * Returns an array of all the objects currently registered
+     * as <code><em>Foo</em>Listener</code>s
+     * upon this document.
+     * <code><em>Foo</em>Listener</code>s are registered using the
+     * <code>add<em>Foo</em>Listener</code> method.
      *
-     * @returns all of the objects recieving <em>listenerType</em> notifications
-     *          from this model
+     * <p>
+     * You can specify the <code>listenerType</code> argument
+     * with a class literal, such as
+     * <code><em>Foo</em>Listener.class</code>.
+     * For example, you can query a
+     * document <code>d</code>
+     * for its document listeners with the following code:
+     *
+     * <pre>DocumentListener[] mls = (DocumentListener[])(d.getListeners(DocumentListener.class));</pre>
+     *
+     * If no such listeners exist, this method returns an empty array.
+     *
+     * @param listenerType the type of listeners requested; this parameter
+     *          should specify an interface that descends from
+     *          <code>java.util.EventListener</code>
+     * @return an array of all objects registered as
+     *          <code><em>Foo</em>Listener</code>s on this component,
+     *          or an empty array if no such
+     *          listeners have been added
+     * @exception ClassCastException if <code>listenerType</code>
+     *          doesn't specify a class or interface that implements
+     *          <code>java.util.EventListener</code>
+     *
+     * @see #getDocumentListeners
+     * @see #getUndoableEditListeners
      *
      * @since 1.3
      */
-    public EventListener[] getListeners(Class listenerType) {
-	return listenerList.getListeners(listenerType);
+    public EventListener[] getListeners(Class listenerType) { 
+	return listenerList.getListeners(listenerType); 
     }
 
     /**
-     * Get the asynchronous loading priority.  If less than zero,
+     * Gets the asynchronous loading priority.  If less than zero,
      * the document should not be loaded asynchronously.
+     *
+     * @return the asynchronous loading priority, or <code>-1</code>
+     *   if the document should not be loaded asynchronously
      */
     public int getAsynchronousLoadPriority() {
-	Integer loadPriority = (Integer)
+	Integer loadPriority = (Integer) 
 	    getProperty(AbstractDocument.AsyncLoadPriority);
 	if (loadPriority != null) {
 	    return loadPriority.intValue();
@@ -276,11 +327,41 @@ public abstract class AbstractDocument implements Document, Serializable {
     }
 
     /**
-     * Set the asynchronous loading priority.
+     * Sets the asynchronous loading priority. 
+     * @param p the new aynchronous loading priority; a value
+     *   less than zero indicates that the document should be
+     *   loaded asynchronously
      */
     public void setAsynchronousLoadPriority(int p) {
 	Integer loadPriority = (p >= 0) ? new Integer(p) : null;
 	putProperty(AbstractDocument.AsyncLoadPriority, loadPriority);
+    }
+
+    /**
+     * Sets the <code>DocumentFilter</code>. The <code>DocumentFilter</code>
+     * is passed <code>insert</code> and <code>remove</code> to conditionally
+     * allow inserting/deleting of the text.  A <code>null</code> value
+     * indicates that no filtering will occur.
+     *
+     * @param filter the <code>DocumentFilter</code> used to constrain text
+     * @see #getDocumentFilter
+     * @since 1.4
+     */
+    public void setDocumentFilter(DocumentFilter filter) {
+        documentFilter = filter;
+    }
+
+    /**
+     * Returns the <code>DocumentFilter</code> that is responsible for
+     * filtering of insertion/removal. A <code>null</code> return value 
+     * implies no filtering is to occur.
+     *
+     * @since 1.4
+     * @see #setDocumentFilter
+     * @return the DocumentFilter
+     */
+    public DocumentFilter getDocumentFilter() {
+        return documentFilter;
     }
 
     // --- Document methods -----------------------------------------
@@ -291,7 +372,7 @@ public abstract class AbstractDocument implements Document, Serializable {
      * The given runnable will be executed in a way that allows it
      * to safely read the model with no changes while the runnable
      * is being executed.  The runnable itself may <em>not</em>
-     * make any mutations.
+     * make any mutations. 
      * <p>
      * This is implemented to aquire a read lock for the duration
      * of the runnables execution.  There may be multiple runnables
@@ -309,11 +390,11 @@ public abstract class AbstractDocument implements Document, Serializable {
      * the overhead of tracking them and throwing an error.
      * <p>
      * This method is thread safe, although most Swing methods
-     * are not. Please see
+     * are not. Please see 
      * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
      * and Swing</A> for more information.
      *
-     * @param r the renderer to execute.
+     * @param r the renderer to execute
      */
     public void render(Runnable r) {
 	readLock();
@@ -338,7 +419,7 @@ public abstract class AbstractDocument implements Document, Serializable {
     /**
      * Adds a document listener for notification of any changes.
      *
-     * @param listener the listener
+     * @param listener the <code>DocumentListener</code> to add
      * @see Document#addDocumentListener
      */
     public void addDocumentListener(DocumentListener listener) {
@@ -348,7 +429,7 @@ public abstract class AbstractDocument implements Document, Serializable {
     /**
      * Removes a document listener.
      *
-     * @param listener the listener
+     * @param listener the <code>DocumentListener</code> to remove
      * @see Document#removeDocumentListener
      */
     public void removeDocumentListener(DocumentListener listener) {
@@ -356,12 +437,29 @@ public abstract class AbstractDocument implements Document, Serializable {
     }
 
     /**
+     * Returns an array of all the document listeners
+     * registered on this document.
+     *
+     * @return all of this document's <code>DocumentListener</code>s 
+     *         or an empty array if no document listeners are
+     *         currently registered
+     *
+     * @see #addDocumentListener
+     * @see #removeDocumentListener
+     * @since 1.4
+     */
+    public DocumentListener[] getDocumentListeners() {
+        return (DocumentListener[])listenerList.getListeners(
+                DocumentListener.class);
+    }
+
+    /**
      * Adds an undo listener for notification of any changes.
-     * Undo/Redo operations performed on the UndoableEdit will
-     * cause the appropriate DocumentEvent to be fired to keep
+     * Undo/Redo operations performed on the <code>UndoableEdit</code>
+     * will cause the appropriate DocumentEvent to be fired to keep
      * the view(s) in sync with the model.
      *
-     * @param listener the listener
+     * @param listener the <code>UndoableEditListener</code> to add
      * @see Document#addUndoableEditListener
      */
     public void addUndoableEditListener(UndoableEditListener listener) {
@@ -371,11 +469,29 @@ public abstract class AbstractDocument implements Document, Serializable {
     /**
      * Removes an undo listener.
      *
-     * @param listener the listener
+     * @param listener the <code>UndoableEditListener</code> to remove
      * @see Document#removeDocumentListener
      */
     public void removeUndoableEditListener(UndoableEditListener listener) {
 	listenerList.remove(UndoableEditListener.class, listener);
+    }
+
+    /**
+     * Returns an array of all the undoable edit listeners
+     * registered on this document.
+     *
+     * @return all of this document's <code>UndoableEditListener</code>s 
+     *         or an empty array if no undoable edit listeners are
+     *         currently registered
+     *
+     * @see #addUndoableEditListener
+     * @see #removeUndoableEditListener
+     *
+     * @since 1.4
+     */
+    public UndoableEditListener[] getUndoableEditListeners() {
+        return (UndoableEditListener[])listenerList.getListeners(
+                UndoableEditListener.class);
     }
 
     /**
@@ -384,9 +500,9 @@ public abstract class AbstractDocument implements Document, Serializable {
      * <pre>
      * getDocumentProperties().get(key);
      * </pre>
-     *
-     * @param key the non-null property key
-     * @return the value of this property or null
+     * 
+     * @param key the non-<code>null</code> property key
+     * @return the value of this property or <code>null</code>
      * @see #getDocumentProperties
      */
     public final Object getProperty(Object key) {
@@ -400,10 +516,11 @@ public abstract class AbstractDocument implements Document, Serializable {
      * <pre>
      * getDocumentProperties().put(key, value);
      * </pre>
-     * If value is null this method will remove the property
-     *
-     * @param key the non-null key
-     * @param value the value
+     * If <code>value</code> is <code>null</code> this method will
+     * remove the property.
+     * 
+     * @param key the non-<code>null</code> key
+     * @param value the property value
      * @see #getDocumentProperties
      */
     public final void putProperty(Object key, Object value) {
@@ -412,14 +529,14 @@ public abstract class AbstractDocument implements Document, Serializable {
 	} else {
             getDocumentProperties().remove(key);
         }
-        if( key == TextAttribute.RUN_DIRECTION
+        if( key == TextAttribute.RUN_DIRECTION 
             && Boolean.TRUE.equals(getProperty(I18NProperty)) )
         {
             //REMIND - this needs to flip on the i18n property if run dir
             //is rtl and the i18n property is not already on.
             writeLock();
             try {
-                DefaultDocumentEvent e
+                DefaultDocumentEvent e 
                     = new DefaultDocumentEvent(0, getLength(),
                                                DocumentEvent.EventType.INSERT);
                 updateBidi( e );
@@ -436,49 +553,123 @@ public abstract class AbstractDocument implements Document, Serializable {
      * of the change on the thread that called this method.
      * <p>
      * This method is thread safe, although most Swing methods
-     * are not. Please see
+     * are not. Please see 
      * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
      * and Swing</A> for more information.
-     *
+     * 
      * @param offs the starting offset >= 0
      * @param len the number of characters to remove >= 0
-     * @exception BadLocationException  the given remove position is not a valid
+     * @exception BadLocationException  the given remove position is not a valid 
      *   position within the document
      * @see Document#remove
      */
     public void remove(int offs, int len) throws BadLocationException {
+        DocumentFilter filter = getDocumentFilter();
+
+        writeLock();
+        try {
+            if (filter != null) {
+                filter.remove(getFilterBypass(), offs, len);
+            }
+            else {
+                handleRemove(offs, len);
+            }
+        } finally {
+            writeUnlock();
+        }
+    }
+
+    /**
+     * Performs the actual work of the remove. It is assumed the caller
+     * will have obtained a <code>writeLock</code> before invoking this.
+     */
+    void handleRemove(int offs, int len) throws BadLocationException {
 	if (len > 0) {
-	    writeLock();
-	    try {
-		DefaultDocumentEvent chng =
+            if (offs < 0 || (offs + len) > getLength()) {
+                throw new BadLocationException("Invalid remove",
+                                               getLength() + 1); 
+            }
+            DefaultDocumentEvent chng = 
 		    new DefaultDocumentEvent(offs, len, DocumentEvent.EventType.REMOVE);
 
-		boolean isComposedTextElement = false;
-		// Check whether the position of interest is the composed text
-		Element elem = getDefaultRootElement();
-		while (!elem.isLeaf()) {
-		    elem = elem.getElement(elem.getElementIndex(offs));
-		}
-		isComposedTextElement = Utilities.isComposedTextElement(elem);
+            boolean isComposedTextElement = false;
+            // Check whether the position of interest is the composed text
+            Element elem = getDefaultRootElement();
+            while (!elem.isLeaf()) {
+                elem = elem.getElement(elem.getElementIndex(offs));
+            }
+            isComposedTextElement = Utilities.isComposedTextElement(elem);
+		
+            removeUpdate(chng);
+            UndoableEdit u = data.remove(offs, len);
+            if (u != null) {
+                chng.addEdit(u);
+            }
+            postRemoveUpdate(chng);
+            // Mark the edit as done.
+            chng.end();
+            fireRemoveUpdate(chng);
+            // only fire undo if Content implementation supports it
+            // undo for the composed text is not supported for now
+            if ((u != null) && !isComposedTextElement) {
+                fireUndoableEditUpdate(new UndoableEditEvent(this, chng));
+            }
+	}
+    }
+    
+    private static final boolean isComplex(char ch) {
+        return (ch >= '\u0900' && ch <= '\u0D7F') || // Indic
+               (ch >= '\u0E00' && ch <= '\u0E7F');   // Thai
+    }
 
-		removeUpdate(chng);
-		UndoableEdit u = data.remove(offs, len);
-		if (u != null) {
-		    chng.addEdit(u);
-		}
-                postRemoveUpdate(chng);
-		// Mark the edit as done.
-		chng.end();
-		fireRemoveUpdate(chng);
-		// only fire undo if Content implementation supports it
-		// undo for the composed text is not supported for now
-		if ((u != null) && !isComposedTextElement) {
-		    fireUndoableEditUpdate(new UndoableEditEvent(this, chng));
-		}
-	    } finally {
-		writeUnlock();
+    private static final boolean isComplex(char[] text, int start, int limit) {
+	for (int i = start; i < limit; ++i) {
+	    if (isComplex(text[i])) {
+		return true;
 	    }
 	}
+	return false;
+    }
+
+    /**
+     * Deletes the region of text from <code>offset</code> to
+     * <code>offset + length</code>, and replaces it with <code>text</code>.
+     * It is up to the implementation as to how this is implemented, some
+     * implementations may treat this as two distinct operations: a remove
+     * followed by an insert, others may treat the replace as one atomic  
+     * operation.
+     * 
+     * @param offset Location in Document
+     * @param length Length of text to delete, may be 0 indicating don't
+     *               delete anything
+     * @param text Text to insert, null indicates no text to insert
+     * @param attrs AttributeSet indicating attributes of inserted text, null
+     *              is legal, and typically treated as an empty attributeset,
+     *              but exact interpretation is left to the subclass
+     * @exception BadLocationException the given position is not a valid 
+     *            position within the document
+     * @since 1.4
+     */
+    public void replace(int offset, int length, String text,
+                        AttributeSet attrs) throws BadLocationException {
+        if (length == 0 && (text == null || text.length() == 0)) {
+            return;
+        }
+        DocumentFilter filter = getDocumentFilter();
+
+	writeLock();
+	try {
+            if (filter != null) {
+                filter.replace(getFilterBypass(), offset, length, text,
+                               attrs);
+            }
+            else {
+                remove(offset, length);
+                insertString(offset, text, attrs);
+            }
+        } finally {
+            writeUnlock();
+        }
     }
 
     /**
@@ -488,14 +679,14 @@ public abstract class AbstractDocument implements Document, Serializable {
      * to the observers on the thread that grabbed the write lock.
      * <p>
      * This method is thread safe, although most Swing methods
-     * are not. Please see
+     * are not. Please see 
      * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
      * and Swing</A> for more information.
      *
      * @param offs the starting offset >= 0
      * @param str the string to insert; does nothing with null/empty strings
      * @param a the attributes for the inserted content
-     * @exception BadLocationException  the given insert position is not a valid
+     * @exception BadLocationException  the given insert position is not a valid 
      *   position within the document
      * @see Document#insertString
      */
@@ -503,56 +694,73 @@ public abstract class AbstractDocument implements Document, Serializable {
         if ((str == null) || (str.length() == 0)) {
 	    return;
 	}
+        DocumentFilter filter = getDocumentFilter();
+
 	writeLock();
 	try {
-	    UndoableEdit u = data.insertString(offs, str);
-	    DefaultDocumentEvent e =
-		new DefaultDocumentEvent(offs, str.length(), DocumentEvent.EventType.INSERT);
-	    if (u != null) {
-		e.addEdit(u);
-	    }
-
-	    // see if complex glyph layout support is needed
-	    if( getProperty(I18NProperty).equals( Boolean.FALSE ) ) {
-		// if a default direction of right-to-left has been specified,
-		// we want complex layout even if the text is all left to right.
-		Object d = getProperty(TextAttribute.RUN_DIRECTION);
-		if ((d != null) && (d.equals(TextAttribute.RUN_DIRECTION_RTL))) {
-		    putProperty( I18NProperty, Boolean.TRUE);
-		} else {
-		    int len = str.length();
-		    for (int i = 0; i < len; i++) {
-			char c = str.charAt(i);
-			if (Bidi.requiresBidi(c)) {
-			    putProperty( I18NProperty, Boolean.TRUE);
-			    break;
-			}
-		    }
-		}
-	    }
-
-	    insertUpdate(e, a);
-	    // Mark the edit as done.
-	    e.end();
-	    fireInsertUpdate(e);
-	    // only fire undo if Content implementation supports it
-	    // undo for the composed text is not supported for now
-	    if (u != null &&
-		(a == null || !a.isDefined(StyleConstants.ComposedTextAttribute))) {
-		fireUndoableEditUpdate(new UndoableEditEvent(this, e));
-	    }
-	} finally {
-	    writeUnlock();
-	}
+            if (filter != null) {
+                filter.insertString(getFilterBypass(), offs, str, a);
+            }
+            else {
+                handleInsertString(offs, str, a);
+            }
+        } finally {
+            writeUnlock();
+        }
     }
 
     /**
-     * Gets a sequence of text from the document.
+     * Performs the actual work of inserting the text; it is assumed the
+     * caller has obtained a write lock before invoking this.
+     */
+    void handleInsertString(int offs, String str, AttributeSet a)
+                         throws BadLocationException {
+        if ((str == null) || (str.length() == 0)) {
+	    return;
+	}
+        UndoableEdit u = data.insertString(offs, str);
+        DefaultDocumentEvent e = 
+            new DefaultDocumentEvent(offs, str.length(), DocumentEvent.EventType.INSERT);
+        if (u != null) {
+            e.addEdit(u);
+        }
+	    
+        // see if complex glyph layout support is needed
+        if( getProperty(I18NProperty).equals( Boolean.FALSE ) ) {
+            // if a default direction of right-to-left has been specified,
+            // we want complex layout even if the text is all left to right.
+            Object d = getProperty(TextAttribute.RUN_DIRECTION);
+            if ((d != null) && (d.equals(TextAttribute.RUN_DIRECTION_RTL))) {
+                putProperty( I18NProperty, Boolean.TRUE);
+            } else {
+		char[] chars = str.toCharArray();
+		if (Bidi.requiresBidi(chars, 0, chars.length) ||
+		    isComplex(chars, 0, chars.length)) {
+		    //
+		    putProperty( I18NProperty, Boolean.TRUE);
+                }
+            }
+        }
+
+        insertUpdate(e, a);
+        // Mark the edit as done.
+        e.end();
+        fireInsertUpdate(e);
+        // only fire undo if Content implementation supports it
+        // undo for the composed text is not supported for now
+        if (u != null && 
+            (a == null || !a.isDefined(StyleConstants.ComposedTextAttribute))) {
+            fireUndoableEditUpdate(new UndoableEditEvent(this, e));
+        }
+    }
+
+    /**
+     * Gets a sequence of text from the document.  
      *
      * @param offset the starting offset >= 0
      * @param length the number of characters to retrieve >= 0
      * @return the text
-     * @exception BadLocationException  the range given includes a position
+     * @exception BadLocationException  the range given includes a position 
      *   that is not a valid position within the document
      * @see Document#getText
      */
@@ -565,19 +773,35 @@ public abstract class AbstractDocument implements Document, Serializable {
     }
 
     /**
-     * Gets some text from the document potentially without
-     * making a copy.  The character array returned in the
-     * given <code>Segment</code> should never be mutated.
-     * This kind of access to the characters of the document
-     * is provided to help make the rendering potentially more
-     * efficient.  The caller should make no assumptions about
-     * the lifetime of the returned character array, which
-     * should be copied if needed beyond the use for rendering.
+     * Fetches the text contained within the given portion 
+     * of the document.
+     * <p>
+     * If the partialReturn property on the txt parameter is false, the
+     * data returned in the Segment will be the entire length requested and
+     * may or may not be a copy depending upon how the data was stored.
+     * If the partialReturn property is true, only the amount of text that
+     * can be returned without creating a copy is returned.  Using partial
+     * returns will give better performance for situations where large 
+     * parts of the document are being scanned.  The following is an example
+     * of using the partial return to access the entire document:
+     * <p>
+     * <pre>
+     * &nbsp; int nleft = doc.getDocumentLength();
+     * &nbsp; Segment text = new Segment();
+     * &nbsp; int offs = 0;
+     * &nbsp; text.setPartialReturn(true);   
+     * &nbsp; while (nleft > 0) {
+     * &nbsp;     doc.getText(offs, nleft, text);
+     * &nbsp;     // do something with text
+     * &nbsp;     nleft -= text.count;
+     * &nbsp;     offs += text.count;
+     * &nbsp; }
+     * </pre>
      *
      * @param offset the starting offset >= 0
      * @param length the number of characters to retrieve >= 0
      * @param txt the Segment object to retrieve the text into
-     * @exception BadLocationException  the range given includes a position
+     * @exception BadLocationException  the range given includes a position 
      *   that is not a valid position within the document
      */
     public void getText(int offset, int length, Segment txt) throws BadLocationException {
@@ -592,7 +816,7 @@ public abstract class AbstractDocument implements Document, Serializable {
      * is altered.
      * <p>
      * This method is thread safe, although most Swing methods
-     * are not. Please see
+     * are not. Please see 
      * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
      * and Swing</A> for more information.
      *
@@ -607,8 +831,8 @@ public abstract class AbstractDocument implements Document, Serializable {
     }
 
     /**
-     * Returns a position that represents the start of the document.  The
-     * position returned can be counted on to track change and stay
+     * Returns a position that represents the start of the document.  The 
+     * position returned can be counted on to track change and stay 
      * located at the beginning of the document.
      *
      * @return the position
@@ -622,10 +846,10 @@ public abstract class AbstractDocument implements Document, Serializable {
 	}
 	return p;
     }
-
+    
     /**
      * Returns a position that represents the end of the document.  The
-     * position returned can be counted on to track change and stay
+     * position returned can be counted on to track change and stay 
      * located at the end of the document.
      *
      * @return the position
@@ -667,6 +891,17 @@ public abstract class AbstractDocument implements Document, Serializable {
     // ---- local methods -----------------------------------------
 
     /**
+     * Returns the <code>FilterBypass</code>. This will create one if one
+     * does not yet exist.
+     */
+    private DocumentFilter.FilterBypass getFilterBypass() {
+        if (filterBypass == null) {
+            filterBypass = new DefaultFilterBypass();
+        }
+        return filterBypass;
+    }
+
+    /**
      * Returns the root element of the bidirectional structure for this
      * document.  Its children represent character runs with a given
      * Unicode bidi level.
@@ -706,7 +941,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 
     /**
      * Fetches the context for managing attributes.  This
-     * method effectively establishes the strategy used
+     * method effectively establishes the strategy used 
      * for compressing AttributeSet information.
      *
      * @return the context
@@ -732,9 +967,7 @@ public abstract class AbstractDocument implements Document, Serializable {
         if (chng.type == DocumentEvent.EventType.INSERT &&
                         chng.getLength() > 0 &&
                         !Boolean.TRUE.equals(getProperty(MultiByteProperty))) {
-            if (segment == null) {
-                segment = new Segment();
-            }
+            Segment segment = SegmentCache.getSharedSegment();
             try {
                 getText(chng.getOffset(), chng.getLength(), segment);
                 segment.first();
@@ -747,6 +980,7 @@ public abstract class AbstractDocument implements Document, Serializable {
             } catch (BadLocationException ble) {
                 // Should never happen
             }
+            SegmentCache.releaseSharedSegment(segment);
         }
     }
 
@@ -776,7 +1010,7 @@ public abstract class AbstractDocument implements Document, Serializable {
             updateBidi( chng );
     }
 
-
+    
     /**
      * Update the bidi element structure as a result of the given change
      * to the document.  The given change will be updated to reflect the
@@ -791,7 +1025,7 @@ public abstract class AbstractDocument implements Document, Serializable {
         // Calculate the range of paragraphs affected by the change.
         int firstPStart;
         int lastPEnd;
-        if( chng.type == DocumentEvent.EventType.INSERT
+        if( chng.type == DocumentEvent.EventType.INSERT 
             || chng.type == DocumentEvent.EventType.CHANGE )
         {
             int chngStart = chng.getOffset();
@@ -807,15 +1041,15 @@ public abstract class AbstractDocument implements Document, Serializable {
         }
         //System.out.println("updateBidi: firstPStart = " + firstPStart + " lastPEnd = " + lastPEnd );
 
-
+        
         // Calculate the bidi levels for the affected range of paragraphs.  The
         // levels array will contain a bidi level for each character in the
         // affected text.
         byte levels[] = calculateBidiLevels( firstPStart, lastPEnd );
 
-
+        
         Vector newElements = new Vector();
-
+        
         // Calculate the first span of characters in the affected range with
         // the same bidi level.  If this level is the same as the level of the
         // previous bidi element (the existing bidi element containing
@@ -840,7 +1074,7 @@ public abstract class AbstractDocument implements Document, Serializable {
                 removeFromIndex++;
             }
         }
-
+        
         int firstSpanEnd = 0;
         while((firstSpanEnd<levels.length) && (levels[firstSpanEnd]==levels[0]))
             firstSpanEnd++;
@@ -863,14 +1097,14 @@ public abstract class AbstractDocument implements Document, Serializable {
             if( nextLevel == levels[levels.length-1] ) {
                 lastSpanEnd = nextElem.getEndOffset();
             } else if( nextElem.getStartOffset() < lastPEnd ) {
-                newNextElem = new BidiElement(bidiRoot, lastPEnd,
+                newNextElem = new BidiElement(bidiRoot, lastPEnd, 
                                               nextElem.getEndOffset(),
                                               nextLevel);
             } else {
                 removeToIndex--;
             }
         }
-
+        
         int lastSpanStart = levels.length;
         while( (lastSpanStart>firstSpanEnd)
                && (levels[lastSpanStart-1]==levels[levels.length-1]) )
@@ -905,11 +1139,11 @@ public abstract class AbstractDocument implements Document, Serializable {
                                                    lastSpanEnd,
                                                    levels[levels.length-1]));
         }
-
+        
         if( newNextElem != null )
             newElements.addElement( newNextElem );
 
-
+        
         // Calculate the set of existing bidi elements which must be
         // removed.
         int removedElemCount = 0;
@@ -919,11 +1153,11 @@ public abstract class AbstractDocument implements Document, Serializable {
         Element[] removedElems = new Element[removedElemCount];
         for( int i=0; i<removedElemCount; i++ ) {
             removedElems[i] = bidiRoot.getElement(removeFromIndex+i);
-        }
+        }            
 
         Element[] addedElems = new Element[ newElements.size() ];
         newElements.copyInto( addedElems );
-
+        
         // Update the change record.
         ElementEdit ee = new ElementEdit( bidiRoot, removeFromIndex,
                                           removedElems, addedElems );
@@ -933,15 +1167,15 @@ public abstract class AbstractDocument implements Document, Serializable {
         bidiRoot.replace( removeFromIndex, removedElems.length, addedElems );
     }
 
-
+    
     /**
-     * Calculate the levels array for a range of paragraphs.
+     * Calculate the levels array for a range of paragraphs.  
      */
     private byte[] calculateBidiLevels( int firstPStart, int lastPEnd ) {
-
+        
         byte levels[] = new byte[ lastPEnd - firstPStart ];
         int  levelsEnd = 0;
-	Boolean defaultDirection = null;
+	Boolean defaultDirection = null;  
 	Object d = getProperty(TextAttribute.RUN_DIRECTION);
 	if (d instanceof Boolean) {
 	    defaultDirection = (Boolean) d;
@@ -955,7 +1189,7 @@ public abstract class AbstractDocument implements Document, Serializable {
             int pEnd = p.getEndOffset();
 
 	    // default run direction for the paragraph.  This will be
-	    // null if there is no direction override specified (i.e.
+	    // null if there is no direction override specified (i.e. 
 	    // the direction will be determined from the content).
             Boolean direction = defaultDirection;
 	    d = p.getAttributes().getAttribute(TextAttribute.RUN_DIRECTION);
@@ -964,7 +1198,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 	    }
 
             //System.out.println("updateBidi: paragraph start = " + pStart + " paragraph end = " + pEnd);
-
+            
             // Create a Bidi over this paragraph then get the level
             // array.
             String pText;
@@ -975,15 +1209,17 @@ public abstract class AbstractDocument implements Document, Serializable {
             }
             // REMIND(bcb) we should really be using a Segment here.
             Bidi bidiAnalyzer;
+	    int bidiflag = Bidi.DIRECTION_DEFAULT_LEFT_TO_RIGHT;
 	    if (direction != null) {
-		boolean ltr = direction.equals(TextAttribute.RUN_DIRECTION_LTR);
-		bidiAnalyzer = new Bidi(pText.toCharArray(), ltr);
-	    } else {
-		bidiAnalyzer = new Bidi( pText.toCharArray() );
+		if (TextAttribute.RUN_DIRECTION_LTR.equals(direction)) {
+		    bidiflag = Bidi.DIRECTION_LEFT_TO_RIGHT;
+		} else {
+		    bidiflag = Bidi.DIRECTION_RIGHT_TO_LEFT;
+		}
 	    }
-            byte[] pLevels = bidiAnalyzer.getLevels();
-            System.arraycopy( pLevels, 0, levels, levelsEnd, pLevels.length );
-            levelsEnd += pLevels.length;
+	    bidiAnalyzer = new Bidi(pText, bidiflag);
+	    BidiUtils.getLevels(bidiAnalyzer, levels, levelsEnd);
+	    levelsEnd += bidiAnalyzer.getLength();
 
             o =  p.getEndOffset();
         }
@@ -1019,11 +1255,11 @@ public abstract class AbstractDocument implements Document, Serializable {
 
     /**
      * Creates a document leaf element.
-     * Hook through which elements are created to represent the
-     * document structure.  Because this implementation keeps
-     * structure and content seperate, elements grow automatically
-     * when content is extended so splits of existing elements
-     * follow.  The document itself gets to decide how to generate
+     * Hook through which elements are created to represent the 
+     * document structure.  Because this implementation keeps 
+     * structure and content separate, elements grow automatically
+     * when content is extended so splits of existing elements 
+     * follow.  The document itself gets to decide how to generate 
      * elements to give flexibility in the type of elements used.
      *
      * @param parent the parent element
@@ -1054,10 +1290,10 @@ public abstract class AbstractDocument implements Document, Serializable {
      * This can be used to distinguish whether a method is
      * being called as part of an existing modification or
      * if a lock needs to be acquired and a new transaction
-     * started.
+     * started.  
      *
-     * @returns the thread actively modifying the document
-     *  or null if there are no modifications in progress
+     * @return the thread actively modifying the document
+     *  or <code>null</code> if there are no modifications in progress
      */
     protected synchronized final Thread getCurrentWriter() {
 	return currWriter;
@@ -1066,11 +1302,24 @@ public abstract class AbstractDocument implements Document, Serializable {
     /**
      * Acquires a lock to begin mutating the document this lock
      * protects.  There can be no writing, notification of changes, or
-     * reading going on in order to gain the lock.
+     * reading going on in order to gain the lock.  Additionally a thread is
+     * allowed to gain more than one <code>writeLock</code>,
+     * as long as it doesn't attempt to gain additional <code>writeLock</code>s
+     * from within document notification.  Attempting to gain a 
+     * <code>writeLock</code> from within a DocumentListener notification will
+     * result in an <code>IllegalStateException</code>.  The ability
+     * to obtain more than one <code>writeLock</code> per thread allows
+     * subclasses to gain a writeLock, perform a number of operations, then
+     * release the lock.
+     * <p>
+     * Calls to <code>writeLock</code>
+     * must be balanced with calls to <code>writeUnlock</code>, else the
+     * <code>Document</code> will be left in a locked state so that no
+     * reading or writing can be done.
      *
      * @exception IllegalStateException thrown on illegal lock
      *  attempt.  If the document is implemented properly, this can
-     *  only happen if a document listener attempts to mutate the
+     *  only happen if a document listener attempts to mutate the 
      *  document.  This situation violates the bean event model
      *  where order of delivery is not guaranteed and all listeners
      *  should be notified before further mutations are allowed.
@@ -1079,31 +1328,42 @@ public abstract class AbstractDocument implements Document, Serializable {
 	try {
 	    while ((numReaders > 0) || (currWriter != null)) {
 		if (Thread.currentThread() == currWriter) {
-		    // Assuming one doesn't do something wrong in a subclass
-		    // this should only happen if a DocumentListener tries to
-		    // mutate the document.
-		    throw new IllegalStateException("Attempt to mutate in notification");
-		}
+                    if (notifyingListeners) {
+                        // Assuming one doesn't do something wrong in a
+                        // subclass this should only happen if a
+                        // DocumentListener tries to mutate the document.
+                        throw new IllegalStateException(
+                                      "Attempt to mutate in notification");
+                    }
+                    numWriters++;
+                    return;
+                }
 		wait();
 	    }
 	    currWriter = Thread.currentThread();
+            numWriters = 1;
 	} catch (InterruptedException e) {
 	    throw new Error("Interrupted attempt to aquire write lock");
 	}
     }
 
     /**
-     * Releases the write lock held because the write
-     * operation is finished.  This allows either a new
-     * writer or readers to aquire a lock.
+     * Releases a write lock previously obtained via <code>writeLock</code>.
+     * After decrementing the lock count if there are no oustanding locks
+     * this will allow a new writer, or readers.
+     *
+     * @see #writeLock
      */
     protected synchronized final void writeUnlock() {
-	currWriter = null;
-	notifyAll();
+        if (--numWriters <= 0) {
+            numWriters = 0;
+            currWriter = null;
+            notifyAll();
+        }
     }
 
     /**
-     * Acquires a lock to begin reading some state from the
+     * Acquires a lock to begin reading some state from the 
      * document.  There can be multiple readers at the same time.
      * Writing blocks the readers until notification of the change
      * to the listeners has been completed.  This method should
@@ -1163,14 +1423,14 @@ public abstract class AbstractDocument implements Document, Serializable {
     // --- serialization ---------------------------------------------
 
     private void readObject(ObjectInputStream s)
-      throws ClassNotFoundException, IOException
+      throws ClassNotFoundException, IOException 
     {
 	s.defaultReadObject();
 	listenerList = new EventListenerList();
 
         // Restore bidi structure
         //REMIND(bcb) This creates an initial bidi element to account for
-        //the \n that exists by default in the content.
+        //the \n that exists by default in the content.  
         bidiRoot = new BidiRootElement();
         try {
             writeLock();
@@ -1179,7 +1439,7 @@ public abstract class AbstractDocument implements Document, Serializable {
             bidiRoot.replace(0,0,p);
         } finally {
             writeUnlock();
-        }
+        }        
 	// At this point bidi root is only partially correct. To fully
 	// restore it we need access to getDefaultRootElement. But, this
 	// is created by the subclass and at this point will be null. We
@@ -1204,6 +1464,14 @@ public abstract class AbstractDocument implements Document, Serializable {
 
     private transient int numReaders;
     private transient Thread currWriter;
+    /**
+     * The number of writers, all obtained from <code>currWriter</code>.
+     */
+    private transient int numWriters;
+    /**
+     * True will notifying listeners.
+     */
+    private transient boolean notifyingListeners;
 
     private static Boolean defaultI18NProperty;
 
@@ -1236,11 +1504,16 @@ public abstract class AbstractDocument implements Document, Serializable {
      * represent character runs with the same Unicode bidi level.
      */
     private transient BranchElement bidiRoot;
+    
+    /**
+     * Filter for inserting/removing of text.
+     */
+    private DocumentFilter documentFilter;
 
     /**
-     * Segment used to test for multi byte condition.
+     * Used by DocumentFilter to do actual insert/remove.
      */
-    private transient Segment segment;
+    private transient DocumentFilter.FilterBypass filterBypass;
 
     private static final String BAD_LOCK_STATE = "document lock failure";
 
@@ -1289,7 +1562,7 @@ public abstract class AbstractDocument implements Document, Serializable {
      * into the document that is more than one byte long.  GlyphView uses
      * this to determine if it should use BreakIterator.
      */
-    static final Object MultiByteProperty = "multiByte";
+    static final Object MultiByteProperty = new Object();
 
     /**
      * Document property that indicates asynchronous loading is
@@ -1299,9 +1572,9 @@ public abstract class AbstractDocument implements Document, Serializable {
 
     /**
      * Interface to describe a sequence of character content that
-     * can be edited.  Implementations may or may not support a
+     * can be edited.  Implementations may or may not support a 
      * history mechanism which will be reflected by whether or not
-     * mutations return an UndoableEdit implementation.
+     * mutations return an UndoableEdit implementation.  
      * @see AbstractDocument
      */
     public interface Content {
@@ -1325,25 +1598,25 @@ public abstract class AbstractDocument implements Document, Serializable {
 
 	/**
 	 * Inserts a string of characters into the sequence.
-	 *
-	 * @param where   Offset into the sequence to make the insertion >= 0.
-	 * @param str     String to insert.
-	 * @return  If the implementation supports a history mechansim,
-	 *    a reference to an Edit implementation will be returned,
-	 *    otherwise null.
-	 * @exception BadLocationException  Thrown if the area covered by
-	 *   the arguments is not contained in the character sequence.
+	 * 
+	 * @param where   offset into the sequence to make the insertion >= 0
+	 * @param str     string to insert
+	 * @return  if the implementation supports a history mechanism, 
+	 *    a reference to an <code>Edit</code> implementation will be returned, 
+	 *    otherwise returns <code>null</code>
+	 * @exception BadLocationException  thrown if the area covered by
+	 *   the arguments is not contained in the character sequence
 	 */
         public UndoableEdit insertString(int where, String str) throws BadLocationException;
 
 	/**
-	 * Removes some portion of the sequence.
+	 * Removes some portion of the sequence.  
 	 *
 	 * @param where   The offset into the sequence to make the
          *   insertion >= 0.
 	 * @param nitems  The number of items in the sequence to remove >= 0.
-	 * @return  If the implementation supports a history mechansim,
-	 *    a reference to an Edit implementation will be returned,
+	 * @return  If the implementation supports a history mechansim, 
+	 *    a reference to an Edit implementation will be returned, 
 	 *    otherwise null.
 	 * @exception BadLocationException  Thrown if the area covered by
 	 *   the arguments is not contained in the character sequence.
@@ -1352,7 +1625,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 
 	/**
 	 * Fetches a string of characters contained in the sequence.
-	 *
+	 * 
 	 * @param where   Offset into the sequence to fetch >= 0.
 	 * @param len     number of characters to copy >= 0.
          * @return the string
@@ -1374,7 +1647,7 @@ public abstract class AbstractDocument implements Document, Serializable {
     }
 
     /**
-     * An interface that can be used to allow MutableAttributeSet
+     * An interface that can be used to allow MutableAttributeSet 
      * implementations to use pluggable attribute compression
      * techniques.  Each mutation of the attribute set can be
      * used to exchange a previous AttributeSet instance with
@@ -1385,11 +1658,11 @@ public abstract class AbstractDocument implements Document, Serializable {
      * The Element implementations provided by this class use
      * this interface to provide their MutableAttributeSet
      * implementations, so that different AttributeSet compression
-     * techniques can be employed.  The method
+     * techniques can be employed.  The method 
      * <code>getAttributeContext</code> should be implemented to
      * return the object responsible for implementing the desired
      * compression technique.
-     *
+     * 
      * @see StyleContext
      */
     public interface AttributeContext {
@@ -1455,7 +1728,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 
 	/**
          * Reclaims an attribute set.
-	 * This is a way for a MutableAttributeSet to mark that it no
+	 * This is a way for a MutableAttributeSet to mark that it no 
 	 * longer need a particular immutable set.  This is only necessary
 	 * in 1.1 where there are no weak references.  A 1.1 implementation
 	 * would call this in its finalize method.
@@ -1475,10 +1748,12 @@ public abstract class AbstractDocument implements Document, Serializable {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public abstract class AbstractElement implements Element, MutableAttributeSet, Serializable, TreeNode {
 
@@ -1540,12 +1815,12 @@ public abstract class AbstractDocument implements Document, Serializable {
 		out.print("[" + getStartOffset() + "," + getEndOffset() + "]");
 		Content c = getContent();
 		try {
-		    String contentStr = c.getString(getStartOffset(),
+		    String contentStr = c.getString(getStartOffset(), 
                                                     getEndOffset() - getStartOffset())/*.trim()*/;
 		    if (contentStr.length() > 40) {
 			contentStr = contentStr.substring(0, 40) + "...";
 		    }
-		    out.println("["+contentStr+"]");
+		    out.println("["+contentStr+"]");		
 	        } catch (BadLocationException e) {
 			;
 		}
@@ -1558,7 +1833,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 		}
 	    }
 	}
-
+	 
 	// --- Object methods ---------------------------
 
         /**
@@ -1671,10 +1946,10 @@ public abstract class AbstractDocument implements Document, Serializable {
 
 	/**
          * Gets the resolving parent.
-	 * If not overriden, the resolving parent defaults to
+	 * If not overridden, the resolving parent defaults to 
 	 * the parent element.
          *
-         * @return the attributes from the parent, null if none
+         * @return the attributes from the parent, <code>null</code> if none
 	 * @see AttributeSet#getResolveParent
 	 */
         public AttributeSet getResolveParent() {
@@ -1764,11 +2039,11 @@ public abstract class AbstractDocument implements Document, Serializable {
 	    checkForIllegalCast();
 	    AttributeContext context = getAttributeContext();
 	    if (parent != null) {
-		attributes =
+		attributes = 
 		    context.addAttribute(attributes, StyleConstants.ResolveAttribute,
 					 parent);
 	    } else {
-		attributes =
+		attributes = 
 		    context.removeAttribute(attributes, StyleConstants.ResolveAttribute);
 	    }
 	}
@@ -1834,7 +2109,7 @@ public abstract class AbstractDocument implements Document, Serializable {
          * @return the offset >= 0
          */
 	public abstract int getEndOffset();
-
+    
         /**
          * Gets a child element.
          *
@@ -1868,7 +2143,7 @@ public abstract class AbstractDocument implements Document, Serializable {
         // --- TreeNode methods -------------------------------------
 
 	/**
-	 * Returns the child <code>TreeNode</code> at index
+	 * Returns the child <code>TreeNode</code> at index 
 	 * <code>childIndex</code>.
 	 */
 	public TreeNode getChildAt(int childIndex) {
@@ -1876,8 +2151,10 @@ public abstract class AbstractDocument implements Document, Serializable {
 	}
 
 	/**
-	 * Returns the number of children <code>TreeNode</code>s the receiver
-	 * contains.
+	 * Returns the number of children <code>TreeNode</code>'s 
+         * receiver contains.
+         * @return the number of children <code>TreeNodews</code>'s
+         * receiver contains
 	 */
 	public int getChildCount() {
 	    return getElementCount();
@@ -1885,6 +2162,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 
 	/**
 	 * Returns the parent <code>TreeNode</code> of the receiver.
+         * @return the parent <code>TreeNode</code> of the receiver
 	 */
 	public TreeNode getParent() {
 	    return (TreeNode)getParentElement();
@@ -1894,6 +2172,9 @@ public abstract class AbstractDocument implements Document, Serializable {
 	 * Returns the index of <code>node</code> in the receivers children.
 	 * If the receiver does not contain <code>node</code>, -1 will be
 	 * returned.
+         * @param node the location of interest
+         * @return the index of <code>node</code> in the receiver's
+         * children, or -1 if absent
 	 */
 	public int getIndex(TreeNode node) {
 	    for(int counter = getChildCount() - 1; counter >= 0; counter--)
@@ -1904,12 +2185,15 @@ public abstract class AbstractDocument implements Document, Serializable {
 
 	/**
 	 * Returns true if the receiver allows children.
+         * @return true if the receiver allows children, otherwise false
 	 */
 	public abstract boolean getAllowsChildren();
 
 
 	/**
-	 * Returns the children of the reciever as an Enumeration.
+	 * Returns the children of the receiver as an
+         * <code>Enumeration</code>.
+         * @return the children of the receiver as an <code>Enumeration</code>
 	 */
 	public abstract Enumeration children();
 
@@ -1922,7 +2206,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 	}
 
         private void readObject(ObjectInputStream s)
-            throws ClassNotFoundException, IOException
+            throws ClassNotFoundException, IOException 
         {
 	    s.defaultReadObject();
 	    MutableAttributeSet attr = new SimpleAttributeSet();
@@ -1943,10 +2227,12 @@ public abstract class AbstractDocument implements Document, Serializable {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public class BranchElement extends AbstractElement {
 
@@ -2053,7 +2339,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 	    Element child = children[nchildren - 1];
 	    return child.getEndOffset();
 	}
-
+    
         /**
          * Gets a child element.
          *
@@ -2084,7 +2370,7 @@ public abstract class AbstractDocument implements Document, Serializable {
          */
 	public int getElementIndex(int offset) {
 	    int index;
-	    int lower = 0;
+	    int lower = 0; 
 	    int upper = nchildren - 1;
 	    int mid = 0;
 	    int p0 = getStartOffset();
@@ -2112,7 +2398,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 		    upper = lastIndex;
 		} else  {
 		    lower = lastIndex;
-		}
+		}  
 	    }
 
 	    while (lower <= upper) {
@@ -2125,7 +2411,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 		    index = mid;
 		    lastIndex = index;
 		    return index;
-		} else if (offset < p0) {
+		} else if (offset < p0) {        
 		    upper = mid - 1;
 		} else {
 		    lower = mid + 1;
@@ -2139,7 +2425,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 		index = mid + 1;
 	    }
 	    lastIndex = index;
-	    return index;
+	    return index;   
 	}
 
         /**
@@ -2156,6 +2442,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 
 	/**
 	 * Returns true if the receiver allows children.
+         * @return true if the receiver allows children, otherwise false
 	 */
 	public boolean getAllowsChildren() {
 	    return true;
@@ -2163,7 +2450,9 @@ public abstract class AbstractDocument implements Document, Serializable {
 
 
 	/**
-	 * Returns the children of the reciever as an Enumeration.
+	 * Returns the children of the receiver as an
+         * <code>Enumeration</code>.
+         * @return the children of the receiver
 	 */
 	public Enumeration children() {
 	    if(nchildren == 0)
@@ -2182,17 +2471,19 @@ public abstract class AbstractDocument implements Document, Serializable {
 	private int nchildren;
 	private int lastIndex;
     }
-
+    
     /**
      * Implements an element that directly represents content of
      * some kind.
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      *
      * @see     Element
      */
@@ -2303,6 +2594,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 
 	/**
 	 * Returns true if the receiver allows children.
+         * @return true if the receiver allows children, otherwise false
 	 */
 	public boolean getAllowsChildren() {
 	    return false;
@@ -2310,7 +2602,9 @@ public abstract class AbstractDocument implements Document, Serializable {
 
 
 	/**
-	 * Returns the children of the reciever as an Enumeration.
+	 * Returns the children of the receiver as an
+         * <code>Enumeration</code>.
+         * @return the children of the receiver
 	 */
 	public Enumeration children() {
 	    return null;
@@ -2325,7 +2619,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 	}
 
         private void readObject(ObjectInputStream s)
-            throws ClassNotFoundException, IOException
+            throws ClassNotFoundException, IOException 
         {
 	    s.defaultReadObject();
 
@@ -2351,7 +2645,7 @@ public abstract class AbstractDocument implements Document, Serializable {
     /**
      * Represents the root element of the bidirectional element structure.
      * The root element is the only element in the bidi element structure
-     * which contains children.
+     * which contains children.  
      */
     class BidiRootElement extends BranchElement {
 
@@ -2401,7 +2695,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 
         boolean isLeftToRight() {
             return ((getLevel() % 2) == 0);
-        }
+        }            
     }
 
     /**
@@ -2435,7 +2729,7 @@ public abstract class AbstractDocument implements Document, Serializable {
         public String toString() {
 	    return edits.toString();
 	}
-
+	
 	// --- CompoundEdit methods --------------------------
 
 	/**
@@ -2446,7 +2740,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 	 *
 	 * @param anEdit a document edit record
 	 * @return true if the edit was added
-	 */
+	 */ 
         public boolean addEdit(UndoableEdit anEdit) {
 	    // if the number of changes gets too great, start using
 	    // a hashtable for to locate the change for a given element.
@@ -2462,7 +2756,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 		}
 	    }
 
-	    // if we have a hashtable... add the entry if it's
+	    // if we have a hashtable... add the entry if it's 
 	    // an ElementChange.
 	    if ((changeLookup != null) && (anEdit instanceof DocumentEvent.ElementChange)) {
 		DocumentEvent.ElementChange ec = (DocumentEvent.ElementChange) anEdit;
@@ -2599,7 +2893,7 @@ public abstract class AbstractDocument implements Document, Serializable {
         public int getLength() {
 	    return length;
 	}
-
+	
 	/**
 	 * Gets the document that sourced the change event.
 	 *
@@ -2665,7 +2959,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 	    this.removed = removed;
 	    this.added = added;
 	}
-
+	    
 	/**
 	 * Returns the underlying element.
 	 *
@@ -2673,7 +2967,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 	 */
         public Element getElement() {
 	    return e;
-	}
+	} 
 
 	/**
 	 * Returns the index into the list of elements.
@@ -2741,6 +3035,29 @@ public abstract class AbstractDocument implements Document, Serializable {
 	private Element[] added;
     }
 
+
+    private class DefaultFilterBypass extends DocumentFilter.FilterBypass {
+        public Document getDocument() {
+            return AbstractDocument.this;
+        }
+
+        public void remove(int offset, int length) throws
+            BadLocationException {
+            handleRemove(offset, length);
+        }
+
+        public void insertString(int offset, String string,
+                                 AttributeSet attr) throws
+                                        BadLocationException {
+            handleInsertString(offset, string, attr);
+        }
+
+        public void replace(int offset, int length, String text,
+                            AttributeSet attrs) throws BadLocationException {
+            handleRemove(offset, length);
+            handleInsertString(offset, text, attrs);
+        }
+    }
 }
 
 
@@ -2748,4 +3065,4 @@ public abstract class AbstractDocument implements Document, Serializable {
 
 
 
-
+	

@@ -1,4 +1,6 @@
 /*
+ * @(#)WeakReference.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ package java.lang.ref;
  * later time it will enqueue those newly-cleared weak references that are
  * registered with reference queues.
  *
- * @version  1.12, 02/06/02
+ * @version  1.13, 12/03/01
  * @author   Mark Reinhold
  * @since    1.2
  */
@@ -31,6 +33,8 @@ public class WeakReference extends Reference {
     /**
      * Creates a new weak reference that refers to the given object.  The new
      * reference is not registered with any queue.
+     *
+     * @param referent object the new weak reference will refer to
      */
     public WeakReference(Object referent) {
 	super(referent);
@@ -40,6 +44,8 @@ public class WeakReference extends Reference {
      * Creates a new weak reference that refers to the given object and is
      * registered with the given queue.
      *
+     * @param referent object the new weak reference will refer to
+     * @param q queue the weak reference is registered with
      * @throws  NullPointerException  If the <code>queue</code> argument
      *                                is <code>null</code>
      *

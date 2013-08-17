@@ -1,4 +1,6 @@
 /*
+ * @(#)ValueMember.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -27,29 +29,27 @@ public final class ValueMember implements org.omg.CORBA.portable.IDLEntity {
     public String name;
 
     /**
-     * The name of the <code>value</code> member described by this
-     * <code>ValueMember</code> object.
+     * The repository ID of the <code>value</code> member described by
+     * this <code>ValueMember</code> object;
      * @serial
      */
     public String id;
 
     /**
-     * The name of the <code>value</code> member described by this
-     * <code>ValueMember</code> object.
+     * The repository ID of the <code>value</code> in which this member
+     * is defined.
      * @serial
      */
     public String defined_in;
 
     /**
-     * The name of the <code>value</code> member described by this
-     * <code>ValueMember</code> object.
+     * The version of the <code>value</code> in which this member is defined.
      * @serial
      */
     public String version;
 
     /**
-     * The type of the <code>value</code> member described by this
-     * <code>ValueMember</code> object.
+     * The type of of this <code>value</code> member.
      * @serial
      */
     public org.omg.CORBA.TypeCode type;
@@ -77,6 +77,19 @@ public final class ValueMember implements org.omg.CORBA.portable.IDLEntity {
     /**
      * Constructs a <code>ValueMember</code> object initialized with
      * the given values.
+     *
+     *@param __name The name of the <code>value</code> member described by this
+     * <code>ValueMember</code> object.
+     *@param __id The repository ID of the <code>value</code> member described by
+     * this <code>ValueMember</code> object;
+     *@param __defined_in The repository ID of the <code>value</code> in which this member
+     * is defined.
+     *@param __version The version of the <code>value</code> in which this member is defined.
+     *@param __type The type of of this <code>value</code> member.
+     *@param __type_def The typedef that represents the IDL type of the <code>value</code> 
+     * member described by this <code>ValueMember</code> object.
+     *@param __access The type of access (public, private) for the <code>value</code> 
+     * member described by this <code>ValueMember</code> object.
      */
     public ValueMember(String __name, String __id, String __defined_in, String __version, org.omg.CORBA.TypeCode __type, org.omg.CORBA.IDLType __type_def, short __access) {
 	name = __name;

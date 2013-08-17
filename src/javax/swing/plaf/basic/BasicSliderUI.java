@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicSliderUI.java	1.94 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -31,7 +33,7 @@ import javax.swing.plaf.*;
 /**
  * A Basic L&F implementation of SliderUI.
  *
- * @version 1.82 02/06/02
+ * @version 1.94 12/03/01
  * @author Tom Santos
  */
 public class BasicSliderUI extends SliderUI{
@@ -228,7 +230,16 @@ public class BasicSliderUI extends SliderUI{
 
     InputMap getInputMap(int condition) {
 	if (condition == JComponent.WHEN_FOCUSED) {
-	    return (InputMap)UIManager.get("Slider.focusInputMap");
+	    InputMap keyMap = (InputMap)UIManager.get("Slider.focusInputMap");
+	    InputMap rtlKeyMap;
+
+	    if (slider.getComponentOrientation().isLeftToRight() ||
+		((rtlKeyMap = (InputMap)UIManager.get("Slider.focusInputMap.RightToLeft")) == null)) {
+		return keyMap;
+	    } else {
+		rtlKeyMap.setParent(keyMap);
+		return rtlKeyMap;
+	    }
 	}
 	return null;
     }
@@ -239,7 +250,8 @@ public class BasicSliderUI extends SliderUI{
 	if (map == null) {
 	    map = createActionMap();
 	    if (map != null) {
-		UIManager.put("Slider.actionMap", map);
+		UIManager.getLookAndFeelDefaults().put
+                          ("Slider.actionMap", map);
 	    }
 	}
 	return map;
@@ -432,28 +444,31 @@ public class BasicSliderUI extends SliderUI{
 
   
     protected void calculateTrackRect() {
+	int centerSpacing = 0; // used to center sliders added using BorderLayout.CENTER (bug 4275631)
         if ( slider.getOrientation() == JSlider.HORIZONTAL ) {
+	    centerSpacing = thumbRect.height;
+	    if ( slider.getPaintTicks() ) centerSpacing += getTickLength();
+	    if ( slider.getPaintLabels() ) centerSpacing += getHeightOfTallestLabel();
 	    trackRect.x = contentRect.x + trackBuffer;
-	    trackRect.y = contentRect.y;
+	    trackRect.y = contentRect.y + (contentRect.height - centerSpacing - 1)/2;
 	    trackRect.width = contentRect.width - (trackBuffer * 2);
 	    trackRect.height = thumbRect.height;
 	}
 	else {
-	    if(BasicGraphicsUtils.isLeftToRight(slider)) {
-	        trackRect.x = contentRect.x;
+	    centerSpacing = thumbRect.width;
+	    if (BasicGraphicsUtils.isLeftToRight(slider)) {
+		if ( slider.getPaintTicks() ) centerSpacing += getTickLength();
+	    	if ( slider.getPaintLabels() ) centerSpacing += getWidthOfWidestLabel();
+	    } else {
+	        if ( slider.getPaintTicks() ) centerSpacing -= getTickLength();
+	    	if ( slider.getPaintLabels() ) centerSpacing -= getWidthOfWidestLabel();
 	    }
-	    else {
-	        int tickLength = 0;
-		if ( slider.getPaintTicks() ) {
-		    tickLength = getTickLength();
-		}
-	        trackRect.x = contentRect.x + tickLength +
-		                      getWidthOfWidestLabel();
-	    }
+	    trackRect.x = contentRect.x + (contentRect.width - centerSpacing - 1)/2;
 	    trackRect.y = contentRect.y + trackBuffer;
 	    trackRect.width = thumbRect.width;
 	    trackRect.height = contentRect.height - (trackBuffer * 2);
 	}
+
     }
 
     /**
@@ -567,6 +582,15 @@ public class BasicSliderUI extends SliderUI{
 		 propertyName.equals( "paintLabels" ) ) {
 	      
 	        calculateGeometry();
+                slider.repaint();
+	    }
+	    else if (propertyName.equals( "componentOrientation" )) {
+		calculateGeometry();
+		slider.repaint();
+
+		InputMap km = getInputMap(JComponent.WHEN_FOCUSED);
+		SwingUtilities.replaceUIInputMap(slider,
+						 JComponent.WHEN_FOCUSED, km);
 	    }
 	    else if ( propertyName.equals( "model" ) ) {
 	        ((BoundedRangeModel)e.getOldValue()).removeChangeListener( changeListener );
@@ -713,6 +737,9 @@ public class BasicSliderUI extends SliderUI{
         recalculateIfInsetsChanged();
 	recalculateIfOrientationChanged();
 	Rectangle clip = g.getClipBounds();
+
+	if ( !clip.intersects(trackRect) && slider.getPaintTrack())
+	    calculateGeometry();
 
 	if ( slider.getPaintTrack() && clip.intersects( trackRect ) ) {
 	    paintTrack( g );
@@ -907,24 +934,28 @@ public class BasicSliderUI extends SliderUI{
         Dictionary dictionary = slider.getLabelTable();
         if ( dictionary != null ) {
             Enumeration keys = dictionary.keys();
+            int minValue = slider.getMinimum();
+            int maxValue = slider.getMaximum();
             while ( keys.hasMoreElements() ) {
                 Integer key = (Integer)keys.nextElement();
-                Component label = (Component)dictionary.get( key );
-
-                if ( slider.getOrientation() == JSlider.HORIZONTAL ) {
-		    g.translate( 0, labelBounds.y );
-                    paintHorizontalLabel( g, key.intValue(), label );
-		    g.translate( 0, -labelBounds.y );
-                }
-                else {
-		    int offset = 0;
-		    if(!BasicGraphicsUtils.isLeftToRight(slider)) {
-		        offset = labelBounds.width -
-			              label.getPreferredSize().width;
-		    }
-		    g.translate( labelBounds.x + offset, 0 );
-                    paintVerticalLabel( g, key.intValue(), label );
-		    g.translate( -labelBounds.x - offset, 0 );
+                int value = key.intValue();
+                if (value >= minValue && value <= maxValue) {
+                    Component label = (Component)dictionary.get( key );
+                    if ( slider.getOrientation() == JSlider.HORIZONTAL ) {
+                        g.translate( 0, labelBounds.y );
+                        paintHorizontalLabel( g, value, label );
+                        g.translate( 0, -labelBounds.y );
+                    }
+                    else {
+                        int offset = 0;
+                        if (!BasicGraphicsUtils.isLeftToRight(slider)) {
+                            offset = labelBounds.width -
+                                label.getPreferredSize().width;
+                        }
+                        g.translate( labelBounds.x + offset, 0 );
+                        paintVerticalLabel( g, value, label );
+                        g.translate( -labelBounds.x - offset, 0 );
+                    }
                 }
             }
         }
@@ -1074,9 +1105,15 @@ public class BasicSliderUI extends SliderUI{
         synchronized(slider)    {
 
             int oldValue = slider.getValue();
-            int blockIncrement = slider.getMaximum() / 10;
-            int delta = blockIncrement * ((direction > 0) ? POSITIVE_SCROLL : NEGATIVE_SCROLL);
+            int blockIncrement =
+                (slider.getMaximum() - slider.getMinimum()) / 10;
+            if (blockIncrement <= 0 &&
+                slider.getMaximum() > slider.getMinimum()) {
 
+                blockIncrement = 1;
+            }
+
+            int delta = blockIncrement * ((direction > 0) ? POSITIVE_SCROLL : NEGATIVE_SCROLL);
             slider.setValue(oldValue + delta);          
         }
     }
@@ -1104,19 +1141,19 @@ public class BasicSliderUI extends SliderUI{
         int min = slider.getMinimum();
         int max = slider.getMaximum();
         int trackLength = trackRect.width;
-        int valueRange = slider.getMaximum() - slider.getMinimum();
-        double pixelsPerValue = (double)trackLength / (double)valueRange;
+        double valueRange = (double)max - (double)min;
+        double pixelsPerValue = (double)trackLength / valueRange;
         int trackLeft = trackRect.x;
         int trackRight = trackRect.x + (trackRect.width - 1);
         int xPosition;
 
         if ( !drawInverted() ) {
             xPosition = trackLeft;
-            xPosition += Math.round( pixelsPerValue * (double)(value - min) );
+            xPosition += Math.round( pixelsPerValue * ((double)value - min) );
         }
         else {
             xPosition = trackRight;
-            xPosition -= Math.round( pixelsPerValue * (double)(value - min) );
+            xPosition -= Math.round( pixelsPerValue * ((double)value - min) );
         }
 
         xPosition = Math.max( trackLeft, xPosition );
@@ -1129,7 +1166,7 @@ public class BasicSliderUI extends SliderUI{
         int min = slider.getMinimum();
         int max = slider.getMaximum();
         int trackLength = trackRect.height; 
-        int valueRange = slider.getMaximum() - slider.getMinimum();
+        double valueRange = (double)max - (double)min;
         double pixelsPerValue = (double)trackLength / (double)valueRange;
         int trackTop = trackRect.y;
         int trackBottom = trackRect.y + (trackRect.height - 1);
@@ -1137,11 +1174,11 @@ public class BasicSliderUI extends SliderUI{
 
         if ( !drawInverted() ) {
             yPosition = trackTop;
-            yPosition += Math.round( pixelsPerValue * (double)(max - value ) );
+            yPosition += Math.round( pixelsPerValue * ((double)max - value ) );
         }
         else {
             yPosition = trackTop;
-            yPosition += Math.round( pixelsPerValue * (double)(value - min) );
+            yPosition += Math.round( pixelsPerValue * ((double)value - min) );
         }
 
         yPosition = Math.max( trackTop, yPosition );
@@ -1171,8 +1208,8 @@ public class BasicSliderUI extends SliderUI{
 	}
 	else {
 	    int distanceFromTrackTop = yPos - trackTop;
-	    int valueRange = maxValue - minValue;
-	    double valuePerPixel = (double)valueRange / (double)trackLength;
+	    double valueRange = (double)maxValue - (double)minValue;
+	    double valuePerPixel = valueRange / (double)trackLength;
 	    int valueFromTrackTop = (int)Math.round( distanceFromTrackTop * valuePerPixel );
 
 	    value = drawInverted() ? minValue + valueFromTrackTop : maxValue - valueFromTrackTop;
@@ -1202,8 +1239,8 @@ public class BasicSliderUI extends SliderUI{
 	}
 	else {
 	    int distanceFromTrackLeft = xPos - trackLeft;
-	    int valueRange = maxValue - minValue;
-	    double valuePerPixel = (double)valueRange / (double)trackLength;
+	    double valueRange = (double)maxValue - (double)minValue;
+	    double valuePerPixel = valueRange / (double)trackLength;
 	    int valueFromTrackLeft = (int)Math.round( distanceFromTrackLeft * valuePerPixel );
 	    
 	    value = drawInverted() ? maxValue - valueFromTrackLeft :
@@ -1285,7 +1322,9 @@ public class BasicSliderUI extends SliderUI{
             currentMouseX = e.getX();
             currentMouseY = e.getY();
 
-            slider.requestFocus();
+            if (slider.isRequestFocusEnabled()) {
+                slider.requestFocus();
+            }
 
             // Clicked in the Thumb area?
             if ( thumbRect.contains(currentMouseX, currentMouseY) ) {
@@ -1298,7 +1337,6 @@ public class BasicSliderUI extends SliderUI{
                     break;
                 }
                 isDragging = true;
-                slider.setValueIsAdjusting(true);
                 return;
             }
             isDragging = false;
@@ -1410,13 +1448,23 @@ public class BasicSliderUI extends SliderUI{
             if ( !isDragging )
                 return;
 
+            slider.setValueIsAdjusting(true);
+
             switch ( slider.getOrientation() ) {
             case JSlider.VERTICAL:      
                 int halfThumbHeight = thumbRect.height / 2;
                 int thumbTop = e.getY() - offset;
                 int trackTop = trackRect.y;
                 int trackBottom = trackRect.y + (trackRect.height - 1);
+                int vMax = yPositionForValue(slider.getMaximum() -
+                                            slider.getExtent());
 
+                if (drawInverted()) {
+                    trackBottom = vMax;
+                }
+                else {
+                    trackTop = vMax;
+                }
                 thumbTop = Math.max( thumbTop, trackTop - halfThumbHeight );
                 thumbTop = Math.min( thumbTop, trackBottom - halfThumbHeight );
 
@@ -1430,7 +1478,15 @@ public class BasicSliderUI extends SliderUI{
                 int thumbLeft = e.getX() - offset;
                 int trackLeft = trackRect.x;
                 int trackRight = trackRect.x + (trackRect.width - 1);
+                int hMax = xPositionForValue(slider.getMaximum() -
+                                            slider.getExtent());
 
+                if (drawInverted()) {
+                    trackLeft = hMax;
+                }
+                else {
+                    trackRight = hMax;
+                }
                 thumbLeft = Math.max( thumbLeft, trackLeft - halfThumbWidth );
                 thumbLeft = Math.min( thumbLeft, trackRight - halfThumbWidth );
 

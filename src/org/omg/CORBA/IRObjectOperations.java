@@ -1,9 +1,17 @@
 /*
+ * @(#)IRObjectOperations.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package org.omg.CORBA;
 
+
+/**
+* The interface for <tt>IRObject</tt>.  For more information on 
+* Operations interfaces, see <a href="doc-files/generatedfiles.html#operations">
+* "Generated Files: Operations files"</a>.
+*/
 
 /*
  tempout/org/omg/CORBA/IRObjectOperations.java
@@ -13,7 +21,7 @@ package org.omg.CORBA;
 */
 
 /**
- * This is the Operations interface for the mapping from IRObject.
+ * This is the Operations interface for the mapping from <tt>IRObject</tt>.
  * Several interfaces are used as base interfaces for objects in 
  * the Interface Repository (IR). These base interfaces are not instantiable.
  * A common set of operations is used to locate objects within the 
@@ -49,7 +57,9 @@ public interface IRObjectOperations
      * An attempt to destroy an object that would leave the repository in an
      * incoherent state causes <code>BAD_INV_ORDER</code> exception to be raised
      * with the minor code 1.
-     * @exception <code>BAD_INV_ORDER</code>
+     * @exception BAD_INV_ORDER if this method is invoked on a repository or
+     *            <code>PrimitiveDef</code>, or if an attempt to destroy an
+     *            object would leave the repository in an incoherent state
      */
     void destroy ();
 } // interface IRObjectOperations

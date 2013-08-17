@@ -1,4 +1,6 @@
 /*
+ * @(#)JMenuBar.java	1.92 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -37,20 +39,22 @@ import javax.accessibility.*;
  * a section in <em>The Java Tutorial.</em>
  * For the keyboard keys used by this component in the standard Look and
  * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JMenuBar">JMenuBar</a> key assignments.
+ * <a href="doc-files/Key-Index.html#JMenuBar"><code>JMenuBar</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @beaninfo
  *   attribute: isContainer true
  * description: A container for holding and displaying menus.
  *
- * @version 1.86 02/06/02
+ * @version 1.92 12/03/01
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -84,6 +88,7 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
      */
     public JMenuBar() {
         super();
+        setFocusTraversalKeysEnabled(false);
         setSelectionModel(new DefaultSingleSelectionModel());
         updateUI();
     }
@@ -101,15 +106,18 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
      *
      * @param ui the new MenuBarUI L&F object
      * @see UIDefaults#getUI
+     * @beaninfo
+     *        bound: true
+     *       hidden: true
+     *    attribute: visualUpdate true
+     *  description: The UI object that implements the Component's LookAndFeel. 
      */
     public void setUI(MenuBarUI ui) {
         super.setUI(ui);
     }
     
     /**
-     * Notification from the <code>UIFactory</code> that the L&F has changed. 
-     * Called to replace the UI with the latest version from the 
-     * <code>UIFactory</code>.
+     * Resets the UI property with a value from the current look and feel.
      *
      * @see JComponent#updateUI
      */
@@ -458,10 +466,12 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJMenuBar extends AccessibleJComponent 
         implements AccessibleSelection {
@@ -620,16 +630,6 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
 
 
     /**
-     * Returns true to indicate that this component manages focus
-     * events internally.
-     *
-     * @return true
-     */
-    public boolean isManagingFocus() {
-        return true;
-    }
-
-    /**
      * Subclassed to check all the child menus.
      */
     protected boolean processKeyBinding(KeyStroke ks, KeyEvent e,
@@ -637,47 +637,37 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
 	// See if we have a local binding.
 	boolean retValue = super.processKeyBinding(ks, e, condition, pressed);
 	if (!retValue) {
-	    // We don't, pass along to children JMenu's
-	    Component subComponents[] = getComponents();
-	    for(int i=0 ; i < subComponents.length ; i++) {
-		if ((subComponents[i] instanceof JMenu) &&
-		    processBindingForKeyStrokeRecursive
-		          ((JComponent)subComponents[i], ks, e, condition,
-			   pressed)) {
-			return true;
-		    }
+            MenuElement[] subElements = getSubElements();
+            for (int i=0; i<subElements.length; i++) {
+                if (processBindingForKeyStrokeRecursive(
+                                                        subElements[i], ks, e, condition, pressed)) {
+                    return true;
+                }
             }
-        }       
+        }
         return retValue;
     }
 
-    static boolean processBindingForKeyStrokeRecursive(JComponent c,
-			 KeyStroke ks, KeyEvent e, int condition,
-	     boolean pressed) {
-        if (c==null)
+    static boolean processBindingForKeyStrokeRecursive(MenuElement elem,
+                                                       KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
+        if (elem == null) {
             return false;
+        }
 
-	// Check the receiver.
-	if (c.processKeyBinding(ks, e, condition, pressed)) {
-	    return true;
-	}
+        Component c = elem.getComponent();
+        if (c != null && c instanceof JComponent &&
+            ((JComponent)c).processKeyBinding(ks, e, condition, pressed)) {
 
-	// Then, if the receiver is a JMenu, check the menuitems.
-        if (c instanceof JMenu) {
-            JMenu m = (JMenu)c;
-            Component subComponents[];
-            
-            subComponents = m.getMenuComponents();
-	    if (subComponents != null) {
-		for(int i=0 ; i < subComponents.length ; i++) {
-		    if ((subComponents[i] instanceof JMenuItem) &&
-			processBindingForKeyStrokeRecursive
-			((JComponent)subComponents[i], ks, e, condition,
-			 pressed)) {
-			return true;
-		    }               
-		}
-	    }
+            return true;
+        }
+
+        MenuElement[] subElements = elem.getSubElements();
+        for(int i=0; i<subElements.length; i++) {
+            if (processBindingForKeyStrokeRecursive(subElements[i], ks, e,
+                                                    condition, pressed)) {
+                return true;
+                // We don't, pass along to children JMenu's
+            }
         }
         return false;
     }
@@ -703,6 +693,13 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
 
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
+        }
 
         Object[] kvData = new Object[4];
         int n = 0;
@@ -734,9 +731,6 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
             }
         }
 
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
     }
 }
 

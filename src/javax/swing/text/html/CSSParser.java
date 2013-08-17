@@ -1,4 +1,6 @@
 /*
+ * @(#)CSSParser.java	1.6 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -28,9 +30,13 @@ import java.io.*;
  * 7.1 of the CSS spec found at:
  * <a href=http://www.w3.org/TR/REC-CSS1>http://www.w3.org/TR/REC-CSS1</a>.
  * If an error results in parsing, a RuntimeException will be thrown.
+ * <p>
+ * This will preserve case. If the callback wishes to treat certain poritions
+ * case insensitively (such as selectors), it should use toLowerCase, or
+ * something similar.
  *
  * @author Scott Violet
- * @version 1.5 02/06/02
+ * @version 1.6 12/03/01
  */
 class CSSParser {
     // Parsing something like the following:

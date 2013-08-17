@@ -1,4 +1,6 @@
 /*
+ * @(#)StyleSheet.java	1.74 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -104,16 +106,46 @@ import javax.swing.text.*;
  * @author  Sunita Mani
  * @author  Sara Swanson
  * @author  Jill Nakata
- * @version 1.64 02/06/02
+ * @version 1.74 12/03/01
  */
 public class StyleSheet extends StyleContext {
+    // As the javadoc states, this class maintains a mapping between
+    // a CSS selector (such as p.bar) and a Style.
+    // This consists of a number of parts:
+    // . Each selector is broken down into its constituent simple selectors,
+    //   and stored in an inverted graph, for example:
+    //     p { color: red } ol p { font-size: 10pt } ul p { font-size: 12pt }
+    //   results in the graph:
+    //          root
+    //           |
+    //           p
+    //          / \
+    //         ol ul
+    //   each node (an instance of SelectorMapping) has an associated
+    //   specificity and potentially a Style.
+    // . Every rule that is asked for (either by way of getRule(String) or
+    //   getRule(HTML.Tag, Element)) results in a unique instance of
+    //   ResolvedStyle. ResolvedStyles contain the AttributeSets from the
+    //   SelectorMapping.
+    // . When a new rule is created it is inserted into the graph, and
+    //   the AttributeSets of each ResolvedStyles are updated appropriately.
+    // . This class creates special AttributeSets, LargeConversionSet and
+    //   SmallConversionSet, that maintain a mapping between StyleConstants
+    //   and CSS so that developers that wish to use the StyleConstants
+    //   methods can do so.
+    // . When one of the AttributeSets is mutated by way of a
+    //   StyleConstants key, all the associated CSS keys are removed. This is
+    //   done so that the two representations don't get out of sync. For
+    //   example, if the developer adds StyleConsants.BOLD, FALSE to an
+    //   AttributeSet that contains HTML.Tag.B, the HTML.Tag.B entry will
+    //   be removed.
 
     /**
      * Construct a StyleSheet
      */
     public StyleSheet() {
 	super();
-	selectorMapping = new Hashtable();
+	selectorMapping = new SelectorMapping(0);
 	resolvedStyles = new Hashtable();
 	if (css == null) {
 	    css = new CSS();
@@ -127,13 +159,13 @@ public class StyleSheet extends StyleContext {
      * for situations where the attributes will differ
      * if nesting inside of elements.
      *
-     * @param t the type to translate to visual attributes.
-     * @param e the element representing the tag. The element
+     * @param t the type to translate to visual attributes
+     * @param e the element representing the tag; the element
      *  can be used to determine the nesting for situations where
      *  the attributes will differ if nested inside of other
-     *  elements.
-     * @returns the set of CSS attributes to use to render
-     *  the tag.
+     *  elements
+     * @return the set of CSS attributes to use to render
+     *  the tag
      */
     public Style getRule(HTML.Tag t, Element e) {
         SearchBuffer sb = SearchBuffer.obtainSearchBuffer();
@@ -292,13 +324,14 @@ public class StyleSheet extends StyleContext {
 	    String selector = cleanSelectorString(nm);
 	    String[] selectors = getSimpleSelectors(selector);
 	    synchronized(this) {
-		Object mapping = getRootSelectorMapping();
+		SelectorMapping mapping = getRootSelectorMapping();
 		for (int i = selectors.length - 1; i >= 0; i--) {
-		    mapping = getSelectorMapping(mapping, selectors[i], true);
+		    mapping = mapping.getChildSelectorMapping(selectors[i],
+                                                              true);
 		}
-		Style rule = getMappingStyle(mapping);
+		Style rule = mapping.getStyle();
 		if (rule != null) {
-		    removeMappingStyle(mapping);
+		    mapping.setStyle(null);
 		    if (resolvedStyles.size() > 0) {
 			Enumeration values = resolvedStyles.elements();
 			while (values.hasMoreElements()) {
@@ -488,6 +521,13 @@ public class StyleSheet extends StyleContext {
 	    css = new CSS();
 	}
 	if (key instanceof StyleConstants) {
+            HTML.Tag tag = HTML.getTagForStyleConstantsKey(
+                                (StyleConstants)key);
+
+            if (tag != null && old.isDefined(tag)) {
+                old = removeAttribute(old, tag);
+            }
+
 	    Object cssValue = css.styleConstantsValueToCSSValue
 		              ((StyleConstants)key, value);
 	    if (cssValue != null) {
@@ -512,7 +552,10 @@ public class StyleSheet extends StyleContext {
      * @see MutableAttributeSet#addAttribute
      */
     public AttributeSet addAttributes(AttributeSet old, AttributeSet attr) {
-        return super.addAttributes(old, convertAttributeSet(attr));
+        if (!(attr instanceof HTMLDocument.TaggedAttributeSet)) {
+            old = removeHTMLTags(old, attr);
+        }
+	return super.addAttributes(old, convertAttributeSet(attr));
     }
 
     /**
@@ -527,6 +570,12 @@ public class StyleSheet extends StyleContext {
      */
     public AttributeSet removeAttribute(AttributeSet old, Object key) {
 	if (key instanceof StyleConstants) {
+            HTML.Tag tag = HTML.getTagForStyleConstantsKey(
+                                   (StyleConstants)key);
+            if (tag != null) {
+                old = super.removeAttribute(old, tag);
+            }
+
 	    Object cssKey = css.styleConstantsKeyToCSSKey((StyleConstants)key);
 	    if (cssKey != null) {
 		return super.removeAttribute(old, cssKey);
@@ -546,6 +595,9 @@ public class StyleSheet extends StyleContext {
      * @see MutableAttributeSet#removeAttributes
      */
     public AttributeSet removeAttributes(AttributeSet old, Enumeration names) {
+        // PENDING: Should really be doing something similar to 
+        // removeHTMLTags here, but it is rather expensive to have to
+        // clone names
         return super.removeAttributes(old, names);
     }
 
@@ -560,6 +612,9 @@ public class StyleSheet extends StyleContext {
      * @see MutableAttributeSet#removeAttributes
      */
     public AttributeSet removeAttributes(AttributeSet old, AttributeSet attrs) {
+        if (old != attrs) {
+            old = removeHTMLTags(old, attrs);
+        }
 	return super.removeAttributes(old, convertAttributeSet(attrs));
     }
 
@@ -591,6 +646,31 @@ public class StyleSheet extends StyleContext {
      */
     protected MutableAttributeSet createLargeAttributeSet(AttributeSet a) {
         return new LargeConversionSet(a);
+    }
+
+    /**
+     * For any StyleConstants key in attr that has an associated HTML.Tag,
+     * it is removed from old. The resulting AttributeSet is then returned.
+     */
+    private AttributeSet removeHTMLTags(AttributeSet old, AttributeSet attr) {
+        if (!(attr instanceof LargeConversionSet) &&
+            !(attr instanceof SmallConversionSet)) {
+            Enumeration names = attr.getAttributeNames();
+
+            while (names.hasMoreElements()) {
+                Object key = names.nextElement();
+
+                if (key instanceof StyleConstants) {
+                    HTML.Tag tag = HTML.getTagForStyleConstantsKey(
+                        (StyleConstants)key);
+
+                    if (tag != null && old.isDefined(tag)) {
+                        old = super.removeAttribute(old, tag);
+                    }
+                }
+            }
+        }
+	return old;
     }
 
     /**
@@ -811,10 +891,18 @@ public class StyleSheet extends StyleContext {
 	return new ListPainter(a, this);
     }
 
+    /**
+     * Sets the base font size, with valid values between 1 and 7.
+     */
     public void setBaseFontSize(int sz) {
 	css.setBaseFontSize(sz);
     }
 
+    /**
+     * Sets the base font size from the passed in String. The string
+     * can either identify a specific font size, with legal values between
+     * 1 and 7, or identifiy a relative font size such as +1 or -2.
+     */
     public void setBaseFontSize(String size) {
 	css.setBaseFontSize(size);
     }
@@ -889,16 +977,17 @@ public class StyleSheet extends StyleContext {
 	    // result in deadlock.
 	    Style altRule = addStyle(selectorName, null);
 	    synchronized(this) {
-		Object mapping = getRootSelectorMapping();
+		SelectorMapping mapping = getRootSelectorMapping();
 		for (int i = n - 1; i >= 0; i--) {
-		    mapping = getSelectorMapping(mapping, selector[i], true);
+		    mapping = mapping.getChildSelectorMapping
+                                      (selector[i], true);
 		}
-		rule = getMappingStyle(mapping);
+		rule = mapping.getStyle();
 		if (rule == null) {
-		    rule = createStyleForSelector(selectorName, mapping,
-						  altRule);
+                    rule = altRule;
+                    mapping.setStyle(rule);
 		    refreshResolvedRules(selectorName, selector, rule,
-					 getSpecificity(mapping));
+					 mapping.getSpecificity());
 		}
 	    }
 	}
@@ -1065,56 +1154,10 @@ public class StyleSheet extends StyleContext {
 
     /**
      * Returns the root selector mapping that all selectors are relative
-     * too. This is an inverted graph of the selectors.
+     * to. This is an inverted graph of the selectors.
      */
-    private Object getRootSelectorMapping() {
+    private SelectorMapping getRootSelectorMapping() {
 	return selectorMapping;
-    }
-
-    /**
-     * Returns the child mapping of <code>parent</code> for
-     * <code>selector</code>. If there is no mapping for <code>selector</code>
-     * and <code>create</code> is false, this will return null.
-     */
-    private synchronized Object getSelectorMapping(Object parent,
-						   String selector,
-						   boolean create) {
-	Hashtable retValue = (Hashtable)((Hashtable)parent).get(selector);
-	if (retValue == null && create) {
-	    retValue = new Hashtable(7);
-	    ((Hashtable)parent).put(selector, retValue);
-
-	    // Update specificity for child.
-	    int    specificity = 0;
-
-	    if (parent != null) {
-		Object     pSpec = ((Hashtable)parent).get(SPECIFICITY);
-
-		if (pSpec != null) {
-		    specificity = ((Integer)pSpec).intValue();
-		}
-	    }
-	    // class (.) 100
-	    // id (#)    10000
-	    char    firstChar = selector.charAt(0);
-	    if (firstChar == '.') {
-		specificity += 100;
-	    }
-	    else if (firstChar == '#') {
-		specificity += 10000;
-	    }
-	    else {
-		specificity += 1;
-		if (selector.indexOf('.') != -1) {
-		    specificity += 100;
-		}
-		if (selector.indexOf('#') != -1) {
-		    specificity += 10000;
-		}
-	    }
-	    retValue.put(SPECIFICITY, new Integer(specificity));
-	}
-	return retValue;
     }
 
     /**
@@ -1151,32 +1194,6 @@ public class StyleSheet extends StyleContext {
     }
 
     /**
-     * Returns the specificity of the passed in mapping.
-     */
-    private int getSpecificity(Object mapping) {
-	Object     pSpec = ((Hashtable)mapping).get(SPECIFICITY);
-
-	if (pSpec != null) {
-	    return ((Integer)pSpec).intValue();
-	}
-	return 0;
-    }
-
-    /**
-     * Returns the style for the passed in mapping.
-     */
-    private Style getMappingStyle(Object mapping) {
-	return (Style)((Hashtable)mapping).get(RULE);
-    }
-
-    /**
-     * Removes the previously added mapping style.
-     */
-    private void removeMappingStyle(Object mapping) {
-	((Hashtable)mapping).remove(RULE);
-    }
-
-    /**
      * Returns the style that linked attributes should be added to. This
      * will create the style if necessary.
      */
@@ -1193,22 +1210,6 @@ public class StyleSheet extends StyleContext {
 	    localStyle.setResolveParent(retStyle);
 	}
 	return retStyle;
-    }
-
-    /**
-     * Returns the Style appropriate for <code>selector</code> and
-     * <code>mapping</code>. If a Style does not currently exist,
-     * <code>altStyle</code> will be used.
-     */
-    private synchronized Style createStyleForSelector(String selector,
-						      Object mapping,
-						      Style altStyle) {
-	Style style = (Style)((Hashtable)mapping).get(RULE);
-	if (style == null) {
-	    style = altStyle;
-	    ((Hashtable)mapping).put(RULE, altStyle);
-	}
-	return style;
     }
 
     /**
@@ -1242,15 +1243,15 @@ public class StyleSheet extends StyleContext {
      * such that <code>elements</code> will remain ordered by 
      * specificity.
      */
-    private void addSortedStyle(Object mapping, Vector elements) {
+    private void addSortedStyle(SelectorMapping mapping, Vector elements) {
 	int       size = elements.size();
 
 	if (size > 0) {
-	    int     specificity = getSpecificity(mapping);
+	    int     specificity = mapping.getSpecificity();
 
 	    for (int counter = 0; counter < size; counter++) {
-		if (specificity >= getSpecificity(elements.
-						  elementAt(counter))) {
+		if (specificity >= ((SelectorMapping)elements.elementAt
+                                    (counter)).getSpecificity()) {
 		    elements.insertElementAt(mapping, counter);
 		    return;
 		}
@@ -1264,7 +1265,7 @@ public class StyleSheet extends StyleContext {
      * recursively calls this method if <code>parentMapping</code> has
      * any child mappings for any of the Elements in <code>elements</code>.
      */
-    private synchronized void getStyles(Object parentMapping,
+    private synchronized void getStyles(SelectorMapping parentMapping,
                            Vector styles,
                            String[] tags, String[] ids, String[] classes,
                            int index, int numElements,
@@ -1274,29 +1275,29 @@ public class StyleSheet extends StyleContext {
 	    return;
 	}
 	alreadyChecked.put(parentMapping, parentMapping);
-	Style style = getMappingStyle(parentMapping);
+	Style style = parentMapping.getStyle();
 	if (style != null) {
 	    addSortedStyle(parentMapping, styles);
 	}
 	for (int counter = index; counter < numElements; counter++) {
             String tagString = tags[counter];
             if (tagString != null) {
-		Object childMapping = getSelectorMapping(parentMapping,
-							 tagString, false);
+		SelectorMapping childMapping = parentMapping.
+                                getChildSelectorMapping(tagString, false);
 		if (childMapping != null) {
 		    getStyles(childMapping, styles, tags, ids, classes,
                               counter + 1, numElements, alreadyChecked);
 		}
 		if (classes[counter] != null) {
 		    String className = classes[counter];
-		    childMapping = getSelectorMapping(parentMapping,
-				       tagString + "." + className, false);
+		    childMapping = parentMapping.getChildSelectorMapping(
+                                         tagString + "." + className, false);
 		    if (childMapping != null) {
 			getStyles(childMapping, styles, tags, ids, classes,
                                   counter + 1, numElements, alreadyChecked);
 		    }
-		    childMapping = getSelectorMapping(parentMapping, "." +
-						      className, false);
+		    childMapping = parentMapping.getChildSelectorMapping(
+                                         "." + className, false);
 		    if (childMapping != null) {
 			getStyles(childMapping, styles, tags, ids, classes,
                                   counter + 1, numElements, alreadyChecked);
@@ -1304,14 +1305,14 @@ public class StyleSheet extends StyleContext {
 		}
 		if (ids[counter] != null) {
 		    String idName = ids[counter];
-		    childMapping = getSelectorMapping(parentMapping,
-				       tagString + "#" + idName, false);
+		    childMapping = parentMapping.getChildSelectorMapping(
+                                         tagString + "#" + idName, false);
 		    if (childMapping != null) {
 			getStyles(childMapping, styles, tags, ids, classes,
                                   counter + 1, numElements, alreadyChecked);
 		    }
-		    childMapping = getSelectorMapping(parentMapping, "#" +
-						      idName, false);
+		    childMapping = parentMapping.getChildSelectorMapping(
+                                   "#" + idName, false);
 		    if (childMapping != null) {
 			getStyles(childMapping, styles, tags, ids, classes,
                                   counter + 1, numElements, alreadyChecked);
@@ -1334,25 +1335,25 @@ public class StyleSheet extends StyleContext {
 	// Determine all the Styles that are appropriate, placing them
 	// in tempVector
 	try {
-	    Object mapping = getRootSelectorMapping();
+	    SelectorMapping mapping = getRootSelectorMapping();
 	    int numElements = tags.length;
 	    String tagString = tags[0];
-	    Object childMapping = getSelectorMapping(mapping, tagString,
-						     false);
+	    SelectorMapping childMapping = mapping.getChildSelectorMapping(
+                                                   tagString, false);
 	    if (childMapping != null) {
 		getStyles(childMapping, tempVector, tags, ids, classes, 1,
 			  numElements, tempHashtable);
 	    }
 	    if (classes[0] != null) {
 		String className = classes[0];
-		childMapping = getSelectorMapping(mapping, tagString + "." +
-						  className, false);
+		childMapping = mapping.getChildSelectorMapping(
+                                       tagString + "." + className, false);
 		if (childMapping != null) {
 		    getStyles(childMapping, tempVector, tags, ids, classes, 1,
 			      numElements, tempHashtable);
 		}
-		childMapping = getSelectorMapping(mapping, "." + className,
-						  false);
+		childMapping = mapping.getChildSelectorMapping(
+                                       "." + className, false);
 		if (childMapping != null) {
 		    getStyles(childMapping, tempVector, tags, ids, classes,
 			      1, numElements, tempHashtable);
@@ -1360,14 +1361,14 @@ public class StyleSheet extends StyleContext {
 	    }
 	    if (ids[0] != null) {
 		String idName = ids[0];
-		childMapping = getSelectorMapping(mapping, tagString + "#" +
-						  idName, false);
+		childMapping = mapping.getChildSelectorMapping(
+                                       tagString + "#" + idName, false);
 		if (childMapping != null) {
 		    getStyles(childMapping, tempVector, tags, ids, classes,
 			      1, numElements, tempHashtable);
 		}
-		childMapping = getSelectorMapping(mapping, "#" + idName,
-						  false);
+		childMapping = mapping.getChildSelectorMapping(
+                                       "#" + idName, false);
 		if (childMapping != null) {
 		    getStyles(childMapping, tempVector, tags, ids, classes,
 			      1, numElements, tempHashtable);
@@ -1380,8 +1381,8 @@ public class StyleSheet extends StyleContext {
 	    int numStyles = tempVector.size();
 	    AttributeSet[] attrs = new AttributeSet[numStyles + numLinkedSS];
 	    for (int counter = 0; counter < numStyles; counter++) {
-		attrs[counter] = getMappingStyle(tempVector.
-						 elementAt(counter));
+		attrs[counter] = ((SelectorMapping)tempVector.
+                                  elementAt(counter)).getStyle();
 	    }
 	    // Get the AttributeSet from linked style sheets.
 	    for (int counter = 0; counter < numLinkedSS; counter++) {
@@ -1633,37 +1634,6 @@ public class StyleSheet extends StyleContext {
 	}
     }
 
-    // Serialization support
-
-    private void readObject(ObjectInputStream s)
-	throws ClassNotFoundException, IOException {
-	s.defaultReadObject();
-	// Remap SheetAttributes to the shared versions
-	updateSheetAttributes(selectorMapping);
-    }
-
-    private void updateSheetAttributes(Hashtable mapping) {
-	Enumeration keys = mapping.keys();
-	while (keys.hasMoreElements()) {
-	    Object key = keys.nextElement();
-	    Object value = mapping.get(key);
-	    if (key instanceof SheetAttribute) {
-		if (key.toString().equals("specificity")) {
-		    mapping.remove(key);
-		    mapping.put(SPECIFICITY, value);
-		}
-		else if (key.toString().equals("rule")) {
-		    mapping.remove(key);
-		    mapping.put(RULE, value);
-		}
-	    }
-	    else {
-		if (value instanceof Hashtable) {
-		    updateSheetAttributes((Hashtable)value);
-		}
-	    }
-	}
-    }
 
     /**
      * A temporary class used to hold a Vector, a StringBuffer and a
@@ -1953,9 +1923,6 @@ public class StyleSheet extends StyleContext {
 		type = (CSS.Value)attr.getAttribute(CSS.Attribute.
 						    LIST_STYLE_TYPE);
 	    }
-            // PENDING(sky): Resolve this, there is no way to get the
-            // start value. start is an HTML attribute, and not visible
-            // from attr.
             start = 1;
 	}
 
@@ -1990,6 +1957,28 @@ public class StyleSheet extends StyleContext {
 	}
 
         /**
+         * Obtains the starting index from <code>parent</code>.
+         */
+        private void getStart(View parent) {
+            checkedForStart = true;
+            Element element = parent.getElement();
+            if (element != null) {
+                AttributeSet attr = element.getAttributes();
+                Object startValue;
+                if (attr != null && attr.isDefined(HTML.Attribute.START) &&
+                    (startValue = attr.getAttribute
+                     (HTML.Attribute.START)) != null &&
+                    (startValue instanceof String)) {
+
+                    try {
+                        start = Integer.parseInt((String)startValue);
+                    }
+                    catch (NumberFormatException nfe) {}
+                }
+            }
+        }
+
+        /**
          * Returns an integer that should be used to render the child at
          * <code>childIndex</code> with. The retValue will usually be
          * <code>childIndex</code> + 1, unless <code>parentView</code>
@@ -1997,6 +1986,9 @@ public class StyleSheet extends StyleContext {
          * has a HTML.Attribute.START specified.
          */
         private int getRenderIndex(View parentView, int childIndex) {
+            if (!checkedForStart) {
+                getStart(parentView);
+            }
             int retIndex = childIndex;
             for (int counter = childIndex; counter >= 0; counter--) {
                 AttributeSet as = parentView.getElement().getElement(counter).
@@ -2262,6 +2254,7 @@ public class StyleSheet extends StyleContext {
 	    return result;
 	}
 
+        private boolean checkedForStart;
         private int start;
         private CSS.Value type;
         URL imageurl;
@@ -2436,270 +2429,6 @@ public class StyleSheet extends StyleContext {
 
 
     /**
-     * An implementation of AttributeSet that can multiplex
-     * across a set of AttributeSets.
-     */
-    static class MuxingAttributeSet implements AttributeSet, Serializable {
-	MuxingAttributeSet(AttributeSet[] attrs) {
-	    this.attrs = attrs;
-	}
-
-	MuxingAttributeSet() {
-	}
-
-	protected synchronized void setAttributes(AttributeSet[] attrs) {
-	    this.attrs = attrs;
-	}
-
-	/**
-	 * Returns the AttributeSets multiplexing too. When the AttributeSets
-	 * need to be referenced, this should be called.
-	 */
-	protected synchronized AttributeSet[] getAttributes() {
-	    return attrs;
-	}
-
-	/**
-	 * Inserts <code>as</code> at <code>index</code>. This assumes
-	 * the value of <code>index</code> is between 0 and attrs.length,
-	 * inclusive.
-	 */
-	protected synchronized void insertAttributeSetAt(AttributeSet as,
-							 int index) {
-	    int numAttrs = attrs.length;
-	    AttributeSet newAttrs[] = new AttributeSet[numAttrs + 1];
-	    if (index < numAttrs) {
-		if (index > 0) {
-		    System.arraycopy(attrs, 0, newAttrs, 0, index);
-		    System.arraycopy(attrs, index, newAttrs, index + 1,
-				     numAttrs - index);
-		}
-		else {
-		    System.arraycopy(attrs, 0, newAttrs, 1, numAttrs);
-		}
-	    }
-	    else {
-		System.arraycopy(attrs, 0, newAttrs, 0, numAttrs);
-	    }
-	    newAttrs[index] = as;
-            attrs = newAttrs;
-        }
-
-	/**
-	 * Removes the AttributeSet at <code>index</code>. This assumes
-	 * the value of <code>index</code> is greater than or equal to 0,
-	 * and less than attrs.length.
-	 */
-	protected synchronized void removeAttributeSetAt(int index) {
-	    int numAttrs = attrs.length;
-	    AttributeSet[] newAttrs = new AttributeSet[numAttrs - 1];
-	    if (numAttrs > 0) {
-		if (index == 0) {
-		    // FIRST
-		    System.arraycopy(attrs, 1, newAttrs, 0, numAttrs - 1);
-		}
-		else if (index < (numAttrs - 1)) {
-		    // MIDDLE
-		    System.arraycopy(attrs, 0, newAttrs, 0, index);
-		    System.arraycopy(attrs, index + 1, newAttrs, index,
-				     numAttrs - index - 1);
-		}
-		else {
-		    // END
-		    System.arraycopy(attrs, 0, newAttrs, 0, numAttrs - 1);
-		}
-	    }
-	    attrs = newAttrs;
-	}
-
-	//  --- AttributeSet methods ----------------------------
-
-	/**
-	 * Gets the number of attributes that are defined.
-	 *
-	 * @return the number of attributes
-	 * @see AttributeSet#getAttributeCount
-	 */
-        public int getAttributeCount() {
-	    AttributeSet[] as = getAttributes();
-	    int n = 0;
-	    for (int i = 0; i < as.length; i++) {
-		n += as[i].getAttributeCount();
-	    }
-	    return n;
-	}
-
-	/**
-	 * Checks whether a given attribute is defined.
-	 * This will convert the key over to CSS if the
-	 * key is a StyleConstants key that has a CSS
-	 * mapping.
-	 *
-	 * @param key the attribute key
-	 * @return true if the attribute is defined
-	 * @see AttributeSet#isDefined
-	 */
-        public boolean isDefined(Object key) {
-	    AttributeSet[] as = getAttributes();
-	    for (int i = 0; i < as.length; i++) {
-		if (as[i].isDefined(key)) {
-		    return true;
-		}
-	    }
-	    return false;
-	}
-
-	/**
-	 * Checks whether two attribute sets are equal.
-	 *
-	 * @param attr the attribute set to check against
-	 * @return true if the same
-	 * @see AttributeSet#isEqual
-	 */
-        public boolean isEqual(AttributeSet attr) {
-	    return ((getAttributeCount() == attr.getAttributeCount()) &&
-		    containsAttributes(attr));
-	}
-
-	/**
-	 * Copies a set of attributes.
-	 *
-	 * @return the copy
-	 * @see AttributeSet#copyAttributes
-	 */
-        public AttributeSet copyAttributes() {
-	    AttributeSet[] as = getAttributes();
-	    MutableAttributeSet a = new SimpleAttributeSet();
-	    int n = 0;
-	    for (int i = as.length - 1; i >= 0; i--) {
-		a.addAttributes(as[i]);
-	    }
-	    return a;
-	}
-
-	/**
-	 * Gets the value of an attribute.  If the requested
-	 * attribute is a StyleConstants attribute that has
-	 * a CSS mapping, the request will be converted.
-	 *
-	 * @param key the attribute name
-	 * @return the attribute value
-	 * @see AttributeSet#getAttribute
-	 */
-        public Object getAttribute(Object key) {
-	    AttributeSet[] as = getAttributes();
-	    int n = as.length;
-	    for (int i = 0; i < n; i++) {
-		Object o = as[i].getAttribute(key);
-		if (o != null) {
-		    return o;
-		}
-	    }
-	    return null;
-	}
-
-	/**
-	 * Gets the names of all attributes.
-	 *
-	 * @return the attribute names
-	 * @see AttributeSet#getAttributeNames
-	 */
-        public Enumeration getAttributeNames() {
-	    return new MuxingAttributeNameEnumeration();
-	}
-
-	/**
-	 * Checks whether a given attribute name/value is defined.
-	 *
-	 * @param name the attribute name
-	 * @param value the attribute value
-	 * @return true if the name/value is defined
-	 * @see AttributeSet#containsAttribute
-	 */
-        public boolean containsAttribute(Object name, Object value) {
-	    return value.equals(getAttribute(name));
-	}
-
-	/**
-	 * Checks whether the attribute set contains all of
-	 * the given attributes.
-	 *
-	 * @param attrs the attributes to check
-	 * @return true if the element contains all the attributes
-	 * @see AttributeSet#containsAttributes
-	 */
-        public boolean containsAttributes(AttributeSet attrs) {
-	    boolean result = true;
-
-	    Enumeration names = attrs.getAttributeNames();
-	    while (result && names.hasMoreElements()) {
-		Object name = names.nextElement();
-		result = attrs.getAttribute(name).equals(getAttribute(name));
-	    }
-
-	    return result;
-	}
-
-	/**
-	 * Returns null, subclasses may wish to do something more
-	 * intelligent with this.
-	 */
-        public AttributeSet getResolveParent() {
-	    return null;
-	}
-
-	AttributeSet[] attrs;
-
-
-	/**
-	 * An Enumeration of the Attribute names in a MuxingAttributeSet.
-	 * This may return the same name more than once.
-	 */
-	class MuxingAttributeNameEnumeration implements Enumeration {
-
-	    MuxingAttributeNameEnumeration() {
-		updateEnum();
-	    }
-
-	    public boolean hasMoreElements() {
-		if (currentEnum == null) {
-		    return false;
-		}
-		return currentEnum.hasMoreElements();
-	    }
-
-	    public Object nextElement() {
-		if (currentEnum == null) {
-		    throw new NoSuchElementException("No more names");
-		}
-		Object retObject = currentEnum.nextElement();
-		if (!currentEnum.hasMoreElements()) {
-		    updateEnum();
-		}
-		return retObject;
-	    }
-
-	    void updateEnum() {
-		AttributeSet[] as = getAttributes();
-		currentEnum = null;
-		while (currentEnum == null && attrIndex < as.length) {
-		    currentEnum = as[attrIndex++].getAttributeNames();
-		    if (!currentEnum.hasMoreElements()) {
-			currentEnum = null;
-		    }
-		}
-	    }
-
-
-	    /** Index into attrs the current Enumeration came from. */
-	    int attrIndex;
-	    /** Enumeration from attrs. */
-	    Enumeration currentEnum;
-	}
-    }
-
-
-    /**
      * A subclass of MuxingAttributeSet that translates between
      * CSS and HTML and StyleConstants. The AttributeSets used are
      * the CSS rules that match the Views Elements.
@@ -2765,8 +2494,9 @@ public class StyleSheet extends StyleContext {
 			}
 		    }
 		}
-		this.attrs = new AttributeSet[muxList.size()];
-		muxList.copyInto(this.attrs);
+		AttributeSet[] attrs = new AttributeSet[muxList.size()];
+		muxList.copyInto(attrs);
+                setAttributes(attrs);
 	    }
 	    finally {
 		SearchBuffer.releaseSearchBuffer(sb);
@@ -2870,7 +2600,7 @@ public class StyleSheet extends StyleContext {
     static class ResolvedStyle extends MuxingAttributeSet implements
                   Serializable, Style {
 	ResolvedStyle(String name, AttributeSet[] attrs, int extendedIndex) {
-	    this.attrs = attrs;
+	    super(attrs);
 	    this.name = name;
 	    this.extendedIndex = extendedIndex;
 	}
@@ -2882,6 +2612,7 @@ public class StyleSheet extends StyleContext {
 	 * is before extendedIndex.
          */
         synchronized void insertStyle(Style style, int specificity) {
+            AttributeSet[] attrs = getAttributes();
             int maxCounter = attrs.length;
 	    int counter = 0;
             for (;counter < extendedIndex; counter++) {
@@ -2899,6 +2630,8 @@ public class StyleSheet extends StyleContext {
 	 * <code>style</code> is not referenced by the receiver.
 	 */
 	synchronized void removeStyle(Style style) {
+            AttributeSet[] attrs = getAttributes();
+
 	    for (int counter = attrs.length - 1; counter >= 0; counter--) {
 		if (attrs[counter] == style) {
 		    removeAttributeSetAt(counter);
@@ -2923,7 +2656,7 @@ public class StyleSheet extends StyleContext {
 	 * attributes in. It will be the AttributeSet last checked.
 	 */
 	synchronized void addExtendedStyle(Style attr) {
-	    insertAttributeSetAt(attr, attrs.length);
+	    insertAttributeSetAt(attr, getAttributes().length);
 	}
 
 	/**
@@ -3045,17 +2778,20 @@ public class StyleSheet extends StyleContext {
             }
             if (thisDotIndex != -1) {
                 // Reciever references a class, just check element name.
-                return selector.regionMatches(sCurrent, name, thisCurrent,
-                                              thisDotIndex - thisCurrent);
+                return (((thisDotIndex - thisCurrent) == (sLast - sCurrent)) &&
+                        selector.regionMatches(sCurrent, name, thisCurrent,
+                                               thisDotIndex - thisCurrent));
             }
             if (thisPoundIndex != -1) {
                 // Reciever references an id, just check element name.
-                return selector.regionMatches(sCurrent, name, thisCurrent,
-                                              thisPoundIndex - thisCurrent);
+                return (((thisPoundIndex - thisCurrent) ==(sLast - sCurrent))&&
+                        selector.regionMatches(sCurrent, name, thisCurrent,
+                                               thisPoundIndex - thisCurrent));
             }
             // Fail through, no classes or ides, just check string.
-            return selector.regionMatches(sCurrent, name, thisCurrent,
-                                              thisLast - thisCurrent);
+            return (((thisLast - thisCurrent) == (sLast - sCurrent)) &&
+                    selector.regionMatches(sCurrent, name, thisCurrent,
+                                           thisLast - thisCurrent));
         }
 
         /**
@@ -3081,6 +2817,9 @@ public class StyleSheet extends StyleContext {
 	public String getName() {return name;}
 	public void addChangeListener(ChangeListener l) {}
 	public void removeChangeListener(ChangeListener l) {}
+        public ChangeListener[] getChangeListeners() {
+            return new ChangeListener[0];
+        }
 
 	/** The name of the Style, which is the selector.
 	 * This will NEVER change!
@@ -3090,18 +2829,128 @@ public class StyleSheet extends StyleContext {
 	private int extendedIndex;
     }
 
+
+    /**
+     * SelectorMapping contains a specifitiy, as an integer, and an associated
+     * Style. It can also reference children <code>SelectorMapping</code>s,
+     * so that it behaves like a tree.
+     * <p>
+     * This is not thread safe, it is assumed the caller will take the
+     * necessary precations if this is to be used in a threaded environment.
+     */
+    static class SelectorMapping implements Serializable {
+        public SelectorMapping(int specificity) {
+            this.specificity = specificity;
+        }
+
+        /**
+         * Returns the specificity this mapping represents.
+         */
+        public int getSpecificity() {
+            return specificity;
+        }
+
+        /**
+         * Sets the Style associated with this mapping.
+         */
+        public void setStyle(Style style) {
+            this.style = style;
+        }
+
+        /**
+         * Returns the Style associated with this mapping.
+         */
+        public Style getStyle() {
+            return style;
+        }
+
+        /**
+         * Returns the child mapping identified by the simple selector
+         * <code>selector</code>. If a child mapping does not exist for
+         *<code>selector</code>, and <code>create</code> is true, a new
+         * one will be created.
+         */
+        public SelectorMapping getChildSelectorMapping(String selector,
+                                                       boolean create) {
+            SelectorMapping retValue = null;
+
+            if (children != null) {
+                retValue = (SelectorMapping)children.get(selector);
+            }
+            else if (create) {
+                children = new HashMap(7);
+            }
+            if (retValue == null && create) {
+                int specificity = getChildSpecificity(selector);
+
+                retValue = createChildSelectorMapping(specificity);
+                children.put(selector, retValue);
+            }
+            return retValue;
+        }
+
+        /**
+         * Creates a child <code>SelectorMapping</code> with the specified
+         * <code>specificity</code>.
+         */
+        protected SelectorMapping createChildSelectorMapping(int specificity) {
+            return new SelectorMapping(specificity);
+        }
+
+        /**
+         * Returns the specificity for the child selector
+         * <code>selector</code>.
+         */
+        protected int getChildSpecificity(String selector) {
+	    // class (.) 100
+	    // id (#)    10000
+	    char    firstChar = selector.charAt(0);
+            int     specificity = getSpecificity();
+
+	    if (firstChar == '.') {
+		specificity += 100;
+	    }
+	    else if (firstChar == '#') {
+		specificity += 10000;
+	    }
+	    else {
+		specificity += 1;
+		if (selector.indexOf('.') != -1) {
+		    specificity += 100;
+		}
+		if (selector.indexOf('#') != -1) {
+		    specificity += 10000;
+		}
+	    }
+            return specificity;
+        }
+
+        /**
+         * The specificity for this selector.
+         */
+        private int specificity;
+        /**
+         * Style for this selector.
+         */
+        private Style style;
+        /**
+         * Any sub selectors. Key will be String, and value will be
+         * another SelectorMapping.
+         */
+        private HashMap children;
+    }
+
+
     // ---- Variables ---------------------------------------------
 
     final static int DEFAULT_FONT_SIZE = 3;
 
     private CSS css;
 
-    /** An inverted graph of the selectors. Each key will be a String tag,
-     * and each value will be a Hashtable. Further the key RULE is used
-     * for the styles attached to the particular location, and 
-     * SPECIFICITY is used to indicate the specificity.
+    /**
+     * An inverted graph of the selectors.
      */
-    private Hashtable selectorMapping;
+    private SelectorMapping selectorMapping;
 
     /** Maps from selector (as a string) to Style that includes all
      * relevant styles. */
@@ -3113,35 +2962,6 @@ public class StyleSheet extends StyleContext {
 
     /** Where the style sheet was found. Used for relative imports. */
     private URL base;
-
-
-    /**
-     * Internal StyleSheet attribute.  This is used for
-     * caches, weights, rule storage, etc.
-     * <p>While this implements serializable, on unarchiving you sure make
-     * sure to reference the static finals.
-     */
-    static class SheetAttribute implements Serializable {
-
-	SheetAttribute(String s, boolean cache) {
-	    name = s;
-	    this.cache = cache;
-	}
-
-        public String toString() {
-	    return name;
-	}
-
-        public boolean isCache() {
-	    return cache;
-	}
-
-	private boolean cache;
-	private String name;
-    }
-
-    static final SheetAttribute SPECIFICITY = new SheetAttribute("specificity", false);
-    static final SheetAttribute RULE = new SheetAttribute("rule", false);
 
 
     /**
@@ -3206,6 +3026,8 @@ public class StyleSheet extends StyleContext {
 	 * A selector has been encountered.
 	 */
 	public void handleSelector(String selector) {
+            selector = selector.toLowerCase();
+
 	    int length = selector.length();
 
 	    if (selector.endsWith(",")) {
@@ -3244,6 +3066,20 @@ public class StyleSheet extends StyleContext {
 	    if (propertyName != null) {
 		CSS.Attribute cssKey = CSS.getAttribute(propertyName);
 		if (cssKey != null) {
+                    // There is currently no mechanism to determine real
+                    // base that style sheet was loaded from. For the time
+                    // being, this maps for LIST_STYLE_IMAGE, which appear
+                    // to be the only one that currently matters. A more
+                    // general mechanism is definately needed.
+                    if (cssKey == CSS.Attribute.LIST_STYLE_IMAGE) {
+                        if (value != null && !value.equals("none")) {
+                            URL url = CSS.getURL(base, value);
+
+                            if (url != null) {
+                                value = url.toString();
+                            }
+                        }
+                    }
 		    addCSSAttribute(declaration, cssKey, value);
 		}
 		propertyName = null;

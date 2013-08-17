@@ -1,4 +1,6 @@
 /*
+ * @(#)ZipEntry.java	1.33 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,7 +12,7 @@ import java.util.Date;
 /**
  * This class is used to represent a ZIP file entry.
  *
- * @version	1.33, 02/06/02
+ * @version	1.33, 12/03/01
  * @author	David Connelly
  */
 public
@@ -222,7 +224,7 @@ class ZipEntry implements ZipConstants, Cloneable {
      * Sets the optional extra field data for the entry.
      * @param extra the extra field data bytes
      * @exception IllegalArgumentException if the length of the specified
-     *		  extra field data is greater than 0xFFFF bytes
+     *		  extra field data is greater than 0xFFFFF bytes
      * @see #getExtra()
      */
     public void setExtra(byte[] extra) {
@@ -249,7 +251,8 @@ class ZipEntry implements ZipConstants, Cloneable {
      * @see #getComment()
      */
     public void setComment(String comment) {
-	if (comment != null && comment.length() > 0xFFFF) {
+	if (comment != null && comment.length() > 0xffff/3 
+                    && ZipOutputStream.getUTF8Length(comment) > 0xffff) {
 	    throw new IllegalArgumentException("invalid entry comment length");
 	}
 	this.comment = comment;

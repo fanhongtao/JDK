@@ -1,4 +1,6 @@
 /*
+ * @(#)JarURLConnection.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -82,20 +84,22 @@ import java.security.Permission;
  *
  * <p>Examples:
  *
+ * <dl>
+ *
  * <dt>context: <b>jar:http://www.foo.com/bar/jar.jar!/</b>, 
  * spec:<b>baz/entry.txt</b>
  *
- * <dd>url:<b>jar:http://www.foo.com/bar/baz/jar.jar!/baz/entry.txt</b>
+ * <dd>url:<b>jar:http://www.foo.com/bar/jar.jar!/baz/entry.txt</b>
  *
  * <dt>context: <b>jar:http://www.foo.com/bar/jar.jar!/baz</b>, 
  * spec:<b>entry.txt</b>
  *
- * <dd>url:<b>jar:http://www.foo.com/bar/baz/jar.jar!/baz/entry.txt</b>
+ * <dd>url:<b>jar:http://www.foo.com/bar/jar.jar!/baz/entry.txt</b>
  *
  * <dt>context: <b>jar:http://www.foo.com/bar/jar.jar!/baz</b>, 
  * spec:<b>/entry.txt</b>
  *
- * <dd>url:<b>jar:http://www.foo.com/bar/baz/jar.jar!/entry.txt</b>
+ * <dd>url:<b>jar:http://www.foo.com/bar/jar.jar!/entry.txt</b>
  *
  * </dl>
  *

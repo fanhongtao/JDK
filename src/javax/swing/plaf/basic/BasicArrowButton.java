@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicArrowButton.java	1.23 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,24 +16,39 @@ import javax.swing.*;
  * JButton object that draws a scaled Arrow in one of the cardinal directions.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.20 02/06/02
+ * @version 1.23 12/03/01
  * @author David Kloba
  */
 public class BasicArrowButton extends JButton implements SwingConstants
 {
         protected int direction;
 
-        public BasicArrowButton(int direction)            {
+        private Color shadow;
+        private Color darkShadow;
+        private Color highlight;
+
+        public BasicArrowButton(int direction, Color background, Color shadow,
+			 Color darkShadow, Color highlight) {
 	    super();
 	    setRequestFocusEnabled(false);
             setDirection(direction);
-            setBackground(UIManager.getColor("control"));
+            setBackground(background);
+	    this.shadow = shadow;
+	    this.darkShadow = darkShadow;
+	    this.highlight = highlight;
+	}   
+
+        public BasicArrowButton(int direction) {
+	    this(direction, UIManager.getColor("control"), UIManager.getColor("controlShadow"),
+		 UIManager.getColor("controlDkShadow"), UIManager.getColor("controlLtHighlight"));
         }
 
         public int getDirection() { return direction; }
@@ -54,22 +71,22 @@ public class BasicArrowButton extends JButton implements SwingConstants
 
             /// Draw the proper Border
             if (isPressed) {
-                g.setColor(UIManager.getColor("controlShadow"));
+                g.setColor(shadow);
                 g.drawRect(0, 0, w-1, h-1);
             } else {
                 // Using the background color set above
                 g.drawLine(0, 0, 0, h-1);
                 g.drawLine(1, 0, w-2, 0);
 
-                g.setColor(UIManager.getColor("controlLtHighlight"));    // inner 3D border
+                g.setColor(highlight);    // inner 3D border
                 g.drawLine(1, 1, 1, h-3);
                 g.drawLine(2, 1, w-3, 1);
 
-                g.setColor(UIManager.getColor("controlShadow"));       // inner 3D border
+                g.setColor(shadow);       // inner 3D border
                 g.drawLine(1, h-2, w-2, h-2);
                 g.drawLine(w-2, 1, w-2, h-3);
 
-                g.setColor(UIManager.getColor("controlDkShadow"));     // black drop shadow  __|
+                g.setColor(darkShadow);     // black drop shadow  __|
                 g.drawLine(0, h-1, w-1, h-1);
                 g.drawLine(w-1, h-1, w-1, 0);
             }
@@ -121,13 +138,13 @@ public class BasicArrowButton extends JButton implements SwingConstants
 
 	    j = 0;
             size = Math.max(size, 2);
-	    mid = size / 2;
+	    mid = (size / 2) - 1;
 	
 	    g.translate(x, y);
 	    if(isEnabled)
-		g.setColor(UIManager.getColor("controlDkShadow"));
+		g.setColor(darkShadow);
 	    else
-		g.setColor(UIManager.getColor("controlShadow"));
+		g.setColor(shadow);
 
             switch(direction)       {
             case NORTH:
@@ -135,20 +152,20 @@ public class BasicArrowButton extends JButton implements SwingConstants
                     g.drawLine(mid-i, i, mid+i, i);
                 }
                 if(!isEnabled)  {
-                    g.setColor(UIManager.getColor("controlLtHighlight"));
+                    g.setColor(highlight);
                     g.drawLine(mid-i+2, i, mid+i, i);
                 }
                 break;
             case SOUTH:
                 if(!isEnabled)  {
                     g.translate(1, 1);
-                    g.setColor(UIManager.getColor("controlLtHighlight"));
+                    g.setColor(highlight);
                     for(i = size-1; i >= 0; i--)   {
                         g.drawLine(mid-i, j, mid+i, j);
                         j++;
                     }
 		    g.translate(-1, -1);
-		    g.setColor(UIManager.getColor("controlShadow"));
+		    g.setColor(shadow);
 		}
 		
 		j = 0;
@@ -162,20 +179,20 @@ public class BasicArrowButton extends JButton implements SwingConstants
                     g.drawLine(i, mid-i, i, mid+i);
                 }
                 if(!isEnabled)  {
-                    g.setColor(UIManager.getColor("controlLtHighlight"));
+                    g.setColor(highlight);
                     g.drawLine(i, mid-i+2, i, mid+i);
                 }
                 break;
             case EAST:
                 if(!isEnabled)  {
                     g.translate(1, 1);
-                    g.setColor(UIManager.getColor("controlLtHighlight"));
+                    g.setColor(highlight);
                     for(i = size-1; i >= 0; i--)   {
                         g.drawLine(j, mid-i, j, mid+i);
                         j++;
                     }
 		    g.translate(-1, -1);
-		    g.setColor(UIManager.getColor("controlShadow"));
+		    g.setColor(shadow);
                 }
 
 		j = 0;

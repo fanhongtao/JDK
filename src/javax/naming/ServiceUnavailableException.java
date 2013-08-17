@@ -1,4 +1,6 @@
 /*
+ * @(#)ServiceUnavailableException.java	1.6 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,9 +8,9 @@
 package javax.naming;
 
 /**
-  * This exception is thrown when attempting to communcate with a
+  * This exception is thrown when attempting to communicate with a
   * directory or naming service and that service is not available.
-  * It might be unavailble for different reasons. For example,
+  * It might be unavailable for different reasons. For example,
   * the server might be too busy to service the request, or the server
   * might not be registered to service any requests, etc.
   * <p>
@@ -18,7 +20,7 @@ package javax.naming;
   * @author Rosanna Lee
   * @author Scott Seligman
   *
-  * @version 1.5 02/02/06
+  * @version 1.6 01/12/03
   * @since 1.3
   */
 

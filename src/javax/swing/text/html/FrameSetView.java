@@ -1,4 +1,6 @@
 /*
+ * @(#)FrameSetView.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ import javax.swing.event.*;
  *          conform to the HTML 4.0 standard and also be netscape
  *          compatible.
  *
- * @version 1.14 02/06/02
+ * @version 1.17 12/03/01
  */
 
 class FrameSetView extends javax.swing.text.BoxView {
@@ -132,15 +134,15 @@ class FrameSetView extends javax.swing.text.BoxView {
      * to the children along the major axis.
      *
      * @param targetSpan the total span given to the view, which
-     *  whould be used to layout the children.
-     * @param axis the axis being layed out.
+     *  whould be used to layout the children
+     * @param axis the axis being layed out
      * @param offsets the offsets from the origin of the view for
-     *  each of the child views.  This is a return value and is
-     *  filled in by the implementation of this method.
-     * @param spans the span of each child view.  This is a return
-     *  value and is filled in by the implementation of this method.
-     * @returns the offset and span for each child view in the
-     *  offsets and spans parameters.
+     *  each of the child views; this is a return value and is
+     *  filled in by the implementation of this method
+     * @param spans the span of each child view; this is a return
+     *  value and is filled in by the implementation of this method
+     * @return the offset and span for each child view in the
+     *  offsets and spans parameters
      */
     protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets, 
 				   int[] spans) {
@@ -157,13 +159,14 @@ class FrameSetView extends javax.swing.text.BoxView {
 	spread(targetSpan, span);
 	int n = getViewCount();
 	SizeRequirements[] reqs = new SizeRequirements[n];
-	for (int i = 0; i < n; i++) {
+	for (int i = 0, sIndex = 0; i < n; i++) {
 	    View v = getView(i);
-	    if (! (v instanceof NoFramesView)) {
-		reqs[i] = new SizeRequirements((int) v.getMinimumSpan(axis), //span[i], 
-					       span[i], 
-					       (int) v.getMaximumSpan(axis), //span[i], 
+	    if ((v instanceof FrameView) || (v instanceof FrameSetView)) {
+		reqs[i] = new SizeRequirements((int) v.getMinimumSpan(axis),
+					       span[sIndex], 
+					       (int) v.getMaximumSpan(axis),
 					       0.5f);
+                sIndex++;
 	    } else {
 		int min = (int) v.getMinimumSpan(axis);
 		int pref = (int) v.getPreferredSpan(axis);
@@ -290,26 +293,5 @@ class FrameSetView extends javax.swing.text.BoxView {
 	return result;
     }
 
-    /*
-     * WORKAROUND for bugid: 4156333
-     * removeUpdate() needs to recursively descend the tree 
-     * to enable child components to remove themselves. 
-     * it needs to remove.  Once that is fixed, this method
-     * can removed.  If the fix involves calling the child
-     * views removeUpdate() method, then a removeUpdate()
-     * method will have to be added to FrameView that merely
-     * calls, setParent(null).  However if the fix directly
-     * calls setParent(null) on the child views, then 
-     * no methods need to be added to FrameView.
-     */
-    public void setParent(View v) {
-	super.setParent(v);
-	if (v == null) {
-	    for (int i = 0; i < getViewCount(); i++) {
-		View child = getView(i);
-		child.setParent(null);
-	    }
-	}
-    }
 }
 

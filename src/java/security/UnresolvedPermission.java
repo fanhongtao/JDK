@@ -1,4 +1,6 @@
 /*
+ * @(#)UnresolvedPermission.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -56,7 +58,7 @@ import java.security.cert.*;
  * @see java.security.PermissionCollection
  * @see java.security.Policy
  *
- * @version 1.18 02/02/06
+ * @version 1.21 01/12/03
  *
  * @author Roland Schemers
  */
@@ -64,6 +66,10 @@ import java.security.cert.*;
 public final class UnresolvedPermission extends Permission 
 implements java.io.Serializable
 {
+    private static final sun.security.util.Debug debug =
+	sun.security.util.Debug.getInstance
+	("policy,access", "UnresolvedPermission");
+
     /**
      * The class name of the Permission class that will be
      * created when this unresolved permission is resolved.
@@ -171,7 +177,9 @@ implements java.io.Serializable
     }
 
 
-    private static final Class[] PARAMS = { String.class, String.class};
+    private static final Class[] PARAMS0 = { };
+    private static final Class[] PARAMS1 = { String.class };
+    private static final Class[] PARAMS2 = { String.class, String.class };
 
     /**
      * try and resolve this permission using the class loader of the permission
@@ -199,9 +207,51 @@ implements java.io.Serializable
 	}
 	try {
 	    Class pc = p.getClass();
-	    Constructor c = pc.getConstructor(PARAMS);
-	    return (Permission) c.newInstance(new Object[] { name, actions });
+	    
+	    if (name == null && actions == null) {
+	        try {
+	            Constructor c = pc.getConstructor(PARAMS0);
+	    	    return (Permission)c.newInstance(new Object[] {});
+		} catch (NoSuchMethodException ne) {
+		    try {
+		        Constructor c = pc.getConstructor(PARAMS1);
+                        return (Permission) c.newInstance(
+			      new Object[] { name});
+		    } catch (NoSuchMethodException ne1) {
+		        Constructor c = pc.getConstructor(PARAMS2);
+        		return (Permission) c.newInstance(
+			      new Object[] { name, actions });
+		    }
+		}
+	    } else {
+	        if (name != null && actions == null) {
+	            try {
+	                Constructor c = pc.getConstructor(PARAMS1);
+                        return (Permission) c.newInstance(
+			      new Object[] { name});
+		    } catch (NoSuchMethodException ne) {
+		        Constructor c = pc.getConstructor(PARAMS2);
+        	        return (Permission) c.newInstance(
+			      new Object[] { name, actions });
+		    }
+	        } else {
+                    Constructor c = pc.getConstructor(PARAMS2);
+                    return (Permission) c.newInstance(
+		          new Object[] { name, actions });
+	        }
+	    }
+	} catch (NoSuchMethodException nsme) {
+	    if (debug != null ) {
+		debug.println("NoSuchMethodException:\n  could not find " +
+			"proper constructor for " + type);
+		nsme.printStackTrace();
+	    }
+	    return null;
 	} catch (Exception e) {
+	    if (debug != null ) {
+		debug.println("unable to instantiate " + name);
+		e.printStackTrace();
+	    }
 	    return null;
 	}
     }

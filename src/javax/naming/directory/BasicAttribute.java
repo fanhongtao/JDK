@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicAttribute.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -47,7 +49,7 @@ import javax.naming.OperationNotSupportedException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.10 02/02/06
+  * @version 1.10 01/12/03
   * @since 1.3
   */
 public class BasicAttribute implements Attribute {
@@ -474,7 +476,7 @@ public class BasicAttribute implements Attribute {
 //  ---- serialization methods
 
     /**
-     * Overriden to avoid exposing implementation details
+     * Overridden to avoid exposing implementation details
      * @serialData Default field (the attribute ID -- a String), 
      * followed by the number of values (an int), and the
      * individual values.
@@ -489,7 +491,7 @@ public class BasicAttribute implements Attribute {
     }
 
     /**
-     * Overriden to avoid exposing implementation details.
+     * Overridden to avoid exposing implementation details.
      */
     private void readObject(java.io.ObjectInputStream s)
 	    throws java.io.IOException, ClassNotFoundException {

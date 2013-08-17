@@ -1,4 +1,6 @@
 /*
+ * @(#)AppletContext.java	1.27 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,6 +12,9 @@ import java.awt.Graphics;
 import java.awt.image.ColorModel;
 import java.net.URL;
 import java.util.Enumeration;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Iterator;
 
 /**
  * This interface corresponds to an applet's environment: the
@@ -20,7 +25,7 @@ import java.util.Enumeration;
  * information about its environment.
  *
  * @author 	Arthur van Hoff
- * @version     1.26, 02/06/02
+ * @version     1.27, 12/03/01
  * @since       JDK1.0
  */
 public interface AppletContext {
@@ -118,4 +123,52 @@ public interface AppletContext {
      * @param   status   a string to display in the status window.
      */
     void showStatus(String status);
+
+    /**
+     * Associates the specified stream with the specified key in this
+     * applet context. If the applet context previously contained a mapping 
+     * for this key, the old value is replaced. 
+     * <p>
+     * For security reasons, mapping of streams and keys exists for each 
+     * codebase. In other words, applet from one codebase cannot access 
+     * the streams created by an applet from a different codebase
+     * <p>
+     * @param key key with which the specified value is to be associated.
+     * @param stream stream to be associated with the specified key. If this
+     *               parameter is <code>null<code>, the specified key is removed 
+     *               in this applet context.
+     * @throws <code>IOException</code> if the stream size exceeds a certain
+     *         size limit. Size limit is decided by the implementor of this
+     *         interface.
+     * @since JDK1.4
+     */
+    public void setStream(String key, InputStream stream)throws IOException;
+
+    /**
+     * Returns the stream to which specified key is associated within this 
+     * applet context. Returns <tt>null</tt> if the applet context contains 
+     * no stream for this key.  
+     * <p>
+     * For security reasons, mapping of streams and keys exists for each 
+     * codebase. In other words, applet from one codebase cannot access 
+     * the streams created by an applet from a different codebase
+     * <p>
+     * @return the stream to which this applet context maps the key
+     * @param key key whose associated stream is to be returned.
+     * @since JDK1.4
+     */
+    public InputStream getStream(String key);
+
+    /**
+     * Finds all the keys of the streams in this applet context.
+     * <p>
+     * For security reasons, mapping of streams and keys exists for each 
+     * codebase. In other words, applet from one codebase cannot access 
+     * the streams created by an applet from a different codebase
+     * <p>
+     * @return  an Iterator of all the names of the streams in this applet 
+     *          context.
+     * @since JDK1.4
+     */
+    public Iterator getStreamKeys();
 }

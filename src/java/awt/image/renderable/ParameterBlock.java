@@ -1,4 +1,6 @@
 /*
+ * @(#)ParameterBlock.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -85,6 +87,7 @@ public class ParameterBlock implements Cloneable, Serializable {
     /** 
      * Constructs a <code>ParameterBlock</code> with a given Vector 
      * of sources. 
+     * @param sources a <code>Vector</code> of source images
      */
     public ParameterBlock(Vector sources) {
         setSources(sources);
@@ -93,6 +96,9 @@ public class ParameterBlock implements Cloneable, Serializable {
     /**
      * Constructs a <code>ParameterBlock</code> with a given Vector of sources and
      * Vector of parameters.
+     * @param sources a <code>Vector</code> of source images
+     * @param parameters a <code>Vector</code> of parameters to be used in the
+     *        rendering operation
      */
     public ParameterBlock(Vector sources, Vector parameters) {
         setSources(sources);
@@ -150,6 +156,8 @@ public class ParameterBlock implements Cloneable, Serializable {
      * future.
      *
      * @param source an image object to be stored in the source list.
+     * @return a new <code>ParameterBlock</code> containing the specified
+     *         <code>source</code>.
      */
     public ParameterBlock addSource(Object source) {
         sources.addElement(source);
@@ -161,6 +169,10 @@ public class ParameterBlock implements Cloneable, Serializable {
      * an appropriate type.
      *
      * @param index the index of the source to be returned.
+     * @return an <code>Object</code> that represents the source located
+     *         at the specified index in the <code>sources</code>
+     *         <code>Vector</code>.
+     * @see #setSource(Object, int)
      */
     public Object getSource(int index) {
         return sources.elementAt(index);
@@ -170,6 +182,14 @@ public class ParameterBlock implements Cloneable, Serializable {
      * Replaces an entry in the list of source with a new source.
      * If the index lies beyond the current source list,
      * the list is extended with nulls as needed.
+     * @param source the specified source image
+     * @param index the index into the <code>sources</code> 
+     *              <code>Vector</code> at which to
+     *              insert the specified <code>source</code>
+     * @return a new <code>ParameterBlock</code> that contains the
+     *         specified <code>source</code> at the specified
+     *         <code>index</code>.
+     * @see #getSource(int)
      */
     public ParameterBlock setSource(Object source, int index) {
         int oldSize = sources.size();
@@ -182,36 +202,56 @@ public class ParameterBlock implements Cloneable, Serializable {
     }
     
     /**
-     * A convenience method to return a source as a RenderedImage.
-     * An exception will be thrown if the sources is not a RenderedImage.
+     * Returns a source as a <code>RenderedImage</code>.  This method is 
+     * a convenience method.
+     * An exception will be thrown if the source is not a RenderedImage.
      *
-     * @param index the index of the source to be returned.
+     * @param index the index of the source to be returned
+     * @return a <code>RenderedImage</code> that represents the source
+     *         image that is at the specified index in the 
+     *         <code>sources</code> <code>Vector</code>.
      */
     public RenderedImage getRenderedSource(int index) {
         return (RenderedImage) sources.elementAt(index);
     }
     
     /**
-     * A convenience method to return a source as a RenderableImage.
+     * Returns a source as a RenderableImage.  This method is a
+     * convenience method.
      * An exception will be thrown if the sources is not a RenderableImage.
      *
-     * @param index the index of the source to be returned.
+     * @param index the index of the source to be returned
+     * @return a <code>RenderableImage</code> that represents the source
+     *         image that is at the specified index in the 
+     *         <code>sources</code> <code>Vector</code>.
      */
     public RenderableImage getRenderableSource(int index) {
         return (RenderableImage) sources.elementAt(index);
     }
 
-    /** Returns the number of source images. */
+    /** 
+     * Returns the number of source images. 
+     * @return the number of source images in the <code>sources</code>
+     *         <code>Vector</code>.
+     */
     public int getNumSources() {
         return sources.size();
     }
     
-    /** Returns the entire Vector of sources. */
+    /** 
+     * Returns the entire Vector of sources. 
+     * @return the <code>sources</code> <code>Vector</code>.  
+     * @see #setSources(Vector)  
+     */
     public Vector getSources() {
         return sources;
     }
     
-    /** Sets the entire Vector of sources to a given Vector. */
+    /** 
+     * Sets the entire Vector of sources to a given Vector. 
+     * @param sources the <code>Vector</code> of source images
+     * @see #getSources
+     */
     public void setSources(Vector sources) {
         this.sources = sources;
     }
@@ -221,17 +261,30 @@ public class ParameterBlock implements Cloneable, Serializable {
         sources = new Vector();
     }
     
-    /** Returns the number of parameters (not including source images). */
+    /** 
+     * Returns the number of parameters (not including source images).
+     * @return the number of parameters in the <code>parameters</code>
+     *         <code>Vector</code>.
+     */
     public int getNumParameters() {
         return parameters.size();
     }
     
-    /** Returns the entire Vector of parameters. */
+    /** 
+     * Returns the entire Vector of parameters. 
+     * @return the <code>parameters</code> <code>Vector</code>.
+     * @see #setParameters(Vector)
+     */
     public Vector getParameters() {
         return parameters;
     }
     
-    /** Sets the entire Vector of parameters to a given Vector. */
+    /** 
+     * Sets the entire Vector of parameters to a given Vector. 
+     * @param parameters the specified <code>Vector</code> of
+     *        parameters
+     * @see #getParameters
+     */
     public void setParameters(Vector parameters) {
         this.parameters = parameters;
     }
@@ -241,43 +294,91 @@ public class ParameterBlock implements Cloneable, Serializable {
         parameters = new Vector();
     }
     
-    /** Adds an object to the list of parameters. */
+    /** 
+     * Adds an object to the list of parameters. 
+     * @param obj the <code>Object</code> to add to the 
+     *            <code>parameters</code> <code>Vector</code>
+     * @return a new <code>ParameterBlock</code> containing 
+     *         the specified parameter.
+     */
     public ParameterBlock add(Object obj) {
         parameters.addElement(obj);
         return this;
     }
 
-    /** Adds a Byte to the list of parameters. */
+    /** 
+     * Adds a Byte to the list of parameters. 
+     * @param b the byte to add to the 
+     *            <code>parameters</code> <code>Vector</code>
+     * @return a new <code>ParameterBlock</code> containing 
+     *         the specified parameter.
+     */
     public ParameterBlock add(byte b) {
         return add(new Byte(b));
     }
     
-    /** Adds a Character to the list of parameters. */
+    /** 
+     * Adds a Character to the list of parameters. 
+     * @param c the char to add to the 
+     *            <code>parameters</code> <code>Vector</code>
+     * @return a new <code>ParameterBlock</code> containing 
+     *         the specified parameter.
+     */
     public ParameterBlock add(char c) {
         return add(new Character(c));
     }
     
-    /** Adds a Short to the list of parameters. */
+    /** 
+     * Adds a Short to the list of parameters. 
+     * @param s the short to add to the 
+     *            <code>parameters</code> <code>Vector</code>
+     * @return a new <code>ParameterBlock</code> containing 
+     *         the specified parameter.
+     */
     public ParameterBlock add(short s) {
         return add(new Short(s));
     }
     
-    /** Adds a Integer to the list of parameters. */
+    /** 
+     * Adds a Integer to the list of parameters. 
+     * @param i the int to add to the 
+     *            <code>parameters</code> <code>Vector</code>
+     * @return a new <code>ParameterBlock</code> containing 
+     *         the specified parameter.
+     */
     public ParameterBlock add(int i) {
         return add(new Integer(i));
     }
     
-    /** Adds a Long to the list of parameters. */
+    /** 
+     * Adds a Long to the list of parameters. 
+     * @param l the long to add to the 
+     *            <code>parameters</code> <code>Vector</code>
+     * @return a new <code>ParameterBlock</code> containing 
+     *         the specified parameter.
+     */
     public ParameterBlock add(long l) {
         return add(new Long(l));
     }
 
-    /** Adds a Float to the list of parameters. */
+    /** 
+     * Adds a Float to the list of parameters. 
+     * @param f the float to add to the 
+     *            <code>parameters</code> <code>Vector</code>
+     * @return a new <code>ParameterBlock</code> containing 
+     *         the specified parameter.
+     */
     public ParameterBlock add(float f) {
         return add(new Float(f));
     }
 
-    /** Adds a Double to the list of parameters. */
+    /** 
+     * Adds a Double to the list of parameters. 
+     * @param d the double to add to the 
+     *            <code>parameters</code> <code>Vector</code>
+     * @return a new <code>ParameterBlock</code> containing 
+     *         the specified parameter.
+     */
     public ParameterBlock add(double d) {
         return add(new Double(d));
     }
@@ -286,6 +387,13 @@ public class ParameterBlock implements Cloneable, Serializable {
      * Replaces an Object in the list of parameters.
      * If the index lies beyond the current source list,
      * the list is extended with nulls as needed.
+     * @param obj the parameter that replaces the 
+     *        parameter at the specified index in the
+     *        <code>parameters</code> <code>Vector</code>
+     * @param index the index of the parameter to be 
+     *        replaced with the specified parameter
+     * @return a new <code>ParameterBlock</code> containing
+     *        the specified parameter.
      */
     public ParameterBlock set(Object obj, int index) {
         int oldSize = parameters.size();
@@ -301,6 +409,13 @@ public class ParameterBlock implements Cloneable, Serializable {
      * Replaces an Object in the list of parameters with a Byte.
      * If the index lies beyond the current source list,
      * the list is extended with nulls as needed.
+     * @param b the parameter that replaces the 
+     *        parameter at the specified index in the
+     *        <code>parameters</code> <code>Vector</code>
+     * @param index the index of the parameter to be 
+     *        replaced with the specified parameter
+     * @return a new <code>ParameterBlock</code> containing
+     *        the specified parameter.
      */
     public ParameterBlock set(byte b, int index) {
         return set(new Byte(b), index);
@@ -310,6 +425,13 @@ public class ParameterBlock implements Cloneable, Serializable {
      * Replaces an Object in the list of parameters with a Character.
      * If the index lies beyond the current source list,
      * the list is extended with nulls as needed.
+     * @param c the parameter that replaces the 
+     *        parameter at the specified index in the
+     *        <code>parameters</code> <code>Vector</code>
+     * @param index the index of the parameter to be 
+     *        replaced with the specified parameter
+     * @return a new <code>ParameterBlock</code> containing
+     *        the specified parameter.
      */
     public ParameterBlock set(char c, int index) {
         return set(new Character(c), index);
@@ -319,6 +441,13 @@ public class ParameterBlock implements Cloneable, Serializable {
      * Replaces an Object in the list of parameters with a Short.
      * If the index lies beyond the current source list,
      * the list is extended with nulls as needed.
+     * @param s the parameter that replaces the 
+     *        parameter at the specified index in the
+     *        <code>parameters</code> <code>Vector</code>
+     * @param index the index of the parameter to be 
+     *        replaced with the specified parameter
+     * @return a new <code>ParameterBlock</code> containing
+     *        the specified parameter.
      */
     public ParameterBlock set(short s, int index) {
         return set(new Short(s), index);
@@ -328,6 +457,13 @@ public class ParameterBlock implements Cloneable, Serializable {
      * Replaces an Object in the list of parameters with an Integer.
      * If the index lies beyond the current source list,
      * the list is extended with nulls as needed.
+     * @param i the parameter that replaces the 
+     *        parameter at the specified index in the
+     *        <code>parameters</code> <code>Vector</code>
+     * @param index the index of the parameter to be 
+     *        replaced with the specified parameter
+     * @return a new <code>ParameterBlock</code> containing
+     *        the specified parameter.
      */
     public ParameterBlock set(int i, int index) {
         return set(new Integer(i), index);
@@ -337,6 +473,13 @@ public class ParameterBlock implements Cloneable, Serializable {
      * Replaces an Object in the list of parameters with a Long.
      * If the index lies beyond the current source list,
      * the list is extended with nulls as needed.
+     * @param l the parameter that replaces the 
+     *        parameter at the specified index in the
+     *        <code>parameters</code> <code>Vector</code>
+     * @param index the index of the parameter to be 
+     *        replaced with the specified parameter
+     * @return a new <code>ParameterBlock</code> containing
+     *        the specified parameter.
      */
     public ParameterBlock set(long l, int index) {
         return set(new Long(l), index);
@@ -346,6 +489,13 @@ public class ParameterBlock implements Cloneable, Serializable {
      * Replaces an Object in the list of parameters with a Float.
      * If the index lies beyond the current source list,
      * the list is extended with nulls as needed.
+     * @param f the parameter that replaces the 
+     *        parameter at the specified index in the
+     *        <code>parameters</code> <code>Vector</code>
+     * @param index the index of the parameter to be 
+     *        replaced with the specified parameter
+     * @return a new <code>ParameterBlock</code> containing
+     *        the specified parameter.
      */
     public ParameterBlock set(float f, int index) {
         return set(new Float(f), index);
@@ -355,6 +505,13 @@ public class ParameterBlock implements Cloneable, Serializable {
      * Replaces an Object in the list of parameters with a Double.
      * If the index lies beyond the current source list,
      * the list is extended with nulls as needed.
+     * @param d the parameter that replaces the 
+     *        parameter at the specified index in the
+     *        <code>parameters</code> <code>Vector</code>
+     * @param index the index of the parameter to be 
+     *        replaced with the specified parameter
+     * @return a new <code>ParameterBlock</code> containing
+     *        the specified parameter.
      */
     public ParameterBlock set(double d, int index) {
         return set(new Double(d), index);
@@ -362,6 +519,11 @@ public class ParameterBlock implements Cloneable, Serializable {
 
     /**
      * Gets a parameter as an object.
+     * @param index the index of the parameter to get
+     * @return an <code>Object</code> representing the
+     *         the parameter at the specified index
+     *         into the <code>parameters</code>
+     *         <code>Vector</code>.
      */
     public Object getObjectParameter(int index) {
         return parameters.elementAt(index);
@@ -510,6 +672,7 @@ public class ParameterBlock implements Cloneable, Serializable {
     /**
      * Returns an array of Class objects describing the types
      * of the parameters.
+     * @return an array of <code>Class</code> objects.
      */
     public Class [] getParamClasses() {
         int numParams = getNumParameters();

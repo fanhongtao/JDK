@@ -1,4 +1,6 @@
 /*
+ * @(#)RSAKey.java	1.4 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,7 @@ import java.math.BigInteger;
  * The interface to an RSA public or private key.
  *
  * @author Jan Luehe
- * @version 1.4 02/06/02
+ * @version 1.4 12/03/01
  *
  * @see RSAPublicKey
  * @see RSAPrivateKey

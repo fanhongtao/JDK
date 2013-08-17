@@ -1,4 +1,6 @@
 /*
+ * @(#)RTFEditorKit.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,7 +21,7 @@ import javax.swing.*;
  * provided.
  *
  * @author  Timothy Prinzing (of this class, not the package!)
- * @version 1.10 02/06/02
+ * @version 1.11 12/03/01
  */
 public class RTFEditorKit extends StyledEditorKit {
 
@@ -28,17 +30,6 @@ public class RTFEditorKit extends StyledEditorKit {
      */
     public RTFEditorKit() {
 	super();
-    }
-
-    /**
-     * Create a copy of the editor kit.  This
-     * allows an implementation to serve as a prototype
-     * for others, so that they can be quickly created.
-     *
-     * @return the copy
-     */
-    public Object clone() {
-	return new RTFEditorKit();
     }
 
     /**

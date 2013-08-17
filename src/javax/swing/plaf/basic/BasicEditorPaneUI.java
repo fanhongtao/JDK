@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicEditorPaneUI.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,14 +21,16 @@ import javax.swing.border.*;
  * Provides the look and feel for a JEditorPane.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.25 02/06/02
+ * @version 1.28 12/03/01
  */
 public class BasicEditorPaneUI extends BasicTextUI {
 
@@ -45,17 +49,6 @@ public class BasicEditorPaneUI extends BasicTextUI {
      */
     public BasicEditorPaneUI() {
 	super();
-    }
-
-    protected void installKeyboardActions() {
-	super.installKeyboardActions();
-	EditorKit editorKit = getEditorKit(getComponent());
-	if (editorKit != null) {
-	    Action[] actions = editorKit.getActions();
-	    if (actions != null) {
-		addActions(getComponent().getActionMap(), actions);
-	    }
-	}
     }
 
     /**
@@ -88,6 +81,19 @@ public class BasicEditorPaneUI extends BasicTextUI {
     ActionMap getActionMap() {
         ActionMap am = new ActionMapUIResource();
         am.put("requestFocus", new FocusAction());
+	EditorKit editorKit = getEditorKit(getComponent());
+	if (editorKit != null) {
+	    Action[] actions = editorKit.getActions();
+	    if (actions != null) {
+		addActions(am, actions);
+	    }
+	}
+        am.put(TransferHandler.getCutAction().getValue(Action.NAME),
+                TransferHandler.getCutAction());
+        am.put(TransferHandler.getCopyAction().getValue(Action.NAME),
+                TransferHandler.getCopyAction());
+        am.put(TransferHandler.getPasteAction().getValue(Action.NAME),
+                TransferHandler.getPasteAction());
 	return am;
     }
 
@@ -103,7 +109,7 @@ public class BasicEditorPaneUI extends BasicTextUI {
      */
     protected void propertyChange(PropertyChangeEvent evt) {
 	if (evt.getPropertyName().equals("editorKit")) {
-	    ActionMap map = getComponent().getActionMap();
+	    ActionMap map = SwingUtilities.getUIActionMap(getComponent());
 	    if (map != null) {
 		Object oldValue = evt.getOldValue();
 		if (oldValue instanceof EditorKit) {

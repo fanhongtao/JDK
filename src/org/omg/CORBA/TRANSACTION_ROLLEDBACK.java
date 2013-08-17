@@ -1,4 +1,6 @@
 /*
+ * @(#)TRANSACTION_ROLLEDBACK.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,9 +8,11 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>TRANSACTION_ROLLEDBACK</code> exception, which is thrown
- * when a transactional operation did not complete
- * because the transaction was rolled back. See the OMG Transaction
+ * Exception  thrown when the transaction associated with the request has 
+ * already been rolled back or marked to roll back. Thus, the requested 
+ * operation either could not be performed or was not performed because 
+ * further computation on behalf of the transaction would be fruitless.<P>
+ * See the OMG Transaction
  * Service specification for details.
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain

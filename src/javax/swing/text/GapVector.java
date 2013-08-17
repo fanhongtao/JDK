@@ -1,4 +1,6 @@
 /*
+ * @(#)GapVector.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,7 +21,7 @@ import javax.swing.undo.UndoableEdit;
  * moving the array contents directly to accomodate the change.
  *
  * @author  Timothy Prinzing
- * @version 1.8 02/06/02
+ * @version 1.9 12/03/01
  * @see GapContent
  */
 abstract class GapVector implements Serializable {
@@ -165,7 +167,7 @@ abstract class GapVector implements Serializable {
      * Make space for the given number of items at the given
      * location.  
      *
-     * @returns the location that the caller should fill in.
+     * @return the location that the caller should fill in
      */
     int open(int position, int nItems) {
 	int gapSize = g1 - g0;

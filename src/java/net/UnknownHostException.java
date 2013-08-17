@@ -1,4 +1,6 @@
 /*
+ * @(#)UnknownHostException.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,7 @@ import java.io.IOException;
  * Thrown to indicate that the IP address of a host could not be determined.
  *
  * @author  Jonathan Payne 
- * @version 1.13, 02/06/02
+ * @version 1.13, 12/03/01
  * @since   JDK1.0
  */
 public 

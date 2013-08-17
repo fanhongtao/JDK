@@ -1,4 +1,6 @@
 /*
+ * @(#)Rectangle2D.java	1.27 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,7 +17,7 @@ package java.awt.geom;
  * The actual storage representation of the coordinates is left to
  * the subclass.
  *
- * @version 	1.23, 02/06/02
+ * @version 	1.27, 12/03/01
  * @author	Jim Graham
  */
 public abstract class Rectangle2D extends RectangularShape {
@@ -219,19 +221,29 @@ public abstract class Rectangle2D extends RectangularShape {
 	 * @since 1.2
 	 */
 	public int outcode(double x, double y) {
+	    /*
+	     * Note on casts to double below.  If the arithmetic of
+	     * x+w or y+h is done in float, then some bits may be
+	     * lost if the binary exponents of x/y and w/h are not
+	     * similar.  By converting to double before the addition
+	     * we force the addition to be carried out in double to
+	     * avoid rounding error in the comparison.
+	     *
+	     * See bug 4320890 for problems that this inaccuracy causes.
+	     */
 	    int out = 0;
 	    if (this.width <= 0) {
 		out |= OUT_LEFT | OUT_RIGHT;
 	    } else if (x < this.x) {
 		out |= OUT_LEFT;
-	    } else if (x > this.x + this.width) {
+	    } else if (x > this.x + (double) this.width) {
 		out |= OUT_RIGHT;
 	    }
 	    if (this.height <= 0) {
 		out |= OUT_TOP | OUT_BOTTOM;
 	    } else if (y < this.y) {
 		out |= OUT_TOP;
-	    } else if (y > this.y + this.height) {
+	    } else if (y > this.y + (double) this.height) {
 		out |= OUT_BOTTOM;
 	    }
 	    return out;
@@ -352,9 +364,9 @@ public abstract class Rectangle2D extends RectangularShape {
          * from the specified double coordinates.
 	 * @param x,&nbsp;y the coordinates of the upper left corner
          * of the newly constructed <code>Rectangle2D</code>
-	 * @param width the width of the
+	 * @param w the width of the
          * newly constructed <code>Rectangle2D</code>
-	 * @param height the height of the
+	 * @param h the height of the
          * newly constructed <code>Rectangle2D</code>
 	 * @since 1.2
 	 */
@@ -589,26 +601,13 @@ public abstract class Rectangle2D extends RectangularShape {
      * @since 1.2
      */
     public boolean intersectsLine(double x1, double y1, double x2, double y2) {
-	int out1 = outcode(x1, y1);
-	int out2 = outcode(x2, y2);
-	while (true) {
+	int out1, out2;
+	if ((out2 = outcode(x2, y2)) == 0) {
+	    return true;
+	}
+	while ((out1 = outcode(x1, y1)) != 0) {
 	    if ((out1 & out2) != 0) {
 		return false;
-	    }
-	    if (out1 == 0) {
-		if (out2 == 0) {
-		    // Both are inside, line intersects
-		    return true;
-		}
-		double f = x1;
-		x1 = x2;
-		x2 = f;
-		f = y1;
-		y1 = y2;
-		y2 = f;
-		int out = out1;
-		out1 = out2;
-		out2 = out;
 	    }
 	    if ((out1 & (OUT_LEFT | OUT_RIGHT)) != 0) {
 		double x = getX();
@@ -617,7 +616,7 @@ public abstract class Rectangle2D extends RectangularShape {
 		}
 		y1 = y1 + (x - x1) * (y2 - y1) / (x2 - x1);
 		x1 = x;
-	    } else if ((out1 & (OUT_TOP | OUT_BOTTOM)) != 0) {
+	    } else {
 		double y = getY();
 		if ((out1 & OUT_BOTTOM) != 0) {
 		    y += getHeight();
@@ -625,8 +624,8 @@ public abstract class Rectangle2D extends RectangularShape {
 		x1 = x1 + (y - y1) * (x2 - x1) / (y2 - y1);
 		y1 = y;
 	    }
-	    out1 = outcode(x1, y1);
 	}
+	return true;
     }
 
     /**
@@ -792,7 +791,10 @@ public abstract class Rectangle2D extends RectangularShape {
     /**
      * Intersects the pair of specified source <code>Rectangle2D</code>
      * objects and puts the result into the specified destination
-     * <code>Rectangle2D</code> object.
+     * <code>Rectangle2D</code> object.  One of the source rectangles
+     * can also be the destination to avoid creating a third Rectangle2D
+     * object, but in this case the original points of this source
+     * rectangle will be overwritten by this method. 
      * @param src1 the first of a pair of <code>Rectangle2D</code> 
      * objects to be intersected with each other
      * @param src2 the second of a pair of <code>Rectangle2D</code>
@@ -809,7 +811,7 @@ public abstract class Rectangle2D extends RectangularShape {
 	double y1 = Math.max(src1.getMinY(), src2.getMinY());
 	double x2 = Math.min(src1.getMaxX(), src2.getMaxX());
 	double y2 = Math.min(src1.getMaxY(), src2.getMaxY());
-	dest.setFrameFromDiagonal(x1, y1, x2, y2);
+	dest.setFrame(x1, y1, x2-x1, y2-y1);
     }
       
     /**
@@ -828,7 +830,10 @@ public abstract class Rectangle2D extends RectangularShape {
     /**
      * Unions the pair of source <code>Rectangle2D</code> objects 
      * and puts the result into the specified destination 
-     * <code>Rectangle2D</code> object.
+     * <code>Rectangle2D</code> object.  One of the source rectangles
+     * can also be the destination to avoid creating a third Rectangle2D
+     * object, but in this case the original points of this source
+     * rectangle will be overwritten by this method.
      * @param src1 the first of a pair of <code>Rectangle2D</code>
      * objects to be combined with each other
      * @param src2 the second of a pair of <code>Rectangle2D</code>

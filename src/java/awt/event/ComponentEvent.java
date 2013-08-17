@@ -1,4 +1,6 @@
 /*
+ * @(#)ComponentEvent.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -40,7 +42,7 @@ import java.awt.Rectangle;
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
  * @author Carl Quinn
- * @version 1.22 02/06/02
+ * @version 1.24 12/03/01
  * @since 1.1
  */
 public class ComponentEvent extends AWTEvent {
@@ -81,9 +83,11 @@ public class ComponentEvent extends AWTEvent {
     private static final long serialVersionUID = 8101406823902992965L;
 
     /**
-     * Constructs a ComponentEvent object.
+     * Constructs a <code>ComponentEvent</code> object.
+     * <p>Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior.
      *
-     * @param source the Component object that originated the event
+     * @param source the <code>Component</code> that originated the event
      * @param id     an integer indicating the type of event
      */
     public ComponentEvent(Component source, int id) {
@@ -93,11 +97,12 @@ public class ComponentEvent extends AWTEvent {
     /**
      * Returns the originator of the event.
      *
-     * @return the Component object that originated the event
+     * @return the <code>Component</code> object that originated 
+     * the event, or <code>null</code> if the object is not a 
+     * <code>Component</code>.  
      */
     public Component getComponent() {
-//        return (source instanceof Component) ? (Component)source : null;
-        return (Component)source; // cast should always be OK, type was checked in constructor
+        return (source instanceof Component) ? (Component)source : null;
     }
 
     /**

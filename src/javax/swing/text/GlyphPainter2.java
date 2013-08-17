@@ -1,4 +1,6 @@
 /*
+ * @(#)GlyphPainter2.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,7 +18,7 @@ import java.awt.geom.Rectangle2D;
  * facilitate faster rendering and model/view
  * translation.  At a minimum, the GlyphPainter
  * allows a View implementation to perform its
- * duties independant of a particular version
+ * duties independent of a particular version
  * of JVM and selection of capabilities (i.e.
  * shaping for i18n, etc).
  * <p>
@@ -26,7 +28,7 @@ import java.awt.geom.Rectangle2D;
  * rendering.
  *
  * @author  Timothy Prinzing
- * @version 1.13 02/06/02
+ * @version 1.18 12/03/01
  * @see GlyphView
  */
 class GlyphPainter2 extends GlyphView.GlyphPainter {
@@ -106,7 +108,7 @@ class GlyphPainter2 extends GlyphView.GlyphPainter {
                     Shape s = v.modelToView(p0, Position.Bias.Forward,
                                             p1, Position.Bias.Backward, a);
                     Shape savedClip = g.getClip();
-                    g.setClip(s);
+                    g2d.clip(s);
                     layout.draw(g2d, x, y);
                     g.setClip(savedClip);
                 } catch (BadLocationException e) {}
@@ -134,10 +136,13 @@ class GlyphPainter2 extends GlyphView.GlyphPainter {
      * Provides a mapping from the view coordinate space to the logical
      * coordinate space of the model.
      *
+     * @param v the view containing the view coordinates
      * @param x the X coordinate
      * @param y the Y coordinate
      * @param a the allocated region to render into
-     * @param rightToLeft true if the text is rendered right to left
+     * @param biasReturn either <code>Position.Bias.Forward</code>
+     *  or <code>Position.Bias.Backward</code> is returned as the
+     *  zero-th element of this array
      * @return the location within the model that best represents the
      *  given point of view
      * @see View#viewToModel
@@ -244,7 +249,9 @@ class GlyphPainter2 extends GlyphView.GlyphPainter {
                         return startOffset;
                     } else {
                         text = v.getText(endOffset - 1, endOffset);
-                        if(text.array[text.offset] == '\n') {
+                        char c = text.array[text.offset];
+                        SegmentCache.releaseSharedSegment(text);
+                        if(c == '\n') {
                             biasRet[0] = Position.Bias.Forward;
                             return endOffset-1;
                         }
@@ -272,7 +279,9 @@ class GlyphPainter2 extends GlyphView.GlyphPainter {
                     // A move to the right from an internal position will
                     // only take us to the endOffset in a left to right run.
 		    text = v.getText(endOffset - 1, endOffset);
-		    if(text.array[text.offset] == '\n') {
+                    char c = text.array[text.offset];
+                    SegmentCache.releaseSharedSegment(text);
+		    if(c == '\n') {
 			return -1;
 		    }
 		    biasRet[0] = Position.Bias.Backward;
@@ -298,7 +307,9 @@ class GlyphPainter2 extends GlyphView.GlyphPainter {
                     // Entering view from the right
                     if( viewIsLeftToRight ) {
                         text = v.getText(endOffset - 1, endOffset);
-                        if(text.array[text.offset] == '\n') {
+                        char c = text.array[text.offset];
+                        SegmentCache.releaseSharedSegment(text);
+                        if(c == '\n') {
                             biasRet[0] = Position.Bias.Forward;
                             return endOffset - 1;
                         }
@@ -329,7 +340,9 @@ class GlyphPainter2 extends GlyphView.GlyphPainter {
                     // A move to the left from an internal position will
                     // only take us to the endOffset in a right to left run.
 		    text = v.getText(endOffset - 1, endOffset);
-		    if(text.array[text.offset] == '\n') {
+                    char c = text.array[text.offset];
+                    SegmentCache.releaseSharedSegment(text);
+		    if(c == '\n') {
 			return -1;
 		    }
 		    biasRet[0] = Position.Bias.Backward;

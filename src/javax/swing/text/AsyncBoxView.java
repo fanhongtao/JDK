@@ -1,9 +1,12 @@
 /*
+ * @(#)AsyncBoxView.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
+import java.util.*;
 import java.awt.*;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
@@ -24,7 +27,7 @@ import javax.swing.event.DocumentEvent;
  * so that the model is stable while being accessed.
  *
  * @author  Timothy Prinzing
- * @version 1.6 02/06/02
+ * @version 1.12 12/03/01
  * @since   1.3
  */
 public class AsyncBoxView extends View {
@@ -38,11 +41,12 @@ public class AsyncBoxView extends View {
      */
     public AsyncBoxView(Element elem, int axis) {
 	super(elem);
-	stats = new ChildVector();
+	stats = new ArrayList();
 	this.axis = axis;
 	locator = new ChildLocator();
 	flushTask = new FlushTask();
 	minorSpan = Short.MAX_VALUE;
+	estimatedMajorSpan = false;
     }
 
     /**
@@ -128,6 +132,45 @@ public class AsyncBoxView extends View {
     }
     
     /**
+     * Fetch the span along an axis that is taken up by the insets.
+     *
+     * @param axis the axis to determine the total insets along,
+     *  either X_AXIS or Y_AXIS.
+     * @since 1.4
+     */
+    protected float getInsetSpan(int axis) {
+	float margin = (axis == X_AXIS) ? 
+	    getLeftInset() + getRightInset() : getTopInset() + getBottomInset();
+	return margin;
+    }
+
+    /**
+     * Set the estimatedMajorSpan property that determines if the
+     * major span should be treated as being estimated.  If this
+     * property is true, the value of setSize along the major axis 
+     * will change the requirements along the major axis and incremental 
+     * changes will be ignored until all of the children have been updated
+     * (which will cause the property to automatically be set to false).
+     * If the property is false the value of the majorSpan will be
+     * considered to be accurate and incremental changes will be
+     * added into the total as they are calculated.
+     *
+     * @since 1.4
+     */
+    protected void setEstimatedMajorSpan(boolean isEstimated) {
+	estimatedMajorSpan = isEstimated;
+    }
+
+    /**
+     * Is the major span currently estimated?
+     *
+     * @since 1.4
+     */
+    protected boolean getEstimatedMajorSpan() {
+	return estimatedMajorSpan;
+    }
+
+    /**
      * Fetch the object representing the layout state of
      * of the child at the given index.
      *
@@ -136,7 +179,10 @@ public class AsyncBoxView extends View {
      */
     protected ChildState getChildState(int index) {
 	synchronized(stats) {
-	    return stats.getChildState(index);
+	    if ((index >= 0) && (index < stats.size())) {
+		return (ChildState) stats.get(index);
+	    }
+	    return null;
 	}
     }
 
@@ -162,12 +208,22 @@ public class AsyncBoxView extends View {
      * the given ChildState object when it has completed
      * fetching the child views new preferences.
      * Typically this would be the layout thread, but
-     * might be the GUI thread if it is trying to update
+     * might be the event thread if it is trying to update
      * something immediately (such as to perform a 
      * model/view translation).
+     * <p>
+     * This is implemented to mark the major axis as having 
+     * changed so that a future check to see if the requirements
+     * need to be published to the parent view will consider
+     * the major axis.  If the span along the major axis is 
+     * not estimated, it is updated by the given delta to reflect
+     * the incremental change.  The delta is ignored if the 
+     * major span is estimated.
      */
     protected synchronized void majorRequirementChange(ChildState cs, float delta) {
-	majorSpan += delta;
+	if (estimatedMajorSpan == false) {
+	    majorSpan += delta;
+	}
 	majorChanged = true;
     }
 
@@ -187,34 +243,84 @@ public class AsyncBoxView extends View {
 
     /**
      * Publish the changes in preferences upward to the parent
-     * view.  This is called by the layout thread.
+     * view.  This is normally called by the layout thread.
      */
-    protected synchronized void flushRequirementChanges() {
-	if (majorChanged || minorChanged) {
+    protected void flushRequirementChanges() {
+	AbstractDocument doc = (AbstractDocument) getDocument();
+	try {
+	    doc.readLock();
 
-	    View p = getParent();
-	    if (p != null) {
-		boolean horizontal;
-		boolean vertical;
-		if (axis == X_AXIS) {
-		    horizontal = majorChanged;
-		    vertical = minorChanged;
-		} else {
-		    vertical = majorChanged;
-		    horizontal = minorChanged;
+	    View parent = null;
+	    boolean horizontal = false;
+	    boolean vertical = false;
+
+	    synchronized(this) {
+		// perform tasks that iterate over the children while
+		// preventing the collection from changing.
+		synchronized(stats) {
+		    int n = getViewCount();
+		    if ((n > 0) && (minorChanged || estimatedMajorSpan)) {
+			LayoutQueue q = getLayoutQueue();
+			ChildState min = getChildState(0);
+			ChildState pref = getChildState(0);
+			float span = 0f;
+			for (int i = 1; i < n; i++) {
+			    ChildState cs = getChildState(i);
+			    if (minorChanged) {
+				if (cs.min > min.min) {
+				    min = cs;
+				}
+				if (cs.pref > pref.pref) {
+				    pref = cs;
+				}
+			    }
+			    if (estimatedMajorSpan) {
+				span += cs.getMajorSpan();
+			    }
+			}
+
+			if (minorChanged) {
+			    minRequest = min;
+			    prefRequest = pref;
+			}
+			if (estimatedMajorSpan) {
+			    majorSpan = span;
+			    estimatedMajorSpan = false;
+			    majorChanged = true;
+			}
+		    }
 		}
-		// propagate a preferenceChanged, using the
-		// layout thread.
-		p.preferenceChanged(this, horizontal, vertical);
-		majorChanged = false;
-		minorChanged = false;
 
+		// message preferenceChanged 
+		if (majorChanged || minorChanged) {
+		    parent = getParent();
+		    if (parent != null) {
+			if (axis == X_AXIS) {
+			    horizontal = majorChanged;
+			    vertical = minorChanged;
+			} else {
+			    vertical = majorChanged;
+			    horizontal = minorChanged;
+			}
+		    }
+		    majorChanged = false;
+		    minorChanged = false;
+		}
+	    }
+
+	    // propagate a preferenceChanged, using the
+	    // layout thread.
+	    if (parent != null) {
+		parent.preferenceChanged(this, horizontal, vertical);
+			
 		// probably want to change this to be more exact.
 		Component c = getContainer();
 		if (c != null) {
 		    c.repaint();
 		}
 	    }
+	} finally {
+	    doc.readUnlock();
 	}
     }
 
@@ -232,23 +338,29 @@ public class AsyncBoxView extends View {
      */
     public void replace(int offset, int length, View[] views) {
 	synchronized(stats) {
-	LayoutQueue q = getLayoutQueue();
-	ChildState[] s = new ChildState[views.length];
-	for (int i = 0; i < s.length; i++) {
-	    s[i] = createChildState(views[i]);
-	}
-	stats.replace(offset, length, s);
+	    // remove the replaced state records
+	    for (int i = 0; i < length; i++) {
+                ChildState cs = (ChildState)stats.remove(offset);
+                float csSpan = cs.getMajorSpan();
 
-	// tasks must be added after the above loop so that
-	// when they start executing the child state vector
-	// will have the records.  Unfortunately, this means
-	// two trips through the array.
-	if (s.length != 0) {
-	    for (int i = 0; i < s.length; i++) {
-		q.addTask(s[i]);
+                cs.getChildView().setParent(null);
+                if (csSpan != 0) {
+                    majorRequirementChange(cs, -csSpan);
+                }
 	    }
+
+	    // insert the state records for the new children
+	    LayoutQueue q = getLayoutQueue();
+	    if (views != null) {
+		for (int i = 0; i < views.length; i++) {
+		    ChildState s = createChildState(views[i]);
+		    stats.add(offset + i, s);
+		    q.addTask(s);
+		}
+	    }
+
+	    // notify that the size changed
 	    q.addTask(flushTask);
-	}
 	}
     }
 
@@ -288,7 +400,7 @@ public class AsyncBoxView extends View {
      * where there is a child view for each child element.
      *
      * @param pos the position >= 0
-     * @returns  index of the view representing the given position, or 
+     * @return  index of the view representing the given position, or 
      *   -1 if no view represents that position
      */
     protected synchronized int getViewIndexAtPosition(int pos, Position.Bias b) {
@@ -376,8 +488,8 @@ public class AsyncBoxView extends View {
 		    return;
 		}
 	    }
-	    int index = getViewIndexAtPosition(child.getStartOffset(), 
-					       Position.Bias.Forward);
+	    int index = getViewIndex(child.getStartOffset(), 
+				     Position.Bias.Forward);
 	    ChildState cs = getChildState(index);
 	    cs.preferenceChanged(width, height);
 	    LayoutQueue q = getLayoutQueue();
@@ -388,50 +500,74 @@ public class AsyncBoxView extends View {
 
     /**
      * Sets the size of the view.  This should cause 
-     * layout of the view, if it has any layout duties.
+     * layout of the view if the view caches any layout
+     * information.
      * <p>
-     * This is implemented to check and see if there has
-     * been a change in the minor span (since the view
-     * is flexible along the minor axis).  If there has
-     * been a change, this will add a high priorty task
-     * on the layout thread that will mark all of the
-     * ChildState records as needing to resize the child,
-     * and to spawn a bunch of low priority tasks to 
-     * fixup the children.
-     * <p>
-     * This method will normally be called by the 
-     * GUI event thread, which we don't want to slow
-     * down in any way if we can help it.  Pushing the 
-     * potentially time consuming task of marking each
-     * record frees the GUI thread, but also leaves the
-     * view open to paint attempts that can't be satisfied.
-     * The view is marked as <em>resizing</em> and the
-     * ResizeTask will turn off the flag when the children
-     * have all been marked.
+     * Since the major axis is updated asynchronously and should be 
+     * the sum of the tiled children the call is ignored for the major 
+     * axis.  Since the minor axis is flexible, work is queued to resize 
+     * the children if the minor span changes.
      *
      * @param width the width >= 0
      * @param height the height >= 0
      */
     public void setSize(float width, float height) {
-	float targetSpan;
-	if (axis == X_AXIS) {
-	    targetSpan = height - getTopInset() - getBottomInset();
-	} else {
-	    targetSpan = width - getLeftInset() - getRightInset();
-	}
-	if (targetSpan != minorSpan) {
-	    minorSpan = targetSpan;
+	setSpanOnAxis(X_AXIS, width);
+	setSpanOnAxis(Y_AXIS, height);
+    }
 
-	    // mark all of the ChildState instances as needing to
-	    // resize the child, and queue up work to fix them.
-	    int n = getViewCount();
-	    LayoutQueue q = getLayoutQueue();
-	    for (int i = 0; i < n; i++) {
-		ChildState cs = getChildState(i);
-		cs.childSizeValid = false;
-		q.addTask(cs);
+    /**
+     * Retrieves the size of the view along an axis.  
+     *
+     * @param axis may be either <code>View.X_AXIS</code> or
+     *		<code>View.Y_AXIS</code>
+     * @return the current span of the view along the given axis, >= 0
+     */
+    float getSpanOnAxis(int axis) {
+	if (axis == getMajorAxis()) {
+	    return majorSpan;
+	}
+	return minorSpan;
+    }
+
+    /**
+     * Sets the size of the view along an axis.  Since the major
+     * axis is updated asynchronously and should be the sum of the
+     * tiled children the call is ignored for the major axis.  Since
+     * the minor axis is flexible, work is queued to resize the
+     * children if the minor span changes.
+     *
+     * @param axis may be either <code>View.X_AXIS</code> or
+     *		<code>View.Y_AXIS</code>
+     * @param span the span to layout to >= 0
+     */
+    void setSpanOnAxis(int axis, float span) {
+	float margin = getInsetSpan(axis);
+	if (axis == getMinorAxis()) {
+	    float targetSpan = span - margin;
+	    if (targetSpan != minorSpan) {
+		minorSpan = targetSpan;
+
+		// mark all of the ChildState instances as needing to
+		// resize the child, and queue up work to fix them.
+		int n = getViewCount();
+		if (n != 0) {
+		    LayoutQueue q = getLayoutQueue();
+		    for (int i = 0; i < n; i++) {
+			ChildState cs = getChildState(i);
+			cs.childSizeValid = false;
+			q.addTask(cs);
+		    }
+		    q.addTask(flushTask);
+		}
 	    }
-	    q.addTask(flushTask);
+	} else {
+	    // along the major axis the value is ignored 
+	    // unless the estimatedMajorSpan property is
+	    // true.
+	    if (estimatedMajorSpan) {
+		majorSpan = span - margin;
+	    }
 	}
     }
 
@@ -465,27 +601,24 @@ public class AsyncBoxView extends View {
      * axis.
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the span the view would like to be rendered into >= 0.
+     * @return   the span the view would like to be rendered into >= 0.
      *           Typically the view is told to render into the span
      *           that is returned, although there is no guarantee.  
      *           The parent may choose to resize or break the view.
      * @exception IllegalArgumentException for an invalid axis type
      */
     public float getPreferredSpan(int axis) {
+	float margin = getInsetSpan(axis);
 	if (axis == this.axis) {
-	    return majorSpan;
+	    return majorSpan + margin;
 	}
 	if (prefRequest != null) {
 	    View child = prefRequest.getChildView();
-	    return child.getPreferredSpan(axis);
+	    return child.getPreferredSpan(axis) + margin;
 	}
 
 	// nothing is known about the children yet
-	if (axis == X_AXIS) {
-	    return getLeftInset() + getRightInset() + 30;
-	} else {
-	    return getTopInset() + getBottomInset() + 30;
-	}
+	return margin + 30;
     }
 
     /**
@@ -493,7 +626,7 @@ public class AsyncBoxView extends View {
      * axis.
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the span the view would like to be rendered into >= 0.
+     * @return  the span the view would like to be rendered into >= 0.
      *           Typically the view is told to render into the span
      *           that is returned, although there is no guarantee.  
      *           The parent may choose to resize or break the view.
@@ -521,7 +654,7 @@ public class AsyncBoxView extends View {
      * axis.
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the span the view would like to be rendered into >= 0.
+     * @return   the span the view would like to be rendered into >= 0.
      *           Typically the view is told to render into the span
      *           that is returned, although there is no guarantee.  
      *           The parent may choose to resize or break the view.
@@ -557,11 +690,9 @@ public class AsyncBoxView extends View {
      * @return the view
      */
     public View getView(int n) {
-	synchronized(stats) {
-	if ((n >= 0) && (n < stats.size())) {
-	    ChildState cs = stats.getChildState(n);
+	ChildState cs = getChildState(n);
+	if (cs != null) {
 	    return cs.getChildView();
-	}
 	}
 	return null;
     }
@@ -613,7 +744,7 @@ public class AsyncBoxView extends View {
      * @see View#viewToModel
      */
     public Shape modelToView(int pos, Shape a, Position.Bias b) throws BadLocationException {
-	int index = getViewIndexAtPosition(pos, b);
+	int index = getViewIndex(pos, b);
 	Shape ca = locator.getChildAllocation(index, a);
 
 	// forward to the child view, and make sure we don't
@@ -674,6 +805,37 @@ public class AsyncBoxView extends View {
 	return pos;
     }
 
+    /**
+     * Provides a way to determine the next visually represented model 
+     * location that one might place a caret.  Some views may not be visible,
+     * they might not be in the same order found in the model, or they just
+     * might not allow access to some of the locations in the model.
+     *
+     * @param pos the position to convert >= 0
+     * @param a the allocated region to render into
+     * @param direction the direction from the current position that can
+     *  be thought of as the arrow keys typically found on a keyboard;
+     *  this may be one of the following: 
+     *  <ul>
+     *  <code>SwingConstants.WEST</code>
+     *  <code>SwingConstants.EAST</code> 
+     *  <code>SwingConstants.NORTH</code>
+     *  <code>SwingConstants.SOUTH</code>  
+     *  </ul>
+     * @param biasRet an array contain the bias that was checked
+     * @return the location within the model that best represents the next
+     *  location visual position
+     * @exception BadLocationException
+     * @exception IllegalArgumentException if <code>direction</code> is invalid
+     */
+    public int getNextVisualPositionFrom(int pos, Position.Bias b, Shape a, 
+					 int direction,
+                                         Position.Bias[] biasRet) 
+                                                  throws BadLocationException {
+        return Utilities.getNextVisualPositionFrom(
+                            this, pos, b, a, direction, biasRet);
+    }
+
     // --- variables -----------------------------------------
 
     /**
@@ -685,7 +847,7 @@ public class AsyncBoxView extends View {
     /**
      * The children and their layout statistics.
      */
-    ChildVector stats;
+    java.util.List stats;
 
     /**
      * Current span along the major axis.  This
@@ -694,6 +856,11 @@ public class AsyncBoxView extends View {
      * the major axis.
      */
     float majorSpan;
+
+    /**
+     * Is the span along the major axis estimated?
+     */
+    boolean estimatedMajorSpan;
 
     /**
      * Current span along the minor axis.  This
@@ -801,6 +968,9 @@ public class AsyncBoxView extends View {
 	    }
 	    setAllocation(a);
 	    ChildState cs = getChildState(index);
+	    if (lastValidOffset == null) {
+		lastValidOffset = getChildState(0);
+	    }
 	    if (cs.getChildView().getStartOffset() >
 		lastValidOffset.getChildView().getStartOffset()) {
 		// offsets need to be updated
@@ -852,6 +1022,8 @@ public class AsyncBoxView extends View {
 		childAlloc.height = (int) cs.getMajorSpan();
 		childAlloc.width = (int) cs.getMinorSpan();
 	    }
+            childAlloc.x += (int)getLeftInset();
+            childAlloc.y += (int)getRightInset();
 	    return childAlloc;
 	}
 
@@ -875,19 +1047,26 @@ public class AsyncBoxView extends View {
 	 * on the ChildState objects up to the given target span
 	 * past the desired offset.
 	 *
-	 * @returns  index of the view representing the given visual
+	 * @return   index of the view representing the given visual
 	 *   location (targetOffset), or -1 if no view represents 
-	 *   that location.
+	 *   that location
 	 */
         protected int getViewIndexAtVisualOffset(float targetOffset) {
 	    int n = getViewCount();
 	    if (n > 0) {
+                boolean lastValid = (lastValidOffset != null);
+
 		if (lastValidOffset == null) {
 		    lastValidOffset = getChildState(0);
 		}
 		if (targetOffset > majorSpan) {
 		    // should only get here on the first time display.
-		    return 0;
+                    if (!lastValid) {
+                        return 0;
+                    }
+                    int pos = lastValidOffset.getChildView().getStartOffset();
+                    int index = getViewIndex(pos, Position.Bias.Forward);
+                    return index;
 		} else if (targetOffset > lastValidOffset.getMajorOffset()) {
 		    // roll offset calculations forward
 		    return updateChildOffsets(targetOffset);
@@ -916,7 +1095,7 @@ public class AsyncBoxView extends View {
 	    int n = getViewCount();
 	    int targetIndex = n - 1;;
 	    int pos = lastValidOffset.getChildView().getStartOffset();
-	    int startIndex = getViewIndexAtPosition(pos, Position.Bias.Forward);
+	    int startIndex = getViewIndex(pos, Position.Bias.Forward);
 	    float start = lastValidOffset.getMajorOffset();
 	    float lastOffset = start;
 	    for (int i = startIndex; i < n; i++) {
@@ -939,7 +1118,7 @@ public class AsyncBoxView extends View {
 	 */
 	void updateChildOffsetsToIndex(int index) {
 	    int pos = lastValidOffset.getChildView().getStartOffset();
-	    int startIndex = getViewIndexAtPosition(pos, Position.Bias.Forward);
+	    int startIndex = getViewIndex(pos, Position.Bias.Forward);
 	    float lastOffset = lastValidOffset.getMajorOffset();
 	    for (int i = startIndex; i <= index; i++) {
 		ChildState cs = getChildState(i);
@@ -951,7 +1130,12 @@ public class AsyncBoxView extends View {
 	boolean intersectsClip(Shape childAlloc, Rectangle clip) {
 	    Rectangle cs = (childAlloc instanceof Rectangle) ? 
 		(Rectangle) childAlloc : childAlloc.getBounds();
-	    return cs.intersects(clip);
+	    if (cs.intersects(clip)) {
+                // Make sure that lastAlloc also contains childAlloc,
+                // this will be false if haven't yet flushed changes.
+                return lastAlloc.intersects(cs);
+            }
+            return false;
 	}
 
 	/**
@@ -1209,94 +1393,9 @@ public class AsyncBoxView extends View {
     class FlushTask implements Runnable {
 	
 	public void run() {
-	    AbstractDocument doc = (AbstractDocument) getDocument();
-	    try {
-		doc.readLock();
-		int n = getViewCount();
-		if (minorChanged && (n > 0)) {
-		    LayoutQueue q = getLayoutQueue();
-		    ChildState min = getChildState(0);
-		    ChildState pref = getChildState(0);
-		    for (int i = 1; i < n; i++) {
-			ChildState cs = getChildState(i);
-			if (cs.min > min.min) {
-			    min = cs;
-			}
-			if (cs.pref > pref.pref) {
-			    pref = cs;
-			}
-		    }
-		    synchronized (AsyncBoxView.this) {
-			minRequest = min;
-			prefRequest = pref;
-		    }
-		}
-		
-		flushRequirementChanges();
-	    } finally {
-		doc.readUnlock();
-	    }
+	    flushRequirementChanges();
 	}
 
-    }
-
-    /**
-     * Collection to hold status records.
-     */
-    static class ChildVector extends GapVector {
-
-	ChildVector() {
-	    super();
-	}
-
-	ChildVector(int size) {
-	    super(size);
-	}
-
-	public void replace(int i, int rmSize, ChildState[] items) {
-	    super.replace(i, rmSize, items, items.length);
-	}
-
-	/**
-	 * Allocate an array to store items of the type
-	 * appropriate (which is determined by the subclass).
-	 */
-        protected Object allocateArray(int len) {
-	    return new ChildState[len];
-	}
-	
-	/**
-	 * Get the length of the allocated array
-	 */
-        protected int getArrayLength() {
-	    ChildState[] a = (ChildState[]) getArray();
-	    return a.length;
-	}
-
-	/**
-	 * Returns the number of marks currently held
-	 */
-        public int size() {
-	    int len = getArrayLength() - (getGapEnd() - getGapStart());
-	    return len;
-	}
-
-	/**
-	 * Fetches the child state at the given index
-	 */
-	public ChildState getChildState(int index) {
-	    int g0 = getGapStart();
-	    int g1 = getGapEnd();
-	    ChildState[] array = (ChildState[]) getArray();
-	    if (index < g0) {
-		// below gap
-		return array[index];
-	    } else {
-		// above gap
-		index += g1 - g0;
-		return array[index];
-	    }
-	}
     }
 
 }

@@ -1,9 +1,14 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)RandomAccessFile.java	1.67 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
+
+import java.nio.channels.FileChannel;
+import sun.nio.ch.FileChannelImpl;
 
 
 /**
@@ -30,104 +35,160 @@ package java.io;
  * <code>IOException</code> may be thrown if the stream has been closed.
  *
  * @author  unascribed
- * @version 1.59, 12/02/02
+ * @version 1.67, 12/03/01
  * @since   JDK1.0
  */
 
 public class RandomAccessFile implements DataOutput, DataInput {
+
     private FileDescriptor fd;
+    private FileChannel channel = null;
+    private boolean rw;
+
+    private static final int O_RDONLY = 1;
+    private static final int O_RDWR =   2;
+    private static final int O_SYNC =   4;
+    private static final int O_DSYNC =  8;
 
     /**
      * Creates a random access file stream to read from, and optionally 
      * to write to, a file with the specified name. A new 
      * {@link FileDescriptor} object is created to represent the 
      * connection to the file.
-     * <p>
-     * The mode argument must either be equal to <code>"r"</code> or 
-     * <code>"rw"</code>, indicating that the file is to be opened for 
-     * input only or for both input and output, respectively. The 
-     * write methods on this object will always throw an 
-     * <code>IOException</code> if the file is opened with a mode of 
-     * <code>"r"</code>. If the mode is <code>"rw"</code> and the 
-     * file does not exist, then an attempt is made to create it.
-     * An <code>IOException</code> is thrown if the name argument
-     * refers to a directory.
+     * 
+     * <p> The <tt>mode</tt> argument specifies the access mode with which the
+     * file is to be opened.  The permitted values and their meanings are as
+     * specified for the <a
+     * href="#mode"><tt>RandomAccessFile(File,String)</tt></a> constructor.
+     *
      * <p>
      * If there is a security manager, its <code>checkRead</code> method
      * is called with the <code>name</code> argument
      * as its argument to see if read access to the file is allowed.
-     * If the mode is "rw", the security manager's
+     * If the mode allows writing, the security manager's
      * <code>checkWrite</code> method
      * is also called with the <code>name</code> argument
      * as its argument to see if write access to the file is allowed.
      *
-     * @param      name   the system-dependent filename.
-     * @param      mode   the access mode.
+     * @param      name   the system-dependent filename
+     * @param      mode   the access <a href="#mode">mode</a>
      * @exception  IllegalArgumentException  if the mode argument is not equal
-     *               to <code>"r"</code> or to <code>"rw"</code>.
+     *               to one of <tt>"r"</tt>, <tt>"rw"</tt>, <tt>"rws"</tt>, or
+     *               <tt>"rwd"</tt>
      * @exception  FileNotFoundException  if the file exists but is a directory
      *                   rather than a regular file, or cannot be opened or
      *                   created for any other reason
      * @exception  SecurityException         if a security manager exists and its
      *               <code>checkRead</code> method denies read access to the file
      *               or the mode is "rw" and the security manager's
-     *               <code>checkWrite</code> method denies write access to the file.
+     *               <code>checkWrite</code> method denies write access to the file
      * @see        java.lang.SecurityException
      * @see        java.lang.SecurityManager#checkRead(java.lang.String)
      * @see        java.lang.SecurityManager#checkWrite(java.lang.String)
+     * @revised 1.4
+     * @spec JSR-51
      */
     public RandomAccessFile(String name, String mode)
 	throws FileNotFoundException
     {
-       this(new File(name), mode);
+        this(new File(name), mode);
     }
 
     /**
-     * Creates a random access file stream to read from, and optionally 
-     * to write to, the file specified by the <code>File</code> argument. 
-     * A new {@link FileDescriptor} object is created to represent 
-     * this file connection. 
-     * <p>
-     * The mode argument must either be equal to <code>"r"</code> or 
-     * <code>"rw"</code>, indicating that the file is to be opened for 
-     * input only or for both input and output, respectively. The 
-     * write methods on this object will always throw an 
-     * <code>IOException</code> if the file is opened with a mode of 
-     * <code>"r"</code>. If the mode is <code>"rw"</code> and the 
-     * file does not exist, then an attempt is made to create it.
-     * An <code>IOException</code> is thrown if the file argument
-     * refers to a directory.
-     * <p>
-     * If there is a security manager, its <code>checkRead</code> method
-     * is called with the pathname of the <code>file</code>
-     * argument as its argument to see if read access to the file is allowed.
-     * If the mode is "rw", the security manager's
-     * <code>checkWrite</code> method
-     * is also called with the path argument
-     * to see if write access to the file is allowed.
+     * Creates a random access file stream to read from, and optionally to
+     * write to, the file specified by the {@link File} argument.  A new {@link
+     * FileDescriptor} object is created to represent this file connection.
      *
-     * @param      file   the file object.
-     * @param      mode   the access mode.
+     * <a name="mode"><p> The <tt>mode</tt> argument specifies the access mode
+     * in which the file is to be opened.  The permitted values and their
+     * meanings are:
+     *
+     * <blockquote><table>
+     * <tr><td valign="top"><tt>"r"</tt></td>
+     *     <td> Open for reading only.  Invoking any of the <tt>write</tt>
+     *     methods of the resulting object will cause an {@link
+     *     java.io.IOException} to be thrown. </td></tr>
+     * <tr><td valign="top"><tt>"rw"</tt></td>
+     *     <td> Open for reading and writing.  If the file does not already
+     *     exist then an attempt will be made to create it. </td></tr>
+     * <tr><td valign="top"><tt>"rws"</tt></td>
+     *     <td> Open for reading and writing, as with <tt>"rw"</tt>, and also
+     *     require that every update to the file's content or metadata be
+     *     written synchronously to the underlying storage device.  </td></tr>
+     * <tr><td valign="top"><tt>"rwd"&nbsp;&nbsp;</tt></td>
+     *     <td> Open for reading and writing, as with <tt>"rw"</tt>, and also
+     *     require that every update to the file's content be written
+     *     synchronously to the underlying storage device. </td></tr>
+     * </table></blockquote>
+     *
+     * The <tt>"rws"</tt> and <tt>"rwd"</tt> modes work much like the {@link
+     * java.nio.channels.FileChannel#force(boolean) force(boolean)} method of
+     * the {@link java.nio.channels.FileChannel} class, passing arguments of
+     * <tt>true</tt> and <tt>false</tt>, respectively, except that they always
+     * apply to every I/O operation and are therefore often more efficient.  If
+     * the file resides on a local storage device then when an invocation of a
+     * method of this class returns it is guaranteed that all changes made to
+     * the file by that invocation will have been written to that device.  This
+     * is useful for ensuring that critical information is not lost in the
+     * event of a system crash.  If the file does not reside on a local device
+     * then no such guarantee is made.
+     *
+     * <p> The <tt>"rwd"</tt> mode can be used to reduce the number of I/O
+     * operations performed.  Using <tt>"rwd"</tt> only requires updates to the
+     * file's content to be written to storage; using <tt>"rws"</tt> requires
+     * updates to both the file's content and its metadata to be written, which
+     * generally requires at least one more low-level I/O operation.
+     *
+     * <p> If there is a security manager, its <code>checkRead</code> method is
+     * called with the pathname of the <code>file</code> argument as its
+     * argument to see if read access to the file is allowed.  If the mode
+     * allows writing, the security manager's <code>checkWrite</code> method is
+     * also called with the path argument to see if write access to the file is
+     * allowed.
+     *
+     * @param      file   the file object
+     * @param      mode   the access mode, as described
+     *                    <a href="#mode">above</a>
      * @exception  IllegalArgumentException  if the mode argument is not equal
-     *               to <code>"r"</code> or to <code>"rw"</code>.
+     *               to one of <tt>"r"</tt>, <tt>"rw"</tt>, <tt>"rws"</tt>, or
+     *               <tt>"rwd"</tt>
      * @exception  FileNotFoundException  if the file exists but is a directory
      *                   rather than a regular file, or cannot be opened or
      *                   created for any other reason
      * @exception  SecurityException         if a security manager exists and its
      *               <code>checkRead</code> method denies read access to the file
      *               or the mode is "rw" and the security manager's
-     *               <code>checkWrite</code> method denies write access to the file.
-     * @see        java.io.File#getPath()
+     *               <code>checkWrite</code> method denies write access to the file
      * @see        java.lang.SecurityManager#checkRead(java.lang.String)
      * @see        java.lang.SecurityManager#checkWrite(java.lang.String)
+     * @see        java.nio.channels.FileChannel#force(boolean)
+     * @revised 1.4
+     * @spec JSR-51
      */
     public RandomAccessFile(File file, String mode)
 	throws FileNotFoundException
     {
-        String name = file.getPath();
-	boolean rw = mode.equals("rw");
-	if (!rw && !mode.equals("r"))
-		throw new IllegalArgumentException("mode must be r or rw");
+	String name = file.getPath();
+	int imode = -1;
+	if (mode.equals("r"))
+	    imode = O_RDONLY;
+	else if (mode.startsWith("rw")) {
+	    imode = O_RDWR;
+	    rw = true;
+	    if (mode.length() > 2) {
+		if (mode.equals("rws"))
+		    imode |= O_SYNC;
+		else if (mode.equals("rwd"))
+		    imode |= O_DSYNC;
+		else
+		    imode = -1;
+	    }
+	}
+	if (imode < 0)
+	    throw new IllegalArgumentException("Illegal mode \"" + mode
+					       + "\" must be one of "
+					       + "\"r\", \"rw\", \"rws\","
+					       + " or \"rwd\"");
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
 	    security.checkRead(name);
@@ -136,11 +197,12 @@ public class RandomAccessFile implements DataOutput, DataInput {
 	    }
 	}
 	fd = new FileDescriptor();
-	open(name, rw);
+	open(name, imode);
     }
 
     /**
-     * Returns the opaque file descriptor object associated with this stream.
+     * Returns the opaque file descriptor object associated with this
+     * stream. </p>
      *
      * @return     the file descriptor object associated with this stream.
      * @exception  IOException  if an I/O error occurs.
@@ -152,6 +214,32 @@ public class RandomAccessFile implements DataOutput, DataInput {
     }
 
     /**
+     * Returns the unique {@link java.nio.channels.FileChannel FileChannel}
+     * object associated with this file.
+     *
+     * <p> The {@link java.nio.channels.FileChannel#position()
+     * </code>position<code>} of the returned channel will always be equal to
+     * this object's file-pointer offset as returned by the {@link
+     * #getFilePointer getFilePointer} method.  Changing this object's
+     * file-pointer offset, whether explicitly or by reading or writing bytes,
+     * will change the position of the channel, and vice versa.  Changing the
+     * file's length via this object will change the length seen via the file
+     * channel, and vice versa.
+     *
+     * @return  the file channel associated with this file
+     *
+     * @since 1.4
+     * @spec JSR-51
+     */
+    public final FileChannel getChannel() {
+	synchronized (this) {
+	    if (channel == null)
+		channel = FileChannelImpl.open(fd, true, rw, this);
+	    return channel;
+	}
+    }
+
+    /**
      * Opens a file and returns the file descriptor.  The file is 
      * opened in read-write mode if writeable is true, else 
      * the file is opened as read-only.
@@ -159,10 +247,10 @@ public class RandomAccessFile implements DataOutput, DataInput {
      * is thrown.
      *
      * @param name the name of the file
-     * @param writeable the boolean indicating whether file is 
-     * writeable or not.
+     * @param mode the mode flags, a combination of the O_ constants
+     *             defined above
      */
-    private native void open(String name, boolean writeable)
+    private native void open(String name, int mode)
 	throws FileNotFoundException;
 
     // 'Read' primitives
@@ -418,9 +506,15 @@ public class RandomAccessFile implements DataOutput, DataInput {
      * file cannot perform input or output operations and cannot be 
      * reopened.
      *
+     * <p> If this file has an associated channel then the channel is closed
+     * as well.
+     *
      * @exception  IOException  if an I/O error occurs.
+     *
+     * @revised 1.4
+     * @spec JSR-51
      */
-    public native void close() throws IOException;
+    public native void close() throws IOException; // ## Must close channel
 
     //
     //  Some "reading/writing Java data types" methods stolen from

@@ -1,4 +1,6 @@
 /*
+ * @(#)BorderLayout.java	1.49 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,7 +13,8 @@ import java.util.Hashtable;
  * A border layout lays out a container, arranging and resizing
  * its components to fit in five regions:
  * north, south, east, west, and center.
- * Each region is identified by a corresponding constant:
+ * Each region may contain no more than one component, and 
+ * is identified by a corresponding constant:
  * <code>NORTH</code>, <code>SOUTH</code>, <code>EAST</code>,
  * <code>WEST</code>, and <code>CENTER</code>.  When adding a
  * component to a container with a border layout, use one of these
@@ -21,32 +24,44 @@ import java.util.Hashtable;
  *    p.setLayout(new BorderLayout());
  *    p.add(new Button("Okay"), BorderLayout.SOUTH);
  * </pre>
- * As a convenience, BorderLayout interprets the absence of a string
- * specification the same as the constant <code>CENTER</code>:
+ * As a convenience, <code>BorderLayout</code> interprets the
+ * absence of a string specification the same as the constant
+ * <code>CENTER</code>:
  * <pre>
  *    Panel p2 = new Panel();
  *    p2.setLayout(new BorderLayout());
  *    p2.add(new TextArea());  // Same as p.add(new TextArea(), BorderLayout.CENTER);
  * </pre>
  * <p>
- * In addition, BorderLayout supports four relative positioning constants,
- * <code>BEFORE_FIRST_LINE</code>, <code>AFTER_LAST_LINE</code>,
- * <code>BEFORE_LINE_BEGINS</code>, and <code>AFTER_LINE_ENDS</code>.
- * In a container whose ComponentOrientation is set to
+ * In addition, <code>BorderLayout</code> supports the relative
+ * positioning constants, <code>PAGE_START</code>, <code>PAGE_END</code>,
+ * <code>LINE_START</code>, and <code>LINE_END</code>.
+ * In a container whose <code>ComponentOrientation</code> is set to
  * <code>ComponentOrientation.LEFT_TO_RIGHT</code>, these constants map to
  * <code>NORTH</code>, <code>SOUTH</code>, <code>WEST</code>, and
- * <code>EAST</code>, respectively
+ * <code>EAST</code>, respectively.  
  * <p>
- * Mixing the two types of constants can lead to unpredicable results.  If
+ * For compatibility with previous releases, <code>BorderLayout</code>
+ * also includes the relative positioning constants <code>BEFORE_FIRST_LINE</code>,
+ * <code>AFTER_LAST_LINE</code>, <code>BEFORE_LINE_BEGINS</code> and
+ * <code>AFTER_LINE_ENDS</code>.  These are equivalent to 
+ * <code>PAGE_START</code>, <code>PAGE_END</code>, <code>LINE_START</code>
+ * and <code>LINE_END</code> respectively.  For 
+ * consistency with the relative positioning constants used by other 
+ * components, the latter constants are preferred.
+ * <p>
+ * Mixing both absolute and relative positioning constants can lead to 
+ * unpredicable results.  If
  * you use both types, the relative constants will take precedence.
  * For example, if you add components using both the <code>NORTH</code>
- * and <code>BEFORE_FIRST_LINE</code> constants in a container whose
+ * and <code>PAGE_START</code> constants in a container whose
  * orientation is <code>LEFT_TO_RIGHT</code>, only the
- * <code>BEFORE_FIRST_LINE</code> will be layed out.
+ * <code>PAGE_START</code> will be layed out.
  * <p>
- * NOTE: Currently (in the Java 2 platform v1.2), BorderLayout does not support vertical
+ * NOTE: Currently (in the Java 2 platform v1.2),
+ * <code>BorderLayout</code> does not support vertical
  * orientations.  The <code>isVertical</code> setting on the container's
- * ComponentOrientation is not respected.
+ * <code>ComponentOrientation</code> is not respected.
  * <p>
  * The components are laid out according to their
  * preferred sizes and the constraints of the container's size.
@@ -80,7 +95,7 @@ import java.util.Hashtable;
  * }
  * </pre></blockquote><hr>
  * <p>
- * @version 	1.46, 02/06/02
+ * @version 	1.49, 12/03/01
  * @author 	Arthur van Hoff
  * @see         java.awt.Container#add(String, Component)
  * @see         java.awt.ComponentOrientation
@@ -100,7 +115,7 @@ public class BorderLayout implements LayoutManager2,
      */
 	int hgap;
    	
-	/**
+    /**
      * Constructs a border layout with the vertical gaps
      * between components.
      * The vertical gap is specified by <code>vgap</code>.
@@ -117,7 +132,7 @@ public class BorderLayout implements LayoutManager2,
      * @serial
      * @see #getChild
      * @see #addLayoutComponent
-     * @see #getLayoutAllignment
+     * @see #getLayoutAlignment
      * @see #removeLayoutComponent
      */
 	Component north;
@@ -127,7 +142,7 @@ public class BorderLayout implements LayoutManager2,
      * @serial
      * @see #getChild
      * @see #addLayoutComponent
-     * @see #getLayoutAllignment
+     * @see #getLayoutAlignment
      * @see #removeLayoutComponent
      */
 	Component west;
@@ -137,7 +152,7 @@ public class BorderLayout implements LayoutManager2,
      * @serial
      * @see #getChild
      * @see #addLayoutComponent
-     * @see #getLayoutAllignment
+     * @see #getLayoutAlignment
      * @see #removeLayoutComponent
      */
 	Component east;
@@ -147,7 +162,7 @@ public class BorderLayout implements LayoutManager2,
      * @serial
      * @see #getChild
      * @see #addLayoutComponent
-     * @see #getLayoutAllignment
+     * @see #getLayoutAlignment
      * @see #removeLayoutComponent
      */
     Component south;
@@ -157,7 +172,7 @@ public class BorderLayout implements LayoutManager2,
      * @serial
      * @see #getChild
      * @see #addLayoutComponent
-     * @see #getLayoutAllignment
+     * @see #getLayoutAlignment
      * @see #removeLayoutComponent
      */
 	Component center;
@@ -224,44 +239,80 @@ public class BorderLayout implements LayoutManager2,
     public static final String CENTER = "Center";
 
     /**
-     * The component comes before the first line of the layout's content.
-     * For Western, top-to-bottom, left-to-right orientations, this is
-     * equivalent to NORTH.
+     * Synonym for PAGE_START.  Exists for compatibility with previous
+     * versions.  PAGE_START is preferred.
      *
-     * @see java.awt.Component#getComponentOrientation
+     * @see #PAGE_START
      * @since 1.2
      */
     public static final String BEFORE_FIRST_LINE = "First";
 
     /**
-     * The component comes after the last line of the layout's content.
-     * For Western, top-to-bottom, left-to-right orientations, this is
-     * equivalent to SOUTH.
+     * Synonym for PAGE_END.  Exists for compatibility with previous
+     * versions.  PAGE_END is preferred.
      *
-     * @see java.awt.Component#getComponentOrientation
+     * @see #PAGE_END
      * @since 1.2
      */
     public static final String AFTER_LAST_LINE = "Last";
 
     /**
-     * The component goes at the beginning of the line direction for the
-     * layout. For Western, top-to-bottom, left-to-right orientations,
-     * this is equivalent to WEST.
+     * Synonym for LINE_START.  Exists for compatibility with previous
+     * versions.  LINE_START is preferred.
      *
-     * @see java.awt.Component#getComponentOrientation
+     * @see #LINE_START
      * @since 1.2
      */
     public static final String BEFORE_LINE_BEGINS = "Before";
 
     /**
-     * The component goes at the end of the line direction for the
-     * layout. For Western, top-to-bottom, left-to-right orientations,
-     * this is equivalent to EAST.
+     * Synonym for LINE_END.  Exists for compatibility with previous
+     * versions.  LINE_END is preferred.
      *
-     * @see java.awt.Component#getComponentOrientation
+     * @see #LINE_END
      * @since 1.2
      */
     public static final String AFTER_LINE_ENDS = "After";
+
+    /**
+     * The component comes before the first line of the layout's content.
+     * For Western, left-to-right and top-to-bottom orientations, this is
+     * equivalent to NORTH.
+     *
+     * @see java.awt.Component#getComponentOrientation
+     * @since 1.4
+     */
+    public static final String PAGE_START = BEFORE_FIRST_LINE;
+
+    /**
+     * The component comes after the last line of the layout's content.
+     * For Western, left-to-right and top-to-bottom orientations, this is
+     * equivalent to SOUTH.
+     *
+     * @see java.awt.Component#getComponentOrientation
+     * @since 1.4
+     */
+    public static final String PAGE_END = AFTER_LAST_LINE;
+
+    /**
+     * The component goes at the beginning of the line direction for the
+     * layout. For Western, left-to-right and top-to-bottom orientations,
+     * this is equivalent to WEST.
+     *
+     * @see java.awt.Component#getComponentOrientation
+     * @since 1.4
+     */
+    public static final String LINE_START = BEFORE_LINE_BEGINS;
+
+    /**
+     * The component goes at the end of the line direction for the
+     * layout. For Western, left-to-right and top-to-bottom orientations,
+     * this is equivalent to EAST.
+     *
+     * @see java.awt.Component#getComponentOrientation
+     * @since 1.4
+     */
+    public static final String LINE_END = AFTER_LINE_ENDS;
 
     /*
      * JDK 1.1 serialVersionUID

@@ -1,4 +1,6 @@
 /*
+ * @(#)Paint.java	1.25 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -27,13 +29,30 @@ import java.awt.geom.Rectangle2D;
  * @see GradientPaint
  * @see TexturePaint
  * @see Graphics2D#setPaint
- * @version 1.24, 02/06/02
+ * @version 1.25, 12/03/01
  */
 
 public interface Paint extends Transparency {
     /**
      * Creates and returns a {@link PaintContext} used to 
      * generate the color pattern.
+     * Since the ColorModel argument to createContext is only a
+     * hint, implementations of Paint should accept a null argument
+     * for ColorModel.  Note that if the application does not
+     * prefer a specific ColorModel, the null ColorModel argument
+     * will give the Paint implementation full leeway in using the
+     * most efficient ColorModel it prefers for its raster processing.
+     * <p>
+     * Since the API documentation was not specific about this in
+     * releases before 1.4, there may be implementations of 
+     * <code>Paint</code> that do not accept a null 
+     * <code>ColorModel</code> argument.
+     * If a developer is writing code which passes a null 
+     * <code>ColorModel</code> argument to the 
+     * <code>createContext</code> method of <code>Paint</code> 
+     * objects from arbitrary sources it would be wise to code defensively
+     * by manufacturing a non-null <code>ColorModel</code> for those
+     * objects which throw a <code>NullPointerException</code>.
      * @param cm the {@link ColorModel} that receives the
      * <code>Paint</code> data. This is used only as a hint.
      * @param deviceBounds the device space bounding box

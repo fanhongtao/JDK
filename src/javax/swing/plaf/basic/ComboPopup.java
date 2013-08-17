@@ -1,4 +1,6 @@
 /*
+ * @(#)ComboPopup.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -12,18 +14,19 @@ import javax.swing.JList;
 
 
 /**
- * The interface which defines the kind of popup menu that BasicComboBoxUI requires.
- * Classes that implement this interface don't have to extend JPopupMenu.  This interface
- * demands very little so alternatives to JPopupMenu can be used.
+ * The interface which defines the methods required for the implementation of the popup
+ * portion of a combo box.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.10 02/06/02
+ * @version 1.12 12/03/01
  * @author Tom Santos
  */
 public interface ComboPopup {
@@ -38,27 +41,40 @@ public interface ComboPopup {
     public void hide();
 
     /**
-     * Returns whether or not the popup is visible
+     * Returns true if the popup is visible (currently being displayed).
+     * 
+     * @return <code>true<code> if the component is visible; <code>false</code> otherwise.
      */
     public boolean isVisible();
 
     /**
-     * Returns the list that is being used to draw the items in the JComboBox.
+     * Returns the list that is being used to draw the items in the combo box.
+     * This method is highly implementation specific and should not be used
+     * for general list manipulation.
      */
     public JList getList();
 
     /**
-     * Returns a mouse listener that shows and hides the popup.
+     * Returns a mouse listener that will be added to the combo box or null.
+     * If this method returns null then it will not be added to the combo box.
+     *
+     * @return a <code>MouseListener</code> or null
      */
     public MouseListener getMouseListener();
 
     /**
-     * Returns a mouse motion listener that makes the popup act like a menu.
+     * Returns a mouse motion listener that will be added to the combo box or null.
+     * If this method returns null then it will not be added to the combo box.
+     *
+     * @return a <code>MouseMotionListener</code> or null
      */
     public MouseMotionListener getMouseMotionListener();
 
     /**
-     * Returns a key listener that shows and hides the popup.
+     * Returns a key listener that will be added to the combo box or null.
+     * If this method returns null then it will not be added to the combo box.
+     *
+     * @param a <code>KeyListener</code> or null
      */
     public KeyListener getKeyListener();
 

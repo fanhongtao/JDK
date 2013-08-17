@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicTextFieldUI.java	1.90 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,6 +11,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.InputEvent;
 import java.beans.PropertyChangeEvent;
+import java.io.Reader;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
@@ -20,13 +23,15 @@ import javax.swing.plaf.*;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.83 02/06/02
+ * @version 1.90 12/03/01
  */
 public class BasicTextFieldUI extends BasicTextUI {
 
@@ -47,6 +52,11 @@ public class BasicTextFieldUI extends BasicTextUI {
 	super();
     }
 
+    public void installUI(JComponent c) {
+        super.installUI(c);
+	editableChanged(c, ((JTextComponent)c).isEditable());
+    }
+
     /**
      * This method gets called when a bound property is changed
      * on the associated JTextComponent.  This is a hook
@@ -56,16 +66,23 @@ public class BasicTextFieldUI extends BasicTextUI {
      * @param evt the property change event
      */
     protected void propertyChange(PropertyChangeEvent evt) {
-        // I18N views need to update themselves when the font changes.  
-        // This is a brute force way of doing that.  A better way would be to
-        // notify the views that the font has changed and let them react
-        // accordingly.
-        if ("font".equals(evt.getPropertyName())) {
-            Document doc = editor.getDocument();
-            Object flag = doc.getProperty("i18n"/*AbstractDocument.I18NProperty*/);
-            if( Boolean.TRUE.equals(flag) )
-                modelChanged();
+        if (evt.getPropertyName().equals("editable")) {
+	    JComponent source = (JComponent)evt.getSource();
+	    Color background = source.getBackground();
+	    boolean editable =  ((Boolean)evt.getNewValue()).booleanValue();
+	    editableChanged( source, editable);
         }
+    }
+
+    private void editableChanged(JComponent c, boolean editable) {
+	Color background = c.getBackground();
+	if (background instanceof UIResource) {
+	    if (editable == false) {
+		c.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+	    } else {
+		c.setBackground(UIManager.getColor("TextField.background"));
+	    }
+	}
     }
 
     /**
@@ -77,15 +94,6 @@ public class BasicTextFieldUI extends BasicTextUI {
      */
     protected String getPropertyPrefix() {
 	return "TextField";
-    }
-
-    /**
-     * Creates the caret for a field.
-     *
-     * @return the caret
-     */
-    protected Caret createCaret() {
-	return new BasicFieldCaret();
     }
 
     /**
@@ -111,19 +119,6 @@ public class BasicTextFieldUI extends BasicTextUI {
 	    // this shouldn't happen, should probably throw in this case.
 	}
 	return new FieldView(elem);
-    }
-
-    /**
-     * BasicFieldCaret has different scrolling behavior than
-     * DefaultCaret, selects the field when focus enters it, and
-     * deselects the field when focus leaves.
-     */
-    static class BasicFieldCaret extends DefaultCaret implements UIResource {
-
-	public BasicFieldCaret() {
-	    super();
-	}
-
     }
 
     /**

@@ -1,4 +1,6 @@
 /*
+ * @(#)WindowsIconFactory.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -24,7 +26,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.15 02/06/02
+ * @version 1.17 12/03/01
  * @author David Kloba
  * @author Georges Saab
  * @author Rich Schiavi
@@ -210,18 +212,31 @@ public class WindowsIconFactory implements Serializable
 
 	    // outer bevel
 	    if(!cb.isBorderPaintedFlat()) {
-		g.setColor(UIManager.getColor("CheckBox.background"));
-		g.fill3DRect(x, y, csize, csize, false);
-		
-		// inner bevel
-		g.setColor(UIManager.getColor("CheckBox.shadow"));
-		g.fill3DRect(x+1, y+1, csize-2, csize-2, false);
+                // Outer top/left
+                g.setColor(UIManager.getColor("CheckBox.shadow"));
+                g.drawLine(x, y, x+11, y);
+                g.drawLine(x, y+1, x, y+11);
+                
+                // Outer bottom/right
+                g.setColor(UIManager.getColor("CheckBox.highlight"));
+                g.drawLine(x+12, y, x+12, y+12);
+                g.drawLine(x, y+12, x+11, y+12);
+                
+                // Inner top.left
+                g.setColor(UIManager.getColor("CheckBox.darkShadow"));
+                g.drawLine(x+1, y+1, x+10, y+1);
+                g.drawLine(x+1, y+2, x+1, y+10);
+                
+                // Inner bottom/right
+                g.setColor(UIManager.getColor("CheckBox.light"));
+                g.drawLine(x+1, y+11, x+11, y+11);
+                g.drawLine(x+11, y+1, x+11, y+10);
 
 		// inside box 
 		if((model.isPressed() && model.isArmed()) || !model.isEnabled()) {
 		    g.setColor(UIManager.getColor("CheckBox.background"));
 		} else {
-		    g.setColor(UIManager.getColor("CheckBox.highlight"));
+                    g.setColor(UIManager.getColor("CheckBox.interiorBackground"));
 		}
 		g.fillRect(x+2, y+2, csize-4, csize-4);
 	    } else {
@@ -231,7 +246,7 @@ public class WindowsIconFactory implements Serializable
 		if((model.isPressed() && model.isArmed()) || !model.isEnabled()) {
 		    g.setColor(UIManager.getColor("CheckBox.background"));
 		} else {
-		    g.setColor(UIManager.getColor("CheckBox.highlight"));
+                    g.setColor(UIManager.getColor("CheckBox.interiorBackground"));
 		}
 		g.fillRect(x+2, y+2, csize-4, csize-4);
 	    }
@@ -275,7 +290,7 @@ public class WindowsIconFactory implements Serializable
 	    if((model.isPressed() && model.isArmed()) || !model.isEnabled()) {
 		g.setColor(UIManager.getColor("RadioButton.background"));
 	    } else {
-		g.setColor(UIManager.getColor("RadioButton.highlight"));
+                g.setColor(UIManager.getColor("RadioButton.interiorBackground"));
 	    }
 	    g.fillRect(x+2, y+2, 8, 8);
 		
@@ -310,7 +325,7 @@ public class WindowsIconFactory implements Serializable
 
  
 	    // inner right arc
-	    g.setColor(UIManager.getColor("RadioButton.background"));
+	    g.setColor(UIManager.getColor("RadioButton.light"));
 	    g.drawLine(x+2,  y+9,  x+3,  y+9);
 	    g.drawLine(x+4,  y+10, x+7,  y+10);
 	    g.drawLine(x+8,  y+9,  x+9,  y+9);

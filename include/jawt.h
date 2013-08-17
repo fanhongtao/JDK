@@ -1,4 +1,6 @@
 /*
+ * @(#)jawt.h	1.8 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -222,7 +224,8 @@ typedef struct jawt {
      * Return a drawing surface from a target jobject.  This value
      * may be cached.
      * Returns NULL if an error has occurred.
-     * Target must be a java.awt.Canvas.
+     * Target must be a java.awt.Component (should be a Canvas
+     * or Window for native rendering).
      * FreeDrawingSurface() must be called when finished with the
      * returned JAWT_DrawingSurface.
      */
@@ -233,6 +236,29 @@ typedef struct jawt {
      */
     void (JNICALL *FreeDrawingSurface)
         (JAWT_DrawingSurface* ds);
+    /*
+     * Since 1.4
+     * Locks the entire AWT for synchronization purposes
+     */
+    void (JNICALL *Lock)(JNIEnv* env);
+    /*
+     * Since 1.4
+     * Unlocks the entire AWT for synchronization purposes
+     */
+    void (JNICALL *Unlock)(JNIEnv* env);
+    /*
+     * Since 1.4
+     * Returns a reference to a java.awt.Component from a native
+     * platform handle.  On Windows, this corresponds to an HWND;
+     * on Solaris and Linux, this is a Drawable.  For other platforms,
+     * see the appropriate machine-dependent header file for a description.
+     * The reference returned by this function is a local
+     * reference that is only valid in this environment.
+     * This function returns a NULL reference if no component could be
+     * found with matching platform information.
+     */
+    jobject (JNICALL *GetComponent)(JNIEnv* env, void* platformInfo);
+
 } JAWT;
 
 /*
@@ -243,6 +269,7 @@ _JNI_IMPORT_OR_EXPORT_
 jboolean JNICALL JAWT_GetAWT(JNIEnv* env, JAWT* awt);
 
 #define JAWT_VERSION_1_3 0x00010003
+#define JAWT_VERSION_1_4 0x00010004
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -1,4 +1,6 @@
 /*
+ * @(#)Graphics2D.java	1.76 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,6 +16,7 @@ import java.awt.image.RenderedImage;
 import java.awt.image.renderable.RenderableImage;
 import java.awt.font.GlyphVector;
 import java.awt.font.FontRenderContext;
+import java.awt.font.TextAttribute;
 import java.text.AttributedCharacterIterator;
 import java.util.Map;
 
@@ -380,7 +383,7 @@ import java.util.Map;
  * </pre>
  * </ol>
  *
- * @version 	1.71, 02/06/02
+ * @version 	1.76, 12/03/01
  * @author Jim Graham
  * @see java.awt.RenderingHints
  */
@@ -615,8 +618,7 @@ public abstract class Graphics2D extends Graphics {
 
     /** 
      * Renders the text of the specified <code>String</code>, using the 
-     * current <code>Font</code> and <code>Paint</code> attributes in the 
-     * <code>Graphics2D</code> context. 
+     * current text attribute state in the <code>Graphics2D</code> context. 
      * The baseline of the 
      * first character is at position (<i>x</i>,&nbsp;<i>y</i>) in 
      * the User Space. 
@@ -639,8 +641,7 @@ public abstract class Graphics2D extends Graphics {
 
     /**
      * Renders the text specified by the specified <code>String</code>, 
-     * using the current <code>Font</code> and <code>Paint</code> attributes 
-     * in the <code>Graphics2D</code> context. 
+     * using the current text attribute state in the <code>Graphics2D</code> context. 
      * The baseline of the first character is at position 
      * (<i>x</i>,&nbsp;<i>y</i>) in the User Space.
      * The rendering attributes applied include the <code>Clip</code>,
@@ -730,7 +731,7 @@ public abstract class Graphics2D extends Graphics {
      * @param x,&nbsp;y the position in User Space where the glyphs should
      * be rendered
      *
-     * @see java.awt.font#createGlyphVector
+     * @see java.awt.Font#createGlyphVector
      * @see java.awt.font.GlyphVector
      * @see #setPaint
      * @see java.awt.Graphics#setColor
@@ -792,6 +793,7 @@ public abstract class Graphics2D extends Graphics {
     /**
      * Returns the device configuration associated with this 
      * <code>Graphics2D</code>.
+     * @return the device configuration of this <code>Graphics2D</code>.
      */
     public abstract GraphicsConfiguration getDeviceConfiguration();
 
@@ -817,6 +819,7 @@ public abstract class Graphics2D extends Graphics {
      * @param comp the <code>Composite</code> object to be used for rendering
      * @see java.awt.Graphics#setXORMode
      * @see java.awt.Graphics#setPaintMode
+     * @see #getComposite
      * @see AlphaComposite
      * @see SecurityManager#checkPermission
      * @see java.awt.AWTPermission
@@ -832,6 +835,7 @@ public abstract class Graphics2D extends Graphics {
      * @param paint the <code>Paint</code> object to be used to generate 
      * color during the rendering process, or <code>null</code>
      * @see java.awt.Graphics#setColor
+     * @see #getPaint
      * @see GradientPaint
      * @see TexturePaint
      */
@@ -842,6 +846,7 @@ public abstract class Graphics2D extends Graphics {
      * @param s the <code>Stroke</code> object to be used to stroke a 
      * <code>Shape</code> during the rendering process
      * @see BasicStroke
+     * @see #getStroke
      */
     public abstract void setStroke(Stroke s);
 
@@ -854,6 +859,7 @@ public abstract class Graphics2D extends Graphics {
      * @param hintKey the key of the hint to be set.
      * @param hintValue the value indicating preferences for the specified
      * hint category.
+     * @see #getRenderingHint(RenderingHints.Key)
      * @see RenderingHints
      */
     public abstract void setRenderingHint(Key hintKey, Object hintValue);
@@ -869,6 +875,7 @@ public abstract class Graphics2D extends Graphics {
      * Some of the keys and their associated values are defined in the
      * <code>RenderingHints</code> class.
      * @see RenderingHints
+     * @see #setRenderingHint(RenderingHints.Key, Object)
      */
     public abstract Object getRenderingHint(Key hintKey);
 
@@ -883,6 +890,7 @@ public abstract class Graphics2D extends Graphics {
      * Refer to the <code>RenderingHints</code> class for definitions of
      * some common keys and values.
      * @param hints the rendering hints to be set
+     * @see #getRenderingHints
      * @see RenderingHints
      */
     public abstract void setRenderingHints(Map hints);
@@ -914,6 +922,7 @@ public abstract class Graphics2D extends Graphics {
      * @return a reference to an instance of <code>RenderingHints</code>
      * that contains the current preferences.
      * @see RenderingHints
+     * @see #setRenderingHints(Map)
      */
     public abstract RenderingHints getRenderingHints();
 
@@ -1047,11 +1056,34 @@ public abstract class Graphics2D extends Graphics {
     public abstract void transform(AffineTransform Tx);
 
     /**
-     * Sets the <code>Transform</code> in the <code>Graphics2D</code>
-     * context.
-     * @param Tx the <code>AffineTransform</code> object to be used in the
-     * rendering process
+     * Overwrites the Transform in the <code>Graphics2D</code> context.
+     * WARNING: This method should <b>never</b> be used to apply a new
+     * coordinate transform on top of an existing transform because the 
+     * <code>Graphics2D</code> might already have a transform that is
+     * needed for other purposes, such as rendering Swing 
+     * components or applying a scaling transformation to adjust for the
+     * resolution of a printer.  
+     * <p>To add a coordinate transform, use the 
+     * <code>transform</code>, <code>rotate</code>, <code>scale</code>,
+     * or <code>shear</code> methods.  The <code>setTransform</code> 
+     * method is intended only for restoring the original 
+     * <code>Graphics2D</code> transform after rendering, as shown in this
+     * example:
+     * <pre><blockquote>
+     * // Get the current transform
+     * AffineTransform saveAT = g2.getTransform();
+     * // Perform transformation
+     * g2d.transform(...);
+     * // Render
+     * g2d.draw(...);
+     * // Restore original transform
+     * g2d.setTransform(saveAT);
+     * </blockquote></pre>
+     *
+     * @param Tx the <code>AffineTransform</code> that was retrieved
+     *           from the <code>getTransform</code> method
      * @see #transform
+     * @see #getTransform
      * @see AffineTransform
      */
     public abstract void setTransform(AffineTransform Tx);

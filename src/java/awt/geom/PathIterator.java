@@ -1,4 +1,6 @@
 /*
+ * @(#)PathIterator.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -35,7 +37,7 @@ package java.awt.geom;
  * @see java.awt.Shape
  * @see java.awt.BasicStroke
  *
- * @version 1.13, 02/06/02
+ * @version 1.14, 12/03/01
  * @author Jim Graham
  */
 public interface PathIterator {
@@ -151,7 +153,7 @@ public interface PathIterator {
     /**
      * Returns the coordinates and type of the current path segment in
      * the iteration.
-     * The return value is the path segment type:
+     * The return value is the path-segment type:
      * SEG_MOVETO, SEG_LINETO, SEG_QUADTO, SEG_CUBICTO, or SEG_CLOSE.
      * A float array of length 6 must be passed in and can be used to
      * store the coordinates of the point(s).
@@ -162,7 +164,7 @@ public interface PathIterator {
      * and SEG_CLOSE does not return any points.
      * @param coords an array that holds the data returned from
      * this method
-     * @return the path segment type of the current path segment.
+     * @return the path-segment type of the current path segment.
      * @see #SEG_MOVETO
      * @see #SEG_LINETO
      * @see #SEG_QUADTO
@@ -174,7 +176,7 @@ public interface PathIterator {
     /**
      * Returns the coordinates and type of the current path segment in
      * the iteration.
-     * The return value is the path segment type:
+     * The return value is the path-segment type:
      * SEG_MOVETO, SEG_LINETO, SEG_QUADTO, SEG_CUBICTO, or SEG_CLOSE.
      * A double array of length 6 must be passed in and can be used to
      * store the coordinates of the point(s).
@@ -185,6 +187,7 @@ public interface PathIterator {
      * and SEG_CLOSE does not return any points.
      * @param coords an array that holds the data returned from
      * this method
+     * @return the path-segment type of the current path segment.
      * @see #SEG_MOVETO
      * @see #SEG_LINETO
      * @see #SEG_QUADTO

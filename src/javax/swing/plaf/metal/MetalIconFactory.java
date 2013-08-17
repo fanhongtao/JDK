@@ -1,4 +1,6 @@
 /*
+ * @(#)MetalIconFactory.java	1.52 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,21 +12,32 @@ import javax.swing.plaf.UIResource;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
+import java.util.Enumeration;
+import java.util.Vector;
 
 /**
- * Factory object that can vend Icons appropriate for Metal.
- * These are used extensively in Metal via the defaults mechanism.
- * While other Look and Feels use GIFs for some of these, doing this
- * work in code facilitates things when switching to other Themes.
+ * Factory object that vends <code>Icon</code>s for
+ * the Java<sup><font size="-2">TM</font></sup> look and feel (Metal).
+ * These icons are used extensively in Metal via the defaults mechanism.
+ * While other look and feels often use GIFs for icons, creating icons
+ * in code facilitates switching to other themes.
+ *
+ * <p>
+ * Each method in this class returns
+ * either an <code>Icon</code> or <code>null</code>,
+ * where <code>null</code> implies that there is no default icon.
+ *
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.47 02/06/02
+ * @version 1.52 12/03/01
  * @author Michael C. Albers
  */
 public class MetalIconFactory implements Serializable {
@@ -47,7 +60,6 @@ public class MetalIconFactory implements Serializable {
 
 
     private static Icon menuArrowIcon;
-    private static Icon menuItemCheckIcon;
     private static Icon menuItemArrowIcon;
     private static Icon checkBoxMenuItemIcon;
     private static Icon radioButtonMenuItemIcon;
@@ -125,7 +137,7 @@ public class MetalIconFactory implements Serializable {
     }
 
     /**
-     * Returns a checkbox icon
+     * Returns a checkbox icon.
      * @since 1.3
      */
     public static Icon getCheckBoxIcon() {
@@ -175,11 +187,14 @@ public class MetalIconFactory implements Serializable {
 	return menuArrowIcon;
     }
 
+    /**
+     * Returns an icon to be used by <code>JCheckBoxMenuItem</code>.
+     *
+     * @return the default icon for check box menu items,
+     *         or <code>null</code> if no default exists
+     */
     public static Icon getMenuItemCheckIcon() {
-	if (menuItemCheckIcon == null) {
-	    menuItemCheckIcon = new MenuItemCheckIcon();
-	}
-	return menuItemCheckIcon;
+        return null;
     }
 
     public static Icon getMenuItemArrowIcon() {
@@ -1304,29 +1319,100 @@ public class MetalIconFactory implements Serializable {
 
     static private final Dimension folderIcon16Size = new Dimension( 16, 16 );
 
-    
+    /**
+     * Utility class for caching icon images.  This is necessary because
+     * we need a new image whenever we are rendering into a new 
+     * GraphicsConfiguration, but we do not want to keep recreating icon 
+     * images for GC's that we have already seen (for example, 
+     * dragging a window back and forth between monitors on a multimon 
+     * system, or drawing an icon to different Components that have different
+     * GC's).
+     * So now whenever we create a new icon image for a given GC, we
+     * cache that image with the GC for later retrieval.
+     */
+    static class ImageCacher {
+	Vector images = new Vector(1, 1);
+	ImageGcPair currentImageGcPair;
+
+	class ImageGcPair {
+	    Image image;
+	    GraphicsConfiguration gc;
+	    ImageGcPair(Image image, GraphicsConfiguration gc) {
+		this.image = image;
+		this.gc = gc;
+	    }
+
+	    boolean hasSameConfiguration(GraphicsConfiguration newGC) {
+		if (((newGC != null) && (newGC.equals(gc))) ||
+		    ((newGC == null) && (gc == null))) 
+		{
+		    return true;
+		}
+		return false;
+	    }
+
+	}
+
+	Image getImage(GraphicsConfiguration newGC) {
+	    if ((currentImageGcPair == null) ||
+		!(currentImageGcPair.hasSameConfiguration(newGC)))
+	    {
+		Enumeration elements = images.elements();
+		while (elements.hasMoreElements()) {
+		    ImageGcPair imgGcPair = (ImageGcPair)elements.nextElement();
+		    if (imgGcPair.hasSameConfiguration(newGC)) {
+			currentImageGcPair = imgGcPair;
+			return imgGcPair.image;
+		    }
+		}
+		return null;
+	    }
+	    return currentImageGcPair.image;
+	}
+
+	void cacheImage(Image image, GraphicsConfiguration gc) {
+	    ImageGcPair imgGcPair = new ImageGcPair(image, gc);
+	    images.addElement(imgGcPair);
+	    currentImageGcPair = imgGcPair;
+	}
+
+    }
+
     /**
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class FolderIcon16 implements Icon, Serializable {
 
-
-        transient Image image;
+	ImageCacher imageCacher;
 
 	public void paintIcon(Component c, Graphics g, int x, int y) {
+	    GraphicsConfiguration gc = c.getGraphicsConfiguration();
+	    if (imageCacher == null) {
+		imageCacher = new ImageCacher();
+	    }
+	    Image image = imageCacher.getImage(gc);
 	    if (image == null) {
-		image = new BufferedImage(getIconWidth(), getIconHeight(),
-					  BufferedImage.TYPE_INT_ARGB);
+		if (gc != null) {
+		    image = gc.createCompatibleImage(getIconWidth(), 
+						     getIconHeight(),
+						     Transparency.BITMASK);
+		} else {
+		    image = new BufferedImage(getIconWidth(),
+					      getIconHeight(),
+					      BufferedImage.TYPE_INT_ARGB);
+		}
                 Graphics imageG = image.getGraphics();		
 		paintMe(c,imageG);
 		imageG.dispose();
-
+		imageCacher.cacheImage(image, gc);
 	    }
             g.drawImage(image, x, y+getShift(), null);
 	}
@@ -1378,10 +1464,12 @@ public class MetalIconFactory implements Serializable {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class TreeFolderIcon extends FolderIcon16 {
         public int getShift() { return -1; }
@@ -1395,26 +1483,39 @@ public class MetalIconFactory implements Serializable {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class FileIcon16 implements Icon, Serializable {
 
-        transient Image image;
+	ImageCacher imageCacher;
 
 	public void paintIcon(Component c, Graphics g, int x, int y) {
+	    GraphicsConfiguration gc = c.getGraphicsConfiguration();
+	    if (imageCacher == null) {
+		imageCacher = new ImageCacher();
+	    }
+	    Image image = imageCacher.getImage(gc);
 	    if (image == null) {
-		image = new BufferedImage(getIconWidth(), getIconHeight(),
-					  BufferedImage.TYPE_INT_ARGB);
+		if (gc != null) {
+		    image = gc.createCompatibleImage(getIconWidth(), 
+						     getIconHeight(),
+						     Transparency.BITMASK);
+		} else {
+		    image = new BufferedImage(getIconWidth(),
+					      getIconHeight(),
+					      BufferedImage.TYPE_INT_ARGB);
+		}
                 Graphics imageG = image.getGraphics();		
 		paintMe(c,imageG);
 		imageG.dispose();
-
+		imageCacher.cacheImage(image, gc);
 	    }
             g.drawImage(image, x, y+getShift(), null);
-
 	}
 
         private void paintMe(Component c, Graphics g) {
@@ -1467,10 +1568,12 @@ public class MetalIconFactory implements Serializable {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class TreeControlIcon implements Icon, Serializable {
         // This data member should not have been exposed.  It's called
@@ -1483,19 +1586,35 @@ public class MetalIconFactory implements Serializable {
 	    isLight = isCollapsed;
 	}
 
-        transient Image image;
+	ImageCacher imageCacher;
+
         transient boolean cachedOrientation = true;
 
 	public void paintIcon(Component c, Graphics g, int x, int y) {
 
+	    GraphicsConfiguration gc = c.getGraphicsConfiguration();
+
+	    if (imageCacher == null) {
+		imageCacher = new ImageCacher();
+	    }
+	    Image image = imageCacher.getImage(gc);
+
 	    if (image == null || cachedOrientation != MetalUtils.isLeftToRight(c)) {
 		cachedOrientation = MetalUtils.isLeftToRight(c);
-		image = new BufferedImage(getIconWidth(), getIconHeight(),
-					  BufferedImage.TYPE_INT_ARGB);
+		if (gc != null) {
+		    image = gc.createCompatibleImage(getIconWidth(), 
+						     getIconHeight(),
+						     Transparency.BITMASK);
+		} else {
+		    image = new BufferedImage(getIconWidth(),
+					      getIconHeight(),
+					      BufferedImage.TYPE_INT_ARGB);
+		}
                 Graphics imageG = image.getGraphics();		
 		paintMe(c,imageG,x,y);
 		imageG.dispose();
-
+		imageCacher.cacheImage(image, gc);
+		
 	    }
 
 	    if (MetalUtils.isLeftToRight(c)) {
@@ -1639,18 +1758,6 @@ public class MetalIconFactory implements Serializable {
 	public int getIconHeight() { return menuArrowIconSize.height; }
 
     } // End class MenuArrowIcon
-
-    private static class MenuItemCheckIcon implements Icon, UIResource, Serializable
-    {
-	public void paintIcon( Component c, Graphics g, int x, int y )
-	{
-	}
-
-	public int getIconWidth() { return menuCheckIconSize.width; }
-
-	public int getIconHeight() { return menuCheckIconSize.height; }
-
-    } // End class MenuItemCheckIcon
 
     private static class MenuItemArrowIcon implements Icon, UIResource, Serializable
     {

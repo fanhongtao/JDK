@@ -1,4 +1,6 @@
 /*
+ * @(#)MenuItem.java	1.79 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -46,7 +48,7 @@ import javax.accessibility.*;
  * does not send any event to the frame until one of its subitems is
  * selected.
  *
- * @version 1.69, 02/06/02
+ * @version 1.79, 12/03/01
  * @author Sami Shaio
  */
 public class MenuItem extends MenuComponent implements Accessible {
@@ -54,7 +56,9 @@ public class MenuItem extends MenuComponent implements Accessible {
     static {
         /* ensure that the necessary native libraries are loaded */
 	Toolkit.loadLibraries();
-        initIDs();
+        if (!GraphicsEnvironment.isHeadless()) {
+            initIDs();
+        }
     }
 
     /**
@@ -129,9 +133,12 @@ public class MenuItem extends MenuComponent implements Accessible {
     /**
      * Constructs a new MenuItem with an empty label and no keyboard
      * shortcut.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      * @since    JDK1.1
      */
-    public MenuItem() {
+    public MenuItem() throws HeadlessException {
 	this("", null);
     }
 
@@ -142,9 +149,12 @@ public class MenuItem extends MenuComponent implements Accessible {
      * menu items. By default, all menu items except for
      * separators are enabled.
      * @param       label the label for this menu item.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      * @since       JDK1.0
      */
-    public MenuItem(String label) {
+    public MenuItem(String label) throws HeadlessException {
 	this(label, null);
     }
 
@@ -156,9 +166,12 @@ public class MenuItem extends MenuComponent implements Accessible {
      * @param       label the label for this menu item.
      * @param       s the instance of <code>MenuShortcut</code>
      *                       associated with this menu item.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
      * @since       JDK1.1
      */
-    public MenuItem(String label, MenuShortcut s) {
+    public MenuItem(String label, MenuShortcut s) throws HeadlessException {
 	this.label = label;
         this.shortcut = s;
     }
@@ -327,10 +340,10 @@ public class MenuItem extends MenuComponent implements Accessible {
      * in subclasses this method may do more than just posting 
      * an event.
      */
-    void doMenuEvent() {
+    void doMenuEvent(long when, int modifiers) {
         Toolkit.getEventQueue().postEvent(
             new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
-                            getActionCommand()));
+                            getActionCommand(), when, modifiers));
     }
 
     /*
@@ -344,7 +357,7 @@ public class MenuItem extends MenuComponent implements Accessible {
         if (s.equals(shortcut) && enabled) {
             // MenuShortcut match -- issue an event on keydown.
             if (e.getID() == KeyEvent.KEY_PRESSED) {
-                doMenuEvent();
+                doMenuEvent(e.getWhen(), e.getModifiers());
             } else {
                 // silently eat key release.
             }
@@ -366,7 +379,8 @@ public class MenuItem extends MenuComponent implements Accessible {
      * to be invoked by subclasses of <code>MenuItem</code> which desire to
      * have the specified event types delivered to <code>processEvent</code>
      * regardless of whether a listener is registered.
-     * @param       eventsToEnable the event mask defining the event types.
+     *
+     * @param       eventsToEnable the event mask defining the event types
      * @see         java.awt.MenuItem#processEvent
      * @see         java.awt.MenuItem#disableEvents
      * @see         java.awt.Component#enableEvents
@@ -380,7 +394,8 @@ public class MenuItem extends MenuComponent implements Accessible {
     /**
      * Disables event delivery to this menu item for events
      * defined by the specified event mask parameter.
-     * @param       eventsToDisable the event mask defining the event types.
+     *
+     * @param       eventsToDisable the event mask defining the event types
      * @see         java.awt.MenuItem#processEvent
      * @see         java.awt.MenuItem#enableEvents
      * @see         java.awt.Component#disableEvents
@@ -421,9 +436,10 @@ public class MenuItem extends MenuComponent implements Accessible {
      * If l is null, no exception is thrown and no action is performed.
      *
      * @param      l the action listener.
+     * @see        #removeActionListener
+     * @see        #getActionListeners
      * @see        java.awt.event.ActionEvent
      * @see        java.awt.event.ActionListener
-     * @see        java.awt.MenuItem#removeActionListener
      * @since      JDK1.1
      */
     public synchronized void addActionListener(ActionListener l) {
@@ -440,9 +456,10 @@ public class MenuItem extends MenuComponent implements Accessible {
      * If l is null, no exception is thrown and no action is performed.
      *
      * @param      l the action listener.
+     * @see        #addActionListener
+     * @see        #getActionListeners
      * @see        java.awt.event.ActionEvent
      * @see        java.awt.event.ActionListener
-     * @see        java.awt.MenuItem#addActionListener
      * @since      JDK1.1
      */
     public synchronized void removeActionListener(ActionListener l) {
@@ -453,17 +470,54 @@ public class MenuItem extends MenuComponent implements Accessible {
     }
 
     /**
-     * Return an array of all the listeners that were added to the MenuItem
-     * with addXXXListener(), where XXX is the name of the <code>listenerType</code>
-     * argument.  For example, to get all of the ActionListener(s) for the
-     * given MenuItem <code>m</code>, one would write:
-     * <pre>
-     * ActionListener[] als = (ActionListener[])(m.getListeners(ActionListener.class))
-     * </pre>
-     * If no such listener list exists, then an empty array is returned.
-     * 
-     * @param    listenerType   Type of listeners requested
-     * @return   all of the listeners of the specified type supported by this menu item
+     * Returns an array of all the action listeners
+     * registered on this menu item.
+     *
+     * @return all of this menu item's <code>ActionListener</code>s
+     *         or an empty array if no action
+     *         listeners are currently registered
+     *
+     * @see        #addActionListener
+     * @see        #removeActionListener
+     * @see        java.awt.event.ActionEvent
+     * @see        java.awt.event.ActionListener
+     * @since 1.4
+     */
+    public synchronized ActionListener[] getActionListeners() {
+        return (ActionListener[])(getListeners(ActionListener.class));
+    }
+
+    /**
+     * Returns an array of all the objects currently registered
+     * as <code><em>Foo</em>Listener</code>s
+     * upon this <code>MenuItem</code>.
+     * <code><em>Foo</em>Listener</code>s are registered using the
+     * <code>add<em>Foo</em>Listener</code> method.
+     *
+     * <p>
+     * You can specify the <code>listenerType</code> argument
+     * with a class literal, such as
+     * <code><em>Foo</em>Listener.class</code>.
+     * For example, you can query a
+     * <code>MenuItem</code> <code>m</code>
+     * for its action listeners with the following code:
+     *
+     * <pre>ActionListener[] als = (ActionListener[])(m.getListeners(ActionListener.class));</pre>
+     *
+     * If no such listeners exist, this method returns an empty array.
+     *
+     * @param listenerType the type of listeners requested; this parameter
+     *          should specify an interface that descends from
+     *          <code>java.util.EventListener</code>
+     * @return an array of all objects registered as
+     *          <code><em>Foo</em>Listener</code>s on this menu item,
+     *          or an empty array if no such
+     *          listeners have been added
+     * @exception ClassCastException if <code>listenerType</code>
+     *          doesn't specify a class or interface that implements
+     *          <code>java.util.EventListener</code>
+     *
+     * @see #getActionListeners
      * @since 1.3
      */
     public EventListener[] getListeners(Class listenerType) { 
@@ -481,7 +535,11 @@ public class MenuItem extends MenuComponent implements Accessible {
      * defined by <code>MenuItem</code>.
      * <p>
      * Currently, menu items only support action events.
-     * @param       e the event.
+     * <p>Note that if the event parameter is <code>null</code>
+     * the behavior is unspecified and may result in an
+     * exception.
+     *
+     * @param       e the event
      * @see         java.awt.MenuItem#processActionEvent
      * @since       JDK1.1
      */
@@ -515,7 +573,11 @@ public class MenuItem extends MenuComponent implements Accessible {
      * via <code>addActionListener</code>.
      * <li>Action events are enabled via <code>enableEvents</code>.
      * </ul>
-     * @param       e the action event.
+     * <p>Note that if the event parameter is <code>null</code>
+     * the behavior is unspecified and may result in an
+     * exception.
+     *
+     * @param       e the action event
      * @see         java.awt.event.ActionEvent
      * @see         java.awt.event.ActionListener
      * @see         java.awt.MenuItem#enableEvents
@@ -528,10 +590,13 @@ public class MenuItem extends MenuComponent implements Accessible {
     }
 
     /**
-     * Returns the parameter string representing the state of this menu
-     * item. This string is useful for debugging.
-     * @return  the parameter string of this menu item.
-     * @since   JDK1.0
+     * Returns a string representing the state of this <code>MenuItem</code>.
+     * This method is intended to be used only for debugging purposes, and the 
+     * content and format of the returned string may vary between 
+     * implementations. The returned string may be empty but may not be 
+     * <code>null</code>.
+     *
+     * @return the parameter string of this menu item
      */
     public String paramString() {
         String str = ",label=" + label;
@@ -554,18 +619,20 @@ public class MenuItem extends MenuComponent implements Accessible {
 
     /**
      * Writes default serializable fields to stream.  Writes
-     * a list of serializable ItemListener(s) as optional data.
-     * The non-serializable ItemListner(s) are detected and
-     * no attempt is made to serialize them.
+     * a list of serializable <code>ActionListeners</code>
+     * as optional data. The non-serializable listeners are
+     * detected and no attempt is made to serialize them.
      *
-     * @serialData Null terminated sequence of 0 or more pairs.
-     *             The pair consists of a String and Object.
-     *             The String indicates the type of object and
-     *             is one of the following :
-     *             itemListenerK indicating and ItemListener object.
+     * @param s the <code>ObjectOutputStream</code> to write
+     * @serialData <code>null</code> terminated sequence of 0
+     *   or more pairs; the pair consists of a <code>String</code> 
+     *   and an <code>Object</code>; the <code>String</code> 
+     *   indicates the type of object and is one of the following:
+     *   <code>actionListenerK</code> indicating an
+     *     <code>ActionListener</code> object
      *
      * @see AWTEventMulticaster.save(ObjectOutputStream, String, EventListener)
-     * @see java.awt.Component.itemListenerK
+     * @see #readObject
      */
     private void writeObject(ObjectOutputStream s)
       throws IOException
@@ -577,17 +644,23 @@ public class MenuItem extends MenuComponent implements Accessible {
     }
 
     /**
-     * Read the ObjectInputStream and if it isnt null
-     * add a listener to receive item events fired
-     * by the Menu Item.
-     * Unrecognised keys or values will be Ignored.
+     * Reads the <code>ObjectInputStream</code> and if it
+     * isn't <code>null</code> adds a listener to receive
+     * action events fired by the <code>Menu</code> Item.
+     * Unrecognized keys or values will be ignored.
      * 
+     * @param s the <code>ObjectInputStream</code> to read
+     * @exception HeadlessException if
+     *   <code>GraphicsEnvironment.isHeadless</code> returns
+     *   <code>true</code>
      * @see removeActionListener()
      * @see addActionListener()
+     * @see #writeObject
      */
     private void readObject(ObjectInputStream s)
-      throws ClassNotFoundException, IOException
+      throws ClassNotFoundException, IOException, HeadlessException
     {
+      // HeadlessException will be thrown from MenuComponent's readObject
       s.defaultReadObject();
 
       Object keyOrNull;
@@ -729,7 +802,9 @@ public class MenuItem extends MenuComponent implements Accessible {
                 Toolkit.getEventQueue().postEvent(
                         new ActionEvent(MenuItem.this,
                                         ActionEvent.ACTION_PERFORMED,
-                                        MenuItem.this.getActionCommand()));
+                                        MenuItem.this.getActionCommand(),
+                                        EventQueue.getMostRecentEventTime(),
+                                        0));
                 return true;
             } else {
                 return false;

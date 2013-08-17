@@ -1,4 +1,6 @@
 /*
+ * @(#)CardLayout.java	1.35 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,7 +8,14 @@
 package java.awt;
 
 import java.util.Hashtable;
+import java.util.Vector;
 import java.util.Enumeration;
+
+import java.io.Serializable;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamField;
+import java.io.IOException;
 
 /**
  * A <code>CardLayout</code> object is a layout manager for a
@@ -20,47 +29,82 @@ import java.util.Enumeration;
  * ordering of its component objects. <code>CardLayout</code>
  * defines a set of methods that allow an application to flip
  * through these cards sequentially, or to show a specified card.
- * The {@link CardLayou#addLayoutComponent}
+ * The {@link CardLayout#addLayoutComponent}
  * method can be used to associate a string identifier with a given card
  * for fast random access.
  *
- * @version 	1.31 02/06/02
+ * @version 	1.35 12/03/01
  * @author 	Arthur van Hoff
  * @see         java.awt.Container
  * @since       JDK1.0
  */
 
 public class CardLayout implements LayoutManager2,
-				   java.io.Serializable {
+				   Serializable {
+
+    private static final long serialVersionUID = -4328196481005934313L;
+
     /*
-    * This creates a hashtable, where any non-null object
-	* can be used as a key or value.
-	* @serial
-    * @see java.util.HashTable
-    */
-	Hashtable tab = new Hashtable();
+     * This creates a Vector to store associated
+     * pairs of components and their names.
+     * @see java.util.Vector
+     */
+    Vector vector = new Vector();
+
+    /*
+     * A pair of Component and String that represents its name.
+     */
+    class Card implements Serializable {
+        static final long serialVersionUID = 6640330810709497518L;
+        public String name;
+        public Component comp;
+        public Card(String cardName, Component cardComponent) {
+            name = cardName;
+            comp = cardComponent;
+        }
+    }
+
+    /*
+     * Index of Component currently displayed by CardLayout.
+     */
+    int currentCard = 0;
+
 
     /*
     * A cards horizontal Layout gap (inset). It specifies
-	* the space between the left and right edges of a 
-	* container and the current component.
-	* This should be a non negative Integer.
-	* @serial
+    * the space between the left and right edges of a 
+    * container and the current component.
+    * This should be a non negative Integer.
     * @see getHgap()
     * @see setHgap()
     */
-	int hgap;
+    int hgap;
 
     /*
     * A cards vertical Layout gap (inset). It specifies
     * the space between the top and bottom edges of a 
     * container and the current component.
     * This should be a non negative Integer.
-    * @serial
     * @see getVgap()
     * @see setVgap()
     */
-	int vgap;
+    int vgap;
+
+    /**
+     * @serialField tab	        Hashtable
+     *      deprectated, for forward compatibility only
+     * @serialField hgap        int
+     * @serialField vgap        int
+     * @serialField vector      Vector
+     * @serialField currentCard int
+     */
+    private static final ObjectStreamField[] serialPersistentFields = { 
+	new ObjectStreamField("tab", Hashtable.class), 
+        new ObjectStreamField("hgap", Integer.TYPE), 
+        new ObjectStreamField("vgap", Integer.TYPE), 
+        new ObjectStreamField("vector", Vector.class), 
+        new ObjectStreamField("currentCard", Integer.TYPE) 
+    };
 
     /**
      * Creates a new card layout with gaps of size zero.
@@ -154,32 +198,39 @@ public class CardLayout implements LayoutManager2,
      */
     public void addLayoutComponent(String name, Component comp) {
       synchronized (comp.getTreeLock()) {
-	if (tab.size() > 0) {
-	    comp.hide();
+	if (!vector.isEmpty()) {
+	    comp.setVisible(false);
 	}
-	tab.put(name, comp);
+        for (int i=0; i < vector.size(); i++) {
+            if (((Card)vector.get(i)).name.equals(name)) {
+                vector.remove(i);
+                break;
+            }
+        }
+	vector.add(new Card(name, comp));
       }
     }
 
     /**
      * Removes the specified component from the layout.
-     * If the card was visible on top, the next card underneath it is shown.
      * @param   comp   the component to be removed.
      * @see     java.awt.Container#remove(java.awt.Component)
      * @see     java.awt.Container#removeAll()
      */
     public void removeLayoutComponent(Component comp) {
       synchronized (comp.getTreeLock()) {
-        if (comp.visible) {
-          next(comp.parent);
-        }
-	for (Enumeration e = tab.keys() ; e.hasMoreElements() ; ) {
-	    String key = (String)e.nextElement();
-	    if (tab.get(key) == comp) {
-		tab.remove(key);
-		return;
-	    }
-	}
+          for (int i = 0; i < vector.size(); i++) {
+              if (((Card)vector.get(i)).comp == comp) {
+                  vector.remove(i);
+                  break;
+              }
+          }
+          
+          if (vector.isEmpty()) {
+              currentCard = 0;
+          } else {
+              currentCard %= vector.size();
+          }
       }
     }
 
@@ -195,12 +246,12 @@ public class CardLayout implements LayoutManager2,
     public Dimension preferredLayoutSize(Container parent) {
       synchronized (parent.getTreeLock()) {
 	Insets insets = parent.getInsets();
-	int ncomponents = parent.getComponentCount();
+	int ncomponents = vector.size();
 	int w = 0;
 	int h = 0;
 
 	for (int i = 0 ; i < ncomponents ; i++) {
-	    Component comp = parent.getComponent(i);
+	    Component comp = ((Card)vector.get(i)).comp;
 	    Dimension d = comp.getPreferredSize();
 	    if (d.width > w) {
 		w = d.width;
@@ -226,12 +277,12 @@ public class CardLayout implements LayoutManager2,
     public Dimension minimumLayoutSize(Container parent) {
       synchronized (parent.getTreeLock()) {
 	Insets insets = parent.getInsets();
-	int ncomponents = parent.getComponentCount();
+	int ncomponents = vector.size();
 	int w = 0;
 	int h = 0;
 
 	for (int i = 0 ; i < ncomponents ; i++) {
-	    Component comp = parent.getComponent(i);
+	    Component comp = ((Card) vector.get(i)).comp;
 	    Dimension d = comp.getMinimumSize();
 	    if (d.width > w) {
 		w = d.width;
@@ -300,15 +351,15 @@ public class CardLayout implements LayoutManager2,
     public void layoutContainer(Container parent) {
       synchronized (parent.getTreeLock()) {
 	Insets insets = parent.getInsets();
-	int ncomponents = parent.getComponentCount();
-	for (int i = 0 ; i < ncomponents ; i++) {
-	    Component comp = parent.getComponent(i);
-	    if (comp.visible) {
-		comp.setBounds(hgap + insets.left, vgap + insets.top,
-			       parent.width - (hgap*2 + insets.left + insets.right),
-			       parent.height - (vgap*2 + insets.top + insets.bottom));
-	    }
-	}
+
+        if (!vector.isEmpty()) {
+            Component comp = ((Card) vector.get(currentCard)).comp;
+            comp.setBounds(hgap + insets.left, vgap + insets.top,
+                           parent.width - (hgap*2 + insets.left + insets.right),
+                           parent.height - (vgap*2 + insets.top + insets.bottom));
+            if (!comp.isVisible())
+                comp.setVisible(true);
+        }
       }
     }
 
@@ -330,21 +381,8 @@ public class CardLayout implements LayoutManager2,
      */
     public void first(Container parent) {
 	synchronized (parent.getTreeLock()) {
-	    Component comp;
 	    checkLayout(parent);
-	    int ncomponents = parent.getComponentCount();
-	    for (int i = 1 ; i < ncomponents ; i++) {
-		comp = parent.getComponent(i);
-		if (comp.visible) {
-		    comp.hide();
-                    break;
-                }
-	    }
-            if (ncomponents > 0) {
-		comp = parent.getComponent(0);
-		comp.show();
-		parent.validate();
-            }
+            show(parent, 0);
 	}
     }
 
@@ -359,17 +397,7 @@ public class CardLayout implements LayoutManager2,
     public void next(Container parent) {
 	synchronized (parent.getTreeLock()) {
 	    checkLayout(parent);
-	    int ncomponents = parent.getComponentCount();
-	    for (int i = 0 ; i < ncomponents ; i++) {
-		Component comp = parent.getComponent(i);
-		if (comp.visible) {
-		    comp.hide();
-		    comp = parent.getComponent((i + 1 < ncomponents) ? i+1 : 0);
-		    comp.show();
-		    parent.validate();
-		    return;
-		}
-	    }
+            show(parent, (currentCard + 1) % vector.size());
 	}
     }
 
@@ -384,17 +412,8 @@ public class CardLayout implements LayoutManager2,
     public void previous(Container parent) {
 	synchronized (parent.getTreeLock()) {
 	    checkLayout(parent);
-	    int ncomponents = parent.getComponentCount();
-	    for (int i = 0 ; i < ncomponents ; i++) {
-		Component comp = parent.getComponent(i);
-		if (comp.visible) {
-		    comp.hide();
-		    comp = parent.getComponent((i > 0) ? i-1 : ncomponents-1);
-		    comp.show();
-		    parent.validate();
-		    return;
-		}
-	    }
+            int newIndex = (currentCard + vector.size() - 1) % vector.size(); 
+            show(parent, newIndex);
 	}
     }
 
@@ -406,21 +425,8 @@ public class CardLayout implements LayoutManager2,
      */
     public void last(Container parent) {
 	synchronized (parent.getTreeLock()) {
-            Component comp;
 	    checkLayout(parent);
-	    int ncomponents = parent.getComponentCount();
-	    for (int i = 0 ; i < ncomponents - 1 ; i++) {
-		comp = parent.getComponent(i);
-		if (comp.visible) {
-		    comp.hide();
-                    break;
-		}
-	    }
-            if (ncomponents > 0) {
-		comp = parent.getComponent(ncomponents - 1);
-		comp.show();
-		parent.validate();
-            }
+            show(parent, vector.size() - 1);
 	}
     }
 
@@ -436,20 +442,28 @@ public class CardLayout implements LayoutManager2,
     public void show(Container parent, String name) {
 	synchronized (parent.getTreeLock()) {
 	    checkLayout(parent);
-	    Component next = (Component)tab.get(name);
-	    if ((next != null) && !next.visible){
-		int ncomponents = parent.getComponentCount();
-		for (int i = 0 ; i < ncomponents ; i++) {
-		    Component comp = parent.getComponent(i);
-		    if (comp.visible) {
-			comp.hide();
-			break;
-		    }
-		}
-		next.show();
-		parent.validate();
-	    }
+
+            if (((Card) vector.get(currentCard)).name.equals(name))
+                return;
+
+            int ncomponents = vector.size();
+            for (int i = 0; i < ncomponents; i++) {
+                Card card = (Card)vector.get(i);
+                if (card.name.equals(name)) {
+                    show(parent, i);
+                    break;
+                }
+            }
 	}
+    }
+
+    void show(Container parent, int newIndex) {
+        if (!vector.isEmpty() && (currentCard != newIndex)) {
+            ((Card) vector.get(currentCard)).comp.setVisible(false);
+            currentCard = newIndex;
+            ((Card) vector.get(currentCard)).comp.setVisible(true);
+            parent.validate();
+        }
     }
 
     /**
@@ -458,5 +472,58 @@ public class CardLayout implements LayoutManager2,
      */
     public String toString() {
 	return getClass().getName() + "[hgap=" + hgap + ",vgap=" + vgap + "]";
+    }
+
+    /**
+     * Reads serializable fields from stream.
+     */
+    private void readObject(ObjectInputStream s)
+	throws ClassNotFoundException, IOException
+    {
+        ObjectInputStream.GetField f = s.readFields();
+
+        hgap = f.get("hgap", 0);
+        vgap = f.get("vgap", 0);
+
+        if (f.defaulted("vector")) { 
+            //  pre-1.4 stream
+            Hashtable tab = (Hashtable)f.get("tab", null);
+            vector = new Vector();
+            if (tab != null && !tab.isEmpty()) {
+                for (Enumeration e = tab.keys() ; e.hasMoreElements() ; ) {
+                    String key = (String)e.nextElement();
+                    Component comp = (Component)tab.get(key);
+                    vector.add(new Card(key, comp));
+                    if (comp.isVisible()) {
+                        currentCard = vector.size() - 1;
+                    }
+                }
+            }
+        } else {
+            vector = (Vector)f.get("vector", null);
+            currentCard = f.get("currentCard", 0);
+        }
+    }
+
+    /**
+     * Writes serializable fields to stream.
+     */
+    private void writeObject(ObjectOutputStream s)
+        throws IOException
+    {
+        Hashtable tab = new Hashtable();
+        int ncomponents = vector.size();
+        for (int i = 0; i < ncomponents; i++) {
+            Card card = (Card)vector.get(i);
+            tab.put(card.name, card.comp);
+        }
+
+        ObjectOutputStream.PutField f = s.putFields();
+        f.put("hgap", hgap);
+        f.put("vgap", vgap);
+        f.put("vector", vector);
+        f.put("currentCard", currentCard);
+        f.put("tab", tab);
+        s.writeFields();
     }
 }

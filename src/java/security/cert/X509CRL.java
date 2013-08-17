@@ -1,4 +1,6 @@
 /*
+ * @(#)X509CRL.java	1.22 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,6 +13,7 @@ import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.security.Principal;
 import java.security.PublicKey;
+import javax.security.auth.x500.X500Principal;
 
 import java.math.BigInteger;
 import java.util.Date;
@@ -79,7 +82,7 @@ import java.util.Set;
  *
  * @author Hemma Prafullchandra
  *
- * @version 1.19
+ * @version 1.22
  *
  * @see CRL
  * @see CertificateFactory
@@ -245,6 +248,29 @@ public abstract class X509CRL extends CRL implements X509Extension {
     public abstract Principal getIssuerDN();
 
     /**
+     * Returns the issuer (issuer distinguished name) value from the
+     * CRL as an <code>X500Principal</code>.
+     *
+     * @return an <code>X500Principal</code> representing the issuer
+     *		distinguished name
+     * @since 1.4
+     */
+    public X500Principal getIssuerX500Principal() {
+	if (getIssuerDN() == null) {
+	    throw new IllegalStateException("issuer may not be null");
+	}
+
+	try {
+	    return new X500Principal(getIssuerDN().getName());
+	} catch (Exception e) {
+	    RuntimeException re = new RuntimeException
+		("unable to instantiate X500Principal");
+	    re.initCause(e);
+	    throw re;
+	}
+    }
+
+    /**
      * Gets the <code>thisUpdate</code> date from the CRL.
      * The ASN.1 definition for this is:
      * <pre>
@@ -332,7 +358,7 @@ public abstract class X509CRL extends CRL implements X509Extension {
 
     /**
      * Gets the signature algorithm OID string from the CRL.
-     * An OID is represented by a set of positive whole numbers separated
+     * An OID is represented by a set of nonnegative whole numbers separated
      * by periods.
      * For example, the string "1.2.840.10040.4.3" identifies the SHA-1
      * with DSA signature algorithm, as per RFC 2459.

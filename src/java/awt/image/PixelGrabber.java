@@ -1,4 +1,6 @@
 /*
+ * @(#)PixelGrabber.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -49,7 +51,7 @@ import java.awt.Image;
  *
  * @see ColorModel#getRGBdefault
  *
- * @version 	1.20, 02/06/02
+ * @version 	1.21, 12/03/01
  * @author 	Jim Graham
  */
 public class PixelGrabber implements ImageConsumer {
@@ -109,8 +111,8 @@ public class PixelGrabber implements ImageConsumer {
      * The RGB data for pixel (i, j) where (i, j) is inside the rectangle
      * (x, y, w, h) is stored in the array at
      * <tt>pix[(j - y) * scansize + (i - x) + off]</tt>.
-     * @see ColorModel#getRGBdefault
-     * @param img the image to retrieve pixels from
+     * @param ip the <code>ImageProducer</code> that produces the 
+     * image from which to retrieve pixels
      * @param x the x coordinate of the upper left corner of the rectangle
      * of pixels to retrieve from the image, relative to the default
      * (unscaled) size of the image
@@ -123,6 +125,7 @@ public class PixelGrabber implements ImageConsumer {
      * @param off the offset into the array of where to store the first pixel
      * @param scansize the distance from one row of pixels to the next in
      * the array
+     * @see ColorModel#getRGBdefault
      */
     public PixelGrabber(ImageProducer ip, int x, int y, int w, int h,
 			int[] pix, int off, int scansize) {
@@ -256,8 +259,8 @@ public class PixelGrabber implements ImageConsumer {
     /**
      * Return the status of the pixels.  The ImageObserver flags
      * representing the available pixel information are returned.
-     * @see ImageObserver
      * @return the bitwise OR of all relevant ImageObserver flags
+     * @see ImageObserver
      */
     public synchronized int getStatus() {
 	return flags;
@@ -301,6 +304,8 @@ public class PixelGrabber implements ImageConsumer {
      * image grab is complete.
      * @return either a byte array or an int array
      * @see #getStatus
+     * @see #setPixels(int, int, int, int, ColorModel, byte[], int, int)
+     * @see #setPixels(int, int, int, int, ColorModel, int[], int, int)
      */
     public synchronized Object getPixels() {
 	return (bytePixels == null)
@@ -323,6 +328,7 @@ public class PixelGrabber implements ImageConsumer {
      * @return the ColorModel object used for storing the pixels
      * @see #getStatus
      * @see ColorModel#getRGBdefault
+     * @see #setColorModel(ColorModel)
      */
     public synchronized ColorModel getColorModel() {
 	return imageModel;
@@ -337,6 +343,8 @@ public class PixelGrabber implements ImageConsumer {
      * this class to retrieve pixels from an image should avoid calling
      * this method directly since that operation could result in problems
      * with retrieving the requested pixels.
+     * @param width the width of the dimension
+     * @param height the height of the dimension
      */
     public void setDimensions(int width, int height) {
 	if (dstW < 0) {
@@ -365,6 +373,7 @@ public class PixelGrabber implements ImageConsumer {
      * this class to retrieve pixels from an image should avoid calling
      * this method directly since that operation could result in problems
      * with retrieving the requested pixels.
+     * @param hints a set of hints used to process the pixels
      */
     public void setHints(int hints) {
 	return;
@@ -379,6 +388,7 @@ public class PixelGrabber implements ImageConsumer {
      * this class to retrieve pixels from an image should avoid calling
      * this method directly since that operation could result in problems
      * with retrieving the requested pixels.
+     * @param props the list of properties
      */
     public void setProperties(Hashtable props) {
 	return;
@@ -393,6 +403,8 @@ public class PixelGrabber implements ImageConsumer {
      * this class to retrieve pixels from an image should avoid calling
      * this method directly since that operation could result in problems
      * with retrieving the requested pixels.
+     * @param model the specified <code>ColorModel</code>
+     * @see #getColorModel
      */
     public void setColorModel(ColorModel model) {
 	return;
@@ -426,6 +438,16 @@ public class PixelGrabber implements ImageConsumer {
      * this class to retrieve pixels from an image should avoid calling
      * this method directly since that operation could result in problems
      * with retrieving the requested pixels.
+     * @param srcX,&nbsp;srcY the coordinates of the upper-left corner
+     *        of the area of pixels to be set
+     * @param srcW the width of the area of pixels
+     * @param srcH the height of the area of pixels
+     * @param model the specified <code>ColorModel</code>
+     * @param pixels the array of pixels
+     * @param srcOff the offset into the pixels array
+     * @param srcScan the distance from one row of pixels to the next
+     *        in the pixels array
+     * @see #getPixels
      */
     public void setPixels(int srcX, int srcY, int srcW, int srcH,
 			  ColorModel model,
@@ -501,6 +523,16 @@ public class PixelGrabber implements ImageConsumer {
      * this class to retrieve pixels from an image should avoid calling
      * this method directly since that operation could result in problems
      * with retrieving the requested pixels.
+     * @param srcX,&nbsp;srcY the coordinates of the upper-left corner
+     *        of the area of pixels to be set
+     * @param srcW the width of the area of pixels
+     * @param srcH the height of the area of pixels
+     * @param model the specified <code>ColorModel</code>
+     * @param pixels the array of pixels
+     * @param srcOff the offset into the pixels array
+     * @param srcScan the distance from one row of pixels to the next
+     *        in the pixels array
+     * @see #getPixels
      */
     public void setPixels(int srcX, int srcY, int srcW, int srcH,
 			  ColorModel model,
@@ -578,6 +610,7 @@ public class PixelGrabber implements ImageConsumer {
      * this class to retrieve pixels from an image should avoid calling
      * this method directly since that operation could result in problems
      * with retrieving the requested pixels.
+     * @param status the status of image loading
      */
     public synchronized void imageComplete(int status) {
 	grabbing = false;

@@ -1,4 +1,6 @@
 /*
+ * @(#)InterruptedIOException.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,12 +11,12 @@ package java.io;
  * Signals that an I/O operation has been interrupted. An
  * <code>InterruptedIOException</code> is thrown to indicate that an
  * input or output transfer has been terminated because the thread
- * performing it was terminated. The field {@link #bytesTransferred}
+ * performing it was interrupted. The field {@link #bytesTransferred}
  * indicates how many bytes were successfully transferred before
  * the interruption occurred.
  *
  * @author  unascribed
- * @version 1.16, 02/06/02
+ * @version 1.17, 12/03/01
  * @see     java.io.InputStream
  * @see     java.io.OutputStream
  * @see     java.lang.Thread#interrupt()

@@ -1,4 +1,6 @@
 /*
+ * @(#)AttributedString.java	1.31 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -34,6 +36,59 @@ public class AttributedString {
     int runStarts[];                // start index for each run
     Vector runAttributes[];         // vector of attribute keys for each run
     Vector runAttributeValues[];    // parallel vector of attribute values for each run
+
+    /**
+     * Constructs an AttributedString instance with the given
+     * AttributedCharacterIterators.
+     *
+     * @param iterators AttributedCharacterIterators to construct
+     * AttributedString from.
+     * @throws NullPointerException if iterators is null
+     */
+    AttributedString(AttributedCharacterIterator[] iterators) {
+	if (iterators == null) {
+            throw new NullPointerException("Iterators must not be null");
+	}
+        if (iterators.length == 0) {
+            text = "";
+        }
+        else {
+            // Build the String contents
+            StringBuffer buffer = new StringBuffer();
+            for (int counter = 0; counter < iterators.length; counter++) {
+                appendContents(buffer, iterators[counter]);
+            }
+
+            text = buffer.toString();
+
+            if (text.length() > 0) {
+                // Determine the runs, creating a new run when the attributes
+                // differ.
+                int offset = 0;
+                Map last = null;
+
+                for (int counter = 0; counter < iterators.length; counter++) {
+                    AttributedCharacterIterator iterator = iterators[counter];
+                    int start = iterator.getBeginIndex();
+                    int end = iterator.getEndIndex();
+                    int index = start;
+
+                    while (index < end) {
+                        iterator.setIndex(index);
+
+                        Map attrs = iterator.getAttributes();
+
+                        if (mapsDiffer(last, attrs)) {
+                            setAttributes(attrs, index - start + offset);
+                        }
+                        last = attrs;
+                        index = iterator.getRunLimit();
+                    }
+                    offset += (end - start);
+                }
+            }
+        }
+    }
 
     /**
      * Constructs an AttributedString instance with the given text.
@@ -331,7 +386,21 @@ public class AttributedString {
 
     // ensure there's a run break at offset, return the index of the run
     private final int ensureRunBreak(int offset) {
+        return ensureRunBreak(offset, true);
+    }
 
+    /**
+     * Ensures there is a run break at offset, returning the index of
+     * the run. If this results in splitting a run, two things can happen:
+     * <ul>
+     * <li>If copyAttrs is true, the attributes from the existing run
+     *     will be placed in both of the newly created runs.
+     * <li>If copyAttrs is false, the attributes from the existing run
+     * will NOT be copied to the run to the right (>= offset) of the break,
+     * but will exist on the run to the left (< offset).
+     * </ul>
+     */
+    private final int ensureRunBreak(int offset, boolean copyAttrs) {
         if (offset == length()) {
             return runCount;
         }
@@ -369,13 +438,16 @@ public class AttributedString {
         // use temporary variables so things remain consistent in case of an exception
         Vector newRunAttributes = null;
         Vector newRunAttributeValues = null;
-        Vector oldRunAttributes = runAttributes[runIndex - 1];
-        Vector oldRunAttributeValues = runAttributeValues[runIndex - 1];
-        if (oldRunAttributes != null) {
-            newRunAttributes = (Vector) oldRunAttributes.clone();
-        }
-        if (oldRunAttributeValues != null) {
-            newRunAttributeValues = (Vector) oldRunAttributeValues.clone();
+
+        if (copyAttrs) {
+            Vector oldRunAttributes = runAttributes[runIndex - 1];
+            Vector oldRunAttributeValues = runAttributeValues[runIndex - 1];
+            if (oldRunAttributes != null) {
+                newRunAttributes = (Vector) oldRunAttributes.clone();
+            }
+            if (oldRunAttributeValues != null) {
+                newRunAttributeValues = (Vector) oldRunAttributeValues.clone();
+            }
         }
         
         // now actually break up the run
@@ -471,10 +543,12 @@ public class AttributedString {
         return new AttributedStringIterator(attributes, beginIndex, endIndex);
     }
 
-    // all reading operations are private, since AttributedString instances are
-    // accessed through iterators.
+    // all (with the exception of length) reading operations are private,
+    // since AttributedString instances are accessed through iterators.
 
-    private int length() {
+    // length is package private so that CharacterIteratorFieldDelegate can
+    // access it without creating an AttributedCharacterIterator.
+    int length() {
         return text.length();
     }
     
@@ -555,6 +629,61 @@ public class AttributedString {
             return value1.equals(value2);
         }
     }
+
+    /**
+     * Appends the contents of the CharacterIterator iterator into the
+     * StringBuffer buf.
+     */
+    private final void appendContents(StringBuffer buf,
+                                      CharacterIterator iterator) {
+        int index = iterator.getBeginIndex();
+        int end = iterator.getEndIndex();
+
+        while (index < end) {
+            iterator.setIndex(index++);
+            buf.append(iterator.current());
+        }
+    }
+
+    /**
+     * Sets the attributes for the range from offset to the the next run break 
+     * (typically the end of the text) to the ones specified in attrs.
+     * This is only meant to be called from the constructor!
+     */
+    private void setAttributes(Map attrs, int offset) {
+        if (runCount == 0) {
+            createRunAttributeDataVectors();
+        }
+
+        int index = ensureRunBreak(offset, false);
+        int size;
+
+        if (attrs != null && (size = attrs.size()) > 0) {
+            Vector runAttrs = new Vector(size);
+            Vector runValues = new Vector(size);
+            Iterator iterator = attrs.entrySet().iterator();
+
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry)iterator.next();
+
+                runAttrs.add(entry.getKey());
+                runValues.add(entry.getValue());
+            }
+            runAttributes[index] = runAttrs;
+            runAttributeValues[index] = runValues;	    
+        }
+    }
+
+    /**
+     * Returns true if the attributes specified in last and attrs differ.
+     */
+    private static boolean mapsDiffer(Map last, Map attrs) {
+        if (last == null) {
+            return (attrs != null && attrs.size() > 0);
+        }
+        return (!last.equals(attrs));
+    }
+
 
     // the iterator class associated with this string class
 

@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicDirectoryModel.java	1.26 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,12 +8,13 @@
 package javax.swing.plaf.basic;
 
 import java.io.File;
-import java.util.Vector;
+import java.util.*;
 import javax.swing.*;
 import javax.swing.filechooser.*;
 import javax.swing.event.*;
 import java.beans.*;
 
+import sun.awt.shell.ShellFolder;
 
 /**
  * Basic implementation of a file list.
@@ -22,7 +25,8 @@ import java.beans.*;
 public class BasicDirectoryModel extends AbstractListModel implements PropertyChangeListener {
 
     private JFileChooser filechooser = null;
-    private Vector fileCache = null;
+    // PENDING(jeff) pick the size more sensibly
+    private Vector fileCache = new Vector(50);
     private LoadFilesThread loadThread = null;
     private Vector files = null;
     private Vector directories = null;
@@ -40,207 +44,138 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	   prop == JFileChooser.FILE_FILTER_CHANGED_PROPERTY ||
 	   prop == JFileChooser.FILE_HIDING_CHANGED_PROPERTY ||
 	   prop == JFileChooser.FILE_SELECTION_MODE_CHANGED_PROPERTY) {
-	    invalidateFileCache();
 	    validateFileCache();
 	}
     }
 
+    /**
+     * Obsolete - not used.
+     */
     public void invalidateFileCache() {
-	files = null;
-	directories = null;
-	fileCache = null;
     }
 
     public Vector getDirectories() {
-	if(directories != null) {
+	synchronized(fileCache) {
+	    if (directories != null) {
+		return directories;
+	    }
+	    Vector fls = getFiles();
 	    return directories;
 	}
-	Vector fls = getFiles();
-	return directories;
     }
 
     public Vector getFiles() {
-	if(files != null) {
-	    return files;
-	}
-	files = new Vector();
-	directories = new Vector();
-	directories.addElement(filechooser.getFileSystemView().createFileObject(
-	    filechooser.getCurrentDirectory(), "..")
-	);
+	synchronized(fileCache) {
+	    if (files != null) {
+		return files;
+	    }
+	    files = new Vector();
+	    directories = new Vector();
+	    directories.addElement(filechooser.getFileSystemView().createFileObject(
+		filechooser.getCurrentDirectory(), "..")
+	    );
 
-	if(fileCache != null) {
-	    for(int i = 0; i < getSize(); i++) {
-		File f = (File) fileCache.elementAt(i);
-		if(filechooser.isTraversable(f)) {
-		    directories.addElement(f);
+	    for (int i = 0; i < getSize(); i++) {
+		File f = (File)fileCache.get(i);
+		if (filechooser.isTraversable(f)) {
+		    directories.add(f);
 		} else {
-		    files.addElement(f);
+		    files.add(f);
 		}
 	    }
+	    return files;
 	}
-	return files;
     }
 
     public void validateFileCache() {
 	File currentDirectory = filechooser.getCurrentDirectory();
-
-	if(currentDirectory == null) {
-	    invalidateFileCache();
+	if (currentDirectory == null) {
 	    return;
 	}
-
-	if(loadThread != null) {
-	    // interrupt
+	if (loadThread != null) {
 	    loadThread.interrupt();
 	}
-	
 	fetchID++;
-	
-	// PENDING(jeff) pick the size more sensibly
-	invalidateFileCache();
-	fileCache = new Vector(50);
-
 	loadThread = new LoadFilesThread(currentDirectory, fetchID);
 	loadThread.start();
     }
 
-    // PENDING(jeff) - this is inefficient - should sent out
-    // incremental adjustment values instead of saying that the
-    // whole list has changed.
-    public void fireContentsChanged() {
-	// System.out.println("BasicDirectoryModel: firecontentschanged");
-	files = null;
-	directories = null;
-	fireContentsChanged(this, 0, getSize()-1);
-    }
-
-    public int getSize() {
-	if(fileCache != null) {
-	    return fileCache.size();
-	} else {
-	    return 0;
-	}
-    }
-
-    public boolean contains(Object o) {
-	if(fileCache != null) {
-	    return fileCache.contains(o);
-	} else {
+    /**
+     * Renames a file in the underlying file system.
+     *
+     * @param oldFile a <code>File</code> object representing
+     *        the existing file
+     * @param newFile a <code>File</code> object representing
+     *        the desired new file name
+     * @return <code>true</code> if rename succeeded,
+     *        otherwise <code>false</code>
+     * @since 1.4
+     */
+    public boolean renameFile(File oldFile, File newFile) {
+	synchronized(fileCache) {
+	    if (oldFile.renameTo(newFile)) {
+		validateFileCache();
+		return true;
+	    }
 	    return false;
 	}
     }
 
+
+    public void fireContentsChanged() {
+	// System.out.println("BasicDirectoryModel: firecontentschanged");
+	fireContentsChanged(this, 0, getSize()-1);
+    }
+
+    public int getSize() {
+	return fileCache.size();
+    }
+
+    public boolean contains(Object o) {
+	return fileCache.contains(o);
+    }
+
     public int indexOf(Object o) {
-	if(fileCache != null) {
-	    return fileCache.indexOf(o);
-	} else {
-	    return 0;
-	}
+	return fileCache.indexOf(o);
     }
 
     public Object getElementAt(int index) {
-	if(fileCache != null) {
-	    return fileCache.elementAt(index);
-	} else {
-	    return null;
-	}
+	return fileCache.get(index);
     }
 
-    // PENDING(jeff) - implement
+    /**
+     * Obsolete - not used.
+     */
     public void intervalAdded(ListDataEvent e) {
     }
 
-    // PENDING(jeff) - implement
+    /**
+     * Obsolete - not used.
+     */
     public void intervalRemoved(ListDataEvent e) {
     }
 
     protected void sort(Vector v){
-	quickSort(v, 0, v.size()-1);
+	ShellFolder.sortFiles(v);
     }
 
-
-    // Liberated from the 1.1 SortDemo
-    //
-    // This is a generic version of C.A.R Hoare's Quick Sort
-    // algorithm.  This will handle arrays that are already
-    // sorted, and arrays with duplicate keys.<BR>
-    //
-    // If you think of a one dimensional array as going from
-    // the lowest index on the left to the highest index on the right
-    // then the parameters to this function are lowest index or
-    // left and highest index or right.  The first time you call
-    // this function it will be with the parameters 0, a.length - 1.
-    //
-    // @param a       an integer array
-    // @param lo0     left boundary of array partition
-    // @param hi0     right boundary of array partition
-    private void quickSort(Vector v, int lo0, int hi0) {
-	int lo = lo0;
-	int hi = hi0;
-	File mid;
-
-	if (hi0 > lo0) {
-	    // Arbitrarily establishing partition element as the midpoint of
-	    // the array.
-	    mid = (File) v.elementAt((lo0 + hi0) / 2);
-
-	    // loop through the array until indices cross
-	    while(lo <= hi) {
-		// find the first element that is greater than or equal to
-		// the partition element starting from the left Index.
-		//
-		// Nasty to have to cast here. Would it be quicker
-		// to copy the vectors into arrays and sort the arrays?
-		while((lo < hi0) && lt((File)v.elementAt(lo), mid)) {
-		    ++lo;
-		}
-
-		// find an element that is smaller than or equal to
-		// the partition element starting from the right Index.
-		while((hi > lo0) && lt(mid, (File)v.elementAt(hi))) {
-		    --hi;
-		}
-
-		// if the indexes have not crossed, swap
-		if(lo <= hi) {
-		    swap(v, lo, hi);
-		    ++lo;
-		    --hi;
-		}
-	    }
-
-
-	    // If the right index has not reached the left side of array
-	    // must now sort the left partition.
-	    if(lo0 < hi) {
-		quickSort(v, lo0, hi);
-	    }
-
-	    // If the left index has not reached the right side of array
-	    // must now sort the right partition.
-	    if(lo < hi0) {
-		quickSort(v, lo, hi0);
-	    }
-
-	}
-    }
-
-    private void swap(Vector a, int i, int j) {
-	Object T = a.elementAt(i);
-	a.setElementAt(a.elementAt(j), i);
-	a.setElementAt(T, j);
-    }
-
+    // Obsolete - not used
     protected boolean lt(File a, File b) {
-	// ignore case when comparing
-	return a.getName().toLowerCase().compareTo(b.getName().toLowerCase()) < 0;
+	// First ignore case when comparing
+	int diff = a.getName().toLowerCase().compareTo(b.getName().toLowerCase());
+	if (diff != 0) {
+	    return diff < 0;
+	} else {
+	    // May differ in case (e.g. "mail" vs. "Mail")
+	    return a.getName().compareTo(b.getName()) < 0;
+	}
     }
 
 
     class LoadFilesThread extends Thread {
 	File currentDirectory = null;
 	int fid;
+	Vector runnables = new Vector(10);
 	
 	public LoadFilesThread(File currentDirectory, int fid) {
 	    super("Basic L&F File Loading Thread");
@@ -248,8 +183,12 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	    this.fid = fid;
 	}
 	
+	private void invokeLater(Runnable runnable) {
+	    runnables.addElement(runnable);
+	    SwingUtilities.invokeLater(runnable);
+	}
+
 	public void run() {
-	    Vector runnables = new Vector(10);
 	    FileSystemView fileSystem = filechooser.getFileSystemView();
 
 	    File[] list = fileSystem.getFiles(currentDirectory, filechooser.isFileHidingEnabled());
@@ -266,22 +205,16 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	    // First sort alphabetically by filename
 	    sort(acceptsList);
 
-	    Vector directories = new Vector(10);
-	    Vector files = new Vector();
+	    Vector newDirectories = new Vector(50);
+	    Vector newFiles = new Vector();
 	    // run through list grabbing directories in chunks of ten
 	    for(int i = 0; i < acceptsList.size(); i++) {
 		File f = (File) acceptsList.elementAt(i);
 		boolean isTraversable = filechooser.isTraversable(f);
-		if(isTraversable) {
-		    directories.addElement(f);
-		} else if(!isTraversable && filechooser.isFileSelectionEnabled()) {
-		    files.addElement(f);
-		}
-		if((directories.size() == 10) || (i == acceptsList.size()-1)) {
-		    DoChangeContents runnable = new DoChangeContents(directories, fid);
-		    runnables.addElement(runnable);
-		    SwingUtilities.invokeLater(runnable);
-		    directories = new Vector(10);
+		if (isTraversable) {
+		    newDirectories.addElement(f);
+		} else if (!isTraversable && filechooser.isFileSelectionEnabled()) {
+		    newFiles.addElement(f);
 		}
 		if(isInterrupted()) {
 		    // interrupted, cancel all runnables
@@ -289,17 +222,62 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 		    return;
 		}
 	    }
-	    // PENDING(jeff) - run through the files in blocks instead of
-	    // sending them along as one big chunk
-	    DoChangeContents runnable = new DoChangeContents(files, fid);
-	    runnables.addElement(runnable);
-	    SwingUtilities.invokeLater(runnable);
 	    if(isInterrupted()) {
 		// interrupted, blow out
 		cancelRunnables(runnables);
 		return;
 	    }
+
+	    Vector newFileCache = new Vector(newDirectories);
+	    newFileCache.addAll(newFiles);
+
+	    int newSize = newFileCache.size();
+	    int oldSize = fileCache.size();
+
+	    if (newSize > oldSize) {
+		//see if interval is added
+		int start = oldSize;
+		int end = newSize;
+		for (int i = 0; i < oldSize; i++) {
+		    if (!newFileCache.get(i).equals(fileCache.get(i))) {
+			start = i;
+			for (int j = i; j < newSize; j++) {
+			    if (newFileCache.get(j).equals(fileCache.get(i))) {
+				end = j;
+				break;
+			    }
+			}
+			break;
+		    }
+		}
+		if (start >= 0 && end > start
+		    && newFileCache.subList(end, newSize).equals(fileCache.subList(start, oldSize))) {
+		    invokeLater(new DoChangeContents(newFileCache.subList(start, end), start, null, 0, fid));
+		    return;
+		}
+	    } else if (newSize < oldSize) {
+		//see if interval is removed
+		int start = -1;
+		int end = -1;
+		for (int i = 0; i < newSize; i++) {
+		    if (!newFileCache.get(i).equals(fileCache.get(i))) {
+			start = i;
+			end = i + oldSize - newSize;
+			break;
+		    }
+		}
+		if (start >= 0 && end > start
+		    && fileCache.subList(end, oldSize).equals(newFileCache.subList(start, newSize))) {
+		    invokeLater(new DoChangeContents(null, 0, new Vector(fileCache.subList(start, end)),
+						     start, fid));
+		    return;
+		}
+	    }
+	    if (!fileCache.equals(newFileCache)) {
+		invokeLater(new DoChangeContents(newFileCache, 0, fileCache, 0, fid));
+	    }
 	}
+
 
 	public void cancelRunnables(Vector runnables) {
 	    for(int i = 0; i < runnables.size(); i++) {
@@ -309,32 +287,45 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
     }
 
     class DoChangeContents implements Runnable {
-	private Vector files;
+	private List addFiles;
+	private List remFiles;
 	private boolean doFire = true;
-	private Object lock = new Object();
 	private int fid;
+	private int addStart = 0;
+	private int remStart = 0;
+	private int change;
 	
-	public DoChangeContents(Vector files, int fid) {
-	    this.files = files;
+	public DoChangeContents(List addFiles, int addStart, List remFiles, int remStart, int fid) {
+	    this.addFiles = addFiles;
+	    this.addStart = addStart;
+	    this.remFiles = remFiles;
+	    this.remStart = remStart;
 	    this.fid = fid;
 	}
 
 	synchronized void cancel() {
-	    synchronized(lock) {
 		doFire = false;
-	    }
 	}
 	
-	public void run() {
-	    if(fetchID == fid) {
-		synchronized(lock) {
-		    if(doFire) {
-			if(fileCache != null) {
-			    for(int i = 0; i < files.size(); i++) {
-				fileCache.addElement(files.elementAt(i));
-			    }
-			}
+	public synchronized void run() {
+	    if (fetchID == fid && doFire) {
+		int remSize = (remFiles == null) ? 0 : remFiles.size();
+		int addSize = (addFiles == null) ? 0 : addFiles.size();
+		synchronized(fileCache) {
+		    if (remSize > 0) {
+			fileCache.removeAll(remFiles);
 		    }
+		    if (addSize > 0) {
+			fileCache.addAll(addStart, addFiles);
+		    }
+		    files = null;
+		    directories = null;
+		}
+		if (remSize > 0 && addSize == 0) {
+		    fireIntervalRemoved(BasicDirectoryModel.this, remStart, remStart + remSize - 1);
+		} else if (addSize > 0 && remSize == 0 && fileCache.size() > addSize) {
+		    fireIntervalAdded(BasicDirectoryModel.this, addStart, addStart + addSize - 1);
+		} else {
 		    fireContentsChanged();
 		}
 	    }

@@ -1,4 +1,6 @@
 /*
+ * @(#)GrayFilter.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,7 +18,7 @@ import java.awt.image.*;
  * @author      Jeff Dinkins
  * @author      Tom Ball
  * @author      Jim Graham
- * @version     1.13 02/06/02
+ * @version     1.13 12/03/01
  */
 public class GrayFilter extends RGBImageFilter {
     private boolean brighter;

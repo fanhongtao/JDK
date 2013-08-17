@@ -1,4 +1,6 @@
 /*
+ * @(#)InvocationEvent.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -22,7 +24,7 @@ import java.awt.AWTEvent;
  *
  * @author	Fred Ecks
  * @author	David Mendenhall
- * @version	1.10, 02/06/02
+ * @version	1.13, 12/03/01
  *
  * @see		java.awt.ActiveEvent
  * @see		java.awt.EventQueue#invokeLater
@@ -74,62 +76,89 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
     private Exception exception = null;
 
     /**
-     * Constructs an InvocationEvent with the specified source which will
-     * execute the runnable's <code>run()</code> method when dispatched.
+     * The timestamp of when this event occurred.
      *
-     * @param source	the Object that originated the event
-     * @param runnable	the Runnable whose run() method will be executed
+     * @serial
+     * @see #getWhen
+     */
+    private long when;
+
+    /*
+     * JDK 1.1 serialVersionUID.
+     */
+    private static final long serialVersionUID = 436056344909459450L;
+
+    /**
+     * Constructs an <code>InvocationEvent</code> with the specified
+     * source which will execute the runnable's <code>run</code>
+     * method when dispatched.
+     *
+     * @param source	the <code>Object</code> that originated the event
+     * @param runnable	the <code>Runnable</code> whose <code>run</code>
+     *                  method will be executed
      */
     public InvocationEvent(Object source, Runnable runnable) {
         this(source, runnable, null, false);
     }
 
     /**
-     * Constructs an InvocationEvent with the specified source which will
-     * execute the runnable's <code>run()</code> method when dispatched.  If
-     * notifier is non-null, <code>notifyAll()</code> will be called on it
-     * immediately after <code>run()</code> returns.
+     * Constructs an <code>InvocationEvent</code> with the specified
+     * source which will execute the runnable's <code>run</code>
+     * method when dispatched.  If notifier is non-<code>null</code>,
+     * <code>notifyAll()</code> will be called on it
+     * immediately after <code>run</code> returns.
      *
-     * @param source		the Object that originated the event
-     * @param runnable		the Runnable whose run() method will be
+     * @param source		the <code>Object</code> that originated
+     *                          the event
+     * @param runnable		the <code>Runnable</code> whose
+     *                          <code>run</code> method will be
      *                          executed
-     * @param notifier		the Object whose notifyAll() method will be
-     *                          called after Runnable.run() has returned
-     * @param catchExceptions	specifies whether dispatch() should catch
-     *                          Exception when executing the Runnable's run()
+     * @param notifier		the Object whose <code>notifyAll</code>
+     *                          method will be called after
+     *                          <code>Runnable.run</code> has returned
+     * @param catchExceptions	specifies whether <code>dispatch</code>
+     *                          should catch Exception when executing
+     *                          the <code>Runnable</code>'s <code>run</code>
      *                          method, or should instead propagate those
      *                          Exceptions to the EventDispatchThread's
      *                          dispatch loop
      */
     public InvocationEvent(Object source, Runnable runnable, Object notifier,
-                       boolean catchExceptions) {
+                           boolean catchExceptions) {
 	this(source, INVOCATION_DEFAULT, runnable, notifier, catchExceptions);
     }
 
     /**
-     * Constructs an InvocationEvent with the specified source and ID which
-     * will execute the runnable's <code>run()</code> method when dispatched.
-     * If notifier is non-null, <code>notifyAll()</code> will be called on it 
-     * immediately after <code>run()</code> returns.
+     * Constructs an <code>InvocationEvent</code> with the specified
+     * source and ID which will execute the runnable's <code>run</code>
+     * method when dispatched.  If notifier is non-<code>null</code>,
+     * <code>notifyAll</code> will be called on it 
+     * immediately after <code>run</code> returns.
+     * <p>Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior.
      *
-     * @param source		the Object that originated the event
-     * @param id		the ID for the Event
-     * @param runnable		the Runnable whose run() method will be
-     *                          executed
-     * @param notifier		the Object whose notifyAll() method will be
-     *                          called after Runnable.run() has returned
-     * @param catchExceptions	specifies whether dispatch() should catch
-     *                          Exception when executing the Runnable's run()
+     * @param source		the <code>Object</code> that originated
+     *                          the event
+     * @param id		the ID for the event
+     * @param runnable		the <code>Runnable</code> whose
+     *                          <code>run</code> method will be executed
+     * @param notifier		the <code>Object whose <code>notifyAll</code>
+     *                          method will be called after
+     *                          <code>Runnable.run</code> has returned
+     * @param catchExceptions	specifies whether <code>dispatch</code>
+     *                          should catch Exception when executing the
+     *                          <code>Runnable</code>'s <code>run</code>
      *                          method, or should instead propagate those
      *                          Exceptions to the EventDispatchThread's
      *                          dispatch loop
      */
     protected InvocationEvent(Object source, int id, Runnable runnable, 
-	     	          Object notifier, boolean catchExceptions) {
+                              Object notifier, boolean catchExceptions) {
         super(source, id);
 	this.runnable = runnable;
 	this.notifier = notifier;
 	this.catchExceptions = catchExceptions;
+        this.when = System.currentTimeMillis();
     }
 
     /**
@@ -169,6 +198,16 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
     }
 
     /**
+     * Returns the timestamp of when this event occurred.
+     *
+     * @return this event's timestamp
+     * @since 1.4
+     */
+    public long getWhen() {
+        return when;
+    }
+
+    /**
      * Returns a parameter string identifying this event.
      * This method is useful for event-logging and for debugging.
      *
@@ -184,6 +223,6 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
 	        typeStr = "unknown type";
 	}
 	return typeStr + ",runnable=" + runnable + ",notifier=" + notifier +
-	    ",catchExceptions=" + catchExceptions;
+	    ",catchExceptions=" + catchExceptions + ",when=" + when;
     }
 }

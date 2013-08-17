@@ -1,4 +1,6 @@
 /*
+ * @(#)Array.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -41,6 +43,7 @@ class Array {
      * @return the new array
      * @exception NullPointerException if the specified
      * <code>componentType</code> parameter is null
+     * @exception IllegalArgumentException if componentType is Void.TYPE
      * @exception NegativeArraySizeException if the specified <code>length</code> 
      * is negative
      */
@@ -77,7 +80,8 @@ class Array {
      * @exception IllegalArgumentException if the specified <code>dimensions</code> 
      * argument is a zero-dimensional array, or if the number of
      * requested dimensions exceeds the limit on the number of array dimensions 
-     * supported by the implementation (typically 255).
+     * supported by the implementation (typically 255), or if componentType 
+     * is Void.TYPE.
      * @exception NegativeArraySizeException if any of the components in
      * the specified <code>dimensions</code> argument is negative.
      */
@@ -295,7 +299,7 @@ class Array {
      * object to the specified <code>boolean</code> value.
      * @param array the array
      * @param index the index into the array
-     * @param value the new value of the indexed component
+     * @param z the new value of the indexed component
      * @exception NullPointerException If the specified object argument
      * is null
      * @exception IllegalArgumentException If the specified object argument
@@ -312,10 +316,10 @@ class Array {
 
     /**
      * Sets the value of the indexed component of the specified array
-     * object to the specified <code>boolean</code> value.
+     * object to the specified <code>byte</code> value.
      * @param array the array
      * @param index the index into the array
-     * @param value the new value of the indexed component
+     * @param b the new value of the indexed component
      * @exception NullPointerException If the specified object argument
      * is null
      * @exception IllegalArgumentException If the specified object argument
@@ -332,10 +336,10 @@ class Array {
 
     /**
      * Sets the value of the indexed component of the specified array
-     * object to the specified <code>byte</code> value.
+     * object to the specified <code>char</code> value.
      * @param array the array
      * @param index the index into the array
-     * @param value the new value of the indexed component
+     * @param c the new value of the indexed component
      * @exception NullPointerException If the specified object argument
      * is null
      * @exception IllegalArgumentException If the specified object argument
@@ -355,7 +359,7 @@ class Array {
      * object to the specified <code>short</code> value.
      * @param array the array
      * @param index the index into the array
-     * @param value the new value of the indexed component
+     * @param s the new value of the indexed component
      * @exception NullPointerException If the specified object argument
      * is null
      * @exception IllegalArgumentException If the specified object argument
@@ -375,7 +379,7 @@ class Array {
      * object to the specified <code>int</code> value.
      * @param array the array
      * @param index the index into the array
-     * @param value the new value of the indexed component
+     * @param i the new value of the indexed component
      * @exception NullPointerException If the specified object argument
      * is null
      * @exception IllegalArgumentException If the specified object argument
@@ -395,7 +399,7 @@ class Array {
      * object to the specified <code>long</code> value.
      * @param array the array
      * @param index the index into the array
-     * @param value the new value of the indexed component
+     * @param l the new value of the indexed component
      * @exception NullPointerException If the specified object argument
      * is null
      * @exception IllegalArgumentException If the specified object argument
@@ -415,7 +419,7 @@ class Array {
      * object to the specified <code>float</code> value.
      * @param array the array
      * @param index the index into the array
-     * @param value the new value of the indexed component
+     * @param f the new value of the indexed component
      * @exception NullPointerException If the specified object argument
      * is null
      * @exception IllegalArgumentException If the specified object argument
@@ -435,7 +439,7 @@ class Array {
      * object to the specified <code>double</code> value.
      * @param array the array
      * @param index the index into the array
-     * @param value the new value of the indexed component
+     * @param d the new value of the indexed component
      * @exception NullPointerException If the specified object argument
      * is null
      * @exception IllegalArgumentException If the specified object argument

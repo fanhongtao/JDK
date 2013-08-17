@@ -1,4 +1,6 @@
 /*
+ * @(#)InstantiationException.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -12,7 +14,7 @@ package java.lang;
  * instantiated because it is an interface or is an abstract class. 
  *
  * @author  unascribed
- * @version 1.15, 02/06/02
+ * @version 1.15, 12/03/01
  * @see     java.lang.Class#newInstance()
  * @since   JDK1.0
  */

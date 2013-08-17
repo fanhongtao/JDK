@@ -1,4 +1,6 @@
 /*
+ * @(#)CodeSource.java	1.31 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,7 +22,7 @@ import java.security.cert.*;
  * that were used to verify signed code originating from that
  * location.
  *
- * @version 	1.29, 02/06/02
+ * @version 	1.31, 12/03/01
  * @author Li Gong
  * @author Roland Schemers
  */
@@ -221,6 +223,9 @@ public class CodeSource implements java.io.Serializable {
      *     http://java.sun.com/classes/-
      *     http://java.sun.com/classes/foo.jar
      * </pre>
+     * 
+     * Note that if this CodeSource has a null location and a null
+     * certificate chain, then it implies every other CodeSource.
      *
      * @param codesource CodeSource to compare against.
      *

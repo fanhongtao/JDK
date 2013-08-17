@@ -1,4 +1,6 @@
 /*
+ * @(#)RTFParser.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -40,7 +42,7 @@ abstract class RTFParser extends AbstractFilter
 
   // value for the 'state' variable
   private final int S_text = 0;          // reading random text
-  private final int S_backslashed = 1;   // read a backslash, wating for next
+  private final int S_backslashed = 1;   // read a backslash, waiting for next
   private final int S_token = 2;         // reading a multicharacter token
   private final int S_parameter = 3;     // reading a token's parameter
 
@@ -49,7 +51,7 @@ abstract class RTFParser extends AbstractFilter
 
   private final int S_inblob = 6;        // in a \bin blob
 
-  /** Implemented by subclasses to interpret a paramater-less RTF keyword.
+  /** Implemented by subclasses to interpret a parameter-less RTF keyword.
    *  The keyword is passed without the leading '/' or any delimiting 
    *  whitespace. */
   public abstract boolean handleKeyword(String keyword);

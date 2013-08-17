@@ -1,4 +1,6 @@
 /*
+ * @(#)URLConnection.java	1.88 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,6 +13,8 @@ import java.io.OutputStream;
 import java.util.Hashtable;
 import java.util.Date;
 import java.util.StringTokenizer;
+import java.util.Collections;
+import java.util.Map;
 import java.security.Permission;
 import java.security.AccessController;
 
@@ -95,7 +99,7 @@ import java.security.AccessController;
  * general request properties can be ignored: the pre-connection 
  * parameters and request properties default to sensible values. For 
  * most clients of this interface, there are only two interesting 
- * methods: <code>getInputStream</code> and <code>getObject</code>, 
+ * methods: <code>getInputStream</code> and <code>getContent</code>, 
  * which are mirrored in the <code>URL</code> class by convenience methods.
  * <p>
  * More information on the request properties and header fields of 
@@ -113,8 +117,13 @@ import java.security.AccessController;
  * "http://java.sun.com/products/jdk/1.2/compatibility.html#incompatibilities1.2">
  * Compatibility</a> page.
  *
+ * Calling the <tt>close()</tt> methods on the <tt>InputStream</tt> or <tt>OutputStream</tt> of an 
+ * <tt>URLConnection</tt> after a request may free network resources associated with this 
+ * instance, unless particular protocol specifications specify different behaviours 
+ * for it.
+ *
  * @author  James Gosling
- * @version 1.75, 02/06/02
+ * @version 1.88, 12/03/01
  * @see     java.net.URL#openConnection()
  * @see     java.net.URLConnection#connect()
  * @see     java.net.URLConnection#getContent()
@@ -171,7 +180,7 @@ public abstract class URLConnection {
 
    /**
      * This variable is set by the <code>setDoOutput</code> method. Its 
-     * value is returned by the <code>getDoInput</code> method. 
+     * value is returned by the <code>getDoOutput</code> method. 
      * <p>
      * A URL connection can be used for input and/or output. Setting the 
      * <code>doOutput</code> flag to <code>true</code> indicates 
@@ -420,7 +429,11 @@ public abstract class URLConnection {
     }
 
     /**
-     * Returns the name of the specified header field.
+     * Returns the value of the named header field.
+     * <p>
+     * If called on a connection that sets the same header multiple times
+     * with possibly different values, only the last value is returned.
+     * 
      *
      * @param   name   the name of a header field.
      * @return  the value of the named header field, or <code>null</code>
@@ -428,6 +441,20 @@ public abstract class URLConnection {
      */
     public String getHeaderField(String name) {
 	return null;
+    }
+
+    /**
+     * Returns an unmodifiable Map of the header fields.
+     * The Map keys are Strings that represent the
+     * response-header field names. Each Map value is an
+     * unmodifiable List of Strings that represents 
+     * the corresponding field values.
+     *
+     * @return a Map of header fields
+     * @since 1.4
+     */
+    public Map getHeaderFields() {
+        return Collections.EMPTY_MAP;
     }
 
     /**
@@ -445,9 +472,10 @@ public abstract class URLConnection {
      *          missing or malformed.
      */
     public int getHeaderFieldInt(String name, int Default) {
+	String value = getHeaderField(name);
 	try {
-	    return Integer.parseInt(getHeaderField(name));
-	} catch(Throwable t) {}
+	    return Integer.parseInt(value);
+	} catch (Exception e) { }
 	return Default;
     }
 
@@ -468,9 +496,10 @@ public abstract class URLConnection {
      *          missing or malformed.
      */
     public long getHeaderFieldDate(String name, long Default) {
+	String value = getHeaderField(name);
 	try {
-	    return Date.parse(getHeaderField(name));
-	} catch(Throwable t) {}
+	    return Date.parse(value);
+	} catch (Exception e) { }
 	return Default;
     }
 
@@ -665,16 +694,16 @@ public abstract class URLConnection {
      * <p>
      * A URL connection can be used for input and/or output.  Set the DoInput
      * flag to true if you intend to use the URL connection for input,
-     * false if not.  The default is true unless DoOutput is explicitly
-     * set to true, in which case DoInput defaults to false.
+     * false if not.  The default is true.
      *
      * @param   doinput   the new value.
+     * @throws IllegalStateException if already connected
      * @see     java.net.URLConnection#doInput
      * @see #getDoInput()
      */
     public void setDoInput(boolean doinput) {
 	if (connected)
-	    throw new IllegalAccessError("Already connected");
+	    throw new IllegalStateException("Already connected");
 	doInput = doinput;
     }
 
@@ -699,11 +728,12 @@ public abstract class URLConnection {
      * false if not.  The default is false.
      *
      * @param   dooutput   the new value.
+     * @throws IllegalStateException if already connected
      * @see #getDoOutput()
      */
     public void setDoOutput(boolean dooutput) {
 	if (connected)
-	    throw new IllegalAccessError("Already connected");
+	    throw new IllegalStateException("Already connected");
 	doOutput = dooutput;
     }
 
@@ -724,11 +754,12 @@ public abstract class URLConnection {
      * this <code>URLConnection</code>. 
      *
      * @param   allowuserinteraction   the new value.
+     * @throws IllegalStateException if already connected
      * @see     #getAllowUserInteraction()
      */
     public void setAllowUserInteraction(boolean allowuserinteraction) {
 	if (connected)
-	    throw new IllegalAccessError("Already connected");
+	    throw new IllegalStateException("Already connected");
 	allowUserInteraction = allowuserinteraction;
     }
 
@@ -786,11 +817,12 @@ public abstract class URLConnection {
      *
      * @param usecaches a <code>boolean</code> indicating whether 
      * or not to allow caching
+     * @throws IllegalStateException if already connected
      * @see #getUseCaches()
      */
     public void setUseCaches(boolean usecaches) {
 	if (connected)
-	    throw new IllegalAccessError("Already connected");
+	    throw new IllegalStateException("Already connected");
 	useCaches = usecaches;
     }
 
@@ -811,11 +843,12 @@ public abstract class URLConnection {
      * this <code>URLConnection</code> to the specified value.
      *
      * @param   ifmodifiedsince   the new value.
+     * @throws IllegalStateException if already connected
      * @see     #getIfModifiedSince()
      */
     public void setIfModifiedSince(long ifmodifiedsince) {
 	if (connected)
-	    throw new IllegalAccessError("Already connected");
+	    throw new IllegalStateException("Already connected");
 	ifModifiedSince = ifmodifiedsince;
     }
 
@@ -868,12 +901,37 @@ public abstract class URLConnection {
      * @param   key     the keyword by which the request is known
      *                  (e.g., "<code>accept</code>").
      * @param   value   the value associated with it.
+     * @throws IllegalStateException if already connected
+     * @throws NullPointerException if key is <CODE>null</CODE>
      * @see #getRequestProperty(java.lang.String)
      */
     public void setRequestProperty(String key, String value) {
 	if (connected)
-	    throw new IllegalAccessError("Already connected");
+	    throw new IllegalStateException("Already connected");
+	if (key == null) 
+	    throw new NullPointerException ("key is null");
     }
+
+    /**
+     * Adds a general request property specified by a
+     * key-value pair.  This method will not overwrite
+     * existing values associated with the same key.
+     *
+     * @param   key     the keyword by which the request is known
+     *                  (e.g., "<code>accept</code>").
+     * @param   value  the value associated with it.
+     * @throws IllegalStateException if already connected
+     * @throws NullPointerException if key is null
+     * @see #getRequestProperties(java.lang.String)
+     * @since 1.4
+     */
+    public void addRequestProperty(String key, String value) {
+	if (connected)
+	    throw new IllegalStateException("Already connected");
+	if (key == null) 
+	    throw new NullPointerException ("key is null");
+    }
+
 
     /**
      * Returns the value of the named general request property for this
@@ -881,13 +939,32 @@ public abstract class URLConnection {
      *
      * @param key the keyword by which the request is known (e.g., "accept").
      * @return  the value of the named general request property for this
-     *           connection.
+     *           connection. If key is null, then null is returned.
+     * @throws IllegalStateException if already connected
      * @see #setRequestProperty(java.lang.String, java.lang.String)
      */
     public String getRequestProperty(String key) {
 	if (connected)
-	    throw new IllegalAccessError("Already connected");
+	    throw new IllegalStateException("Already connected");
 	return null;
+    }
+
+    /**
+     * Returns an unmodifiable Map of general request
+     * properties for this connection. The Map keys
+     * are Strings that represent the request-header
+     * field names. Each Map value is a unmodifiable List 
+     * of Strings that represents the corresponding 
+     * field values.
+     *
+     * @return  a Map of the general request properties for this connection.
+     * @throws IllegalStateException if already connected
+     * @since 1.4
+     */
+    public Map getRequestProperties() {
+        if (connected)
+            throw new IllegalStateException("Already connected");
+	return Collections.EMPTY_MAP;
     }
 
     /**
@@ -1008,6 +1085,8 @@ public abstract class URLConnection {
      */
     private String stripOffParameters(String contentType)
     {
+	if (contentType == null)
+	    return null;
 	int index = contentType.indexOf(';');
 
 	if (index > 0)
@@ -1120,12 +1199,8 @@ public abstract class URLConnection {
      *          based upon its file name.
      * @see     java.net.URLConnection#getContentType()
      */
-    protected static String guessContentTypeFromName(String fname) {
-	String contentType = null;
-	
-	contentType = getFileNameMap().getContentTypeFor(fname);
-        
-	return contentType;
+    public static String guessContentTypeFromName(String fname) {
+	return getFileNameMap().getContentTypeFor(fname);
     }
 
     /**
@@ -1151,6 +1226,10 @@ public abstract class URLConnection {
      */
     static public String guessContentTypeFromStream(InputStream is) throws IOException
     {
+	// If we can't read ahead safely, just give up on guessing
+	if (!is.markSupported())
+	    return null;
+
 	is.mark(10);
 	int c1 = is.read();
 	int c2 = is.read();
@@ -1310,6 +1389,10 @@ public abstract class URLConnection {
 
 	toSkip = (long)0x200 + 
 		(long)((int)1<<uSectorShift)*sectDirStart + (long)0x50;
+
+	// Sanity check!
+	if (toSkip < 0)
+	    return false;
 
 	// How far can we skip? Is there any performance problem here?
 	// This skip can be fairly long, at least 0x4c650 in at least

@@ -1,4 +1,6 @@
 /*
+ * @(#)MetalScrollPaneUI.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,12 +23,14 @@ import java.awt.event.*;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @1.13 02/06/02
+ * @1.15 12/03/01
  * @author Steve Wilson
  */
 public class MetalScrollPaneUI extends BasicScrollPaneUI
@@ -45,8 +49,7 @@ public class MetalScrollPaneUI extends BasicScrollPaneUI
 	JScrollPane sp = (JScrollPane)c;
 	JScrollBar hsb = sp.getHorizontalScrollBar();
 	JScrollBar vsb = sp.getVerticalScrollBar();
-	hsb.putClientProperty( MetalScrollBarUI.FREE_STANDING_PROP, Boolean.FALSE);
-	vsb.putClientProperty( MetalScrollBarUI.FREE_STANDING_PROP, Boolean.FALSE);
+        updateScrollbarsFreeStanding();
     }
 
     public void uninstallUI(JComponent c) {
@@ -73,6 +76,31 @@ public class MetalScrollPaneUI extends BasicScrollPaneUI
 	scrollPane.removePropertyChangeListener(scrollBarSwapListener);
     }
 
+    /**
+     * If the border of the scrollpane is an instance of
+     * <code>MetalBorders.ScrollPaneBorder</code>, the client property
+     * <code>FREE_STANDING_PROP</code> of the scrollbars 
+     * is set to false, otherwise it is set to true.
+     */
+    private void updateScrollbarsFreeStanding() {
+        if (scrollpane == null) {
+            return;
+        }
+        Border border = scrollpane.getBorder();
+        Object value;
+
+        if (border instanceof MetalBorders.ScrollPaneBorder) {
+            value = Boolean.FALSE;
+        }
+        else {
+            value = Boolean.TRUE;
+        }
+	scrollpane.getHorizontalScrollBar().putClientProperty
+                   (MetalScrollBarUI.FREE_STANDING_PROP, value);
+	scrollpane.getVerticalScrollBar().putClientProperty
+                   (MetalScrollBarUI.FREE_STANDING_PROP, value);
+    }
+
     protected PropertyChangeListener createScrollBarSwapListener() {
         return new PropertyChangeListener() {
 	    public void propertyChange(PropertyChangeEvent e) {
@@ -84,6 +112,9 @@ public class MetalScrollPaneUI extends BasicScrollPaneUI
 		        ((JScrollBar)e.getNewValue()).putClientProperty( MetalScrollBarUI.FREE_STANDING_PROP, 
 									 Boolean.FALSE);
 		  }	  
+                  else if ("border".equals(propertyName)) {
+                      updateScrollbarsFreeStanding();
+                  }
 	}};
     }
 

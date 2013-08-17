@@ -1,4 +1,6 @@
 /*
+ * @(#)CheckedInputStream.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,7 +16,7 @@ import java.io.IOException;
  * The checksum can then be used to verify the integrity of the input data.
  *
  * @see		Checksum
- * @version 	1.17, 02/06/02
+ * @version 	1.17, 12/03/01
  * @author 	David Connelly
  */
 public

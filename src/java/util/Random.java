@@ -1,4 +1,6 @@
 /*
+ * @(#)Random.java	1.36 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -29,7 +31,7 @@ package java.util;
  * class <code>Math</code> simpler to use.
  *
  * @author  Frank Yellin
- * @version 1.35, 02/06/02
+ * @version 1.36, 12/03/01
  * @see     java.lang.Math#random()
  * @since   JDK1.0
  */
@@ -56,6 +58,8 @@ class Random implements java.io.Serializable {
      * a value based on the current time:
      * <blockquote><pre>
      * public Random() { this(System.currentTimeMillis()); }</pre></blockquote>
+     * Two Random objects created within the same millisecond will have
+     * the same sequence of random numbers.
      *
      * @see     java.lang.System#currentTimeMillis()
      */

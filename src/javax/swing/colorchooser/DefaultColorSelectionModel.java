@@ -1,4 +1,6 @@
 /*
+ * @(#)DefaultColorSelectionModel.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,9 +13,9 @@ import java.awt.Color;
 import java.io.Serializable;
 
 /**
- * A generic implementation of ColorSelectionModel.
+ * A generic implementation of <code>ColorSelectionModel</code>.
  *
- * @version 1.11 02/06/02
+ * @version 1.13 12/03/01
  * @author Steve Wilson
  *
  * @see java.awt.Color
@@ -21,9 +23,9 @@ import java.io.Serializable;
 public class DefaultColorSelectionModel implements ColorSelectionModel, Serializable {
 
     /**
-     * Only one ChangeEvent is needed per model instance since the
-     * event's only (read-only) state is the source property.  The source
-     * of events generated here is always "this".
+     * Only one <code>ChangeEvent</code> is needed per model instance
+     * since the event's only (read-only) state is the source property.
+     * The source of events generated here is always "this".
      */
     protected transient ChangeEvent changeEvent = null;
 
@@ -32,23 +34,48 @@ public class DefaultColorSelectionModel implements ColorSelectionModel, Serializ
     private Color selectedColor;
 
     /**
-      * Default constructor.  Initializes selectedColor to Color.white
-      */
+     * Creates a <code>DefaultColorSelectionModel</code> with the
+     * current color set to <code>Color.white</code>.  This is
+     * the default constructor.
+     */
     public DefaultColorSelectionModel() {
         selectedColor = Color.white;
     }
 
     /**
-      *Initializes selectedColor to <I>color</I>
-      */
+     * Creates a <code>DefaultColorSelectionModel</code> with the
+     * current color set to <code>color</code>, which should be
+     * non-<code>null</code>.  Note that setting the color to
+     * <code>null</code> is undefined and may have unpredictable
+     * results.
+     *
+     * @param color the new <code>Color</code>
+     */
     public DefaultColorSelectionModel(Color color) {
         selectedColor = color;
     }
 
+    /**
+     * Returns the selected <code>Color</code> which should be
+     * non-<code>null</code>.
+     *
+     * @return the selected <code>Color</code>
+     */
     public Color getSelectedColor() {
         return selectedColor;
     }
 
+    /**
+     * Sets the selected color to <code>color</code>.
+     * Note that setting the color to <code>null</code> 
+     * is undefined and may have unpredictable results.
+     * This method fires a state changed event if it sets the
+     * current color to a new non-<code>null</code> color;
+     * if the new color is the same as the current color,
+     * no event is fired.
+     *
+     * @param color the new <code>Color</code>
+     */
     public void setSelectedColor(Color color) {
         if (color != null && !selectedColor.equals(color)) {
             selectedColor = color;
@@ -58,21 +85,39 @@ public class DefaultColorSelectionModel implements ColorSelectionModel, Serializ
 
 
     /**
-     * Adds a ChangeListener to the model.
+     * Adds a <code>ChangeListener</code> to the model.
+     *
+     * @param l the <code>ChangeListener</code> to be added
      */
     public void addChangeListener(ChangeListener l) {
 	listenerList.add(ChangeListener.class, l);
     }
 
     /**
-     * Removes a ChangeListener from the model.
+     * Removes a <code>ChangeListener</code> from the model.
+     * @param l the <code>ChangeListener</code> to be removed
      */
     public void removeChangeListener(ChangeListener l) {
 	listenerList.remove(ChangeListener.class, l);
     }
 
     /**
-     * Run each ChangeListeners stateChanged() method.
+     * Returns an array of all the <code>ChangeListener</code>s added
+     * to this <code>DefaultColorSelectionModel</code> with
+     * <code>addChangeListener</code>.
+     *
+     * @return all of the <code>ChangeListener</code>s added, or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public ChangeListener[] getChangeListeners() {
+        return (ChangeListener[])listenerList.getListeners(
+                ChangeListener.class);
+    }
+
+    /**
+     * Runs each <code>ChangeListener</code>'s
+     * <code>stateChanged</code> method.
      *
      * <!-- @see #setRangeProperties    //bad link-->
      * @see EventListenerList

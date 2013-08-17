@@ -1,4 +1,6 @@
 /*
+ * @(#)TableColumn.java	1.54 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -36,12 +38,14 @@ import java.beans.PropertyChangeListener;
  *  <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.50 02/06/02
+ * @version 1.54 12/03/01
  * @author Alan Chung
  * @author Philip Milne
  * @see javax.swing.table.TableColumnModel
@@ -99,7 +103,7 @@ public class TableColumn extends Object implements Serializable {
      *  the <code>JTable</code>; identifiers may be set in the
      *  <code>TableColumn</code> as as an
      *  optional way to tag and locate table columns. The table package does
-     *  not modify or invoke any methods in these identifer objects other
+     *  not modify or invoke any methods in these identifier objects other
      *  than the <code>equals</code> method which is used in the
      *  <code>getColumnIndex()</code> method in the
      *  <code>DefaultTableColumnModel</code>.
@@ -621,21 +625,27 @@ public class TableColumn extends Object implements Serializable {
     /**
      * Resizes the <code>TableColumn</code> to fit the width of its header cell.
      * This method does nothing if the header renderer is <code>null</code>
-     * (the default case).
+     * (the default case). Otherwise, it sets the minimum, maximum and preferred 
+     * widths of this column to the widths of the minimum, maximum and preferred 
+     * sizes of the Component delivered by the header renderer. 
+     * The transient "width" property of this TableColumn is also set to the 
+     * preferred width. Note this method is not used internally by the table 
+     * package. 
      *
      * @see	#setPreferredWidth
      */
     public void sizeWidthToFit() {
-	// Get the preferred width of the header 
 	if (headerRenderer == null) { 
 	    return; 
 	}
-        Component comp = headerRenderer.getTableCellRendererComponent(null,
-				getHeaderValue(), false, false, 0, 0);
-	int headerWidth = comp.getPreferredSize().width;
+        Component c = headerRenderer.getTableCellRendererComponent(null,
+				getHeaderValue(), false, false, 0, 0); 
 
-	// Set the width
-	this.setWidth(headerWidth);
+	setMinWidth(c.getMinimumSize().width); 
+	setMaxWidth(c.getMaximumSize().width); 		
+	setPreferredWidth(c.getPreferredSize().width); 
+
+        setWidth(getPreferredWidth());
     }
 
     /**
@@ -699,6 +709,21 @@ public class TableColumn extends Object implements Serializable {
         if (changeSupport != null) {
 	    changeSupport.removePropertyChangeListener(listener);
 	}
+    }
+
+    /**
+     * Returns an array of all the <code>PropertyChangeListener</code>s added
+     * to this TableColumn with addPropertyChangeListener().
+     *
+     * @return all of the <code>PropertyChangeListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public synchronized PropertyChangeListener[] getPropertyChangeListeners() {
+        if (changeSupport == null) {
+            return new PropertyChangeListener[0];
+        }
+        return changeSupport.getPropertyChangeListeners();
     }
 
 //

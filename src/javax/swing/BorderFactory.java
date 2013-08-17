@@ -1,4 +1,6 @@
 /*
+ * @(#)BorderFactory.java	1.25 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,7 +20,7 @@ import javax.swing.border.*;
  to Use Borders</a>,
  * a section in <em>The Java Tutorial</em>.
  *
- * @version 1.24 02/06/02
+ * @version 1.25 12/03/01
  * @author David Kloba
  */
 public class BorderFactory 
@@ -248,11 +250,12 @@ public class BorderFactory
      * Creates a new title border with an empty title specifying the
      * border object, using the default text position (sitting on the top
      * line) and default justification (leading) and using the default
-     * font, text color, and border determined by the current look and feel.
-     * (The Motif and Windows look and feels use an etched border;
-     * The Java look and feel uses a gray border.)
+     * font, and text color.
      *
-     * @param border  the <code>Border</code> object to add the title to
+     * @param border     the <code>Border</code> object to add the title to, if
+     *                   null the <code>Border</code> is determined by the
+     *                   current look and feel.
+     * @param title      a <code>String</code> containing the text of the title
      * @return the <code>TitledBorder</code> object
      */
     public static TitledBorder createTitledBorder(Border border)       {

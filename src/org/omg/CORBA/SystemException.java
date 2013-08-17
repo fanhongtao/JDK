@@ -1,4 +1,6 @@
 /*
+ * @(#)SystemException.java	1.55 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,6 +10,8 @@ package org.omg.CORBA;
 import org.omg.CORBA.portable.InputStream;
 import org.omg.CORBA.portable.OutputStream;
 import java.util.*;
+import org.omg.CORBA.OMGVMCID;
+import com.sun.corba.se.internal.util.SUNVMCID;
 
 /**
  * The root class for all CORBA standard exceptions. These exceptions
@@ -29,6 +33,18 @@ import java.util.*;
 public abstract class SystemException extends java.lang.RuntimeException {
 
     /**
+     * The CORBA Exception minor code.
+     * @serial
+     */
+    public int minor;
+
+    /**
+     * The status of the operation that threw this exception.
+     * @serial
+     */
+    public CompletionStatus completed;
+
+    /**
      * Constructs a <code>SystemException</code> exception with the specified detail
      * message, minor code, and completion status.
      * A detail message is a String that describes this particular exception.
@@ -46,36 +62,40 @@ public abstract class SystemException extends java.lang.RuntimeException {
      * Converts this exception to a representative string.
      */
     public String toString() {
-	String completedString;
+        // The fully qualified exception class name
+	String result = super.toString();
 
-	String superString = super.toString();
-	String minorString = "  minor code: " + minor;
+        // The vmcid part
+        int vmcid = minor & 0xFFFFF000;
+        switch (vmcid) {
+            case OMGVMCID.value:
+                result += "  vmcid: OMG";
+                break;
+            case SUNVMCID.value:
+                result += "  vmcid: SUN";
+                break;
+            default:
+                result += "  vmcid: 0x" + Integer.toHexString(vmcid);
+                break;
+        }
 
+        // The minor code part
+        int mc = minor & 0x00000FFF;
+        result += "  minor code: " + mc;
+
+        // The completion status part
 	switch (completed.value()) {
-	case CompletionStatus._COMPLETED_YES:
-	    completedString = "  completed: Yes";
-	    break;
-	case CompletionStatus._COMPLETED_NO:
-	    completedString = "  completed: No";
-	    break;
-	case CompletionStatus._COMPLETED_MAYBE:
-	default:
-	    completedString = " completed: Maybe";
-	    break;
+            case CompletionStatus._COMPLETED_YES:
+                result += "  completed: Yes";
+                break;
+            case CompletionStatus._COMPLETED_NO:
+                result += "  completed: No";
+                break;
+            case CompletionStatus._COMPLETED_MAYBE:
+            default:
+                result += " completed: Maybe";
+                break;
 	}
-	return superString + minorString + completedString;
+        return result;
     }
-
-
-    /**
-     * The CORBA Exception minor code.
-     * @serial
-     */
-    public int minor;
-
-    /**
-     * The status of the operation that threw this exception.
-     * @serial
-     */
-    public CompletionStatus completed;
 }

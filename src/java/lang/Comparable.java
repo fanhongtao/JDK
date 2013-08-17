@@ -1,4 +1,6 @@
 /*
+ * @(#)Comparable.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,10 +18,13 @@ package java.lang;
  * Objects that implement this interface can be used as keys in a sorted map
  * or elements in a sorted set, without the need to specify a comparator.<p>
  *
- * A class's natural ordering is said to be <i>consistent with equals</i> if
- * and only if <tt>(e1.compareTo((Object)e2)==0)</tt> has the same boolean
- * value as <tt>e1.equals((Object)e2)</tt> for every <tt>e1</tt> and
- * <tt>e2</tt> of class <tt>C</tt>.<p>
+ * The natural ordering for a class <tt>C</tt> is said to be <i>consistent
+ * with equals</i> if and only if <tt>(e1.compareTo((Object)e2) == 0)</tt> has
+ * the same boolean value as <tt>e1.equals((Object)e2)</tt> for every
+ * <tt>e1</tt> and <tt>e2</tt> of class <tt>C</tt>.  Note that <tt>null</tt>
+ * is not an instance of any class, and <tt>e.compareTo(null)</tt> should
+ * throw a <tt>NullPointerException</tt> even though <tt>e.equals(null)</tt>
+ * returns <tt>false</tt>.<p>
  *
  * It is strongly recommended (though not required) that natural orderings be
  * consistent with equals.  This is so because sorted sets (and sorted maps)
@@ -27,10 +32,10 @@ package java.lang;
  * elements (or keys) whose natural ordering is inconsistent with equals.  In
  * particular, such a sorted set (or sorted map) violates the general contract
  * for set (or map), which is defined in terms of the <tt>equals</tt>
- * operation.<p>
+ * method.<p>
  *
  * For example, if one adds two keys <tt>a</tt> and <tt>b</tt> such that
- * <tt>(a.equals((Object)b) && a.compareTo((Object)b) != 0)</tt> to a sorted
+ * <tt>(!a.equals((Object)b) && a.compareTo((Object)b) == 0)</tt> to a sorted
  * set that does not use an explicit comparator, the second <tt>add</tt>
  * operation returns false (and the size of the sorted set does not increase)
  * because <tt>a</tt> and <tt>b</tt> are equivalent from the sorted set's
@@ -39,8 +44,8 @@ package java.lang;
  * Virtually all Java core classes that implement comparable have natural
  * orderings that are consistent with equals.  One exception is
  * <tt>java.math.BigDecimal</tt>, whose natural ordering equates
- * <tt>BigDecimals</tt> with equal values and different precisions (such as
- * 4.0 and 4.00).<p>
+ * <tt>BigDecimal</tt> objects with equal values and different precisions 
+ * (such as 4.0 and 4.00).<p>
  *
  * For the mathematically inclined, the <i>relation</i> that defines
  * the natural ordering on a given class C is:<pre>
@@ -59,7 +64,7 @@ package java.lang;
  * </pre>
  *
  * @author  Josh Bloch
- * @version 1.14, 02/06/02
+ * @version 1.18, 12/03/01
  * @see java.util.Comparator
  * @see java.util.Collections#sort(java.util.List)
  * @see java.util.Arrays#sort(Object[])
@@ -75,6 +80,12 @@ public interface Comparable {
      * Compares this object with the specified object for order.  Returns a
      * negative integer, zero, or a positive integer as this object is less
      * than, equal to, or greater than the specified object.<p>
+     *
+     * In the foregoing description, the notation
+     * <tt>sgn(</tt><i>expression</i><tt>)</tt> designates the mathematical
+     * <i>signum</i> function, which is defined to return one of <tt>-1</tt>,
+     * <tt>0</tt>, or <tt>1</tt> according to whether the value of <i>expression</i>
+     * is negative, zero or positive.
      *
      * The implementor must ensure <tt>sgn(x.compareTo(y)) ==
      * -sgn(y.compareTo(x))</tt> for all <tt>x</tt> and <tt>y</tt>.  (This

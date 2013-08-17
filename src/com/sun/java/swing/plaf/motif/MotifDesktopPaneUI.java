@@ -1,4 +1,6 @@
 /*
+ * @(#)MotifDesktopPaneUI.java	1.22 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,6 +13,8 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Component;
+import java.awt.Point;
 import javax.swing.plaf.*;
 import java.io.Serializable;
 
@@ -23,7 +27,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.20 02/06/02
+ * @version 1.22 12/03/01
  * @author David Kloba
  */
 public class MotifDesktopPaneUI extends javax.swing.plaf.basic.BasicDesktopPaneUI
@@ -41,6 +45,7 @@ public class MotifDesktopPaneUI extends javax.swing.plaf.basic.BasicDesktopPaneU
 	if(desktop.getDesktopManager() == null) {
 	    desktopManager = new MotifDesktopManager();
 	    desktop.setDesktopManager(desktopManager);
+            ((MotifDesktopManager)desktopManager).adjustIcons(desktop);
 	}
     }
 
@@ -61,8 +66,9 @@ public class MotifDesktopPaneUI extends javax.swing.plaf.basic.BasicDesktopPaneU
 ////////////////////////////////////////////////////////////////////////////////////
     private class MotifDesktopManager extends DefaultDesktopManager implements Serializable {
         JComponent dragPane;
-        boolean usingDragPane;
+        boolean usingDragPane = false;
         private transient JLayeredPane layeredPaneForDragPane;
+        int iconWidth, iconHeight;
 
     // PENDING(klobad) this should be optimized
     public void setBoundsForFrame(JComponent f, int newX, int newY, 
@@ -106,8 +112,13 @@ public class MotifDesktopPaneUI extends javax.swing.plaf.basic.BasicDesktopPaneU
 	if(usingDragPane) {
 	    layeredPaneForDragPane.remove(dragPane);
 	    usingDragPane = false;
-            setBoundsForFrame(f, dragPane.getX(), dragPane.getY(), 
-				dragPane.getWidth(), dragPane.getHeight());
+            if (f instanceof JInternalFrame) {
+                setBoundsForFrame(f, dragPane.getX(), dragPane.getY(), 
+                        dragPane.getWidth(), dragPane.getHeight());
+            } else if (f instanceof JInternalFrame.JDesktopIcon) {
+                adjustBoundsForIcon((JInternalFrame.JDesktopIcon)f,
+                        dragPane.getX(), dragPane.getY());
+            }
 	}
     }
 
@@ -140,7 +151,99 @@ public class MotifDesktopPaneUI extends javax.swing.plaf.basic.BasicDesktopPaneU
 	}
     }
 
+        public void iconifyFrame(JInternalFrame f) {
+            JInternalFrame.JDesktopIcon icon = f.getDesktopIcon();
+            Point p = icon.getLocation();
+            adjustBoundsForIcon(icon, p.x, p.y);
+            super.iconifyFrame(f);
+        }
+
+        /**
+         * Change positions of icons in the desktop pane so that
+         * they do not overlap
+         */
+        protected void adjustIcons(JDesktopPane desktop) {
+            // We need to know Motif icon size
+            JInternalFrame.JDesktopIcon icon = new JInternalFrame.JDesktopIcon(
+                    new JInternalFrame());
+            Dimension iconSize = icon.getPreferredSize();
+            iconWidth = iconSize.width;
+            iconHeight = iconSize.height;
+
+            JInternalFrame[] frames = desktop.getAllFrames();
+            for (int i=0; i<frames.length; i++) {
+                icon = frames[i].getDesktopIcon();
+                Point ip = icon.getLocation();
+                adjustBoundsForIcon(icon, ip.x, ip.y);
+            }
+        }
+
+        /**
+         * Change positions of icon so that it doesn't overlap
+         * other icons.
+         */
+        protected void adjustBoundsForIcon(JInternalFrame.JDesktopIcon icon,
+                int x, int y) {
+            JDesktopPane c = icon.getDesktopPane();
+
+            int maxy = c.getHeight();
+            int w = iconWidth;
+            int h = iconHeight;
+            c.repaint(x, y, w, h);
+            x = x < 0 ? 0 : x;
+            y = y < 0 ? 0 : y;
+
+            /* Fix for disappearing icons. If the y value is maxy then this
+             * algorithm would place the icon in a non-displayed cell.  Never
+             * to be ssen again.*/
+            y = y >= maxy ? (maxy - 1) : y;
+
+            /* Compute the offset for the cell we are trying to go in. */
+            int lx = (x / w) * w;
+            int ygap = maxy % h;
+            int ly = ((y-ygap) / h) * h + ygap;
+
+            /* How far are we into the cell we dropped the icon in. */
+            int dx = x - lx;
+            int dy = y - ly;
+
+            /* Set coordinates for the icon. */
+            x = dx < w/2 ? lx: lx + w;
+            y = dy < h/2 ? ly: ((ly + h) < maxy ? ly + h: ly);
+
+            while (getIconAt(c, icon, x, y) != null) {
+                x += w;
+            }
+
+            /* Cancel the move if the x value was moved off screen. */
+            if (x > c.getWidth()) {
+                return;
+            }
+            if (icon.getParent() != null) {
+                setBoundsForFrame(icon, x, y, w, h);
+            } else {
+                icon.setLocation(x, y);
+            }
+        }
+
+        protected JInternalFrame.JDesktopIcon getIconAt(JDesktopPane desktop,
+            JInternalFrame.JDesktopIcon icon, int x, int y) {
+
+            JInternalFrame.JDesktopIcon currentIcon = null;
+            Component[] components = desktop.getComponents();
+
+            for (int i=0; i<components.length; i++) {
+                Component comp = components[i];
+                if (comp instanceof JInternalFrame.JDesktopIcon &&
+                    comp != icon) {
+
+                    Point p = comp.getLocation();
+                    if (p.x == x && p.y == y) {
+                        return (JInternalFrame.JDesktopIcon)comp;
+                    }
+                }
+            }
+            return null;
+        }
     }; /// END of MotifDesktopManager
-
 }
-

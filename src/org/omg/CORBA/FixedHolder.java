@@ -1,4 +1,6 @@
 /*
+ * @(#)FixedHolder.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -11,6 +13,9 @@ import org.omg.CORBA.portable.OutputStream;
 
 
 /**
+ * The Holder for <tt>Fixed</tt>.  For more information on 
+ * Holder files, see <a href="doc-files/generatedfiles.html#holder">
+ * "Generated Files: Holder Files"</a>.<P>
  * FixedHolder is a container class for values of IDL type "fixed",
  * which is mapped to the Java class java.math.BigDecimal.
  * It is usually used to store "out" and "inout" IDL method parameters.

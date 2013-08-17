@@ -1,4 +1,6 @@
 /*
+ * @(#)PasswordView.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -15,7 +17,7 @@ import javax.swing.JPasswordField;
  * component to a JPasswordField).
  *
  * @author  Timothy Prinzing
- * @version 1.14 02/06/02
+ * @version 1.17 12/03/01
  * @see     View
  */
 public class PasswordView extends FieldView {
@@ -39,7 +41,7 @@ public class PasswordView extends FieldView {
      * @param y the starting Y coordinate >= 0
      * @param p0 the starting offset in the model >= 0
      * @param p1 the ending offset in the model >= p0
-     * @returns the X location of the end of the range >= 0
+     * @return the X location of the end of the range >= 0
      * @exception BadLocationException if p0 or p1 are out of range
      */
     protected int drawUnselectedText(Graphics g, int x, int y,
@@ -51,7 +53,12 @@ public class PasswordView extends FieldView {
 	    if (! f.echoCharIsSet()) {
 		return super.drawUnselectedText(g, x, y, p0, p1);
 	    }
-	    g.setColor(f.getForeground());
+            if (f.isEnabled()) {
+                g.setColor(f.getForeground());
+            }
+            else {
+                g.setColor(f.getDisabledTextColor());
+            }
 	    char echoChar = f.getEchoChar();
 	    int n = p1 - p0;
 	    for (int i = 0; i < n; i++) {
@@ -73,7 +80,7 @@ public class PasswordView extends FieldView {
      * @param y the starting Y coordinate >= 0
      * @param p0 the starting offset in the model >= 0
      * @param p1 the ending offset in the model >= p0
-     * @returns the X location of the end of the range >= 0.
+     * @return the X location of the end of the range >= 0
      * @exception BadLocationException if p0 or p1 are out of range
      */
     protected int drawSelectedText(Graphics g, int x,
@@ -176,6 +183,33 @@ public class PasswordView extends FieldView {
 	    }
 	}
 	return getStartOffset() + n;
+    }
+
+    /**
+     * Determines the preferred span for this view along an
+     * axis.
+     *
+     * @param axis may be either View.X_AXIS or View.Y_AXIS
+     * @return   the span the view would like to be rendered into >= 0.
+     *           Typically the view is told to render into the span
+     *           that is returned, although there is no guarantee.  
+     *           The parent may choose to resize or break the view.
+     */
+    public float getPreferredSpan(int axis) {
+	switch (axis) {
+	case View.X_AXIS:
+            Container c = getContainer();
+            if (c instanceof JPasswordField) {
+                JPasswordField f = (JPasswordField) c;
+                if (f.echoCharIsSet()) {
+                    char echoChar = f.getEchoChar();
+                    FontMetrics m = f.getFontMetrics(f.getFont());
+                    Document doc = getDocument();
+                    return m.charWidth(echoChar) * getDocument().getLength();
+                }
+            }
+        }
+        return super.getPreferredSpan(axis);
     }
 
     static char[] ONE = new char[1];

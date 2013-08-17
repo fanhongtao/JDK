@@ -1,4 +1,6 @@
 /*
+ * @(#)SwingConstants.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,7 +11,7 @@ package javax.swing;
  * A collection of constants generally used for positioning and orienting
  * components on the screen.
  *
- * @version 1.12 02/06/02
+ * @version 1.14 12/03/01
  * @author Jeff Dinkins
  * @author Ralph Kar (orientation support)
  */
@@ -103,4 +105,17 @@ public interface SwingConstants {
          * and right-to-left languages. Used by buttons and labels.
          */
         public static final int TRAILING = 11;
+        /**
+	 * Identifies the next direction in a sequence.
+         *
+         * @since 1.4
+	 */
+        public static final int NEXT = 12;
+
+        /**
+	 * Identifies the previous direction in a sequence.
+         *
+         * @since 1.4
+	 */
+        public static final int PREVIOUS = 13;
 }

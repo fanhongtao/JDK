@@ -1,4 +1,6 @@
 /*
+ * @(#)GeneralPath.java	1.57 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -30,7 +32,7 @@ import sun.awt.geom.Crossings;
  * the number of times that the path crosses the ray from
  * left to right does not equal the  number of times that the path crosses
  * the ray from right to left.  
- * @version 1.55, 02/06/02
+ * @version 1.57, 12/03/01
  * @author Jim Graham
  */
 public final class GeneralPath implements Shape, Cloneable {
@@ -344,6 +346,7 @@ public final class GeneralPath implements Shape, Cloneable {
      * @return an integer representing the current winding rule.
      * @see #WIND_EVEN_ODD  
      * @see #WIND_NON_ZERO
+     * @see #setWindingRule
      */
     public synchronized int getWindingRule() {
         return windingRule;
@@ -359,6 +362,7 @@ public final class GeneralPath implements Shape, Cloneable {
      *		<code>WIND_NON_ZERO</code>
      * @see #WIND_EVEN_ODD  
      * @see #WIND_NON_ZERO
+     * @see #getWindingRule
      */
     public void setWindingRule(int rule) {
 	if (rule != WIND_EVEN_ODD && rule != WIND_NON_ZERO) {
@@ -614,5 +618,20 @@ public final class GeneralPath implements Shape, Cloneable {
 	    // this shouldn't happen, since we are Cloneable
 	    throw new InternalError();
 	}
+    }
+
+    GeneralPath(int windingRule, 
+		byte[] pointTypes,
+		int numTypes,
+		float[] pointCoords,
+		int numCoords) {
+
+    // used to construct from native
+
+	this.windingRule = windingRule;
+	this.pointTypes = pointTypes;
+	this.numTypes = numTypes;
+	this.pointCoords = pointCoords;
+	this.numCoords = numCoords;
     }
 }

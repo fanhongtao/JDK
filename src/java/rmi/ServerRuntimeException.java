@@ -1,4 +1,6 @@
 /*
+ * @(#)ServerRuntimeException.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,13 +8,20 @@
 package java.rmi;
 
 /**
- * A <code>ServerRuntimeException</code> is thrown as a result of a remote
- * method call if the execution of the remote method on the server machine
- * throws a <code>java.lang.RuntimeException</code>.
- * A <code>ServerRuntimeException</code> is not thrown from servers executing
- * in the Java 2 SDK v1.2 or later versions.
+ * From a server executing on JDK&nbsp;1.1, a
+ * <code>ServerRuntimeException</code> is thrown as a result of a
+ * remote method invocation when a <code>RuntimeException</code> is
+ * thrown while processing the invocation on the server, either while
+ * unmarshalling the arguments, executing the remote method itself, or
+ * marshalling the return value.
+ *
+ * A <code>ServerRuntimeException</code> instance contains the original
+ * <code>RuntimeException</code> that occurred as its cause.
+ *
+ * <p>A <code>ServerRuntimeException</code> is not thrown from servers
+ * executing on the Java 2 platform v1.2 or later versions.
  * 
- * @version 1.13, 02/06/02
+ * @version 1.15, 12/03/01
  * @author  Ann Wollrath
  * @since   JDK1.1
  * @deprecated no replacement

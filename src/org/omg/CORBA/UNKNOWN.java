@@ -1,4 +1,6 @@
 /*
+ * @(#)UNKNOWN.java	1.29 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,15 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>UNKNOWN</code> exception, which is thrown when there is
- * an error whose cause is unknown to the ORB.
+ * This exception is raised if an operation implementation 
+ * throws a non-CORBA exception (such as an exception 
+ * specific to the implementation's programming language), 
+ * or if an operation raises a user exception that does not 
+ * appear in the operation's raises expression. UNKNOWN is 
+ * also raised if the server returns a system exception that 
+ * is unknown to the client. (This can happen if the server 
+ * uses a later version of CORBA than the client and new system 
+ * exceptions have been added to the later version.)<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

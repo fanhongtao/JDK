@@ -1,4 +1,6 @@
 /*
+ * @(#)CSS.java	1.39 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,6 +8,7 @@ package javax.swing.text.html;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
 import java.io.*;
 import java.lang.reflect.Method;
@@ -87,7 +90,7 @@ import javax.swing.text.*;
  *
  * @author  Timothy Prinzing
  * @author  Scott Violet
- * @version 1.31 02/06/02
+ * @version 1.39 12/03/01
  * @see StyleSheet
  */
 public class CSS implements Serializable {
@@ -386,7 +389,7 @@ public class CSS implements Serializable {
     }
 
     public CSS() {
-	baseFontSize = 3;
+	baseFontSize = 4;
 	// setup the css conversion table
 	valueConvertor = new Hashtable();
 	valueConvertor.put(CSS.Attribute.FONT_SIZE, new FontSize());
@@ -900,30 +903,13 @@ public class CSS implements Serializable {
 	    synchronized(fontMappingLock) {
 		if (fontMapping == null) {
 		    String[]      names = null;
+                    GraphicsEnvironment ge = GraphicsEnvironment.
+                                               getLocalGraphicsEnvironment();
 
-		    // Use the 1.2 GraphicsEnvironment for getting font names,
-		    // if we can.
-		    try {
-			Class ge = Class.forName("java.awt.GraphicsEnvironment");
-			if (ge != null) {
-			    Method method = ge.getDeclaredMethod
-				("getLocalGraphicsEnvironment", null);
-			    if (method != null) {
-				Object instance = method.invoke(ge, null);
-				if (instance != null) {
-				    method = ge.getMethod
-					("getAvailableFontFamilyNames", null);
-				    if (method != null) {
-					names = (String[])method.invoke
-					    (instance, null);
-				    }
-				}
-			    }
-			}
-		    }
-		    catch (Throwable th) { }
+                    if (ge != null) {
+                        names = ge.getAvailableFontFamilyNames();
+                    }
 		    if (names == null) {
-			// We can't, use the Toolkit method.
 			names = Toolkit.getDefaultToolkit().getFontList();
 		    }
 		    if (names != null) {
@@ -955,27 +941,31 @@ public class CSS implements Serializable {
     }
 
     /**
-     * Translate a string to a CSS.Attribute object.  This
-     * will return null if there is no attribute by the given
-     * name.
+     * Translates a string to a <code>CSS.Attribute</code> object.
+     * This will return <code>null</code> if there is no attribute
+     * by the given name.
+     *
      * @param name the name of the CSS attribute to fetch the
-     *  typesafe enumeration for.
-     * @returns the CSS.Attribute object, or null if the string
-     *  doesn't represent a valid attribute key.
+     *  typesafe enumeration for
+     * @return the <code>CSS.Attribute</code> object,
+     *  or <code>null</code> if the string
+     *  doesn't represent a valid attribute key
      */
     public static final Attribute getAttribute(String name) {
 	return (Attribute) attributeMap.get(name);
     }
 
     /**
-     * Translate a string to a CSS.Value object.  This
-     * will return null if there is no value by the given
-     * name.
+     * Translates a string to a <code>CSS.Value</code> object.
+     * This will return <code>null</code> if there is no value
+     * by the given name.
+     *
      * @param name the name of the CSS value to fetch the
-     *  typesafe enumeration for.
-     * @returns the CSS.Value object, or null if the string
-     *  doesn't represent a valid CSS value name.  This does
-     *  not mean it doesn't represent a valid CSS value.
+     *  typesafe enumeration for
+     * @return the <code>CSS.Value</code> object, 
+     *  or <code>null</code> if the string
+     *  doesn't represent a valid CSS value name; this does
+     *  not mean that it doesn't represent a valid CSS value
      */
     static final Value getValue(String name) {
 	return (Value) valueMap.get(name);
@@ -1083,15 +1073,18 @@ public class CSS implements Serializable {
      }
 
     /**
-     * Convert a color string such as "RED" or "#NNNNNN" to a Color.
-     * Note: This will only convert the HTML3.2 color strings
-     *       or a string of length 7;
-     *       otherwise, it will return null.
+     * Convert a color string such as "RED" or "#NNNNNN" or "rgb(r, g, b)"
+     * to a Color.
      */
     static Color stringToColor(String str) {
       Color color = null;
 
-      if (str.charAt(0) == '#')
+      if (str.length() == 0)
+        color = Color.black;
+      else if (str.startsWith("rgb(")) {
+          color = parseRGB(str);
+      }
+      else if (str.charAt(0) == '#')
         color = hexToColor(str);
       else if (str.equalsIgnoreCase("Black"))
         color = hexToColor("#000000");
@@ -1130,11 +1123,79 @@ public class CSS implements Serializable {
       return color;
     }
 
+    /**
+     * Parses a String in the format <code>rgb(r, g, b)</code> where
+     * each of the Color components is either an integer, or a floating number
+     * with a % after indicating a percentage value of 255. Values are
+     * constrained to fit with 0-255. The resulting Color is returned.
+     */
+    private static Color parseRGB(String string) {
+        // Find the next numeric char
+        int[] index = new int[1];
+
+        index[0] = 4;
+        int red = getColorComponent(string, index);
+        int green = getColorComponent(string, index);
+        int blue = getColorComponent(string, index);
+
+        return new Color(red, green, blue);
+    }
+
+    /**
+     * Returns the next integer value from <code>string</code> starting
+     * at <code>index[0]</code>. The value can either can an integer, or
+     * a percentage (floating number ending with %), in which case it is
+     * multiplied by 255.
+     */
+    private static int getColorComponent(String string, int[] index) {
+        int length = string.length();
+        char aChar;
+
+        // Skip non-decimal chars
+        while(index[0] < length && (aChar = string.charAt(index[0])) != '-' &&
+              !Character.isDigit(aChar) && aChar != '.') {
+            index[0]++;
+        }
+
+        int start = index[0];
+
+        if (start < length && string.charAt(index[0]) == '-') {
+            index[0]++;
+        }
+        while(index[0] < length &&
+                         Character.isDigit(string.charAt(index[0]))) {
+            index[0]++;
+        }
+        if (index[0] < length && string.charAt(index[0]) == '.') {
+            // Decimal value
+            index[0]++;
+            while(index[0] < length &&
+                  Character.isDigit(string.charAt(index[0]))) {
+                index[0]++;
+            }
+        }
+        if (start != index[0]) {
+            try {
+                float value = Float.parseFloat(string.substring
+                                               (start, index[0]));
+
+                if (index[0] < length && string.charAt(index[0]) == '%') {
+                    index[0]++;
+                    value = value * 255f / 100f;
+                }
+                return Math.min(255, Math.max(0, (int)value));
+            } catch (NumberFormatException nfe) {
+                // Treat as 0
+            }
+        }
+        return 0;
+    }
+
     static int getIndexOfSize(float pt) {
         for (int i = 0; i < sizeMap.length; i ++ )
                 if (pt <= sizeMap[i])
-                        return i;
-        return sizeMap.length - 1;
+                        return i + 1;
+        return sizeMap.length;
     }
 
     /**
@@ -1169,9 +1230,11 @@ public class CSS implements Serializable {
     }
 
     /**
-     * Return the point size, given a size index.
+     * Return the point size, given a size index. Legal HTML index sizes
+     * are 1-7.
      */
     float getPointSize(int index) {
+        --index;
 	if (index < 0)
 	  return sizeMap[0];
 	else if (index > sizeMap.length - 1)
@@ -1408,29 +1471,31 @@ public class CSS implements Serializable {
 	}
 
 	/**
-	 * Convert a StyleConstants attribute value to
-	 * a CSS attribute value.  If there is no conversion
-	 * return null.  By default, there is no conversion.
+	 * Converts a <code>StyleConstants</code> attribute value to
+	 * a CSS attribute value.  If there is no conversion,
+	 * returns <code>null</code>.  By default, there is no conversion.
 	 * 
-	 * @param key the StyleConstants attribute.
-	 * @param value the value of a StyleConstants attribute,
-	 *   to be converted.
-	 * @returns the CSS value that represents the StyleConstants
-	 *   value.
+	 * @param key the <code>StyleConstants</code> attribute
+	 * @param value the value of a <code>StyleConstants</code>
+         *   attribute to be converted
+	 * @return the CSS value that represents the 
+         *   <code>StyleConstants</code> value
 	 */
 	Object fromStyleConstants(StyleConstants key, Object value) {
 	    return null;
 	}
 
 	/**
-	 * Convert a CSS attribute value to a StyleConstants
-	 * value.  If there is no conversion, return null.
+	 * Converts a CSS attribute value to a 
+         * <code>StyleConstants</code>
+	 * value.  If there is no conversion, returns
+         * <code>null</code>.
 	 * By default, there is no conversion.
 	 *
-	 * @param key the StyleConstants attribute.
-	 * @param v View containing AttributeSet
-	 * @returns the StyleConstants attribute value that 
-	 *   represents the CSS attribute value.
+	 * @param key the <code>StyleConstants</code> attribute
+	 * @param v the view containing <code>AttributeSet</code>
+	 * @return the <code>StyleConstants</code> attribute value that 
+	 *   represents the CSS attribute value
 	 */
 	Object toStyleConstants(StyleConstants key, View v) {
 	    return null;
@@ -1473,15 +1538,15 @@ public class CSS implements Serializable {
 	}
 
 	/**
-	 * Convert a StyleConstants attribute value to
+	 * Converts a <code>StyleConstants</code> attribute value to
 	 * a CSS attribute value.  If there is no conversion
-	 * return null. 
+	 * returns <code>null</code>. 
 	 * 
-	 * @param key the StyleConstants attribute.
-	 * @param value the value of a StyleConstants attribute,
-	 *   to be converted.
-	 * @returns the CSS value that represents the StyleConstants
-	 *   value.
+	 * @param key the <code>StyleConstants</code> attribute
+	 * @param value the value of a <code>StyleConstants</code>
+	 *   attribute to be converted
+	 * @return the CSS value that represents the 
+         *   <code>StyleConstants</code> value
 	 */
 	Object fromStyleConstants(StyleConstants key, Object value) {
 	    if (key == StyleConstants.Italic) {
@@ -1534,13 +1599,14 @@ public class CSS implements Serializable {
 	}
 
 	/**
-	 * Convert a CSS attribute value to a StyleConstants
-	 * value.  If there is no conversion, return null.
+	 * Converts a CSS attribute value to a 
+         * <code>StyleConstants</code> value. 
+         * If there is no conversion, returns <code>null</code>.
 	 * By default, there is no conversion.
 	 *
-	 * @param key the StyleConstants attribute.
-	 * @returns the StyleConstants attribute value that 
-	 *   represents the CSS attribute value.
+	 * @param key the <code>StyleConstants</code> attribute
+	 * @return the <code>StyleConstants</code> attribute value that 
+	 *   represents the CSS attribute value
 	 */
 	Object toStyleConstants(StyleConstants key, View v) {
 	    if (key == StyleConstants.Italic) {
@@ -1662,25 +1728,25 @@ public class CSS implements Serializable {
 	    fs.svalue = value;
 	    try {
 		if (value.equals("xx-small")) {
-		    fs.value = 0;
-		    fs.index = true;
-		} else if (value.equals("x-small")) {
 		    fs.value = 1;
 		    fs.index = true;
-		} else if (value.equals("small")) {
+		} else if (value.equals("x-small")) {
 		    fs.value = 2;
 		    fs.index = true;
-		} else if (value.equals("medium")) {
+		} else if (value.equals("small")) {
 		    fs.value = 3;
 		    fs.index = true;
-		} else if (value.equals("large")) {
+		} else if (value.equals("medium")) {
 		    fs.value = 4;
 		    fs.index = true;
-		} else if (value.equals("x-large")) {
+		} else if (value.equals("large")) {
 		    fs.value = 5;
 		    fs.index = true;
-		} else if (value.equals("xx-large")) {
+		} else if (value.equals("x-large")) {
 		    fs.value = 6;
+		    fs.index = true;
+		} else if (value.equals("xx-large")) {
+		    fs.value = 7;
 		    fs.index = true;
 		} else {
 		    fs.lu = new LengthUnit(value, (short)1, 1f);
@@ -1719,8 +1785,8 @@ public class CSS implements Serializable {
 		    fs.index = true;
 		} else {
 		    fs.value = Integer.parseInt(value);
-		    if (fs.value > 6) {
-			fs.value = 6;
+		    if (fs.value > 7) {
+			fs.value = 7;
 		    } else if (fs.value < 0) {
 			fs.value = 0;
 		    }
@@ -1734,28 +1800,36 @@ public class CSS implements Serializable {
 	}
 
 	/**
-	 * Convert a StyleConstants attribute value to
+	 * Converts a <code>StyleConstants</code> attribute value to
 	 * a CSS attribute value.  If there is no conversion
-	 * return null.  By default, there is no conversion.
+	 * returns <code>null</code>.  By default, there is no conversion.
 	 * 
-	 * @param key the StyleConstants attribute.
-	 * @param value the value of a StyleConstants attribute,
-	 *   to be converted.
-	 * @returns the CSS value that represents the StyleConstants
-	 *   value.
+	 * @param key the <code>StyleConstants</code> attribute
+	 * @param value the value of a <code>StyleConstants</code>
+	 *   attribute to be converted
+	 * @return the CSS value that represents the 
+         *   <code>StyleConstants</code> value
 	 */
 	Object fromStyleConstants(StyleConstants key, Object value) {
-	    return parseCssValue(value.toString());
+            if (value instanceof Number) {
+                FontSize fs = new FontSize();
+
+                fs.value = getIndexOfSize(((Number)value).floatValue());
+                fs.svalue = Integer.toString((int)fs.value);
+                fs.index = true;
+                return fs;
+            }
+            return parseCssValue(value.toString());
 	}
 
 	/**
-	 * Convert a CSS attribute value to a StyleConstants
-	 * value.  If there is no conversion, return null.
+	 * Converts a CSS attribute value to a <code>StyleConstants</code>
+	 * value.  If there is no conversion, returns <code>null</code>.
 	 * By default, there is no conversion.
 	 *
-	 * @param key the StyleConstants attribute.
-	 * @returns the StyleConstants attribute value that 
-	 *   represents the CSS attribute value.
+	 * @param key the <code>StyleConstants</code> attribute
+	 * @return the <code>StyleConstants</code> attribute value that 
+	 *   represents the CSS attribute value
 	 */
 	Object toStyleConstants(StyleConstants key, View v) {
 	    if (v != null) {
@@ -1849,28 +1923,28 @@ public class CSS implements Serializable {
 	}
 
 	/**
-	 * Convert a StyleConstants attribute value to
+	 * Converts a <code>StyleConstants</code> attribute value to
 	 * a CSS attribute value.  If there is no conversion
-	 * return null.  By default, there is no conversion.
+	 * returns <code>null</code>.  By default, there is no conversion.
 	 * 
-	 * @param key the StyleConstants attribute.
-	 * @param value the value of a StyleConstants attribute,
-	 *   to be converted.
-	 * @returns the CSS value that represents the StyleConstants
-	 *   value.
+	 * @param key the <code>StyleConstants</code> attribute
+	 * @param value the value of a <code>StyleConstants</code>
+	 *   attribute to be converted
+	 * @return the CSS value that represents the 
+         *   <code>StyleConstants</code> value
 	 */
 	Object fromStyleConstants(StyleConstants key, Object value) {
 	    return parseCssValue(value.toString());
 	}
 
 	/**
-	 * Convert a CSS attribute value to a StyleConstants
-	 * value.  If there is no conversion, return null.
+	 * Converts a CSS attribute value to a <code>StyleConstants</code>
+	 * value.  If there is no conversion, returns <code>null</code>.
 	 * By default, there is no conversion.
 	 *
-	 * @param key the StyleConstants attribute.
-	 * @returns the StyleConstants attribute value that 
-	 *   represents the CSS attribute value.
+	 * @param key the <code>StyleConstants</code> attribute
+	 * @return the <code>StyleConstants</code> attribute value that 
+	 *   represents the CSS attribute value
 	 */
 	Object toStyleConstants(StyleConstants key, View v) {
 	    return family;
@@ -1904,15 +1978,15 @@ public class CSS implements Serializable {
 	}
 
 	/**
-	 * Convert a StyleConstants attribute value to
+	 * Converts a <code>StyleConstants</code> attribute value to
 	 * a CSS attribute value.  If there is no conversion
-	 * return null.  By default, there is no conversion.
+	 * returns <code>null</code>.  By default, there is no conversion.
 	 * 
-	 * @param key the StyleConstants attribute.
-	 * @param value the value of a StyleConstants attribute,
-	 *   to be converted.
-	 * @returns the CSS value that represents the StyleConstants
-	 *   value.
+	 * @param key the <code>StyleConstants</code> attribute
+	 * @param value the value of a <code>StyleConstants</code>
+	 *   attribute to be converted
+	 * @return the CSS value that represents the 
+         *   <code>StyleConstants</code> value
 	 */
 	Object fromStyleConstants(StyleConstants key, Object value) {
 	    if (value.equals(Boolean.TRUE)) {
@@ -1922,13 +1996,13 @@ public class CSS implements Serializable {
 	}
 
 	/**
-	 * Convert a CSS attribute value to a StyleConstants
-	 * value.  If there is no conversion, return null.
+	 * Converts a CSS attribute value to a <code>StyleConstants</code>
+	 * value.  If there is no conversion, returns <code>null</code>.
 	 * By default, there is no conversion.
 	 *
-	 * @param key the StyleConstants attribute.
-	 * @returns the StyleConstants attribute value that 
-	 *   represents the CSS attribute value.
+	 * @param key the <code>StyleConstants</code> attribute
+	 * @return the <code>StyleConstants</code> attribute value that 
+	 *   represents the CSS attribute value
 	 */
 	Object toStyleConstants(StyleConstants key, View v) {
 	    return (weight > 500) ? Boolean.TRUE : Boolean.FALSE;
@@ -1967,15 +2041,15 @@ public class CSS implements Serializable {
 	}
 
 	/**
-	 * Convert a StyleConstants attribute value to
+	 * Converts a <code>StyleConstants</code> attribute value to
 	 * a CSS attribute value.  If there is no conversion
-	 * return null.  By default, there is no conversion.
+	 * returns <code>null</code>.  By default, there is no conversion.
 	 * 
-	 * @param key the StyleConstants attribute.
-	 * @param value the value of a StyleConstants attribute,
-	 *   to be converted.
-	 * @returns the CSS value that represents the StyleConstants
-	 *   value.
+	 * @param key the <code>StyleConstants</code> attribute
+	 * @param value the value of a <code>StyleConstants</code>
+	 *   attribute to be converted
+	 * @return the CSS value that represents the 
+         *   <code>StyleConstants</code> value
 	 */
 	Object fromStyleConstants(StyleConstants key, Object value) {
 	    ColorValue colorValue = new ColorValue();
@@ -1985,13 +2059,13 @@ public class CSS implements Serializable {
 	}
 
 	/**
-	 * Convert a CSS attribute value to a StyleConstants
-	 * value.  If there is no conversion, return null.
+	 * Converts a CSS attribute value to a <code>StyleConstants</code>
+	 * value.  If there is no conversion, returns <code>null</code>.
 	 * By default, there is no conversion.
 	 *
-	 * @param key the StyleConstants attribute.
-	 * @returns the StyleConstants attribute value that 
-	 *   represents the CSS attribute value.
+	 * @param key the <code>StyleConstants</code> attribute
+	 * @return the <code>StyleConstants</code> attribute value that 
+	 *   represents the CSS attribute value
 	 */
 	Object toStyleConstants(StyleConstants key, View v) {
 	    return c;
@@ -2122,15 +2196,15 @@ public class CSS implements Serializable {
 	    return parseCssValue(value);
 	}
 	/**
-	 * Convert a StyleConstants attribute value to
-	 * a CSS attribute value.  If there is no conversion
-	 * return null.  By default, there is no conversion.
+	 * Converts a <code>StyleConstants</code> attribute value to
+	 * a CSS attribute value.  If there is no conversion,
+	 * returns <code>null</code>.  By default, there is no conversion.
 	 * 
-	 * @param key the StyleConstants attribute.
-	 * @param value the value of a StyleConstants attribute,
-	 *   to be converted.
-	 * @returns the CSS value that represents the StyleConstants
-	 *   value.
+	 * @param key the <code>StyleConstants</code> attribute
+	 * @param value the value of a <code>StyleConstants</code>
+	 *   attribute to be converted
+	 * @return the CSS value that represents the 
+         *   <code>StyleConstants</code> value
 	 */
 	Object fromStyleConstants(StyleConstants key, Object value) {
 	    LengthValue v = new LengthValue();
@@ -2140,13 +2214,13 @@ public class CSS implements Serializable {
 	}
 
 	/**
-	 * Convert a CSS attribute value to a StyleConstants
-	 * value.  If there is no conversion, return null.
+	 * Converts a CSS attribute value to a <code>StyleConstants</code>
+	 * value.  If there is no conversion, returns <code>null</code>.
 	 * By default, there is no conversion.
 	 *
-	 * @param key the StyleConstants attribute.
-	 * @returns the StyleConstants attribute value that 
-	 *   represents the CSS attribute value.
+	 * @param key the <code>StyleConstants</code> attribute
+	 * @return the <code>StyleConstants</code> attribute value that 
+	 *   represents the CSS attribute value
 	 */
 	Object toStyleConstants(StyleConstants key, View v) {
  	    return new Float(getValue());
@@ -2483,6 +2557,13 @@ public class CSS implements Serializable {
 		    } catch (NumberFormatException nfe) {}
 		}
 	    }
+            else if (length > 0) {
+                // treat like points.
+                try {
+                    this.value = Float.valueOf(value).floatValue();
+                    type = 0;
+                } catch (NumberFormatException nfe) {}
+            }
 	}
 
 	public String toString() {
@@ -2903,7 +2984,15 @@ public class CSS implements Serializable {
 	    int availableSpan = (adjustmentFactor > 0.0f) ? 
 		(int) iter.getMaximumSpan(targetSpan) - iter.getSpan() : 
 		iter.getSpan() - (int) iter.getMinimumSpan(targetSpan);
-	    int adj = (int) (adjustmentFactor * availableSpan + 0.5f);
+            float adjf = (adjustmentFactor * availableSpan);
+            // Round adjustment up.
+            int adj;
+            if (((int)(adjf * 10)) % 10 != 0) {
+                adj = (int)(adjf + .5f);
+            }
+            else {
+                adj = (int)adjf;
+            }
 	    iter.setSpan( iter.getSpan() + adj);
 	    totalOffset = (int) Math.min((long) totalOffset + (long) iter.getSpan(), Integer.MAX_VALUE);
 	}

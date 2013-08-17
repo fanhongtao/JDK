@@ -1,4 +1,6 @@
 /*
+ * @(#)Process.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -40,7 +42,7 @@ import java.io.*;
  * process that owns the <code>Process</code> object.
  *
  * @author  unascribed
- * @version 1.18, 02/06/02
+ * @version 1.18, 12/03/01
  * @see     java.lang.Runtime#exec(java.lang.String)
  * @see     java.lang.Runtime#exec(java.lang.String, java.lang.String[])
  * @see     java.lang.Runtime#exec(java.lang.String[])

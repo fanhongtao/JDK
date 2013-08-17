@@ -1,5 +1,7 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * @(#)DefaultTableCellRenderer.java	1.31 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -46,12 +48,14 @@ import java.io.Serializable;
  *
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.28 06/06/06
+ * @version 1.31 12/03/01
  * @author Philip Milne 
  * @see JTable
  */
@@ -59,8 +63,7 @@ public class DefaultTableCellRenderer extends JLabel
     implements TableCellRenderer, Serializable
 {
 
-    protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
-    private static final Border SAFE_NO_FOCUS_BORDER = new EmptyBorder(1, 1, 1, 1);
+    protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1); 
     
     // We need a place to store the color the JLabel should be returned 
     // to after its foreground and background colors have been set 
@@ -75,15 +78,7 @@ public class DefaultTableCellRenderer extends JLabel
     public DefaultTableCellRenderer() {
 	super();
 	setOpaque(true);
-        setBorder(getNoFocusBorder());
-    }
-
-    private static Border getNoFocusBorder() {
-        if (System.getSecurityManager() != null) {
-            return SAFE_NO_FOCUS_BORDER;
-        } else {
-            return noFocusBorder;
-        }
+        setBorder(noFocusBorder);
     }
 
     /**
@@ -98,7 +93,7 @@ public class DefaultTableCellRenderer extends JLabel
     }
     
     /**
-     * Overrides <code>JComponent.setForeground</code> to assign
+     * Overrides <code>JComponent.setBackground</code> to assign
      * the unselected-background color to the specified color.
      *
      * @param c set the background color to this value
@@ -159,21 +154,14 @@ public class DefaultTableCellRenderer extends JLabel
 	        super.setBackground( UIManager.getColor("Table.focusCellBackground") );
 	    }
 	} else {
-	    setBorder(getNoFocusBorder());
+	    setBorder(noFocusBorder);
 	}
 
         setValue(value); 
 
-	// ---- begin optimization to avoid painting background ----
-	Color back = getBackground();
-	boolean colorMatch = (back != null) && ( back.equals(table.getBackground()) ) && table.isOpaque();
-        setOpaque(!colorMatch);
-	// ---- end optimization to aviod painting background ----
-
 	return this;
     }
     
-
     /*
      * The following methods are overridden as a performance measure to 
      * to prune code-paths are often called in the case of renders
@@ -181,6 +169,24 @@ public class DefaultTableCellRenderer extends JLabel
      * when writing your own renderer to weigh the benefits and 
      * drawbacks of overriding methods like these.
      */
+
+    /**
+     * Overridden for performance reasons.
+     * See the <a href="#override">Implementation Note</a> 
+     * for more information.
+     */
+    public boolean isOpaque() { 
+	Color back = getBackground();
+	Component p = getParent(); 
+	if (p != null) { 
+	    p = p.getParent(); 
+	}
+	// p should now be the JTable. 
+	boolean colorMatch = (back != null) && (p != null) && 
+	    back.equals(p.getBackground()) && 
+			p.isOpaque();
+	return !colorMatch && super.isOpaque(); 
+    }
 
     /**
      * Overridden for performance reasons.
@@ -231,7 +237,8 @@ public class DefaultTableCellRenderer extends JLabel
 
 
     /**
-     * Sets the string for the cell being rendered to <code>value</code>.
+     * Sets the <code>String</code> object for the cell being rendered to
+     * <code>value</code>.
      * 
      * @param value  the string value for this cell; if value is
      *		<code>null</code> it sets the text value to an empty string
@@ -254,10 +261,12 @@ public class DefaultTableCellRenderer extends JLabel
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class UIResource extends DefaultTableCellRenderer 
         implements javax.swing.plaf.UIResource

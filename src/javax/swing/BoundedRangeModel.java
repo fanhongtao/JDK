@@ -1,4 +1,6 @@
 /*
+ * @(#)BoundedRangeModel.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -27,7 +29,7 @@ import javax.swing.event.*;
  * <ul>
  * <li> 
  *   The minimum and maximum set methods "correct" the other 
- *   three properties to acommodate their new value argument.  For 
+ *   three properties to accommodate their new value argument.  For 
  *   example setting the model's minimum may change its maximum, value,
  *   and extent properties (in that order), to maintain the constraints
  *   specified above.  
@@ -52,7 +54,7 @@ import javax.swing.event.*;
  href="http://java.sun.com/docs/books/tutorial/uiswing/overview/anatomy.html">The Anatomy of a Swing-Based Program</a>
  * in <em>The Java Tutorial.</em>
  * 
- * @version 1.23 02/06/02
+ * @version 1.24 12/03/01
  * @author Hans Muller
  * @see DefaultBoundedRangeModel
  */
@@ -208,7 +210,7 @@ public interface BoundedRangeModel
     /**
      * This method sets all of the model's data with a single method call.
      * The method results in a single change event being generated. This is
-     * convenient when you need to adjust all the model data simulaneously and
+     * convenient when you need to adjust all the model data simultaneously and
      * do not want individual change events to occur.
      *
      * @param value  an int giving the current value 

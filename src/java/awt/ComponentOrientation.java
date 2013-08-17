@@ -1,4 +1,6 @@
 /*
+ * @(#)ComponentOrientation.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,6 +20,7 @@ package java.awt;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
+import sun.text.resources.LocaleData;
 
 /**
   * The ComponentOrientation class encapsulates the language-sensitive
@@ -117,26 +120,27 @@ public final class ComponentOrientation implements java.io.Serializable
     }
 
     /**
-     * Return the orientation that is appropriate for the given locale
-     * @param locale used as a key to look up the orientation in an
-     *        internal resource bundle.
+     * Returns the orientation that is appropriate for the given locale.
+     * @param locale the specified locale
      */
     public static ComponentOrientation getOrientation(Locale locale) {
-        ComponentOrientation result = UNKNOWN;
-
-        try {
-            ResourceBundle resource = ResourceBundle.getBundle
-                    ("java.text.resources.LocaleElements", locale);
-            result = (ComponentOrientation)resource.getObject("Orientation");
+        // A more flexible implementation would consult a ResourceBundle
+        // to find the appropriate orientation.  Until pluggable locales
+        // are introduced however, the flexiblity isn't really needed.
+        // So we choose efficiency instead.
+        String lang = locale.getLanguage();
+        if( "iw".equals(lang) || "ar".equals(lang) 
+            || "fa".equals(lang) || "ur".equals(lang) ) 
+        {
+            return RIGHT_TO_LEFT;
+        } else {
+            return LEFT_TO_RIGHT;
         }
-        catch (Exception e) {
-        }
-        return result;
     }
 
     /**
-     * Return the orientation appropriate for the given ResourceBundle's
-     * localization.  Three approaches are tried, inn the following order:
+     * Returns the orientation appropriate for the given ResourceBundle's
+     * localization.  Three approaches are tried, in the following order:
      * <ol>
      * <li>Retrieve a ComponentOrientation object from the ResourceBundle
      *      using the string "Orientation" as the key.
@@ -144,6 +148,8 @@ public final class ComponentOrientation implements java.io.Serializable
      *      locale, then return the orientation for that locale.
      * <li>Return the default locale's orientation.
      * </ol>
+     *
+     * @deprecated As of J2SE 1.4, use {@link #getOrientation(java.util.Locale)}.
      */
     public static ComponentOrientation getOrientation(ResourceBundle bdl)
     {

@@ -1,4 +1,6 @@
 /*
+ * @(#)LayoutManager2.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,7 +22,7 @@ package java.awt;
  * @see LayoutManager
  * @see Container
  *
- * @version	1.11, 02/06/02
+ * @version	1.12, 12/03/01
  * @author 	Jonni Kanerva
  */
 public interface LayoutManager2 extends LayoutManager {
@@ -34,9 +36,9 @@ public interface LayoutManager2 extends LayoutManager {
     void addLayoutComponent(Component comp, Object constraints);
 
     /** 
-     * Returns the maximum size of this component.
-     * @see java.awt.Component#getMinimumSize()
-     * @see java.awt.Component#getPreferredSize()
+     * Calculates the maximum size dimensions for the specified container,
+     * given the components it contains.
+     * @see java.awt.Component#getMaximumSize
      * @see LayoutManager
      */
     public Dimension maximumLayoutSize(Container target);

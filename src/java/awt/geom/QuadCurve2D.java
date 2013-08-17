@@ -1,4 +1,6 @@
 /*
+ * @(#)QuadCurve2D.java	1.26 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,7 +19,7 @@ import java.awt.Rectangle;
  * The actual storage representation of the coordinates is left to
  * the subclass.
  *
- * @version 	1.23, 02/06/02
+ * @version 	1.26, 12/03/01
  * @author	Jim Graham
  */
 public abstract class QuadCurve2D implements Shape, Cloneable {
@@ -171,7 +173,7 @@ public abstract class QuadCurve2D implements Shape, Cloneable {
          * coordinates.
          * @param x1,&nbsp;y1 the coordinates of the starting point
          * @param ctrlx,&nbsp;ctrly the coordinates of the control point
-         * @param x2&nbsp;y2 the coordinates of the ending point
+         * @param x2,&nbsp;y2 the coordinates of the ending point
 	 */
 	public void setCurve(double x1, double y1,
 			     double ctrlx, double ctrly,
@@ -270,7 +272,7 @@ public abstract class QuadCurve2D implements Shape, Cloneable {
          * specified coordinates.
          * @param x1,&nbsp;y1 the coordinates of the starting point
          * @param ctrlx,&nbsp;ctrly the coordinates of the control point
-         * @param x2,&nbsp;y1 the coordinates of the ending point
+         * @param x2,&nbsp;y2 the coordinates of the ending point
 	 */
 	public Double(double x1, double y1,
 		      double ctrlx, double ctrly,
@@ -364,7 +366,7 @@ public abstract class QuadCurve2D implements Shape, Cloneable {
 	 * to the specified <code>double</code> coordinates.
          * @param x1,&nbsp;y1 the coordinates of the starting point
          * @param ctrlx,&nbsp;ctrly the coordinates of the control point
-         * @param x2,&nbsp;y1 the coordinates of the ending point
+         * @param x2,&nbsp;y2 the coordinates of the ending point
 	 */
 	public void setCurve(double x1, double y1,
 			     double ctrlx, double ctrly,
@@ -473,7 +475,7 @@ public abstract class QuadCurve2D implements Shape, Cloneable {
      * to the specified <code>double</code> coordinates.
      * @param x1,&nbsp;y1 the coordinates of the starting point
      * @param ctrlx,&nbsp;ctrly the coordinates of the control point
-     * @param x2,&nbsp;y1 the coordinates of the ending point
+     * @param x2,&nbsp;y2 the coordinates of the ending point
      */
     public abstract void setCurve(double x1, double y1,
 				  double ctrlx, double ctrly,
@@ -543,7 +545,7 @@ public abstract class QuadCurve2D implements Shape, Cloneable {
      * quadratic curve specified by the indicated controlpoints.
      * @param x1,&nbsp;y1 the coordinates of the starting point
      * @param ctrlx,&nbsp;ctrly the coordinates of the control point
-     * @param x2,&nbsp;y1 the coordinates of the ending point
+     * @param x2,&nbsp;y2 the coordinates of the ending point
      * @return the square of the flatness of the quadratic curve
      *		defined by the specified coordinates.
      */
@@ -559,7 +561,7 @@ public abstract class QuadCurve2D implements Shape, Cloneable {
      * quadratic curve specified by the indicated controlpoints.
      * @param x1,&nbsp;y1 the coordinates of the starting point
      * @param ctrlx,&nbsp;ctrly the coordinates of the control point
-     * @param x2,&nbsp;y1 the coordinates of the ending point
+     * @param x2,&nbsp;y2 the coordinates of the ending point
      * @return the flatness of the quadratic curve defined by the 
      *		specified coordinates. 
      */
@@ -758,7 +760,7 @@ public abstract class QuadCurve2D implements Shape, Cloneable {
      * A return value of <code>-1</code> is used to distinguish a constant
      * equation, which might be always 0 or never 0, from an equation that
      * has no zeroes.
-     * @param equ the array that contains the quadratic coefficients
+     * @param eqn the array that contains the quadratic coefficients
      * @return the number of roots, or <code>-1</code> if the equation is
      *		a constant
      */
@@ -778,6 +780,10 @@ public abstract class QuadCurve2D implements Shape, Cloneable {
      * A return value of <code>-1</code> is used to distinguish a constant
      * equation, which might be always 0 or never 0, from an equation that
      * has no zeroes.
+     * @param eqn the specified array of coefficients to use to solve
+     *        the quadratic equation
+     * @param res the array that contains the non-complex roots 
+     *        resulting from the solution of the quadratic equation
      * @return the number of roots, or <code>-1</code> if the equation is
      *	a constant.
      */

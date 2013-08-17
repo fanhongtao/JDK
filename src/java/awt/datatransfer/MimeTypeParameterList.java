@@ -1,4 +1,6 @@
 /*
+ * @(#)MimeTypeParameterList.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,7 +18,7 @@ import java.util.Set;
  * An object that encapsualtes the parameter list of a MimeType
  * as defined in RFC 2045 and 2046.
  *
- * @version 1.10, 02/06/02
+ * @version 1.12, 12/03/01
  * @author jeff.dunn@eng.sun.com
  */
 class MimeTypeParameterList implements Cloneable {
@@ -28,26 +30,27 @@ class MimeTypeParameterList implements Cloneable {
         parameters = new Hashtable();
     }
 
-    public MimeTypeParameterList(String rawdata) throws MimeTypeParseException {
+    public MimeTypeParameterList(String rawdata)
+	throws MimeTypeParseException
+    {
         parameters = new Hashtable();
         
         //    now parse rawdata
         parse(rawdata);
     }
     
-    private MimeTypeParameterList(Hashtable ht) throws CloneNotSupportedException {
-	parameters = (Hashtable)ht.clone();
-    }
-
     public int hashCode() {
-	int code = Integer.MAX_VALUE/45; // "random" value for empty lists
-	String paramName = null;
-	for (Enumeration enum = this.getNames();
-	     (enum.hasMoreElements()); paramName = (String)enum.nextElement()){
-	    code += paramName.hashCode();
-	    code += this.get(paramName).hashCode();
+        int code = Integer.MAX_VALUE/45; // "random" value for empty lists
+        String paramName = null;
+        Enumeration enum = this.getNames();
+
+        while (enum.hasMoreElements()) {
+            paramName = (String)enum.nextElement();
+            code += paramName.hashCode();
+            code += this.get(paramName).hashCode();
         }
-	return code;
+
+        return code;
     } // hashCode()
 
     /**
@@ -277,8 +280,14 @@ class MimeTypeParameterList implements Cloneable {
      * @return a clone of this object
      */
 
-     public Object clone() throws CloneNotSupportedException {
-	return new MimeTypeParameterList(parameters); // clones hashtable ...
+     public Object clone() {
+	 MimeTypeParameterList newObj = null;
+	 try {
+	     newObj = (MimeTypeParameterList)super.clone();
+	 } catch (CloneNotSupportedException cannotHappen) {
+	 }
+	 newObj.parameters = (Hashtable)parameters.clone();
+	 return newObj;
      }
 
     private Hashtable parameters;

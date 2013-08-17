@@ -1,4 +1,6 @@
 /*
+ * @(#)COMM_FAILURE.java	1.30 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,9 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>COMM_FAILURE</code> exception, which is thrown
- * when there is a communication failure.
+ * This exception is raised if communication is lost while an operation
+ * is in progress, after the request was sent by the client, but before 
+ * the reply from the server has been returned to the client.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

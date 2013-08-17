@@ -1,4 +1,6 @@
 /*
+ * @(#)UnknownUserException.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -35,6 +37,9 @@ public final class UnknownUserException extends UserException {
     /**
      * Constructs an <code>UnknownUserException</code> object that contains the given
      * <code>Any</code> object.
+     *
+     * @ param a an <code>Any</code> object that contains a user exception returned
+     *         by the server
      */
     public UnknownUserException(Any a) {
         super();

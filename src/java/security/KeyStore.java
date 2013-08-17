@@ -1,4 +1,6 @@
 /*
+ * @(#)KeyStore.java	1.31 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -82,7 +84,7 @@ import java.util.*;
  *
  * @author Jan Luehe
  *
- * @version 1.30, 02/06/02
+ * @version 1.31, 12/03/01
  *
  * @see java.security.PrivateKey
  * @see java.security.cert.Certificate
@@ -153,7 +155,7 @@ public class KeyStore {
 	throws KeyStoreException
     {
 	try {
-	    Object[] objs = Security.getImpl(type, "KeyStore", null);
+	    Object[] objs = Security.getImpl(type, "KeyStore", (String)null);
 	    return new KeyStore((KeyStoreSpi)objs[0], (Provider)objs[1], type);
 	} catch(NoSuchAlgorithmException nsae) {
 	    throw new KeyStoreException(type + " not found");
@@ -183,12 +185,54 @@ public class KeyStore {
      * @exception NoSuchProviderException if the provider has not been
      * configured.
      *
+     * @exception IllegalArgumentException if the provider name is null
+     * or empty.
+     *
      * @see Provider
      */
      public static KeyStore getInstance(String type, String provider)
 	throws KeyStoreException, NoSuchProviderException
     {
 	if (provider == null || provider.length() == 0)
+	    throw new IllegalArgumentException("missing provider");
+	try {
+	    Object[] objs = Security.getImpl(type, "KeyStore", provider);
+	    return new KeyStore((KeyStoreSpi)objs[0], (Provider)objs[1], type);
+	} catch(NoSuchAlgorithmException nsae) {
+	    throw new KeyStoreException(type + " not found");
+	}
+     }
+
+    /**
+     * Generates a keystore object for the specified keystore
+     * type from the specified provider. Note: the <code>provider</code> 
+     * doesn't have to be registered. 
+     *
+     * @param type the type of keystore.
+     * See Appendix A in the <a href=
+     * "../../../guide/security/CryptoSpec.html#AppA">
+     * Java Cryptography Architecture API Specification &amp; Reference </a> 
+     * for information about standard keystore types.
+     *
+     * @param provider the provider.
+     *
+     * @return a keystore object of the specified type, as
+     * supplied by the specified provider.
+     *
+     * @exception KeyStoreException if the requested keystore type is not
+     * available from the provider.
+     *
+     * @exception IllegalArgumentException if the <code>provider</code> is
+     * null.
+     *
+     * @see Provider
+     *
+     * @since 1.4
+     */
+     public static KeyStore getInstance(String type, Provider provider)
+	throws KeyStoreException
+    {
+	if (provider == null)
 	    throw new IllegalArgumentException("missing provider");
 	try {
 	    Object[] objs = Security.getImpl(type, "KeyStore", provider);

@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicGraphicsUtils.java	1.57 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -107,14 +109,8 @@ public class BasicGraphicsUtils
         g.translate(x, y);
 
         if (isPressed) {
-            if (isDefault) {
-                g.setColor(darkShadow);          // outer border
-                g.drawRect(0, 0, w-1, h-1);
-            }
-
-            g.setColor(shadow);         // inner border
-            g.drawRect(1, 1, w-3, h-3);
-
+            drawLoweredBezel(g, x, y, w, h,
+                             shadow, darkShadow, highlight, lightHighlight);
         }
         else {
             if (isDefault) {
@@ -154,10 +150,9 @@ public class BasicGraphicsUtils
                 g.drawLine(0, h-1, w-1, h-1);
                 g.drawLine(w-1, h-1, w-1, 0);
             }
-
-            g.translate(-x, -y);
-            g.setColor(oldColor);
         }
+	g.translate(-x, -y);
+	g.setColor(oldColor);
     }
 
     public static void drawLoweredBezel(Graphics g, int x, int y, int w, int h,
@@ -181,8 +176,10 @@ public class BasicGraphicsUtils
      }
 
 
-    /** Draw a string with the graphics g at location (x,y) just like g.drawString() would.
-     *  The first occurence of underlineChar in text will be underlined. The matching is
+    /** Draw a string with the graphics <code>g</code> at location (x,y)
+     *  just like <code>g.drawString</code> would.
+     *  The first occurrence of <code>underlineChar</code>
+     *  in text will be underlined. The matching algorithm is
      *  not case sensitive.
      */
     public static void drawString(Graphics g,String text,int underlinedChar,int x,int y) {
@@ -212,34 +209,52 @@ public class BasicGraphicsUtils
                 index = (lci < uci) ? lci : uci;
         }
 
+        drawStringUnderlineCharAt(g, text, index, x, y);
+    }
+
+    /**
+     * Draw a string with the graphics <code>g</code> at location
+     * (<code>x</code>, <code>y</code>)
+     * just like <code>g.drawString</code> would.
+     * The character at index <code>underlinedIndex</code>
+     * in text will be underlined. If <code>index</code> is beyond the
+     * bounds of <code>text</code> (including < 0), nothing will be
+     * underlined.
+     *
+     * @param g Graphics to draw with
+     * @param text String to draw
+     * @param underlinedIndex Index of character in text to underline
+     * @param x x coordinate to draw at
+     * @param y y coordinate to draw at
+     * @since 1.4
+     */
+    public static void drawStringUnderlineCharAt(Graphics g, String text,
+                           int underlinedIndex, int x,int y) {
         g.drawString(text,x,y);
-        if(index != -1) {
+        if (underlinedIndex >= 0 && underlinedIndex < text.length() ) {
             FontMetrics fm = g.getFontMetrics();
-            //            Rectangle underlineRect = new Rectangle();
-            
-            int underlineRectX = x + fm.stringWidth(text.substring(0,index));
+            int underlineRectX = x + fm.stringWidth(text.substring(0,underlinedIndex));
             int underlineRectY = y;
-            int underlineRectWidth = fm.charWidth(text.charAt(index));
+            int underlineRectWidth = fm.charWidth(text.charAt(underlinedIndex));
             int underlineRectHeight = 1;
             g.fillRect(underlineRectX, underlineRectY + fm.getDescent() - 1,
                        underlineRectWidth, underlineRectHeight);
         }
     }
 
-
     public static void drawDashedRect(Graphics g,int x,int y,int width,int height) {
         int vx,vy;
 
         // draw upper and lower horizontal dashes
         for (vx = x; vx < (x + width); vx+=2) {
-            g.drawLine(vx, y, vx, y);
-            g.drawLine(vx, y + height-1, vx, y + height-1);
+            g.fillRect(vx, y, 1, 1);
+            g.fillRect(vx, y + height-1, 1, 1);
         }
 
         // draw left and right vertical dashes
         for (vy = y; vy < (y + height); vy+=2) {
-            g.drawLine(x, vy, x, vy);
-            g.drawLine(x+width-1, vy, x + width-1, vy);
+	    g.fillRect(x, vy, 1, 1);
+            g.fillRect(x+width-1, vy, 1, 1);
         }
     }
 
@@ -275,13 +290,6 @@ public class BasicGraphicsUtils
         Insets insets = b.getInsets();
         r.width += insets.left + insets.right;
         r.height += insets.top + insets.bottom;
-
-        /* Ensure that the width and height of the button is odd,
-         * to allow for the focus line.
-         */
-
-        if(r.width % 2 == 0) { r.width += 1; }
-        if(r.height % 2 == 0) { r.height += 1; }
 
         return r.getSize();
     }

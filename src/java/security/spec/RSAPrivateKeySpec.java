@@ -1,4 +1,6 @@
 /*
+ * @(#)RSAPrivateKeySpec.java	1.8 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -12,7 +14,7 @@ import java.math.BigInteger;
  *
  * @author Jan Luehe
  *
- * @version 1.7 02/02/06
+ * @version 1.8 01/12/03
  *
  * @see java.security.Key
  * @see java.security.KeyFactory
@@ -27,6 +29,12 @@ public class RSAPrivateKeySpec implements KeySpec {
     private BigInteger modulus;
     private BigInteger privateExponent;
 
+    /**
+     * Creates a new RSAPrivateKeySpec.
+     *
+     * @param modulus the modulus
+     * @param privateExponent the private exponent
+     */
     public RSAPrivateKeySpec(BigInteger modulus, BigInteger privateExponent) {
 	this.modulus = modulus;
 	this.privateExponent = privateExponent;

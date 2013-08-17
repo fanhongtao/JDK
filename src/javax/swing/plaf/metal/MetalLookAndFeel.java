@@ -1,4 +1,6 @@
 /*
+ * @(#)MetalLookAndFeel.java	1.153 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -23,22 +25,26 @@ import java.awt.event.InputEvent;
 import java.net.URL;
 import java.io.Serializable;
 
+import sun.awt.AppContext;
+
 
 /**
- * Implements The Metal Look and Feel.
+ * Implements the Java look and feel (codename: Metal).
  * <p>
- * For the keyboard keys defined for each component in this Look and
- * Feel (L&F), see 
- * <a href="../../doc-files/Key-Metal.html">Component Keystroke Actions for the Metal L&F</a>.
+ * For the keyboard keys defined for each component in this look and
+ * feel, see 
+ * <a href="../../doc-files/Key-Metal.html">Component Keystroke Actions for the Java Look and Feel.</a>
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version @(#)MetalLookAndFeel.java	1.119 02/02/06
+ * @version @(#)MetalLookAndFeel.java	1.153 01/12/03
  * @author Steve Wilson
  */
 public class MetalLookAndFeel extends BasicLookAndFeel
@@ -46,7 +52,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
   
     private static MetalTheme currentTheme;
     private static boolean isOnlyOneContext = true;
-    private static sun.awt.AppContext cachedAppContext = sun.awt.AppContext.getAppContext();
+    private static AppContext cachedAppContext;
 
     public String getName() {
         return "Metal";
@@ -70,43 +76,67 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         return true;
     }
     
+    /**
+     * Returns true if the <code>LookAndFeel</code> returned
+     * <code>RootPaneUI</code> instances support providing Window decorations
+     * in a <code>JRootPane</code>.
+     * <p>
+     * This implementation returns true, since it does support providing
+     * these border and window title pane decorations.
+     *
+     * @return True if the RootPaneUI instances created support client side
+     *              decorations
+     * @see JDialog#setDefaultLookAndFeelDecorated
+     * @see JFrame#setDefaultLookAndFeelDecorated
+     * @see JRootPane#setWindowDecorationStyle
+     * @since 1.4
+     */
+    public boolean getSupportsWindowDecorations() {
+        return true;
+    }
+
     /** 
-     * Initialize the uiClassID to BasicComponentUI mapping.
-     * The JComponent classes define their own uiClassID constants
-     * (see AbstractComponent.getUIClassID).  This table must
-     * map those constants to a BasicComponentUI class of the
-     * appropriate type.
+     * Creates the mapping from
+     * UI class IDs to <code>ComponentUI</code> classes,
+     * putting the ID-<code>ComponentUI</code> pairs
+     * in the passed-in defaults table.
+     * Each <code>JComponent</code> class
+     * specifies its own UI class ID string.
+     * For example, 
+     * <code>JButton</code> has the UI class ID "ButtonUI",
+     * which this method maps to "javax.swing.plaf.metal.MetalButtonUI".
      * 
      * @see BasicLookAndFeel#getDefaults
+     * @see javax.swing.JComponent#getUIClassID
      */
     protected void initClassDefaults(UIDefaults table)
     {
         super.initClassDefaults(table);
-	//        String basicPackageName = "javax.swing.plaf.basic.";
         String metalPackageName = "javax.swing.plaf.metal.";
 
         Object[] uiDefaults = {
                    "ButtonUI", metalPackageName + "MetalButtonUI",
                  "CheckBoxUI", metalPackageName + "MetalCheckBoxUI",
-              "RadioButtonUI", metalPackageName + "MetalRadioButtonUI",
-             "ToggleButtonUI", metalPackageName + "MetalToggleButtonUI",
-              "ProgressBarUI", metalPackageName + "MetalProgressBarUI",
-                "ScrollBarUI", metalPackageName + "MetalScrollBarUI",
-               "ScrollPaneUI", metalPackageName + "MetalScrollPaneUI",
-                "SplitPaneUI", metalPackageName + "MetalSplitPaneUI",
-                   "SliderUI", metalPackageName + "MetalSliderUI",
-                "SeparatorUI", metalPackageName + "MetalSeparatorUI",
-       "PopupMenuSeparatorUI", metalPackageName + "MetalPopupMenuSeparatorUI",
-               "TabbedPaneUI", metalPackageName + "MetalTabbedPaneUI",
-                "TextFieldUI", metalPackageName + "MetalTextFieldUI",
-                     "TreeUI", metalPackageName + "MetalTreeUI",
-                    "LabelUI", metalPackageName + "MetalLabelUI",
-                  "ToolBarUI", metalPackageName + "MetalToolBarUI",
-                  "ToolTipUI", metalPackageName + "MetalToolTipUI",
                  "ComboBoxUI", metalPackageName + "MetalComboBoxUI",
-            "InternalFrameUI", metalPackageName + "MetalInternalFrameUI",
               "DesktopIconUI", metalPackageName + "MetalDesktopIconUI",
               "FileChooserUI", metalPackageName + "MetalFileChooserUI",
+            "InternalFrameUI", metalPackageName + "MetalInternalFrameUI",
+                    "LabelUI", metalPackageName + "MetalLabelUI",
+       "PopupMenuSeparatorUI", metalPackageName + "MetalPopupMenuSeparatorUI",
+              "ProgressBarUI", metalPackageName + "MetalProgressBarUI",
+              "RadioButtonUI", metalPackageName + "MetalRadioButtonUI",
+                "ScrollBarUI", metalPackageName + "MetalScrollBarUI",
+               "ScrollPaneUI", metalPackageName + "MetalScrollPaneUI",
+                "SeparatorUI", metalPackageName + "MetalSeparatorUI",
+                   "SliderUI", metalPackageName + "MetalSliderUI",
+                "SplitPaneUI", metalPackageName + "MetalSplitPaneUI",
+               "TabbedPaneUI", metalPackageName + "MetalTabbedPaneUI",
+                "TextFieldUI", metalPackageName + "MetalTextFieldUI",
+             "ToggleButtonUI", metalPackageName + "MetalToggleButtonUI",
+                  "ToolBarUI", metalPackageName + "MetalToolBarUI",
+                  "ToolTipUI", metalPackageName + "MetalToolTipUI",
+                     "TreeUI", metalPackageName + "MetalTreeUI",
+                 "RootPaneUI", metalPackageName + "MetalRootPaneUI",
         };
 
         table.putDefaults(uiDefaults);
@@ -153,20 +183,18 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         }
     }
 
-    private void loadResourceBundle(UIDefaults table) {
-        ResourceBundle bundle = ResourceBundle.getBundle("javax.swing.plaf.metal.resources.metal");
-	Enumeration iter = bundle.getKeys();
-	while(iter.hasMoreElements()) {
-	    String key = (String)iter.nextElement();
-	    //System.out.println("key :" +key+ " value: " + bundle.getObject(key));
-	    table.put( key, bundle.getObject(key) );
-	}
+    /**
+     * Initialize the defaults table with the name of the ResourceBundle
+     * used for getting localized defaults.
+     */
+    private void initResourceBundle(UIDefaults table) {
+        table.addResourceBundle( "com.sun.swing.internal.plaf.metal.resources.metal" );
     }
 
     protected void initComponentDefaults(UIDefaults table) {
         super.initComponentDefaults( table );
 
-        loadResourceBundle(table);
+        initResourceBundle(table);
 
 	Object textFieldBorder = 
 	    new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalBorders",
@@ -175,6 +203,12 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         Object textBorder = 
 	    new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalBorders",
 					  "getTextBorder");
+
+        Object dialogBorder = new MetalLazyValue(
+                          "javax.swing.plaf.metal.MetalBorders$DialogBorder");
+
+        Object questionDialogBorder = new MetalLazyValue(
+                  "javax.swing.plaf.metal.MetalBorders$QuestionDialogBorder");
 
 	Object fieldInputMap = new UIDefaults.LazyInputMap(new Object[] {
 			   "ctrl C", DefaultEditorKit.copyAction,
@@ -310,22 +344,40 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 			  "javax.swing.plaf.BorderUIResource$LineBorderUIResource",
 			  new Object[] {getPrimaryControlDarkShadow()});
 
+        Object toolTipBorderInactive = new UIDefaults.ProxyLazyValue(
+			  "javax.swing.plaf.BorderUIResource$LineBorderUIResource",
+			  new Object[] {getControlDarkShadow()});
+
         Object focusCellHighlightBorder = new UIDefaults.ProxyLazyValue(
 			  "javax.swing.plaf.BorderUIResource$LineBorderUIResource",
 			  new Object[] {getFocusColor()});
 
         Object tabbedPaneTabAreaInsets = new InsetsUIResource(4, 2, 0, 6);
 
+        Object tabbedPaneTabInsets = new InsetsUIResource(0, 9, 1, 9);
+
 	Object sliderFocusInsets = new InsetsUIResource( 0, 0, 0, 0 );	
 
 	final Object[] internalFrameIconArgs = new Object[1];
 	internalFrameIconArgs[0] = new Integer(16);
+
+	Object[] defaultCueList = new Object[] {
+		"OptionPane.errorSound",
+		"OptionPane.informationSound",
+		"OptionPane.questionSound",
+		"OptionPane.warningSound" };
 
         //
         // DEFAULTS TABLE
         //
 
         Object[] defaults = {
+	    // *** Auditory Feedback
+	    "AuditoryCues.defaultCueList", defaultCueList,
+	    // this key defines which of the various cues to render 
+            // This is disabled until sound bugs can be resolved.
+	    "AuditoryCues.playList", null, // defaultCueList,
+
             // Text (Note: many are inherited)
             "TextField.border", textFieldBorder,
 	    "TextField.font", new UIDefaults.ProxyLazyValue(
@@ -367,6 +419,53 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 	    "TextArea.focusInputMap", multilineInputMap,
 	    "TextPane.focusInputMap", multilineInputMap,
 	    "EditorPane.focusInputMap", multilineInputMap,
+
+            // FormattedTextFields
+            "FormattedTextField.border", textFieldBorder,
+            "FormattedTextField.font", new UIDefaults.ProxyLazyValue(
+                      "javax.swing.plaf.metal.MetalLookAndFeel",
+                      "getUserTextFont"),
+            "FormattedTextField.caretForeground", getUserTextColor(),
+            "FormattedTextField.focusInputMap",
+              new UIDefaults.LazyInputMap(new Object[] {
+			   "ctrl C", DefaultEditorKit.copyAction,
+			   "ctrl V", DefaultEditorKit.pasteAction,
+			   "ctrl X", DefaultEditorKit.cutAction,
+			     "COPY", DefaultEditorKit.copyAction,
+			    "PASTE", DefaultEditorKit.pasteAction,
+			      "CUT", DefaultEditorKit.cutAction,
+		       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
+                    "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
+		      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
+		   "shift KP_RIGHT", DefaultEditorKit.selectionForwardAction,
+			"ctrl LEFT", DefaultEditorKit.previousWordAction,
+		     "ctrl KP_LEFT", DefaultEditorKit.previousWordAction,
+		       "ctrl RIGHT", DefaultEditorKit.nextWordAction,
+		    "ctrl KP_RIGHT", DefaultEditorKit.nextWordAction,
+		  "ctrl shift LEFT", DefaultEditorKit.selectionPreviousWordAction,
+	       "ctrl shift KP_LEFT", DefaultEditorKit.selectionPreviousWordAction,
+		 "ctrl shift RIGHT", DefaultEditorKit.selectionNextWordAction,
+	      "ctrl shift KP_RIGHT", DefaultEditorKit.selectionNextWordAction,
+			   "ctrl A", DefaultEditorKit.selectAllAction,
+			     "HOME", DefaultEditorKit.beginLineAction,
+			      "END", DefaultEditorKit.endLineAction,
+		       "shift HOME", DefaultEditorKit.selectionBeginLineAction,
+		        "shift END", DefaultEditorKit.selectionEndLineAction,
+		       "typed \010", DefaultEditorKit.deletePrevCharAction,
+                           "DELETE", DefaultEditorKit.deleteNextCharAction,
+                            "RIGHT", DefaultEditorKit.forwardAction,
+                             "LEFT", DefaultEditorKit.backwardAction,
+                         "KP_RIGHT", DefaultEditorKit.forwardAction,
+                          "KP_LEFT", DefaultEditorKit.backwardAction,
+			    "ENTER", JTextField.notifyAction,
+		  "ctrl BACK_SLASH", "unselect",
+                   "control shift O", "toggle-componentOrientation",
+                           "ESCAPE", "reset-field-edit",
+                               "UP", "increment",
+                            "KP_UP", "increment",
+                             "DOWN", "decrement",
+                          "KP_DOWN", "decrement",
+              }),
             
 
             // Buttons
@@ -379,9 +478,9 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 			  "javax.swing.plaf.metal.MetalLookAndFeel",
 			  "getControlTextFont"),
             "Button.focus", getFocusColor(),
-	    "Button.focusInputMap", new UIDefaults.LazyInputMap(new Object[] {
-                         "SPACE", "pressed",
-                "released SPACE", "released"
+            "Button.focusInputMap", new UIDefaults.LazyInputMap(new Object[] {
+                          "SPACE", "pressed",
+                 "released SPACE", "released"
               }),
 
             "CheckBox.background", getControl(),
@@ -453,7 +552,9 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "FileChooser.filesOfTypeLabelMnemonic", new Integer(KeyEvent.VK_T),
 	    "FileChooser.ancestorInputMap", 
 	       new UIDefaults.LazyInputMap(new Object[] {
-		     "ESCAPE", "cancelSelection"
+		     "ESCAPE", "cancelSelection",
+		     "BACK_SPACE", "Go Up",
+		     "ENTER", "approveSelection"
 		 }),
 
 
@@ -462,9 +563,13 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 			  "javax.swing.plaf.metal.MetalLookAndFeel",
 			  "getSystemTextFont"),
             "ToolTip.border", toolTipBorder,
+            "ToolTip.borderInactive", toolTipBorderInactive,
             "ToolTip.background", table.get("info"),
             "ToolTip.foreground", table.get("infoText"),
-
+            "ToolTip.backgroundInactive", table.get("control"),
+            "ToolTip.foregroundInactive", table.get("controlDkShadow"),
+            "ToolTip.hideAccelerator", Boolean.FALSE,
+ 
             // Slider Defaults
             "Slider.border", null,
             "Slider.foreground", getPrimaryControlShadow(),
@@ -529,6 +634,8 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 		"alt KP_DOWN", "togglePopup",
 		     "alt UP", "togglePopup",
 		  "alt KP_UP", "togglePopup",
+		      "SPACE", "spacePopup",
+		     "ENTER", "enterPressed",
 		         "UP", "selectPrevious",
 		      "KP_UP", "selectPrevious"
 	      }),
@@ -560,13 +667,19 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 				     "javax.swing.plaf.metal.MetalIconFactory", 
 				     "getInternalFrameAltMaximizeIcon",
 				     internalFrameIconArgs),
-            "InternalFrame.font",  new UIDefaults.ProxyLazyValue(
+            "InternalFrame.titleFont",  new UIDefaults.ProxyLazyValue(
 			  "javax.swing.plaf.metal.MetalLookAndFeel",
 			  "getWindowTitleFont"),
 	    "InternalFrame.windowBindings", new Object[] {
 	      "shift ESCAPE", "showSystemMenu",
 		"ctrl SPACE", "showSystemMenu",
 	            "ESCAPE", "hideSystemMenu"},
+	    // Internal Frame Auditory Cue Mappings
+            "InternalFrame.closeSound", "sounds/FrameClose.wav",
+            "InternalFrame.maximizeSound", "sounds/FrameMaximize.wav",
+            "InternalFrame.minimizeSound", "sounds/FrameMinimize.wav",
+            "InternalFrame.restoreDownSound", "sounds/FrameRestoreDown.wav",
+            "InternalFrame.restoreUpSound", "sounds/FrameRestoreUp.wav",
 
             // Desktop Icon
             "DesktopIcon.border", desktopIconBorder,
@@ -575,6 +688,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 			  "getControlTextFont"),
             "DesktopIcon.foreground", getControlTextColor(),
             "DesktopIcon.background", getControl(),
+            "DesktopIcon.width", new Integer(160),
 
 	    "Desktop.ancestorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
@@ -584,19 +698,29 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 		 "ctrl F8", "resize",
 		   "RIGHT", "right",
 		"KP_RIGHT", "right",
+             "shift RIGHT", "shrinkRight",
+          "shift KP_RIGHT", "shrinkRight",
 		    "LEFT", "left",
 		 "KP_LEFT", "left",
+              "shift LEFT", "shrinkLeft",
+           "shift KP_LEFT", "shrinkLeft",
 		      "UP", "up",
 		   "KP_UP", "up",
+                "shift UP", "shrinkUp",
+             "shift KP_UP", "shrinkUp",
 		    "DOWN", "down",
 		 "KP_DOWN", "down",
+              "shift DOWN", "shrinkDown",
+           "shift KP_DOWN", "shrinkDown",
 		  "ESCAPE", "escape",
 		 "ctrl F9", "minimize", 
 		"ctrl F10", "maximize",
 		 "ctrl F6", "selectNextFrame",
 		"ctrl TAB", "selectNextFrame",
 	     "ctrl alt F6", "selectNextFrame",
-       "shift ctrl alt F6", "selectPreviousFrame"
+       "shift ctrl alt F6", "selectPreviousFrame",
+                "ctrl F12", "navigateNext",
+           "shift ctrl F12", "navigatePrevious"
 	      }),
 
             // Titled Border
@@ -615,9 +739,18 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "Label.disabledForeground", getInactiveSystemTextColor(),
 
             // List
+            "List.font", new UIDefaults.ProxyLazyValue(
+			  "javax.swing.plaf.metal.MetalLookAndFeel",
+			  "getControlTextFont"),
             "List.focusCellHighlightBorder", focusCellHighlightBorder,
 	    "List.focusInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
+                           "ctrl C", "copy",
+                           "ctrl V", "paste",
+                           "ctrl X", "cut",
+                             "COPY", "copy",
+                            "PASTE", "paste",
+                              "CUT", "cut",
 		               "UP", "selectPreviousRow",
 		            "KP_UP", "selectPreviousRow",
 		         "shift UP", "selectPreviousRowExtendSelection",
@@ -626,6 +759,14 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 		          "KP_DOWN", "selectNextRow",
 		       "shift DOWN", "selectNextRowExtendSelection",
 		    "shift KP_DOWN", "selectNextRowExtendSelection",
+		             "LEFT", "selectPreviousColumn",
+		          "KP_LEFT", "selectPreviousColumn",
+		       "shift LEFT", "selectPreviousColumnExtendSelection",
+		    "shift KP_LEFT", "selectPreviousColumnExtendSelection",
+		            "RIGHT", "selectNextColumn",
+		         "KP_RIGHT", "selectNextColumn",
+		      "shift RIGHT", "selectNextColumnExtendSelection",
+		   "shift KP_RIGHT", "selectNextColumnExtendSelection",
 		             "HOME", "selectFirstRow",
 		       "shift HOME", "selectFirstRowExtendSelection",
 		              "END", "selectLastRow",
@@ -651,13 +792,13 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 	    "ScrollBar.allowsAbsolutePositioning", Boolean.TRUE,
 	    "ScrollBar.focusInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
-		       "RIGHT", "negativeUnitIncrement",
-		    "KP_RIGHT", "negativeUnitIncrement",
+		       "RIGHT", "positiveUnitIncrement",
+		    "KP_RIGHT", "positiveUnitIncrement",
 		        "DOWN", "positiveUnitIncrement",
 		     "KP_DOWN", "positiveUnitIncrement",
 		   "PAGE_DOWN", "positiveBlockIncrement",
-		        "LEFT", "positiveUnitIncrement",
-		     "KP_LEFT", "positiveUnitIncrement",
+		        "LEFT", "negativeUnitIncrement",
+		     "KP_LEFT", "negativeUnitIncrement",
 		          "UP", "negativeUnitIncrement",
 		       "KP_UP", "negativeUnitIncrement",
 		     "PAGE_UP", "negativeBlockIncrement",
@@ -693,13 +834,14 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "TabbedPane.tabAreaBackground", getControl(),
             "TabbedPane.background", getControlShadow(),
             "TabbedPane.foreground", getControlTextColor(),
-            "TabbedPane.highlight", getControl(),
-            "TabbedPane.lightHighlight", getControlHighlight(),
+            "TabbedPane.light", getControl(),
+            "TabbedPane.highlight", getControlHighlight(),
             "TabbedPane.darkShadow", getControlDarkShadow(),
             "TabbedPane.focus", getPrimaryControlDarkShadow(),
             "TabbedPane.selected", getControl(),
             "TabbedPane.selectHighlight", getControlHighlight(),
             "TabbedPane.tabAreaInsets", tabbedPaneTabAreaInsets,
+            "TabbedPane.tabInsets", tabbedPaneTabInsets,
 	    "TabbedPane.focusInputMap",
 	      new UIDefaults.LazyInputMap(new Object[] {
 		         "RIGHT", "navigateRight",
@@ -731,6 +873,12 @@ public class MetalLookAndFeel extends BasicLookAndFeel
       	    "Table.gridColor", getControlShadow(),  // grid line color
 	    "Table.ancestorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
+                               "ctrl C", "copy",
+                               "ctrl V", "paste",
+                               "ctrl X", "cut",
+                                 "COPY", "copy",
+                                "PASTE", "paste",
+                                  "CUT", "cut",
 		                "RIGHT", "selectNextColumn",
 		             "KP_RIGHT", "selectNextColumn",
 		                 "LEFT", "selectPreviousColumn",
@@ -791,6 +939,10 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             // Menu
             "Menu.border", menuItemBorder,
             "Menu.borderPainted", Boolean.TRUE,
+	    "Menu.menuPopupOffsetX", new Integer(0),
+	    "Menu.menuPopupOffsetY", new Integer(0),
+	    "Menu.submenuPopupOffsetX", new Integer(-4),
+	    "Menu.submenuPopupOffsetY", new Integer(-3),
             "Menu.font", new UIDefaults.ProxyLazyValue(
 			  "javax.swing.plaf.metal.MetalLookAndFeel",
 			  "getMenuTextFont"),
@@ -806,21 +958,6 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "Menu.acceleratorSelectionForeground", getAcceleratorSelectedForeground(),
             "Menu.checkIcon", new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getMenuItemCheckIcon"),
             "Menu.arrowIcon", new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getMenuArrowIcon"),
-	    // These window InputMap bindings are used when the Menu is
-	    // selected.
-	    "Menu.selectedWindowInputMapBindings", new Object[] {
-		  "ESCAPE", "cancel",
-                    "DOWN", "selectNext",
-		 "KP_DOWN", "selectNext",
-		      "UP", "selectPrevious",
-		   "KP_UP", "selectPrevious",
-		    "LEFT", "selectParent",
-		 "KP_LEFT", "selectParent",
-		   "RIGHT", "selectChild",
-		"KP_RIGHT", "selectChild",
-		   "ENTER", "return",
-		   "SPACE", "return"
-	    },
 
             // Menu Item
             "MenuItem.border", menuItemBorder,
@@ -841,11 +978,32 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 	    "MenuItem.acceleratorDelimiter", menuItemAcceleratorDelimiter,
             "MenuItem.checkIcon", new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getMenuItemCheckIcon"),
             "MenuItem.arrowIcon", new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getMenuItemArrowIcon"),
+	         // Menu Item Auditory Cue Mapping
+	    "MenuItem.commandSound", "sounds/MenuItemCommand.wav",
 
 	    // OptionPane.
 	    "OptionPane.windowBindings", new Object[] {
 		"ESCAPE", "close" },
+	    // Option Pane Auditory Cue Mappings
+            "OptionPane.informationSound", "sounds/OptionPaneInformation.wav",
+            "OptionPane.warningSound", "sounds/OptionPaneWarning.wav",
+            "OptionPane.errorSound", "sounds/OptionPaneError.wav",
+            "OptionPane.questionSound", "sounds/OptionPaneQuestion.wav",
 
+            // Option Pane Special Dialog Colors
+            "OptionPane.errorDialog.border.background", error1,
+            "OptionPane.errorDialog.titlePane.foreground", error0,
+            "OptionPane.errorDialog.titlePane.background", error3,
+            "OptionPane.errorDialog.titlePane.shadow", error2,
+            "OptionPane.questionDialog.border.background", question1,
+            "OptionPane.questionDialog.titlePane.foreground", question0,
+            "OptionPane.questionDialog.titlePane.background", question3,
+            "OptionPane.questionDialog.titlePane.shadow", question2,
+            "OptionPane.warningDialog.border.background", warning1,
+            "OptionPane.warningDialog.titlePane.foreground", warning0,
+            "OptionPane.warningDialog.titlePane.background", warning3,
+            "OptionPane.warningDialog.titlePane.shadow", warning2,
+           
             // Separator
             "Separator.background", getSeparatorBackground(),
             "Separator.foreground", getSeparatorForeground(),
@@ -853,6 +1011,8 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             // Popup Menu
             "PopupMenu.background", getMenuBackground(),
             "PopupMenu.border", popupMenuBorder,          
+	         // Popup Menu Auditory Cue Mappings
+            "PopupMenu.popupSound", "sounds/PopupMenuPopup.wav",
 
             // CB & RB Menu Item
             "CheckBoxMenuItem.border", menuItemBorder,
@@ -872,6 +1032,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "CheckBoxMenuItem.acceleratorSelectionForeground", getAcceleratorSelectedForeground(),
             "CheckBoxMenuItem.checkIcon", new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getCheckBoxMenuItemIcon"),
             "CheckBoxMenuItem.arrowIcon", new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getMenuItemArrowIcon"),
+	    "CheckBoxMenuItem.commandSound", "sounds/MenuItemCommand.wav",
 
             "RadioButtonMenuItem.border", menuItemBorder,
             "RadioButtonMenuItem.borderPainted", Boolean.TRUE,
@@ -890,6 +1051,15 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "RadioButtonMenuItem.acceleratorSelectionForeground", getAcceleratorSelectedForeground(),
             "RadioButtonMenuItem.checkIcon", new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getRadioButtonMenuItemIcon"),
             "RadioButtonMenuItem.arrowIcon", new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getMenuItemArrowIcon"),
+	    "RadioButtonMenuItem.commandSound", "sounds/MenuItemCommand.wav",
+
+            "Spinner.ancestorInputMap",
+	       new UIDefaults.LazyInputMap(new Object[] {
+                               "UP", "increment",
+                            "KP_UP", "increment",
+                             "DOWN", "decrement",
+                          "KP_DOWN", "decrement",
+               }),
 
 	    // SplitPane
 
@@ -937,6 +1107,12 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 	    "Tree.rowHeight", new Integer(0),
 	    "Tree.focusInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
+                                 "ctrl C", "copy",
+                                 "ctrl V", "paste",
+                                 "ctrl X", "cut",
+                                   "COPY", "copy",
+                                  "PASTE", "paste",
+                                    "CUT", "cut",
 		                     "UP", "selectPrevious",
 		                  "KP_UP", "selectPrevious",
 		               "shift UP", "selectPreviousExtendSelection",
@@ -957,7 +1133,6 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 		             "shift HOME", "selectFirstExtendSelection",
 		                    "END", "selectLast",
 		              "shift END", "selectLastExtendSelection",
-		                  "ENTER", "toggle",
 		                     "F2", "startEditing",
 		                 "ctrl A", "selectAll",
 		             "ctrl SLASH", "selectAll",
@@ -1008,6 +1183,18 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 		  "KP_RIGHT", "navigateRight"
 		 }),
 
+            // RootPane
+            "RootPane.frameBorder", new MetalLazyValue(
+                      "javax.swing.plaf.metal.MetalBorders$FrameBorder"),
+            "RootPane.plainDialogBorder", dialogBorder,
+            "RootPane.informationDialogBorder", dialogBorder,
+            "RootPane.errorDialogBorder", new MetalLazyValue(
+                      "javax.swing.plaf.metal.MetalBorders$ErrorDialogBorder"),
+            "RootPane.colorChooserDialogBorder", questionDialogBorder,
+            "RootPane.fileChooserDialogBorder", questionDialogBorder,
+            "RootPane.questionDialogBorder", questionDialogBorder,
+            "RootPane.warningDialogBorder", new MetalLazyValue(
+                    "javax.swing.plaf.metal.MetalBorders$WarningDialogBorder"),
 	    // These bindings are only enabled when there is a default
 	    // button set on the rootpane.
 	    "RootPane.defaultButtonWindowKeyBindings", new Object[] {
@@ -1022,9 +1209,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
     }
 
     protected void createDefaultTheme() {
-        if( getCurrentTheme() == null) {
-            setCurrentTheme( new DefaultMetalTheme() );
-        }
+        getCurrentTheme();
     }
 
     public UIDefaults getDefaults() {
@@ -1034,25 +1219,74 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         return table;
     }
 
+    /**
+     * <p>
+     * Invoked when the user attempts an invalid operation, 
+     * such as pasting into an uneditable <code>JTextField</code> 
+     * that has focus.
+     * </p>
+     * <p>
+     * If the user has enabled visual error indication on
+     * the desktop, this method will flash the caption bar
+     * of the active window. The user can also set the
+     * property awt.visualbell=true to achieve the same
+     * results.
+     * </p>
+     *
+     * @param component Component the error occured in, may be 
+     *			null indicating the error condition is 
+     *			not directly associated with a 
+     *			<code>Component</code>.
+     * 
+     * @see javax.swing.LookAndFeel#providErrorFeedback
+     */
+    public void provideErrorFeedback(Component component) {
+	super.provideErrorFeedback(component);
+    }
+
     public static void setCurrentTheme(MetalTheme theme) {
         if (theme == null) {
             throw new NullPointerException("Can't have null theme");
         }
         currentTheme = theme;
-	cachedAppContext = sun.awt.AppContext.getAppContext();
+	cachedAppContext = AppContext.getAppContext();
 	cachedAppContext.put( "currentMetalTheme", theme );
     }
 
     private static MetalTheme getCurrentTheme() {
-        sun.awt.AppContext context =  sun.awt.AppContext.getAppContext();
+        AppContext context = AppContext.getAppContext();
 
 	if ( cachedAppContext != context ) {
 	    currentTheme = (MetalTheme)context.get( "currentMetalTheme" );
+            if (currentTheme == null) {
+                // This will happen in two cases:
+                // . When MetalLookAndFeel is first being initialized.
+                // . When a new AppContext has been created that hasn't
+                //   triggered UIManager to load a LAF. Rather than invoke
+                //   a method on the UIManager, which would trigger the loading
+                //   of a potentially different LAF, we directly set the
+                //   Theme here.
+                currentTheme = new DefaultMetalTheme();
+                setCurrentTheme(currentTheme);
+            }
 	    cachedAppContext = context;
 	}
 
 	return currentTheme;
     }
+
+    private static final ColorUIResource error0 = new ColorUIResource(51, 0, 0);
+    private static final ColorUIResource error1 = new ColorUIResource(153, 51, 51);
+    private static final ColorUIResource error2 = new ColorUIResource(204, 102, 102);
+    private static final ColorUIResource error3 = new ColorUIResource(255, 153, 153);
+    private static final ColorUIResource question0 = new ColorUIResource(0, 51, 0);
+    private static final ColorUIResource question1 = new ColorUIResource(51, 102, 51);
+    private static final ColorUIResource question2 = new ColorUIResource(102, 153, 102);
+    private static final ColorUIResource question3 = new ColorUIResource(153, 204, 153);
+    private static final ColorUIResource warning0 = new ColorUIResource(102, 51, 0);
+    private static final ColorUIResource warning1 = new ColorUIResource(153, 102, 51);
+    private static final ColorUIResource warning2 = new ColorUIResource(204, 153, 102);
+    private static final ColorUIResource warning3 = new ColorUIResource(255, 204, 153);
 
     public static FontUIResource getControlTextFont() { return getCurrentTheme().getControlTextFont();}
     public static FontUIResource getSystemTextFont() { return getCurrentTheme().getSystemTextFont();}
@@ -1103,4 +1337,32 @@ public class MetalLookAndFeel extends BasicLookAndFeel
     public static ColorUIResource getAcceleratorForeground() { return getCurrentTheme().getAcceleratorForeground(); }
     public static ColorUIResource getAcceleratorSelectedForeground() { return getCurrentTheme().getAcceleratorSelectedForeground(); }
 
+
+    /**
+     * MetalLazyValue is a slimmed down version of <code>ProxyLaxyValue</code>.
+     * The code is duplicate so that it can get at the package private
+     * classes in metal.
+     */
+    private static class MetalLazyValue implements UIDefaults.LazyValue {
+        /**
+         * Name of the class to create.
+         */
+        private String className;
+
+        MetalLazyValue(String name) {
+            this.className = name;
+        }
+
+        public Object createValue(UIDefaults table) {
+            try {
+                Class c = Class.forName(className);
+
+                return c.newInstance();
+            } catch (ClassNotFoundException cnfe) {
+            } catch (InstantiationException ie) {
+            } catch (IllegalAccessException iae) {
+            }
+            return null;
+        }
+    }
 }

@@ -1,4 +1,6 @@
 /*
+ * @(#)ShortLookupTable.java	1.26 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -36,6 +38,10 @@ public class ShortLookupTable extends LookupTable {
      * values before indexing into the arrays.  The number of
      * bands is the length of the data argument.  The
      * data array for each band is stored as a reference.
+     * @param offset the value subtracted from the input values
+     *        before indexing into the arrays
+     * @param data an array of short arrays representing a lookup
+     *        table for each band
      */
     public ShortLookupTable(int offset, short data[][]) {
         super(offset,data.length);
@@ -54,6 +60,9 @@ public class ShortLookupTable extends LookupTable {
      * band.  The offset will be subtracted from the input
      * values before indexing into the array.  The
      * data array is stored as a reference.
+     * @param offset the value subtracted from the input values
+     *        before indexing into the arrays
+     * @param data an array of shorts
      */
     public ShortLookupTable(int offset, short data[]) {
         super(offset,data.length);

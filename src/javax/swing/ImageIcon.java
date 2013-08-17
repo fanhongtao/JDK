@@ -1,4 +1,6 @@
 /*
+ * @(#)ImageIcon.java	1.49 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -30,13 +32,15 @@ import javax.accessibility.*;
  *
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  * 
- * @version 1.48 02/06/02
+ * @version 1.49 12/03/01
  * @author Jeff Dinkins
  * @author Lynn Monsanto
  */
@@ -221,7 +225,8 @@ public class ImageIcon implements Icon, Serializable, Accessible {
      */
     protected void loadImage(Image image) {
 	synchronized(tracker) {
-	    int id = getNextID();
+            int id = getNextID();
+
 	    tracker.addImage(image, id);
 	    try {
 		tracker.waitForID(id, 0);
@@ -240,9 +245,9 @@ public class ImageIcon implements Icon, Serializable, Accessible {
      * Returns an ID to use with the MediaTracker in loading an image.
      */
     private int getNextID() {
-	synchronized(tracker) {
-	    return ++mediaTrackerID;
-	}
+        synchronized(tracker) {
+            return ++mediaTrackerID;
+        }
     }
 
     /**
@@ -370,7 +375,10 @@ public class ImageIcon implements Icon, Serializable, Accessible {
      * @return a string representing this image
      */
     public String toString() {
-        return description;
+        if (description != null) {
+            return description;
+        }
+        return super.toString();
     }
 
     private void readObject(ObjectInputStream s)
@@ -450,10 +458,12 @@ public class ImageIcon implements Icon, Serializable, Accessible {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleImageIcon extends AccessibleContext
         implements AccessibleIcon, Serializable {

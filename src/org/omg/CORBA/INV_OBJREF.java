@@ -1,4 +1,6 @@
 /*
+ * @(#)INV_OBJREF.java	1.32 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,13 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>INV_OBJREF</code> exception, which is thrown
- * when an invalid object reference is specified.
+ * This exception indicates that an object reference is internally 
+ * malformed. For example, the repository ID may have incorrect 
+ * syntax or the addressing information may be invalid. This 
+ * exception is raised by ORB::string_to_object if the passed 
+ * string does not decode correctly. An ORB may choose to detect 
+ * calls via nil references (but is not obliged to do detect them). 
+ * <tt>INV_OBJREF</tt> is used to indicate this.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.
@@ -24,7 +31,7 @@ package org.omg.CORBA;
 public final class INV_OBJREF extends SystemException {
     /**
      * Constructs an <code>INV_OBJREF</code> exception with a default
-     * minor code of 0 and a completion state of COMPLETED_MAYBE.
+     * minor code of 0 and a completion state of COMPLETED_NO.
      */
     public INV_OBJREF() {
         this("");

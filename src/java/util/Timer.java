@@ -1,4 +1,6 @@
 /*
+ * @(#)Timer.java	1.8 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -46,7 +48,7 @@ import java.util.Date;
  * a task is O(log n), where n is the number of concurrently scheduled tasks.
  *
  * @author  Josh Bloch
- * @version 1.8, 02/06/02
+ * @version 1.8, 12/03/01
  * @see     TimerTask
  * @see     Object#wait(long)
  * @since   1.3

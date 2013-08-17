@@ -1,4 +1,6 @@
 /*
+ * @(#)FilenameFilter.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,7 +16,7 @@ package java.io;
  *
  * @author  Arthur van Hoff
  * @author  Jonathan Payne
- * @version 1.21, 02/06/02
+ * @version 1.21, 12/03/01
  * @see     java.awt.FileDialog#setFilenameFilter(java.io.FilenameFilter)
  * @see     java.io.File
  * @see     java.io.File#list(java.io.FilenameFilter)

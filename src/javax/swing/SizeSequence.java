@@ -1,4 +1,6 @@
 /*
+ * @(#)SizeSequence.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,22 +11,24 @@ package javax.swing;
  * A <code>SizeSequence</code> object
  * efficiently maintains an ordered list 
  * of sizes and corresponding positions. 
- * One situation for which <code>SizeSequence</code> might be appropriate 
- * is in a component
+ * One situation for which <code>SizeSequence</code> 
+ * might be appropriate is in a component
  * that displays multiple rows of unequal size.
- * In this case, a single <code>SizeSequence</code> object could be used
- * to track the heights
- * and Y positions
- * of all rows.
+ * In this case, a single <code>SizeSequence</code> 
+ * object could be used to track the heights
+ * and Y positions of all rows.
  * <p>
  * Another example would be a multi-column component,
- * such as a JTable,
+ * such as a <code>JTable</code>,
  * in which the column sizes are not all equal.
- * The JTable might use a single <code>SizeSequence</code> object 
+ * The <code>JTable</code> might use a single
+ * <code>SizeSequence</code> object 
  * to store the widths and X positions of all the columns.
- * The JTable could then use the <code>SizeSequence</code> object
+ * The <code>JTable</code> could then use the
+ * <code>SizeSequence</code> object
  * to find the column corresponding to a certain position.
- * The JTable could update the <code>SizeSequence</code> object
+ * The <code>JTable</code> could update the
+ * <code>SizeSequence</code> object
  * whenever one or more column sizes changed.
  *
  * <p> 
@@ -87,7 +91,7 @@ package javax.swing;
  * a set of integer sizes, copying it into the new array, and then 
  * reforming the hybrid representation in place. 
  *
- * @version 1.5 02/06/02
+ * @version 1.12 12/03/01
  * @author Philip Milne
  */   
 
@@ -122,6 +126,8 @@ public class SizeSequence {
      * all initialized to have size 0.
      * 
      * @param numEntries  the number of sizes to track
+     * @exception NegativeArraySizeException if
+     *    <code>numEntries < 0</code>
      */
     public SizeSequence(int numEntries) { 
         this(numEntries, 0); 
@@ -155,12 +161,10 @@ public class SizeSequence {
     /**
      * Resets this <code>SizeSequence</code> object,
      * using the data in the <code>sizes</code> argument.
-     * This method reinitializes
-     * this object
-     * so that it contains as many entries as the <code>sizes</code> array.
-     * Each entry's size is initialized
-     * to the value of the corresponding
-     * item in <code>sizes</code>.
+     * This method reinitializes this object so that it
+     * contains as many entries as the <code>sizes</code> array.
+     * Each entry's size is initialized to the value of the 
+     * corresponding item in <code>sizes</code>.
      * 
      * @param sizes  the array of sizes to be contained in
      *		     this <code>SizeSequence</code>
@@ -210,6 +214,9 @@ public class SizeSequence {
      * <code>getPosition(2)</code> is equal to
      *   <code>getSize(0)</code> + <code>getSize(1)</code>,
      * and so on.
+     * <p>Note that if <code>index</code> is greater than
+     * <code>length</code> the value returned may
+     * be meaningless.
      * 
      * @param index  the index of the entry whose position is desired
      * @return       the starting position of the specified entry
@@ -260,6 +267,9 @@ public class SizeSequence {
     
     /**
      * Returns the size of the specified entry.
+     * If <code>index</code> is out of the range 
+     * <code>(0 <= index < getSizes().length)</code>
+     * the behavior is unspecified.
      * 
      * @param index  the index corresponding to the entry
      * @return  the size of the entry
@@ -270,6 +280,10 @@ public class SizeSequence {
     
     /**
      * Sets the size of the specified entry.
+     * Note that if the value of <code>index</code>
+     * does not fall in the range:
+     * <code>(0 <= index < getSizes().length)</code>
+     * the behavior is unspecified.
      * 
      * @param index  the index corresponding to the entry
      * @param size   the size of the entry
@@ -294,11 +308,20 @@ public class SizeSequence {
 
     /**
      * Adds a contiguous group of entries to this <code>SizeSequence</code>.
+     * Note that the values of <code>start</code> and
+     * <code>length</code> must satisfy the following
+     * conditions:  <code>(0 <= start < getSizes().length)
+     * AND (length >= 0)</code>.  If these conditions are
+     * not met, the behavior is unspecified and an exception
+     * may be thrown.
      * 
      * @param start   the index to be assigned to the first entry
      * 		      in the group
      * @param length  the number of entries in the group
      * @param value   the size to be assigned to each new entry
+     * @exception ArrayIndexOutOfBoundsException if the parameters
+     *   are outside of the range:
+     *   (<code>0 <= start < (getSizes().length)) AND (length >= 0)</code>
      */
     public void insertEntries(int start, int length, int value) { 
         int sizes[] = getSizes(); 
@@ -320,6 +343,12 @@ public class SizeSequence {
     /**
      * Removes a contiguous group of entries
      * from this <code>SizeSequence</code>.
+     * Note that the values of <code>start</code> and
+     * <code>length</code> must satisfy the following
+     * conditions:  <code>(0 <= start < getSizes().length)
+     * AND (length >= 0)</code>.  If these conditions are
+     * not met, the behavior is unspecified and an exception
+     * may be thrown.
      * 
      * @param start   the index of the first entry to be removed
      * @param length  the number of entries to be removed

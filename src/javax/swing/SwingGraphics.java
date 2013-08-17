@@ -1,4 +1,6 @@
 /*
+ * @(#)SwingGraphics.java	1.31 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,7 +10,7 @@ package javax.swing;
  * A private graphics to access clip bounds without creating a new
  * rectangle
  *
- * @version 1.31 02/06/02
+ * @version 1.31 12/03/01
  * @author Arnaud Weber
  */
 
@@ -21,7 +23,9 @@ import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.image.ImageObserver;
+
 import java.util.Stack;
+
 import java.text.AttributedCharacterIterator;
 
 class SwingGraphics extends Graphics implements GraphicsWrapper {
@@ -143,7 +147,6 @@ class SwingGraphics extends Graphics implements GraphicsWrapper {
             Thread.dumpStack();
             return null;
         }
-
         return g.create();
     }
 

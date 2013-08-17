@@ -1,4 +1,6 @@
 /*
+ * @(#)DragGestureEvent.java	1.20 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -18,8 +20,15 @@ import java.awt.datatransfer.Transferable;
 
 import java.util.EventObject;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Iterator;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
 
 /**
  * A <code>DragGestureEvent</code> is passed 
@@ -29,13 +38,15 @@ import java.util.Iterator;
  * platform dependent drag initiating gesture has occurred 
  * on the <code>Component</code> that it is tracking.
  * 
- * @version 1.16
+ * @version 1.20
  * @see java.awt.dnd.DragGestureRecognizer
  * @see java.awt.dnd.DragGestureListener
  * @see java.awt.dnd.DragSource
  */
 
 public class DragGestureEvent extends EventObject {
+
+    private static final long serialVersionUID = 9080172649166731306L;
 
     /**
      * Construct a <code>DragGestureEvent</code> given the
@@ -78,7 +89,7 @@ public class DragGestureEvent extends EventObject {
     }
 
     /**
-     * This method returns the source as a <code>DragGestureRecognizer</code>.
+     * Returns the source as a <code>DragGestureRecognizer</code>.
      * <P>
      * @return the source as a <code>DragGestureRecognizer</code>
      */
@@ -88,7 +99,7 @@ public class DragGestureEvent extends EventObject {
     }
 
     /**
-     * This method returns the <code>Component</code> associated 
+     * Returns the <code>Component</code> associated 
      * with this <code>DragGestureEvent</code>.
      * <P>
      * @return the Component
@@ -97,7 +108,7 @@ public class DragGestureEvent extends EventObject {
     public Component getComponent() { return component; }
 
     /**
-     * This method returns the <code>DragSource</code>.
+     * Returns the <code>DragSource</code>.
      * <P>
      * @return the <code>DragSource</code>
      */
@@ -105,7 +116,7 @@ public class DragGestureEvent extends EventObject {
     public DragSource getDragSource() { return dragSource; }
 
     /**
-     * This method returns a <code>Point</code> in the coordinates
+     * Returns a <code>Point</code> in the coordinates
      * of the <code>Component</code> over which the drag originated.
      * <P>
      * @return the Point where the drag originated in Component coords.
@@ -116,7 +127,7 @@ public class DragGestureEvent extends EventObject {
     }
 
     /**
-     * This method returns an <code>Iterator</code> for the events
+     * Returns an <code>Iterator</code> for the events
      * comprising the gesture.
      * <P>
      * @return an Iterator for the events comprising the gesture
@@ -125,7 +136,7 @@ public class DragGestureEvent extends EventObject {
     public Iterator iterator() { return events.iterator(); }
 
     /**
-     * This method returns an <code>Object</code> array of the 
+     * Returns an <code>Object</code> array of the 
      * events comprising the drag gesture.
      * <P>
      * @return an array of the events comprising the gesture
@@ -134,8 +145,7 @@ public class DragGestureEvent extends EventObject {
     public Object[] toArray() { return events.toArray(); }
 
     /**
-     * This method returns an array of the 
-     * events comprising the drag gesture.
+     * Returns an array of the events comprising the drag gesture.
      * <P>
      * @param array the array of <code>EventObject</code> sub(types)
      * <P>
@@ -145,7 +155,7 @@ public class DragGestureEvent extends EventObject {
     public Object[] toArray(Object[] array) { return events.toArray(array); }
 
     /**
-     * This method returns an <code>int</code> representing the 
+     * Returns an <code>int</code> representing the 
      * action selected by the user.
      * <P>
      * @return the action selected by the user
@@ -154,9 +164,9 @@ public class DragGestureEvent extends EventObject {
     public int getDragAction() { return action; }
 
     /**
-     * This method returns the initial event that triggered the gesture. 
+     * Returns the initial event that triggered the gesture. 
      * <P>
-     * @returns the first "triggering" event in the sequence of the gesture
+     * @return the first "triggering" event in the sequence of the gesture
      */
 
     public InputEvent getTriggerEvent() {
@@ -164,7 +174,35 @@ public class DragGestureEvent extends EventObject {
     }
 
     /**
-     * Start the drag given the initial <code>Cursor</code> to display, 
+     * Starts the drag operation given the <code>Cursor</code> for this drag
+     * operation and the <code>Transferable</code> representing the source data
+     * for this drag operation.
+     * <br>
+     * If a <code>null</code> <code>Cursor</code> is specified no exception will
+     * be thrown and default drag cursors will be used instead.
+     * <br>
+     * If a <code>null</code> <code>Transferable</code> is specified 
+     * <code>NullPointerException</code> will be thrown.
+     * 
+     * @param dragCursor   The <code>Cursor</code> for this drag operation 
+     * @param transferable The <code>Transferable</code> representing the source
+     *                     data for this drag operation.
+     *
+     * @throws <code>InvalidDnDOperationException</code> if the Drag and Drop
+     *         system is unable to initiate a drag operation, or if the user 
+     *         attempts to start a drag while an existing drag operation is
+     *         still executing. 
+     * @throws <code>NullPointerException</code> if the
+     *         <code>Transferable</code> is <code>null</code>.
+     * @since 1.4
+     */
+    public void startDrag(Cursor dragCursor, Transferable transferable) 
+      throws InvalidDnDOperationException {
+        dragSource.startDrag(this, dragCursor, transferable, null);
+    }
+
+    /**
+     * Starts the drag given the initial <code>Cursor</code> to display, 
      * the <code>Transferable</code> object, 
      * and the <code>DragSourceListener</code> to use.
      * <P>
@@ -207,21 +245,94 @@ public class DragGestureEvent extends EventObject {
 	dragSource.startDrag(this,  dragCursor, dragImage, imageOffset, transferable, dsl);
     }
 
+    /**
+     * Serializes this <code>DragGestureEvent</code>. Performs default
+     * serialization and then writes out this object's <code>List</code> of
+     * gesture events if and only if the <code>List</code> can be serialized.
+     * If not, <code>null</code> is written instead. In this case, a
+     * <code>DragGestureEvent</code> created from the resulting deserialized
+     * stream will contain an empty <code>List</code> of gesture events.
+     *
+     * @serialData The default serializable fields, in alphabetical order,
+     *             followed by either a <code>List</code> instance, or
+     *             <code>null</code>.
+     * @since 1.4
+     */
+    private void writeObject(ObjectOutputStream s) throws IOException {
+        s.defaultWriteObject();
+
+        s.writeObject(SerializationTester.test(events) ? events : null);
+    }
+
+    /**
+     * Deserializes this <code>DragGestureEvent</code>. This method first
+     * performs default deserialization for all non-<code>transient</code>
+     * fields. An attempt is then made to deserialize this object's
+     * <code>List</code> of gesture events as well. This is first attempted
+     * by deserializing the field <code>events</code>, because, in releases
+     * prior to 1.4, a non-<code>transient</code> field of this name stored the
+     * <code>List</code> of gesture events. If this fails, the next object in
+     * the stream is used instead. If the resulting <code>List</code> is
+     * <code>null</code>, this object's <code>List</code> of gesture events
+     * is set to an empty <code>List</code>.
+     *
+     * @since 1.4
+     */
+    private void readObject(ObjectInputStream s)
+        throws ClassNotFoundException, IOException
+    {
+        ObjectInputStream.GetField f = s.readFields();
+
+        dragSource = (DragSource)f.get("dragSource", null);
+        component = (Component)f.get("component", null);
+        origin = (Point)f.get("origin", null);
+        action = f.get("action", 0);
+
+        // Pre-1.4 support. 'events' was previously non-transient
+        try {
+            events = (List)f.get("events", null);
+        } catch (IllegalArgumentException e) {
+            // 1.4-compatible byte stream. 'events' was written explicitly
+            events = (List)s.readObject();
+        }
+
+        // Implementation assumes 'events' is never null.
+        if (events == null) {
+            events = Collections.EMPTY_LIST;
+        }
+    }
+
     /*
      * fields
      */
 
-    private List       events;
+    private transient List events;
+
+    /**
+     * The DragSource associated with this DragGestureEvent.
+     *
+     * @serial
+     */
     private DragSource dragSource;
+
+    /**
+     * The Component associated with this DragGestureEvent.
+     *
+     * @serial
+     */
     private Component  component;
+
+    /**
+     * The origin of the drag.
+     *
+     * @serial
+     */
     private Point      origin;
+
+    /**
+     * The user's preferred action.
+     *
+     * @serial
+     */
     private int	       action;
 }
-
-
-
-
-
-
-
-

@@ -1,4 +1,6 @@
 /*
+ * @(#)OBJECT_NOT_EXIST.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,8 +8,15 @@
 package org.omg.CORBA;
 
 /**
- * The CORBA <code>OBJECT_NOT_EXIST</code> exception, which is usually thrown
- * from the server to indicate that the target object does not exist.
+ * Exception raised whenever an invocation on a deleted object was 
+ * performed. It is an authoritative  "hard"  fault report. Anyone 
+ * receiving it is allowed (even expected) to delete all copies of 
+ * this object reference and to perform other appropriate  "final 
+ * recovery"  style procedures. Bridges forward this exception to 
+ * clients, also destroying any records they may hold (for example, 
+ * proxy objects used in reference translation). The clients could 
+ * in turn purge any of their own data structures.
+ * <P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.

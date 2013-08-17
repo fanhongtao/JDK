@@ -1,4 +1,6 @@
 /*
+ * @(#)Cursor.java	1.36 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -22,7 +24,7 @@ import java.security.AccessController;
  * A class to encapsulate the bitmap representation of the mouse cursor.
  *
  * @see Component#setCursor
- * @version 	1.31, 02/06/02
+ * @version 	1.36, 12/03/01
  * @author 	Amy Fowler
  */
 public class Cursor implements java.io.Serializable {
@@ -163,7 +165,9 @@ public class Cursor implements java.io.Serializable {
     static {
         /* ensure that the necessary native libraries are loaded */
 	Toolkit.loadLibraries();
-	initIDs();
+        if (!GraphicsEnvironment.isHeadless()) {
+            initIDs();
+        }
     }
 
     /**
@@ -188,6 +192,8 @@ public class Cursor implements java.io.Serializable {
     /**
      * Returns a cursor object with the specified predefined type.
      * @param type the type of predefined cursor
+	 * @throws IllegalArgumentException if the specified cursor type is
+	 * invalid
      */
     static public Cursor getPredefinedCursor(int type) {
 	if (type < Cursor.DEFAULT_CURSOR || type > Cursor.MOVE_CURSOR) {
@@ -203,10 +209,13 @@ public class Cursor implements java.io.Serializable {
      * @return the system specific custom Cursor named
      *
      * Cursor names are, for example: "Invalid.16x16"
+     * @exception HeadlessException if
+     * <code>GraphicsEnvironment.isHeadless</code> returns true
      */
 
     static public Cursor getSystemCustomCursor(final String name)
-	throws AWTException {
+	throws AWTException, HeadlessException {
+        GraphicsEnvironment.checkHeadless();
 	Cursor cursor = (Cursor)systemCustomCursors.get(name);
 
 	if (cursor == null) {
@@ -291,6 +300,8 @@ public class Cursor implements java.io.Serializable {
     /**
      * Creates a new cursor object with the specified type.
      * @param type the type of cursor
+	 * @throws IllegalArgumentException if the specified cursor type
+	 * is invalid
      */
     public Cursor(int type) {
 	if (type < Cursor.DEFAULT_CURSOR || type > Cursor.MOVE_CURSOR) {
@@ -376,5 +387,11 @@ public class Cursor implements java.io.Serializable {
 
     // This won't really throw an exception, but it must match the 
     // signature of Object.finalize
-    protected native void finalize() throws Throwable;
+    protected void finalize() throws Throwable {
+        if (!GraphicsEnvironment.isHeadless()) {
+            finalizeImpl();
+        }
+    }
+
+    private native void finalizeImpl() throws Throwable;
 }

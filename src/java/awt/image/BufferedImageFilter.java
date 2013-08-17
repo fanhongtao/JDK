@@ -1,4 +1,6 @@
 /*
+ * @(#)BufferedImageFilter.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -37,9 +39,13 @@ public class BufferedImageFilter extends ImageFilter implements Cloneable {
      * specified single-source/single-destination operator.
      * @param op the specified <code>BufferedImageOp</code> to
      *           use to filter a <code>BufferedImage</code>
+     * @throws NullPointerException if op is null
      */
     public BufferedImageFilter (BufferedImageOp op) {
         super();
+        if (op == null) {
+            throw new NullPointerException("Operation cannot be null");
+        }
         bufferedImageOp = op;
     }
 

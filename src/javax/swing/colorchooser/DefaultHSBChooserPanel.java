@@ -1,126 +1,120 @@
 /*
+ * @(#)DefaultHSBChooserPanel.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-
-
+ 
 package javax.swing.colorchooser; 
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.event.*;
-import javax.swing.text.*;
 import javax.swing.border.*;
 import java.awt.image.*;
+
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 /**
  * Implements the default HSB Color chooser
  *
- *  @version 1.8 02/06/02
+ *  @version 1.19 12/03/01
  *  @author Tom Santos
  *  @author Steve Wilson
+ *  @author Mark Davidson
  */
-class DefaultHSBChooserPanel extends AbstractColorChooserPanel {
+class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements ChangeListener {
 
-    float[] hsb = new float[ 3 ];
-    AbstractHSBImage palette;
-    AbstractHSBImage sliderPalette;
-    JSlider slider;
-    JIntegerTextField hField; 
-    JIntegerTextField sField;
-    JIntegerTextField bField;
+    private AbstractHSBImage palette;
+    private AbstractHSBImage sliderPalette;
 
-    JTextField redField; 
-    JTextField greenField;
-    JTextField blueField;
+    // Cached instances of the various palette and slider images.
+    private AbstractHSBImage satbrightImage;
+    private AbstractHSBImage hueImage;
+    private AbstractHSBImage huebrightImage;
+    private AbstractHSBImage satImage;
+    private AbstractHSBImage huesatImage;
+    private AbstractHSBImage brightImage;
 
-    boolean isAdjusting = false;
-    boolean isUpdatingOften = false;
-    Point paletteSelection = new Point();
-    JLabel paletteLabel;
-    JLabel sliderPaletteLabel;
+    private JSlider slider;
+    private JSpinner hField; 
+    private JSpinner sField;
+    private JSpinner bField;
 
-    JRadioButton hRadio;
-    JRadioButton sRadio;
-    JRadioButton bRadio;
+    private JTextField redField; 
+    private JTextField greenField;
+    private JTextField blueField;
 
-    Image paletteImage;
-    Image sliderImage;
+    private boolean isAdjusting = false; // Flag which indicates that values are set internally
+    private Point paletteSelection = new Point();
+    private JLabel paletteLabel;
+    private JLabel sliderPaletteLabel;
 
-    static final int PALETTE_DIMENSION = 200;
-    static final int MAX_HUE_VALUE = 359;
-    static final int MAX_SATURATION_VALUE = 99;
-    static final int MAX_BRIGHTNESS_VALUE = 99;
+    private JRadioButton hRadio;
+    private JRadioButton sRadio;
+    private JRadioButton bRadio;
 
-    int sliderType = HUE_SLIDER;
+    private Image paletteImage;
+    private Image sliderImage;
 
-    static final int HUE_SLIDER = 0;
-    static final int SATURATION_SLIDER = 1;
-    static final int BRIGHTNESS_SLIDER = 2;
+    private static final int PALETTE_DIMENSION = 200;
+    private static final int MAX_HUE_VALUE = 359;
+    private static final int MAX_SATURATION_VALUE = 100;
+    private static final int MAX_BRIGHTNESS_VALUE = 100;
+
+    private int sliderType = HUE_SLIDER;
+
+    private static final int HUE_SLIDER = 0;
+    private static final int SATURATION_SLIDER = 1;
+    private static final int BRIGHTNESS_SLIDER = 2;
 
     public DefaultHSBChooserPanel() {
         super();
     }
 
-    protected void repaintPaletteSelection() {
-        paletteLabel.repaint(); 
+    private void addPaletteListeners() {
+        paletteLabel.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e ) {
+                float[] hsb = new float[3];
+                palette.getHSBForLocation( e.getX(), e.getY(), hsb );
+                updateHSB( hsb[0], hsb[1], hsb[2] );
+            }
+        });
+
+        paletteLabel.addMouseMotionListener(new MouseMotionAdapter() {
+            public void mouseDragged( MouseEvent e ){
+                int labelWidth = paletteLabel.getWidth();
+
+                int labelHeight = paletteLabel.getHeight();
+                int x = e.getX();
+                int y = e.getY();
+
+                if ( x >= labelWidth ) {
+                    x = labelWidth - 1;
+                }
+
+                if ( y >= labelHeight ) {
+                    y = labelHeight - 1;
+                }
+
+                if ( x < 0 ) {
+                    x = 0;
+                }
+
+                if ( y < 0 ) {
+                    y = 0;
+                }
+                
+                float[] hsb = new float[3];
+                palette.getHSBForLocation( x, y, hsb );
+                updateHSB( hsb[0], hsb[1], hsb[2] );
+            }
+        });
     }
 
-    protected void addPaletteListeners() {
-        paletteLabel.addMouseListener( new MouseAdapter(){
-                                       public void mousePressed( MouseEvent e ){
-                                       palette.getHSBForLocation( e.getX(), e.getY(), hsb );
-                                     updateHSB( hsb[0], hsb[1], hsb[2] );}});
-
-        paletteLabel.addMouseMotionListener( new MouseMotionAdapter(){
-                                             public void mouseDragged( MouseEvent e ){
-                                             int labelWidth = paletteLabel.getWidth();
-
-                                           int labelHeight = paletteLabel.getHeight();
-                                           int x = e.getX();
-                                           int y = e.getY();
-
-                                           if ( x >= labelWidth ){
-                                           x = labelWidth - 1;}
-
-                                           if ( y >= labelHeight ){
-                                           y = labelHeight - 1;}
-
-                                           if ( x < 0 ){
-                                           x = 0;}
-
-                                           if ( y < 0 ){
-                                           y = 0;}
-					   //System.out.println(palette);
-                                           palette.getHSBForLocation( x, y, hsb );
-                                           updateHSB( hsb[0], hsb[1], hsb[2] );}});
-    }
-
-    protected void addSliderListeners() {
-        slider.addChangeListener( new ChangeListener(){
-                                  public void stateChanged( ChangeEvent e ){
-                                  boolean modelIsAdjusting = slider.getModel().getValueIsAdjusting();
-                                if ( (modelIsAdjusting && isUpdatingOften) || !modelIsAdjusting ){ 
-
-                                int sliderValue = slider.getValue();
-                                int sliderRange = slider.getMaximum() + 1;
-                                float value = (float)sliderValue / (float)sliderRange;
-
-                                int x = paletteSelection.x;
-                                int y = paletteSelection.y;
-                                palette.getHSBForLocation( x, y, hsb );
-
-                                switch ( sliderType ){case HUE_SLIDER:
-                                updateHSB( value, hsb[1], hsb[2] );
-                                break;case SATURATION_SLIDER:
-                                updateHSB( hsb[0], value, hsb[2] );
-                                break;case BRIGHTNESS_SLIDER:
-                                updateHSB( hsb[0], hsb[1], value );
-                                break;}}}});
-    }
-
-    protected void updatePalette( float h, float s, float b ) {
+    private void updatePalette( float h, float s, float b ) {
         int x = 0;
         int y = 0;
 
@@ -152,17 +146,18 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel {
         }
 
         paletteSelection.setLocation( x, y );
-        repaintPaletteSelection();
+        paletteLabel.repaint(); 
     }
 
-    protected void updateSliderPalette( float h, float s, float b ) {
-        if ( sliderType != HUE_SLIDER && h != sliderPalette.getHue() ) {
+    private void updateSlider( float h, float s, float b ) {
+        // Update the slider palette if necessary.
+        // When the slider is the hue slider or the hue hasn't changed,
+        // the hue of the palette will not need to be updated.
+        if (sliderType != HUE_SLIDER && h != sliderPalette.getHue() ) {
             sliderPalette.setHue( h );
             sliderPalette.nextFrame( 0 );
         }
-    }
-
-    protected void updateSlider( float h, float s, float b ) {
+        
         float value = 0f;
 
         switch ( sliderType ) {
@@ -177,42 +172,46 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel {
             break;
         }
 
-        slider.setValue( Math.round(value * (slider.getMaximum()+1)) );
+        slider.setValue( Math.round(value * (slider.getMaximum())) );
     }
 
-    protected void updateHSBTextFields( float hue, float saturation, float brightness ) {
+    private void updateHSBTextFields( float hue, float saturation, float brightness ) {
         int h =  Math.round(hue * 359); 
         int s =  Math.round(saturation * 100); 
         int b =  Math.round(brightness * 100); 
 
-        if ( hField.getIntegerValue() != h ) {
-            hField.setText( String.valueOf( h ) );
+        if (((Integer)hField.getValue()).intValue() != h) {
+            hField.setValue(new Integer(h));
         }
-        if ( sField.getIntegerValue() != s ) {
-            sField.setText( String.valueOf( s ) );
+        if (((Integer)sField.getValue()).intValue() != s) {
+            sField.setValue(new Integer(s));
         }
-        if ( bField.getIntegerValue() != b ) {
-            bField.setText( String.valueOf( b ) );
+        if (((Integer)bField.getValue()).intValue() != b) {
+            bField.setValue(new Integer(b));
         }
     }
 
-    protected void updateRGBTextFields( Color color ) {
-	redField.setText(String.valueOf(color.getRed()));
-	greenField.setText(String.valueOf(color.getGreen()));
-	blueField.setText(String.valueOf(color.getBlue()));
+    /** 
+     * Updates the values of the RGB fields to reflect the new color change
+     */
+    private void updateRGBTextFields( Color color ) {
+        redField.setText(String.valueOf(color.getRed()));
+        greenField.setText(String.valueOf(color.getGreen()));
+        blueField.setText(String.valueOf(color.getBlue()));
     }
 
-    protected void updateHSB( float h, float s, float b ) {
+    /** 
+     * Main internal method of updating the ui controls and the color model.
+     */
+    private void updateHSB( float h, float s, float b ) {
         if ( !isAdjusting ) {
             isAdjusting = true;
 
             updatePalette( h, s, b );
-            updateSliderPalette( h, s, b );
             updateSlider( h, s, b );
             updateHSBTextFields( h, s, b );
 
-            Color color = new Color( palette.getRGBForLocation( paletteSelection.x, paletteSelection.y ) );
-
+            Color color = Color.getHSBColor(h, s, b);
             updateRGBTextFields( color );
 
             getColorSelectionModel().setSelectedColor( color );
@@ -220,217 +219,263 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel {
             isAdjusting = false;
         }
     }
-
+    
+    /**
+      * Invoked automatically when the model's state changes.
+      * It is also called by <code>installChooserPanel</code> to allow
+      * you to set up the initial state of your chooser.
+      * Override this method to update your <code>ChooserPanel</code>.
+      */
     public void updateChooser() {
         if ( !isAdjusting ) {
-            Color color = getColorFromModel();
-            Color.RGBtoHSB( color.getRed(), color.getGreen(), color.getBlue(), hsb );
-
+            float[] hsb = getHSBColorFromModel();
             updateHSB( hsb[0], hsb[1], hsb[2] ); 
         }
     }
-
-    protected void buildChooser() {
+    
+    /**
+     * Invoked when the panel is removed from the chooser.
+     */
+    public void uninstallChooserPanel(JColorChooser enclosingChooser) {
+    	super.uninstallChooserPanel(enclosingChooser);
+    }
+    
+    /** 
+     * Returns an float array containing the HSB values of the selected color from
+     * the ColorSelectionModel
+     */
+    private float[] getHSBColorFromModel()  {
         Color color = getColorFromModel();
+        float[] hsb = new float[3];
         Color.RGBtoHSB( color.getRed(), color.getGreen(), color.getBlue(), hsb );
-	
-	setLayout(new BorderLayout());
-	JComponent spp = buildSliderPalettePanel();
-	add(spp, BorderLayout.WEST);
-
-	JPanel controlHolder = new JPanel(new SmartGridLayout(1,3));
-	JComponent hsbControls = buildHSBControls();
-	controlHolder.add(hsbControls);
-
-	controlHolder.add(new JLabel(" ")); // spacer
-
-	JComponent rgbControls = buildRGBControls();
-	controlHolder.add(rgbControls);
-
-	controlHolder.setBorder(new EmptyBorder( 10, 5, 10, 5));
-	add( controlHolder, BorderLayout.CENTER);
-
-
+        
+        return hsb;
     }
 
-    protected JComponent buildRGBControls() {
+    /**
+     * Builds a new chooser panel.
+     */
+    protected void buildChooser() {
+        setLayout(new BorderLayout());
+        JComponent spp = buildSliderPalettePanel();
+        add(spp, BorderLayout.BEFORE_LINE_BEGINS);
+
+        JPanel controlHolder = new JPanel(new SmartGridLayout(1,3));
+        JComponent hsbControls = buildHSBControls();
+        controlHolder.add(hsbControls);
+
+        controlHolder.add(new JLabel(" ")); // spacer
+
+        JComponent rgbControls = buildRGBControls();
+        controlHolder.add(rgbControls);
+
+        controlHolder.setBorder(new EmptyBorder( 10, 5, 10, 5));
+        add( controlHolder, BorderLayout.CENTER);
+    }
+
+    /** 
+     * Creates the panel with the uneditable RGB field
+     */
+    private JComponent buildRGBControls() {
         JPanel panel = new JPanel(new SmartGridLayout(2,3));
 
-	Color color = getColorFromModel();
-        redField = new JTextField( String.valueOf(color.getRed()) );
-	redField.setEditable(false);
+        Color color = getColorFromModel();
+        redField = new JTextField( String.valueOf(color.getRed()), 3 );
+        redField.setEditable(false);
+        redField.setHorizontalAlignment( JTextField.RIGHT );
 
-        greenField = new JTextField(String.valueOf(color.getGreen()) );
-	greenField.setEditable(false);
+        greenField = new JTextField(String.valueOf(color.getGreen()), 3 );
+        greenField.setEditable(false);
+        greenField.setHorizontalAlignment( JTextField.RIGHT );
 
-        blueField = new JTextField( String.valueOf(color.getBlue()) );
-	blueField.setEditable(false);
+        blueField = new JTextField( String.valueOf(color.getBlue()), 3 );
+        blueField.setEditable(false);
+        blueField.setHorizontalAlignment( JTextField.RIGHT );
 
-	String redString = UIManager.getString("ColorChooser.hsbRedText");
-	String greenString = UIManager.getString("ColorChooser.hsbGreenText");
-	String blueString = UIManager.getString("ColorChooser.hsbBlueText");
+        String redString = UIManager.getString("ColorChooser.hsbRedText");
+        String greenString = UIManager.getString("ColorChooser.hsbGreenText");
+        String blueString = UIManager.getString("ColorChooser.hsbBlueText");
 
-	panel.add( new JLabel(redString) );
-	panel.add( redField );
-	panel.add( new JLabel(greenString) );
-	panel.add( greenField );
-	panel.add( new JLabel(blueString) );
-	panel.add( blueField );
-	
-	return panel;		  
+        panel.add( new JLabel(redString) );
+        panel.add( redField );
+        panel.add( new JLabel(greenString) );
+        panel.add( greenField );
+        panel.add( new JLabel(blueString) );
+        panel.add( blueField );
+        
+        return panel;                  
     }
 
-    protected JComponent buildHSBControls() {
+    /** 
+     * Creates the panel with the editable HSB fields and the radio buttons.
+     */
+    private JComponent buildHSBControls() {
 
-	String hueString = UIManager.getString("ColorChooser.hsbHueText");
-	String saturationString = UIManager.getString("ColorChooser.hsbSaturationText");
-	String brightnessString = UIManager.getString("ColorChooser.hsbBrightnessText");
+        String hueString = UIManager.getString("ColorChooser.hsbHueText");
+        String saturationString = UIManager.getString("ColorChooser.hsbSaturationText");
+        String brightnessString = UIManager.getString("ColorChooser.hsbBrightnessText");
+
+        RadioButtonHandler handler = new RadioButtonHandler();
+
+        hRadio = new JRadioButton(hueString);
+        hRadio.addActionListener(handler);
+        hRadio.setSelected(true);
+
+        sRadio = new JRadioButton(saturationString);
+        sRadio.addActionListener(handler);
+
+        bRadio = new JRadioButton(brightnessString);
+        bRadio.addActionListener(handler);
+
+        ButtonGroup group = new ButtonGroup();
+        group.add(hRadio);
+        group.add(sRadio);
+        group.add(bRadio);
+
+        float[] hsb = getHSBColorFromModel();
+        
+        hField = new JSpinner(new SpinnerNumberModel((int)(hsb[0] * 359), 0, 359, 1));
+        sField = new JSpinner(new SpinnerNumberModel((int)(hsb[1] * 100), 0, 100, 1));
+        bField = new JSpinner(new SpinnerNumberModel((int)(hsb[2] * 100), 0, 100, 1));
+
+        hField.addChangeListener(this);
+        sField.addChangeListener(this);
+        bField.addChangeListener(this);
 
         JPanel panel = new JPanel( new SmartGridLayout(2, 3) );
-	
-        hField = new JIntegerTextField( 0, 359, (int)(hsb[0] * 359) );
-        sField = new JIntegerTextField( 0, 100, (int)(hsb[1] * 100 ) );
-        bField = new JIntegerTextField( 0, 100, (int)(hsb[2] * 100 ) );
+        
+        panel.add(hRadio);
+        panel.add(hField);
+        panel.add(sRadio);
+        panel.add(sField);
+        panel.add(bRadio);
+        panel.add(bField);
 
-	ButtonGroup group = new ButtonGroup();
-	hRadio = new JRadioButton(hueString);
-	group.add(hRadio);
-	hRadio.addActionListener( new ActionListener() {
-	  public void actionPerformed (ActionEvent e) {
-	      setHueMode();
-	  }} );
+        return panel;
+    }
+    
+    /** 
+     * Handler for the radio button classes.
+     */
+    private class RadioButtonHandler implements ActionListener  {
+        public void actionPerformed(ActionEvent evt)  {
+            Object obj = evt.getSource();
+        
+            if (obj instanceof JRadioButton)  {
+                JRadioButton button = (JRadioButton)obj;
+                if (button == hRadio)
+                    setHueMode();
+            
+                if (button == sRadio)
+                    setSaturationMode();
 
-	sRadio = new JRadioButton(saturationString);
-	group.add(sRadio);
-
-	sRadio.addActionListener( new ActionListener() {
-	  public void actionPerformed (ActionEvent e) {
-	      setSaturationMode();
-	  }} );
-
-	bRadio = new JRadioButton(brightnessString);
-	group.add(bRadio);
-
-	bRadio.addActionListener( new ActionListener() {
-	  public void actionPerformed (ActionEvent e) {
-	      setBrightnessMode();
-	  }} );
-
-	hRadio.setSelected(true);
-        NumberListener fieldListener = new NumberListener();
-        hField.getDocument().addDocumentListener( fieldListener );
-        sField.getDocument().addDocumentListener( fieldListener );
-        bField.getDocument().addDocumentListener( fieldListener );
-
-	panel.add(hRadio);
-	panel.add(hField);
-	panel.add(sRadio);
-	panel.add(sField);
-	panel.add(bRadio);
-	panel.add(bField);
-
-	return panel;
-
+                if (button == bRadio)
+                    setBrightnessMode();
+                
+                updateChooser();
+                repaint();
+            }
+        }
     }
 
-    protected void setHueMode() {
-        sliderType = HUE_SLIDER;
-        slider.setInverted( true );
-	slider.setMaximum( MAX_HUE_VALUE );
-        palette = new SaturationBrightnessImage( PALETTE_DIMENSION, PALETTE_DIMENSION, hsb[ 0 ] );
-        sliderPalette = new HueImage( 16, PALETTE_DIMENSION );
 
+    // Callback methods for radio button selection.
+    
+    private void setHueMode() {
+        
+        float[] hsb = getHSBColorFromModel();
 
-	paletteImage.flush();
-	sliderImage.flush();
+        if (satbrightImage == null && hueImage == null)  {
+            satbrightImage = new SaturationBrightnessImage(PALETTE_DIMENSION, PALETTE_DIMENSION, hsb[0]);
+            hueImage = new HueImage( 16, PALETTE_DIMENSION);
+        } else {
+            satbrightImage.setHue(hsb[0]);
+        }
+        
+        setMode(HUE_SLIDER, MAX_HUE_VALUE, true, satbrightImage, hueImage);
+    }
+
+    private void setSaturationMode() {
+        float[] hsb = getHSBColorFromModel();
+        
+        if (huebrightImage == null && satImage == null)  {
+            huebrightImage = new HueBrightnessImage( PALETTE_DIMENSION, PALETTE_DIMENSION, hsb[0], hsb[1]);
+            satImage = new SaturationImage(16, PALETTE_DIMENSION, hsb[0]);
+        } else {
+        	huebrightImage.setHue(hsb[0]);
+        	huebrightImage.setBrightness(hsb[1]);
+            satImage.setHue(hsb[0]);
+        }
+
+        setMode(SATURATION_SLIDER, MAX_SATURATION_VALUE, false, huebrightImage, satImage);
+    }
+    
+    private void setBrightnessMode() {
+        float[] hsb = getHSBColorFromModel();
+        
+        if (huesatImage == null && brightImage == null)  {
+        	huesatImage = new HueSaturationImage(PALETTE_DIMENSION, PALETTE_DIMENSION, hsb[0], hsb[2]);
+            brightImage = new BrightnessImage( 16, PALETTE_DIMENSION, hsb[0]);
+        } else {
+        	huesatImage.setHue(hsb[0]);
+            huesatImage.setBrightness(hsb[2]);
+            brightImage.setHue(hsb[0]);
+        }
+        
+        setMode(BRIGHTNESS_SLIDER, MAX_BRIGHTNESS_VALUE, false, huesatImage, brightImage);
+    }
+    
+    /** 
+     * Reconfigures the palette and slider to reflect the current mode.
+     */
+    private void setMode(int type, int maximum, boolean inverted, 
+                            AbstractHSBImage pImage, AbstractHSBImage sImage)  {
+        isAdjusting = true; // Ensure no events propagate from changing slider value.
+
+        sliderType = type;
+        slider.setInverted(inverted);
+        slider.setMaximum(maximum);
+         
+        // Set the palette square.
+        palette = pImage;
+        if (paletteImage != null)  {
+            paletteImage.flush();
+        }
         paletteImage = Toolkit.getDefaultToolkit().createImage( palette );
-        sliderImage = Toolkit.getDefaultToolkit().createImage( sliderPalette );
         paletteLabel.setIcon( new ImageIcon( paletteImage ) );
+            
+        // Set the slider image.
+        sliderPalette = sImage;
+        if (sliderImage != null)  {
+            sliderImage.flush();
+        }
+        sliderImage = Toolkit.getDefaultToolkit().createImage( sliderPalette );
         sliderPaletteLabel.setIcon( new ImageIcon( sliderImage ) );
 
-
-	updateHSB(hsb[0], hsb[1], hsb[2]);
-
-	repaint();
-
+        isAdjusting = false;
+        
     }
-
-    protected void setSaturationMode() {
-        sliderType = SATURATION_SLIDER;
-        slider.setInverted( false );
-	slider.setMaximum( MAX_SATURATION_VALUE );
-        palette  = new HueBrightnessImage( PALETTE_DIMENSION, PALETTE_DIMENSION, hsb[0], hsb[1] );
-	sliderPalette = new SaturationImage( 16, PALETTE_DIMENSION, hsb[0] );
-
-
-	paletteImage.flush();
-	sliderImage.flush();
-        paletteImage = Toolkit.getDefaultToolkit().createImage( palette );
-        sliderImage = Toolkit.getDefaultToolkit().createImage( sliderPalette );
-        paletteLabel.setIcon( new ImageIcon( paletteImage ) );
-        sliderPaletteLabel.setIcon( new ImageIcon( sliderImage ) );
-
-	updateHSB(hsb[0], hsb[1], hsb[2]);
-
-
-	repaint();
-
-    }
-
-    protected void setBrightnessMode() {
-        sliderType = BRIGHTNESS_SLIDER;
-        slider.setInverted( false );
-	slider.setMaximum( MAX_BRIGHTNESS_VALUE );
-        palette =  new HueSaturationImage( PALETTE_DIMENSION, PALETTE_DIMENSION, hsb[0], hsb[2] );
-	sliderPalette = new BrightnessImage( 16, PALETTE_DIMENSION, hsb[0] );
-
-	paletteImage.flush();
-	sliderImage.flush();
-        paletteImage = Toolkit.getDefaultToolkit().createImage( palette );
-        sliderImage = Toolkit.getDefaultToolkit().createImage( sliderPalette );
-        paletteLabel.setIcon( new ImageIcon( paletteImage ) );
-        sliderPaletteLabel.setIcon( new ImageIcon( sliderImage ) );
-
-	updateHSB(hsb[0], hsb[1], hsb[2]);
-
-
-	repaint();
-
-    }
-
+    
     protected JComponent buildSliderPalettePanel() {
 
-        JPanel panel = new JPanel();
-	 palette = new SaturationBrightnessImage( PALETTE_DIMENSION, PALETTE_DIMENSION, hsb[ 0 ] );
-	 // palette = new HueBrightnessImage( PALETTE_DIMENSION, PALETTE_DIMENSION, hsb[0], hsb[1] );
-        //palette = new HueSaturationImage( PALETTE_DIMENSION, PALETTE_DIMENSION, hsb[0], hsb[2] );
-        sliderPalette = new HueImage( 16, PALETTE_DIMENSION );
-        //sliderPalette = new SaturationImage( 16, PALETTE_DIMENSION, hsb[0] );
-        //sliderPalette = new BrightnessImage( 16, PALETTE_DIMENSION, hsb[0] );
-
         // This slider has to have a minimum of 0.  A lot of math in this file is simplified due to this. 
-        slider = new JSlider( JSlider.VERTICAL, 0, MAX_HUE_VALUE, 0 );
-        slider.setPaintTrack( false );
-        Dimension prefSize = slider.getPreferredSize();
-        slider.setPreferredSize( new Dimension( prefSize.width, PALETTE_DIMENSION + 15 ) );
-        slider.setInverted( true );
-        addSliderListeners();
+        slider = new JSlider(JSlider.VERTICAL, 0, MAX_HUE_VALUE, 0);
+        slider.setPaintTrack(false);
+        slider.setPreferredSize(new Dimension(slider.getPreferredSize().width, PALETTE_DIMENSION + 15));
+        slider.addChangeListener(this);
 
         paletteLabel = createPaletteLabel();
-        paletteImage = Toolkit.getDefaultToolkit().createImage( palette );
-        paletteLabel.setIcon( new ImageIcon( paletteImage ) );
         addPaletteListeners();
-
+        sliderPaletteLabel = new JLabel();
+        
+        JPanel panel = new JPanel();
         panel.add( paletteLabel );
         panel.add( slider );
-
-        sliderPaletteLabel = new JLabel();
-        sliderImage = Toolkit.getDefaultToolkit().createImage( sliderPalette );
-        sliderPaletteLabel.setIcon( new ImageIcon( sliderImage ) );
-
         panel.add( sliderPaletteLabel );
 
-	return panel;
+        setHueMode();
+
+        return panel;
     }
 
     protected JLabel createPaletteLabel() {
@@ -447,6 +492,57 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel {
         return UIManager.getString("ColorChooser.hsbNameText");
     }
 
+    /**
+     * Provides a hint to the look and feel as to the
+     * <code>KeyEvent.VK</code> constant that can be used as a mnemonic to
+     * access the panel. A return value <= 0 indicates there is no mnemonic.
+     * <p>
+     * The return value here is a hint, it is ultimately up to the look
+     * and feel to honor the return value in some meaningful way.
+     * <p>
+     * This implementation looks up the value from the default
+     * <code>ColorChooser.hsbMnemonic</code>, or if it 
+     * isn't available (or not an <code>Integer</code>) returns -1.
+     * The lookup for the default is done through the <code>UIManager</code>:
+     * <code>UIManager.get("ColorChooser.rgbMnemonic");</code>.
+     *
+     * @return KeyEvent.VK constant identifying the mnemonic; <= 0 for no
+     *         mnemonic
+     * @see #getDisplayedMnemonicIndex
+     * @since 1.4
+     */
+    public int getMnemonic() {
+        return getInt("ColorChooser.hsbMnemonic", -1);
+    }
+
+    /**
+     * Provides a hint to the look and feel as to the index of the character in
+     * <code>getDisplayName</code> that should be visually identified as the
+     * mnemonic. The look and feel should only use this if
+     * <code>getMnemonic</code> returns a value > 0.
+     * <p>
+     * The return value here is a hint, it is ultimately up to the look
+     * and feel to honor the return value in some meaningful way. For example,
+     * a look and feel may wish to render each
+     * <code>AbstractColorChooserPanel</code> in a <code>JTabbedPane</code>,
+     * and further use this return value to underline a character in
+     * the <code>getDisplayName</code>.
+     * <p>
+     * This implementation looks up the value from the default
+     * <code>ColorChooser.rgbDisplayedMnemonicIndex</code>, or if it 
+     * isn't available (or not an <code>Integer</code>) returns -1.
+     * The lookup for the default is done through the <code>UIManager</code>:
+     * <code>UIManager.get("ColorChooser.hsbDisplayedMnemonicIndex");</code>.
+     *
+     * @return Character index to render mnemonic for; -1 to provide no
+     *                   visual identifier for this panel.
+     * @see #getMnemonic
+     * @since 1.4
+     */
+    public int getDisplayedMnemonicIndex() {
+        return getInt("ColorChooser.hsbDisplayedMnemonicIndex", -1);
+    }
+
     public Icon getSmallDisplayIcon() {
         return null;
     }
@@ -454,25 +550,10 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel {
     public Icon getLargeDisplayIcon() {
         return null;
     }
-
-    class NumberListener implements DocumentListener {
-        public void insertUpdate(DocumentEvent e) {updatePanel(e);}
-        public void removeUpdate(DocumentEvent e) {updatePanel(e);}
-        public void changedUpdate(DocumentEvent e) {}
-
-        private void updatePanel(DocumentEvent e) {
-            float hue = (float)hField.getIntegerValue() / 359f;
-            float saturation = (float)sField.getIntegerValue() / 100f;
-            float brightness = (float)bField.getIntegerValue() / 100f;
-
-            updateHSB( hue, saturation, brightness );
-        }
-    }
-
-
-
-
-
+    
+    /** 
+     * Base class for the slider and palette images.
+     */
     abstract class AbstractHSBImage extends SyntheticImage {
         protected float h = .0f;
         protected float s = .0f;
@@ -483,6 +564,8 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel {
         protected AbstractHSBImage( int width, int height, float h, float s, float b ) {
             super( width, height );
             setHSB( h, s, b );
+	    DefaultHSBChooserPanel.this.
+		addHierarchyListener(new ThreadStopper());
         }
 
         public void setHSB( float h, float s, float b ) {
@@ -524,103 +607,74 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel {
             notifyAll();
         }
 
-        public int getRGBForMouseEvent( MouseEvent e ) {
-            return getRGBForLocation( e.getX(), e.getY() );
-        }
-
+	/** 
+	 * This method is where the performance bottle neck exists. Perhaps as
+         * an optimization, getRGBForLocation can be overridden for all
+         * the subclasses. 
+	 */
         public int getRGBForLocation( int x, int y ) {
             getHSBForLocation( x, y, hsb );
-            return HSBtoRGB( hsb[0], hsb[1], hsb[2] );
+            return Color.HSBtoRGB( hsb[0], hsb[1], hsb[2] );
         }
 
         public abstract void getHSBForLocation( int x, int y, float[] hsbArray ); 
 
         public synchronized void addConsumer(ImageConsumer ic){
-	    isDirty = true;
-	    super.addConsumer( ic );
-	}
-      
+            isDirty = true;
+            super.addConsumer( ic );
+        }
+        
+        /** 
+         * Overriden to unblock the thread.
+         */
+        public synchronized void removeConsumer(ImageConsumer ic)  {
+	    super.removeConsumer(ic);
+            isDirty = true;
+            notifyAll();
+        }
+        
+        /** 
+         * Overriden method from SyntheticImage
+         */
         protected void computeRow( int y, int[] row ) {
-
             if ( y == 0 ) {
                 synchronized ( this ) {
                     try {
                         while ( !isDirty ) {
-		          wait();
-
+                            wait();
                         }
-                    } catch ( Exception e ) {System.out.println( e );}
-
-
- 		    isDirty = false;
+                    } catch ( Exception e ) {
+                    	System.out.println( e );
+                    }
+                    isDirty = false;
                 }
-            }  
-
-
+            }
             for ( int i = 0; i < row.length; ++i ) {
                 row[i] = getRGBForLocation( i, y );
             }  
-
-
         }
 
-        // An optimized version of Color.HSBtoRGB
-        protected int HSBtoRGB( float hue, float saturation, float brightness) {
-            int r = 0, g = 0, b = 0;
-            if (saturation == 0) {
-                r = g = b = (int) (brightness * 255);
-            } else {
-                double scaledBrightness = brightness*255.0;
-                int iScaledBrightness = (int) scaledBrightness;
-                double h = hue>=0 ? (hue - (int)hue) : (hue - Math.floor(hue));
-                h *= 6.0;
-                int ih = (int) h;  // floor not necessary because h>=0
-                double f = h - ih;
-                int p = (int)(scaledBrightness * (1.0 - saturation));
-                int q = (int)(scaledBrightness * (1.0 - saturation * f));
-                int t = (int)(scaledBrightness * (1.0 - (saturation * (1.0 - f))));
-                switch (ih) {
-                case 0:
-                    r = iScaledBrightness;
-                    g = t;
-                    b = p;
-                    break;
-                case 1:
-                    r = q;
-                    g = iScaledBrightness;
-                    b = p;
-                    break;
-                case 2:
-                    r = p;
-                    g = iScaledBrightness;
-                    b = t;
-                    break;
-                case 3:
-                    r = p;
-                    g = q;
-                    b = iScaledBrightness;
-                    break;
-                case 4:
-                    r = t;
-                    g = p;
-                    b = iScaledBrightness;
-                    break;
-                case 5:
-                    r = iScaledBrightness;
-                    g = p;
-                    b = q;
-                    break;
-                }
-            }
-            return 0xff000000 | (r << 16) | (g << 8) | (b << 0);
-        }
+	class ThreadStopper implements HierarchyListener { 
+	    public void hierarchyChanged(HierarchyEvent ev) {
+		if ((ev.getChangeFlags() | HierarchyEvent.SHOWING_CHANGED) != 0){
+		    if (DefaultHSBChooserPanel.this.isShowing()) {
+			setIsUseful(true);
+			isDirty = true;
+			restartProduction();
+		    } else {
+			setIsUseful(false);
+			isDirty = true;
+			synchronized (AbstractHSBImage.this) {
+			    AbstractHSBImage.this.notifyAll();
+			}
+		    }
+		}
+	    }
+	}
     }
+    
 
-
-
-
-
-  // Square for H
+    // Square for H
     class SaturationBrightnessImage extends AbstractHSBImage {
         public SaturationBrightnessImage( int width, int height, float hue ) {
             super( width, height, hue, 1.0f, 1.0f );
@@ -635,7 +689,7 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel {
         }
     }
 
-  // Square for S
+    // Square for S
     class HueBrightnessImage extends AbstractHSBImage {
         public HueBrightnessImage( int width, int height, float h, float s ) {
             super( width, height, h, s, 1.0f );
@@ -650,7 +704,7 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel {
         }
     }
 
-  // Square for B
+    // Square for B
     class HueSaturationImage extends AbstractHSBImage {
         public HueSaturationImage( int width, int height, float h, float b ) {
             super( width, height, h, 1.0f, b );
@@ -665,7 +719,7 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel {
         }
     }
 
-  // Slider for B
+    // Slider for B
     class BrightnessImage extends AbstractHSBImage {
         protected int cachedY = -1;
         protected int cachedColor = 0;
@@ -680,7 +734,6 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel {
                 cachedY = y;
                 cachedColor = super.getRGBForLocation( x, y );
             }
-
             return cachedColor;
         }
 
@@ -692,7 +745,7 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel {
         }
     }
 
-  // Slider for S
+    // Slider for S
     class SaturationImage extends AbstractHSBImage {
         protected int cachedY = -1;
         protected int cachedColor = 0;
@@ -719,7 +772,7 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel {
         }
     }
 
-  // Slider for H
+    // Slider for H
     class HueImage extends AbstractHSBImage {
         public HueImage( int width, int height ) {
             super( width, height, 0f, 1.0f, 1.0f );
@@ -734,6 +787,38 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel {
             hsbArray[0] = y * step;
             hsbArray[1] = s;
             hsbArray[2] = b;
+        }
+    }
+    
+    public void stateChanged(ChangeEvent e) {
+        if (e.getSource() == slider) {
+            boolean modelIsAdjusting = slider.getModel().getValueIsAdjusting();
+
+            if (!modelIsAdjusting && !isAdjusting) {
+                int sliderValue = slider.getValue();
+                int sliderRange = slider.getMaximum();
+                float value = (float)sliderValue / (float)sliderRange;
+
+                float[] hsb = getHSBColorFromModel();
+
+                switch ( sliderType ){
+                    case HUE_SLIDER:
+                        updateHSB(value, hsb[1], hsb[2]);
+                        break;
+                    case SATURATION_SLIDER:
+                        updateHSB(hsb[0], value, hsb[2]);
+                        break;
+                    case BRIGHTNESS_SLIDER:
+                        updateHSB(hsb[0], hsb[1], value);
+                        break;
+                }
+            }
+        } else if (e.getSource() instanceof JSpinner) {
+            float hue = ((Integer)hField.getValue()).floatValue() / 359f;
+            float saturation = ((Integer)sField.getValue()).floatValue() / 100f;
+            float brightness = ((Integer)bField.getValue()).floatValue() / 100f;
+
+            updateHSB(hue, saturation, brightness);
         }
     }
 

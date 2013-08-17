@@ -1,4 +1,6 @@
 /*
+ * @(#)NamingSecurityException.java	1.6 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ package javax.naming;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.5 02/02/06
+  * @version 1.6 01/12/03
   * @since 1.3
   */
 
@@ -39,7 +41,7 @@ public abstract class NamingSecurityException extends NamingException {
 
     /**
       * Constructs a new instance of NamingSecurityException.
-      * All fields are initiailized to null.
+      * All fields are initialized to null.
       */
     public NamingSecurityException() {
 	super();

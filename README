@@ -1,7 +1,7 @@
                                    README
 
                       Java(TM) 2 SDK, Standard Edition
-                                Version 1.3.1
+                               Version 1.4.0
 
      For a more extensive HTML version of this file, see README.html.
 
@@ -11,6 +11,7 @@ Contents
    * Release Notes
    * Bug Reports and Feedback
    * Java 2 SDK Documentation
+   * Redistribution
    * Web Pages
 
 
@@ -28,20 +29,12 @@ Introduction
      provide a graphical user interface.
 
 
-Installation Instructions
-
-      For installation instructions and system requirements for this 
-      release, see 
-
-      http://java.sun.com/j2se/1.3/install.html 
-
-
 Release Notes
 
       See the Release Notes on the Java Software web site for additional 
       information pertaining to this release. 
  
-      http://java.sun.com/j2se/1.3/relnotes.html
+      http://java.sun.com/j2se/1.4/relnotes.html
 
       The on-line release notes will be updated as needed, so you should 
       check it occasionally for the latest information. 
@@ -71,13 +64,120 @@ Java 2 SDK Documentation
      feature descriptions, developer guides, tool reference pages, demos, 
      and links to related information. It is located at
 
-     http://java.sun.com/j2se/1.3/docs/
+     http://java.sun.com/j2se/1.4/docs/
 
      The Java 2 SDK documentation is also available in a download bundle 
      which you can install locally on your machine. See the 
      Java 2 SDK download page: 
      
-     http://java.sun.com/j2se/1.3/docs.html
+     http://java.sun.com/j2se/1.4/
+
+
+Redistribution
+
+      The term "vendors" used here refers to licensees, developers, 
+      and independent software vendors (ISVs) who license and 
+      distribute the Java 2 Runtime Environment with their programs. 
+      Vendors must follow the terms of the Java 2 SDK, Standard 
+      Edition, Binary Code License agreement. 
+      Required vs. Optional Files
+
+      The files that make up the Java 2 SDK, Standard Edition, are
+      divided into two categories: required and optional. Optional 
+      files may be excluded from redistributions of the Java 2 SDK 
+      at the vendor's discretion. The following section contains a 
+      list of the files and directories that may optionally be 
+      omitted from redistributions of the Java 2 SDK. All files not 
+      in these lists of optional files must be included in 
+      redistributions of the Java 2 SDK. 
+
+      Optional Files and Directories
+
+      The following files may be optionally excluded from 
+      redistributions:
+
+      jre/lib/charsets.jar 
+            Character conversion classes 
+      jre/lib/ext/ 
+            Directory containing extension jar files 
+      bin/rmid and jre/bin/rmid 
+            Java RMI Activation System Daemon 
+      bin/rmiregistry and jre/bin/rmiregistry 
+            Java Remote Object Registry 
+      bin/tnameserv and jre/bin/tnameserv 
+            Java IDL Name Server 
+      bin/keytool and jre/bin/keytool 
+            Key and Certificate Management Tool 
+      bin/policytool and jre/bin/policytool 
+            Policy File Creation and Management Tool 
+      bin/orbd and jre/bin/orbd 
+            Object Request Broker Daemon 
+      bin/servertool and jre/bin/servertool 
+            Java IDL Server Tool 
+      src.zip 
+            Archive of source files 
+
+      In addition, the Java Web Start product may be excluded from
+      redistributions. The Java Web Start product is contained in a 
+      file named javaws-1_0_1_02-solsparc-int.zip,
+      javaws-1_0_1_02-solx86-int.zip,
+      javaws-1_0_1_02-linux-int.zip, or
+      javaws-1_0_1_02-win-int.exe, depending on the platform. 
+
+
+      Unlimited Strength Java Cryptography Extension
+
+      Due to import control restrictions for some countries, the 
+      Java Cryptography Extension (JCE) policy files shipped with 
+      the Java 2 SDK, Standard Edition and the Java 2 Runtime 
+      Environment allow strong but limited cryptography to be 
+      used.  These files are located at
+
+      <java-home>/lib/security/local_policy.jar
+      <java-home>/lib/security/US_export_policy.jar
+
+      where <java-home> is the jre directory of the Java 2 
+      SDK or the top-level directory of the Java 2 Runtime 
+      Environment.
+
+      An unlimited strength version of these files indicating 
+      no restrictions on cryptographic strengths is available 
+      on the Java 2 SDK web site for those living in eligible 
+      countries.  Those living in eligible countries may download 
+      the unlimited strength version and replace the strong 
+      cryptography jar files with the unlimited strength files.
+
+
+      Endorsed Standards Override Mechanism
+
+      An endorsed standard is a Java API defined through a standards
+      process other than the Java Community Process(SM) (JCP(SM)).
+      Because endorsed standards are defined outside the JCP, it is
+      anticipated that such standards will be revised between 
+      releases of the Java 2 Platform. In order to take advantage of 
+      new revisions to endorsed standards, developers and software
+      vendors may use the Endorsed Standards Override Mechanism to
+      provide newer versions of an endorsed standard than those
+      included in the Java 2 Platform as released by Sun Microsystems.
+
+      For more information on the Endorsed Standards Override
+      Mechanism, including the list of platform packages that it may 
+      be used to override, see 
+
+            http://java.sun.com/j2se/1.4/docs/guide/standards/ 
+
+      Classes in the packages listed on that web page may be replaced
+      only by classes implementing a more recent version of the API 
+      as defined by the appropriate standards body. 
+
+      In addition to the packages listed in the document at the above
+      URL, which are part of the Java 2 Platform, Standard Edition
+      (J2SE(TM)) specification, redistributors of Sun's J2SE Reference
+      Implementation are allowed to override classes whose sole
+      purpose is to implement the functionality provided by public 
+      APIs defined in these Endorsed Standards packages. These would
+      include, for example, subsidiary packages in the org.w3c.dom
+      namespace whose purpose is to implement the org.w3c.dom APIs. 
 
 
 Sun Java Web Pages
@@ -88,8 +188,6 @@ Sun Java Web Pages
      http://java.sun.com/
           The Java Software web site, with the latest information on
           Java technology, product information, news, and features.
-     http://java.sun.com/j2se/1.3/
-          Java 2 SDK Web Site
      http://java.sun.com/docs
           Java Platform Documentation provides access to white papers,
           the Java Tutorial and other documents.
@@ -103,8 +201,8 @@ Sun Java Web Pages
 
 ------------------------------------------------------------------------
 The Java 2 SDK, Standard Edition, is a product of Sun Microsystems(TM), 
-Inc.  This product includes code licensed from RSA Data Security.
+Inc.  This product includes code licensed from RSA Security.
 
-Copyright © 1997-2007, Sun Microsystems, Inc.
-4150 Network Circle, Santa Clara, California 95054 USA.
-All rights reserved.
+Copyright  2002 Sun Microsystems, Inc., 901 San Antonio Road, Palo
+Alto, California 94303, U.S.A. All rights reserved.
+

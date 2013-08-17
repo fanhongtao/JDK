@@ -1,4 +1,6 @@
 /*
+ * @(#)DefaultMutableTreeNode.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -53,14 +55,16 @@ import java.util.*;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @see MutableTreeNode
  *
- * @version 1.16 02/06/02
+ * @version 1.18 12/03/01
  * @author Rob Davis
  */
 public class DefaultMutableTreeNode extends Object implements Cloneable,
@@ -702,8 +706,9 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 
     /**
      * Returns the node that precedes this node in a preorder traversal of
-     * this node's tree.  Returns null if this node is the first node of the
-     * traveral -- the root of the tree.  This is an inefficient way to
+     * this node's tree.  Returns <code>null</code> if this node is the
+     * first node of the traversal -- the root of the tree. 
+     * This is an inefficient way to
      * traverse the entire tree; use an enumeration, instead.
      *
      * @see	#preorderEnumeration

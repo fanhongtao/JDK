@@ -1,4 +1,6 @@
 /*
+ * @(#)SingleSelectionModel.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,7 +12,7 @@ import javax.swing.event.*;
 /**
  * A model that supports at most one indexed selection.
  *
- * @version %I% %G%
+ * @version 1.16 12/03/01
  * @author Dave Moore
  */
 public interface SingleSelectionModel {

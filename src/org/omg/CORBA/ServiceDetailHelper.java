@@ -1,15 +1,20 @@
 /*
+ * @(#)ServiceDetailHelper.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+ 
+ /**
+ * The Helper for <tt>ServiceDetail</tt>.  For more information on 
+ * Helper files, see <a href="doc-files/generatedfiles.html#helper">
+ * "Generated Files: Helper Files"</a>.<P>
  */
 
 package org.omg.CORBA;
 
 
-public class ServiceDetailHelper {
-
-    // It is useless to have instances of this class
-    private ServiceDetailHelper() { }
+public abstract class ServiceDetailHelper {
 
     public static void write(org.omg.CORBA.portable.OutputStream out, org.omg.CORBA.ServiceDetail that) {
 	out.write_ulong(that.service_detail_type);

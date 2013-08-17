@@ -1,4 +1,6 @@
 /*
+ * @(#)ComboBoxUI.java	1.17 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,7 +12,7 @@ import javax.swing.JComboBox;
 /**
  * Pluggable look and feel interface for JComboBox.
  *
- * @version 1.16 02/06/02
+ * @version 1.17 12/03/01
  * @author Arnaud Weber
  * @author Tom Santos
  */

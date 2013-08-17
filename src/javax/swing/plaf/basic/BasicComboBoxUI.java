@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicComboBoxUI.java	1.149 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,40 +18,44 @@ import javax.swing.text.*;
 import javax.swing.event.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import sun.awt.AppContext;
 
 /**
- * Basic UI for JComboBox.  This class adds and removes components from the
- * JComboBox.  The arrow button and the editor are managed by this object.
- * The popup menu is handled by BasicComboPopup.  BasicComboPopup supplies
- * this class with a MouseListener, MouseMotionListener, and a KeyListener.
- * These listeners are added to the arrow button and the JComboBox by default.
- * Subclasses of BasicComboBoxUI should attach the listeners to whichever
- * components they like.
+ * Basic UI implementation for JComboBox. 
+ * <p>
+ * The combo box is a compound component which means that it is an agregate of
+ * many simpler components. This class creates and manages the listeners
+ * on the combo box and the combo box model. These listeners update the user 
+ * interface in response to changes in the properties and state of the combo box.
+ * <p>
+ * All event handling is handled by listener classes created with the 
+ * <code>createxxxListener()</code> methods and internal classes.
+ * You can change the behavior of this class by overriding the
+ * <code>createxxxListener()</code> methods and supplying your own
+ * event listeners or subclassing from the ones supplied in this class.
+ * <p>
+ * For adding specific actions, 
+ * overide <code>installKeyboardActions</code> to add actions in response to
+ * KeyStroke bindings. See the article <a href="http://java.sun.com/products/jfc/tsc/special_report/kestrel/keybindings.html">Keyboard Bindings in Swing</a>
+ * at <a href="http://java.sun.com/products/jfc/tsc"><em>The Swing Connection</em></a>.
  *
- * installListeners() is where listeners get added to the JComboBox (and model).
- * configureEditor() is where listeners get added to the editor.
- * configureArrowButton() is where listeners get added to the arrow button.
- * 
- * Inner classes for handling events:
- *    FocusHandler
- *    ItemHandler
- *    ListDataHandler
- *    PropertyChangeHandler
- *    KeyHandler
- *
- *
- * @version 1.103 07/10/99
+ * @version 1.149 12/03/01
  * @author Arnaud Weber
  * @author Tom Santos
+ * @author Mark Davidson
  */
 public class BasicComboBoxUI extends ComboBoxUI {
     protected JComboBox comboBox;
+    /**
+     * This protected field is implementation specific. Do not access directly
+     * or override. 
+     */
     protected boolean   hasFocus = false;
-    private boolean lightNav = false;
 
-    private static final String LIGHTWEIGHT_KEYBOARD_NAVIGATION = "JComboBox.lightweightKeyboardNavigation";
-    private static final String LIGHTWEIGHT_KEYBOARD_NAVIGATION_ON = "Lightweight";
-    private static final String LIGHTWEIGHT_KEYBOARD_NAVIGATION_OFF = "Heavyweight";
+    // Control the selection behavior of the JComboBox when it is used
+    // in the JTable DefaultCellEditor. 
+    private boolean isTableCellEditor = false;
+    private static final String IS_TABLE_CELL_EDITOR = "JComboBox.isTableCellEditor";
 
     // This list is for drawing the current item in the combo box.
     protected JList   listBox;
@@ -68,20 +74,50 @@ public class BasicComboBoxUI extends ComboBoxUI {
     protected JButton   arrowButton;
 
     // Listeners that are attached to the JComboBox
+    /**
+     * This protected field is implementation specific. Do not access directly
+     * or override. Override the listener construction method instead.
+     *
+     * @see #createKeyListener
+     */
     protected KeyListener keyListener;
+    /**
+     * This protected field is implementation specific. Do not access directly
+     * or override. Override the listener construction method instead.
+     *
+     * @see #createFocusListener
+     */
     protected FocusListener focusListener;
-    FocusListener editorFocusListener;
-    protected ItemListener itemListener;
+    /**
+     * This protected field is implementation specific. Do not access directly
+     * or override. Override the listener construction method instead.
+     *
+     * @see #createPropertyChangeListener
+     */
     protected PropertyChangeListener propertyChangeListener;
+    FocusListener editorFocusListener;
+    /**
+     * This protected field is implementation specific. Do not access directly
+     * or override. Override the listener construction method instead.
+     *
+     * @see #createItemListener
+     */
+    protected ItemListener itemListener;
 
     // Listeners that the ComboPopup produces.
-    // These get attached to any component that wishes to invoke the popup.
     protected MouseListener popupMouseListener;
     protected MouseMotionListener popupMouseMotionListener;
     protected KeyListener popupKeyListener;
 
     // This is used for knowing when to cache the minimum preferred size.
     // If the data in the list changes, the cached value get marked for recalc.
+    // Added to the current JComboBox model
+    /**
+     * This protected field is implementation specific. Do not access directly
+     * or override. Override the listener construction method instead.
+     *
+     * @see #createListDataListener
+     */
     protected ListDataListener listDataListener;
 
     // Flag for recalculating the minimum preferred size.
@@ -90,12 +126,28 @@ public class BasicComboBoxUI extends ComboBoxUI {
     // Cached minimum preferred size.
     protected Dimension cachedMinimumSize = new Dimension( 0, 0 );
 
+    // Flag for calculating the display size
+    private boolean isDisplaySizeDirty = true;
+    
     // Cached the size that the display needs to render the largest item
-    Dimension cachedDisplaySize = new Dimension( 0, 0 );
+    private Dimension cachedDisplaySize = new Dimension( 0, 0 );
+
+    // Key used for lookup of the DefaultListCellRenderer in the AppContext.
+    private static final Object COMBO_UI_LIST_CELL_RENDERER_KEY =
+                        new StringBuffer("DefaultListCellRendererKey");
 
     // Used for calculating the default size.
-    static DefaultListCellRenderer textRenderer = new DefaultListCellRenderer();
+    private static ListCellRenderer getDefaultListCellRenderer() {
+        ListCellRenderer renderer = (ListCellRenderer)AppContext.
+                         getAppContext().get(COMBO_UI_LIST_CELL_RENDERER_KEY);
 
+        if (renderer == null) {
+            renderer = new DefaultListCellRenderer();
+            AppContext.getAppContext().put(COMBO_UI_LIST_CELL_RENDERER_KEY,
+                                           new DefaultListCellRenderer());
+        }
+        return renderer;
+    }
 
     //========================
     // begin UI Initialization
@@ -113,15 +165,11 @@ public class BasicComboBoxUI extends ComboBoxUI {
         popup = createPopup();
         listBox = popup.getList();
 
-        Object keyNav = c.getClientProperty( LIGHTWEIGHT_KEYBOARD_NAVIGATION );
-        if ( keyNav != null ) {
-            if ( keyNav.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_ON ) ) {
-                lightNav = true;
-            }
-            else if ( keyNav.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_OFF ) ) {
-                lightNav = false;
-            }
-        }
+	// Is this combo box a cell editor?
+        Boolean inTable = (Boolean)c.getClientProperty(IS_TABLE_CELL_EDITOR );
+	if (inTable != null) {
+	    isTableCellEditor = inTable.equals(Boolean.TRUE) ? true : false;
+	}
 
         if ( comboBox.getRenderer() == null || comboBox.getRenderer() instanceof UIResource ) {
             comboBox.setRenderer( createRenderer() );
@@ -131,18 +179,17 @@ public class BasicComboBoxUI extends ComboBoxUI {
             comboBox.setEditor( createEditor() );
         }
 
-        installComponents();
         installListeners();
-
-
-        if ( arrowButton != null ) {
-            configureArrowButton();
-        }
+        installComponents();
 
         comboBox.setLayout( createLayoutManager() );
 
         comboBox.setRequestFocusEnabled( true );
 
+	installKeyboardActions();
+	
+	/* 4353597: XXX - remove this hack but keep it here for some more testing. This block
+	 * should be removed before FCS.
         // An invokeLater() was used here because updateComponentTree() resets
         // our sub-components after this method is completed.  By delaying, we
         // can set what we need after updateComponentTree() has set all of the
@@ -159,7 +206,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
                 }
             }
         };
-        SwingUtilities.invokeLater( initializer );
+        SwingUtilities.invokeLater( initializer ); */
     }
 
     public void uninstallUI( JComponent c ) {
@@ -184,9 +231,6 @@ public class BasicComboBoxUI extends ComboBoxUI {
         keyListener = null;
         focusListener = null;
         listDataListener = null;
-        popupKeyListener = null;
-        popupMouseListener = null;
-        popupMouseMotionListener = null;
         propertyChangeListener = null;
         editorFocusListener = null;
         popup = null;
@@ -207,12 +251,13 @@ public class BasicComboBoxUI extends ComboBoxUI {
     }
 
     /**
-     * Attaches listeners to the JComboBox and JComboBoxModel.
+     * Create and install the listeners for the combo box and its model.
+     * This method is called when the UI is installed.
      */
     protected void installListeners() {
-        if ( (itemListener = createItemListener()) != null ) {
-            comboBox.addItemListener( itemListener );
-        }
+	if ( (itemListener = createItemListener()) != null) {
+	    comboBox.addItemListener( itemListener );
+	}
         if ( (propertyChangeListener = createPropertyChangeListener()) != null ) {
             comboBox.addPropertyChangeListener( propertyChangeListener );
         }
@@ -222,15 +267,16 @@ public class BasicComboBoxUI extends ComboBoxUI {
         if ( (focusListener = createFocusListener()) != null ) {
             comboBox.addFocusListener( focusListener );
         }
-        if ( (popupMouseListener = popup.getMouseListener()) != null ) {
-            comboBox.addMouseListener( popupMouseListener );
-        }
-        if ( (popupMouseMotionListener = popup.getMouseMotionListener()) != null ) {
-            comboBox.addMouseMotionListener( popupMouseMotionListener );
-        }
-        if ( (popupKeyListener = popup.getKeyListener()) != null ) {
-            comboBox.addKeyListener( popupKeyListener );
-        }
+	if ((popupMouseListener = popup.getMouseListener()) != null) {
+	    comboBox.addMouseListener( popupMouseListener );
+	}
+	if ((popupMouseMotionListener = popup.getMouseMotionListener()) != null) {
+	    comboBox.addMouseMotionListener( popupMouseMotionListener );
+	}
+	if ((popupKeyListener = popup.getKeyListener()) != null) {
+	    comboBox.addKeyListener(popupKeyListener);
+	}
+
         if ( comboBox.getModel() != null ) {
             if ( (listDataListener = createListDataListener()) != null ) {
                 comboBox.getModel().addListDataListener( listDataListener );
@@ -251,30 +297,32 @@ public class BasicComboBoxUI extends ComboBoxUI {
     }
 
     /**
-     * Removes listeners from the JComboBox and JComboBoxModel.
+     * Remove the installed listeners from the combo box and its model.
+     * The number and types of listeners removed and in this method should be
+     * the same that was added in <code>installListeners</code>
      */
     protected void uninstallListeners() {
         if ( keyListener != null ) {
             comboBox.removeKeyListener( keyListener );
         }
-        if ( itemListener != null ) {
-            comboBox.removeItemListener( itemListener );
-        }
+	if ( itemListener != null) {
+	    comboBox.removeItemListener( itemListener );
+	}
         if ( propertyChangeListener != null ) {
             comboBox.removePropertyChangeListener( propertyChangeListener );
         }
-        if ( focusListener != null ) {
+        if ( focusListener != null) {
             comboBox.removeFocusListener( focusListener );
         }
-        if ( popupMouseListener != null ) {
-            comboBox.removeMouseListener( popupMouseListener );
-        }
-        if ( popupMouseMotionListener != null ) {
-            comboBox.removeMouseMotionListener( popupMouseMotionListener );
-        }
-        if ( popupKeyListener != null ) {
-            comboBox.removeKeyListener( popupKeyListener );
-        }
+	if ( popupMouseListener != null) {
+	    comboBox.removeMouseListener( popupMouseListener );
+	}
+	if ( popupMouseMotionListener != null) {
+	    comboBox.removeMouseMotionListener( popupMouseMotionListener );
+	}
+	if (popupKeyListener != null) {
+	    comboBox.removeKeyListener(popupKeyListener);
+	}
         if ( comboBox.getModel() != null ) {
             if ( listDataListener != null ) {
                 comboBox.getModel().removeListDataListener( listDataListener );
@@ -283,8 +331,10 @@ public class BasicComboBoxUI extends ComboBoxUI {
     }
 
     /**
-     * Creates an implementation of the ComboPopup interface.
-     * Returns an instance of BasicComboPopup.
+     * Creates the popup portion of the combo box.
+     *
+     * @return an instance of <code>ComboPopup</code>
+     * @see ComboPopup
      */
     protected ComboPopup createPopup() {
         BasicComboPopup popup = new BasicComboPopup( comboBox );
@@ -293,66 +343,91 @@ public class BasicComboBoxUI extends ComboBoxUI {
     }
 
     /**
-     * Creates the key listener for handling type-ahead.
-     * Returns an instance of BasicComboBoxUI$KeyHandler.
+     * Creates a <code>KeyListener</code> which will be added to the
+     * combo box. If this method returns null then it will not be added
+     * to the combo box.
+     * 
+     * @return an instance <code>KeyListener</code> or null
      */
     protected KeyListener createKeyListener() {
         return new KeyHandler();
     } 
 
     /**
-     * Creates the focus listener that hides the popup when the focus is lost.
-     * Returns an instance of BasicComboBoxUI$FocusHandler.
+     * Creates a <code>FocusListener</code> which will be added to the combo box.
+     * If this method returns null then it will not be added to the combo box.
+     *
+     * @return an instance of a <code>FocusListener</code> or null
      */
     protected FocusListener createFocusListener() {
         return new FocusHandler();
     }
 
     /**
-     * Creates the list data listener that is used for caching the preferred sizes.
-     * Returns an instance of BasicComboBoxUI$ListDataHandler.
+     * Creates a list data listener which will be added to the
+     * <code>ComboBoxModel</code>. If this method returns null then
+     * it will not be added to the combo box model.
+     *
+     * @return an instance of a <code>ListDataListener</code> or null
      */
     protected ListDataListener createListDataListener() {
         return new ListDataHandler();
     }
 
     /**
-     * Creates the item listener that watches for updates in the current selection
-     * so that it can update the display.
-     * Returns an instance of BasicComboBoxUI$ItemHandler.
+     * Creates an <code>ItemListener</code> which will be added to the 
+     * combo box. If this method returns null then it will not 
+     * be added to the combo box.
+     * <p>
+     * Subclasses may override this method to return instances of their own
+     * ItemEvent handlers.
+     *
+     * @return an instance of an <code>ItemListener</code> or null
      */
     protected ItemListener createItemListener() {
-        return new ItemHandler();
+        return null;
     }
 
     /**
-     * Creates the list data listener that is used for caching the preferred sizes.
-     * Returns an instance of BasicComboBoxUI$PropertyChangeHandler.
+     * Creates a <code>PropertyChangeListener</code> which will be added to
+     * the combo box. If this method returns null then it will not
+     * be added to the combo box.
+     * 
+     * @return an instance of a <code>PropertyChangeListener</code> or null
      */
     protected PropertyChangeListener createPropertyChangeListener() {
         return new PropertyChangeHandler();
     }
 
     /**
-     * Creates the standard combo box layout manager that has the arrow button to
-     * the right and the editor to the left.
-     * Returns an instance of BasicComboBoxUI$ComboBoxLayoutManager.
+     * Creates a layout manager for managing the components which make up the 
+     * combo box.
+     * 
+     * @return an instance of a layout manager
      */
     protected LayoutManager createLayoutManager() {
         return new ComboBoxLayoutManager();
     }
 
     /**
-     * Creates the renderer that is to be used in the combo box.  This method only gets called if
-     * a custom renderer has nto already been installed in the JComboBox.
+     * Creates the default renderer that will be used in a non-editiable combo 
+     * box. A default renderer will used only if a renderer has not been 
+     * explicitly set with <code>setRenderer</code>.
+     * 
+     * @return a <code>ListCellRender</code> used for the combo box
+     * @see javax.swing.JComboBox#setRenderer
      */
     protected ListCellRenderer createRenderer() {
         return new BasicComboBoxRenderer.UIResource();
     }
 
     /**
-     * Creates the editor that is to be used in editable combo boxes.  This method only gets called if
-     * a custom editor has not already been installed in the JComboBox.
+     * Creates the default editor that will be used in editable combo boxes.  
+     * A default editor will be used only if an editor has not been 
+     * explicitly set with <code>setEditor</code>.
+     *
+     * @return a <code>ComboBoxEditor</code> used for the combo box
+     * @see javax.swing.JComboBox#setEditor
      */
     protected ComboBoxEditor createEditor() {
         return new BasicComboBoxEditor.UIResource();
@@ -372,9 +447,9 @@ public class BasicComboBoxUI extends ComboBoxUI {
      * it finds a key event that wasn't a navigation key it dispatches it to
      * JComboBox.selectWithKeyChar() so that it can do type-ahead.
      *
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
-     * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of <FooUI>.
+     * This public inner class should be treated as protected. 
+     * Instantiate it only within subclasses of 
+     * <code>BasicComboBoxUI</code>.
      */
     public class KeyHandler extends KeyAdapter {
         public void keyPressed( KeyEvent e ) {
@@ -397,9 +472,9 @@ public class BasicComboBoxUI extends ComboBoxUI {
      * This listener hides the popup when the focus is lost.  It also repaints
      * when focus is gained or lost.
      *
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
-     * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of <FooUI>.
+     * This public inner class should be treated as protected. 
+     * Instantiate it only within subclasses of 
+     * <code>BasicComboBoxUI</code>.
      */
     public class FocusHandler implements FocusListener {
         public void focusGained( FocusEvent e ) {
@@ -452,107 +527,76 @@ public class BasicComboBoxUI extends ComboBoxUI {
     }
 
     /**
-     * This listener watches for changes in the data and revalidates.
+     * This listener watches for changes in the 
+     * <code>ComboBoxModel</code>.
+     * <p>
+     * This public inner class should be treated as protected. 
+     * Instantiate it only within subclasses of 
+     * <code>BasicComboBoxUI</code>.
      *
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
-     * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of <FooUI>.
+     * @see createListDataListener
      */
     public class ListDataHandler implements ListDataListener {
         public void contentsChanged( ListDataEvent e ) {
-            if ( !(e.getIndex0() == -1 && e.getIndex1() == -1) ) {
-                isMinimumSizeDirty = true;
-                comboBox.revalidate();
-            }
+	    if ( !(e.getIndex0() == -1 && e.getIndex1() == -1) ) {
+		isMinimumSizeDirty = true;
+		comboBox.revalidate();
+	    }
 
-            if ( editor != null ) {
-                comboBox.configureEditor( comboBox.getEditor(), comboBox.getSelectedItem() );
-            }
+	    // set the editor with the selected item since this
+	    // is the event handler for a selected item change.
+	    if (comboBox.isEditable() && editor != null) {
+		comboBox.configureEditor( comboBox.getEditor(), 
+					  comboBox.getSelectedItem() ); 
+	    }
 
-            comboBox.repaint();
-        }
+	    comboBox.repaint();
+	}
 
         public void intervalAdded( ListDataEvent e ) {
-            int index0 = e.getIndex0();
-            int index1 = e.getIndex1();
-
-            if ( index0 == 0 && comboBox.getItemCount() - ((index1 - index0) + 1) == 0 ) {
-                contentsChanged( e );
-            }
-            else if ( !(index0 == -1 && index1 == -1) ) {
-                ListCellRenderer renderer = comboBox.getRenderer();
-                ComboBoxModel model = comboBox.getModel();
-                Component c;
-                Dimension size;
-                int widestWidth = cachedDisplaySize.width;
-                int tallestHeight = cachedDisplaySize.height;
-
-                for ( int i = index0; i <= index1; ++i ) {
-                    c = renderer.getListCellRendererComponent( listBox, model.getElementAt( i ), -1, false, false );
-                    currentValuePane.add( c );
-                    c.setFont( comboBox.getFont() );
-                    size = c.getPreferredSize();
-                    widestWidth = Math.max( widestWidth, size.width );
-                    tallestHeight = Math.max( tallestHeight, size.height );
-                    currentValuePane.remove( c );
-                }
-
-                if ( cachedDisplaySize.width < widestWidth || cachedDisplaySize.height < tallestHeight ) {
-                    if ( cachedDisplaySize.width < widestWidth ) {
-                        cachedMinimumSize.width += widestWidth - cachedDisplaySize.width;
-                    }
-
-                    if ( cachedDisplaySize.height < tallestHeight ) {
-                        cachedMinimumSize.height += tallestHeight - cachedDisplaySize.height;
-                    }
-
-                    cachedDisplaySize.setSize( widestWidth, tallestHeight );
-
-                    comboBox.revalidate();
-
-                    if ( editor != null ) {
-                        comboBox.configureEditor( comboBox.getEditor(), comboBox.getSelectedItem() ); 
-                    }
-                }
-            }
+	    isDisplaySizeDirty = true;
+	    contentsChanged( e );
         }
 
         public void intervalRemoved( ListDataEvent e ) {
+	    isDisplaySizeDirty = true;
             contentsChanged( e );
         }
     }
 
     /**
-     * This listener watches for changes to the selection in the combo box and
-     * updates the display of the currently selected item.
+     * This listener watches for changes to the selection in the 
+     * combo box.
+     * <p>
+     * This public inner class should be treated as protected. 
+     * Instantiate it only within subclasses of 
+     * <code>BasicComboBoxUI</code>.
      *
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
-     * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of <FooUI>.
+     * @see createItemListener
      */
     public class ItemHandler implements ItemListener {
-        public void itemStateChanged(ItemEvent e) {
-            ComboBoxModel model = comboBox.getModel();
-            Object v = model.getSelectedItem();
-            if ( editor != null ) {
-                comboBox.configureEditor(comboBox.getEditor(),v);
-            }
-            comboBox.repaint();
-        }
+	// This class used to implement behavior which is now redundant.
+        public void itemStateChanged(ItemEvent e) {}
     }
 
     /**
-     * This listener watches for bound properties that have changed in the JComboBox.
-     * It looks for the model and editor being swapped-out and updates appropriately.
-     * It also looks for changes in the editable, enabled, and maximumRowCount properties.
-     *
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
-     * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of <FooUI>.
+     * This listener watches for bound properties that have changed in the
+     * combo box. 
+     * <p>
+     * Subclasses which wish to listen to combo box property changes should
+     * call the superclass methods to ensure that the combo box ui correctly 
+     * handles property changes.
+     * <p>
+     * This public inner class should be treated as protected. 
+     * Instantiate it only within subclasses of 
+     * <code>BasicComboBoxUI</code>.
+     * 
+     * @see createPropertyChangeListener
      */
     public class PropertyChangeHandler implements PropertyChangeListener {
         public void propertyChange(PropertyChangeEvent e) {
             String propertyName = e.getPropertyName();
+	    JComboBox comboBox = (JComboBox)e.getSource();
 
             if ( propertyName.equals( "model" ) ) {
                 ComboBoxModel newModel = (ComboBoxModel)e.getNewValue();
@@ -570,56 +614,33 @@ public class BasicComboBoxUI extends ComboBoxUI {
                     comboBox.configureEditor( comboBox.getEditor(), comboBox.getSelectedItem() ); 
                 }
                 isMinimumSizeDirty = true;
+                isDisplaySizeDirty = true;
                 comboBox.revalidate();
-                comboBox.repaint();
+		comboBox.repaint();
             }
             else if ( propertyName.equals( "editor" ) && comboBox.isEditable() ) {
-                removeEditor();
                 addEditor();
-                if (editor != null)  {
-                    // Should be in the same state as the combobox
-                    editor.setEnabled(comboBox.isEnabled());
-                }
+                comboBox.revalidate();
             }
             else if ( propertyName.equals( "editable" ) ) {
                 if ( comboBox.isEditable() ) {
                     comboBox.setRequestFocusEnabled( false );
-                    if ( popupKeyListener != null ) {
-                        comboBox.removeKeyListener( popupKeyListener );
-                    }
                     addEditor();
-                }
-                else {
+                } else {
                     comboBox.setRequestFocusEnabled( true );
-                    if ( popupKeyListener != null ) {
-                        comboBox.addKeyListener( popupKeyListener );
-                    }
                     removeEditor();
                 }
 
                 updateToolTipTextForChildren();
 
-                // Double revalidation seems to be necessary here.  Switching to editable can cause
-                // strange layout problems otherwise.
                 comboBox.revalidate();
-                comboBox.validate();
-                comboBox.revalidate();
-                comboBox.repaint();
             }
             else if ( propertyName.equals( "enabled" ) ) {
-                boolean cbIsEnabled = comboBox.isEnabled();
-                if ( cbIsEnabled ) {
-                    if ( editor != null )
-                        editor.setEnabled(true);
-                    if ( arrowButton != null )
-                        arrowButton.setEnabled(true);
-                }
-                else {
-                    if ( editor != null )
-                        editor.setEnabled(false);
-                    if ( arrowButton != null )
-                        arrowButton.setEnabled(false);
-                }
+                boolean enabled = comboBox.isEnabled();
+                if ( editor != null )
+                    editor.setEnabled(enabled);
+                if ( arrowButton != null )
+                    arrowButton.setEnabled(enabled);
                 comboBox.repaint();
             }
             else if ( propertyName.equals( "maximumRowCount" ) ) {
@@ -638,31 +659,27 @@ public class BasicComboBoxUI extends ComboBoxUI {
             }
             else if ( propertyName.equals( JComponent.TOOL_TIP_TEXT_KEY ) ) {
                 updateToolTipTextForChildren();
-            }
-            else if ( propertyName.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION ) ) {
-                Object newValue = e.getNewValue();
-                if ( newValue.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_ON ) ) {
-                    lightNav = true;
-                }
-                else if ( newValue.equals( LIGHTWEIGHT_KEYBOARD_NAVIGATION_OFF ) ) {
-                    lightNav = false;
-                }
-            } else if ( propertyName.equals( "background" ) ) {
-                Color color = (Color)e.getNewValue();
-                if ( arrowButton != null )
-                    arrowButton.setBackground(color);
-                listBox.setBackground(color);
-                
-            } else if ( propertyName.equals( "foreground" ) ) {
-                Color color = (Color)e.getNewValue();
-                if ( arrowButton != null )
-                    arrowButton.setForeground(color);
-                listBox.setForeground(color);
+	    }
+            else if ( propertyName.equals( BasicComboBoxUI.IS_TABLE_CELL_EDITOR ) ) {
+                Boolean inTable = (Boolean)e.getNewValue();
+		isTableCellEditor = inTable.equals(Boolean.TRUE) ? true : false;
+            } 
+	    else if (propertyName.equals("prototypeDisplayValue")) {
+                isMinimumSizeDirty = true;
+                isDisplaySizeDirty = true;
+                comboBox.revalidate();
+            } 
+	    else if (propertyName.equals("renderer")) {
+                isMinimumSizeDirty = true;
+                isDisplaySizeDirty = true;
+                comboBox.revalidate();
             }
         }     
     }
 
-    void updateToolTipTextForChildren() {
+    // Syncronizes the ToolTip text for the components within the combo box to be the 
+    // same value as the combo box ToolTip text.
+    private void updateToolTipTextForChildren() {
         Component[] children = comboBox.getComponents();
         for ( int i = 0; i < children.length; ++i ) {
             if ( children[i] instanceof JComponent ) {
@@ -676,9 +693,9 @@ public class BasicComboBoxUI extends ComboBoxUI {
      * the arrow button to the right and the editor to the left.  If there is no
      * editor it still keeps the arrow button to the right.
      *
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
-     * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of <FooUI>.
+     * This public inner class should be treated as protected. 
+     * Instantiate it only within subclasses of 
+     * <code>BasicComboBoxUI</code>.
      */
     public class ComboBoxLayoutManager implements LayoutManager {
         public void addLayoutComponent(String name, Component comp) {}
@@ -699,6 +716,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
             JComboBox cb = (JComboBox)parent;
             int width = cb.getWidth();
             int height = cb.getHeight();
+            
             Insets insets = getInsets();
             int buttonSize = height - (insets.top + insets.bottom);
             Rectangle cvb;
@@ -731,11 +749,17 @@ public class BasicComboBoxUI extends ComboBoxUI {
     //
 
     /**
-     * The editor and arrow button are added to the JComboBox here.
+     * Creates and initializes the components which make up the
+     * aggregate combo box. This method is called as part of the UI
+     * installation process.
      */
     protected void installComponents() {
         arrowButton = createArrowButton();
         comboBox.add( arrowButton );
+
+        if (arrowButton != null)  {
+            configureArrowButton();
+        }
 
         if ( comboBox.isEditable() ) {
             addEditor();
@@ -745,9 +769,9 @@ public class BasicComboBoxUI extends ComboBoxUI {
     }
 
     /**
-     * The editor and/or arrow button are removed from the JComboBox here.
-     * This method calls removeAll() on the JComboBox just to make sure that
-     * everything gets removed.
+     * The aggregate components which compise the combo box are 
+     * unregistered and uninitialized. This method is called as part of the
+     * UI uninstallation process.
      */
     protected void uninstallComponents() {
         if ( arrowButton != null ) {
@@ -761,35 +785,48 @@ public class BasicComboBoxUI extends ComboBoxUI {
     }
 
     /**
-     * Adds the editor to the JComboBox.
+     * This public method is implementation specific and should be private.
+     * do not call or override. To implement a specific editor create a
+     * custom <code>ComboBoxEditor</code>
+     *
+     * @see createEditor
+     * @see javax.swing.JComboBox#setEditor
+     * @see javax.swing.ComboBoxEditor
      */
     public void addEditor() {
         removeEditor();
         editor = comboBox.getEditor().getEditorComponent();
-	if ( editor != null ) {
-	    configureEditor();
-	    comboBox.add(editor);
-	}
+        if ( editor != null ) {
+            configureEditor(); 
+            comboBox.add(editor);
+        }
     }
 
     /**
-     * Removes the editor from the JComboBox.  It also calls unconfigureEditor()
+     * This public method is implementation specific and should be private.
+     * do not call or override. 
+     *
+     * @see addEditor
      */
     public void removeEditor() {
         if ( editor != null ) {
             unconfigureEditor();
             comboBox.remove( editor );
+	    editor = null;
         }
     }
 
     /**
-     * Configures the editor by setting its font and adding listeners.
+     * This protected method is implementation specific and should be private.
+     * do not call or override.
+     * 
+     * @see addEditor
      */
     protected void configureEditor() {
+        // Should be in the same state as the combobox
+        editor.setEnabled(comboBox.isEnabled());
+
         editor.setFont( comboBox.getFont() );
-        if ( popupKeyListener != null ) {
-            editor.addKeyListener( popupKeyListener );
-        }
 
         if ( editor instanceof Accessible ) {
             AccessibleContext ac = ((Accessible) editor).getAccessibleContext();
@@ -798,8 +835,12 @@ public class BasicComboBoxUI extends ComboBoxUI {
             }
         }
 
+        if (focusListener != null) {
+            editor.addFocusListener(focusListener);
+        }
+
         if (editorFocusListener == null)  {
-            editorFocusListener = new EditorFocusListener();
+            editorFocusListener = new EditorFocusListener(comboBox);
             editor.addFocusListener( editorFocusListener );
         }
 
@@ -807,11 +848,14 @@ public class BasicComboBoxUI extends ComboBoxUI {
     }
 
     /**
-     * Unconfigures the editor by removing listeners.
+     * This protected method is implementation specific and should be private.
+     * Do not call or override.
+     * 
+     * @see addEditor
      */
     protected void unconfigureEditor() {
-        if ( popupKeyListener != null ) {
-            editor.removeKeyListener( popupKeyListener );
+        if (focusListener != null) {
+            editor.removeFocusListener(focusListener);
         }
 
         if ( editorFocusListener != null )  {
@@ -821,44 +865,46 @@ public class BasicComboBoxUI extends ComboBoxUI {
     }
 
     /**
-     * Configures the arrow button by adding listeners.
+     * This public method is implementation specific and should be private. Do
+     * not call or override.
+     *
+     * @see createArrowButton
      */
     public void configureArrowButton() {
         if ( arrowButton != null ) {
             arrowButton.setEnabled( comboBox.isEnabled() );
             arrowButton.setRequestFocusEnabled(false);
-            if ( popupMouseListener != null ) {
-                arrowButton.addMouseListener( popupMouseListener );
-            }
-            if ( popupMouseMotionListener != null ) {
-                arrowButton.addMouseMotionListener( popupMouseMotionListener );
-            }
+	    arrowButton.addMouseListener( popup.getMouseListener() );
+	    arrowButton.addMouseMotionListener( popup.getMouseMotionListener() );
             arrowButton.resetKeyboardActions();
         }
     }
 
     /**
-     * Unconfigures the arrow button by removing listeners.
+     * This public method is implementation specific and should be private. Do
+     * not call or override.
+     *
+     * @see createArrowButton
      */
     public void unconfigureArrowButton() {
         if ( arrowButton != null ) {
-            if ( popupMouseListener != null ) {
-                arrowButton.removeMouseListener( popupMouseListener );
-            }
-            if ( popupMouseMotionListener != null ) {
-                arrowButton.removeMouseMotionListener( popupMouseMotionListener );
-            }
+	    arrowButton.removeMouseListener( popup.getMouseListener() );
+	    arrowButton.removeMouseMotionListener( popup.getMouseMotionListener() );
         }
     }
 
     /**
-     * Creates the arrow button.  Subclasses can create any button they like.
-     * The default behavior of this class is to attach various listeners to the
-     * button returned by this method.
-     * Returns an instance of BasicArrowButton.
+     * Creates an button which will be used as the control to show or hide
+     * the popup portion of the combo box.
+     *
+     * @return a button which represents the popup control
      */
     protected JButton createArrowButton() {
-        return new BasicArrowButton(BasicArrowButton.SOUTH);
+        return new BasicArrowButton(BasicArrowButton.SOUTH,
+				    UIManager.getColor("ComboBox.buttonBackground"),
+				    UIManager.getColor("ComboBox.buttonShadow"),
+				    UIManager.getColor("ComboBox.buttonDarkShadow"),
+				    UIManager.getColor("ComboBox.buttonHighlight"));
     }
 
     //
@@ -883,8 +929,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
     public void setPopupVisible( JComboBox c, boolean v ) {
         if ( v ) {
             popup.show();
-        }
-        else {
+        } else {
             popup.hide();
         }
     }
@@ -915,18 +960,18 @@ public class BasicComboBoxUI extends ComboBoxUI {
     }
 
     public Dimension getPreferredSize( JComponent c ) {
-        Dimension size = getMinimumSize( c );
-        size.width += 4; // Added for a little 'elbow room'.
-        return size;
+	return getMinimumSize(c);
     }
 
+    /** 
+     * The minumum size is the size of the display area plus insets plus the button.
+     */
     public Dimension getMinimumSize( JComponent c ) {
         if ( !isMinimumSizeDirty ) {
-            return new Dimension( cachedMinimumSize );
+            return new Dimension(cachedMinimumSize);
         }
-        Dimension size;
+        Dimension size = getDisplaySize();
         Insets insets = getInsets();
-        size = getDisplaySize();
         size.height += insets.top + insets.bottom;
         int buttonSize = size.height - (insets.top + insets.bottom);
         size.width +=  insets.left + insets.right + buttonSize;
@@ -934,13 +979,11 @@ public class BasicComboBoxUI extends ComboBoxUI {
         cachedMinimumSize.setSize( size.width, size.height ); 
         isMinimumSizeDirty = false;
 
-        return size;
+        return new Dimension(size);
     }
 
     public Dimension getMaximumSize( JComponent c ) {
-        Dimension size = getPreferredSize( c );
-        size.width = Short.MAX_VALUE;
-        return size;
+	return new Dimension(Short.MAX_VALUE, Short.MAX_VALUE);
     }
 
     // This is currently hacky...
@@ -1007,7 +1050,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
     protected void selectNextPossibleValue() {
         int si;
 
-        if ( lightNav ) {
+        if ( isTableCellEditor ) {
             si = listBox.getSelectedIndex();
         }
         else {
@@ -1015,7 +1058,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
         }
 
         if ( si < comboBox.getModel().getSize() - 1 ) {
-            if ( lightNav ) {
+            if ( isTableCellEditor ) {
                 listBox.setSelectedIndex( si + 1 );
                 listBox.ensureIndexIsVisible( si + 1 );
             }
@@ -1033,7 +1076,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
     protected void selectPreviousPossibleValue() {
         int si;
 
-        if ( lightNav ) {
+        if ( isTableCellEditor ) {
             si = listBox.getSelectedIndex();
         }
         else {
@@ -1041,7 +1084,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
         }
 
         if ( si > 0 ) {
-            if ( lightNav ) {
+            if ( isTableCellEditor ) {
                 listBox.setSelectedIndex( si - 1 );
                 listBox.ensureIndexIsVisible( si - 1 );
             }
@@ -1106,10 +1149,6 @@ public class BasicComboBoxUI extends ComboBoxUI {
         ListCellRenderer renderer = comboBox.getRenderer();
         Component c;
 
-        if ( comboBox.getSelectedIndex() == -1 ) {
-            return;
-        }
-
         if ( hasFocus && !isPopupVisible(comboBox) ) {
             c = renderer.getListCellRendererComponent( listBox,
                                                        comboBox.getSelectedItem(),
@@ -1140,8 +1179,15 @@ public class BasicComboBoxUI extends ComboBoxUI {
                 c.setBackground(UIManager.getColor("ComboBox.disabledBackground"));
             }
         }
+
+        // Fix for 4238829: should lay out the JPanel.
+        boolean shouldValidate = false;
+        if (c instanceof JPanel)  {
+            shouldValidate = true;
+        }
+
         currentValuePane.paintComponent(g,c,comboBox,bounds.x,bounds.y,
-                                        bounds.width,bounds.height);
+                                        bounds.width,bounds.height, shouldValidate);
     }
 
     /**
@@ -1175,57 +1221,99 @@ public class BasicComboBoxUI extends ComboBoxUI {
     //
 
     /** 
-     * Return the default size of an empty combo box. 
+     * Return the default size of an empty display area of the combo box using
+     * the current renderer and font.
+     *
+     * @return the size of an empty display area
+     * @see getDisplaySize
      */
     protected Dimension getDefaultSize() {
-        ListCellRenderer renderer = comboBox.getRenderer();
-        Component c = textRenderer.getListCellRendererComponent( listBox, " ", -1, false, false );
-        currentValuePane.add( c );
-        c.setFont( comboBox.getFont() );
-        int height = c.getPreferredSize().height;
-        currentValuePane.remove( c );
-        return new Dimension( 100, height );
+	// Calculates the height and width using the default text renderer
+	Component c = getDefaultListCellRenderer().getListCellRendererComponent(listBox, " ", -1, false, false);
+
+	currentValuePane.add(c);
+	c.setFont(comboBox.getFont());
+	Dimension d = c.getPreferredSize();
+	currentValuePane.remove(c);
+
+        return new Dimension(d.width, d.height);
     }
 
+    /** 
+     * Returns the calculated size of the display area. The display area is the
+     * portion of the combo box in which the selected item is displayed. This 
+     * method will use the prototype display value if it has been set. 
+     * <p>
+     * For combo boxes with a non trivial number of items, it is recommended to
+     * use a prototype display value to significantly speed up the display 
+     * size calculation.
+     * 
+     * @return the size of the display area calculated from the combo box items
+     * @see javax.swing.JComboBox#setPrototypeDisplayValue
+     */
     protected Dimension getDisplaySize() {
-        // This is special code for empty editable combo boxes.
-        if ( comboBox.isEditable() ) {
-            if ( comboBox.getModel().getSize() == 0 ) {
-                return new Dimension( 100, editor.getPreferredSize().height );
-            }
+        if (!isDisplaySizeDirty)  {
+            return new Dimension(cachedDisplaySize);
         }
-
-        int i,c;
-        Dimension result = new Dimension();
+	Dimension result = new Dimension();
+        
         ListCellRenderer renderer = comboBox.getRenderer();
-        ComboBoxModel model = comboBox.getModel();
-        Component cpn;
-        Dimension d;
-
-        if ( renderer != null && model.getSize() > 0 ) {
-            for ( i=0,c=model.getSize();i<c;i++ ) {
-                cpn = renderer.getListCellRendererComponent(listBox, model.getElementAt(i),-1, false, false);
-                currentValuePane.add(cpn);
-                cpn.setFont(comboBox.getFont());
-                d = cpn.getPreferredSize();
-                currentValuePane.remove(cpn);
-                result.width = Math.max(result.width,d.width);
-                result.height = Math.max(result.height,d.height);
-            }
-
-            if ( comboBox.isEditable() ) {
-                d = editor.getPreferredSize();
-                result.width = Math.max(result.width,d.width);
-                result.height = Math.max(result.height,d.height);
-            }
-
-            cachedDisplaySize.setSize( result.width, result.height );
-
-            return result;
+        if (renderer == null)  {
+            renderer = new DefaultListCellRenderer();
         }
-        else {
-            return getDefaultSize();
+
+        Object prototypeValue = comboBox.getPrototypeDisplayValue();
+        if (prototypeValue != null)  {
+            // Calculates the dimension based on the prototype value
+            Component cpn = renderer.getListCellRendererComponent(listBox, prototypeValue,
+                                                        -1, false, false);
+            currentValuePane.add(cpn);
+            cpn.setFont(comboBox.getFont());
+            result = cpn.getPreferredSize();
+            currentValuePane.remove(cpn);
+
+        } else {
+            // Calculate the dimension by iterating over all the elements in the combo
+            // box list.
+            ComboBoxModel model = comboBox.getModel();
+            int modelSize = model.getSize();
+
+            Component cpn;
+            Dimension d;
+            
+            if (modelSize > 0 ) {
+                for (int i = 0; i < modelSize ; i++ ) {
+                    // Calculates the maximum height and width based on the largest
+                    // element
+                    cpn = renderer.getListCellRendererComponent(listBox, model.getElementAt(i),
+                                                                -1, false, false);
+                    currentValuePane.add(cpn);
+                    cpn.setFont(comboBox.getFont());
+                    d = cpn.getPreferredSize();
+                    currentValuePane.remove(cpn);
+                
+                    result.width = Math.max(result.width,d.width);
+                    result.height = Math.max(result.height,d.height);
+                }
+            } else {
+		result = getDefaultSize();
+		if (comboBox.isEditable()) {
+		    result.width = 100;
+		}
+            }
+	    if ( comboBox.isEditable() ) {
+		d = editor.getPreferredSize();
+		result.width = Math.max(result.width,d.width);
+		result.height = Math.max(result.height,d.height);
+	    }
+
         }
+        
+        // Set the cached value
+        cachedDisplaySize.setSize(result.width, result.height);
+        isDisplaySizeDirty = false;
+
+        return result;
     }
 
     //
@@ -1245,6 +1333,8 @@ public class BasicComboBoxUI extends ComboBoxUI {
 	InputMap km = getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 	SwingUtilities.replaceUIInputMap(comboBox, JComponent.
 			     WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, km);
+
+
 	ActionMap am = getActionMap();
 	if (am != null) {
 	    SwingUtilities.replaceUIActionMap(comboBox, am);
@@ -1259,33 +1349,33 @@ public class BasicComboBoxUI extends ComboBoxUI {
     }
 
     ActionMap getActionMap() {
-	ActionMap map = (ActionMap)UIManager.get("ComboBox.actionMap");
-
-	if (map == null) {
-	    map = createActionMap();
-	    if (map != null) {
-		UIManager.put("ComboBox.actionMap", map);
-	    }
-	}
-	return map;
+	return createActionMap();
     }
+
+    static Action homeAction = new NavigationalAction(KeyEvent.VK_HOME);
+    static Action endAction = new NavigationalAction(KeyEvent.VK_END);
+    static Action pgUpAction = new NavigationalAction(KeyEvent.VK_PAGE_UP);
+    static Action pgDownAction = new NavigationalAction(KeyEvent.VK_PAGE_DOWN);
 
     ActionMap createActionMap() {
 	ActionMap map = new ActionMapUIResource();
 
 	map.put("hidePopup", new HidePopupAction());
-	map.put("pageDownPassThrough", new KeyToListDispatcher
-		(KeyEvent.VK_PAGE_DOWN));
-	map.put("pageUpPassThrough", new KeyToListDispatcher
-		(KeyEvent.VK_PAGE_UP));
-	map.put("homePassThrough", new KeyToListDispatcher
-		(KeyEvent.VK_HOME));
-	map.put("endPassThrough", new KeyToListDispatcher
-		(KeyEvent.VK_END));
+	map.put("pageDownPassThrough", pgDownAction);
+	map.put("pageUpPassThrough", pgUpAction);
+	map.put("homePassThrough", homeAction);
+	map.put("endPassThrough", endAction);
 	map.put("selectNext", new DownAction());
 	map.put("togglePopup", new AltAction());
+	map.put("spacePopup", new SpaceAction());
 	map.put("selectPrevious", new UpAction());
+	map.put("enterPressed", new EnterAction());
+
 	return map;
+    }
+
+    boolean isTableCellEditor() {
+	return isTableCellEditor;
     }
 
     /**
@@ -1303,64 +1393,135 @@ public class BasicComboBoxUI extends ComboBoxUI {
     // 
 
 
-    static class HidePopupAction extends AbstractAction {
+    class HidePopupAction extends AbstractAction {
 	public void actionPerformed( ActionEvent e ) {
 	    JComboBox comboBox = (JComboBox)e.getSource();
-	    BasicComboBoxUI ui = (BasicComboBoxUI)comboBox.getUI();
 	    if ( comboBox.isEnabled() ) {
-		ui.setPopupVisible( comboBox, false );
+		comboBox.setPopupVisible(false);
 	    }
+	}
+
+	public boolean isEnabled() {
+	    return comboBox.isPopupVisible();
 	}
     }
 
 
-    static class KeyToListDispatcher extends AbstractAction {
-	int keyCode;
+    static class NavigationalAction extends AbstractAction {
+        int keyCode;
 
-	public KeyToListDispatcher( int keyCode ) {
+        NavigationalAction(int keyCode) {
 	    this.keyCode = keyCode;
-	}
+        }
 
-	public void actionPerformed( ActionEvent e ) {
-	    JComboBox comboBox = (JComboBox)e.getSource();
-	    BasicComboBoxUI ui = (BasicComboBoxUI)comboBox.getUI();
-	    if ( ui.isPopupVisible( comboBox ) ) {
-		KeyEvent keyEvent = new KeyEvent( ui.popup.getList(),
-                                                      KeyEvent.KEY_PRESSED,
-                                                      0,
-                                                      0,
-                                                      keyCode );
-		ui.popup.getList().dispatchEvent( keyEvent );
-	    }
-	}
+	public void actionPerformed(ActionEvent ev) {
+	    JComboBox comboBox = (JComboBox)ev.getSource();
+	    int index = getNextIndex(comboBox);
+            if (index >= 0 && index < comboBox.getItemCount()) {
+                comboBox.setSelectedIndex(index);
+            }
+        }
+
+        int getNextIndex(JComboBox comboBox) {
+            switch (keyCode) {
+            case KeyEvent.VK_PAGE_UP:
+                int listHeight = comboBox.getMaximumRowCount();
+                int index = comboBox.getSelectedIndex() - listHeight;
+                return (index < 0 ? 0: index);
+            case KeyEvent.VK_PAGE_DOWN:
+                listHeight = comboBox.getMaximumRowCount();
+                index = comboBox.getSelectedIndex() + listHeight;
+                int max = comboBox.getItemCount();
+                return (index < max ? index: max-1);
+            case KeyEvent.VK_HOME:
+                return 0;
+            case KeyEvent.VK_END:
+                return comboBox.getItemCount() - 1;
+            default:
+                return comboBox.getSelectedIndex();
+            }
+        }
     }
 
     static class DownAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
 	    JComboBox comboBox = (JComboBox)e.getSource();
-	    if ( comboBox.isEnabled() ) {
-		BasicComboBoxUI ui = (BasicComboBoxUI)comboBox.getUI();
-		if ( ui.isPopupVisible(comboBox) ) {
+	    if ( comboBox.isEnabled() && comboBox.isShowing() ) {
+		if ( comboBox.isPopupVisible() ) {
+		    BasicComboBoxUI ui = (BasicComboBoxUI)comboBox.getUI();
 		    ui.selectNextPossibleValue();
-		}
-		else {
-		    ui.setPopupVisible( comboBox, true );
+		} else {
+		    comboBox.setPopupVisible(true);
 		}
 	    }
 	}
     }
 
+    static class EnterAction extends AbstractAction {
+	public void actionPerformed(ActionEvent e) {
+	    JComboBox comboBox = (JComboBox)e.getSource();
+	    if ( !comboBox.isEnabled() ) {
+		return;
+	    }
+	    BasicComboBoxUI ui = (BasicComboBoxUI)comboBox.getUI();
+	    if ( ui.isTableCellEditor() ) {
+		// Forces the selection of the list item if the
+		// combo box is in a JTable.
+		comboBox.setSelectedIndex(ui.popup.getList().getSelectedIndex());
+	    } 
+	    else {
+		if (comboBox.isPopupVisible()) {
+		    comboBox.setPopupVisible(false);
+		} else {
+		    // Call the default button binding.
+		    // This is a pretty messy way of passing an event through
+		    // to the root pane.
+		    JRootPane root = SwingUtilities.getRootPane(comboBox);
+		    if (root != null) {
+			InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+			ActionMap am = root.getActionMap();
+			if (im != null && am != null) {
+			    Object obj = im.get(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0));
+			    if (obj != null) {
+				Action action = am.get(obj);
+				if (action != null) {
+				    action.actionPerformed(e);
+				}
+			    }
+			}
+		    }
+		}
+	    }
+	}
+    }
 
     static class AltAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
 	    JComboBox comboBox = (JComboBox)e.getSource();
 	    if ( comboBox.isEnabled() ) {
 		BasicComboBoxUI ui = (BasicComboBoxUI)comboBox.getUI();
-		ui.toggleOpenClose();
+		if ( ui.isTableCellEditor() ) {
+		    // Forces the selection of the list item if the
+		    // combo box is in a JTable.
+		    comboBox.setSelectedIndex(ui.popup.getList().getSelectedIndex());
+		} 
+		else {
+		    comboBox.setPopupVisible(!comboBox.isPopupVisible());
+		}
             }
 	}
     }
 
+    // Same as the AltAction except that it doesn't invoke if
+    // the space key is pressed in the editable text portion.
+    static class SpaceAction extends AltAction {
+	public void actionPerformed(ActionEvent e) {
+	    JComboBox comboBox = (JComboBox)e.getSource();
+	    if ( !comboBox.isEditable() ) {
+		super.actionPerformed(e);
+            }
+	}
+    }    
 
     static class UpAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
@@ -1379,19 +1540,28 @@ public class BasicComboBoxUI extends ComboBoxUI {
     //===============================
 
 
-    // This will make the comboBox fire an ActionEvent if the currently
-    // edited editor has a value in it that is different from the
-    // selected item in the model.  This allows people to enter data in
-    // a combo box and tab-out without allowing an inconsistency between
-    // what's displayed and what the current value of the combo box is.
     class EditorFocusListener extends FocusAdapter {
-        public void focusLost( FocusEvent e ) {
-            Object item = comboBox.getEditor().getItem();
+	private JComboBox comboBox;
 
-            if ( !e.isTemporary() &&
-                 item != null &&
-                 !item.equals( comboBox.getSelectedItem() ) ) {
-                comboBox.actionPerformed( new ActionEvent( editor, 0, "" ) );
+	public EditorFocusListener(JComboBox combo) {
+	    this.comboBox = combo;
+	}
+
+	/**
+	 * This will make the comboBox fire an ActionEvent if the editor
+	 * value is different from the selected item in the model.  
+	 * This allows for the entering of data in the combo box editor and
+	 * sends notification when tabbing or clicking out of focus.
+	 */ 
+        public void focusLost( FocusEvent e ) {
+	    ComboBoxEditor editor = comboBox.getEditor();
+            Object item = editor.getItem();
+
+            if (!e.isTemporary() && item != null && 
+		!item.equals( comboBox.getSelectedItem())) {
+                comboBox.actionPerformed
+                    (new ActionEvent(editor, 0, "",
+                                     EventQueue.getMostRecentEventTime(), 0));
             }
         }
     }

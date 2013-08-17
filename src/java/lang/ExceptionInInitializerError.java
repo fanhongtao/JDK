@@ -1,27 +1,30 @@
 /*
+ * @(#)ExceptionInInitializerError.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
 
-import java.io.PrintStream;
-import java.io.PrintWriter;
-
 /**
  * Signals that an unexpected exception has occurred in a static initializer. 
  * An <code>ExceptionInInitializerError</code> is thrown to indicate that an 
- * exception occurred during evaluation of a static initializer or the 
+ * exception occurred during evaluation of a static initializer or the
  * initializer for a static variable.
  *
- * @author  Frank Yellin
- * @version 1.12, 02/06/02
+ * <p>As of release 1.4, this exception has been retrofitted to conform to
+ * the general purpose exception-chaining mechanism.  The "saved throwable
+ * object" that may be provided at construction time and accessed via
+ * the {@link #getException()} method is now known as the <i>cause</i>,
+ * and may be accessed via the {@link Throwable#getCause()} method, as well
+ * as the aforementioned "legacy method."
  *
+ * @author  Frank Yellin
+ * @version 1.15, 12/03/01
  * @since   JDK1.1
  */
-public
-class ExceptionInInitializerError extends LinkageError {
-
+public class ExceptionInInitializerError extends LinkageError {
     /**
      * Use serialVersionUID from JDK 1.1.X for interoperability
      */
@@ -39,12 +42,12 @@ class ExceptionInInitializerError extends LinkageError {
 
     /**
      * Constructs an <code>ExceptionInInitializerError</code> with 
-     * <code>null</code> as its detail message string and with no saved 
-     * thowable object. 
+     * <code>null</code> as its detail message string and with no saved
+     * throwable object.
      * A detail message is a String that describes this particular exception.
      */
     public ExceptionInInitializerError() {
-	super();
+        initCause(null);  // Disallow subsequent initCause
     }
 
     /**
@@ -56,6 +59,7 @@ class ExceptionInInitializerError extends LinkageError {
      * @param thrown The exception thrown
      */
     public ExceptionInInitializerError(Throwable thrown) {
+        initCause(null);  // Disallow subsequent initCause
 	this.exception = thrown;
     }
 
@@ -71,11 +75,16 @@ class ExceptionInInitializerError extends LinkageError {
      */
     public ExceptionInInitializerError(String s) {
 	super(s);
+        initCause(null);  // Disallow subsequent initCause
     }
 
     /**
      * Returns the exception that occurred during a static initialization that
-     * caused this Error to be created.
+     * caused this error to be created.
+     *
+     * <p>This method predates the general-purpose exception chaining facility.
+     * The {@link Throwable#getCause()} method is now the preferred means of
+     * obtaining this information.
      * 
      * @return the saved throwable object of this 
      *         <code>ExceptionInInitializerError</code>, or <code>null</code> 
@@ -87,42 +96,14 @@ class ExceptionInInitializerError extends LinkageError {
     }
 
     /**
-     * Prints the stack trace of the exception that occurred.
-     *
-     * @see     java.lang.System#err
+     * Returns the cause of this error (the exception that occurred
+     * during a static initialization that caused this error to be created).
+     * 
+     * @return  the cause of this error or <code>null</code> if the
+     *          cause is nonexistent or unknown.
+     * @since   1.4
      */
-    public void printStackTrace() {
-	printStackTrace(System.err);
+    public Throwable getCause() {
+	return exception;
     }
-
-    /**
-     * Prints the stack trace of the exception that occurred to the
-     * specified print stream.
-     */
-    public void printStackTrace(PrintStream ps) {
-	synchronized (ps) {
-	    if (exception != null) {
-		ps.print("java.lang.ExceptionInInitializerError: ");
-		exception.printStackTrace(ps);
-	    } else {
-		super.printStackTrace(ps);
-	    }
-	}
-    }
-
-    /**
-     * Prints the stack trace of the exception that occurred to the
-     * specified print writer.
-     */
-    public void printStackTrace(PrintWriter pw) {
-	synchronized (pw) {
-	    if (exception != null) {
-		pw.print("java.lang.ExceptionInInitializerError: ");
-		exception.printStackTrace(pw);
-	    } else {
-		super.printStackTrace(pw);
-	    }
-	}
-    }
-
 }

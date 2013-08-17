@@ -1,4 +1,6 @@
 /*
+ * @(#)FilterInputStream.java	1.24 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,7 +22,7 @@ package java.io;
  * and fields.
  *
  * @author  Jonathan Payne
- * @version 1.24, 02/06/02
+ * @version 1.24, 12/03/01
  * @since   JDK1.0
  */
 public

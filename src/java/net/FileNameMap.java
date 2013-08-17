@@ -1,4 +1,6 @@
 /*
+ * @(#)FileNameMap.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,7 +11,7 @@ package java.net;
  * A simple interface which provides a mechanism to map
  * between a file name and a MIME type string.
  *
- * @version 	1.12, 02/06/02
+ * @version 	1.12, 12/03/01
  * @author  Steven B. Byrne
  * @since   JDK1.1
  */

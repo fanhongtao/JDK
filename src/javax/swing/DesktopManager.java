@@ -1,4 +1,6 @@
 /*
+ * @(#)DesktopManager.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -19,7 +21,7 @@ package javax.swing;
   * @see JInternalFrame
   * @see JInternalFrame.JDesktopIcon
   *
-  * @version 1.11 02/06/02
+  * @version 1.12 12/03/01
   * @author David Kloba
   */
 public interface DesktopManager
@@ -65,7 +67,7 @@ public interface DesktopManager
       */
     void beginDraggingFrame(JComponent f);
 
-    /** The user has moved the frame. Calls to this method will be preceeded by calls
+    /** The user has moved the frame. Calls to this method will be preceded by calls
       * to beginDraggingFrame(). 
       *  Normally <b>f</b> will be a JInternalFrame.
       */
@@ -81,7 +83,7 @@ public interface DesktopManager
       * necessary state.  Normally <b>f</b> will be a JInternalFrame.
       */
     void beginResizingFrame(JComponent f, int direction);
-    /** The user has resized the component. Calls to this method will be preceeded by calls
+    /** The user has resized the component. Calls to this method will be preceded by calls
       * to beginResizingFrame(). 
       *  Normally <b>f</b> will be a JInternalFrame.
       */
@@ -91,7 +93,7 @@ public interface DesktopManager
       */
     void endResizingFrame(JComponent f);
 
-    /** This is a primative reshape method.*/
+    /** This is a primitive reshape method.*/
     void setBoundsForFrame(JComponent f, int newX, int newY, int newWidth, int newHeight);
 }
 

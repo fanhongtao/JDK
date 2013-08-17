@@ -1,4 +1,6 @@
 /*
+ * @(#)SoftBevelBorder.java	1.14 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,12 +19,14 @@ import java.awt.Component;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.12 02/06/02
+ * @version 1.14 12/03/01
  * @author Amy Fowler
  * @author Chester Rose
  */
@@ -130,7 +134,17 @@ public class SoftBevelBorder extends BevelBorder
      * @param c the component for which this border insets value applies
      */
     public Insets getBorderInsets(Component c)       {
-	return new Insets(3, 3, 3, 3);
+	return getBorderInsets(c, new Insets(0,0,0,0));
+    }
+
+    /** 
+     * Reinitialize the insets parameter with this Border's current Insets. 
+     * @param c the component for which this border insets value applies
+     * @param insets the object to be reinitialized
+     */
+    public Insets getBorderInsets(Component c, Insets insets)       {
+        insets.top = insets.left = insets.bottom = insets.right = 3;
+	return insets;
     }
 
     /**

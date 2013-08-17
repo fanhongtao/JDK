@@ -1,4 +1,6 @@
 /*
+ * @(#)Bounds.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -10,7 +12,7 @@ package org.omg.CORBA;
  * the legal bounds for the object that a method is trying
  * to access.
  *
- * @see <A href="../guide/idl/jidlExceptions.html">documentation on
+ * @see <A href="../../../../guide/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
  */
 

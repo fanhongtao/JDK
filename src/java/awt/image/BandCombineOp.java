@@ -1,4 +1,6 @@
 /*
+ * @(#)BandCombineOp.java	1.37 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -91,14 +93,13 @@ public class BandCombineOp implements  RasterOp {
      * if the operation causes a data overflow.
      *
      * @param src The <CODE>Raster</CODE> to be filtered.
-     * @param dest The <CODE>Raster</CODE> in which to store the results 
+     * @param dst The <CODE>Raster</CODE> in which to store the results 
      * of the filter operation.
      *
      * @return The filtered <CODE>Raster</CODE>.
      *
      * @throws IllegalArgumentException If the number of bands in the 
      * source or destination is incompatible with the matrix.
-
      */
     public WritableRaster filter(Raster src, WritableRaster dst) {
         int nBands = src.getNumBands();
@@ -230,11 +231,12 @@ public class BandCombineOp implements  RasterOp {
      * Since this is not a geometric operation, the point returned 
      * is the same as the specified <CODE>srcPt</CODE>.
      *
+     * @param srcPt The <code>Point2D</code> that represents the point in
+     *              the source <code>Raster</code>
      * @param dstPt The <CODE>Point2D</CODE> in which to store the result.
      *
      * @return The <CODE>Point2D</CODE> in the destination image that 
-     * corresponds to the specified point in the source image.
-     
+     * corresponds to the specified point in the source image.     
      */
     public final Point2D getPoint2D (Point2D srcPt, Point2D dstPt) {
         if (dstPt == null) {

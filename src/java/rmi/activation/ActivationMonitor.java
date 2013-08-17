@@ -1,4 +1,6 @@
 /*
+ * @(#)ActivationMonitor.java	1.13 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ import java.rmi.RemoteException;
  * inactive, or the group as a whole becomes inactive.
  *
  * @author 	Ann Wollrath
- * @version	1.13, 02/06/02
+ * @version	1.13, 12/03/01
  * @see		Activator
  * @see		ActivationSystem
  * @see 	ActivationGroup

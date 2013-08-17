@@ -1,4 +1,6 @@
 /*
+ * @(#)PolicyError.java	1.15 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,9 +8,10 @@
 package org.omg.CORBA;
 
 /**
-* An exception carrying one of the following policy error reason codes
-* defined in the org.omg.CORBA package: 
-* BAD_POLICY, BAD_POLICY_TYPE, BAD_POLICY_VALUE, UNSUPPORTED_POLICY, UNSUPPORTED_POLICY_VALUE
+* A user exception thrown when a policy error occurs.  A <code>PolicyError</code>
+* exception may include one of the following policy error reason codes
+* defined in the org.omg.CORBA package: BAD_POLICY, BAD_POLICY_TYPE,
+* BAD_POLICY_VALUE, UNSUPPORTED_POLICY, UNSUPPORTED_POLICY_VALUE.
 */
 
 public final class PolicyError extends org.omg.CORBA.UserException {

@@ -1,4 +1,6 @@
 /*
+ * @(#)DefaultStyledDocument.java	1.120 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,6 +15,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Stack;
 import java.util.Vector;
+import java.util.ArrayList;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -36,13 +39,15 @@ import javax.swing.SwingUtilities;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.114 02/06/02
+ * @version 1.120 12/03/01
  * @see     Document
  * @see     AbstractDocument
  */
@@ -246,7 +251,7 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
     /**
      * Fetches the list of of style names.
      *
-     * @returns all the style names.
+     * @return all the style names
      */
     public Enumeration getStyleNames() {
 	return ((StyleContext) getAttributeContext()).getStyleNames();
@@ -344,6 +349,10 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 	    for (int pos = offset; pos < (offset + length); pos = lastEnd) {
 		Element run = getCharacterElement(pos);
 		lastEnd = run.getEndOffset();
+                if (pos == lastEnd) {
+                    // offset + length beyond length of document, bail.
+                    break;
+                }
 		MutableAttributeSet attr = (MutableAttributeSet) run.getAttributes();
 		changes.addEdit(new AttributeUndoableEdit(run, sCopy, replace));
 		if (replace) {
@@ -766,16 +775,27 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
     }
 
     /**
-     * Creates a change event for the whole document and propagates it to
-     * the listeners. Subclasses may wish to be inteligent about what gets
-     * damaged.
+     * Called when any of this document's styles have changed.
+     * Subclasses may wish to be intelligent about what gets damaged.
      *
      * @param style The Style that has changed.
      */
     protected void styleChanged(Style style) {
         // Only propagate change updated if have content
         if (getLength() != 0) {
-            SwingUtilities.invokeLater(new ChangeUpdateRunnable());
+            // lazily create a ChangeUpdateRunnable
+            if (updateRunnable == null) {
+                updateRunnable = new ChangeUpdateRunnable();
+            }
+            
+            // We may get a whole batch of these at once, so only
+            // queue the runnable if it is not already pending
+            synchronized(updateRunnable) {
+                if (!updateRunnable.isPending) {
+                    SwingUtilities.invokeLater(updateRunnable);
+                    updateRunnable.isPending = true;
+                }
+            }
         }
     }
 
@@ -912,6 +932,9 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 
     /** Listens to Styles. */
     private transient ChangeListener styleContextChangeListener;
+    
+    /** Run to create a change event for the document */
+    private transient ChangeUpdateRunnable updateRunnable;
 
     /**
      * Default root element for a document... maps out the 
@@ -919,10 +942,12 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class SectionElement extends BranchElement {
 
@@ -946,11 +971,14 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
     /**
      * Specification for building elements.
      * <p>
-     * <strong>Warning:</strong>      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * <strong>Warning:</strong>
+     * Serialized objects of this class will not be compatible with
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public static class ElementSpec {
 
@@ -1180,10 +1208,12 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     public class ElementBuffer implements Serializable {
 
@@ -1444,7 +1474,7 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 	    // make sure there is something to do... if the
 	    // offset is already at a boundary then there is 
 	    // nothing to do.
-	    if (child.getStartOffset() != offs) {
+	    if (child.getStartOffset() < offs && offs < child.getEndOffset()) {
 		// we need to split, now see if the other end is within
 		// the same parent.
 		int index0 = ec.index;
@@ -1812,14 +1842,29 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 		return false;
 	    }
 	    // Don't join a leaf to a branch.
-	    if(e0.isLeaf() != e1.isLeaf())
+            boolean leaf0 = e0.isLeaf();
+            boolean leaf1 = e1.isLeaf();
+	    if(leaf0 != leaf1) {
 		return false;
-	    // PENDING: Do we really want this?
-	    if (e0.getName().equals(ParagraphElementName) &&
-		e1.getName().equals(ParagraphElementName)) {
-		return true;
-	    }
-	    return e0.getAttributes().isEqual(e1.getAttributes());
+            }
+            if (leaf0) {
+                // Only join leaves if the attributes match, otherwise
+                // style information will be lost.
+                return e0.getAttributes().isEqual(e1.getAttributes());
+            }
+            // Only join non-leafs if the names are equal. This may result
+            // in loss of style information, but this is typically acceptable
+            // for non-leafs.
+            String name0 = e0.getName();
+            String name1 = e1.getName();
+            if (name0 != null) {
+                return name0.equals(name1);
+            }
+            if (name1 != null) {
+                return name1.equals(name0);
+            }
+            // Both names null, treat as equal.
+            return true;
 	}
 
 	/** 
@@ -1859,10 +1904,10 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 		    children.addElement(e);
 		} else {
 		    if (lj != null) {
-			children.addElement(clone(to, lj));
+			children.addElement(cloneAsNecessary(to, lj, rmOffs0, rmOffs1));
 		    }
 		    if (rj != null) {
-			children.addElement(clone(to, rj));
+			children.addElement(cloneAsNecessary(to, rj, rmOffs0, rmOffs1));
 		    }
 		}
 
@@ -1906,6 +1951,32 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 	    ((BranchElement)e).replace(0, 0, children);
 	    return e;
 	}
+
+        /**
+         * Creates a copy of this element, with a different 
+         * parent. Children of this element included in the
+         * removal range will be discarded.
+         */
+        Element cloneAsNecessary(Element parent, Element clonee, int rmOffs0, int rmOffs1) {
+            if (clonee.isLeaf()) {
+                return createLeafElement(parent, clonee.getAttributes(), 
+                                         clonee.getStartOffset(), 
+                                         clonee.getEndOffset());
+            }
+            Element e = createBranchElement(parent, clonee.getAttributes());
+            int n = clonee.getElementCount();
+            ArrayList childrenList = new ArrayList(n);
+            for (int i = 0; i < n; i++) {
+                Element elem = clonee.getElement(i);
+                if (elem.getStartOffset() < rmOffs0 || elem.getEndOffset() > rmOffs1) {
+                    childrenList.add(cloneAsNecessary(e, elem, rmOffs0, rmOffs1));
+                }
+            }
+            Element[] children = new Element[childrenList.size()];
+            children = (Element[])childrenList.toArray(children);
+            ((BranchElement)e).replace(0, 0, children);
+            return e;
+        }
 
 	/**
 	 * Determines if a fracture needs to be performed. A fracture
@@ -2364,7 +2435,7 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
         public void stateChanged(ChangeEvent e) {
 	    Object source = e.getSource();
 
-	    if (source != null && (source instanceof Style)) {
+	    if (source instanceof Style) {
 		styleChanged((Style)source);
 	    }
 	    else {
@@ -2390,7 +2461,13 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
      * and fires it.
      */
     class ChangeUpdateRunnable implements Runnable {
+        boolean isPending = false;
+        
 	public void run() {
+            synchronized(this) {
+                isPending = false;
+            }
+            
 	    try {
 		writeLock();
 		DefaultDocumentEvent dde = new DefaultDocumentEvent(0,

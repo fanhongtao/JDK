@@ -1,4 +1,6 @@
 /*
+ * @(#)Scrollable.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -12,13 +14,13 @@ import java.awt.Rectangle;
 /** 
  * An interface that provides information to a scrolling container
  * like JScrollPane.  A complex component that's likely to be used 
- * as a viewin a JScrollPane viewport (or other scrolling container) 
+ * as a viewing a JScrollPane viewport (or other scrolling container) 
  * should implement this interface.
  * 
  * @see JViewport
  * @see JScrollPane
  * @see JScrollBar
- * @version 1.7 02/06/02
+ * @version 1.9 12/03/01
  * @author Hans Muller
  */
 public interface Scrollable  
@@ -26,7 +28,7 @@ public interface Scrollable
     /**
      * Returns the preferred size of the viewport for a view component.
      * For example the preferredSize of a JList component is the size
-     * required to acommodate all of the cells in its list however the
+     * required to accommodate all of the cells in its list however the
      * value of preferredScrollableViewportSize is the size required for
      * JList.getVisibleRowCount() rows.   A component without any properties
      * that would effect the viewport size should just return 
@@ -51,7 +53,8 @@ public interface Scrollable
      * @param visibleRect The view area visible within the viewport
      * @param orientation Either SwingConstants.VERTICAL or SwingConstants.HORIZONTAL.
      * @param direction Less than zero to scroll up/left, greater than zero for down/right.
-     * @return The "unit" increment for scrolling in the specified direction
+     * @return The "unit" increment for scrolling in the specified direction.
+     *         This value should always be positive.
      * @see JScrollBar#setUnitIncrement
      */
     int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction);
@@ -69,6 +72,7 @@ public interface Scrollable
      * @param orientation Either SwingConstants.VERTICAL or SwingConstants.HORIZONTAL.
      * @param direction Less than zero to scroll up/left, greater than zero for down/right.
      * @return The "block" increment for scrolling in the specified direction.
+     *         This value should always be positive.
      * @see JScrollBar#setBlockIncrement
      */
     int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction);  
@@ -76,7 +80,8 @@ public interface Scrollable
 
     /**
      * Return true if a viewport should always force the width of this 
-     * Scrollable to match the width of the viewport.  For example a noraml 
+     * <code>Scrollable</code> to match the width of the viewport. 
+     * For example a normal 
      * text view that supported line wrapping would return true here, since it
      * would be undesirable for wrapped lines to disappear beyond the right
      * edge of the viewport.  Note that returning true for a Scrollable

@@ -1,4 +1,6 @@
 /*
+ * @(#)InputMethodHighlight.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -41,7 +43,7 @@ import java.util.Map;
 * attribute. They may be wrapped into {@link java.text.Annotation Annotation}
 * instances to indicate separate text segments.
 *
-* @version 	1.18, 02/06/02
+* @version 	1.18, 12/03/01
 * @see java.text.AttributedCharacterIterator
 * @since 1.2
 */

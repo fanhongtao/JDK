@@ -1,4 +1,6 @@
 /*
+ * @(#)Struct.java	1.19 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,8 +15,6 @@ package java.sql;
  * By default, an instance of<code>Struct</code> is valid as long as the 
  * application has a reference to it.
  * @since 1.2
- * @see <a href="package-summary.html#2.0 API">What Is in the JDBC
- *      2.0 API</a>
  */
 
 public interface Struct {
@@ -23,7 +23,7 @@ public interface Struct {
    * Retrieves the SQL type name of the SQL structured type
    * that this <code>Struct</code> object represents.
    *
-   * @returns the fully-qualified type name of the SQL structured 
+   * @return the fully-qualified type name of the SQL structured 
    *          type for which this <code>Struct</code> object
    *          is the generic representation
    * @exception SQLException if a database access error occurs

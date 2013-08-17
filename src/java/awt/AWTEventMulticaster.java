@@ -1,4 +1,6 @@
 /*
+ * @(#)AWTEventMulticaster.java	1.31 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -44,16 +46,16 @@ import java.util.EventListener;
  *
  * @author      John Rose
  * @author 	Amy Fowler
- * @version 	1.26, 02/06/02
+ * @version 	1.31, 12/03/01
  * @since 	1.1
  */
 
 public class AWTEventMulticaster implements 
     ComponentListener, ContainerListener, FocusListener, KeyListener,
-    MouseListener, MouseMotionListener, WindowListener,
-    ActionListener, ItemListener, AdjustmentListener,
+    MouseListener, MouseMotionListener, WindowListener, WindowFocusListener,
+    WindowStateListener, ActionListener, ItemListener, AdjustmentListener,
     TextListener, InputMethodListener, HierarchyListener,
-    HierarchyBoundsListener {
+    HierarchyBoundsListener, MouseWheelListener {
 
     protected final EventListener a, b;
 
@@ -337,6 +339,37 @@ public class AWTEventMulticaster implements
     }
 
     /**
+     * Handles the windowStateChanged event by invoking the
+     * windowStateChanged methods on listener-a and listener-b.
+     * @param e the window event
+     */
+    public void windowStateChanged(WindowEvent e) {
+        ((WindowStateListener)a).windowStateChanged(e);
+        ((WindowStateListener)b).windowStateChanged(e);
+    }
+
+
+    /**
+     * Handles the windowGainedFocus event by invoking the windowGainedFocus
+     * methods on listener-a and listener-b.
+     * @param e the window event
+     */
+    public void windowGainedFocus(WindowEvent e) {
+        ((WindowFocusListener)a).windowGainedFocus(e);
+        ((WindowFocusListener)b).windowGainedFocus(e);
+    }
+
+    /**
+     * Handles the windowLostFocus event by invoking the windowLostFocus
+     * methods on listener-a and listener-b.
+     * @param e the window event
+     */
+    public void windowLostFocus(WindowEvent e) {
+        ((WindowFocusListener)a).windowLostFocus(e);
+        ((WindowFocusListener)b).windowLostFocus(e);
+    }
+
+    /**
      * Handles the actionPerformed event by invoking the
      * actionPerformed methods on listener-a and listener-b.
      * @param e the action event
@@ -421,6 +454,17 @@ public class AWTEventMulticaster implements
     }
 
     /**
+     * Handles the mouseWheelMoved event by invoking the
+     * mouseWheelMoved methods on listener-a and listener-b.
+     * @param e the mouse event
+     * @since 1.4
+     */
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        ((MouseWheelListener)a).mouseWheelMoved(e);
+        ((MouseWheelListener)b).mouseWheelMoved(e);
+    }
+
+    /**
      * Adds component-listener-a with component-listener-b and
      * returns the resulting multicast listener.
      * @param a component-listener-a
@@ -491,6 +535,28 @@ public class AWTEventMulticaster implements
     }
 
     /**
+     * Adds window-state-listener-a with window-state-listener-b
+     * and returns the resulting multicast listener.
+     * @param a window-state-listener-a
+     * @param b window-state-listener-b
+     */
+    public static WindowStateListener add(WindowStateListener a,
+                                          WindowStateListener b) {
+        return (WindowStateListener)addInternal(a, b);
+    }
+
+    /**
+     * Adds window-focus-listener-a with window-focus-listener-b
+     * and returns the resulting multicast listener.
+     * @param a window-focus-listener-a
+     * @param b window-focus-listener-b
+     */
+    public static WindowFocusListener add(WindowFocusListener a,
+                                          WindowFocusListener b) {
+        return (WindowFocusListener)addInternal(a, b);
+    }
+
+    /**
      * Adds action-listener-a with action-listener-b and
      * returns the resulting multicast listener.
      * @param a action-listener-a
@@ -552,6 +618,18 @@ public class AWTEventMulticaster implements
      public static HierarchyBoundsListener add(HierarchyBoundsListener a, HierarchyBoundsListener b) {
         return (HierarchyBoundsListener)addInternal(a, b);
      }
+
+    /**
+     * Adds mouse-wheel-listener-a with mouse-wheel-listener-b and
+     * returns the resulting multicast listener.
+     * @param a mouse-wheel-listener-a
+     * @param b mouse-wheel-listener-b
+     * @since 1.4
+     */
+    public static MouseWheelListener add(MouseWheelListener a,
+                                         MouseWheelListener b) {
+        return (MouseWheelListener)addInternal(a, b);
+    }
 
     /**
      * Removes the old component-listener from component-listener-l and
@@ -624,6 +702,28 @@ public class AWTEventMulticaster implements
     }
 
     /**
+     * Removes the old window-state-listener from window-state-listener-l
+     * and returns the resulting multicast listener.
+     * @param l window-state-listener-l
+     * @param oldl the window-state-listener being removed
+     */
+    public static WindowStateListener remove(WindowStateListener l,
+                                             WindowStateListener oldl) {
+        return (WindowStateListener) removeInternal(l, oldl);
+    }
+
+    /**
+     * Removes the old window-focus-listener from window-focus-listener-l
+     * and returns the resulting multicast listener.
+     * @param l window-focus-listener-l
+     * @param oldl the window-focus-listener being removed
+     */
+    public static WindowFocusListener remove(WindowFocusListener l,
+                                             WindowFocusListener oldl) {
+        return (WindowFocusListener) removeInternal(l, oldl);
+    }
+
+    /**
      * Removes the old action-listener from action-listener-l and
      * returns the resulting multicast listener.
      * @param l action-listener-l
@@ -685,6 +785,18 @@ public class AWTEventMulticaster implements
      */
     public static HierarchyBoundsListener remove(HierarchyBoundsListener l, HierarchyBoundsListener oldl) {
         return (HierarchyBoundsListener) removeInternal(l, oldl);
+    }
+
+    /**
+     * Removes the old mouse-wheel-listener from mouse-wheel-listener-l 
+     * and returns the resulting multicast listener.
+     * @param l mouse-wheel-listener-l
+     * @param oldl the mouse-wheel-listener being removed
+     * @since 1.4
+     */
+    public static MouseWheelListener remove(MouseWheelListener l,
+                                            MouseWheelListener oldl) {
+      return (MouseWheelListener) removeInternal(l, oldl);
     }
 
     /** 
@@ -786,7 +898,35 @@ public class AWTEventMulticaster implements
         }
     }
     
-    static EventListener[] getListeners(EventListener l, Class listenerType) { 
+    /**
+     * Returns an array of all the objects chained as
+     * <code><em>Foo</em>Listener</code>s by the specified
+     * <code>java.util.EventListener</code>.
+     * <code><em>Foo</em>Listener</code>s are chained by the
+     * <code>AWTEventMulticaster</code> using the
+     * <code>add<em>Foo</em>Listener</code> method. 
+     * If a <code>null</code> listener is specified, this method returns an
+     * empty array. If the specified listener is not an instance of
+     * <code>AWTEventMulticaster</code>, this method returns an array which
+     * contains only the specified listener. If no such listeners are chanined,
+     * this method returns an empty array.
+     *
+     * @param l the specified <code>java.util.EventListener</code>
+     * @param listenerType the type of listeners requested; this parameter
+     *          should specify an interface that descends from
+     *          <code>java.util.EventListener</code>
+     * @return an array of all objects chained as
+     *          <code><em>Foo</em>Listener</code>s by the specified multicast
+     *          listener, or an empty array if no such listeners have been
+     *          chained by the specified multicast listener
+     * @exception ClassCastException if <code>listenerType</code>
+     *          doesn't specify a class or interface that implements
+     *          <code>java.util.EventListener</code>
+     *
+     * @since 1.4
+     */
+    public static EventListener[] getListeners(EventListener l, 
+                                               Class listenerType) {  
         int n = getListenerCount(l); 
         EventListener[] result = (EventListener[])Array.newInstance(listenerType, n); 
         populateListenerArray(result, l, 0); 

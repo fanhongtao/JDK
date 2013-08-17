@@ -1,4 +1,6 @@
 /*
+ * @(#)CustomMarshal.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -9,12 +11,12 @@ import org.omg.CORBA.DataOutputStream;
 import org.omg.CORBA.DataInputStream;
 
 /**
- * The CustomMarshal is an abstract value type that is meant to 
+ * An abstract value type that is meant to 
  * be used by the ORB, not the user. Semantically it is treated 
  * as a custom valuetype's implicit base class, although the custom 
  * valutype does not actually inherit it in IDL. The implementer 
  * of a custom value type shall provide an implementation of the 
- * CustomMarshal operations. The manner in which this is done is 
+ * <tt>CustomMarshal</tt> operations. The manner in which this is done is 
  * specified in the IDL to Java langague mapping. Each custom 
  * marshaled value type shall have its own implementation.
  * @see DataOuputStream

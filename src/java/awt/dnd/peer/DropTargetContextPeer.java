@@ -1,4 +1,6 @@
 /*
+ * @(#)DropTargetContextPeer.java	1.11 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -24,7 +26,7 @@ import java.io.IOException;
  * enable control of platform DnD operations
  * </p>
  *
- * @version 	1.11, 02/06/02
+ * @version 	1.11, 12/03/01
  * @since 1.2
  *
  */

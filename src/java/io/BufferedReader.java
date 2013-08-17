@@ -1,4 +1,6 @@
 /*
+ * @(#)BufferedReader.java	1.28 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -35,7 +37,7 @@ package java.io;
  * @see FileReader
  * @see InputStreamReader
  *
- * @version 	1.28, 02/02/06
+ * @version 	1.28, 01/12/03
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -142,6 +144,9 @@ public class BufferedReader extends Reader {
     /**
      * Read a single character.
      *
+     * @return The character read, as an integer in the range
+     *         0 to 65535 (<tt>0x00-0xffff</tt>), or -1 if the
+     *         end of the stream has been reached
      * @exception  IOException  If an I/O error occurs
      */
     public int read() throws IOException {

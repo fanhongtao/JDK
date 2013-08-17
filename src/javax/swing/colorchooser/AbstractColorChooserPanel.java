@@ -1,4 +1,6 @@
 /*
+ * @(#)AbstractColorChooserPanel.java	1.18 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,12 +19,14 @@ import javax.swing.event.*;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.14 02/06/02
+ * @version 1.18 12/03/01
  * @author Tom Santos
  * @author Steve Wilson
  */
@@ -64,20 +68,67 @@ public abstract class AbstractColorChooserPanel extends JPanel {
     public abstract String getDisplayName();
 
     /**
-     * Returns the large display icon for the panel.
-     * @return the large display icon
+     * Provides a hint to the look and feel as to the
+     * <code>KeyEvent.VK</code> constant that can be used as a mnemonic to
+     * access the panel. A return value <= 0 indicates there is no mnemonic.
+     * <p>
+     * The return value here is a hint, it is ultimately up to the look
+     * and feel to honor the return value in some meaningful way.
+     * <p>
+     * This implementation returns 0, indicating the
+     * <code>AbstractColorChooserPanel</code> does not support a mnemonic,
+     * subclasses wishing a mnemonic will need to override this.
+     *
+     * @return KeyEvent.VK constant identifying the mnemonic; <= 0 for no
+     *         mnemonic
+     * @see #getDisplayedMnemonicIndex
+     * @since 1.4
      */
-    public abstract Icon getSmallDisplayIcon();
+    public int getMnemonic() {
+        return 0;
+    }
+
+    /**
+     * Provides a hint to the look and feel as to the index of the character in
+     * <code>getDisplayName</code> that should be visually identified as the
+     * mnemonic. The look and feel should only use this if
+     * <code>getMnemonic</code> returns a value > 0.
+     * <p>
+     * The return value here is a hint, it is ultimately up to the look
+     * and feel to honor the return value in some meaningful way. For example,
+     * a look and feel may wish to render each
+     * <code>AbstractColorChooserPanel</code> in a <code>JTabbedPane</code>,
+     * and further use this return value to underline a character in
+     * the <code>getDisplayName</code>.
+     * <p>
+     * This implementation returns -1, indicating the
+     * <code>AbstractColorChooserPanel</code> does not support a mnemonic,
+     * subclasses wishing a mnemonic will need to override this.
+     *
+     * @return Character index to render mnemonic for; -1 to provide no
+     *                   visual identifier for this panel.
+     * @see #getMnemonic
+     * @since 1.4
+     */
+    public int getDisplayedMnemonicIndex() {
+        return -1;
+    }
 
     /**
      * Returns the small display icon for the panel.
      * @return the small display icon
      */
+    public abstract Icon getSmallDisplayIcon();
+
+    /**
+     * Returns the large display icon for the panel.
+     * @return the large display icon
+     */
     public abstract Icon getLargeDisplayIcon();
 
     /**
      * Invoked when the panel is added to the chooser.
-     * If you're going to override this, be sure to call super.
+     * If you override this, be sure to call <code>super</code>.
      * @param enclosingChooser  the panel to be added
      * @exception RuntimeException  if the chooser panel has already been
      *				installed
@@ -95,7 +146,7 @@ public abstract class AbstractColorChooserPanel extends JPanel {
 
     /**
      * Invoked when the panel is removed from the chooser.
-     * If you're going to override this, be sure to call super.
+     * If override this, be sure to call <code>super</code>.
      */
   public void uninstallChooserPanel(JColorChooser enclosingChooser) {
         getColorSelectionModel().removeChangeListener(colorListener);
@@ -129,6 +180,30 @@ public abstract class AbstractColorChooserPanel extends JPanel {
 	    dirty = false;
 	}
         super.paint(g);
+    }
+
+    /**
+     * Returns an integer from the defaults table. If <code>key</code> does
+     * not map to a valid <code>Integer</code>, <code>default</code> is
+     * returned.
+     *
+     * @param key  an <code>Object</code> specifying the int
+     * @param defaultValue Returned value if <code>key</code> is not available,
+     *                     or is not an Integer
+     * @return the int
+     */
+    static int getInt(Object key, int defaultValue) {
+        Object value = UIManager.get(key);
+
+        if (value instanceof Integer) {
+            return ((Integer)value).intValue();
+        }
+        if (value instanceof String) {
+            try {
+                return Integer.parseInt((String)value);
+            } catch (NumberFormatException nfe) {}
+        }
+        return defaultValue;
     }
 
     /**

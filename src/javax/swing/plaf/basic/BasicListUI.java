@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicListUI.java	1.87 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -8,20 +10,24 @@ package javax.swing.plaf.basic;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
+import javax.swing.text.Position;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.*;
+
+import java.util.ArrayList;
+import java.util.TooManyListenersException;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
-
-
 
 /**
  * A Windows L&F implementation of ListUI.
  * <p>
  *
- * @version 1.55 02/06/02
+ * @version 1.87 12/03/01
  * @author Hans Muller
  * @author Philip Milne
  */
@@ -36,12 +42,46 @@ public class BasicListUI extends ListUI
     protected ListSelectionListener listSelectionListener;
     protected ListDataListener listDataListener;
     protected PropertyChangeListener propertyChangeListener;
+    private KeyListener keyListener;
 
     // PENDING(hmuller) need a doc pointer to #getRowHeight, #maybeUpdateLayoutState
     protected int[] cellHeights = null;
     protected int cellHeight = -1;
     protected int cellWidth = -1;
     protected int updateLayoutStateNeeded = modelChanged;
+    /**
+     * Height of the list. When asked to paint, if the current size of
+     * the list differs, this will update the layout state.
+     */
+    private int listHeight;
+
+    /**
+     * Width of the list. When asked to paint, if the current size of
+     * the list differs, this will update the layout state.
+     */
+    private int listWidth;
+
+    /**
+     * The layout orientation of the list.
+     */
+    private int layoutOrientation;
+
+    // Following ivars are used if the list is laying out horizontally
+
+    /**
+     * Number of columns to create.
+     */
+    private int columnCount;
+    /**
+     * Preferred height to make the list, this is only used if the 
+     * the list is layed out horizontally.
+     */
+    private int preferredHeight;
+    /**
+     * Number of rows per column. This is only used if the row height is
+     * fixed.
+     */
+    private int rowsPerColumn;
 
     /* The bits below define JList property changes that affect layout.
      * When one of these properties changes we set a bit in
@@ -57,6 +97,10 @@ public class BasicListUI extends ListUI
     protected final static int fixedCellHeightChanged = 1 << 4;
     protected final static int prototypeCellValueChanged = 1 << 5;
     protected final static int cellRendererChanged = 1 << 6;
+    private final static int layoutOrientationChanged = 1 << 7;
+    private final static int heightChanged = 1 << 8;
+    private final static int widthChanged = 1 << 9;
+    private final static int componentOrientationChanged = 1 << 10;
 
 
     /**
@@ -99,63 +143,135 @@ public class BasicListUI extends ListUI
      */
     public void paint(Graphics g, JComponent c)
     {
+        switch (layoutOrientation) {
+        case JList.VERTICAL_WRAP:
+            if (list.getHeight() != listHeight) {
+                updateLayoutStateNeeded |= heightChanged;
+                redrawList();
+            }
+            break;
+        case JList.HORIZONTAL_WRAP:
+            if (list.getWidth() != listWidth) {
+                updateLayoutStateNeeded |= widthChanged;
+                redrawList();
+            }
+            break;
+        default:
+            break;
+        }
         maybeUpdateLayoutState();
 
         ListCellRenderer renderer = list.getCellRenderer();
         ListModel dataModel = list.getModel();
         ListSelectionModel selModel = list.getSelectionModel();
+        int size;
 
-        if ((renderer == null) || (dataModel.getSize() == 0)) {
+        if ((renderer == null) || (size = dataModel.getSize()) == 0) {
             return;
         }
 
-        /* Compute the area we're going to paint in terms of the affected
-         * rows (firstPaintRow, lastPaintRow), and the clip bounds.
-         */
-
+        // Determine how many columns we need to paint
         Rectangle paintBounds = g.getClipBounds();
-        int firstPaintRow = convertYToRow(paintBounds.y);
-        int lastPaintRow = convertYToRow((paintBounds.y + paintBounds.height) - 1);
 
-        if (firstPaintRow == -1) {
-            firstPaintRow = 0;
-        }
-        if (lastPaintRow == -1) {
-            lastPaintRow = dataModel.getSize() - 1;
-        }
-
-        Rectangle rowBounds = getCellBounds(list, firstPaintRow, firstPaintRow);
-        if (rowBounds == null) {
-            return;
-        }
-
+	int startColumn, endColumn;
+	if (c.getComponentOrientation().isLeftToRight()) {
+            startColumn = convertLocationToColumn(paintBounds.x,
+                                                  paintBounds.y);
+	    endColumn = convertLocationToColumn(paintBounds.x +
+                                                paintBounds.width,
+                                                paintBounds.y);
+	} else {
+	    startColumn = convertLocationToColumn(paintBounds.x +
+                                                paintBounds.width,
+                                                paintBounds.y);
+            endColumn = convertLocationToColumn(paintBounds.x,
+                                                  paintBounds.y);
+	}
+        int maxY = paintBounds.y + paintBounds.height;
         int leadIndex = list.getLeadSelectionIndex();
+        int rowIncrement = (layoutOrientation == JList.HORIZONTAL_WRAP) ?
+                           columnCount : 1;
 
-        for(int row = firstPaintRow; row <= lastPaintRow; row++) {
-            rowBounds.height = getRowHeight(row);
 
-            /* Set the clip rect to be the intersection of rowBounds
-             * and paintBounds and then paint the cell.
-             */
+        for (int colCounter = startColumn; colCounter <= endColumn;
+             colCounter++) {
+            // And then how many rows in this columnn
+            int row = convertLocationToRowInColumn(paintBounds.y, colCounter);
+            int rowCount = getRowCount(colCounter);
+            int index = getModelIndex(colCounter, row);
+            Rectangle rowBounds = getCellBounds(list, index, index);
 
-            g.setClip(rowBounds.x, rowBounds.y, rowBounds.width, rowBounds.height);
-            g.clipRect(paintBounds.x, paintBounds.y, paintBounds.width, paintBounds.height);
-
-            paintCell(g, row, rowBounds, renderer, dataModel, selModel, leadIndex);
-
-            rowBounds.y += rowBounds.height;
+            if (rowBounds == null) {
+                // Not valid, bail!
+                return;
+            }
+            while (row < rowCount && rowBounds.y < maxY &&
+                   index < size) {
+                rowBounds.height = getHeight(colCounter, row);
+                g.setClip(rowBounds.x, rowBounds.y, rowBounds.width,
+                          rowBounds.height);
+                g.clipRect(paintBounds.x, paintBounds.y, paintBounds.width,
+                           paintBounds.height);
+                paintCell(g, index, rowBounds, renderer, dataModel, selModel,
+                          leadIndex);
+                rowBounds.y += rowBounds.height;
+                index += rowIncrement;
+                row++;
+            }
         }
     }
 
 
     /**
-     * The preferredSize of a list is total height of the rows
-     * and the maximum width of the cells.  If JList.fixedCellHeight
-     * is specified then the total height of the rows is just
-     * (cellVerticalMargins + fixedCellHeight) * model.getSize() where
-     * rowVerticalMargins is the space we allocate for drawing
-     * the yellow focus outline.  Similarly if JListfixedCellWidth is
-     * specified then we just use that plus the horizontal margins.
+     * The preferredSize of the list depends upon the layout orientation.
+     * <table><tr><td>Layout Orientation</td><td>Preferred Size</td></tr>
+     * <tr>
+     *   <td>JList.VERTICAL
+     *   <td>The preferredSize of the list is total height of the rows
+     *       and the maximum width of the cells.  If JList.fixedCellHeight
+     *       is specified then the total height of the rows is just
+     *       (cellVerticalMargins + fixedCellHeight) * model.getSize() where
+     *       rowVerticalMargins is the space we allocate for drawing
+     *       the yellow focus outline.  Similarly if fixedCellWidth is
+     *       specified then we just use that.
+     *   </td>
+     * <tr>
+     *   <td>JList.VERTICAL_WRAP
+     *   <td>If the visible row count is greater than zero, the preferredHeight
+     *       is the maximum cell height * visibleRowCount. If the visible row
+     *       count is <= 0, the preferred height is either the current height
+     *       of the list, or the maximum cell height, whichever is
+     *       bigger. The preferred width is than the maximum cell width *
+     *       number of columns needed. Where the number of columns needs is
+     *       list.height / max cell height. Max cell height is either the fixed
+     *       cell height, or is determined by iterating through all the cells
+     *       to find the maximum height from the ListCellRenderer.
+     * <tr>
+     *   <td>JList.HORIZONTAL_WRAP
+     *   <td>If the visible row count is greater than zero, the preferredHeight
+     *       is the maximum cell height * adjustedRowCount.  Where
+     *       visibleRowCount is used to determine the number of columns.
+     *       Because this lays out horizontally the number of rows is
+     *       then determined from the column count.  For example, lets say
+     *       you have a model with 10 items and the visible row count is 8.
+     *       The number of columns needed to display this is 2, but you no
+     *       longer need 8 rows to display this, you only need 5, thus
+     *       the adjustedRowCount is 5.
+     *       <p>If the visible row
+     *       count is <= 0, the preferred height is dictated by the 
+     *       number of columns, which will be as many as can fit in the width
+     *       of the <code>JList</code> (width / max cell width), with at
+     *       least one column.  The preferred height then becomes the
+     *       model size / number of columns * maximum cell height.
+     *       Max cell height is either the fixed
+     *       cell height, or is determined by iterating through all the cells
+     *       to find the maximum height from the ListCellRenderer.
+     * </table>
+     * The above specifies the raw preferred width and height. The resulting
+     * preferred width is the above width + insets.left + insets.right and
+     * the resulting preferred height is the above height + insets.top +
+     * insets.bottom. Where the <code>Insets</code> are determined from
+     * <code>list.getInsets()</code>.
      *
      * @param c The JList component.
      * @return The total size of the list.
@@ -169,15 +285,28 @@ public class BasicListUI extends ListUI
         }
 
         Insets insets = list.getInsets();
+        int width = cellWidth * columnCount + insets.left + insets.right;
+        int height;
 
-        int width = cellWidth + insets.left + insets.right;
-        int height = convertRowToY(lastRow) + getRowHeight(lastRow) + insets.bottom;
+        if (layoutOrientation != JList.VERTICAL) {
+            height = preferredHeight;
+        }
+        else {
+            Rectangle bounds = getCellBounds(list, lastRow);
+
+            if (bounds != null) {
+                height = bounds.y + bounds.height + insets.bottom;
+            }
+            else {
+                height = 0;
+            }
+        }
         return new Dimension(width, height);
     }
 
 
     /**
-     * @returns The preferred size.
+     * @return the preferred size
      * @see #getPreferredSize
      */
     public Dimension getMinimumSize(JComponent c) {
@@ -186,7 +315,7 @@ public class BasicListUI extends ListUI
 
 
     /**
-     * @returns The preferred size.
+     * @return the preferred size
      * @see #getPreferredSize
      */
     public Dimension getMaximumSize(JComponent c) {
@@ -196,9 +325,7 @@ public class BasicListUI extends ListUI
 
     /**
      * Selected the previous row and force it to be visible.
-     * Called by the KeyEvent.VK_UP keyboard action.
      *
-     * @see #installKeyboardActions
      * @see JList#ensureIndexIsVisible
      */
     protected void selectPreviousIndex() {
@@ -213,9 +340,7 @@ public class BasicListUI extends ListUI
 
     /**
      * Selected the previous row and force it to be visible.
-     * Called by the KeyEvent.VK_DOWN keyboard action.
      *
-     * @see #installKeyboardActions
      * @see JList#ensureIndexIsVisible
      */
     protected void selectNextIndex()
@@ -230,14 +355,10 @@ public class BasicListUI extends ListUI
 
 
     /**
-     * Register keyboard actions for the up and down arrow keys.  The
-     * actions just call out to protected methods, subclasses that
-     * want to override or extend keyboard behavior should consider
-     * just overriding those methods.  This method is called at
+     * Registers the keyboard bindings on the <code>JList</code> that the
+     * <code>BasicListUI</code> is associated with. This method is called at
      * installUI() time.
      *
-     * @see #selectPreviousIndex
-     * @see #selectNextIndex
      * @see #installUI
      */
     protected void installKeyboardActions() {
@@ -245,8 +366,8 @@ public class BasicListUI extends ListUI
 
 	SwingUtilities.replaceUIInputMap(list, JComponent.WHEN_FOCUSED,
 					   inputMap);
-	ActionMap map = getActionMap();
 
+	ActionMap map = getActionMap();
 	if (map != null) {
 	    SwingUtilities.replaceUIActionMap(list, map);
 	}
@@ -254,7 +375,16 @@ public class BasicListUI extends ListUI
 
     InputMap getInputMap(int condition) {
 	if (condition == JComponent.WHEN_FOCUSED) {
-	    return (InputMap)UIManager.get("List.focusInputMap");
+	    InputMap keyMap = (InputMap)UIManager.get("List.focusInputMap");
+	    InputMap rtlKeyMap;
+
+	    if (list.getComponentOrientation().isLeftToRight() ||
+		((rtlKeyMap = (InputMap)UIManager.get("List.focusInputMap.RightToLeft")) == null)) {
+		    return keyMap;
+	    } else {
+		rtlKeyMap.setParent(keyMap);
+		return rtlKeyMap;
+	    }
 	}
 	return null;
     }
@@ -265,7 +395,7 @@ public class BasicListUI extends ListUI
 	if (map == null) {
 	    map = createActionMap();
 	    if (map != null) {
-		UIManager.put("List.actionMap", map);
+		UIManager.getLookAndFeelDefaults().put("List.actionMap", map);
 	    }
 	}
 	return map;
@@ -273,6 +403,19 @@ public class BasicListUI extends ListUI
 
     ActionMap createActionMap() {
 	ActionMap map = new ActionMapUIResource();
+	map.put("selectPreviousColumn",
+		    new IncrementLeadByColumnAction("selectPreviousColumn",
+						     CHANGE_SELECTION, -1));
+	map.put("selectPreviousColumnExtendSelection",
+		    new IncrementLeadByColumnAction
+		    ("selectPreviousColumnExtendSelection",
+                     EXTEND_SELECTION, -1));
+	map.put("selectNextColumn",
+		    new IncrementLeadByColumnAction("selectNextColumn",
+						     CHANGE_SELECTION, 1));
+	map.put("selectNextColumnExtendSelection",
+		    new IncrementLeadByColumnAction
+		    ("selectNextColumnExtendSelection", EXTEND_SELECTION, 1));
 	map.put("selectPreviousRow",
 		    new IncrementLeadSelectionAction("selectPreviousRow",
 						     CHANGE_SELECTION, -1));
@@ -308,17 +451,23 @@ public class BasicListUI extends ListUI
 	map.put("selectAll", new SelectAllAction("selectAll"));
 	map.put("clearSelection", new 
 		    ClearSelectionAction("clearSelection"));
+
+        map.put(TransferHandler.getCutAction().getValue(Action.NAME),
+                TransferHandler.getCutAction());
+        map.put(TransferHandler.getCopyAction().getValue(Action.NAME),
+                TransferHandler.getCopyAction());
+        map.put(TransferHandler.getPasteAction().getValue(Action.NAME),
+                TransferHandler.getPasteAction());
 	return map;
     }
 
     /**
-     * Unregister keyboard actions for the up and down arrow keys.
+     * Unregisters keyboard actions installed from
+     * <code>installKeyboardActions</code>.
      * This method is called at uninstallUI() time - subclassess should
      * ensure that all of the keyboard actions registered at installUI
      * time are removed here.
      *
-     * @see #selectPreviousIndex
-     * @see #selectNextIndex
      * @see #installUI
      */
     protected void uninstallKeyboardActions() {
@@ -341,11 +490,15 @@ public class BasicListUI extends ListUI
         propertyChangeListener = createPropertyChangeListener();
         listSelectionListener = createListSelectionListener();
         listDataListener = createListDataListener();
+        keyListener = createKeyListener();
 
         list.addFocusListener(focusListener);
+	list.addMouseListener(defaultDragRecognizer);
+	list.addMouseMotionListener(defaultDragRecognizer);
         list.addMouseListener(mouseInputListener);
         list.addMouseMotionListener(mouseInputListener);
         list.addPropertyChangeListener(propertyChangeListener);
+        list.addKeyListener(keyListener);
 
         ListModel model = list.getModel();
         if (model != null) {
@@ -371,9 +524,12 @@ public class BasicListUI extends ListUI
     protected void uninstallListeners()
     {
         list.removeFocusListener(focusListener);
+	list.removeMouseListener(defaultDragRecognizer);
+	list.removeMouseMotionListener(defaultDragRecognizer);
         list.removeMouseListener(mouseInputListener);
         list.removeMouseMotionListener(mouseInputListener);
         list.removePropertyChangeListener(propertyChangeListener);
+        list.removeKeyListener(keyListener);
 
         ListModel model = list.getModel();
         if (model != null) {
@@ -390,6 +546,7 @@ public class BasicListUI extends ListUI
         listSelectionListener = null;
         listDataListener = null;
         propertyChangeListener = null;
+        keyListener = null;
     }
 
 
@@ -406,6 +563,8 @@ public class BasicListUI extends ListUI
      */
     protected void installDefaults()
     {
+        columnCount = 1;
+
         list.setLayout(null);
 
         LookAndFeel.installBorder(list, "List.border");
@@ -425,11 +584,24 @@ public class BasicListUI extends ListUI
         if (sfg == null || sfg instanceof UIResource) {
             list.setSelectionForeground(UIManager.getColor("List.selectionForeground"));
         }
+
+	TransferHandler th = list.getTransferHandler();
+	if (th == null || th instanceof UIResource) {
+	    list.setTransferHandler(defaultTransferHandler);
+	}
+	DropTarget dropTarget = list.getDropTarget();
+	if (dropTarget instanceof UIResource) {
+	    try {
+		dropTarget.addDropTargetListener(new ListDropTargetListener());
+	    } catch (TooManyListenersException tmle) {
+		// should not happen... swing drop target is multicast
+	    }
+	}
     }
 
 
     /**
-     * Set the JList properties that haven't been explicitly overriden to
+     * Set the JList properties that haven't been explicitly overridden to
      * null.  A property is considered overridden if its current value
      * is not a UIResource.
      *
@@ -439,9 +611,28 @@ public class BasicListUI extends ListUI
      */
     protected void uninstallDefaults()
     {
+        LookAndFeel.uninstallBorder(list);
+        if (list.getFont() instanceof UIResource) {
+            list.setFont(null);
+        }
+        if (list.getForeground() instanceof UIResource) {
+            list.setForeground(null);
+        }
+        if (list.getBackground() instanceof UIResource) {
+            list.setBackground(null);
+        }
+        if (list.getSelectionBackground() instanceof UIResource) {
+            list.setSelectionBackground(null);
+        }
+        if (list.getSelectionForeground() instanceof UIResource) {
+            list.setSelectionForeground(null);
+        }
         if (list.getCellRenderer() instanceof UIResource) {
             list.setCellRenderer(null);
         }
+	if (list.getTransferHandler() instanceof UIResource) {
+	    list.setTransferHandler(null);
+	}
     }
 
 
@@ -457,6 +648,8 @@ public class BasicListUI extends ListUI
     public void installUI(JComponent c)
     {
         list = (JList)c;
+
+        layoutOrientation = list.getLayoutOrientation();
 
         rendererPane = new CellRendererPane();
         list.add(rendererPane);
@@ -478,12 +671,14 @@ public class BasicListUI extends ListUI
      */
     public void uninstallUI(JComponent c)
     {
-        uninstallDefaults();
         uninstallListeners();
+        uninstallDefaults();
         uninstallKeyboardActions();
 
         cellWidth = cellHeight = -1;
         cellHeights = null;
+
+        listWidth = listHeight = -1;
 
         list.remove(rendererPane);
         rendererPane = null;
@@ -503,12 +698,17 @@ public class BasicListUI extends ListUI
 
 
     /**
+     * Convert a point in <code>JList</code> coordinates to the closest index
+     * of the cell at that location. To determine if the cell actually
+     * contains the specified location use a combination of this method and
+     * <code>getCellBounds</code>.  Returns -1 if the model is empty.
+     *
      * @return The index of the cell at location, or -1.
      * @see ListUI#locationToIndex
      */
     public int locationToIndex(JList list, Point location) {
         maybeUpdateLayoutState();
-        return convertYToRow(location.y);
+        return convertLocationToModel(location.x, location.y);
     }
 
 
@@ -518,8 +718,12 @@ public class BasicListUI extends ListUI
      */
     public Point indexToLocation(JList list, int index) {
         maybeUpdateLayoutState();
-	int y = convertRowToY(index);
-        return (y == -1) ? null : new Point(0, y);
+        Rectangle rect = getCellBounds(list, index, index);
+
+        if (rect != null) {
+            return new Point(rect.x, rect.y);
+        }
+        return null;
     }
 
 
@@ -532,21 +736,90 @@ public class BasicListUI extends ListUI
 
         int minIndex = Math.min(index1, index2);
         int maxIndex = Math.max(index1, index2);
-        int minY = convertRowToY(minIndex);
-        int maxY = convertRowToY(maxIndex);
 
-        if ((minY == -1) || (maxY == -1)) {
+        if (minIndex >= list.getModel().getSize()) {
+            return null;
+        }
+
+        Rectangle minBounds = getCellBounds(list, minIndex);
+
+        if (minBounds == null) {
+            return null;
+        }
+        if (minIndex == maxIndex) {
+            return minBounds;
+        }
+        Rectangle maxBounds = getCellBounds(list, maxIndex);
+
+        if (maxBounds != null) {
+            if (layoutOrientation == JList.HORIZONTAL_WRAP) {
+                int minRow = convertModelToRow(minIndex);
+                int maxRow = convertModelToRow(maxIndex);
+
+                if (minRow != maxRow) {
+                    minBounds.x = 0;
+                    minBounds.width = list.getWidth();
+                }
+            }
+            else if (minBounds.x != maxBounds.x) {
+                // Different columns
+                minBounds.y = 0;
+                minBounds.height = list.getHeight();
+            }
+            minBounds.add(maxBounds);
+        }
+        return minBounds;
+    }
+
+    /**
+     * Gets the bounds of the specified model index, returning the resulting
+     * bounds, or null if <code>index</code> is not valid.
+     */
+    private Rectangle getCellBounds(JList list, int index) {
+        maybeUpdateLayoutState();
+
+        int row = convertModelToRow(index);
+        int column = convertModelToColumn(index);
+
+        if (row == -1 || column == -1) {
             return null;
         }
 
         Insets insets = list.getInsets();
-        int x = insets.left;
-        int y = minY;
-        int w = list.getWidth() - (insets.left + insets.right);
-        int h = (maxY + getRowHeight(maxIndex)) - minY;
+        int x;
+        int w = cellWidth;
+        int y = insets.top;
+        int h;
+        switch (layoutOrientation) {
+        case JList.VERTICAL_WRAP:
+        case JList.HORIZONTAL_WRAP:
+            if (list.getComponentOrientation().isLeftToRight()) {
+                x = insets.left + column * cellWidth;
+            } else {
+                x = list.getWidth() - insets.right - (column+1) * cellWidth;
+            }
+            y += cellHeight * row;
+            h = cellHeight;
+            break;
+        default:
+            x = insets.left;
+            if (cellHeights == null) {
+                y += (cellHeight * row);
+            }
+            else if (row >= cellHeights.length) {
+                y = 0;
+            }
+            else {
+                for(int i = 0; i < row; i++) {
+                    y += cellHeights[i];
+                }
+            }
+            w = list.getWidth() - (insets.left + insets.right);
+            h = getRowHeight(index);
+            break;
+        }
         return new Rectangle(x, y, w, h);
     }
-
 
     // PENDING(hmuller) explain the cell geometry abstraction in
     // the getRowHeight javadoc
@@ -561,10 +834,7 @@ public class BasicListUI extends ListUI
      */
     protected int getRowHeight(int row)
     {
-        if ((row < 0) || (row >= list.getModel().getSize())) {
-            return -1;
-        }
-        return (cellHeights == null) ? cellHeight : ((row < cellHeights.length) ? cellHeights[row] : -1);
+        return getHeight(0, row);
     }
 
 
@@ -579,32 +849,7 @@ public class BasicListUI extends ListUI
      */
     protected int convertYToRow(int y0)
     {
-        int nrows = list.getModel().getSize();
-        Insets insets = list.getInsets();
-
-	if (nrows <= 0) {
-	    return -1;
-	}
-        else if (cellHeights == null) {
-            int row = (cellHeight == 0) ? 0 : ((y0 - insets.top) / cellHeight);
-            return ((row < 0) || (row >= nrows)) ? -1 : row;
-        }
-	else if (nrows > cellHeights.length) {
-	    return -1;
-	}
-        else {
-            int y = insets.top;
-            int row = 0;
-
-            for(int i = 0; i < nrows; i++) {
-                if ((y0 >= y) && (y0 < y + cellHeights[i])) {
-                    return row;
-                }
-                y += cellHeights[i];
-                row += 1;
-            }
-            return -1;
-        }
+        return convertLocationToRow(0, y0, false);
     }
 
 
@@ -618,28 +863,225 @@ public class BasicListUI extends ListUI
      */
     protected int convertRowToY(int row)
     {
-        int nrows = list.getModel().getSize();
-        Insets insets = list.getInsets();
-
-        if ((row < 0) || (row >= nrows)) {
+        if (getRowCount(0) >= row || row < 0) {
             return -1;
         }
+        Rectangle bounds = getCellBounds(list, row, row);
+        return bounds.y;
+    }
 
-        if (cellHeights == null) {
-            return insets.top + (cellHeight * row);
+    /**
+     * Returns the height of the cell at the passed in location.
+     */
+    private int getHeight(int column, int row) {
+        if (column < 0 || column > columnCount || row < 0) {
+            return -1;
         }
-	else if (row >= cellHeights.length) {
-	    return -1;
-	}
+        if (layoutOrientation != JList.VERTICAL) {
+            return cellHeight;
+        }
+        if (row >= list.getModel().getSize()) {
+            return -1;
+        }
+        return (cellHeights == null) ? cellHeight :
+                           ((row < cellHeights.length) ? cellHeights[row] : -1);
+    }
+
+    /**
+     * Returns the row at location x/y.
+     *
+     * @param closest If true and the location doesn't exactly match a
+     *                particular location, this will return the closest row.
+     */
+    private int convertLocationToRow(int x, int y0, boolean closest) {
+        int size = list.getModel().getSize();
+
+        if (size <= 0) {
+            return -1;
+        }
+        Insets insets = list.getInsets();
+        if (cellHeights == null) {
+            int row = (cellHeight == 0) ? 0 :
+                           ((y0 - insets.top) / cellHeight);
+            if (closest) {
+                if (row < 0) {
+                    row = 0;
+                }
+                else if (row >= size) {
+                    row = size - 1;
+                }
+            }
+            return row;
+        }
+        else if (size > cellHeights.length) {
+            return -1;
+        }
         else {
             int y = insets.top;
-            for(int i = 0; i < row; i++) {
-                y += cellHeights[i];
+            int row = 0;
+
+            if (closest && y0 < y) {
+                return 0;
             }
-            return y;
+            int i;
+            for (i = 0; i < size; i++) {
+                if ((y0 >= y) && (y0 < y + cellHeights[i])) {
+                    return row;
+                }
+                y += cellHeights[i];
+                row += 1;
+            }
+            return i - 1;
         }
     }
 
+    /**
+     * Returns the closest row that starts at the specified y-location
+     * in the passed in column.
+     */
+    private int convertLocationToRowInColumn(int y, int column) {
+        int x = 0;
+
+        if (layoutOrientation != JList.VERTICAL) {
+            if (list.getComponentOrientation().isLeftToRight()) {
+                x = column * cellWidth;
+            } else {
+                x = list.getWidth() - (column+1)*cellWidth - list.getInsets().right;
+            } 
+        }
+        return convertLocationToRow(x, y, true);
+    }
+
+    /**
+     * Returns the closest location to the model index of the passed in
+     * location.
+     */
+    private int convertLocationToModel(int x, int y) {
+        int row = convertLocationToRow(x, y, true);
+        int column = convertLocationToColumn(x, y);
+
+        if (row >= 0 && column >= 0) {
+            return getModelIndex(column, row);
+        }
+        return -1;
+    }
+
+    /**
+     * Returns the number of rows in the given column.
+     */
+    private int getRowCount(int column) {
+        if (column < 0 || column >= columnCount) {
+            return -1;
+        }
+        if (layoutOrientation == JList.VERTICAL ||
+                  (column == 0 && columnCount == 1)) {
+            return list.getModel().getSize();
+        }
+        if (column >= columnCount) {
+            return -1;
+        }
+        if (layoutOrientation == JList.VERTICAL_WRAP) {
+            if (column < (columnCount - 1)) {
+                return rowsPerColumn;
+            }
+            return list.getModel().getSize() - (columnCount - 1) *
+                        rowsPerColumn;
+        }
+        // JList.HORIZONTAL_WRAP
+        int diff = columnCount - (columnCount * rowsPerColumn -
+                                  list.getModel().getSize());
+
+        if (column >= diff) {
+            return Math.max(0, rowsPerColumn - 1);
+        }
+        return rowsPerColumn;
+    }
+
+    /**
+     * Returns the model index for the specified display location.
+     * If <code>column</code>x<code>row</code> is beyond the length of the
+     * model, this will return the model size - 1.
+     */
+    private int getModelIndex(int column, int row) {
+        switch (layoutOrientation) {
+        case JList.VERTICAL_WRAP:
+            return Math.min(list.getModel().getSize() - 1, rowsPerColumn *
+                            column + Math.min(row, rowsPerColumn-1));
+        case JList.HORIZONTAL_WRAP:
+            return Math.min(list.getModel().getSize() - 1, row * columnCount +
+                            column);
+        default:
+            return row;
+        }
+    }
+
+    /**
+     * Returns the closest column to the passed in location.
+     */
+    private int convertLocationToColumn(int x, int y) {
+        if (cellWidth > 0) {
+            if (layoutOrientation == JList.VERTICAL) {
+                return 0;
+            }
+            Insets insets = list.getInsets();
+            int col;
+            if (list.getComponentOrientation().isLeftToRight()) {
+                col = (x - insets.left) / cellWidth;
+            } else { 
+                col = (list.getWidth() - x - insets.right) / cellWidth;
+            }
+            if (col < 0) {
+                return 0;
+            }
+            else if (col >= columnCount) {
+                return columnCount - 1;
+            }
+            return col;
+        }
+        return 0;
+    }
+
+    /**
+     * Returns the row that the model index <code>index</code> will be
+     * displayed in..
+     */
+    private int convertModelToRow(int index) {
+        int size = list.getModel().getSize();
+
+        if ((index < 0) || (index >= size)) {
+            return -1;
+        }
+
+        if (layoutOrientation != JList.VERTICAL && columnCount > 1 &&
+                                                   rowsPerColumn > 0) {
+            if (layoutOrientation == JList.VERTICAL_WRAP) {
+                return index % rowsPerColumn;
+            }
+            return index / columnCount;
+        }
+        return index;
+    }
+
+    /**
+     * Returns the column that the model index <code>index</code> will be
+     * displayed in.
+     */
+    private int convertModelToColumn(int index) {
+        int size = list.getModel().getSize();
+
+        if ((index < 0) || (index >= size)) {
+            return -1;
+        }
+
+        if (layoutOrientation != JList.VERTICAL && rowsPerColumn > 0 &&
+                                                   columnCount > 1) {
+            if (layoutOrientation == JList.VERTICAL_WRAP) {
+                return index / rowsPerColumn;
+            }
+            return index % columnCount;
+        }
+        return 0;
+    }
 
     /**
      * If updateLayoutStateNeeded is non zero, call updateLayoutState() and reset
@@ -717,13 +1159,101 @@ public class BasicListUI extends ListUI
                 if (cellWidth == -1) {
                     cellWidth = 0;
                 }
+                if (cellHeights == null) {
+                    cellHeights = new int[dataModelSize];
+                }
                 for(int index = 0; index < dataModelSize; index++) {
                     cellHeights[index] = 0;
                 }
             }
         }
 
-        list.invalidate();
+        columnCount = 1;
+        if (layoutOrientation != JList.VERTICAL) {
+            updateHorizontalLayoutState(fixedCellWidth, fixedCellHeight);
+        }
+    }
+
+    /**
+     * Invoked when the list is layed out horizontally to determine how
+     * many columns to create.
+     * <p>
+     * This updates the <code>rowsPerColumn, </code><code>columnCount</code>,
+     * <code>preferredHeight</code> and potentially <code>cellHeight</code>
+     * instance variables.
+     */
+    private void updateHorizontalLayoutState(int fixedCellWidth,
+                                             int fixedCellHeight) {
+        int visRows = list.getVisibleRowCount();
+        int dataModelSize = list.getModel().getSize();
+        Insets insets = list.getInsets();
+
+        listHeight = list.getHeight();
+        listWidth = list.getWidth();
+
+        if (dataModelSize == 0) {
+            rowsPerColumn = columnCount = 0;
+            preferredHeight = insets.top + insets.bottom;
+            return;
+        }
+
+        int height;
+
+        if (fixedCellHeight != -1) {
+            height = fixedCellHeight;
+        }
+        else {
+            // Determine the max of the renderer heights.
+            int maxHeight = 0;
+            if (cellHeights.length > 0) {
+                maxHeight = cellHeights[cellHeights.length - 1];
+                for (int counter = cellHeights.length - 2;
+                     counter >= 0; counter--) {
+                    maxHeight = Math.max(maxHeight, cellHeights[counter]);
+                }
+            }
+            height = cellHeight = maxHeight;
+            cellHeights = null;
+        }
+        // The number of rows is either determined by the visible row
+        // count, or by the height of the list.
+        rowsPerColumn = dataModelSize;
+        if (visRows > 0) {
+            rowsPerColumn = visRows;
+            columnCount = Math.max(1, dataModelSize / rowsPerColumn);
+            if (dataModelSize > 0 && dataModelSize > rowsPerColumn &&
+                dataModelSize % rowsPerColumn != 0) {
+                columnCount++;
+            }
+            if (layoutOrientation == JList.HORIZONTAL_WRAP) {
+                // Because HORIZONTAL_WRAP flows differently, the 
+                // rowsPerColumn needs to be adjusted.
+                rowsPerColumn = (dataModelSize / columnCount);
+                if (dataModelSize % columnCount > 0) {
+                    rowsPerColumn++;
+                }
+            }
+        }
+        else if (layoutOrientation == JList.VERTICAL_WRAP && height != 0) {
+            rowsPerColumn = Math.max(1, (listHeight - insets.top -
+                                         insets.bottom) / height);
+            columnCount = Math.max(1, dataModelSize / rowsPerColumn);
+            if (dataModelSize > 0 && dataModelSize > rowsPerColumn &&
+                dataModelSize % rowsPerColumn != 0) {
+                columnCount++;
+            }
+        }
+        else if (layoutOrientation == JList.HORIZONTAL_WRAP && cellWidth > 0 &&
+                 listWidth > 0) {
+            columnCount = Math.max(1, (listWidth - insets.left -
+                                       insets.right) / cellWidth);
+            rowsPerColumn = dataModelSize / columnCount;
+            if (dataModelSize % columnCount > 0) {
+                rowsPerColumn++;
+            }
+        }
+        preferredHeight = rowsPerColumn * cellHeight + insets.top +
+                              insets.bottom;
     }
 
 
@@ -735,10 +1265,12 @@ public class BasicListUI extends ListUI
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      *
      * @see #createMouseInputListener
      * @see #installKeyboardActions
@@ -754,6 +1286,15 @@ public class BasicListUI extends ListUI
 
         public void mousePressed(MouseEvent e)
         {
+	    if (e.isConsumed()) {
+		selectedOnPress = false;
+		return;
+	    }
+	    selectedOnPress = true;
+	    adjustFocusAndSelection(e);
+	}
+
+	void adjustFocusAndSelection(MouseEvent e) {
 	    if (!SwingUtilities.isLeftMouseButton(e)) {
 	        return;
 	    }
@@ -767,13 +1308,14 @@ public class BasicListUI extends ListUI
 	     * before the lists selection is updated IF requestFocus() is
 	     * synchronous (it is on Windows).  See bug 4122345
 	     */
-            if (!list.hasFocus()) {
+            if (!list.hasFocus() && list.isRequestFocusEnabled()) {
                 list.requestFocus();
             }
 
-            int row = convertYToRow(e.getY());
+            int row = convertLocationToModel(e.getX(), e.getY());
             if (row != -1) {
-                list.setValueIsAdjusting(true);
+		boolean adjusting = (e.getID() == MouseEvent.MOUSE_PRESSED) ? true : false;
+                list.setValueIsAdjusting(adjusting);
                 int anchorIndex = list.getAnchorSelectionIndex();
                 if (e.isControlDown()) {
                     if (list.isSelectedIndex(row)) {
@@ -793,19 +1335,20 @@ public class BasicListUI extends ListUI
         }
 
         public void mouseDragged(MouseEvent e) {
+	    if (e.isConsumed()) {
+		return;
+	    }
 	    if (!SwingUtilities.isLeftMouseButton(e)) {
 	        return;
 	    }
-
 	    if (!list.isEnabled()) {
 		return;
 	    }
-
             if (e.isShiftDown() || e.isControlDown()) {
                 return;
             }
 
-            int row = convertYToRow(e.getY());
+            int row = convertLocationToModel(e.getX(), e.getY());
             if (row != -1) {
                 Rectangle cellBounds = getCellBounds(list, row, row);
                 if (cellBounds != null) {
@@ -819,12 +1362,18 @@ public class BasicListUI extends ListUI
         }
 
         public void mouseReleased(MouseEvent e) {
-	    if (!SwingUtilities.isLeftMouseButton(e)) {
-	        return;
-	    }
+	    if (selectedOnPress) {
+		if (!SwingUtilities.isLeftMouseButton(e)) {
+		    return;
+		}
 
-            list.setValueIsAdjusting(false);
+		list.setValueIsAdjusting(false);
+	    } else {
+		adjustFocusAndSelection(e);
+	    }
         }
+
+	private boolean selectedOnPress;
     }
 
 
@@ -898,10 +1447,12 @@ public class BasicListUI extends ListUI
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      *
      * @see #createListSelectionListener
      * @see #getCellBounds
@@ -913,15 +1464,11 @@ public class BasicListUI extends ListUI
         {
             maybeUpdateLayoutState();
 
-            int minY = convertRowToY(e.getFirstIndex());
-            int maxY = convertRowToY(e.getLastIndex());
+            Rectangle bounds = getCellBounds(list, e.getFirstIndex(),
+                                             e.getLastIndex());
 
-            if ((minY == -1) || (maxY == -1)) {
-                list.repaint(0, 0, list.getWidth(), list.getHeight());
-            }
-            else {
-                maxY += getRowHeight(e.getLastIndex());
-                list.repaint(0, minY, list.getWidth(), maxY - minY);
+            if (bounds != null) {
+                list.repaint(bounds.x, bounds.y, bounds.width, bounds.height);
             }
         }
     }
@@ -965,10 +1512,12 @@ public class BasicListUI extends ListUI
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      *
      * @see JList#getModel
      * @see #maybeUpdateLayoutState
@@ -988,18 +1537,14 @@ public class BasicListUI extends ListUI
 
             ListSelectionModel sm = list.getSelectionModel();
             if (sm != null) {
-                sm.insertIndexInterval(minIndex, maxIndex - minIndex, true);
+                sm.insertIndexInterval(minIndex, maxIndex - minIndex+1, true);
             }
 
             /* Repaint the entire list, from the origin of
              * the first added cell, to the bottom of the
              * component.
              */
-
-            int y = Math.max(0, convertRowToY(minIndex));
-            int h = list.getHeight() - y;
-            list.revalidate();
-            list.repaint(0, y, list.getWidth(), h);
+            redrawList();
         }
 
 
@@ -1020,11 +1565,7 @@ public class BasicListUI extends ListUI
              * component.
              */
 
-            int minIndex = Math.min(e.getIndex0(), e.getIndex1());
-            int y = Math.max(0, convertRowToY(minIndex));
-            int h = list.getHeight() - y;
-            list.revalidate();
-            list.repaint(0, y, list.getWidth(), h);
+            redrawList();
         }
 
 
@@ -1071,10 +1612,12 @@ public class BasicListUI extends ListUI
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      *
      * @see #maybeUpdateLayoutState
      * @see #createPropertyChangeListener
@@ -1147,6 +1690,34 @@ public class BasicListUI extends ListUI
             else if (propertyName.equals("selectionBackground")) {
 		list.repaint();
             }
+            else if ("layoutOrientation".equals(propertyName)) {
+                updateLayoutStateNeeded |= layoutOrientationChanged;
+                layoutOrientation = list.getLayoutOrientation();
+                redrawList();
+            }
+            else if ("visibleRowCount".equals(propertyName)) {
+                if (layoutOrientation != JList.VERTICAL) {
+                    updateLayoutStateNeeded |= layoutOrientationChanged;
+                    redrawList();
+                }
+            }
+            else if ("componentOrientation".equals(propertyName)) {
+                updateLayoutStateNeeded |= componentOrientationChanged;
+                redrawList();
+
+		InputMap inputMap = getInputMap(JComponent.WHEN_FOCUSED);
+		SwingUtilities.replaceUIInputMap(list, JComponent.WHEN_FOCUSED,
+						 inputMap);
+            } else if ("transferHandler".equals(propertyName)) {
+                DropTarget dropTarget = list.getDropTarget();
+                if (dropTarget instanceof UIResource) {
+                    try {
+                        dropTarget.addDropTargetListener(new ListDropTargetListener());
+                    } catch (TooManyListenersException tmle) {
+                        // should not happen... swing drop target is multicast
+                    }
+                }
+            }
         }
     }
 
@@ -1176,6 +1747,83 @@ public class BasicListUI extends ListUI
      */
     protected PropertyChangeListener createPropertyChangeListener() {
         return new PropertyChangeHandler();
+    }
+
+    /**
+     * Creates an instance of KeyHandler that's added to
+     * the JList by installUI().  
+     */
+    private KeyListener createKeyListener() {
+	return new KeyHandler();
+    }
+
+    private static class KeyHandler implements KeyListener {
+
+	private String prefix = "";
+	private long lastTime = 0L;
+
+	/**
+	 * Invoked when a key has been typed.
+	 * 
+	 * Moves the keyboard focus to the first element
+	 * whose first letter matches the alphanumeric key 
+	 * pressed by the user. Subsequent same key presses 
+	 * move the keyboard focus to the next object that 
+	 * starts with the same letter.
+	 */
+	public void keyTyped(KeyEvent e) {
+	    JList src = (JList)e.getSource();
+	    ListModel model = src.getModel();
+
+            if (model.getSize() == 0) {
+                // Nothing to select
+                return;
+            }
+	    boolean startingFromSelection = true;
+
+	    char c = e.getKeyChar();
+
+	    long time = e.getWhen();
+	    int startIndex;
+	    if (time - lastTime < 1000L && (prefix.length() != 1 || c != prefix.charAt(0))) {
+		prefix += c;
+		startIndex = src.getSelectedIndex();
+	    } else {
+		prefix = "" + c;
+		startIndex = src.getSelectedIndex() + 1;
+	    }
+	    lastTime = time;
+
+	    if (startIndex < 0 || startIndex >= model.getSize()) {
+		startingFromSelection = false;
+		startIndex = 0;
+	    }
+	    int index = src.getNextMatch(prefix, startIndex,
+					 Position.Bias.Forward);
+	    if (index >= 0) {
+		src.setSelectedIndex(index);
+	    } else if (startingFromSelection) { // wrap
+		index = src.getNextMatch(prefix, 0,
+					 Position.Bias.Forward);
+		if (index >= 0) {
+		    src.setSelectedIndex(index);
+		}
+	    }
+	}
+	
+	/**
+	 * Invoked when a key has been pressed.
+	 */
+	public void keyPressed(KeyEvent e) {
+	}
+	
+	/**
+	 * Invoked when a key has been released.
+	 * See the class description for {@link KeyEvent} for a definition of 
+	 * a key released event.
+	 */
+	public void keyReleased(KeyEvent e) {
+	}
     }
 
 
@@ -1240,10 +1888,24 @@ public class BasicListUI extends ListUI
 		}
 	    }
 	    else {
-		index += amount;
+		index += getAmount(list);
 	    }
 	    return index;
 	}
+
+        /**
+         * Returns the amount to increment by.
+         */
+        protected int getAmount(JList list) {
+            if (list.getLayoutOrientation() == JList.HORIZONTAL_WRAP) {
+                ListUI ui = list.getUI();
+
+                if (ui instanceof BasicListUI) {
+                    return ((BasicListUI)ui).columnCount * amount;
+                }
+            }
+            return amount;
+        }
 
 	/**
 	 * Ensures the particular index is visible. This simply forwards
@@ -1269,12 +1931,26 @@ public class BasicListUI extends ListUI
 		ListSelectionModel lsm = list.getSelectionModel();
 
 		if (selectionType == EXTEND_SELECTION) {
+		    /* 
+		       The following block is supposed to handle the 
+		       case when the control modifier is used 
+		       to move the lead without changing the 
+		       selection. The DefaultListSelectionModel 
+		       needs a new property here, to change the  
+		       behavior of "setLeadSelectionIndex" so 
+		       that it does not adjust the selection. 
+		       Until then, this cannot be implemented 
+		       properly and we will remove this code 
+		       altogether to fix bug #4317662. 
+		    */
+		    /*
 		    int anchor = lsm.getAnchorSelectionIndex();
 		    if (anchor == -1) {
 			anchor = index;
 		    }
 		    list.setSelectionInterval(anchor, index);
 		    lsm.setAnchorSelectionIndex(anchor);
+		    */
 		    lsm.setLeadSelectionIndex(index);
 		}
 		else if (selectionType == CHANGE_SELECTION) {
@@ -1286,6 +1962,58 @@ public class BasicListUI extends ListUI
 		ensureIndexIsVisible(list, index);
 	    }
 	}
+    }
+
+
+    /**
+      * IncrementLeadByColumnAction extends the selection to the
+      * next column. If there is only one column in the list, this will
+      * not change the selection in anyway.
+      */
+    private static class IncrementLeadByColumnAction extends
+                    IncrementLeadSelectionAction {
+	IncrementLeadByColumnAction(String name, int type, int amount) {
+            super(name, type, amount);
+        }
+
+        /**
+          * Maps the current lead to a column, and adds the amount passed
+          * into the constructor to it. This will return -1 if the
+          * list is currently not layed out horizontally.
+          */
+	protected int getNextIndex(JList list) {
+            if (list.getLayoutOrientation() != JList.VERTICAL) {
+                ListUI ui = list.getUI();
+
+                if (ui instanceof BasicListUI) {
+                    BasicListUI bui = (BasicListUI)ui;
+
+                    if (bui.columnCount > 1) {
+                        int index = list.getLeadSelectionIndex();
+
+                        if (index == -1) {
+                            return 0;
+                        }
+                        int size = list.getModel().getSize();
+                        int column = bui.convertModelToColumn(index);
+                        int row = bui.convertModelToRow(index);
+
+                        column += amount;
+                        if (column >= bui.columnCount || column < 0) {
+                            // No wrapping.
+                            return -1;
+                        }
+                        int maxRowCount = bui.getRowCount(column);
+                        if (row >= maxRowCount) {
+                            row = maxRowCount - 1;
+                        }
+                        return bui.getModelIndex(column, row);
+                    }
+                }
+            }
+            // Won't change the selection.
+            return -1;
+        }        
     }
 
 
@@ -1401,7 +2129,16 @@ public class BasicListUI extends ListUI
 	    // ListSelectionModel lsm = list.getSelectionModel();
 	    // int anchor = lsm.getAnchorSelectionIndex();
 	    // int lead = lsm.getLeadSelectionIndex();
-	    list.setSelectionInterval(0, list.getModel().getSize() - 1);
+            ListSelectionModel lsm = list.getSelectionModel();
+            if (lsm.getSelectionMode() == ListSelectionModel.SINGLE_SELECTION){
+                if (list.getMinSelectionIndex() == -1 &&
+                         list.getModel().getSize() > 0) {
+                    list.setSelectionInterval(0, 0);
+                }
+            }
+            else {
+                list.setSelectionInterval(0, list.getModel().getSize() - 1);
+            }
 	    // lsm.setAnchorSelectionIndex(anchor);
 	    // lsm.setLeadSelectionIndex(lead);
 	}
@@ -1429,5 +2166,159 @@ public class BasicListUI extends ListUI
 	    // lsm.setAnchorSelectionIndex(anchor);
 	    // lsm.setLeadSelectionIndex(lead);
 	}
+    }
+
+    private static final ListDragGestureRecognizer defaultDragRecognizer = new ListDragGestureRecognizer();
+
+    /**
+     * Drag gesture recognizer for JList components
+     */
+    static class ListDragGestureRecognizer extends BasicDragGestureRecognizer {
+
+	/**
+	 * Determines if the following are true:
+	 * <ul>
+	 * <li>the press event is located over a selection
+	 * <li>the dragEnabled property is true
+	 * <li>A TranferHandler is installed
+	 * </ul>
+	 * <p>
+	 * This is implemented to perform the superclass behavior
+	 * followed by a check if the dragEnabled 
+	 * property is set and if the location picked is selected.
+	 */
+        protected boolean isDragPossible(MouseEvent e) {
+	    if (super.isDragPossible(e)) {
+		JList list = (JList) this.getComponent(e);
+		if (list.getDragEnabled()) {
+		    ListUI ui = list.getUI();
+		    int row = ui.locationToIndex(list, new Point(e.getX(),e.getY()));
+		    if ((row != -1) && list.isSelectedIndex(row)) {
+			return true;
+		    }
+		}
+	    }
+	    return false;
+	}
+    }
+
+    /**
+     * A DropTargetListener to extend the default Swing handling of drop operations
+     * by moving the list selection to the nearest location to the mouse pointer.
+     * Also adds autoscroll.
+     */
+    class ListDropTargetListener extends BasicDropTargetListener {
+	/**
+	 * called to save the state of a component in case it needs to
+	 * be restored because a drop is not performed.
+	 */
+        protected void saveComponentState(JComponent comp) {
+	    JList list = (JList) comp;
+	    selectedIndices = list.getSelectedIndices();
+	}
+
+	/**
+	 * called to restore the state of a component 
+	 * because a drop was not performed.
+	 */
+        protected void restoreComponentState(JComponent comp) {
+	    JList list = (JList) comp;
+	    list.setSelectedIndices(selectedIndices);
+	}
+
+	/**
+	 * called to set the insertion location to match the current
+	 * mouse pointer coordinates.
+	 */
+        protected void updateInsertionLocation(JComponent comp, Point p) {
+	    JList list = (JList) comp;
+            int row = convertYToRow(p.y); 
+            if (row != -1) {
+		list.setSelectionInterval(row, row);
+	    }
+	}
+
+	private int[] selectedIndices;
+    }
+
+    private static final TransferHandler defaultTransferHandler = new ListTransferHandler();
+
+    static class ListTransferHandler extends TransferHandler implements UIResource {
+
+	/**
+	 * Create a Transferable to use as the source for a data transfer.
+	 *
+	 * @param c  The component holding the data to be transfered.  This
+	 *  argument is provided to enable sharing of TransferHandlers by
+	 *  multiple components.
+	 * @return  The representation of the data to be transfered. 
+	 *  
+	 */
+        protected Transferable createTransferable(JComponent c) {
+	    if (c instanceof JList) {
+		JList list = (JList) c;
+		Object[] values = list.getSelectedValues();
+		return new ListTransferable(values);
+	    }
+	    return null;
+	}
+
+        public int getSourceActions(JComponent c) {
+	    return COPY;
+	}
+
+	static class ListTransferable extends BasicTransferable {
+
+	    ListTransferable(Object[] selectedValues) {
+		this.selectedValues = selectedValues;
+	    }
+
+            protected Object[] getSelectedValues() {
+		return selectedValues;
+	    }
+
+	    // --- HTML ---------------------------------------------------------
+
+	    /**
+	     * Should the HTML flavors be offered?  If so, the method
+	     * getHTMLData should be implemented to provide something reasonable.
+	     */
+            protected boolean isHTMLSupported() {
+		return true;
+	    }
+
+	    /**
+	     * Fetch the data in a text/html format
+	     */
+            protected String getHTMLData() {
+		StringBuffer buf = new StringBuffer();
+		buf.append("<html><ol>");
+		for (int i = 0; i < selectedValues.length; i++) {
+		    buf.append("\n<li>" + selectedValues[i]);
+		}
+		buf.append("\n</ol></html>");
+		return buf.toString();
+	    }
+
+	    // --- Plain ----------------------------------------------------------
+
+	    /**
+	     * Should the plain text flavors be offered?  If so, the method
+	     * getPlainData should be implemented to provide something reasonable.
+	     */
+            protected boolean isPlainSupported() {
+		return (selectedValues.length == 1);
+	    }
+
+	    /**
+	     * Fetch the data in a text/plain format.
+	     */
+            protected String getPlainData() {
+		return selectedValues[0].toString();
+	    }
+
+	    private Object[] selectedValues;
+	}
+
     }
 }

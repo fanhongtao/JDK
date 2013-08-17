@@ -1,4 +1,6 @@
 /*
+ * @(#)NamingManager.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -38,7 +40,7 @@ import com.sun.naming.internal.FactoryEnumeration;
  *
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.16 02/02/06
+ * @version 1.16 01/12/03
  * @since 1.3
  */
 
@@ -591,7 +593,7 @@ public class NamingManager {
 
     /**
      * Use this method for accessing initctx_factory_builder while
-     * inside an unsychronized method.
+     * inside an unsynchronized method.
      */
     private static synchronized InitialContextFactoryBuilder
     getInitialContextFactoryBuilder() {

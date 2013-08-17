@@ -1,4 +1,6 @@
 /*
+ * @(#)BasicRadioButtonUI.java	1.64 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,7 +19,7 @@ import javax.swing.text.View;
 /**
  * RadioButtonUI implementation for BasicRadioButtonUI
  *
- * @version 1.62 02/06/02
+ * @version 1.64 12/03/01
  * @author Jeff Dinkins
  */
 public class BasicRadioButtonUI extends BasicToggleButtonUI 
@@ -102,7 +104,8 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
             c, fm, b.getText(), altIcon != null ? altIcon : getDefaultIcon(),
             b.getVerticalAlignment(), b.getHorizontalAlignment(),
             b.getVerticalTextPosition(), b.getHorizontalTextPosition(),
-            viewRect, iconRect, textRect, getDefaultTextIconGap(b));
+            viewRect, iconRect, textRect,
+	    b.getText() == null ? 0 : b.getIconTextGap());
 
         // fill background
         if(c.isOpaque()) {
@@ -154,30 +157,14 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
         if(text != null) {
             View v = (View) c.getClientProperty(BasicHTML.propertyKey);
             if (v != null) {
-               v.paint(g, textRect);
+		v.paint(g, textRect);
             } else {
-               if(model.isEnabled()) {
-                   // *** paint the text normally
-                   g.setColor(b.getForeground());
-                   BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                                 textRect.x, 
-                                                 textRect.y + fm.getAscent());
-               } else {
-                   // *** paint the text disabled
-                   g.setColor(b.getBackground().brighter());
-                   BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                                 textRect.x + 1, 
-                                                 textRect.y + fm.getAscent() + 1);
-                   g.setColor(b.getBackground().darker());
-                   BasicGraphicsUtils.drawString(g,text,model.getMnemonic(),
-                                                 textRect.x, 
-                                                 textRect.y + fm.getAscent());
-               }
-               if(b.hasFocus() && b.isFocusPainted() && 
-                  textRect.width > 0 && textRect.height > 0 ) {
-                   paintFocus(g, textRect, size);
-               }
-           }
+		paintText(g, b, textRect, text);
+		if(b.hasFocus() && b.isFocusPainted() && 
+		   textRect.width > 0 && textRect.height > 0 ) {
+		    paintFocus(g, textRect, size);
+		}
+	    }
         }
     }
 
@@ -214,6 +201,8 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
         }
 
         Font font = b.getFont();
+	// XXX - getFontMetrics has been deprecated but there isn't a 
+	// suitable replacement
         FontMetrics fm = b.getToolkit().getFontMetrics(font);
 
         prefViewRect.x = prefViewRect.y = 0;
@@ -227,7 +216,7 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
             b.getVerticalAlignment(), b.getHorizontalAlignment(),
             b.getVerticalTextPosition(), b.getHorizontalTextPosition(),
             prefViewRect, prefIconRect, prefTextRect, 
-            text == null ? 0 : getDefaultTextIconGap(b));
+            text == null ? 0 : b.getIconTextGap());
 
         // find the union of the icon and text rects (from Rectangle.java)
         int x1 = Math.min(prefIconRect.x, prefTextRect.x);

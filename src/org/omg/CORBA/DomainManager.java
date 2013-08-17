@@ -1,11 +1,16 @@
 /*
+ * @(#)DomainManager.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package org.omg.CORBA;
 
-/** The DomainManager has associated with it the policy objects for a
+/** Provides mechanisms for establishing and navigating relationships to
+ *  superior and subordinate domains, as well as for creating and accessing
+ *  policies. The <tt>DomainManager</tt> has associated with it the policy
+ *  objects for a
  *  particular domain. The domain manager also records the membership of
  *  the domain and provides the means to add and remove members. The domain
  *  manager is itself a member of a domain, possibly the domain it manages.

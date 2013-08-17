@@ -1,4 +1,6 @@
 /*
+ * @(#)MultiUIDefaults.java	1.12 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,12 +8,13 @@
 package javax.swing;
 
 import java.util.Enumeration;
+import java.util.Locale;
 
 
 
 /**
  * 
- * @version 1.11 02/06/02
+ * @version 1.10 02/02/00
  * @author Hans Muller
  */
 class MultiUIDefaults extends UIDefaults
@@ -39,6 +42,25 @@ class MultiUIDefaults extends UIDefaults
 	for(int i = 0; i < tables.length; i++) {
 	    UIDefaults table = tables[i];
 	    value = (table != null) ? table.get(key) : null;
+	    if (value != null) {
+		return value;
+	    }
+	}
+
+	return null;
+    }
+
+
+    public Object get(Object key, Locale l) 
+    {
+	Object value = super.get(key,l);
+	if (value != null) {
+	    return value;
+	}
+
+	for(int i = 0; i < tables.length; i++) {
+	    UIDefaults table = tables[i];
+	    value = (table != null) ? table.get(key,l) : null;
 	    if (value != null) {
 		return value;
 	    }

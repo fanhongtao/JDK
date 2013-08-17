@@ -1,4 +1,6 @@
 /*
+ * @(#)Runtime.java	1.62 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,7 +19,7 @@ import java.util.StringTokenizer;
  * An application cannot create its own instance of this class. 
  *
  * @author  unascribed
- * @version 1.58, 02/06/02
+ * @version 1.62, 12/03/01
  * @see     java.lang.Runtime#getRuntime()
  * @since   JDK1.0
  */
@@ -394,6 +396,7 @@ public class Runtime {
      * @exception  IOException if an I/O error occurs
      * @see        java.lang.Runtime#exec(java.lang.String[], java.lang.String[], File)
      * @see        java.lang.SecurityManager#checkExec(java.lang.String)
+     * @since 1.3
      */
     public Process exec(String command, String envp[], File dir) 
         throws IOException {
@@ -517,6 +520,7 @@ public class Runtime {
      * @see     java.lang.Process
      * @see     java.lang.SecurityException
      * @see     java.lang.SecurityManager#checkExec(java.lang.String)
+     * @since 1.3
      */
     public Process exec(String cmdarray[], String envp[], File dir) 
 	throws IOException {	
@@ -547,7 +551,21 @@ public class Runtime {
     }
 
     /**
-     * Returns the amount of free memory in the system. Calling the 
+     * Returns the number of processors available to the Java virtual machine.
+     *
+     * <p> This value may change during a particular invocation of the virtual
+     * machine.  Applications that are sensitive to the number of available
+     * processors should therefore occasionally poll this property and adjust
+     * their resource usage appropriately. </p>
+     *
+     * @return  the maximum number of processors available to the virtual
+     *          machine; never smaller than one
+     */
+    public native int availableProcessors();
+
+    /**
+     * Returns the amount of free memory in the Java Virtual Machine.
+     * Calling the 
      * <code>gc</code> method may result in increasing the value returned 
      * by <code>freeMemory.</code>
      *
@@ -557,7 +575,7 @@ public class Runtime {
     public native long freeMemory();
 
     /**
-     * Returns the total amount of memory in the Java Virtual Machine. 
+     * Returns the total amount of memory in the Java virtual machine.
      * The value returned by this method may vary over time, depending on 
      * the host environment.
      * <p>
@@ -570,19 +588,29 @@ public class Runtime {
     public native long totalMemory();
 
     /**
+     * Returns the maximum amount of memory that the Java virtual machine will
+     * attempt to use.  If there is no inherent limit then the value {@link
+     * java.lang.Long#MAX_VALUE} will be returned. </p>
+     *
+     * @return  the maximum amount of memory that the virtual machine will
+     *          attempt to use, measured in bytes
+     */
+    public native long maxMemory();
+
+    /**
      * Runs the garbage collector.
-     * Calling this method suggests that the Java Virtual Machine expend 
+     * Calling this method suggests that the Java virtual machine expend 
      * effort toward recycling unused objects in order to make the memory 
      * they currently occupy available for quick reuse. When control 
-     * returns from the method call, the Java Virtual Machine has made 
+     * returns from the method call, the virtual machine has made 
      * its best effort to recycle all discarded objects. 
      * <p>
      * The name <code>gc</code> stands for "garbage 
-     * collector". The Java Virtual Machine performs this recycling 
+     * collector". The virtual machine performs this recycling 
      * process automatically as needed, in a separate thread, even if the 
      * <code>gc</code> method is not invoked explicitly.
      * <p>
-     * The method {@link System#gc()} is hte conventional and convenient 
+     * The method {@link System#gc()} is the conventional and convenient 
      * means of invoking this method. 
      */
     public native void gc();
@@ -592,14 +620,14 @@ public class Runtime {
 
     /**
      * Runs the finalization methods of any objects pending finalization.
-     * Calling this method suggests that the Java Virtual Machine expend 
+     * Calling this method suggests that the Java virtual machine expend 
      * effort toward running the <code>finalize</code> methods of objects 
      * that have been found to be discarded but whose <code>finalize</code> 
      * methods have not yet been run. When control returns from the 
-     * method call, the Java Virtual Machine has made a best effort to 
+     * method call, the virtual machine has made a best effort to 
      * complete all outstanding finalizations. 
      * <p>
-     * The Java Virtual Machine performs the finalization process 
+     * The virtual machine performs the finalization process 
      * automatically as needed, in a separate thread, if the 
      * <code>runFinalization</code> method is not invoked explicitly. 
      * <p>
@@ -615,8 +643,8 @@ public class Runtime {
     /**
      * Enables/Disables tracing of instructions.
      * If the <code>boolean</code> argument is <code>true</code>, this 
-     * method suggests that the Java Virtual Machine emit debugging 
-     * information for each instruction in the Java Virtual Machine as it 
+     * method suggests that the Java virtual machine emit debugging 
+     * information for each instruction in the virtual machine as it 
      * is executed. The format of this information, and the file or other 
      * output stream to which it is emitted, depends on the host environment. 
      * The virtual machine may ignore this request if it does not support 
@@ -624,7 +652,7 @@ public class Runtime {
      * dependent. 
      * <p>
      * If the <code>boolean</code> argument is <code>false</code>, this 
-     * method causes the Java Virtual Machine to stop performing the 
+     * method causes the virtual machine to stop performing the 
      * detailed instruction trace it is performing.
      *
      * @param   on   <code>true</code> to enable instruction tracing;
@@ -635,15 +663,15 @@ public class Runtime {
     /**
      * Enables/Disables tracing of method calls.
      * If the <code>boolean</code> argument is <code>true</code>, this 
-     * method suggests that the Java Virtual Machine emit debugging 
-     * information for each method in the Java Virtual Machine as it is 
+     * method suggests that the Java virtual machine emit debugging 
+     * information for each method in the virtual machine as it is 
      * called. The format of this information, and the file or other output 
      * stream to which it is emitted, depends on the host environment. The 
      * virtual machine may ignore this request if it does not support 
      * this feature.  
      * <p>
-     * Calling this method with argument false suggests that the Java 
-     * Virtual Machine cease emitting per-call debugging information.
+     * Calling this method with argument false suggests that the
+     * virtual machine cease emitting per-call debugging information.
      *
      * @param   on   <code>true</code> to enable instruction tracing;
      *               <code>false</code> to disable this feature.
@@ -652,7 +680,7 @@ public class Runtime {
 
     /**
      * Loads the specified filename as a dynamic library. The filename 
-     * argument must be a complete pathname. 
+     * argument must be a complete path name. 
      * From <code>java_g</code> it will automagically insert "_g" before the
      * ".so" (for example
      * <code>Runtime.getRuntime().load("/home/avh/lib/libX11.so");</code>).
@@ -662,7 +690,7 @@ public class Runtime {
      * This may result in a security exception. 
      * <p>
      * This is similar to the method {@link #loadLibrary(String)}, but it 
-     * accepts a general file name as an argument rathan than just a library 
+     * accepts a general file name as an argument rather than just a library 
      * name, allowing any file of native code to be loaded.
      * <p>
      * The method {@link System#load(String)} is the conventional and 
@@ -760,7 +788,7 @@ public class Runtime {
      * @see        java.io.InputStream
      * @see        java.io.BufferedReader#BufferedReader(java.io.Reader)
      * @see        java.io.InputStreamReader#InputStreamReader(java.io.InputStream)
-     * @deprecated As of JDK&nbsp;1.1, the preferred way translate a byte
+     * @deprecated As of JDK&nbsp;1.1, the preferred way to translate a byte
      * stream in the local encoding into a character stream in Unicode is via
      * the <code>InputStreamReader</code> and <code>BufferedReader</code>
      * classes.

@@ -1,4 +1,6 @@
 /*
+ * @(#)KeyPairGenerator.java	1.51 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -80,7 +82,7 @@ import java.security.spec.AlgorithmParameterSpec;
  *
  * @author Benjamin Renaud
  *
- * @version 1.50, 02/06/02
+ * @version 1.51, 12/03/01
  *
  * @see java.security.spec.AlgorithmParameterSpec
  */
@@ -142,7 +144,7 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
     throws NoSuchAlgorithmException {
 	try {
 	    Object[] objs = Security.getImpl(algorithm, "KeyPairGenerator",
-					     null);
+					     (String)null);
 	    if (objs[0] instanceof KeyPairGenerator) {
 		KeyPairGenerator keyPairGen = (KeyPairGenerator)objs[0];
 		keyPairGen.provider = (Provider)objs[1];
@@ -177,7 +179,10 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
      * not available from the provider.
      *
      * @exception NoSuchProviderException if the provider is not
-     * available in the environment. 
+     * available in the environment.
+     *
+     * @exception IllegalArgumentException if the provider name is null
+     * or empty.
      * 
      * @see Provider 
      */
@@ -186,6 +191,52 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
 	throws NoSuchAlgorithmException, NoSuchProviderException
     {
 	if (provider == null || provider.length() == 0)
+	    throw new IllegalArgumentException("missing provider");
+	Object[] objs = Security.getImpl(algorithm, "KeyPairGenerator",
+					 provider);
+	if (objs[0] instanceof KeyPairGenerator) {
+	    KeyPairGenerator keyPairGen = (KeyPairGenerator)objs[0];
+	    keyPairGen.provider = (Provider)objs[1];
+	    return keyPairGen;
+	} else {
+	    KeyPairGenerator delegate =
+		new Delegate((KeyPairGeneratorSpi)objs[0], algorithm);
+	    delegate.provider = (Provider)objs[1];
+	    return delegate;
+	}
+    }
+
+    /** 
+     * Generates a KeyPairGenerator object implementing the specified
+     * algorithm, as supplied from the specified provider, 
+     * if such an algorithm is available from the provider.
+     * Note: the <code>provider</code> doesn't have to be registered.
+     *
+     * @param algorithm the standard string name of the algorithm.
+     * See Appendix A in the <a href=
+     * "../../../guide/security/CryptoSpec.html#AppA">
+     * Java Cryptography Architecture API Specification &amp; Reference </a> 
+     * for information about standard algorithm names.
+     *
+     * @param provider the provider.
+     *
+     * @return the new KeyPairGenerator object.
+     *
+     * @exception NoSuchAlgorithmException if the algorithm is
+     * not available from the provider.
+     *
+     * @exception IllegalArgumentException if the <code>provider</code> is
+     * null.
+     *
+     * @see Provider
+     *
+     * @since 1.4
+     */
+    public static KeyPairGenerator getInstance(String algorithm,
+					       Provider provider) 
+	throws NoSuchAlgorithmException
+    {
+	if (provider == null)
 	    throw new IllegalArgumentException("missing provider");
 	Object[] objs = Security.getImpl(algorithm, "KeyPairGenerator",
 					 provider);

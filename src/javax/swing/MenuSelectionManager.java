@@ -1,4 +1,6 @@
 /*
+ * @(#)MenuSelectionManager.java	1.32 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -12,7 +14,7 @@ import javax.swing.event.*;
 /**
  * A MenuSelectionManager owns the selection in menu hierarchy.
  * 
- * @version 1.24 02/06/02
+ * @version 1.32 12/03/01
  * @author Arnaud Weber
  */
 public class MenuSelectionManager {
@@ -123,11 +125,23 @@ public class MenuSelectionManager {
         listenerList.remove(ChangeListener.class, l);
     }
 
-    /*
-     * Notify all listeners that have registered interest for
+    /**
+     * Returns an array of all the <code>ChangeListener</code>s added
+     * to this MenuSelectionManager with addChangeListener().
+     *
+     * @return all of the <code>ChangeListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.4
+     */
+    public ChangeListener[] getChangeListeners() {
+        return (ChangeListener[])listenerList.getListeners(
+                ChangeListener.class);
+    }
+
+    /**
+     * Notifies all listeners that have registered interest for
      * notification on this event type.  The event instance 
-     * is lazily created using the parameters passed into 
-     * the fire method.
+     * is created lazily.
      *
      * @see EventListenerList
      */
@@ -232,8 +246,9 @@ public class MenuSelectionManager {
 		    // Enter/exit detection -- needs tuning...
 		    if (currentSelection[currentSelection.length-1] !=
 			path[i+1] &&
-			currentSelection[currentSelection.length-2] !=
-			path[i+1]) {
+			(currentSelection.length < 2 || 
+			 currentSelection[currentSelection.length-2] !=
+			 path[i+1])) {
 			Component oldMC = currentSelection[currentSelection.length-1].getComponent();
 
 			MouseEvent exitEvent = new MouseEvent(oldMC, MouseEvent.MOUSE_EXITED,
@@ -432,7 +447,6 @@ public class MenuSelectionManager {
         }
         return false;
     }
-
 }
 
 

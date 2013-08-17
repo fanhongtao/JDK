@@ -1,4 +1,6 @@
 /*
+ * @(#)Stroke.java	1.20 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -34,7 +36,7 @@ package java.awt;
  * of subsequent rendering would be undefined.
  * @see BasicStroke
  * @see Graphics2D#setStroke
- * @version 1.20, 02/06/02
+ * @version 1.20, 12/03/01
  */
 public interface Stroke {
     /**

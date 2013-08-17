@@ -1,4 +1,6 @@
 /*
+ * @(#)Iterator.java	1.16 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,7 +18,7 @@ package java.util;
  * </ul>
  *
  * @author  Josh Bloch
- * @version 1.15, 02/06/02
+ * @version 1.16, 12/03/01
  * @see Collection
  * @see ListIterator
  * @see Enumeration
@@ -33,7 +35,7 @@ public interface Iterator {
     boolean hasNext();
 
     /**
-     * Returns the next element in the interation.
+     * Returns the next element in the iteration.
      *
      * @return the next element in the iteration.
      * @exception NoSuchElementException iteration has no more elements.

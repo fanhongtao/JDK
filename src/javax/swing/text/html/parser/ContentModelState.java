@@ -1,4 +1,6 @@
 /*
+ * @(#)ContentModelState.java	1.9 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ package javax.swing.text.html.parser;
  * @see Element
  * @see ContentModel
  * @author Arthur van Hoff
- * @version 	1.8 02/06/02
+ * @version 	1.9 12/03/01
  */
 class ContentModelState {
     ContentModel model;
@@ -238,8 +240,29 @@ class ContentModelState {
 
 	  default:
 	    if (model.content == token) {
+                if (next == null && (token instanceof Element) &&
+                    ((Element)token).content != null) {
+                    return new ContentModelState(((Element)token).content);
+                }
 		return next;
 	    }
+            // PENDING: Currently we don't correctly deal with optional start 
+            // tags. This can most notably be seen with the 4.01 spec where
+            // TBODY's start and end tags are optional.
+            // Uncommenting this and the PENDING in ContentModel will
+            // correctly skip the omit tags, but the delegate is not notified.
+            // Some additional API needs to be added to track skipped tags,
+            // and this can then be added back.
+/*
+            if ((model.content instanceof Element)) {
+                Element e = (Element)model.content;
+
+                if (e.omitStart() && e.content != null) {
+                    return new ContentModelState(e.content, next).advance(
+                                           token);
+                }
+            }
+*/
 	}
 
 	// We used to throw this exception at this point.  However, it

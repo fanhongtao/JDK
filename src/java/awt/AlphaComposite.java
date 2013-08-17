@@ -1,4 +1,6 @@
 /*
+ * @(#)AlphaComposite.java	1.41 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -6,12 +8,13 @@
 package java.awt;
 
 import java.awt.image.ColorModel;
+import sun.java2d.SunCompositeContext;
 
 /**
  * This <code>AlphaComposite</code> class implements the basic alpha 
  * compositing rules for combining source and destination pixels to achieve
  * blending and transparency effects with graphics and images.
- * The rules implemented by this class are a subset of the Porter-Duff
+ * The rules implemented by this class are the set of Porter-Duff
  * rules described in
  * T. Porter and T. Duff, "Compositing Digital Images", SIGGRAPH 84,
  * 253-259.
@@ -90,6 +93,20 @@ public final class AlphaComposite implements Composite {
     public static final int	SRC		= 2;
 
     /**
+     * Porter-Duff Destination rule.
+     * The destination is left untouched.
+     *<p>
+     * Fs = 0 and Fd = 1, thus:
+     *<pre>
+     * 	Cd = Cd
+     * 	Ad = Ad
+     *</pre>
+     * @since 1.4
+     */
+    public static final int	DST		= 9;
+    // Note that DST was added in 1.4 so it is numbered out of order...
+
+    /**
      * Porter-Duff Source Over Destination rule.
      * The source is composited over the destination.
      *<p>
@@ -166,6 +183,54 @@ public final class AlphaComposite implements Composite {
      */
     public static final int	DST_OUT		= 8;
 
+    // Rule 9 is DST which is defined above where it fits into the
+    // list logically, rather than numerically
+    //
+    // public static final int	DST		= 9;
+
+    /**
+     * Porter-Duff Source Atop Destination rule.
+     * The part of the source lying inside of the destination
+     * is composited onto the destination.
+     *<p>
+     * Fs = Ad and Fd = (1-As), thus:
+     *<pre>
+     * 	Cd = Cs*Ad + Cd*(1-As)
+     * 	Ad = As*Ad + Ad*(1-As) = Ad
+     *</pre>
+     * @since 1.4
+     */
+    public static final int	SRC_ATOP	= 10;
+
+    /**
+     * Porter-Duff Destination Atop Source rule.
+     * The part of the destination lying inside of the source
+     * is composited over the source and replaces the destination.
+     *<p>
+     * Fs = (1-Ad) and Fd = As, thus:
+     *<pre>
+     * 	Cd = Cs*(1-Ad) + Cd*As
+     * 	Ad = As*(1-Ad) + Ad*As = As
+     *</pre>
+     * @since 1.4
+     */
+    public static final int	DST_ATOP	= 11;
+
+    /**
+     * Porter-Duff Source Xor Destination rule.
+     * The part of the source that lies outside of the destination
+     * is combined with the part of the destination that lies outside
+     * of the source.
+     *<p>
+     * Fs = (1-Ad) and Fd = (1-As), thus:
+     *<pre>
+     * 	Cd = Cs*(1-Ad) + Cd*(1-As)
+     * 	Ad = As*(1-Ad) + Ad*(1-As)
+     *</pre>
+     * @since 1.4
+     */
+    public static final int	XOR		= 12;
+
     /**
      * <code>AlphaComposite</code> object that implements the opaque CLEAR rule
      * with an alpha of 1.0f.
@@ -179,6 +244,14 @@ public final class AlphaComposite implements Composite {
      * @see #SRC
      */
     public static final AlphaComposite Src	= new AlphaComposite(SRC);
+
+    /**
+     * <code>AlphaComposite</code> object that implements the opaque DST rule
+     * with an alpha of 1.0f.
+     * @see #DST
+     * @since 1.4
+     */
+    public static final AlphaComposite Dst	= new AlphaComposite(DST);
 
     /**
      * <code>AlphaComposite</code> object that implements the opaque SRC_OVER rule
@@ -222,8 +295,32 @@ public final class AlphaComposite implements Composite {
      */
     public static final AlphaComposite DstOut	= new AlphaComposite(DST_OUT);
 
+    /**
+     * <code>AlphaComposite</code> object that implements the opaque SRC_ATOP rule
+     * with an alpha of 1.0f.
+     * @see #SRC_ATOP
+     * @since 1.4
+     */
+    public static final AlphaComposite SrcAtop	= new AlphaComposite(SRC_ATOP);
+
+    /**
+     * <code>AlphaComposite</code> object that implements the opaque DST_ATOP rule
+     * with an alpha of 1.0f.
+     * @see #DST_ATOP
+     * @since 1.4
+     */
+    public static final AlphaComposite DstAtop	= new AlphaComposite(DST_ATOP);
+
+    /**
+     * <code>AlphaComposite</code> object that implements the opaque XOR rule
+     * with an alpha of 1.0f.
+     * @see #XOR
+     * @since 1.4
+     */
+    public static final AlphaComposite Xor	= new AlphaComposite(XOR);
+
     private static final int MIN_RULE = CLEAR;
-    private static final int MAX_RULE = DST_OUT;
+    private static final int MAX_RULE = XOR;
 
     float extraAlpha;
     int rule;
@@ -247,9 +344,10 @@ public final class AlphaComposite implements Composite {
      * Creates an <code>AlphaComposite</code> object with the specified rule.
      * @param rule the compositing rule
      * @throws IllegalArgumentException if <code>rule</code> is not one of 
-     *         the following:  {@link #CLEAR}, {@link #SRC}, 
+     *         the following:  {@link #CLEAR}, {@link #SRC}, {@link #DST},
      *         {@link #SRC_OVER}, {@link #DST_OVER}, {@link #SRC_IN}, 
-     *         {@link #DST_IN}, {@link #SRC_OUT}, or {@link #DST_OUT}
+     *         {@link #DST_IN}, {@link #SRC_OUT}, {@link #DST_OUT},
+     *         {@link #SRC_ATOP}, {@link #DST_ATOP}, or {@link #XOR}
      */
     public static AlphaComposite getInstance(int rule) {
 	switch (rule) {
@@ -257,6 +355,8 @@ public final class AlphaComposite implements Composite {
 	    return Clear;
 	case SRC:
 	    return Src;
+	case DST:
+	    return Dst;
 	case SRC_OVER:
 	    return SrcOver;
 	case DST_OVER:
@@ -269,6 +369,12 @@ public final class AlphaComposite implements Composite {
 	    return SrcOut;
 	case DST_OUT:
 	    return DstOut;
+	case SRC_ATOP:
+	    return SrcAtop;
+	case DST_ATOP:
+	    return DstAtop;
+	case XOR:
+	    return Xor;
 	default:
 	    throw new IllegalArgumentException("unknown composite rule");
 	}
@@ -303,8 +409,7 @@ public final class AlphaComposite implements Composite {
     public CompositeContext createContext(ColorModel srcColorModel,
 					  ColorModel dstColorModel,
                                           RenderingHints hints) {
-        return new AlphaCompositeContext(srcColorModel, dstColorModel,
-                                         rule, extraAlpha);
+        return new SunCompositeContext(this, srcColorModel, dstColorModel);
     }
 
     /**

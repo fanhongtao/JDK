@@ -1,4 +1,6 @@
 /*
+ * @(#)DynAny.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -7,11 +9,11 @@
 package org.omg.CORBA;
 
 
-/** org.omg.CORBA.Any values can be dynamically interpreted (traversed) and
- *  constructed
- *  through DynAny objects. A DynAny object is associated with a data value
- *  which may correspond to a copy of the value inserted into an Any.
- *  The DynAny APIs enable traversal of the data value associated with an
+/** Enables <tt>org.omg.CORBA.Any</tt> values to be dynamically 
+ * interpreted (traversed) and
+ *  constructed. A <tt>DynAny</tt> object is associated with a data value
+ *  which may correspond to a copy of the value inserted into an <tt>Any</tt>.
+ *  The <tt>DynAny</tt> APIs enable traversal of the data value associated with an
  *  Any at runtime and extraction of the primitive constituents of the
  *  data value.
  */

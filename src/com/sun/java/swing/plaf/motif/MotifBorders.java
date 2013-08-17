@@ -1,4 +1,6 @@
 /*
+ * @(#)MotifBorders.java	1.33 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -31,7 +33,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.30 02/06/02
+ * @version 1.33 12/03/01
  * @author Amy Fowler
  */
 public class MotifBorders { 
@@ -58,7 +60,12 @@ public class MotifBorders {
 	}
 
 	public Insets getBorderInsets(Component c) { 
-	    return new Insets(1, 1, 1, 1);
+	    return getBorderInsets(c, new Insets(0,0,0,0));
+	}
+
+        public Insets getBorderInsets(Component c, Insets insets) {
+	    insets.top = insets.left = insets.bottom = insets.right = 1;
+	    return insets;
 	}
 
 	public boolean isOpaque(Component c) { 
@@ -88,17 +95,20 @@ public class MotifBorders {
 	}
 
 	public Insets getBorderInsets(Component c) { 
-	    return new Insets(1,1,1,1);
+	    return getBorderInsets(c, new Insets(0,0,0,0));
 	}
 
-	final static Insets insets = new Insets(1, 1, 1, 1);
+        public Insets getBorderInsets(Component c, Insets insets) {
+	    insets.top = insets.left = insets.bottom = insets.right = 1;
+	    return insets;
+	}
     }
 
 
     public static class ButtonBorder extends AbstractBorder implements UIResource {
         protected Color focus = UIManager.getColor("activeCaptionBorder");
-        protected Color shadow = UIManager.getColor("controlShadow");
-        protected Color highlight = UIManager.getColor("controlHighlight");
+        protected Color shadow = UIManager.getColor("Button.shadow");
+        protected Color highlight = UIManager.getColor("Button.light");
         protected Color darkShadow;
 
         public ButtonBorder(Color shadow, Color highlight, Color darkShadow, Color focus) {
@@ -166,12 +176,13 @@ public class MotifBorders {
         }
 	
         public Insets getBorderInsets(Component c) {
-            if (c instanceof JButton) {
-                JButton b = (JButton)c;
-                return (b.isDefaultCapable()? new Insets(8, 8, 8, 8) : 
-                                              new Insets(2, 2, 2, 2));
-            }
-            return new Insets(2, 2, 2, 2);
+	    return getBorderInsets(c, new Insets(0,0,0,0));
+	}
+
+	public Insets getBorderInsets(Component c, Insets insets) {
+	    int thickness = (c instanceof JButton && ((JButton)c).isDefaultCapable())? 8 : 2;
+	    insets.top = insets.left = insets.bottom = insets.right = thickness;
+	    return insets;
         }
 
     }
@@ -206,6 +217,12 @@ public class MotifBorders {
         public Insets getBorderInsets(Component c) {
 	    return new Insets(2, 2, 3, 3);
         }
+
+        public Insets getBorderInsets(Component c, Insets insets) {
+	    insets.top = insets.left = 2;
+	    insets.bottom = insets.right = 3;
+	    return insets;
+	}
     }
 
     public static class MenuBarBorder extends ButtonBorder {
@@ -224,9 +241,14 @@ public class MotifBorders {
 	    }
         }
 
-        public Insets getBorderInsets(Component c)       {
-            return new Insets(6,6,6,6);
-        }
+	public Insets getBorderInsets(Component c) { 
+	    return getBorderInsets(c, new Insets(0,0,0,0));
+	}
+
+        public Insets getBorderInsets(Component c, Insets insets) {
+	    insets.top = insets.left = insets.bottom = insets.right = 6;
+	    return insets;
+	}
     }
 
     public static class FrameBorder extends AbstractBorder implements UIResource {
@@ -276,6 +298,14 @@ public class MotifBorders {
         public Insets getBorderInsets(Component c) {
             return insets;
         }
+
+        public Insets getBorderInsets(Component c, Insets newInsets) {
+	    newInsets.top = insets.top;
+	    newInsets.left = insets.left;
+	    newInsets.bottom = insets.bottom;
+	    newInsets.right = insets.right;
+	    return newInsets;
+	}
 
        /** Draws the FrameBorder's top border.
          */

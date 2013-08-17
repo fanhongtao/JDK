@@ -1,4 +1,6 @@
 /*
+ * @(#)Observable.java	1.34 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ package java.util;
  * The default implementation provided in the Observerable class will 
  * notify Observers in the order in which they registered interest, but 
  * subclasses may change this order, use no guaranteed order, deliver 
- * notifications on separate threaads, or may guarantee that their
+ * notifications on separate threads, or may guarantee that their
  * subclass follows this order, as they choose.
  * <p>
  * Note that this notification mechanism is has nothing to do with threads 
@@ -33,7 +35,7 @@ package java.util;
  * <tt>equals</tt> method returns true for them.
  *
  * @author  Chris Warth
- * @version 1.32, 02/06/02
+ * @version 1.34, 12/03/01
  * @see     java.util.Observable#notifyObservers()
  * @see     java.util.Observable#notifyObservers(java.lang.Object)
  * @see     java.util.Observer
@@ -57,8 +59,11 @@ public class Observable {
      * observers is not specified. See the class comment.
      *
      * @param   o   an observer to be added.
+     * @throws NullPointerException   if the parameter o is null.
      */
     public synchronized void addObserver(Observer o) {
+        if (o == null)
+            throw new NullPointerException();
 	if (!obs.contains(o)) {
 	    obs.addElement(o);
 	}

@@ -1,4 +1,6 @@
 /*
+ * @(#)WindowsComboBoxUI.java	1.31 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -23,12 +25,11 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.26, 02/06/02
+ * @version 1.31, 12/03/01
  * @author Tom Santos
  */
 
 public class WindowsComboBoxUI extends BasicComboBoxUI {
-    private static final JTextField sizer = new JTextField();
 
     public static ComponentUI createUI(JComponent c) {
         return new WindowsComboBoxUI();
@@ -39,63 +40,38 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
         comboBox.setRequestFocusEnabled( true );
     }
     
-    public Dimension getMinimumSize( JComponent c ) {
-        if ( !isMinimumSizeDirty ) {
-            return new Dimension( cachedMinimumSize );
-        }
-        
-        Dimension size = getDisplaySize();
-        Insets insets = getInsets();
-        
-        if ( comboBox.getRenderer() instanceof UIResource ) {
-            sizer.setFont( comboBox.getFont() );
-            size.height = sizer.getPreferredSize().height;
-        }
-        else {
-            size.height += insets.top + insets.bottom;
-        }
-        
-        int buttonSize = size.height - (insets.top + insets.bottom);
-        size.width +=  insets.left + insets.right + buttonSize;
-
-        cachedMinimumSize.setSize( size.width, size.height ); 
-        isMinimumSizeDirty = false;
-
-        return size;
-    }
-
-    protected void selectNextPossibleValue() {
-        super.selectNextPossibleValue();
-    }
-
-    protected void selectPreviousPossibleValue() {
-        super.selectPreviousPossibleValue();
-    } 
-
     protected void installKeyboardActions() {
-	ActionMap oldMap = (ActionMap)UIManager.get("ComboBox.actionMap");
         super.installKeyboardActions();
-	if (oldMap == null) {
-	    ActionMap map = (ActionMap)UIManager.get("ComboBox.actionMap");
-	    if (map != null) {
-		// The actions we install are a little different, override
-		// them here.
-		map.put("selectPrevious", new UpAction());
-		map.put("selectNext", new DownAction());
-	    }
-	}
-    }
-
-    void windowsSetPopupVisible( boolean visible ) {
-        setPopupVisible( comboBox, visible );
+        ActionMap map = (ActionMap)UIManager.get("ComboBox.actionMap");
+        if (map != null) {
+            map.put("selectPrevious", new UpAction());
+            map.put("selectNext", new DownAction());
+        }
     }
 
     protected ComboPopup createPopup() {
         return new WindowsComboPopup( comboBox );
     }
 
+    /**
+     * Creates the default editor that will be used in editable combo boxes.  
+     * A default editor will be used only if an editor has not been 
+     * explicitly set with <code>setEditor</code>.
+     *
+     * @return a <code>ComboBoxEditor</code> used for the combo box
+     * @see javax.swing.JComboBox#setEditor
+     */
+    protected ComboBoxEditor createEditor() {
+	return new WindowsComboBoxEditor();
+    }
+ 
     /** 
      * Subclassed to add Windows specific Key Bindings.
+     * This class is now obsolete and doesn't do anything. 
+     * Only included for backwards API compatibility.
+     * Do not call or override.
+     * 
+     * @deprecated As of Java 2 platform v1.4.
      */
     protected class WindowsComboPopup extends BasicComboPopup {
 
@@ -108,39 +84,21 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
         }
 
         protected class InvocationKeyHandler extends BasicComboPopup.InvocationKeyHandler {
-            public void keyReleased( KeyEvent e ) {
-                if ( e.getKeyCode() == KeyEvent.VK_F4 ) {
-                    if ( isVisible() ) {
-                        hide();
-                    }
-                    else {
-                        show();
-                    }
-                }
-                else if ( e.isAltDown() && e.getKeyCode() != KeyEvent.VK_ALT ) {
-                    if ( e.getKeyCode() == KeyEvent.VK_UP ||
-                         e.getKeyCode() == KeyEvent.VK_DOWN ) {
-                        if ( isVisible() ) {
-                            hide();
-                        }
-                        else {
-                            show();
-                        }
-                    }
-                }
-                else if ( comboBox.isEditable() &&
-                          !isVisible() &&
-                          (e.getKeyCode() == KeyEvent.VK_UP ||
-                           e.getKeyCode() == KeyEvent.VK_DOWN) ) {
-                    show();
-                }
-                else if ( !comboBox.isEditable() && isVisible() ) {
-                    super.keyReleased( e );
-                }
-            }
         }
     }
 
+
+    /** 
+     * Subclassed to highlight selected item in an editable combo box.
+     */
+    public static class WindowsComboBoxEditor
+        extends BasicComboBoxEditor.UIResource {
+
+        public void setItem(Object item) {
+            super.setItem(item);
+            selectAll();
+        }
+    }
 
     static class DownAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
@@ -162,7 +120,7 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
 	    if ( comboBox.isEnabled() ) {
 		WindowsComboBoxUI ui = (WindowsComboBoxUI)comboBox.getUI();
 		if ( !comboBox.isEditable() || (comboBox.isEditable() &&
-						ui.isPopupVisible(comboBox))) {
+        					ui.isPopupVisible(comboBox))) {
 		    ui.selectPreviousPossibleValue();
 		}
 	    }

@@ -1,5 +1,7 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)RepaintManager.java	1.49 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -7,8 +9,11 @@ package javax.swing;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.VolatileImage;
 import java.util.*;
 import java.applet.*;
+
+import sun.security.action.GetPropertyAction;
 
 
 /**
@@ -16,7 +21,7 @@ import java.applet.*;
  * of repaints to be minimized, for example by collapsing multiple 
  * requests into a single repaint for members of a component tree.
  *
- * @version 1.42 12/02/02
+ * @version 1.49 12/03/01
  * @author Arnaud Weber
  */
 public class RepaintManager 
@@ -24,16 +29,39 @@ public class RepaintManager
     Hashtable dirtyComponents = new Hashtable();
     Hashtable tmpDirtyComponents = new Hashtable();
     Vector    invalidComponents;
+
     boolean   doubleBufferingEnabled = true;
-    Image     doubleBuffer;
-    Dimension doubleBufferSize;
+
     private Dimension doubleBufferMaxSize;
-    /** This is set to true from resetDoubleBuffer, if this is true, the
-     * next time the doubleBuffer is asked for (getOffscreenBuffer) the image
-     * will be recreated. */
-    private boolean resetDoubleBuffer;
+
+    // Support for both the standard and volatile offscreen buffers exists to
+    // provide backwards compatibility for the [rare] programs which may be
+    // calling getOffScreenBuffer() and not expecting to get a VolatileImage.
+    // Swing internally is migrating to use *only* the volatile image buffer.
+
+    // Support for standard offscreen buffer
+    //
+    DoubleBufferInfo standardDoubleBuffer;
+
+    // Support for volatile offscreen buffer to improve blitting speed by
+    // taking advantage of graphics hardware
+    //
+    DoubleBufferInfo volatileDoubleBuffer;
 
     private static final Object repaintManagerKey = RepaintManager.class;
+
+    // Whether or not a VolatileImage should be used for double-buffered painting
+    static boolean volatileImageBufferEnabled = true;
+
+    // The maximum number of times Swing will attempt to use the VolatileImage
+    // buffer during a paint operation.
+    static final int VOLATILE_LOOP_MAX = 1;
+
+    static {
+	String vib = (String) java.security.AccessController.doPrivileged(
+               new GetPropertyAction("swing.volatileImageBufferEnabled"));
+	volatileImageBufferEnabled = (vib == null || vib.equals("true"));
+    }
 
     /** 
      * Return the RepaintManager for the calling thread given a Component.
@@ -44,6 +72,10 @@ public class RepaintManager
      * @return the RepaintManager object
      */
     public static RepaintManager currentManager(Component c) {
+        // Note: SystemEventQueueUtilities.ComponentWorkRequest passes
+        // in null as the component, so if component is ever used to 
+        // determine the current RepaintManager, SystemEventQueueUtilities
+        // will need to be modified accordingly.
         RepaintManager result = (RepaintManager) SwingUtilities.appContextGet(repaintManagerKey);
         if(result == null) {
             result = new RepaintManager();
@@ -51,12 +83,11 @@ public class RepaintManager
         }
 	return result;
     }
-
     
     /**
      * Return the RepaintManager for the calling thread given a JComponent.
      * <p>
-     * Note: This method exists for backward binary compatibility with earlier
+    * Note: This method exists for backward binary compatibility with earlier
      * versions of the Swing library. It simply returns the result returned by
      * {@link #currentManager(Component)}. 
      *
@@ -88,6 +119,14 @@ public class RepaintManager
      * RepaintManager.currentManager(JComponent) (normally "this").
      */
     public RepaintManager() {
+	SwingUtilities.doPrivileged(new Runnable() {
+	    public void run() {	       
+	        boolean nativeDoubleBuffering = Boolean.getBoolean("awt.nativeDoubleBuffering");
+	        // If native doublebuffering is being used, do NOT use
+	        // Swing doublebuffering.
+                doubleBufferingEnabled = !nativeDoubleBuffering;
+	    }
+	});
     }
 
 
@@ -222,11 +261,6 @@ public class RepaintManager
 		return;
 	    }
 	    if ((p instanceof Window) || (p instanceof Applet)) {
-                // Iconified frames are still visible!
-                if (p instanceof Frame &&
-                        ((Frame)p).getState() == Frame.ICONIFIED) {
-                    return;
-                }
 		root = p;
 		break;
 	    }
@@ -472,88 +506,106 @@ public class RepaintManager
         return sb.toString();
     }
 
-    /**
-     * Return the offscreen buffer that should be used as a double buffer with the component <code>c</code>
+
+   /**
+     * Return the offscreen buffer that should be used as a double buffer with 
+     * the component <code>c</code>.
      * By default there is a double buffer per RepaintManager.
      * The buffer might be smaller than <code>(proposedWidth,proposedHeight)</code>
      * This happens when the maximum double buffer size as been set for the receiving
      * repaint manager.
      */
     public Image getOffscreenBuffer(Component c,int proposedWidth,int proposedHeight) {
-        Image result;
-        int width,height;
+	return _getOffscreenBuffer(c, proposedWidth, proposedHeight, false);
+    }
+
+  /**
+   * Return a volatile offscreen buffer that should be used as a
+   * double buffer with the specified component <code>c</code>.
+   * The image returned will be an instance of VolatileImage, or null
+   * if a VolatileImage object could not be instantiated.
+   * This buffer might be smaller than <code>(proposedWidth,proposedHeight)</code>.
+   * This happens when the maximum double buffer size has been set for this
+   * repaint manager.
+   *
+   * @see java.awt.image.VolatileImage
+   * @since 1.4
+   */
+    public Image getVolatileOffscreenBuffer(Component c, 
+					    int proposedWidth,int proposedHeight) {
+
+	return _getOffscreenBuffer(c, proposedWidth, proposedHeight, true);
+    }
+
+    private Image _getOffscreenBuffer(Component c, int proposedWidth, int proposedHeight, 
+				    boolean useVolatileImage) {
 	Dimension maxSize = getDoubleBufferMaximumSize();
+	DoubleBufferInfo doubleBuffer = null;
+        int width, height;
 
-	if (resetDoubleBuffer) {
-	    doubleBuffer = null;
-	    resetDoubleBuffer = false;
-	}
-	if (proposedWidth < 1) {
-	    width = 1;
-	}
-        else if(proposedWidth > maxSize.width)
-            width = maxSize.width;
-        else
-            width = proposedWidth;
-
-	if (proposedHeight < 1) {
-	    height = 1;
-	}
-        else if(proposedHeight > maxSize.height) 
-            height = maxSize.height;
-        else
-            height = proposedHeight;
-
-        if(doubleBuffer != null) {
-            if(doubleBuffer.getWidth(null) < width || doubleBuffer.getHeight(null) < height) {
-                doubleBuffer = null;
+	if (useVolatileImage) {
+	    if (volatileDoubleBuffer == null) {
+		volatileDoubleBuffer = new DoubleBufferInfo();
 	    }
+	    doubleBuffer = volatileDoubleBuffer;
+	} else {
+	    if (standardDoubleBuffer == null) {
+		standardDoubleBuffer = new DoubleBufferInfo();
+	    }
+	    doubleBuffer = standardDoubleBuffer;
+	}
+	    
+	width = proposedWidth < 1? 1 : 
+	          (proposedWidth > maxSize.width? maxSize.width : proposedWidth);
+        height = proposedHeight < 1? 1 : 
+                  (proposedHeight > maxSize.height? maxSize.height : proposedHeight);
+
+        if (doubleBuffer.needsReset || (doubleBuffer.image != null &&
+                                        (doubleBuffer.size.width < width ||
+                                         doubleBuffer.size.height < height))) {
+            doubleBuffer.needsReset = false;
+            if (doubleBuffer.image != null) {
+                doubleBuffer.image.flush();
+                doubleBuffer.image = null;
+            }
+            width = Math.max(doubleBuffer.size.width, width);
+            height = Math.max(doubleBuffer.size.height, height);
         }
 
-	int go_width = width;
-        int go_height = height;
+	Image result = doubleBuffer.image;
 
-        if(doubleBuffer != null) {
-           go_width = doubleBufferSize.width;
-	   go_height = doubleBufferSize.height;
-
-	   if( doubleBufferSize.width < width ) {
-	       go_width = width;
-	       doubleBuffer = null;
-	   }
-	   
-	   if( doubleBufferSize.height < height ) {
-	       go_height = height;
-	       doubleBuffer = null;
-	   }
-        }
-
-	Image retValue = doubleBuffer;
-
-	if(doubleBuffer == null) {
-            retValue = c.createImage( go_width , go_height );
-            doubleBufferSize = new Dimension( go_width , go_height );
+	if (doubleBuffer.image == null) {
+            result = useVolatileImage? c.createVolatileImage(width, height) :
+		                       c.createImage(width , height);
+            doubleBuffer.size = new Dimension(width, height);
 	    if (c instanceof JComponent) {
-		((JComponent)c).setCreatedDoubleBuffer(true);
-		doubleBuffer = retValue;
+		((JComponent)c).setCreatedDoubleBuffer(useVolatileImage, true);
+		doubleBuffer.image = result;
 	    }
 	    // JComponent will inform us when it is no longer valid
 	    // (via removeNotify) we have no such hook to other components,
 	    // therefore we don't keep a ref to the Component
 	    // (indirectly through the Image) by stashing the image.
 	}
-
-        return retValue;
+        return result;
     }
+
 
     /** Set the maximum double buffer size. **/
     public void setDoubleBufferMaximumSize(Dimension d) {
         doubleBufferMaxSize = d;
-        if(doubleBuffer != null) {
-            if(doubleBuffer.getWidth(null) > d.width || doubleBuffer.getHeight(null) > d.height) {
-		doubleBuffer = null;
+        if (standardDoubleBuffer != null && standardDoubleBuffer.image != null) {
+            if (standardDoubleBuffer.image.getWidth(null) > d.width || 
+		standardDoubleBuffer.image.getHeight(null) > d.height) {
+		standardDoubleBuffer.image = null;
 	    }
         }
+	if (volatileDoubleBuffer != null && volatileDoubleBuffer.image != null) {
+            if (volatileDoubleBuffer.image.getWidth(null) > d.width || 
+		volatileDoubleBuffer.image.getHeight(null) > d.height) {
+		volatileDoubleBuffer.image = null;
+	    }
+	}	    
     }
 
     /**
@@ -563,27 +615,41 @@ public class RepaintManager
      */
     public Dimension getDoubleBufferMaximumSize() {
 	if (doubleBufferMaxSize == null) {
-	    doubleBufferMaxSize = Toolkit.getDefaultToolkit().getScreenSize();
+	    try {
+	        doubleBufferMaxSize = Toolkit.getDefaultToolkit().getScreenSize();
+	    } catch (HeadlessException e) {
+		doubleBufferMaxSize = new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
+	    }
 	}
         return doubleBufferMaxSize;
     }
 
     /**
-     * Enables or disables double buffering.
+     * Enables or disables double buffering in this RepaintManager.
+     * CAUTION: The default value for this property is set for optimal
+     * paint performance on the given platform and it is not recommended
+     * that programs modify this property directly.
      *
      * @param aFlag  true to activate double buffering
+     * @see #isDoubleBufferingEnabled
      */
     public void setDoubleBufferingEnabled(boolean aFlag) {
         doubleBufferingEnabled = aFlag;
     }
 
     /**
-     * Returns true if this object is double buffered.
+     * Returns true if this RepaintManager is double buffered.
+     * The default value for this property may vary from platform
+     * to platform.  On platforms where native double buffering
+     * is supported in the AWT, the default value will be <code>false</code>
+     * to avoid unnecessary buffering in Swing.
+     * On platforms where native double buffering is not supported,
+     * the default value will be <code>true</code>.
      *
      * @return true if this object is double buffered
      */
     public boolean isDoubleBufferingEnabled() {
-      return doubleBufferingEnabled;
+        return doubleBufferingEnabled;
     }
 
     /**
@@ -592,6 +658,32 @@ public class RepaintManager
      * invocation of getOffscreenBuffer.
      */
     void resetDoubleBuffer() {
-	resetDoubleBuffer = true;
+	if (standardDoubleBuffer != null) {
+	    standardDoubleBuffer.needsReset = true;
+	}
     }
+
+    /**
+     * This resets the volatile double buffer. 
+     */
+    void resetVolatileDoubleBuffer() {
+	if (volatileDoubleBuffer != null) {
+	    volatileDoubleBuffer.needsReset = true;
+	}
+    }
+
+    /**
+     * Returns true if we should use the <code>Image</code> returned
+     * from <code>getVolatileOffscreenBuffer</code> to do double buffering.
+     */
+    boolean useVolatileDoubleBuffer() {
+        return volatileImageBufferEnabled;
+    }
+
+    private class DoubleBufferInfo {
+        public Image image;
+        public Dimension size;
+        public boolean needsReset = false;
+    }
+     
 }

@@ -1,4 +1,6 @@
 /*
+ * @(#)AccessibleContext.java	1.36 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -45,6 +47,12 @@ import java.awt.IllegalComponentStateException;
  * minimum and maximum values.  Any object that supports a numerical value
  * should support this interface.</ul>
  *
+ *
+ * @beaninfo
+ *   attribute: isContainer false
+ * description: Minimal information that all accessible objects return
+ *
+
  * @version     1.29 10/05/99
  * @author	Peter Korn
  * @author      Hans Muller
@@ -251,6 +259,18 @@ public abstract class AccessibleContext {
     public static final String ACCESSIBLE_ACTION_PROPERTY =
 	"accessibleActionProperty";
      
+    /**
+     * Constant used to indicate that a hypertext element has received focus.
+     * The old value in the PropertyChangeEvent will be an Integer
+     * representing the start index in the document of the previous element
+     * that had focus and the new value will be an Integer representing
+     * the start index in the document of the current element that has
+     * focus.  A value of -1 indicates that an element does not or did 
+     * not have focus.
+     * @see AccessibleHyperlink
+     */
+    public static final String ACCESSIBLE_HYPERTEXT_OFFSET =
+	"AccessibleHypertextOffset";
 
     /** 
      * The accessible parent of this object.
@@ -320,6 +340,10 @@ public abstract class AccessibleContext {
      *
      * @see #getAccessibleName
      * @see #addPropertyChangeListener
+     *
+     * @beaninfo
+     *    preferred:   true
+     *    description: Sets the accessible name for the component.
      */
     public void setAccessibleName(String s) {
 	String oldName = accessibleName;
@@ -352,6 +376,10 @@ public abstract class AccessibleContext {
      *
      * @see #setAccessibleName
      * @see #addPropertyChangeListener
+     *
+     * @beaninfo
+     *    preferred:   true
+     *    description: Sets the accessible description for the component.
      */
     public void setAccessibleDescription(String s) {
 	String oldDescription = accessibleDescription;
@@ -530,7 +558,7 @@ public abstract class AccessibleContext {
     }
 
     /**
-     * Gets the AccessibleText associated with this object presently editable
+     * Gets the AccessibleText associated with this object presenting 
      * text on the display.
      *
      * @return AccessibleText if supported by object; else return null
@@ -539,6 +567,18 @@ public abstract class AccessibleContext {
     public AccessibleText getAccessibleText() {
 	return null;
     }
+
+    /**
+     * Gets the AccessibleEditableText associated with this object 
+     * presenting editable text on the display.
+     *
+     * @return AccessibleEditableText if supported by object; else return null
+     * @see AccessibleEditableText
+     */
+    public AccessibleEditableText getAccessibleEditableText() {
+	return null;
+    }
+
 
     /**
      * Gets the AccessibleValue associated with this object that supports a 

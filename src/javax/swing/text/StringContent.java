@@ -1,4 +1,6 @@
 /*
+ * @(#)StringContent.java	1.42 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,14 +22,16 @@ import javax.swing.SwingUtilities;
  * to large sizes.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.38 02/06/02
+ * @version 1.42 12/03/01
  */
 public final class StringContent implements AbstractDocument.Content, Serializable {
 
@@ -73,7 +77,7 @@ public final class StringContent implements AbstractDocument.Content, Serializab
      * @see AbstractDocument.Content#insertString
      */
     public UndoableEdit insertString(int where, String str) throws BadLocationException {
-	if (where >= count) {
+	if (where >= count || where < 0) {
 	    throw new BadLocationException("Invalid location", count);
 	}
 	char[] chars = str.toCharArray();
@@ -240,6 +244,9 @@ public final class StringContent implements AbstractDocument.Content, Serializab
      * <code>offset</code> to <code>offset</code> + <code>length</code>.
      * If <code>v</code> is not null the matching Positions are placed in
      * there. The vector with the resulting Positions are returned.
+     * <p>
+     * This is meant for internal usage, and is generally not of interest
+     * to subclasses.
      *
      * @param v the Vector to use, with a new one created on null
      * @param offset the starting offset >= 0
@@ -267,6 +274,9 @@ public final class StringContent implements AbstractDocument.Content, Serializab
     /**
      * Resets the location for all the UndoPosRef instances
      * in <code>positions</code>.
+     * <p>
+     * This is meant for internal usage, and is generally not of interest
+     * to subclasses.
      *
      * @param positions the positions of the instances
      */
@@ -288,11 +298,11 @@ public final class StringContent implements AbstractDocument.Content, Serializab
     transient Vector marks;
 
     /**
-     * holds the data for a mark... seperately from
+     * holds the data for a mark... separately from
      * the real mark so that the real mark can be 
      * collected if there are no more references to
      * it.... the update table holds only a reference
-     * to this grungey thing.
+     * to this grungy thing.
      */
     final class PosRec {
 

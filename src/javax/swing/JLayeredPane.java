@@ -1,4 +1,6 @@
 /*
+ * @(#)JLayeredPane.java	1.41 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -13,8 +15,9 @@ import java.awt.Rectangle;
 import javax.accessibility.*;
 
 /**
- * JLayeredPane adds depth to a JFC/Swing container, allowing components to overlap 
- * each other when needed. An Integer object specifies each component's depth in the
+ * <code>JLayeredPane</code> adds depth to a JFC/Swing container,
+ * allowing components to overlap each other when needed.
+ * An <code>Integer</code> object specifies each component's depth in the
  * container, where higher-numbered components sit &quot;on top&quot; of other 
  * components.
  * For task-oriented documentation and examples of using layered panes see
@@ -28,10 +31,10 @@ import javax.accessibility.*;
  *   </TD>
  * </TR>
  * </TABLE>
- * For convenience, JLayeredPane divides the depth-range into several different 
- * layers. Putting a component into one of those layers makes it easy to ensure 
- * that components overlap properly, without having to worry about specifying
- * numbers for specific depths:
+ * For convenience, <code>JLayeredPane</code> divides the depth-range
+ * into several different layers. Putting a component into one of those
+ * layers makes it easy to ensure that components overlap properly,
+ * without having to worry about specifying numbers for specific depths:
  * <DL>
  *    <DT><FONT SIZE="2">DEFAULT_LAYER</FONT></DT>
  *         <DD>The standard layer, where most components go. This the bottommost 
@@ -51,21 +54,22 @@ import javax.accessibility.*;
  *         that it is positioned over every other component in the container. When 
  *         finished dragging, it can be reassigned to its normal layer.
  * </DL>
- * The JLayeredPane methods <code>moveToFront(Component)</code>, 
+ * The <code>JLayeredPane</code> methods <code>moveToFront(Component)</code>, 
  * <code>moveToBack(Component)</code> and <code>setPosition</code> can be used 
  * to reposition a component within its layer. The <code>setLayer</code> method 
  * can also be used to change the component's current layer.
  *
  * <h2>Details</h2>
- * JLayeredPane manages it's list of children like Container, but
- * allows for the definition of a several layers within itself. Children
- * in the same layer are managed exactly like the normal Container object,
+ * <code>JLayeredPane</code> manages its list of children like
+ * <code>Container</code>, but allows for the definition of a several
+ * layers within itself. Children in the same layer are managed exactly
+ * like the normal <code>Container</code> object,
  * with the added feature that when children components overlap, children 
  * in higher layers display above the children in lower layers.
  * <p>  
  * Each layer is a distinct integer number. The layer attribute can be set 
- * on a Component by passing an Integer object during the add call.<br>
- * For example:
+ * on a <code>Component</code> by passing an <code>Integer</code>
+ * object during the add call.<br> For example:
  * <PRE>
  *     layeredPane.add(child, JLayeredPane.DEFAULT_LAYER);
  * or
@@ -73,7 +77,7 @@ import javax.accessibility.*;
  * </PRE>
  * The layer attribute can also be set on a Component by calling<PRE>
  *     layeredPaneParent.setLayer(child, 10)</PRE>
- * on the JLayeredPane that is the parent of component. The layer
+ * on the <code>JLayeredPane</code> that is the parent of component. The layer
  * should be set <i>before</i> adding the child to the parent.
  * <p>
  * Higher number layers display above lower number layers. So, using 
@@ -113,13 +117,15 @@ import javax.accessibility.*;
  * layer settings.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  * 
- * @version 1.39 02/06/02
+ * @version 1.36 02/02/00
  * @author David Kloba
  */
 public class JLayeredPane extends JComponent implements Accessible {
@@ -380,7 +386,7 @@ public class JLayeredPane extends JComponent implements Accessible {
         return -1;
     }
     /** 
-     * Moves the component to the top of the components in it's current layer
+     * Moves the component to the top of the components in its current layer
      * (position 0).
      *
      * @param c the Component to move 
@@ -391,7 +397,7 @@ public class JLayeredPane extends JComponent implements Accessible {
     }
 
     /** 
-     * Moves the component to the bottom of the components in it's current layer
+     * Moves the component to the bottom of the components in its current layer
      * (position -1).
      *
      * @param c the Component to move 
@@ -402,7 +408,7 @@ public class JLayeredPane extends JComponent implements Accessible {
     }
 
     /**
-     * Moves the component to <code>position</code> within it's current layer,
+     * Moves the component to <code>position</code> within its current layer,
      * where 0 is the topmost position within the layer and -1 is the bottommost
      * position. 
      * <p>
@@ -536,7 +542,12 @@ public class JLayeredPane extends JComponent implements Accessible {
             if(c == null)
                 c = Color.lightGray;
             g.setColor(c);
-            g.fillRect(r.x, r.y, r.width, r.height);
+            if (r != null) {
+                g.fillRect(r.x, r.y, r.width, r.height);
+            }
+            else {
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
         }
         super.paint(g);
     }
@@ -587,7 +598,7 @@ public class JLayeredPane extends JComponent implements Accessible {
     }
 
     /** 
-     * Primative method that determines the proper location to
+     * Primitive method that determines the proper location to
      * insert a new child based on layer and position requests.
      * 
      * @param layer     an int specifying the layer
@@ -692,10 +703,12 @@ public class JLayeredPane extends JComponent implements Accessible {
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJLayeredPane extends AccessibleJComponent {
 

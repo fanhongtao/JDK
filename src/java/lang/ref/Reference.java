@@ -1,4 +1,6 @@
 /*
+ * @(#)Reference.java	1.31 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -12,7 +14,7 @@ package java.lang.ref;
  * implemented in close cooperation with the garbage collector, this class may
  * not be subclassed directly.
  *
- * @version  1.30, 02/06/02
+ * @version  1.31, 12/03/01
  * @author   Mark Reinhold
  * @since    1.2
  */
@@ -60,11 +62,17 @@ public abstract class Reference {
      * to determine whether a Reference instance requires special treatment: If
      * the next field is null then the instance is active; if it is non-null,
      * then the collector should treat the instance normally.
+     * 
+     * To ensure that concurrent collector can discover active Reference 
+     * objects without interfering with application threads that may apply 
+     * the enqueue() method to those objects, collectors should link 
+     * discovered objects through the discovered field.
      */
 
     private Object referent;		/* Treated specially by GC */
     ReferenceQueue queue;
     Reference next;
+    transient private Reference discovered; 	/* used by VM */
 
 
     /* Object used to synchronize with the garbage collector.  The collector

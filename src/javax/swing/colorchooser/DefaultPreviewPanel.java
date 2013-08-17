@@ -1,4 +1,6 @@
 /*
+ * @(#)DefaultPreviewPanel.java	1.10 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,13 +23,15 @@ import java.io.Serializable;
  * The standard preview panel for the color chooser.
  * <p>
  * <strong>Warning:</strong>
- * Serialized objects of this class will not be compatible with 
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.8 02/06/02
+ * @version 1.10 12/03/01
  * @author Steve Wilson
  * @see JColorChooser
  */
@@ -56,7 +60,7 @@ class DefaultPreviewPanel extends JPanel {
 	int width = fm.stringWidth(sampleText);
 
         int y = height*3 + textGap*3;
-	int x = squareSize * 3 + squareGap*4 + swatchWidth + width;
+	int x = squareSize * 3 + squareGap*2 + swatchWidth + width + textGap*3;
         return new Dimension( x,y );
     }
 
@@ -67,21 +71,25 @@ class DefaultPreviewPanel extends JPanel {
         g.setColor(getBackground());
 	g.fillRect(0,0,getWidth(),getHeight());
 
-        int squareWidth = paintSquares(g);
+	if (this.getComponentOrientation().isLeftToRight()) {
+	    int squareWidth = paintSquares(g, 0);
+	    int textWidth = paintText(g, squareWidth);
+	    paintSwatch(g, squareWidth + textWidth);
+	} else {
+	    int swatchWidth = paintSwatch(g, 0);
+	    int textWidth = paintText(g, swatchWidth);
+	    paintSquares(g , swatchWidth + textWidth);
 
-	int textWidth = paintText(g, squareWidth);
-
-        paintSwatch(g, squareWidth + textWidth);
-
-
+	}
     }
 
-    private void paintSwatch(Graphics g, int offsetX) {
-        int swatchX = offsetX + squareGap;
+    private int paintSwatch(Graphics g, int offsetX) {
+        int swatchX = offsetX;
 	g.setColor(oldColor);
 	g.fillRect(swatchX, 0, swatchWidth, (squareSize) + (squareGap/2));
 	g.setColor(getForeground());
 	g.fillRect(swatchX, (squareSize) + (squareGap/2), swatchWidth, (squareSize) + (squareGap/2) );
+	return (swatchX+swatchWidth);
     }
 
     private int paintText(Graphics g, int offsetX) {
@@ -98,7 +106,7 @@ class DefaultPreviewPanel extends JPanel {
 
 	g.setColor(color);
 
-	g.drawString(sampleText, textXOffset, ascent+2);
+	g.drawString(sampleText, textXOffset+(textGap/2), ascent+2);
 
 	g.fillRect(textXOffset,
 		   ( height) + textGap, 
@@ -123,40 +131,41 @@ class DefaultPreviewPanel extends JPanel {
 		     textXOffset+(textGap/2), 
 		     ((height+textGap) * 2)+ascent+2);
 
-	return width + textGap + 4;
+	return width + textGap*3;
 	
     }
 
-    private int paintSquares(Graphics g) {
+    private int paintSquares(Graphics g, int offsetX) {
 
+	int squareXOffset = offsetX;
         Color color = getForeground();
 
         g.setColor(Color.white);
-	g.fillRect(0,0,squareSize,squareSize);
+	g.fillRect(squareXOffset,0,squareSize,squareSize);
 	g.setColor(color);
-	g.fillRect(innerGap, 
+	g.fillRect(squareXOffset+innerGap, 
 		   innerGap, 
 		   squareSize - (innerGap*2), 
 		   squareSize - (innerGap*2));
 	g.setColor(Color.white);
-	g.fillRect(innerGap*2,
+	g.fillRect(squareXOffset+innerGap*2,
 		   innerGap*2,
 		   squareSize - (innerGap*4),
 		   squareSize - (innerGap*4));
 
         g.setColor(color);
-	g.fillRect(0,squareSize+squareGap,squareSize,squareSize);
+	g.fillRect(squareXOffset,squareSize+squareGap,squareSize,squareSize);
 
 	g.translate(squareSize+squareGap, 0);
         g.setColor(Color.black);
-	g.fillRect(0,0,squareSize,squareSize);
+	g.fillRect(squareXOffset,0,squareSize,squareSize);
 	g.setColor(color);
-	g.fillRect(innerGap, 
+	g.fillRect(squareXOffset+innerGap, 
 		   innerGap, 
 		   squareSize - (innerGap*2), 
 		   squareSize - (innerGap*2));
 	g.setColor(Color.white);
-	g.fillRect(innerGap*2,
+	g.fillRect(squareXOffset+innerGap*2,
 		   innerGap*2,
 		   squareSize - (innerGap*4),
 		   squareSize - (innerGap*4));
@@ -164,9 +173,9 @@ class DefaultPreviewPanel extends JPanel {
 
 	g.translate(squareSize+squareGap, squareSize+squareGap);
         g.setColor(Color.white);
-	g.fillRect(0,0,squareSize,squareSize);
+	g.fillRect(squareXOffset,0,squareSize,squareSize);
 	g.setColor(color);
-	g.fillRect(innerGap, 
+	g.fillRect(squareXOffset+innerGap, 
 		   innerGap, 
 		   squareSize - (innerGap*2), 
 		   squareSize - (innerGap*2));
@@ -176,14 +185,14 @@ class DefaultPreviewPanel extends JPanel {
 
 	g.translate((squareSize+squareGap)*2, 0);
         g.setColor(Color.white);
-	g.fillRect(0,0,squareSize,squareSize);
+	g.fillRect(squareXOffset,0,squareSize,squareSize);
 	g.setColor(color);
-	g.fillRect(innerGap, 
+	g.fillRect(squareXOffset+innerGap, 
 		   innerGap, 
 		   squareSize - (innerGap*2), 
 		   squareSize - (innerGap*2));
 	g.setColor(Color.black);
-	g.fillRect(innerGap*2,
+	g.fillRect(squareXOffset+innerGap*2,
 		   innerGap*2,
 		   squareSize - (innerGap*4),
 		   squareSize - (innerGap*4));
@@ -191,15 +200,15 @@ class DefaultPreviewPanel extends JPanel {
 
 	g.translate((squareSize+squareGap)*2, (squareSize+squareGap));
         g.setColor(Color.black);
-	g.fillRect(0,0,squareSize,squareSize);
+	g.fillRect(squareXOffset,0,squareSize,squareSize);
 	g.setColor(color);
-	g.fillRect(innerGap, 
+	g.fillRect(squareXOffset+innerGap, 
 		   innerGap, 
 		   squareSize - (innerGap*2), 
 		   squareSize - (innerGap*2));
 	g.translate(-((squareSize+squareGap)*2), -(squareSize+squareGap));
 
-	return ((squareSize+squareGap) *3);
+	return (squareSize*3+squareGap*2);
 
     }
 

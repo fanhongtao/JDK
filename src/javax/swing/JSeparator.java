@@ -1,4 +1,6 @@
 /*
+ * @(#)JSeparator.java	1.48 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -14,12 +16,14 @@ import java.io.IOException;
 
 
 /**
- * An implementation of a menu separator -- a divider between menu items
- * that breaks them up into logical groupings.
+ * <code>JSeparator</code> provides a general purpose component for
+ * implementing divider lines - most commonly used as a divider
+ * between menu items that breaks them up into logical groupings.
  * Instead of using <code>JSeparator</code> directly,
  * you can use the <code>JMenu</code> or <code>JPopupMenu</code>
- * <code>addSeparator</code> method
- * to create and add a separator.
+ * <code>addSeparator</code> method to create and add a separator.
+ * <code>JSeparator</code>s may also be used elsewhere in a GUI
+ * wherever a visual divider is useful.
  *
  * <p>
  *
@@ -30,16 +34,18 @@ import java.io.IOException;
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
- * future Swing releases.  The current serialization support is appropriate
- * for short term storage or RMI between applications running the same
- * version of Swing.  A future release of Swing will provide support for
- * long term persistence.
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @beaninfo
  *      attribute: isContainer false
  *    description: A divider between menu items.
  *
- * @version 1.43 02/06/02
+ * @version 1.48 12/03/01
  * @author Georges Saab
  * @author Jeff Shapiro
  */
@@ -74,7 +80,7 @@ public class JSeparator extends JComponent implements SwingConstants, Accessible
     {
         checkOrientation( orientation );
 	this.orientation = orientation;
-
+	setFocusable(false);
         updateUI();
     }
 
@@ -93,19 +99,17 @@ public class JSeparator extends JComponent implements SwingConstants, Accessible
      * @param ui  the SeparatorUI L&F object
      * @see UIDefaults#getUI
      * @beaninfo
-     * description: The menu item's UI delegate
-     *       bound: true
-     *      expert: true
-     *      hidden: true
+     *        bound: true
+     *       hidden: true
+     *    attribute: visualUpdate true
+     *  description: The UI object that implements the Component's LookAndFeel. 
      */
     public void setUI(SeparatorUI ui) {
         super.setUI(ui);
     }
     
     /**
-     * Notification from the <code>UIFactory</code> that the L&F has changed. 
-     * Called to replace the UI with the latest version from the 
-     * <code>UIFactorys</code>.
+     * Resets the UI property to a value from the current look and feel.
      *
      * @see JComponent#updateUI
      */
@@ -133,9 +137,13 @@ public class JSeparator extends JComponent implements SwingConstants, Accessible
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
+        }
     }
 
     /**
@@ -215,18 +223,6 @@ public class JSeparator extends JComponent implements SwingConstants, Accessible
 	",orientation=" + orientationString;
     }
 
-    /**
-     * Identifies whether or not this component can receive the focus.
-     * <code>JSeparator</code>s cannot recieve focus.
-     *
-     * @return false
-     */
-    public boolean isFocusTraversable()
-    {
-        return false;
-    }
-
-
 /////////////////
 // Accessibility support
 ////////////////
@@ -254,10 +250,12 @@ public class JSeparator extends JComponent implements SwingConstants, Accessible
      * <p>
      * <strong>Warning:</strong>
      * Serialized objects of this class will not be compatible with
-     * future Swing releases.  The current serialization support is appropriate
-     * for short term storage or RMI between applications running the same
-     * version of Swing.  A future release of Swing will provide support for
-     * long term persistence.
+     * future Swing releases. The current serialization support is
+     * appropriate for short term storage or RMI between applications running
+     * the same version of Swing.  As of 1.4, support for long term storage
+     * of all JavaBeans<sup><font size="-2">TM</font></sup>
+     * has been added to the <code>java.beans</code> package.
+     * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJSeparator extends AccessibleJComponent {
 

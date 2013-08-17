@@ -1,75 +1,88 @@
-Copyright 2007 Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
-California 95054, U.S.A. All rights reserved.
+Copyright  2002 Sun Microsystems, Inc., 901 San Antonio Road, Palo
+Alto, California 94303, U.S.A. All rights reserved.
 
-This product or document is protected by copyright and distributed under
-licenses restricting its use, copying, distribution, and decompilation. No part
-of this product or document may be reproduced in any form by any means without
-prior written authorization of Sun and its licensors, if any. Third-party
-software, including font technology, is copyrighted and licensed from Sun
-suppliers.
-
-Sun, Sun Microsystems, the Sun Logo, Java, JDK, the Java Coffee Cup logo, JavaBeans,
-and JDBC 
-are trademarks or registered trademarks of Sun Microsystems, Inc. in the U.S.
+Sun Microsystems, Inc. has intellectual property rights relating to
+technology embodied in this product. In particular, and without
+limitation, these intellectual property rights may include one or 
+more of the U.S. patents listed at http://www.sun.com/patents and one 
+or more additional patents or pending patent applications in the U.S. 
 and other countries.
 
-All SPARC trademarks are used under license and are
-trademarks or registered trademarks of SPARC International, Inc. in the
+This product is distributed under licenses restricting its use, 
+copying distribution, and decompilation. No part of this product may 
+be reproduced in any form by any means without prior written 
+authorization of Sun and its licensors, if any.
+
+Third-party software, including font technology, is copyrighted and
+licensed from Sun suppliers.  Portions Copyright Eastman Kodak 
+Company 1992.  This product includes code licensed from RSA Data 
+Security.  This product includes software developed by the Apache 
+Software Foundation (http://www.apache.org).  Portions licensed from 
+Taligent, Inc. This software is based in part on the work of the 
+Independent JPEG Group.  The Graphics Interchange Format is the 
+Copyright property of CompuServe Incorporated.  
+
+Sun,  Sun Microsystems,  the Sun logo,  Java,  Solaris,  J2SE,  the
+Duke logo,  the Java Coffee Cup logo and  the Solaris logo are
+trademarks or registered trademarks of Sun Microsystems, Inc. in the
 U.S. and other countries.
 
-The OPEN LOOK and Sun(TM) Graphical User Interface was developed by
-Sun Microsystems, Inc. for its users and licensees. Sun acknowledges
-the pioneering efforts of Xerox in researching and developing the concept of
-visual or graphical user interfaces for the computer industry. Sun holds a
-non-exclusive license from Xerox to the Xerox Graphical User Interface, which
-license also covers Sun's licensees who implement OPEN LOOK GUIs and otherwise
-comply with Sun's written license agreements. U.S. Government approval required
-when exporting the product.
+All SPARC trademarks are used under license and are trademarks or
+registered trademarks of SPARC International, Inc. in the U.S. and
+other countries. Products bearing SPARC trademarks are based upon
+architecture developed by Sun Microsystems, Inc. UNIX is a registered 
+trademark in the U.S. and other countries, exclusively licensed 
+through X/Open Company, Ltd.  Lucida is a registered trademark or 
+trademark  of Bigelow & Holmes in the U.S. And other countries.  
+GIF(sm) is a Service Mark property of
+CompuServe Incorporated.
 
-RESTRICTED RIGHTS: Use, duplication, or disclosure by the U.S. Govt is subject
-to restrictions of FAR 52.227-14(g) (2)(6/87) and FAR 52.227 -19(6/87), or DFAR
-252.227-7015 (b)(6/95) and DFAR 227.7202 -3(a).
+Federal Acquisitions: Commercial Software - Government Users Subject 
+to Standard License Terms and Conditions.
 
-DOCUMENTATION IS PROVIDED "AS IS" AND ALL EXPRESS OR IMPLIED CONDITIONS. 
-REPRESENTATIONS AND WARRANTIES, INCLUDING ANY IMPLIED WARRANTY OF 
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT,ARE 
-DISCLAIMED, EXCEPT TO THE EXTENT THAT SUCH DISCLAIMERS ARE HELD TO BE 
-LEGALLY INVALID.
 
-Copyright 2007 Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
-California 95054, Etats-Unis. Tous droits réservés. 
+Copyright 2002 Sun Microsystems, Inc., 901 San Antonio Road, Palo Alto, 
+California 94303, États-Unis. Tous droits réservés.
 
-Ce produit ou document est protégé par un copyright et distribué avec des
-licences qui en restreignent l'utilisation, la copie, la distribution, et la
-dé compilation. Aucune partie de ce produit ou document ne peut être
-reproduite sous aucune forme, par quelque moyen que ce soit, sans
-l'autorisation préalable et écrite de Sun et de ses bailleurs de licence, s'il
-y en a. Le logiciel détenu par des tiers, et qui comprend la technologie relative aux
-polices de caractères, est protégé par un copyright et licencié par des
-fournisseurs de Sun.
+Sun Microsystems, Inc. détient les droits de propriété
+intellectuelle sur la technologie incluse dans ce produit. En
+particulier, et de manière non-exclusive, ces droits de
+propriété intellectuelle peuvent inclure un ou plusieurs brevets
+U.S. énumérés à l'adresse suivante :
+http://www.sun.com/patents et un ou plusieurs brevets
+supplémentaires ou une ou plusieurs demandes de brevet pendantes
+aux États-Unis et dans d'autres pays.
 
-Sun, Sun Microsystems, le logo Sun, Java, JDK, le logo Java Coffee Cup,
-JavaBeans et JDBC sont
-des marques de fabrique ou des marques déposées de Sun Microsystems, Inc. aux
-Etats -Unis et dans d'autres pays.
+Ce produit est distribué en vertu de licences limitant son
+utilisation, la diffusion de copies et la décompilation. Aucune
+partie de ce produit ne peut être reproduite, sous quelque forme et
+par quelque moyen que ce soit, sans l'autorisation écrite
+préalable de Sun et, le cas échéant, de ses concédants.
 
-Toutes les marques SPARC sont utilisées
-sous licence et sont des marques de fabrique ou des marques déposées de
-SPARC Intenational, Inc. aux Etats-Uis et dans d'autres pays.
+Tout logiciel de tiers, y compris toute technologie de police, est
+protégé par droit d'auteur et obtenu sous licence auprès de
+fournisseurs de Sun. Certaines parties sont protégées par droit
+d'auteur Eastman Kodak Company 1992. Ce produit inclut un code
+concédé sous licence par RSA Data Security. Ce produit inclut un
+logiciel développé par Apache Software Foundation
+(http://www.apache.org). Certaines parties sont obtenues sous licence
+de Taligent, Inc. Ce logiciel repose en partie sur le travail du JPEG
+Independant Group. Le Format Graphics Interchange est la
+propriété protégée par droit d'auteur de CompuServe
+Incorporated.
 
- L'interface d'utilisation graphique OPEN LOOK
-et Sun(TM) a été développée par Sun Microsystems, Inc. pour ses utilisateurs et
-licenciés. Sun reconnaît les efforts de pionniers de Xerox pour la recherche et
-le développement du concept des interfaces d'utilisation visuelle ou graphique pour
-l'industrie de l'informatique. Sun détient une licence non exclusive de Xerox sur
-l'interface d'utilisation graphique Xerox, cette licence couvrant également les licencés
-de Sun qui mettent en place l'interface d'utilisation graphique OPEN LOOK et
-qui en outre se conforment aux licences écrites de Sun. L'accord du gouvernement
-américain est requis avant l'exportation du produit.
+Sun, Sun Microsystems, le logo Sun, Java, Solaris, J2SE, le logo Duke,
+le logo Java Coffee Cup et le logo Solaris sont des marques ou des
+marques déposées de Sun Microsystems, Inc. aux États-Unis et
+dans d'autres pays.
 
-LA DOCUMENTATION EST FOURNIE "EN L'ETAT" ET TOUTES AUTRES CONDITIONS, 
-DÉCLARATIONS ET GARANTIES EXPRESSES OU TACITES SONT FORMELLEMENT EXCLUES 
-DANS LA MESURE AUTORISÉE PAR LA LOI APPLICABLE, Y COMPRIS NOTAMMENT TOUTE 
-GARANTIE IMPLICITE RELATIVE À LA QUALITÉ MARCHANDE, À L'APTITUDE À UNE 
-UTILISATION PARTICULIÈRE OU À L'ABSENCE DE CONTREFAÇON.
-
+Toutes les marques SPARC sont utilisées sous licence et sont des
+marques ou des marques déposées de SPARC International, Inc. aux
+États-Unis et dans d'autres pays. Les produits portant les marques
+SPARC reposent sur l'architecture développée par Sun
+Microsystems, Inc. UNIX est une marque déposée aux États-Unis
+et dans d'autres pays, concédée sous licence exclusivement par
+l'intermédiaire de X/Open Company, Ltd. Lucida est une marque
+déposée ou une marque de Bigelow & Holmes aux États-Unis et
+dans d'autres pays. GIF(sm) est une propriété de marque de
+service de CompuServe Incorporated.

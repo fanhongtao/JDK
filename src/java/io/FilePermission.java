@@ -1,4 +1,6 @@
 /*
+ * @(#)FilePermission.java	1.69 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -20,7 +22,7 @@ import java.util.StringTokenizer;
  * all the files and directories contained in that directory. A pathname
  * that ends with "/-" indicates (recursively) all files
  * and subdirectories contained in that directory. A pathname consisting of
- * the special token "&lt;&lt;ALL FILES&gt;&gt;" matches <bold>any</bold> file.
+ * the special token "&lt;&lt;ALL FILES&gt;&gt;" matches <b>any</b> file.
  * <P>
  * Note: A pathname consisting of a single "*" indicates all the files
  * in the current directory, while a pathname consisting of a single "-" 
@@ -60,7 +62,7 @@ import java.util.StringTokenizer;
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.68 02/02/06
+ * @version 1.69 01/12/03
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -631,7 +633,7 @@ public final class FilePermission extends Permission implements Serializable {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.68 02/06/02
+ * @version 1.69 12/03/01
  *
  * @author Marianne Mueller
  * @author Roland Schemers

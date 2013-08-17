@@ -1,4 +1,6 @@
 /*
+ * @(#)GlyphView.java	1.21 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -32,8 +34,10 @@ import javax.swing.event.*;
  * that does tab expansion.
  * <p>
  *
+ * @since 1.3
+ *
  * @author  Timothy Prinzing
- * @version 1.17 02/06/02
+ * @version 1.21 12/03/01
  */
 public class GlyphView extends View implements TabableView, Cloneable {
 
@@ -44,7 +48,6 @@ public class GlyphView extends View implements TabableView, Cloneable {
      */
     public GlyphView(Element elem) {
 	super(elem);
-	text = new Segment();
 	offset = 0;
 	length = 0;
     }
@@ -88,14 +91,18 @@ public class GlyphView extends View implements TabableView, Cloneable {
      * it should render glyphs for.
      */
      public Segment getText(int p0, int p1) {
-	try {
-	    Document doc = getDocument();
-	    doc.getText(p0, p1 - p0, text);
-	} catch (BadLocationException bl) {
-	    throw new StateInvariantError("GlyphView: Stale view: " + bl);
-	}
-	return text;
-    }
+         // When done with the returned Segment it should be released by
+         // invoking:
+         //    SegmentCache.releaseSharedSegment(segment);
+         Segment text = SegmentCache.getSharedSegment();
+         try {
+             Document doc = getDocument();
+             doc.getText(p0, p1 - p0, text);
+         } catch (BadLocationException bl) {
+             throw new StateInvariantError("GlyphView: Stale view: " + bl);
+         }
+         return text;
+     }
 
     /**
      * Fetch the background color to use to render the
@@ -401,6 +408,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
 		    p1 -= 1;
 		    s.count -= 1;
 		}
+                SegmentCache.releaseSharedSegment(s);
 	    }
 	    int x0 = alloc.x;
 	    int p = getStartOffset();
@@ -427,7 +435,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
      * axis. 
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns  the span the view would like to be rendered into >= 0.
+     * @return   the span the view would like to be rendered into >= 0.
      *           Typically the view is told to render into the span
      *           that is returned, although there is no guarantee.  
      *           The parent may choose to resize or break the view.
@@ -458,7 +466,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
      * along the x axis.
      *
      * @param axis may be either View.X_AXIS or View.Y_AXIS
-     * @returns the desired alignment.  This should be a value
+     * @return the desired alignment.  This should be a value
      *   between 0.0 and 1.0 inclusive, where 0 indicates alignment at the
      *   origin and 1.0 indicates alignment to the full span
      *   away from the origin.  An alignment of 0.5 would be the
@@ -508,6 +516,9 @@ public class GlyphView extends View implements TabableView, Cloneable {
      * @param x the X coordinate >= 0
      * @param y the Y coordinate >= 0
      * @param a the allocated region to render into
+     * @param biasReturn either <code>Position.Bias.Forward</code>
+     *  or <code>Position.Bias.Backward</code> is returned as the
+     *  zero-th element of this array
      * @return the location within the model that best represents the
      *  given point of view >= 0
      * @see View#viewToModel
@@ -644,9 +655,11 @@ public class GlyphView extends View implements TabableView, Cloneable {
         for (char ch = s.last(); ch != Segment.DONE; ch = s.previous()) {
             if (Character.isWhitespace(ch)) {
                 // found whitespace
+                SegmentCache.releaseSharedSegment(s);
                 return s.getIndex() - s.getBeginIndex() + 1 + p0;
             }
         }
+        SegmentCache.releaseSharedSegment(s);
         return -1;
     }
      
@@ -671,11 +684,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
             parent1 = parent.getEndOffset();
         }
         if (c != null) {
-            try {
-                breaker = BreakIterator.getLineInstance(c.getLocale());
-            } catch (IllegalComponentStateException icse) {
-                breaker = BreakIterator.getLineInstance();
-            }
+            breaker = BreakIterator.getLineInstance(c.getLocale());
         }
         else {
             breaker = BreakIterator.getLineInstance();
@@ -705,18 +714,21 @@ public class GlyphView extends View implements TabableView, Cloneable {
             breakPoint = breaker.preceding(p1 - parent0 + s.offset + 1);
         }
 
+        int retValue = -1;
+
         if (breakPoint != BreakIterator.DONE) {
             breakPoint = breakPoint - s.offset + parent0;
             if (breakPoint > p0) {
                 if (p0 == parent0 && breakPoint == p0) {
-                    return -1;
+                    retValue = -1;
                 }
-                if (breakPoint <= p1) {
-                    return breakPoint;
+                else if (breakPoint <= p1) {
+                    retValue = breakPoint;
                 }
             }
         }
-        return -1;
+        SegmentCache.releaseSharedSegment(s);
+        return retValue;
     }
 
     /**
@@ -736,8 +748,8 @@ public class GlyphView extends View implements TabableView, Cloneable {
      * @param p1 the ending offset > p0.  This should be a value
      *   less than or equal to the elements end offset and
      *   greater than the elements starting offset.
-     * @returns the view fragment, or itself if the view doesn't
-     *   support breaking into fragments.
+     * @return the view fragment, or itself if the view doesn't
+     *   support breaking into fragments
      * @see LabelView
      */
     public View createFragment(int p0, int p1) {
@@ -823,7 +835,6 @@ public class GlyphView extends View implements TabableView, Cloneable {
 
     // --- variables ------------------------------------------------
 
-    Segment text;
     short offset;
     short length;
 
@@ -857,6 +868,8 @@ public class GlyphView extends View implements TabableView, Cloneable {
      * duties independant of a particular version
      * of JVM and selection of capabilities (i.e.
      * shaping for i18n, etc).
+     *
+     * @since 1.3
      */
     public static abstract class GlyphPainter {
 
@@ -972,9 +985,28 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	    
 	    switch (direction) {
 	    case View.NORTH:
-		break;
 	    case View.SOUTH:
-		break;
+                if (pos != -1) {
+                    // Presumably pos is between startOffset and endOffset,
+                    // since GlyphView is only one line, we won't contain
+                    // the position to the nort/south, therefore return -1.
+                    return -1;
+                }
+                Container container = v.getContainer();
+
+                if (container instanceof JTextComponent) {
+                    Caret c = ((JTextComponent)container).getCaret();
+                    Point magicPoint;
+                    magicPoint = (c != null) ? c.getMagicCaretPosition() :null;
+
+                    if (magicPoint == null) {
+                        biasRet[0] = Position.Bias.Forward;
+                        return startOffset;
+                    }
+                    int value = v.viewToModel(magicPoint.x, 0f, a, biasRet);
+                    return value;
+                }
+                break;
 	    case View.EAST:
 		if(startOffset == v.getDocument().getLength()) {
 		    if(pos == -1) {
@@ -993,11 +1025,9 @@ public class GlyphView extends View implements TabableView, Cloneable {
 		    return -1;
 		}
 		if(++pos == endOffset) {
-		    text = v.getText(endOffset - 1, endOffset);
-		    if(text.array[text.offset] == '\n') {
-			return -1;
-		    }
-		    biasRet[0] = Position.Bias.Backward;
+                    // Assumed not used in bidi text, GlyphPainter2 will
+                    // override as necessary, therefore return -1.
+                    return -1;
 		}
 		else {
 		    biasRet[0] = Position.Bias.Forward;
@@ -1014,13 +1044,10 @@ public class GlyphView extends View implements TabableView, Cloneable {
 		    return -1;
 		}
 		if(pos == -1) {
-		    text = v.getText(endOffset - 1, endOffset);
-		    if(text.array[text.offset] == '\n') {
-			biasRet[0] = Position.Bias.Forward;
-			return endOffset - 1;
-		    }
-		    biasRet[0] = Position.Bias.Backward;
-		    return endOffset;
+                    // Assumed not used in bidi text, GlyphPainter2 will
+                    // override as necessary, therefore return -1.
+		    biasRet[0] = Position.Bias.Forward;
+		    return endOffset - 1;
 		}
 		if(pos == startOffset) {
 		    return -1;

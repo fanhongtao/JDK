@@ -1,4 +1,6 @@
 /*
+ * @(#)SocketPermission.java	1.50 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -21,7 +23,7 @@ import java.io.IOException;
  * host specification and a set of "actions" specifying ways to
  * connect to that host. The host is specified as
  * <pre>
- *    host = (hostname | IPaddress)[:portrange]
+ *    host = (hostname | IPv4address | iPv6reference) [:portrange]
  *    portrange = portnumber | -portnumber | portnumber-[portnumber]
  * </pre>
  * The host is expressed as a DNS name, as a numerical IP address,
@@ -29,6 +31,31 @@ import java.io.IOException;
  * The wildcard "*" may be included once in a DNS name host
  * specification. If it is included, it must be in the leftmost 
  * position, as in "*.sun.com".
+ * <p>
+ * The format of the IPv6reference should follow that specified in <a
+ * href="http://www.ietf.org/rfc/rfc2732.txt"><i>RFC&nbsp;2732: Format
+ * for Literal IPv6 Addresses in URLs</i></a>:
+ * <pre>
+ *    ipv6reference = "[" IPv6address "]"
+ *</pre>
+ * For example, you can construct a SocketPermission instance
+ * as the following:
+ * <pre>
+ *    String hostAddress = inetaddress.getHostAddress();
+ *    if (inetaddress instanceof Inet6Address) {
+ *        sp = new SocketPermission("[" + hostAddress + "]:" + port, action);
+ *    } else {
+ *        sp = new SocketPermission(hostAddress + ":" + port, action);
+ *    }
+ * </pre>
+ * or
+ * <pre>
+ *    String host = url.getHost();
+ *    sp = new SocketPermission(host + ":" + port, action);
+ * </pre>
+ * <p>
+ * The <A HREF="Inet6Address.html#lform">full uncompressed form</A> of
+ * an IPv6 literal address is also valid.
  * <p>
  * The port or portrange is optional. A port specification of the 
  * form "N-", where <i>N</i> is a port number, signifies all ports
@@ -75,7 +102,7 @@ import java.io.IOException;
  * @see java.security.Permissions
  * @see SocketPermission
  *
- * @version 1.38 02/02/06
+ * @version 1.50 01/12/03
  *
  * @author Marianne Mueller
  * @author Roland Schemers 
@@ -134,6 +161,9 @@ implements java.io.Serializable
     private String actions; // Left null as long as possible, then
                             // created and re-used in the getAction function.
 
+    // hostname part as it is passed
+    private transient String hostname;
+    
     // the canonical name of the host
     // in the case of "*.foo.com", cname is ".foo.com".
 
@@ -207,60 +237,39 @@ implements java.io.Serializable
 
     private static String getHost(String host)
     {
-	if (host.equals(""))
+	if (host.equals("")) {
 	    return "localhost";
-	else 
-	    return host;
-    }
-
-    private boolean isDottedIP(String host) 
-    {
-	char[] h = host.toCharArray();
-	int n = h.length - 1;
-	int components = 0;
-
-	if (n > -1 && h[0] == '.')
-	    return false;
-
-	while (n != -1) {
-	    char c0, c1, c2;
-	    c0 = h[n];
-	    if (n < 2) {
-		c2 = '.';
-		if (n == 1) {
-		    c1 = h[0];
-		} else {
-		    c1 = '.';
-		}
-		n = -1;
-	    } else {
-		c1 = h[n-1];
-		if (c1 == '.') {
-		    c2 = '.';
-		    n -= 2;
-		} else {
-		    c2 = h[n-2];
-		    if (c2 == '.') {
-			n -= 3;
+	} else { 
+	    /* IPv6 literal address used in this context should follow
+	     * the format specified in RFC 2732;
+	     * if not, we try to solve the unambiguous case
+	     */
+	    int ind;
+	    if (host.charAt(0) != '[') {
+		if ((ind = host.indexOf(':')) != host.lastIndexOf(':')) {
+		    /* More than one ":", meaning IPv6 address is not
+		     * in RFC 2732 format;
+		     * We will rectify user errors for all unambiguious cases
+		     */
+		    StringTokenizer st = new StringTokenizer(host, ":");
+		    int tokens = st.countTokens();
+		    if (tokens == 9) {
+			// IPv6 address followed by port
+			ind = host.lastIndexOf(':');
+			host = "[" + host.substring(0, ind) + "]" +
+			    host.substring(ind);
+		    } else if (tokens == 8 && host.indexOf("::") == -1) {
+			// IPv6 address only, not followed by port
+			host = "[" + host + "]";
 		    } else {
-			if ((n-3) != -1) {
-			    if (h[n-3] != '.')
-				return false;
-			    n -= 4;
-			} else
-			    n -= 3;
+			// could be ambiguous
+			throw new IllegalArgumentException("Ambiguous"+
+							   " hostport part");
 		    }
 		}
 	    }
-	    if (c0 < '0' || c0 > '9' ||
-		    (c1 < '0' && c1 != '.') || c1 > '9' ||
-		    (c2 < '0' && c2 != '.') || c2 > '2' ||
-		    (c2 == '2' && (c1 > '5' || (c1 == '5' && c0 > '5'))))
-		return false;
-	    components++;
+	    return host;
 	}
-
-	return (components == 4);
     }
 
     private int[] parsePort(String port) 
@@ -292,7 +301,7 @@ implements java.io.Serializable
 	    } else {
 		h = Integer.parseInt(high);
 	    }
-	    if (h<l) 
+	    if (l < 0 || h < 0 || h<l) 
 		throw new IllegalArgumentException("invalid port range");
 
 	    return new int[] {l, h};
@@ -308,7 +317,7 @@ implements java.io.Serializable
 
 	if (host == null) 
 		throw new NullPointerException("host can't be null");
-
+	
 	host = getHost(host);
 
 	// Set the integer mask that represents the actions
@@ -321,13 +330,38 @@ implements java.io.Serializable
 
 	// Parse the host name.  A name has up to three components, the
 	// hostname, a port number, or two numbers representing a port
-	// range.   "www.sun.com:8080-9090" is a valid host name.  
-
-	int sep = host.indexOf(':');
-
+	// range.   "www.sun.com:8080-9090" is a valid host name. 
+ 
+	// With IPv6 an address can be 2010:836B:4179::836B:4179 
+	// An IPv6 address needs to be enclose in [] 
+	// For ex: [2010:836B:4179::836B:4179]:8080-9090 
+	// Refer to RFC 2732 for more information. 
+	
+	int rb = 0 ;
+	int start = 0, end = 0;
+	int sep = -1;
+	String hostport = host;
+	if (host.charAt(0) == '[') {
+	    start = 1;
+	    rb = host.indexOf(']');
+	    if (rb != -1) {
+		host = host.substring(start, rb);
+	    } else {
+		throw new 
+		    IllegalArgumentException("invalid host/port: "+host);
+	    }
+	    sep = host.indexOf(':', rb+1);
+	} else {
+	    start = 0;
+	    sep = host.indexOf(':', rb);
+	    end = sep;
+	    if (sep != -1) {
+		host = host.substring(start, end);
+	    }
+	}
+	
 	if (sep != -1) {
-	    String port = host.substring(sep+1);
-	    host = host.substring(0, sep);
+	    String port = hostport.substring(sep+1);
 	    try {
 		portrange = parsePort(port);
 	    } catch (Exception e) {
@@ -338,9 +372,13 @@ implements java.io.Serializable
 	    portrange = new int[] { PORT_MIN, PORT_MAX };
 	}
 	    
-	// is this a domain wildcard specification
+	hostname = host;
 
-	if (host.startsWith("*")) {
+	// is this a domain wildcard specification
+	if (host.lastIndexOf('*') > 0) {
+	    throw new 
+	       IllegalArgumentException("invalid host wildcard specification");
+	} else if (host.startsWith("*")) {
 	    wildcard = true;
 	    if (host.equals("*")) {
 		cname = "";
@@ -352,15 +390,25 @@ implements java.io.Serializable
 	    }
 	    return;
 	} else {
-	    // see if we are being initialized with an IP address.
-	    if (isDottedIP(host)) {
-		try {
-		    addresses = 
-			new InetAddress[] {InetAddress.getByName(host) };
-		    init_with_ip = true;
-		} catch (UnknownHostException uhe) {
-		    // this shouldn't happen
-		    invalid = true;
+	    if (host.length() > 0) {
+	        // see if we are being initialized with an IP address.
+	        char ch = host.charAt(0);
+	        if (ch == ':' || Character.digit(ch, 16) != -1) {
+		    byte ip[] = Inet4Address.textToNumericFormat(host);
+		    if (ip == null) {
+		        ip = Inet6Address.textToNumericFormat(host);
+		    }
+		    if (ip != null) {
+		        try {
+			    addresses = 
+			        new InetAddress[]
+				{InetAddress.getByAddress(ip) };
+			    init_with_ip = true;
+		        } catch (UnknownHostException uhe) {
+			    // this shouldn't happen
+			    invalid = true;
+			}
+		    }
 		}
 	    }
 	}
@@ -526,11 +574,16 @@ implements java.io.Serializable
 	try { 
 	    // now get all the IP addresses
 	    String host;
-	    int i = getName().indexOf(":");
-	    if (i == -1)
-		host = getName();
-	    else {
-		host = getName().substring(0,i);
+	    if (getName().charAt(0) == '[') {
+		// Literal IPv6 address
+		host = getName().substring(1, getName().indexOf(']'));
+	    } else {
+		int i = getName().indexOf(":");
+		if (i == -1)
+		    host = getName();
+		else {
+		    host = getName().substring(0,i);
+		}
 	    }
 
 	    addresses = 
@@ -539,6 +592,9 @@ implements java.io.Serializable
 	} catch (UnknownHostException uhe) {
 	    invalid = true;
 	    throw uhe;
+	}  catch (IndexOutOfBoundsException iobe) {
+	    invalid = true;
+	    throw new UnknownHostException(getName());
 	}
     }
 
@@ -624,7 +680,7 @@ implements java.io.Serializable
 	}
 
 	// allow a "*" wildcard to always match anything
-	if (this.wildcard && this.getName().equals("*"))
+	if (this.wildcard && "".equals(this.cname))
 	    return true;
 
 	// return if either one of these NetPerm objects are invalid...
@@ -717,16 +773,8 @@ implements java.io.Serializable
 	// if we trust the proxy, we see if the original names/IPs passed
 	// in were equal.
 
-	String thisHost = getName();
-	String thatHost = that.getName();
-
-	int sep = thisHost.indexOf(':');
-	if (sep != -1)
-	    thisHost = thisHost.substring(0, sep);
-
-	sep = thatHost.indexOf(':');
-	if (sep != -1)
-	    thatHost = thatHost.substring(0, sep);
+	String thisHost = hostname;
+	String thatHost = that.hostname;
 
 	if (thisHost == null) 
 	    return false;
@@ -984,7 +1032,7 @@ else its the cname?
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.38 02/06/02
+ * @version 1.50 12/03/01
  *
  * @author Roland Schemers
  *
@@ -996,6 +1044,7 @@ implements Serializable
 {
     /**
      * The SocketPermissions for this set.
+     * @serial
      */
 
     private Vector permissions;

@@ -1,4 +1,6 @@
 /*
+ * @(#)Signature.java	1.89 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -88,7 +90,7 @@ import java.security.cert.X509Certificate;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.86, 02/06/02
+ * @version 1.89, 12/03/01
  */
 
 public abstract class Signature extends SignatureSpi {
@@ -164,7 +166,8 @@ public abstract class Signature extends SignatureSpi {
     public static Signature getInstance(String algorithm) 
     throws NoSuchAlgorithmException {
 	try {
-	    Object[] objs = Security.getImpl(algorithm, "Signature", null);
+	    Object[] objs = Security.getImpl(algorithm, "Signature", 
+					     (String)null);
 	    if (objs[0] instanceof Signature) {
 		Signature sig = (Signature)objs[0];
 		sig.provider = (Provider)objs[1];
@@ -200,7 +203,10 @@ public abstract class Signature extends SignatureSpi {
      * provider.
      *
      * @exception NoSuchProviderException if the provider is not
-     * available in the environment. 
+     * available in the environment.
+     *
+     * @exception IllegalArgumentException if the provider name is null
+     * or empty.
      * 
      * @see Provider 
      */
@@ -208,6 +214,51 @@ public abstract class Signature extends SignatureSpi {
 	throws NoSuchAlgorithmException, NoSuchProviderException
     {
 	if (provider == null || provider.length() == 0)
+	    throw new IllegalArgumentException("missing provider");
+	Object[] objs = Security.getImpl(algorithm, "Signature", provider);
+	if (objs[0] instanceof Signature) {
+	    Signature sig = (Signature)objs[0];
+	    sig.provider = (Provider)objs[1];
+	    return sig;
+	} else {
+	    Signature delegate =
+		new Delegate((SignatureSpi)objs[0], algorithm);
+	    delegate.provider = (Provider)objs[1];
+	    return delegate;
+	}
+    }
+
+    /** 
+     * Generates a Signature object implementing the specified
+     * algorithm, as supplied from the specified provider, if such an 
+     * algorithm is available from the provider. Note: the 
+     * <code>provider</code> doesn't have to be registered. 
+     *
+     * @param algorithm the name of the algorithm requested.
+     * See Appendix A in the <a href=
+     * "../../../guide/security/CryptoSpec.html#AppA">
+     * Java Cryptography Architecture API Specification &amp; Reference </a> 
+     * for information about standard algorithm names.
+     *
+     * @param provider the provider.
+     *
+     * @return the new Signature object.
+     *
+     * @exception NoSuchAlgorithmException if the algorithm is
+     * not available in the package supplied by the requested
+     * provider.
+     *
+     * @exception IllegalArgumentException if the <code>provider</code> is
+     * null.
+     * 
+     * @see Provider
+     *
+     * @since 1.4
+     */
+    public static Signature getInstance(String algorithm, Provider provider) 
+	throws NoSuchAlgorithmException
+    {
+	if (provider == null)
 	    throw new IllegalArgumentException("missing provider");
 	Object[] objs = Security.getImpl(algorithm, "Signature", provider);
 	if (objs[0] instanceof Signature) {
@@ -406,11 +457,51 @@ public abstract class Signature extends SignatureSpi {
      *
      * @exception SignatureException if this signature object is not 
      * initialized properly, or the passed-in signature is improperly 
-     * encoded or of the wrong type, etc.  
+     * encoded or of the wrong type, etc.
      */
     public final boolean verify(byte[] signature) throws SignatureException {
 	if (state == VERIFY) {
 	    return engineVerify(signature);
+	}
+	throw new SignatureException("object not initialized for " +
+				     "verification");
+    }
+
+    /**
+     * Verifies the passed-in signature in the specified array
+     * of bytes, starting at the specified offset.
+     * 
+     * <p>A call to this method resets this signature object to the state 
+     * it was in when previously initialized for verification via a
+     * call to <code>initVerify(PublicKey)</code>. That is, the object is 
+     * reset and available to verify another signature from the identity
+     * whose public key was specified in the call to <code>initVerify</code>.
+     *
+     *      
+     * @param signature the signature bytes to be verified.
+     * @param offset the offset to start from in the array of bytes.
+     * @param length the number of bytes to use, starting at offset.
+     *
+     * @return true if the signature was verified, false if not. 
+     *
+     * @exception SignatureException if this signature object is not 
+     * initialized properly, or the passed-in signature is improperly 
+     * encoded or of the wrong type, etc.
+     * @exception IllegalArgumentException if the <code>signature</code>
+     * byte array is null, or the <code>offset</code> or <code>length</code>
+     * is less than 0, or the sum of the <code>offset</code> and 
+     * <code>length</code> is greater than the length of the
+     * <code>signature</code> byte array.
+     */
+    public final boolean verify(byte[] signature, int offset, int length)
+	throws SignatureException {
+	if (state == VERIFY) {
+	    if ((signature == null) || (offset < 0) || (length < 0) ||
+		(offset + length > signature.length)) {
+		throw new IllegalArgumentException("Bad arguments");
+	    }
+
+	    return engineVerify(signature, offset, length);
 	}
 	throw new SignatureException("object not initialized for " +
 				     "verification");
@@ -518,6 +609,8 @@ public abstract class Signature extends SignatureSpi {
      * the parameter is already set
      * and cannot be set again, a security exception occurs, and so on.
      *
+     * @see #getParameter
+     *
      * @deprecated Use 
      * {@link #setParameter(java.security.spec.AlgorithmParameterSpec)
      * setParameter}.
@@ -534,11 +627,31 @@ public abstract class Signature extends SignatureSpi {
      *
      * @exception InvalidAlgorithmParameterException if the given parameters
      * are inappropriate for this signature engine
+     *
+     * @see #getParameters
      */
     public final void setParameter(AlgorithmParameterSpec params)
 	throws InvalidAlgorithmParameterException {
 	    engineSetParameter(params);
     }
+
+    /**
+     * Returns the parameters used with this signature object.
+     *
+     * <p>The returned parameters may be the same that were used to initialize
+     * this signature, or may contain a combination of default and randomly
+     * generated parameter values used by the underlying signature 
+     * implementation if this signature requires algorithm parameters but 
+     * was not initialized with any.
+     *
+     * @return the parameters used with this signature, or null if this
+     * signature does not use any parameters.
+     *
+     * @see #setParameter(AlgorithmParameterSpec)
+     */
+    public final AlgorithmParameters getParameters() {
+	return engineGetParameters();
+    }    
 
     /**
      * Gets the value of the specified algorithm parameter. This method 
@@ -558,6 +671,8 @@ public abstract class Signature extends SignatureSpi {
      * @exception InvalidParameterException if <code>param</code> is an invalid
      * parameter for this engine, or another exception occurs while
      * trying to get this parameter.
+     *
+     * @see #setParameter(String, Object)
      *
      * @deprecated
      */
@@ -680,6 +795,11 @@ public abstract class Signature extends SignatureSpi {
 		return sigSpi.engineVerify(sigBytes);
 	}
 
+	protected boolean engineVerify(byte[] sigBytes, int offset, int length)
+	    throws SignatureException {
+	    return sigSpi.engineVerify(sigBytes, offset, length);
+	}
+
 	protected void engineSetParameter(String param, Object value) 
 	    throws InvalidParameterException {
 		sigSpi.engineSetParameter(param, value);
@@ -693,6 +813,10 @@ public abstract class Signature extends SignatureSpi {
 	protected Object engineGetParameter(String param)
 	    throws InvalidParameterException {
 		return sigSpi.engineGetParameter(param);
+	}
+
+	protected AlgorithmParameters engineGetParameters() {
+	    return sigSpi.engineGetParameters();
 	}
     }
 }

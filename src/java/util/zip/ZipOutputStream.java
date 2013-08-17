@@ -1,5 +1,7 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)ZipOutputStream.java	1.24 01/12/03
+ *
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +19,7 @@ import java.util.Enumeration;
  * entries.
  *
  * @author	David Connelly
- * @version	1.25, 06/27/03
+ * @version	1.24, 12/03/01
  */
 public
 class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
@@ -66,8 +68,9 @@ class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
      *		  ZIP file comment is greater than 0xFFFF bytes
      */
     public void setComment(String comment) {
-        if (comment.length() > 0xffff) {
-	    throw new IllegalArgumentException("invalid ZIP file comment");
+        if (comment != null && comment.length() > 0xffff/3 
+                                           && getUTF8Length(comment) > 0xffff) {
+	    throw new IllegalArgumentException("ZIP file comment too long.");
 	}
 	this.comment = comment;
     }
@@ -155,10 +158,10 @@ class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
 	    throw new ZipException("unsupported compression method");
 	}
 	e.offset = written;
-	writeLOC(e);
 	if (names.put(e.name, e) != null) {
 	    throw new ZipException("duplicate entry: " + e.name);
 	}
+        writeLOC(e);
 	entries.addElement(e);
 	entry = e;
     }
@@ -242,7 +245,8 @@ class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
 	throws IOException
     {
 	ensureOpen();
-	if (off < 0 || len < 0 || off > b.length - len) {
+	if ((off < 0) || (off > b.length) || (len < 0) ||
+            ((off + len) > b.length) || ((off + len) < 0)) {
 	    throw new IndexOutOfBoundsException();
 	} else if (len == 0) {
 	    return;
@@ -433,6 +437,24 @@ class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
     private void writeBytes(byte[] b, int off, int len) throws IOException {
 	super.out.write(b, off, len);
 	written += len;
+    }
+
+    /*
+     * Returns the length of String's UTF8 encoding.
+     */
+    static int getUTF8Length(String s) {
+        int count = 0;
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i); 
+            if (ch <= 0x7f) {
+                count++;
+            } else if (ch <= 0x7ff) {
+                count += 2;
+            } else {
+                count += 3;
+            }
+        }
+        return count;
     }
 
     /*

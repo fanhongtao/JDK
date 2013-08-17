@@ -1,4 +1,6 @@
 /*
+ * @(#)DecimalFormatSymbols.java	1.35 01/12/03
+ *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -17,12 +19,15 @@
  */
 
 package java.text;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.util.ResourceBundle;
-import java.util.Locale;
+import java.util.Currency;
 import java.util.Hashtable;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import sun.text.resources.LocaleData;
 
 /**
  * This class represents the set of symbols (such as the decimal separator,
@@ -34,7 +39,7 @@ import java.util.Hashtable;
  *
  * @see          java.util.Locale
  * @see          DecimalFormat
- * @version      1.31, 02/06/02
+ * @version      1.35, 12/03/01
  * @author       Mark Davis
  * @author       Alan Liu
  */
@@ -50,6 +55,8 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
 
     /**
      * Create a DecimalFormatSymbols object for the given locale.
+     *
+     * @exception NullPointerException if <code>locale</code> is null
      */
     public DecimalFormatSymbols( Locale locale ) {
         initialize( locale );
@@ -63,7 +70,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Set the character used for zero. Different for Arabic, etc.
+     * Sets the character used for zero. Different for Arabic, etc.
      */
     public void setZeroDigit(char zeroDigit) {
         this.zeroDigit = zeroDigit;
@@ -77,7 +84,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Set the character used for thousands separator. Different for French, etc.
+     * Sets the character used for thousands separator. Different for French, etc.
      */
     public void setGroupingSeparator(char groupingSeparator) {
         this.groupingSeparator = groupingSeparator;
@@ -91,7 +98,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Set the character used for decimal sign. Different for French, etc.
+     * Sets the character used for decimal sign. Different for French, etc.
      */
     public void setDecimalSeparator(char decimalSeparator) {
         this.decimalSeparator = decimalSeparator;
@@ -105,7 +112,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Set the character used for mille percent sign. Different for Arabic, etc.
+     * Sets the character used for mille percent sign. Different for Arabic, etc.
      */
     public void setPerMill(char perMill) {
         this.perMill = perMill;
@@ -119,7 +126,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Set the character used for percent sign. Different for Arabic, etc.
+     * Sets the character used for percent sign. Different for Arabic, etc.
      */
     public void setPercent(char percent) {
         this.percent = percent;
@@ -133,7 +140,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Set the character used for a digit in a pattern.
+     * Sets the character used for a digit in a pattern.
      */
     public void setDigit(char digit) {
         this.digit = digit;
@@ -148,7 +155,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Set the character used to separate positive and negative subpatterns
+     * Sets the character used to separate positive and negative subpatterns
      * in a pattern.
      */
     public void setPatternSeparator(char patternSeparator) {
@@ -156,7 +163,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Gets the character used to represent infinity. Almost always left
+     * Gets the string used to represent infinity. Almost always left
      * unchanged.
      */
     public String getInfinity() {
@@ -164,7 +171,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Set the character used to represent infinity. Almost always left
+     * Sets the string used to represent infinity. Almost always left
      * unchanged.
      */
     public void setInfinity(String infinity) {
@@ -172,7 +179,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Gets the character used to represent NaN. Almost always left
+     * Gets the string used to represent "not a number". Almost always left
      * unchanged.
      */
     public String getNaN() {
@@ -180,7 +187,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Set the character used to represent NaN. Almost always left
+     * Sets the string used to represent "not a number". Almost always left
      * unchanged.
      */
     public void setNaN(String NaN) {
@@ -197,7 +204,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Set the character used to represent minus sign. If no explicit
+     * Sets the character used to represent minus sign. If no explicit
      * negative format is specified, one is formed by prefixing
      * minusSign to the positive format.
      */
@@ -206,7 +213,8 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Return the string denoting the local currency.
+     * Returns the currency symbol for the currency of these
+     * DecimalFormatSymbols in their locale.
      */
     public String getCurrencySymbol()
     {
@@ -214,7 +222,8 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Set the string denoting the local currency.
+     * Sets the currency symbol for the currency of these
+     * DecimalFormatSymbols in their locale.
      */
     public void setCurrencySymbol(String currency)
     {
@@ -222,7 +231,8 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Return the international string denoting the local currency.
+     * Returns the ISO 4217 currency code of the currency of these
+     * DecimalFormatSymbols.
      */
     public String getInternationalCurrencySymbol()
     {
@@ -230,15 +240,68 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Set the international string denoting the local currency.
+     * Sets the ISO 4217 currency code of the currency of these
+     * DecimalFormatSymbols.
+     * If the currency code is valid (as defined by
+     * {@link java.util.Currency#getInstance(java.lang.String) Currency.getInstance}),
+     * this also sets the currency attribute to the corresponding Currency
+     * instance and the currency symbol attribute to the currency's symbol
+     * in the DecimalFormatSymbols' locale. If the currency code is not valid,
+     * then the currency attribute is set to null and the currency symbol
+     * attribute is not modified.
+     *
+     * @see #setCurrency
+     * @see #setCurrencySymbol
      */
-    public void setInternationalCurrencySymbol(String currency)
+    public void setInternationalCurrencySymbol(String currencyCode)
     {
-        intlCurrencySymbol = currency;
+        intlCurrencySymbol = currencyCode;
+        currency = null;
+        if (currencyCode != null) {
+            try {
+                currency = Currency.getInstance(currencyCode);
+                currencySymbol = currency.getSymbol();
+            } catch (IllegalArgumentException e) {
+            }
+        }
     }
+    
+    /**
+     * Gets the currency of these DecimalFormatSymbols. May be null if the
+     * currency symbol attribute was previously set to a value that's not
+     * a valid ISO 4217 currency code.
+     *
+     * @return the currency used, or null
+     * @since 1.4
+     */
+    public Currency getCurrency() {
+        return currency;
+    }
+    
+    /**
+     * Sets the currency of these DecimalFormatSymbols.
+     * This also sets the currency symbol attribute to the currency's symbol
+     * in the DecimalFormatSymbols' locale, and the international currency
+     * symbol attribute to the currency's ISO 4217 currency code.
+     *
+     * @param currency the new currency to be used
+     * @exception NullPointerException if <code>currency</code> is null
+     * @since 1.4
+     * @see #setCurrencySymbol
+     * @see #setInternationalCurrencySymbol
+     */
+    public void setCurrency(Currency currency) {
+        if (currency == null) {
+            throw new NullPointerException();
+        }
+        this.currency = currency;
+        intlCurrencySymbol = currency.getCurrencyCode();
+        currencySymbol = currency.getSymbol(locale);
+    }
+    
 
     /**
-     * Return the monetary decimal separator.
+     * Returns the monetary decimal separator.
      */
     public char getMonetaryDecimalSeparator()
     {
@@ -246,7 +309,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Set the monetary decimal separator.
+     * Sets the monetary decimal separator.
      */
     public void setMonetaryDecimalSeparator(char sep)
     {
@@ -258,7 +321,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     //------------------------------------------------------------
 
     /**
-     * Return the character used to separate the mantissa from the exponent.
+     * Returns the character used to separate the mantissa from the exponent.
      */
     char getExponentialSymbol()
     {
@@ -266,7 +329,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Set the character used to separate the mantissa from the exponent.
+     * Sets the character used to separate the mantissa from the exponent.
      */
     void setExponentialSymbol(char exp)
     {
@@ -310,7 +373,9 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
         NaN.equals(other.NaN) &&
         currencySymbol.equals(other.currencySymbol) &&
         intlCurrencySymbol.equals(other.intlCurrencySymbol) &&
-        monetarySeparator == other.monetarySeparator);
+        currency == other.currency &&
+        monetarySeparator == other.monetarySeparator &&
+        locale.equals(other.locale));
     }
 
     /**
@@ -325,25 +390,23 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
 
     /**
      * Initializes the symbols from the LocaleElements resource bundle.
-     * Note: The organization of LocaleElements badly needs to be
-     * cleaned up.
      */
     private void initialize( Locale locale ) {
-        /* try the cache first */
-        String[][] data = (String[][]) cachedLocaleData.get(locale);
-        String[] numberElements;
-        String[] currencyElements;
+        this.locale = locale;
+
+        // get resource bundle data - try the cache first
+        boolean needCacheUpdate = false;
+        Object[] data = (Object[]) cachedLocaleData.get(locale);
         if (data == null) {  /* cache miss */
-            data = new String[2][];
-            ResourceBundle rb = ResourceBundle.getBundle
-            ("java.text.resources.LocaleElements", locale);
+            data = new Object[4];
+            ResourceBundle rb = LocaleData.getLocaleElements(locale);
             data[0] = rb.getStringArray("NumberElements");
-            data[1] = rb.getStringArray("CurrencyElements");
-            /* update cache */
-            cachedLocaleData.put(locale, data);
+            data[1] = rb.getString("Currency");
+            needCacheUpdate = true;
         }
-        numberElements = data[0];
-        currencyElements = data[1];
+
+        String[] numberElements = (String[]) data[0];;
+        String currencyCode = (String) data[1];
 
         decimalSeparator = numberElements[0].charAt(0);
         groupingSeparator = numberElements[1].charAt(0);
@@ -356,41 +419,81 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
         perMill = numberElements[8].charAt(0);
         infinity  = numberElements[9];
         NaN = numberElements[10];
-
-        currencySymbol = currencyElements[0];
-        intlCurrencySymbol = currencyElements[1];
-
-        // if the resource data specified the empty string as the monetary decimal
-        // separator, that means we should just use the regular separator as the
-        // monetary separator
-        if (currencyElements[2].length() == 0)
-            monetarySeparator = decimalSeparator;
-        else
-            monetarySeparator = currencyElements[2].charAt(0);
+        
+        try {
+            if (currencyCode != null && !currencyCode.equals("")) {
+                currency = Currency.getInstance(currencyCode);
+            } else {
+                currency = Currency.getInstance(locale);
+            }
+        } catch (IllegalArgumentException e) {
+            // use default values below for compatibility
+        }
+        if (currency != null) {
+            intlCurrencySymbol = currency.getCurrencyCode();
+            if (data[2] != null && data[2] == intlCurrencySymbol) {
+                currencySymbol = (String) data[3];
+            } else {
+                currencySymbol = currency.getSymbol(locale);
+                data[2] = intlCurrencySymbol;
+                data[3] = currencySymbol;
+                needCacheUpdate = true;
+            }
+        } else {
+            // default values
+            intlCurrencySymbol = "XXX";
+            try {
+                currency = Currency.getInstance(intlCurrencySymbol);
+            } catch (IllegalArgumentException e) {
+            }
+            currencySymbol = "\u00A4";
+        }
+        // Currently the monetary decimal separator is the same as the
+        // standard decimal separator for all locales that we support.
+        // If that changes, add a new entry to NumberElements.
+        monetarySeparator = decimalSeparator;
+        
+        if (needCacheUpdate) {
+            cachedLocaleData.put(locale, data);
+        }
     }
 
     /**
-     * Read the default serializable fields, then if <code>serialVersionOnStream</code>
-     * is less than 1, initialize <code>monetarySeparator</code> to be
+     * Reads the default serializable fields, provides default values for objects
+     * in older serial versions, and initializes non-serializable fields.
+     * If <code>serialVersionOnStream</code>
+     * is less than 1, initializes <code>monetarySeparator</code> to be
      * the same as <code>decimalSeparator</code> and <code>exponential</code>
      * to be 'E'.
-     * Finally, set serialVersionOnStream back to the maximum allowed value so that
+     * If <code>serialVersionOnStream</code> is less then 2,
+     * initializes <code>locale</code>to the root locale.
+     * Sets <code>serialVersionOnStream</code> back to the maximum allowed value so that
      * default serialization will work properly if this object is streamed out again.
+     * Initializes the currency from the intlCurrencySymbol field.
      *
      * @since JDK 1.1.6
      */
     private void readObject(ObjectInputStream stream)
-     throws IOException, ClassNotFoundException
-    {
-    stream.defaultReadObject();
-    if (serialVersionOnStream < 1)
-    {
-        // Didn't have monetarySeparator or exponential field;
-        // use defaults.
-        monetarySeparator = decimalSeparator;
-        exponential       = 'E';
-    }
-    serialVersionOnStream = currentSerialVersion;
+            throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        if (serialVersionOnStream < 1) {
+            // Didn't have monetarySeparator or exponential field;
+            // use defaults.
+            monetarySeparator = decimalSeparator;
+            exponential       = 'E';
+        }
+        if (serialVersionOnStream < 2) {
+            // didn't have locale; use root locale
+            locale = new Locale("");
+        }
+        serialVersionOnStream = currentSerialVersion;
+
+        if (intlCurrencySymbol != null) {
+            try {
+                 currency = Currency.getInstance(intlCurrencySymbol);
+            } catch (IllegalArgumentException e) {
+            }
+        }
     }
 
     /**
@@ -450,14 +553,14 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     private  char    patternSeparator;
 
     /**
-     * Character used to represent infinity.
+     * String used to represent infinity.
      * @serial
      * @see #getInfinity
      */
     private  String  infinity;
 
     /**
-     * Character used to represent NaN.
+     * String used to represent "not a number".
      * @serial
      * @see #getNaN
      */
@@ -478,7 +581,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     private  String  currencySymbol;
 
     /**
-     * International string denoting the local currency, e.g. "USD".
+     * ISO 4217 currency code denoting the local currency, e.g. "USD".
      * @serial
      * @see #getInternationalCurrencySymbol
      */
@@ -504,6 +607,17 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
      * @since JDK 1.1.6
      */
     private  char    exponential;       // Field new in JDK 1.1.6
+    
+    /**
+     * The locale of these currency format symbols.
+     *
+     * @serial
+     * @since 1.4
+     */
+    private Locale locale;
+    
+    // currency; only the ISO code is serialized.
+    private transient Currency currency;
 
     // Proclaim JDK 1.1 FCS compatibility
     static final long serialVersionUID = 5772796243397350300L;
@@ -512,7 +626,8 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     // - 0 (default) for version up to JDK 1.1.5
     // - 1 for version from JDK 1.1.6, which includes two new fields:
     //     monetarySeparator and exponential.
-    private static final int currentSerialVersion = 1;
+    // - 2 for version from J2SE 1.4, which includes locale field.
+    private static final int currentSerialVersion = 2;
     
     /**
      * Describes the version of <code>DecimalFormatSymbols</code> present on the stream.
@@ -520,8 +635,10 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
      * <ul>
      * <li><b>0</b> (or uninitialized): versions prior to JDK 1.1.6.
      *
-     * <li><b>1</b>: Versions written by JDK 1.1.6 or later, which includes
+     * <li><b>1</b>: Versions written by JDK 1.1.6 or later, which include
      *      two new fields: <code>monetarySeparator</code> and <code>exponential</code>.
+     * <li><b>2</b>: Versions written by J2SE 1.4 or later, which include a
+     *      new <code>locale</code> field.
      * </ul>
      * When streaming out a <code>DecimalFormatSymbols</code>, the most recent format
      * (corresponding to the highest allowable <code>serialVersionOnStream</code>)
@@ -533,7 +650,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     private int serialVersionOnStream = currentSerialVersion;
 
     /**
-     * cache to hold the NumberElements and the CurrencyElements
+     * cache to hold the NumberElements and the Currency
      * of a Locale.
      */
     private static final Hashtable cachedLocaleData = new Hashtable(3);
